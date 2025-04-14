@@ -47,10 +47,22 @@ export async function getRecentBooks(limit = 10, offset = 0): Promise<Book[]> {
     }
 
     // Transform the data to include the image URL
-    return data.map((book) => ({
-      ...book,
-      cover_image_url: book.cover_image?.url || book.original_image_url || null,
-    })) as Book[]
+    return data.map((book) => {
+      // Safely determine the cover image URL
+      let coverImageUrl = null
+      if (book.cover_image?.url) {
+        coverImageUrl = book.cover_image.url
+      } else if (book.cover_image_url) {
+        coverImageUrl = book.cover_image_url
+      } else if (book.original_image_url) {
+        coverImageUrl = book.original_image_url
+      }
+
+      return {
+        ...book,
+        cover_image_url: coverImageUrl,
+      }
+    }) as Book[]
   } catch (error) {
     console.error("Error fetching books:", error)
     return []

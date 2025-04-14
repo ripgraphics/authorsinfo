@@ -188,17 +188,29 @@ async function BooksList({
   }
 
   // Process books to include cover image URL
-  const processedBooks = books.map((book) => ({
-    ...book,
-    cover_image_url: book.cover_image?.url || book.original_image_url || null,
-    publication_year: book[dateField]
-      ? typeof book[dateField] === "number" || /^\d{4}$/.test(book[dateField])
-        ? String(book[dateField])
-        : String(book[dateField]).match(/(\d{4})/)
-          ? String(book[dateField]).match(/(\d{4})/)[1]
-          : null
-      : null,
-  }))
+  const processedBooks = books.map((book) => {
+    // Safely determine the cover image URL
+    let coverImageUrl = null
+    if (book.cover_image?.url) {
+      coverImageUrl = book.cover_image.url
+    } else if (book.cover_image_url) {
+      coverImageUrl = book.cover_image_url
+    } else if (book.original_image_url) {
+      coverImageUrl = book.original_image_url
+    }
+
+    return {
+      ...book,
+      cover_image_url: coverImageUrl,
+      publication_year: book[dateField]
+        ? typeof book[dateField] === "number" || /^\d{4}$/.test(book[dateField])
+          ? String(book[dateField])
+          : String(book[dateField]).match(/(\d{4})/)
+            ? String(book[dateField]).match(/(\d{4})/)[1]
+            : null
+        : null,
+    }
+  })
 
   // Get total count for pagination
   let countQuery = supabaseAdmin.from("books").select("*", { count: "exact", head: true })

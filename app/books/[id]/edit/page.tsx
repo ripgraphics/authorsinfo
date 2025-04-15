@@ -45,30 +45,8 @@ export default function EditBookPage({ params }: EditBookPageProps) {
   const [hasMoreAuthors, setHasMoreAuthors] = useState(true)
   const [hasMorePublishers, setHasMorePublishers] = useState(true)
   const isMounted = useRef(true)
-  const [bindingOptions, setBindingOptions] = useState<{ value: string; label: string }[]>([
-    { value: "Paperback", label: "Paperback" },
-    { value: "Hardcover", label: "Hardcover" },
-    { value: "eBook", label: "eBook" },
-    { value: "Audiobook", label: "Audiobook" },
-    { value: "Board Book", label: "Board Book" },
-    { value: "Spiral-bound", label: "Spiral-bound" },
-    { value: "Leather Bound", label: "Leather Bound" },
-    { value: "Library Binding", label: "Library Binding" },
-    { value: "Mass Market Paperback", label: "Mass Market Paperback" },
-    { value: "Kindle", label: "Kindle" },
-  ])
-  const [formatOptions, setFormatOptions] = useState<{ value: string; label: string }[]>([
-    { value: "Print", label: "Print" },
-    { value: "Digital", label: "Digital" },
-    { value: "Audio", label: "Audio" },
-    { value: "Large Print", label: "Large Print" },
-    { value: "Braille", label: "Braille" },
-    { value: "PDF", label: "PDF" },
-    { value: "EPUB", label: "EPUB" },
-    { value: "MOBI", label: "MOBI" },
-    { value: "MP3", label: "MP3" },
-    { value: "CD", label: "CD" },
-  ])
+  const [bindingOptions, setBindingOptions] = useState<{ value: string; label: string }[]>([])
+  const [formatOptions, setFormatOptions] = useState<{ value: string; label: string }[]>([])
   const [selectedBindings, setSelectedBindings] = useState<string[]>([])
   const [selectedFormats, setSelectedFormats] = useState<string[]>([])
 
@@ -90,7 +68,9 @@ export default function EditBookPage({ params }: EditBookPageProps) {
           .from("books")
           .select(`
             *,
-            cover_image:images(id, url, alt_text, img_type_id)
+            cover_image:images(id, url, alt_text, img_type_id),
+            binding_type:binding_types(id, name),
+            format_type:format_types(id, name)
           `)
           .eq("id", params.id)
           .single()
@@ -160,12 +140,12 @@ export default function EditBookPage({ params }: EditBookPageProps) {
         }
 
         // Set initial binding and format if available
-        if (bookData.binding) {
-          setSelectedBindings([bookData.binding])
+        if (bookData.binding_type_id) {
+          setSelectedBindings([bookData.binding_type_id.toString()])
         }
 
-        if (bookData.format) {
-          setSelectedFormats([bookData.format])
+        if (bookData.format_type_id) {
+          setSelectedFormats([bookData.format_type_id.toString()])
         }
       } catch (error) {
         console.error("Error in fetchBookData:", error)
@@ -183,6 +163,51 @@ export default function EditBookPage({ params }: EditBookPageProps) {
     loadAuthors()
     loadPublishers()
   }, [params.id])
+
+  // Add this useEffect after the existing useEffects
+  useEffect(() => {
+    async function fetchBindingAndFormatTypes() {
+      try {
+        // Fetch binding types
+        const { data: bindingTypes, error: bindingError } = await supabaseClient
+          .from("binding_types")
+          .select("id, name")
+          .order("name")
+
+        if (bindingError) {
+          console.error("Error fetching binding types:", bindingError)
+        } else if (bindingTypes) {
+          setBindingOptions(
+            bindingTypes.map((type) => ({
+              value: type.id.toString(),
+              label: type.name,
+            })),
+          )
+        }
+
+        // Fetch format types
+        const { data: formatTypes, error: formatError } = await supabaseClient
+          .from("format_types")
+          .select("id, name")
+          .order("name")
+
+        if (formatError) {
+          console.error("Error fetching format types:", formatError)
+        } else if (formatTypes) {
+          setFormatOptions(
+            formatTypes.map((type) => ({
+              value: type.id.toString(),
+              label: type.name,
+            })),
+          )
+        }
+      } catch (error) {
+        console.error("Error fetching binding and format types:", error)
+      }
+    }
+
+    fetchBindingAndFormatTypes()
+  }, [])
 
   // Load authors with pagination and search
   const loadAuthors = useCallback(async (searchTerm = "", startIndex = 0, limit = 50) => {
@@ -340,7 +365,6 @@ export default function EditBookPage({ params }: EditBookPageProps) {
       if (coverImage) {
         try {
           // Convert the file to base64
-          const reader = new FileReader()
           const base64Promise = new Promise<string>((resolve) => {
             const reader = new FileReader()
             reader.onloadend = () => {
@@ -409,21 +433,20 @@ export default function EditBookPage({ params }: EditBookPageProps) {
         author_id: selectedAuthorIds[0] || null, // Primary author
         publisher_id: selectedPublisherIds[0] || null, // Primary publisher
         publication_date: formData.get("publication_date") as string,
-        binding: selectedBindings[0] || null,
+        binding_type_id: selectedBindings.length > 0 ? Number.parseInt(selectedBindings[0]) : null,
         pages: parseNumericField(formData.get("pages")),
         list_price: parseNumericField(formData.get("list_price")),
         language: formData.get("language") as string,
         edition: formData.get("edition") as string,
-        format: selectedFormats[0] || null,
+        format_type_id: selectedFormats.length > 0 ? Number.parseInt(selectedFormats[0]) : null,
         synopsis: formData.get("synopsis") as string,
         overview: formData.get("overview") as string,
         dimensions: formData.get("dimensions") as string,
         weight: formData.get("weight") as string,
-        average_rating: parseNumericField(formData.get("average_rating")),
-        review_count: parseNumericField(formData.get("review_count")),
         featured: formData.get("featured") === "on" ? "true" : "false",
         cover_image_url: newCoverImageUrl,
         cover_image_id: newCoverImageId,
+        // We're not updating average_rating and review_count as they should be read-only
       }
 
       // Handle book_gallery_img separately - it might be an array in the database
@@ -441,6 +464,8 @@ export default function EditBookPage({ params }: EditBookPageProps) {
         updateData.book_gallery_img = null
       }
 
+      console.log("Updating book with data:", updateData)
+
       // Update the book
       const { error: updateError } = await supabaseClient.from("books").update(updateData).eq("id", params.id)
 
@@ -456,10 +481,10 @@ export default function EditBookPage({ params }: EditBookPageProps) {
       // Redirect back to the book page after a short delay
       setTimeout(() => {
         router.push(`/books/${params.id}`)
-      }, 1500)
+      }, 2000) // Increased from 1500 to 2000ms to ensure the message is seen
     } catch (error: any) {
       console.error("Error in handleSubmit:", error)
-      setError("An unexpected error occurred while saving. Please try again.")
+      setError(`An unexpected error occurred while saving: ${error.message}`)
     } finally {
       setSaving(false)
     }
@@ -643,7 +668,7 @@ export default function EditBookPage({ params }: EditBookPageProps) {
                             placeholder="Select binding type..."
                             emptyMessage="No binding types found."
                           />
-                          <input type="hidden" name="binding" value={selectedBindings[0] || ""} />
+                          <input type="hidden" name="binding_type_id" value={selectedBindings[0] || ""} />
                         </div>
                         <div>
                           <Label htmlFor="format">Format</Label>
@@ -654,7 +679,7 @@ export default function EditBookPage({ params }: EditBookPageProps) {
                             placeholder="Select format..."
                             emptyMessage="No formats found."
                           />
-                          <input type="hidden" name="format" value={selectedFormats[0] || ""} />
+                          <input type="hidden" name="format_type_id" value={selectedFormats[0] || ""} />
                         </div>
                       </div>
 
@@ -715,25 +740,29 @@ export default function EditBookPage({ params }: EditBookPageProps) {
                         </p>
                       </div>
 
-                      {/* Ratings */}
+                      {/* Ratings - Read Only */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <Label htmlFor="average_rating">Average Rating</Label>
+                          <Label htmlFor="average_rating">Average Rating (Read Only)</Label>
                           <Input
                             id="average_rating"
                             name="average_rating"
                             type="number"
                             step="0.01"
                             defaultValue={book.average_rating?.toString() || "0.00"}
+                            disabled
+                            className="bg-gray-100"
                           />
                         </div>
                         <div>
-                          <Label htmlFor="review_count">Review Count</Label>
+                          <Label htmlFor="review_count">Review Count (Read Only)</Label>
                           <Input
                             id="review_count"
                             name="review_count"
                             type="number"
                             defaultValue={book.review_count?.toString() || "0"}
+                            disabled
+                            className="bg-gray-100"
                           />
                         </div>
                       </div>

@@ -29,6 +29,7 @@ import {
 } from "lucide-react"
 import { AboutAuthor } from "@/components/about-author"
 import { AuthorHoverCard } from "@/components/author-hover-card"
+import { supabaseAdmin } from "@/lib/supabase"
 
 interface BookPageProps {
   params: {
@@ -93,6 +94,33 @@ function getAuthorImageUrl(author: Author): string {
   return "/placeholder.svg"
 }
 
+// Function to get binding and format types
+async function getBookFormatAndBinding(bookId: string) {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from("books")
+      .select(`
+        binding_type:binding_type_id(id, name, description),
+        format_type:format_type_id(id, name, description)
+      `)
+      .eq("id", bookId)
+      .single()
+
+    if (error) {
+      console.error("Error fetching book format and binding:", error)
+      return { bindingType: null, formatType: null }
+    }
+
+    return {
+      bindingType: data.binding_type,
+      formatType: data.format_type,
+    }
+  } catch (error) {
+    console.error("Error in getBookFormatAndBinding:", error)
+    return { bindingType: null, formatType: null }
+  }
+}
+
 export default async function BookPage({ params }: BookPageProps) {
   // Special case: if id is "add", redirect to the add page
   if (params.id === "add") {
@@ -134,6 +162,9 @@ export default async function BookPage({ params }: BookPageProps) {
       console.error("Error fetching reviews:", error)
       // Continue with empty reviews array
     }
+
+    // Fetch binding and format types
+    const { bindingType, formatType } = await getBookFormatAndBinding(params.id)
 
     return (
       <div className="book-page min-h-screen flex flex-col bg-gray-100">
@@ -392,12 +423,12 @@ export default async function BookPage({ params }: BookPageProps) {
                         </div>
                       )}
 
-                      {book.binding && (
+                      {(bindingType || book.binding) && (
                         <div className="book-detail-item">
                           <h3 className="font-medium">Binding</h3>
                           <p className="text-muted-foreground flex items-center">
                             <BookText className="h-4 w-4 mr-2" />
-                            {book.binding}
+                            {bindingType?.name || book.binding}
                           </p>
                         </div>
                       )}
@@ -476,10 +507,10 @@ export default async function BookPage({ params }: BookPageProps) {
                           </div>
                         )}
 
-                      {book.format && (
+                      {(formatType || book.format) && (
                         <div className="book-detail-item">
                           <h3 className="font-medium">Format</h3>
-                          <p className="text-muted-foreground">{book.format}</p>
+                          <p className="text-muted-foreground">{formatType?.name || book.format}</p>
                         </div>
                       )}
 

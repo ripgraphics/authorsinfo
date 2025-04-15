@@ -1,24 +1,32 @@
-import { createClient } from "@supabase/supabase-js"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import type { Database } from "@/types/database"
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+// Create a singleton instance of the Supabase client
+let supabaseClientInstance: ReturnType<typeof createClientComponentClient<Database>> | null = null
 
-// Create a Supabase client for use on the client-side
-// Add timeout options to prevent hanging connections
-export const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    storageKey: "authors-info-auth",
-  },
-  global: {
-    fetch: (url, options) => {
-      const controller = new AbortController()
-      const { signal } = controller
+export function getSupabaseClient() {
+  if (!supabaseClientInstance) {
+    supabaseClientInstance = createClientComponentClient<Database>({
+      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      options: {
+        auth: {
+          persistSession: true,
+          storageKey: "authors-info-auth",
+        },
+        global: {
+          fetch: (url, options) => {
+            const controller = new AbortController()
+            const { signal } = controller
+            const timeoutId = setTimeout(() => controller.abort(), 15000)
+            return fetch(url, { ...options, signal }).finally(() => clearTimeout(timeoutId))
+          },
+        },
+      },
+    })
+  }
+  return supabaseClientInstance
+}
 
-      // Increase timeout from 5 to 15 seconds
-      const timeoutId = setTimeout(() => controller.abort(), 15000)
-
-      return fetch(url, { ...options, signal }).finally(() => clearTimeout(timeoutId))
-    },
-  },
-})
+// Export the singleton instance
+export const supabaseClient = getSupabaseClient()

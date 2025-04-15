@@ -43,6 +43,14 @@ export interface Book {
     alt_text?: string
     img_type_id?: number
   }
+  binding?: string
+  isbn10?: string
+  pages?: number
+  list_price?: number
+  overview?: string
+  dimensions?: string
+  weight?: string
+  publication_date?: string
 }
 
 export interface Author {
@@ -117,6 +125,9 @@ export interface Publisher {
     alt_text?: string
     img_type_id?: number
   }
+  country_id?: number
+  country_details?: Country
+  logo_url?: string
 }
 
 export interface Review {
@@ -189,4 +200,32 @@ export interface Like {
   review_id?: string
   comment_id?: string
   created_at?: string
+}
+
+export interface Country {
+  id: number
+  code: string
+  name: string
+}
+
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
+
+export interface Database {
+  public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
 }

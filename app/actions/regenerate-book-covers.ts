@@ -27,40 +27,97 @@ export async function getBookCoverRegenerationCandidates(
 
     // Option to filter books with problematic covers
     if (filterEmptyCovers) {
-      const conditions = []
+      // Instead of using a complex OR clause, we'll use separate queries for each problem type
+      // and combine the results in JavaScript
+      const bookIds = new Set<string>()
 
-      if (problemTypes.includes("empty")) {
-        // Handle empty curly braces in images table
-        conditions.push("images.url.eq.{}")
+      // Process each problem type separately
+      for (const problemType of problemTypes) {
+        const problemQuery = supabaseAdmin.from("books").select("id").not("original_image_url", "is", null)
+
+        if (problemType === "empty") {
+          // Handle empty curly braces in images table
+          const { data } = await supabaseAdmin
+            .from("books")
+            .select("id, images:cover_image_id!inner(url)")
+            .not("original_image_url", "is", null)
+            .eq("images.url", "{}")
+
+          if (data) {
+            data.forEach((book) => bookIds.add(book.id))
+          }
+        } else if (problemType === "null") {
+          // Handle NULL url in images table
+          const { data } = await supabaseAdmin
+            .from("books")
+            .select("id, images:cover_image_id!inner(url)")
+            .not("original_image_url", "is", null)
+            .is("images.url", null)
+
+          if (data) {
+            data.forEach((book) => bookIds.add(book.id))
+          }
+        } else if (problemType === "broken") {
+          // Handle broken Cloudinary URLs with fetch: in them
+          const { data } = await supabaseAdmin
+            .from("books")
+            .select("id, images:cover_image_id!inner(url)")
+            .not("original_image_url", "is", null)
+            .ilike("images.url", "%fetch:%")
+
+          if (data) {
+            data.forEach((book) => bookIds.add(book.id))
+          }
+        } else if (problemType === "null_id") {
+          // Handle NULL cover_image_id
+          const { data } = await supabaseAdmin
+            .from("books")
+            .select("id")
+            .not("original_image_url", "is", null)
+            .is("cover_image_id", null)
+
+          if (data) {
+            data.forEach((book) => bookIds.add(book.id))
+          }
+        }
       }
 
-      if (problemTypes.includes("null")) {
-        // Handle NULL url in images table
-        conditions.push("images.url.is.null")
+      // If we have book IDs to process, filter the main query
+      if (bookIds.size > 0) {
+        // Convert Set to Array
+        const idsArray = Array.from(bookIds)
+
+        // If we have a last processed ID, filter out books we've already processed
+        if (lastProcessedId) {
+          const filteredIds = idsArray.filter((id) => id > lastProcessedId)
+
+          // Sort and limit to batch size
+          const batchIds = filteredIds.sort().slice(0, batchSize)
+
+          if (batchIds.length > 0) {
+            query = query.in("id", batchIds)
+          } else {
+            // No more books to process
+            return { books: [], total: 0 }
+          }
+        } else {
+          // Sort and limit to batch size
+          const batchIds = idsArray.sort().slice(0, batchSize)
+          query = query.in("id", batchIds)
+        }
+      } else {
+        // No books match the problem types
+        return { books: [], total: 0 }
+      }
+    } else {
+      // If we're not filtering for problematic covers, just paginate by ID
+      if (lastProcessedId) {
+        query = query.gt("id", lastProcessedId)
       }
 
-      if (problemTypes.includes("broken")) {
-        // Handle broken Cloudinary URLs with fetch: in them
-        conditions.push("images.url.ilike.%fetch:%")
-      }
-
-      if (problemTypes.includes("null_id")) {
-        // Handle NULL cover_image_id
-        conditions.push("cover_image_id.is.null")
-      }
-
-      if (conditions.length > 0) {
-        query = query.or(conditions.join(","))
-      }
+      // Order by ID to ensure consistent pagination
+      query = query.order("id").limit(batchSize)
     }
-
-    // If we have a last processed ID, start after that one
-    if (lastProcessedId) {
-      query = query.gt("id", lastProcessedId)
-    }
-
-    // Order by ID to ensure consistent pagination
-    query = query.order("id").limit(batchSize)
 
     const { data, error } = await query
 
@@ -70,17 +127,27 @@ export async function getBookCoverRegenerationCandidates(
     }
 
     // Get total count for progress tracking
-    const { count, error: countError } = await supabaseAdmin
-      .from("books")
-      .select("id", { count: "exact", head: true })
-      .not("original_image_url", "is", null)
+    let total = 0
 
-    if (countError) {
-      console.error("Error counting books for regeneration:", countError)
-      return { books: data, total: data.length }
+    if (filterEmptyCovers) {
+      // Use the alternative method to count problematic books
+      total = await getTotalBooksWithProblematicCoversAlt()
+    } else {
+      // Count all books with original images
+      const { count, error: countError } = await supabaseAdmin
+        .from("books")
+        .select("id", { count: "exact", head: true })
+        .not("original_image_url", "is", null)
+
+      if (countError) {
+        console.error("Error counting books for regeneration:", countError)
+        total = data.length
+      } else {
+        total = count || 0
+      }
     }
 
-    return { books: data, total: count || 0 }
+    return { books: data, total }
   } catch (error) {
     console.error("Error in getBookCoverRegenerationCandidates:", error)
     return { books: [], total: 0 }
@@ -115,6 +182,26 @@ export async function regenerateBookCovers(
 
     if (!books.length) {
       return progress
+    }
+
+    // First, check the structure of the images table to determine field names
+    let imageTableFields: Record<string, boolean> = {}
+    try {
+      const { data: tableInfo, error: tableError } = await supabaseAdmin.from("images").select("*").limit(1)
+
+      if (!tableError && tableInfo && tableInfo.length > 0) {
+        // Create a map of field names that exist in the table
+        imageTableFields = Object.keys(tableInfo[0]).reduce(
+          (acc, key) => {
+            acc[key] = true
+            return acc
+          },
+          {} as Record<string, boolean>,
+        )
+      }
+    } catch (error) {
+      console.error("Error checking images table structure:", error)
+      // Continue with default assumptions if we can't check the table
     }
 
     // Process each book in the batch
@@ -186,13 +273,27 @@ export async function regenerateBookCovers(
             // Continue even if this update fails
           }
         } else {
-          // Create a new image record and link it to the book
+          // Create a new image record with the correct fields based on table structure
+          const imageInsert: Record<string, any> = {
+            url: uploadResult.url,
+          }
+
+          // Add the appropriate type field based on what exists in the table
+          if (imageTableFields.img_type_id) {
+            imageInsert.img_type_id = 1 // Assuming 1 is for book covers
+          } else if (imageTableFields.type) {
+            imageInsert.type = "book_cover"
+          }
+
+          // Add alt text if the field exists
+          if (imageTableFields.alt_text) {
+            imageInsert.alt_text = `Book cover for: ${book.title}`
+          }
+
+          // Create a new image record
           const { data: newImage, error: newImageError } = await supabaseAdmin
             .from("images")
-            .insert({
-              url: uploadResult.url,
-              type: "book_cover",
-            })
+            .insert(imageInsert)
             .select("id")
             .single()
 

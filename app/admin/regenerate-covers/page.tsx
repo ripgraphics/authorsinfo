@@ -17,7 +17,7 @@ import {
   getProblematicCoverStats,
   getTotalBooksWithProblematicCoversAlt,
 } from "@/app/actions/regenerate-book-covers"
-import { AlertCircle, CheckCircle2, XCircle, Pause, Play, RotateCw } from "lucide-react"
+import { AlertCircle, CheckCircle2, XCircle, Pause, Play, RotateCw, Clock } from "lucide-react"
 
 export default function RegenerateCoversPage() {
   const [batchSize, setBatchSize] = useState(10)
@@ -27,6 +27,8 @@ export default function RegenerateCoversPage() {
   const [problemTypes, setProblemTypes] = useState<string[]>(["empty", "broken", "null_id", "null"])
   const [isProcessing, setIsProcessing] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
+  const [isComplete, setIsComplete] = useState(false)
+  const [nextBatchCountdown, setNextBatchCountdown] = useState(0)
   const [progress, setProgress] = useState({
     processed: 0,
     total: 0,
@@ -45,47 +47,85 @@ export default function RegenerateCoversPage() {
     nullId: 0,
   })
   const timerRef = useRef<NodeJS.Timeout | null>(null)
+  const countdownRef = useRef<NodeJS.Timeout | null>(null)
 
   // Fetch initial stats
   useEffect(() => {
-    async function fetchStats() {
-      try {
-        const totalWithOriginalImages = await getTotalBooksWithOriginalImages()
-        const totalWithProblematicCovers = await getTotalBooksWithProblematicCoversAlt() // Use the alt method directly
-        const problemStats = await getProblematicCoverStats()
-
-        setStats({
-          totalWithOriginalImages,
-          totalWithProblematicCovers,
-          ...problemStats,
-        })
-      } catch (error) {
-        console.error("Error fetching stats:", error)
-        // Set default values if there's an error
-        setStats({
-          totalWithOriginalImages: 0,
-          totalWithProblematicCovers: 0,
-          emptyBraces: 0,
-          nullUrl: 0,
-          brokenUrl: 0,
-          nullId: 0,
-        })
-      }
-    }
     fetchStats()
   }, [])
 
-  // Handle auto-continue timer
+  // Function to fetch stats that can be called after each batch
+  const fetchStats = async () => {
+    try {
+      const totalWithOriginalImages = await getTotalBooksWithOriginalImages()
+      const totalWithProblematicCovers = await getTotalBooksWithProblematicCoversAlt()
+      const problemStats = await getProblematicCoverStats()
+
+      setStats({
+        totalWithOriginalImages,
+        totalWithProblematicCovers,
+        ...problemStats,
+      })
+    } catch (error) {
+      console.error("Error fetching stats:", error)
+      // Set default values if there's an error
+      setStats({
+        totalWithOriginalImages: 0,
+        totalWithProblematicCovers: 0,
+        emptyBraces: 0,
+        nullUrl: 0,
+        brokenUrl: 0,
+        nullId: 0,
+      })
+    }
+  }
+
+  // Handle auto-continue timer and countdown
   useEffect(() => {
+    // Clear any existing timers
+    if (timerRef.current) {
+      clearTimeout(timerRef.current)
+      timerRef.current = null
+    }
+
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current)
+      countdownRef.current = null
+    }
+
+    // If processing is active and not paused, and there are more books to process
     if (isProcessing && !isPaused && progress.processed < progress.total) {
+      // Set the countdown timer (20 seconds)
+      setNextBatchCountdown(20)
+
+      // Update countdown every second
+      countdownRef.current = setInterval(() => {
+        setNextBatchCountdown((prev) => {
+          if (prev <= 1) {
+            // Clear the interval when we reach 0
+            if (countdownRef.current) {
+              clearInterval(countdownRef.current)
+              countdownRef.current = null
+            }
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+
+      // Set the timer to process the next batch
       timerRef.current = setTimeout(() => {
         processBatch()
       }, 20000) // 20 seconds
     }
 
     return () => {
+      // Clean up timers on unmount or when dependencies change
       if (timerRef.current) {
         clearTimeout(timerRef.current)
+      }
+      if (countdownRef.current) {
+        clearInterval(countdownRef.current)
       }
     }
   }, [isProcessing, isPaused, progress])
@@ -93,6 +133,7 @@ export default function RegenerateCoversPage() {
   const startProcessing = async () => {
     setIsProcessing(true)
     setIsPaused(false)
+    setIsComplete(false)
     setProgress({
       processed: 0,
       total: 0,
@@ -107,6 +148,10 @@ export default function RegenerateCoversPage() {
 
   const processBatch = async () => {
     try {
+      // Update UI to show processing state
+      setIsProcessing(true)
+      setIsPaused(false)
+
       const result = await regenerateBookCovers(
         batchSize,
         maxWidth,
@@ -116,16 +161,32 @@ export default function RegenerateCoversPage() {
         problemTypes,
       )
 
+      // Update progress with new results
       setProgress((prev) => ({
         ...result,
         errors: [...prev.errors, ...result.errors],
         success: [...prev.success, ...result.success],
       }))
 
+      // Refresh stats after each batch
+      await fetchStats()
+
       // Check if we're done
       if (result.processed === 0 || result.processed + progress.processed >= result.total) {
         setIsProcessing(false)
         setIsPaused(false)
+        setIsComplete(true)
+
+        // Clear any existing timers
+        if (timerRef.current) {
+          clearTimeout(timerRef.current)
+          timerRef.current = null
+        }
+
+        if (countdownRef.current) {
+          clearInterval(countdownRef.current)
+          countdownRef.current = null
+        }
       }
     } catch (error) {
       console.error("Error processing batch:", error)
@@ -135,17 +196,40 @@ export default function RegenerateCoversPage() {
 
   const togglePause = () => {
     setIsPaused((prev) => !prev)
+
+    // If we're unpausing, process the next batch immediately
     if (isPaused && isProcessing) {
+      // Clear existing timers
+      if (timerRef.current) {
+        clearTimeout(timerRef.current)
+        timerRef.current = null
+      }
+
+      if (countdownRef.current) {
+        clearInterval(countdownRef.current)
+        countdownRef.current = null
+      }
+
       processBatch()
     }
   }
 
   const resetProcess = () => {
+    // Clear any existing timers
     if (timerRef.current) {
       clearTimeout(timerRef.current)
+      timerRef.current = null
     }
+
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current)
+      countdownRef.current = null
+    }
+
     setIsProcessing(false)
     setIsPaused(false)
+    setIsComplete(false)
+    setNextBatchCountdown(0)
     setProgress({
       processed: 0,
       total: 0,
@@ -322,16 +406,16 @@ export default function RegenerateCoversPage() {
               )}
               <Button
                 onClick={isProcessing ? processBatch : startProcessing}
-                disabled={(isProcessing && !isPaused) || (progress.processed >= progress.total && progress.total > 0)}
+                disabled={(isProcessing && !isPaused) || (isComplete && progress.processed >= progress.total)}
               >
-                {isProcessing ? "Process Next Batch" : "Start Processing"}
+                {isProcessing ? "Process Next Batch Now" : "Start Processing"}
               </Button>
             </div>
           </CardFooter>
         </Card>
       </div>
 
-      {isProcessing || progress.processed > 0 ? (
+      {(isProcessing || progress.processed > 0) && (
         <div className="space-y-6">
           <Card>
             <CardHeader>
@@ -350,6 +434,13 @@ export default function RegenerateCoversPage() {
                   <span>{percentComplete}% complete</span>
                 </div>
 
+                {nextBatchCountdown > 0 && isProcessing && !isPaused && (
+                  <div className="flex items-center justify-center mt-2 text-sm text-gray-500">
+                    <Clock className="h-4 w-4 mr-1" />
+                    Next batch in {nextBatchCountdown} seconds
+                  </div>
+                )}
+
                 {isPaused && (
                   <Alert variant="warning" className="mt-4">
                     <AlertCircle className="h-4 w-4" />
@@ -358,11 +449,15 @@ export default function RegenerateCoversPage() {
                   </Alert>
                 )}
 
-                {progress.processed >= progress.total && progress.total > 0 && (
+                {isComplete && progress.processed >= progress.total && progress.total > 0 && (
                   <Alert variant="success" className="mt-4">
                     <CheckCircle2 className="h-4 w-4" />
                     <AlertTitle>Processing Complete</AlertTitle>
-                    <AlertDescription>All book covers have been processed successfully.</AlertDescription>
+                    <AlertDescription>
+                      All {progress.processed} book covers have been processed successfully.
+                      {progress.success.length > 0 && ` ${progress.success.length} covers were successfully updated.`}
+                      {progress.errors.length > 0 && ` ${progress.errors.length} errors occurred.`}
+                    </AlertDescription>
                   </Alert>
                 )}
               </div>
@@ -450,7 +545,7 @@ export default function RegenerateCoversPage() {
             </TabsContent>
           </Tabs>
         </div>
-      ) : null}
+      )}
     </div>
   )
 }

@@ -22,8 +22,42 @@ export async function uploadImage(
     // Create a timestamp for the signature
     const timestamp = Math.round(new Date().getTime() / 1000)
 
-    // Create a signature string
-    const signatureString = `folder=${folder}&timestamp=${timestamp}${apiSecret}`
+    // Prepare transformation parameters if provided
+    let transformationString = ""
+    if (maxWidth && maxHeight) {
+      transformationString = `c_fit,w_${maxWidth},h_${maxHeight}`
+    } else if (maxWidth) {
+      transformationString = `c_fit,w_${maxWidth}`
+    } else if (maxHeight) {
+      transformationString = `c_fit,h_${maxHeight}`
+    }
+
+    // Create the parameters object for signature
+    const params: Record<string, string> = {
+      timestamp: timestamp.toString(),
+      folder: folder,
+    }
+
+    // Add transformation to params if it exists
+    if (transformationString) {
+      params.transformation = transformationString
+    }
+
+    // Sort parameters alphabetically by key as required by Cloudinary
+    const sortedParams = Object.keys(params)
+      .sort()
+      .reduce((acc: Record<string, string>, key) => {
+        acc[key] = params[key]
+        return acc
+      }, {})
+
+    // Create signature string from sorted parameters
+    const signatureString =
+      Object.entries(sortedParams)
+        .map(([key, value]) => `${key}=${value}`)
+        .join("&") + apiSecret
+
+    // Generate the signature
     const signature = crypto.createHash("sha1").update(signatureString).digest("hex")
 
     // Prepare the form data
@@ -34,16 +68,7 @@ export async function uploadImage(
     formData.append("signature", signature)
     formData.append("folder", folder)
 
-    // Add transformation parameters if provided
-    let transformationString = ""
-    if (maxWidth && maxHeight) {
-      transformationString = `c_fit,w_${maxWidth},h_${maxHeight}`
-    } else if (maxWidth) {
-      transformationString = `c_fit,w_${maxWidth}`
-    } else if (maxHeight) {
-      transformationString = `c_fit,h_${maxHeight}`
-    }
-
+    // Add transformation to form data if it exists
     if (transformationString) {
       formData.append("transformation", transformationString)
     }
@@ -61,18 +86,69 @@ export async function uploadImage(
 
     const data = await response.json()
 
+    // First, check the structure of the images table
+    const { data: tableInfo, error: tableError } = await supabaseAdmin.from("images").select("*").limit(1)
+
+    if (tableError) {
+      console.error("Error checking images table structure:", tableError)
+      // If we can't check the table structure, try a minimal insert
+      const { data: imageData, error } = await supabaseAdmin
+        .from("images")
+        .insert([
+          {
+            url: data.secure_url,
+            alt_text: alt_text || "",
+            img_type_id: 1, // Assuming 1 is for book covers
+          },
+        ])
+        .select()
+
+      if (error) {
+        console.error("Error inserting image record:", error)
+        return null
+      }
+
+      return {
+        url: data.secure_url,
+        publicId: data.public_id, // We still return this for the function's API
+        imageId: imageData[0].id,
+      }
+    }
+
+    // Prepare the insert object based on the table structure
+    const insertObject: Record<string, any> = {
+      url: data.secure_url,
+      alt_text: alt_text || "",
+      img_type_id: 1, // Assuming 1 is for book covers
+    }
+
+    // Store the Cloudinary public_id in a field that exists
+    // Try common field names that might exist
+    if (tableInfo && tableInfo.length > 0) {
+      const sampleRow = tableInfo[0]
+
+      // Check if any of these fields exist in the table
+      if ("public_id" in sampleRow) {
+        insertObject.public_id = data.public_id
+      } else if ("cloudinary_id" in sampleRow) {
+        insertObject.cloudinary_id = data.public_id
+      } else if ("external_id" in sampleRow) {
+        insertObject.external_id = data.public_id
+      } else if ("metadata" in sampleRow) {
+        // If there's a metadata JSON field, we can store it there
+        insertObject.metadata = { cloudinary_public_id: data.public_id }
+      }
+
+      // Add type field if it exists (instead of img_type_id)
+      if ("type" in sampleRow) {
+        insertObject.type = "book_cover"
+        // Remove img_type_id if type exists
+        delete insertObject.img_type_id
+      }
+    }
+
     // Insert the image record into the database
-    const { data: imageData, error } = await supabaseAdmin
-      .from("images")
-      .insert([
-        {
-          url: data.secure_url,
-          public_id: data.public_id,
-          alt_text: alt_text || "",
-          img_type_id: 1, // Assuming 1 is for book covers
-        },
-      ])
-      .select()
+    const { data: imageData, error } = await supabaseAdmin.from("images").insert([insertObject]).select()
 
     if (error) {
       console.error("Error inserting image record:", error)
@@ -128,11 +204,25 @@ export async function deleteImage(publicId: string) {
 
     const data = await response.json()
 
-    // Delete the image record from the database
-    const { error } = await supabaseAdmin.from("images").delete().eq("public_id", publicId)
+    // Try to find the image by URL first since we don't know which field stores the public_id
+    try {
+      // Get the image URL from Cloudinary public_id
+      const cloudinaryUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${publicId}`
 
-    if (error) {
-      console.error("Error deleting image record:", error)
+      // Find images that might match this public_id
+      const { data: images, error } = await supabaseAdmin
+        .from("images")
+        .select("*")
+        .or(`url.ilike.%${publicId}%`)
+        .limit(1)
+
+      if (!error && images && images.length > 0) {
+        // Delete the found image
+        await supabaseAdmin.from("images").delete().eq("id", images[0].id)
+      }
+    } catch (findError) {
+      console.error("Error finding image to delete:", findError)
+      // Continue even if we can't find the image to delete
     }
 
     return data
@@ -149,18 +239,26 @@ export async function getPublicIdFromUrl(url: string): Promise<string | null> {
       return null
     }
 
-    // Query the database first to get the public_id
-    const { data, error } = await supabaseAdmin.from("images").select("public_id").eq("url", url).single()
-
-    if (!error && data && data.public_id) {
-      return data.public_id
-    }
-
-    // If not found in the database, try to extract from the URL
+    // Try to extract from the URL directly since we may not have public_id in the database
     // Example URL: https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg
     const match = url.match(/\/upload\/(?:v\d+\/)?([^/]+)\.\w+$/)
     if (match && match[1]) {
       return match[1]
+    }
+
+    // If we couldn't extract from URL, try the database as a fallback
+    try {
+      const { data, error } = await supabaseAdmin.from("images").select("*").eq("url", url).single()
+
+      if (!error && data) {
+        // Check various possible field names for the public_id
+        if (data.public_id) return data.public_id
+        if (data.cloudinary_id) return data.cloudinary_id
+        if (data.external_id) return data.external_id
+        if (data.metadata?.cloudinary_public_id) return data.metadata.cloudinary_public_id
+      }
+    } catch (dbError) {
+      console.error("Error querying database for public_id:", dbError)
     }
 
     return null

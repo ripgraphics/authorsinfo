@@ -1,166 +1,171 @@
 "use server"
-
 import { supabaseAdmin } from "@/lib/supabase/server"
-
-type CloudinaryFolder = "bookcovers" | "authorimage" | "authorgallery" | "bookgallery" | "page_cover" | "author_covers"
-type ImageType = "book_cover" | "author_image" | "author_gallery" | "book_gallery" | "page_cover" | "author_cover"
-
-// Map folder names to image type IDs
-const folderToImageTypeId: Record<CloudinaryFolder, string> = {
-  bookcovers: "1", // book_cover
-  authorimage: "22", // author_image
-  authorgallery: "23", // author_gallery
-  bookgallery: "24", // book_gallery
-  page_cover: "25", // page_cover
-  author_covers: "26", // author_cover
-}
+import crypto from "crypto"
 
 export async function uploadImage(
   base64Image: string,
-  folder: CloudinaryFolder = "bookcovers",
-  altText = "",
-): Promise<{ url: string; imageId: string } | null> {
+  folder = "general",
+  alt_text = "",
+  maxWidth?: number,
+  maxHeight?: number,
+) {
   try {
-    // Extract the base64 data part if it's a complete data URL
-    const base64Data = base64Image.includes("base64,") ? base64Image.split("base64,")[1] : base64Image
-
-    // Get the cloud name from environment variables
+    // Get Cloudinary credentials from environment variables
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
     const apiKey = process.env.CLOUDINARY_API_KEY
     const apiSecret = process.env.CLOUDINARY_API_SECRET
 
     if (!cloudName || !apiKey || !apiSecret) {
-      console.error("Missing Cloudinary credentials")
-      return null
+      throw new Error("Cloudinary credentials are not properly configured")
     }
 
-    // Generate a timestamp
-    const timestamp = Math.floor(Date.now() / 1000).toString()
+    // Create a timestamp for the signature
+    const timestamp = Math.round(new Date().getTime() / 1000)
 
-    // Create the folder path
-    const folderPath = `authorsinfo/${folder}`
+    // Create a signature string
+    const signatureString = `folder=${folder}&timestamp=${timestamp}${apiSecret}`
+    const signature = crypto.createHash("sha1").update(signatureString).digest("hex")
 
-    // Create a simple signature with minimal parameters
-    // This is the most reliable approach
-    const stringToSign = `folder=${folderPath}&timestamp=${timestamp}${apiSecret}`
-    console.log("String to sign:", stringToSign)
-
-    // Generate signature using Web Crypto API
-    const encoder = new TextEncoder()
-    const data = encoder.encode(stringToSign)
-    const hashBuffer = await crypto.subtle.digest("SHA-1", data)
-
-    // Convert the hash buffer to a hex string
-    const hashArray = Array.from(new Uint8Array(hashBuffer))
-    const signature = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
-
-    // Direct upload to Cloudinary using their REST API
-    const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`
-
-    // Create the form data for the upload
-    const formData = new URLSearchParams()
-    formData.append("file", `data:image/jpeg;base64,${base64Data}`)
+    // Prepare the form data
+    const formData = new FormData()
+    formData.append("file", `data:image/jpeg;base64,${base64Image}`)
     formData.append("api_key", apiKey)
-    formData.append("timestamp", timestamp)
+    formData.append("timestamp", timestamp.toString())
     formData.append("signature", signature)
-    formData.append("folder", folderPath)
-    formData.append("alt", altText || "Image")
+    formData.append("folder", folder)
 
-    console.log("Uploading to Cloudinary with params:", {
-      url: uploadUrl,
-      folder: folderPath,
-      timestamp,
-      signature,
-    })
+    // Add transformation parameters if provided
+    let transformationString = ""
+    if (maxWidth && maxHeight) {
+      transformationString = `c_fit,w_${maxWidth},h_${maxHeight}`
+    } else if (maxWidth) {
+      transformationString = `c_fit,w_${maxWidth}`
+    } else if (maxHeight) {
+      transformationString = `c_fit,h_${maxHeight}`
+    }
 
-    // Make the request
-    const response = await fetch(uploadUrl, {
+    if (transformationString) {
+      formData.append("transformation", transformationString)
+    }
+
+    // Upload to Cloudinary
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: formData.toString(),
+      body: formData,
     })
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error(`Cloudinary upload failed: ${response.status} ${errorText}`)
-      return null
+      throw new Error(`Cloudinary upload failed: ${errorText}`)
     }
 
-    const uploadData = await response.json()
-    console.log("Upload successful:", uploadData.secure_url)
+    const data = await response.json()
 
-    // Get the image type ID based on the folder
-    const imgTypeId = folderToImageTypeId[folder]
-
-    // Insert the image into the database with proper metadata
-    const { data: imageData, error: imageError } = await supabaseAdmin
+    // Insert the image record into the database
+    const { data: imageData, error } = await supabaseAdmin
       .from("images")
-      .insert({
-        url: uploadData.secure_url,
-        alt_text: altText,
-        img_type_id: imgTypeId,
-      })
-      .select("id")
-      .single()
+      .insert([
+        {
+          url: data.secure_url,
+          public_id: data.public_id,
+          alt_text: alt_text || "",
+          img_type_id: 1, // Assuming 1 is for book covers
+        },
+      ])
+      .select()
 
-    if (imageError) {
-      console.error("Error saving image to database:", imageError)
+    if (error) {
+      console.error("Error inserting image record:", error)
       return null
     }
 
     return {
-      url: uploadData.secure_url,
-      imageId: imageData.id,
+      url: data.secure_url,
+      publicId: data.public_id,
+      imageId: imageData[0].id,
     }
   } catch (error) {
-    console.error("Error uploading image to Cloudinary:", error)
+    console.error("Error uploading image:", error)
     return null
   }
 }
 
-export async function deleteImage(publicId: string): Promise<boolean> {
+export async function deleteImage(publicId: string) {
   try {
-    if (!publicId) return false
+    // Get Cloudinary credentials from environment variables
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+    const apiKey = process.env.CLOUDINARY_API_KEY
+    const apiSecret = process.env.CLOUDINARY_API_SECRET
 
-    // Call our secure deletion endpoint
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || ""}/api/cloudinary/delete`, {
+    if (!cloudName || !apiKey || !apiSecret) {
+      throw new Error("Cloudinary credentials are not properly configured")
+    }
+
+    // Create a timestamp for the signature
+    const timestamp = Math.round(new Date().getTime() / 1000)
+
+    // Create a signature string
+    const signatureString = `public_id=${publicId}&timestamp=${timestamp}${apiSecret}`
+    const signature = crypto.createHash("sha1").update(signatureString).digest("hex")
+
+    // Prepare the form data
+    const formData = new FormData()
+    formData.append("public_id", publicId)
+    formData.append("api_key", apiKey)
+    formData.append("timestamp", timestamp.toString())
+    formData.append("signature", signature)
+
+    // Delete from Cloudinary
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/destroy`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ publicId }),
+      body: formData,
     })
 
     if (!response.ok) {
-      throw new Error(`Deletion failed: ${response.statusText}`)
+      const errorText = await response.text()
+      throw new Error(`Cloudinary delete failed: ${errorText}`)
     }
 
     const data = await response.json()
-    return data.success
+
+    // Delete the image record from the database
+    const { error } = await supabaseAdmin.from("images").delete().eq("public_id", publicId)
+
+    if (error) {
+      console.error("Error deleting image record:", error)
+    }
+
+    return data
   } catch (error) {
-    console.error("Error deleting image from Cloudinary:", error)
-    return false
+    console.error("Error deleting image:", error)
+    return null
   }
 }
 
-// Helper function to extract public ID from Cloudinary URL
-// Making this async to comply with Server Actions requirements
 export async function getPublicIdFromUrl(url: string): Promise<string | null> {
   try {
-    // Extract the public ID from a URL like:
-    // https://res.cloudinary.com/[cloud_name]/image/upload/v1234567890/authorsinfo/bookcovers/image123.jpg
-    const regex = /\/v\d+\/(.+)\.\w+$/
-    const match = url.match(regex)
+    // Check if the URL is empty or invalid
+    if (!url || url === "{}" || url.includes("fetch:")) {
+      return null
+    }
 
+    // Query the database first to get the public_id
+    const { data, error } = await supabaseAdmin.from("images").select("public_id").eq("url", url).single()
+
+    if (!error && data && data.public_id) {
+      return data.public_id
+    }
+
+    // If not found in the database, try to extract from the URL
+    // Example URL: https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg
+    const match = url.match(/\/upload\/(?:v\d+\/)?([^/]+)\.\w+$/)
     if (match && match[1]) {
       return match[1]
     }
 
     return null
   } catch (error) {
-    console.error("Error extracting public ID from URL:", error)
+    console.error("Error getting public ID from URL:", error)
     return null
   }
 }
@@ -168,12 +173,14 @@ export async function getPublicIdFromUrl(url: string): Promise<string | null> {
 export async function replaceImage(
   oldImageUrl: string | null,
   newBase64Image: string,
-  folder: CloudinaryFolder = "bookcovers",
+  folder = "general",
   altText = "",
-): Promise<{ url: string; imageId: string } | null> {
+  maxWidth?: number,
+  maxHeight?: number,
+): Promise<{ url: string; publicId: string; imageId: string } | null> {
   try {
     // Upload the new image first
-    const newImageData = await uploadImage(newBase64Image, folder, altText)
+    const newImageData = await uploadImage(newBase64Image, folder, altText, maxWidth, maxHeight)
 
     // If upload successful and there was an old image, delete it
     if (newImageData && oldImageUrl) {

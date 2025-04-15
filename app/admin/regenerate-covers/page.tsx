@@ -10,10 +10,12 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   regenerateBookCovers,
   getTotalBooksWithOriginalImages,
-  getTotalBooksWithEmptyCovers,
+  getProblematicCoverStats,
+  getTotalBooksWithProblematicCoversAlt,
 } from "@/app/actions/regenerate-book-covers"
 import { AlertCircle, CheckCircle2, XCircle, Pause, Play, RotateCw } from "lucide-react"
 
@@ -22,6 +24,7 @@ export default function RegenerateCoversPage() {
   const [maxWidth, setMaxWidth] = useState(600)
   const [maxHeight, setMaxHeight] = useState(900)
   const [filterEmptyCovers, setFilterEmptyCovers] = useState(true)
+  const [problemTypes, setProblemTypes] = useState<string[]>(["empty", "broken", "null_id", "null"])
   const [isProcessing, setIsProcessing] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
   const [progress, setProgress] = useState({
@@ -35,16 +38,39 @@ export default function RegenerateCoversPage() {
   })
   const [stats, setStats] = useState({
     totalWithOriginalImages: 0,
-    totalWithEmptyCovers: 0,
+    totalWithProblematicCovers: 0,
+    emptyBraces: 0,
+    nullUrl: 0,
+    brokenUrl: 0,
+    nullId: 0,
   })
   const timerRef = useRef<NodeJS.Timeout | null>(null)
 
   // Fetch initial stats
   useEffect(() => {
     async function fetchStats() {
-      const totalWithOriginalImages = await getTotalBooksWithOriginalImages()
-      const totalWithEmptyCovers = await getTotalBooksWithEmptyCovers()
-      setStats({ totalWithOriginalImages, totalWithEmptyCovers })
+      try {
+        const totalWithOriginalImages = await getTotalBooksWithOriginalImages()
+        const totalWithProblematicCovers = await getTotalBooksWithProblematicCoversAlt() // Use the alt method directly
+        const problemStats = await getProblematicCoverStats()
+
+        setStats({
+          totalWithOriginalImages,
+          totalWithProblematicCovers,
+          ...problemStats,
+        })
+      } catch (error) {
+        console.error("Error fetching stats:", error)
+        // Set default values if there's an error
+        setStats({
+          totalWithOriginalImages: 0,
+          totalWithProblematicCovers: 0,
+          emptyBraces: 0,
+          nullUrl: 0,
+          brokenUrl: 0,
+          nullId: 0,
+        })
+      }
     }
     fetchStats()
   }, [])
@@ -87,6 +113,7 @@ export default function RegenerateCoversPage() {
         maxHeight,
         progress.lastProcessedId,
         filterEmptyCovers,
+        problemTypes,
       )
 
       setProgress((prev) => ({
@@ -130,6 +157,14 @@ export default function RegenerateCoversPage() {
     })
   }
 
+  const handleProblemTypeChange = (type: string, checked: boolean) => {
+    if (checked) {
+      setProblemTypes((prev) => [...prev, type])
+    } else {
+      setProblemTypes((prev) => prev.filter((t) => t !== type))
+    }
+  }
+
   const percentComplete = progress.total > 0 ? Math.round((progress.processed / progress.total) * 100) : 0
 
   return (
@@ -149,8 +184,29 @@ export default function RegenerateCoversPage() {
                 <span className="font-medium">{stats.totalWithOriginalImages}</span>
               </div>
               <div className="flex justify-between">
-                <span>Books with empty covers:</span>
-                <span className="font-medium">{stats.totalWithEmptyCovers}</span>
+                <span>Books with problematic covers:</span>
+                <span className="font-medium">{stats.totalWithProblematicCovers}</span>
+              </div>
+              <div className="mt-4 pt-4 border-t">
+                <h4 className="font-medium mb-2">Problem Types:</h4>
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span>NULL cover_image_id:</span>
+                    <span>{stats.nullId}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Empty braces {"{}"}:</span>
+                    <span>{stats.emptyBraces}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>NULL URL in images:</span>
+                    <span>{stats.nullUrl}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Broken URLs (with fetch:):</span>
+                    <span>{stats.brokenUrl}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -206,7 +262,49 @@ export default function RegenerateCoversPage() {
                   onCheckedChange={setFilterEmptyCovers}
                   disabled={isProcessing}
                 />
-                <Label htmlFor="filterEmptyCovers">Only process books with empty covers</Label>
+                <Label htmlFor="filterEmptyCovers">Only process books with problematic covers</Label>
+              </div>
+            </div>
+
+            <div className="mt-6 border-t pt-4">
+              <Label className="mb-2 block">Problem types to fix:</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="null_id"
+                    checked={problemTypes.includes("null_id")}
+                    onCheckedChange={(checked) => handleProblemTypeChange("null_id", checked === true)}
+                    disabled={isProcessing}
+                  />
+                  <Label htmlFor="null_id">NULL cover_image_id</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="empty"
+                    checked={problemTypes.includes("empty")}
+                    onCheckedChange={(checked) => handleProblemTypeChange("empty", checked === true)}
+                    disabled={isProcessing}
+                  />
+                  <Label htmlFor="empty">Empty braces {"{}"}</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="null"
+                    checked={problemTypes.includes("null")}
+                    onCheckedChange={(checked) => handleProblemTypeChange("null", checked === true)}
+                    disabled={isProcessing}
+                  />
+                  <Label htmlFor="null">NULL URL in images</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="broken"
+                    checked={problemTypes.includes("broken")}
+                    onCheckedChange={(checked) => handleProblemTypeChange("broken", checked === true)}
+                    disabled={isProcessing}
+                  />
+                  <Label htmlFor="broken">Broken URLs (with fetch:)</Label>
+                </div>
               </div>
             </div>
           </CardContent>

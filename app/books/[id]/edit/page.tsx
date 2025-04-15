@@ -1,11 +1,10 @@
 "use client"
 
 import type React from "react"
-
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import { useState, useEffect, useRef } from "react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,6 +17,7 @@ import { BookOpen, AlertTriangle, Loader2 } from "lucide-react"
 import { MultiCombobox } from "@/components/ui/multi-combobox"
 import { supabaseClient } from "@/lib/supabase/client"
 import { uploadImage } from "@/app/actions/upload"
+import { useToast } from "@/hooks/use-toast"
 import type { Book, Author, Publisher } from "@/types/database"
 
 interface EditBookPageProps {
@@ -28,6 +28,7 @@ interface EditBookPageProps {
 
 export default function EditBookPage({ params }: EditBookPageProps) {
   const router = useRouter()
+  const { toast } = useToast()
   const [book, setBook] = useState<Book | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -39,8 +40,39 @@ export default function EditBookPage({ params }: EditBookPageProps) {
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const [uploadProgress, setUploadProgress] = useState(0)
+  const [authorSearchTerm, setAuthorSearchTerm] = useState("")
+  const [publisherSearchTerm, setPublisherSearchTerm] = useState("")
+  const [loadingMoreAuthors, setLoadingMoreAuthors] = useState(false)
+  const [loadingMorePublishers, setLoadingMorePublishers] = useState(false)
+  const [hasMoreAuthors, setHasMoreAuthors] = useState(true)
+  const [hasMorePublishers, setHasMorePublishers] = useState(true)
   const isMounted = useRef(true)
+  const [bindingOptions, setBindingOptions] = useState<{ value: string; label: string }[]>([
+    { value: "Paperback", label: "Paperback" },
+    { value: "Hardcover", label: "Hardcover" },
+    { value: "eBook", label: "eBook" },
+    { value: "Audiobook", label: "Audiobook" },
+    { value: "Board Book", label: "Board Book" },
+    { value: "Spiral-bound", label: "Spiral-bound" },
+    { value: "Leather Bound", label: "Leather Bound" },
+    { value: "Library Binding", label: "Library Binding" },
+    { value: "Mass Market Paperback", label: "Mass Market Paperback" },
+    { value: "Kindle", label: "Kindle" },
+  ])
+  const [formatOptions, setFormatOptions] = useState<{ value: string; label: string }[]>([
+    { value: "Print", label: "Print" },
+    { value: "Digital", label: "Digital" },
+    { value: "Audio", label: "Audio" },
+    { value: "Large Print", label: "Large Print" },
+    { value: "Braille", label: "Braille" },
+    { value: "PDF", label: "PDF" },
+    { value: "EPUB", label: "EPUB" },
+    { value: "MOBI", label: "MOBI" },
+    { value: "MP3", label: "MP3" },
+    { value: "CD", label: "CD" },
+  ])
+  const [selectedBindings, setSelectedBindings] = useState<string[]>([])
+  const [selectedFormats, setSelectedFormats] = useState<string[]>([])
 
   // Set up cleanup when component unmounts
   useEffect(() => {
@@ -49,22 +81,30 @@ export default function EditBookPage({ params }: EditBookPageProps) {
     }
   }, [])
 
-  // Fetch book data with retry mechanism
+  // Fetch book data
   useEffect(() => {
-    async function fetchBookData(retryCount = 0) {
+    async function fetchBookData() {
       try {
         setError(null)
 
         // Fetch book
         const { data: bookData, error: bookError } = await supabaseClient
           .from("books")
-          .select("*")
+          .select(`
+            *,
+            cover_image:images(id, url, alt_text, img_type_id)
+          `)
           .eq("id", params.id)
           .single()
 
         if (bookError) {
           console.error("Error fetching book:", bookError)
           setError(`Error fetching book: ${bookError.message}`)
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: `Failed to load book: ${bookError.message}`,
+          })
           return
         }
 
@@ -75,169 +115,229 @@ export default function EditBookPage({ params }: EditBookPageProps) {
           ...bookData,
           // Ensure numeric fields are properly typed
           average_rating: bookData.average_rating !== null ? Number(bookData.average_rating) : null,
-          price: bookData.price !== null ? Number(bookData.price) : null,
           list_price: bookData.list_price !== null ? Number(bookData.list_price) : null,
-          page_count: bookData.page_count !== null ? Number(bookData.page_count) : null,
           pages: bookData.pages !== null ? Number(bookData.pages) : null,
-          series_number: bookData.series_number !== null ? Number(bookData.series_number) : null,
         } as Book
 
         setBook(processedBook)
         console.log("Book data loaded:", processedBook)
 
+        // Set cover preview
+        if (bookData.cover_image?.url) {
+          setCoverPreview(bookData.cover_image.url)
+        } else if (bookData.cover_image_url) {
+          setCoverPreview(bookData.cover_image_url)
+        } else if (bookData.original_image_url) {
+          setCoverPreview(bookData.original_image_url)
+        }
+
         // Set initial selected authors
         if (bookData.author_id) {
           setSelectedAuthorIds([bookData.author_id])
+
+          // Fetch author name for display
+          const { data: authorData } = await supabaseClient
+            .from("authors")
+            .select("id, name")
+            .eq("id", bookData.author_id)
+            .single()
+
+          if (authorData) {
+            setAuthors([authorData as Author])
+          }
         }
 
         // Set initial selected publishers
         if (bookData.publisher_id) {
           setSelectedPublisherIds([bookData.publisher_id])
-        }
 
-        // Fetch all authors with retry mechanism
-        try {
-          const { data: authorsData, error: authorsError } = await supabaseClient
-            .from("authors")
-            .select("id, name")
-            .order("name")
-            .limit(100) // Limit to improve performance
-
-          if (authorsError) {
-            throw authorsError
-          }
-
-          if (!isMounted.current) return
-          setAuthors(authorsData as Author[])
-        } catch (authorsError) {
-          console.error("Error fetching authors:", authorsError)
-
-          // Retry logic for authors
-          if (retryCount < 3 && isMounted.current) {
-            console.log(`Retrying authors fetch (attempt ${retryCount + 1})...`)
-            setTimeout(
-              () => {
-                if (isMounted.current) {
-                  fetchAuthorsOnly(retryCount + 1)
-                }
-              },
-              1000 * (retryCount + 1),
-            ) // Exponential backoff
-          } else {
-            setError("Failed to load authors. Please try refreshing the page.")
-          }
-        }
-
-        // Fetch all publishers with retry mechanism
-        try {
-          const { data: publishersData, error: publishersError } = await supabaseClient
+          // Fetch publisher name for display
+          const { data: publisherData } = await supabaseClient
             .from("publishers")
             .select("id, name")
-            .order("name")
-            .limit(100) // Limit to improve performance
+            .eq("id", bookData.publisher_id)
+            .single()
 
-          if (publishersError) {
-            throw publishersError
-          }
-
-          if (!isMounted.current) return
-          setPublishers(publishersData as Publisher[])
-        } catch (publishersError) {
-          console.error("Error fetching publishers:", publishersError)
-
-          // Retry logic for publishers
-          if (retryCount < 3 && isMounted.current) {
-            console.log(`Retrying publishers fetch (attempt ${retryCount + 1})...`)
-            setTimeout(
-              () => {
-                if (isMounted.current) {
-                  fetchPublishersOnly(retryCount + 1)
-                }
-              },
-              1000 * (retryCount + 1),
-            ) // Exponential backoff
-          } else {
-            setError("Failed to load publishers. Please try refreshing the page.")
+          if (publisherData) {
+            setPublishers([publisherData as Publisher])
           }
         }
 
-        if (isMounted.current) {
-          setLoading(false)
+        // Set initial binding and format if available
+        if (bookData.binding) {
+          setSelectedBindings([bookData.binding])
+        }
+
+        if (bookData.format) {
+          setSelectedFormats([bookData.format])
         }
       } catch (error) {
         console.error("Error in fetchBookData:", error)
         if (isMounted.current) {
           setError("An unexpected error occurred. Please try again.")
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to load book data. Please try again.",
+          })
+        }
+      } finally {
+        if (isMounted.current) {
           setLoading(false)
         }
       }
     }
 
-    // Separate functions to retry fetching authors and publishers independently
-    async function fetchAuthorsOnly(retryCount = 0) {
-      try {
-        const { data: authorsData, error: authorsError } = await supabaseClient
-          .from("authors")
-          .select("id, name")
-          .order("name")
-          .limit(100)
-
-        if (authorsError) {
-          throw authorsError
-        }
-
-        if (isMounted.current) {
-          setAuthors(authorsData as Author[])
-          setError(null)
-        }
-      } catch (error) {
-        console.error(`Retry ${retryCount} failed for authors:`, error)
-        if (retryCount < 3 && isMounted.current) {
-          setTimeout(
-            () => {
-              if (isMounted.current) {
-                fetchAuthorsOnly(retryCount + 1)
-              }
-            },
-            1000 * (retryCount + 1),
-          )
-        }
-      }
-    }
-
-    async function fetchPublishersOnly(retryCount = 0) {
-      try {
-        const { data: publishersData, error: publishersError } = await supabaseClient
-          .from("publishers")
-          .select("id, name")
-          .order("name")
-          .limit(100)
-
-        if (publishersError) {
-          throw publishersError
-        }
-
-        if (isMounted.current) {
-          setPublishers(publishersData as Publisher[])
-          setError(null)
-        }
-      } catch (error) {
-        console.error(`Retry ${retryCount} failed for publishers:`, error)
-        if (retryCount < 3 && isMounted.current) {
-          setTimeout(
-            () => {
-              if (isMounted.current) {
-                fetchPublishersOnly(retryCount + 1)
-              }
-            },
-            1000 * (retryCount + 1),
-          )
-        }
-      }
-    }
-
     fetchBookData()
-  }, [params.id])
+    loadAuthors()
+    loadPublishers()
+  }, [params.id, toast])
+
+  // Load authors with pagination and search
+  const loadAuthors = useCallback(
+    async (searchTerm = "", startIndex = 0, limit = 50) => {
+      try {
+        setLoadingMoreAuthors(true)
+
+        let query = supabaseClient
+          .from("authors")
+          .select("id, name", { count: "exact" })
+          .order("name")
+          .range(startIndex, startIndex + limit - 1)
+
+        if (searchTerm) {
+          query = query.ilike("name", `%${searchTerm}%`)
+        }
+
+        const { data, count, error } = await query
+
+        if (error) {
+          console.error("Error loading authors:", error)
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to load authors. Please try again.",
+          })
+          return
+        }
+
+        if (isMounted.current) {
+          if (startIndex === 0) {
+            setAuthors(data as Author[])
+          } else {
+            setAuthors((prev) => [...prev, ...(data as Author[])])
+          }
+
+          // Check if we have more authors to load
+          if (count) {
+            setHasMoreAuthors(startIndex + limit < count)
+          } else {
+            setHasMoreAuthors(data.length === limit)
+          }
+        }
+      } catch (error) {
+        console.error("Error in loadAuthors:", error)
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to load authors. Please try again.",
+        })
+      } finally {
+        if (isMounted.current) {
+          setLoadingMoreAuthors(false)
+        }
+      }
+    },
+    [toast],
+  )
+
+  // Load publishers with pagination and search
+  const loadPublishers = useCallback(
+    async (searchTerm = "", startIndex = 0, limit = 50) => {
+      try {
+        setLoadingMorePublishers(true)
+
+        let query = supabaseClient
+          .from("publishers")
+          .select("id, name", { count: "exact" })
+          .order("name")
+          .range(startIndex, startIndex + limit - 1)
+
+        if (searchTerm) {
+          query = query.ilike("name", `%${searchTerm}%`)
+        }
+
+        const { data, count, error } = await query
+
+        if (error) {
+          console.error("Error loading publishers:", error)
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to load publishers. Please try again.",
+          })
+          return
+        }
+
+        if (isMounted.current) {
+          if (startIndex === 0) {
+            setPublishers(data as Publisher[])
+          } else {
+            setPublishers((prev) => [...prev, ...(data as Publisher[])])
+          }
+
+          // Check if we have more publishers to load
+          if (count) {
+            setHasMorePublishers(startIndex + limit < count)
+          } else {
+            setHasMorePublishers(data.length === limit)
+          }
+        }
+      } catch (error) {
+        console.error("Error in loadPublishers:", error)
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to load publishers. Please try again.",
+        })
+      } finally {
+        if (isMounted.current) {
+          setLoadingMorePublishers(false)
+        }
+      }
+    },
+    [toast],
+  )
+
+  // Handle author search
+  const handleAuthorSearch = useCallback(
+    (search: string) => {
+      setAuthorSearchTerm(search)
+      loadAuthors(search, 0)
+    },
+    [loadAuthors],
+  )
+
+  // Handle publisher search
+  const handlePublisherSearch = useCallback(
+    (search: string) => {
+      setPublisherSearchTerm(search)
+      loadPublishers(search, 0)
+    },
+    [loadPublishers],
+  )
+
+  // Load more authors when scrolling
+  const loadMoreAuthors = useCallback(() => {
+    if (loadingMoreAuthors || !hasMoreAuthors) return
+    loadAuthors(authorSearchTerm, authors.length)
+  }, [loadAuthors, authorSearchTerm, authors.length, loadingMoreAuthors, hasMoreAuthors])
+
+  // Load more publishers when scrolling
+  const loadMorePublishers = useCallback(() => {
+    if (loadingMorePublishers || !hasMorePublishers) return
+    loadPublishers(publisherSearchTerm, publishers.length)
+  }, [loadPublishers, publisherSearchTerm, publishers.length, loadingMorePublishers, hasMorePublishers])
 
   // Handle cover image change
   const handleCoverImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -261,8 +361,16 @@ export default function EditBookPage({ params }: EditBookPageProps) {
     try {
       const formData = new FormData(e.currentTarget)
 
+      // Helper function to convert empty strings to null for numeric fields
+      const parseNumericField = (value: FormDataEntryValue | null): number | null => {
+        if (value === null || value === "") return null
+        const parsed = Number(value)
+        return isNaN(parsed) ? null : parsed
+      }
+
       // Handle cover image upload if changed
       let newCoverImageUrl = book.cover_image_url
+      let newCoverImageId = book.cover_image_id
 
       if (coverImage) {
         try {
@@ -285,18 +393,54 @@ export default function EditBookPage({ params }: EditBookPageProps) {
 
           if (uploadResult) {
             newCoverImageUrl = uploadResult.url
+
+            // If we already have a cover_image_id, update that image record
+            if (book.cover_image_id) {
+              const { error: imageUpdateError } = await supabaseClient
+                .from("images")
+                .update({ url: uploadResult.url })
+                .eq("id", book.cover_image_id)
+
+              if (imageUpdateError) {
+                console.error("Error updating image record:", imageUpdateError)
+                // Continue anyway, we'll update the URL directly on the book
+              }
+            } else {
+              // Create a new image record
+              const { data: newImage, error: newImageError } = await supabaseClient
+                .from("images")
+                .insert({
+                  url: uploadResult.url,
+                  img_type_id: 1, // Assuming 1 is for book covers
+                  alt_text: `Cover of ${bookTitle}`,
+                })
+                .select("id")
+                .single()
+
+              if (newImageError) {
+                console.error("Error creating image record:", newImageError)
+                // Continue anyway, we'll update the URL directly on the book
+              } else if (newImage) {
+                newCoverImageId = newImage.id
+              }
+            }
           } else {
             throw new Error("Failed to upload image")
           }
         } catch (uploadError) {
           console.error("Upload error:", uploadError)
           setError("Failed to upload cover image. Please try again.")
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to upload cover image. Please try again.",
+          })
           setSaving(false)
           return
         }
       }
 
-      // Prepare the update data
+      // Prepare the update data - ONLY using fields that exist in the database schema
       const updateData: Partial<Book> = {
         title: formData.get("title") as string,
         title_long: formData.get("title_long") as string,
@@ -305,22 +449,21 @@ export default function EditBookPage({ params }: EditBookPageProps) {
         author_id: selectedAuthorIds[0] || null, // Primary author
         publisher_id: selectedPublisherIds[0] || null, // Primary publisher
         publication_date: formData.get("publication_date") as string,
-        binding: formData.get("binding") as string,
-        pages: formData.get("pages") ? Number.parseInt(formData.get("pages") as string) : null,
-        list_price: formData.get("list_price") ? Number.parseFloat(formData.get("list_price") as string) : null,
+        binding: selectedBindings[0] || null,
+        pages: parseNumericField(formData.get("pages")),
+        list_price: parseNumericField(formData.get("list_price")),
         language: formData.get("language") as string,
         edition: formData.get("edition") as string,
-        format: formData.get("format") as string,
+        format: selectedFormats[0] || null,
         synopsis: formData.get("synopsis") as string,
         overview: formData.get("overview") as string,
         dimensions: formData.get("dimensions") as string,
         weight: formData.get("weight") as string,
-        average_rating: formData.get("average_rating")
-          ? Number.parseFloat(formData.get("average_rating") as string)
-          : 0,
-        review_count: formData.get("review_count") ? Number.parseInt(formData.get("review_count") as string) : 0,
+        average_rating: parseNumericField(formData.get("average_rating")),
+        review_count: parseNumericField(formData.get("review_count")),
         featured: formData.get("featured") === "on" ? "true" : "false",
         cover_image_url: newCoverImageUrl,
+        cover_image_id: newCoverImageId,
       }
 
       // Handle book_gallery_img separately - it might be an array in the database
@@ -338,82 +481,55 @@ export default function EditBookPage({ params }: EditBookPageProps) {
         updateData.book_gallery_img = null
       }
 
-      // If we have a cover_image_id field, update it
-      if ("cover_image_id" in book) {
-        updateData.cover_image_id = book.cover_image_id
-      }
+      // Log the update data for debugging
+      console.log("Updating book with data:", updateData)
 
       // Update the book
-      const { error: updateError } = await supabaseClient.from("books").update(updateData).eq("id", params.id)
+      try {
+        const { error: updateError } = await supabaseClient.from("books").update(updateData).eq("id", params.id)
 
-      if (updateError) {
-        console.error("Error updating book:", updateError)
-        setError(`Error updating book: ${updateError.message}`)
+        if (updateError) {
+          console.error("Error updating book:", updateError)
+          setError(`Error updating book: ${updateError.message}`)
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: `Failed to update book: ${updateError.message}`,
+          })
+          setSaving(false)
+          return
+        }
+
+        setSuccessMessage("Book updated successfully!")
+        toast({
+          title: "Success",
+          description: "Book updated successfully!",
+        })
+
+        // Redirect back to the book page after a short delay
+        setTimeout(() => {
+          router.push(`/books/${params.id}`)
+        }, 1500)
+      } catch (dbError: any) {
+        console.error("Database error:", dbError)
+        setError(`Database error: ${dbError.message || "Unknown error"}`)
+        toast({
+          variant: "destructive",
+          title: "Database Error",
+          description: `Failed to update book: ${dbError.message || "Unknown error"}`,
+        })
         setSaving(false)
-        return
       }
-
-      setSuccessMessage("Book updated successfully!")
-
-      // Redirect back to the book page after a short delay
-      setTimeout(() => {
-        router.push(`/books/${params.id}`)
-      }, 1500)
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error in handleSubmit:", error)
       setError("An unexpected error occurred while saving. Please try again.")
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "An unexpected error occurred while saving. Please try again.",
+      })
     } finally {
       setSaving(false)
-    }
-  }
-
-  // Function to load more authors if needed
-  const loadMoreAuthors = async () => {
-    if (authors.length >= 100) {
-      try {
-        setError(null)
-        const { data, error } = await supabaseClient
-          .from("authors")
-          .select("id, name")
-          .order("name")
-          .range(authors.length, authors.length + 100)
-
-        if (error) {
-          throw error
-        }
-
-        if (data.length > 0) {
-          setAuthors([...authors, ...(data as Author[])])
-        }
-      } catch (error) {
-        console.error("Error loading more authors:", error)
-        setError("Failed to load more authors. Please try again.")
-      }
-    }
-  }
-
-  // Function to load more publishers if needed
-  const loadMorePublishers = async () => {
-    if (publishers.length >= 100) {
-      try {
-        setError(null)
-        const { data, error } = await supabaseClient
-          .from("publishers")
-          .select("id, name")
-          .order("name")
-          .range(publishers.length, publishers.length + 100)
-
-        if (error) {
-          throw error
-        }
-
-        if (data.length > 0) {
-          setPublishers([...publishers, ...(data as Publisher[])])
-        }
-      } catch (error) {
-        console.error("Error loading more publishers:", error)
-        setError("Failed to load more publishers. Please try again.")
-      }
     }
   }
 
@@ -464,15 +580,6 @@ export default function EditBookPage({ params }: EditBookPageProps) {
             <Alert className="mb-6 bg-green-50 border-green-200">
               <AlertDescription className="text-green-800">{successMessage}</AlertDescription>
             </Alert>
-          )}
-
-          {uploadProgress > 0 && uploadProgress < 100 && (
-            <div className="mb-6">
-              <p className="text-sm mb-1">Uploading image: {uploadProgress}%</p>
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${uploadProgress}%` }}></div>
-              </div>
-            </div>
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -551,31 +658,16 @@ export default function EditBookPage({ params }: EditBookPageProps) {
                       {/* Author Selection */}
                       <div>
                         <Label htmlFor="authors">Authors</Label>
-                        {authors.length > 0 ? (
-                          <>
-                            <MultiCombobox
-                              options={authors.map((author) => ({ value: author.id, label: author.name }))}
-                              selected={selectedAuthorIds}
-                              onChange={setSelectedAuthorIds}
-                              placeholder="Search and select authors..."
-                              emptyMessage="No authors found."
-                            />
-                            {authors.length >= 100 && (
-                              <Button
-                                type="button"
-                                variant="link"
-                                onClick={loadMoreAuthors}
-                                className="mt-1 h-auto p-0"
-                              >
-                                Load more authors
-                              </Button>
-                            )}
-                          </>
-                        ) : (
-                          <div className="text-sm text-muted-foreground mt-1">
-                            Loading authors... If this takes too long, please refresh the page.
-                          </div>
-                        )}
+                        <MultiCombobox
+                          options={authors.map((author) => ({ value: author.id, label: author.name }))}
+                          selected={selectedAuthorIds}
+                          onChange={setSelectedAuthorIds}
+                          placeholder="Search and select authors..."
+                          emptyMessage="No authors found."
+                          onSearch={handleAuthorSearch}
+                          onScrollEnd={loadMoreAuthors}
+                          loading={loadingMoreAuthors}
+                        />
                         <p className="text-sm text-muted-foreground mt-1">
                           Search for authors by name. The first author will be set as the primary author.
                         </p>
@@ -584,31 +676,16 @@ export default function EditBookPage({ params }: EditBookPageProps) {
                       {/* Publisher Selection */}
                       <div>
                         <Label htmlFor="publishers">Publishers</Label>
-                        {publishers.length > 0 ? (
-                          <>
-                            <MultiCombobox
-                              options={publishers.map((publisher) => ({ value: publisher.id, label: publisher.name }))}
-                              selected={selectedPublisherIds}
-                              onChange={setSelectedPublisherIds}
-                              placeholder="Search and select publishers..."
-                              emptyMessage="No publishers found."
-                            />
-                            {publishers.length >= 100 && (
-                              <Button
-                                type="button"
-                                variant="link"
-                                onClick={loadMorePublishers}
-                                className="mt-1 h-auto p-0"
-                              >
-                                Load more publishers
-                              </Button>
-                            )}
-                          </>
-                        ) : (
-                          <div className="text-sm text-muted-foreground mt-1">
-                            Loading publishers... If this takes too long, please refresh the page.
-                          </div>
-                        )}
+                        <MultiCombobox
+                          options={publishers.map((publisher) => ({ value: publisher.id, label: publisher.name }))}
+                          selected={selectedPublisherIds}
+                          onChange={setSelectedPublisherIds}
+                          placeholder="Search and select publishers..."
+                          emptyMessage="No publishers found."
+                          onSearch={handlePublisherSearch}
+                          onScrollEnd={loadMorePublishers}
+                          loading={loadingMorePublishers}
+                        />
                         <p className="text-sm text-muted-foreground mt-1">
                           Search for publishers by name. The first publisher will be set as the primary publisher.
                         </p>
@@ -627,11 +704,25 @@ export default function EditBookPage({ params }: EditBookPageProps) {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="binding">Binding</Label>
-                          <Input id="binding" name="binding" defaultValue={book.binding || ""} />
+                          <MultiCombobox
+                            options={bindingOptions}
+                            selected={selectedBindings}
+                            onChange={setSelectedBindings}
+                            placeholder="Select binding type..."
+                            emptyMessage="No binding types found."
+                          />
+                          <input type="hidden" name="binding" value={selectedBindings[0] || ""} />
                         </div>
                         <div>
                           <Label htmlFor="format">Format</Label>
-                          <Input id="format" name="format" defaultValue={book.format || ""} />
+                          <MultiCombobox
+                            options={formatOptions}
+                            selected={selectedFormats}
+                            onChange={setSelectedFormats}
+                            placeholder="Select format..."
+                            emptyMessage="No formats found."
+                          />
+                          <input type="hidden" name="format" value={selectedFormats[0] || ""} />
                         </div>
                       </div>
 

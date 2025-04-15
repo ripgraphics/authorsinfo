@@ -238,25 +238,46 @@ export async function regenerateBookCovers(
         }
 
         // Fetch the original image and convert to base64
-        const imageResponse = await fetch(book.original_image_url)
-        if (!imageResponse.ok) {
-          throw new Error(`Failed to fetch original image: ${imageResponse.statusText}`)
+        let retries = 0
+        const maxRetries = 3
+        let uploadResult = null
+
+        while (retries < maxRetries && !uploadResult) {
+          try {
+            const imageResponse = await fetch(book.original_image_url)
+            if (!imageResponse.ok) {
+              throw new Error(`Failed to fetch original image: ${imageResponse.statusText}`)
+            }
+
+            const imageBuffer = await imageResponse.arrayBuffer()
+            const base64Image = Buffer.from(imageBuffer).toString("base64")
+
+            // Upload the new image with transformations
+            uploadResult = await uploadImage(
+              base64Image,
+              "bookcovers",
+              `Book cover for: ${book.title}`,
+              maxWidth,
+              maxHeight,
+            )
+          } catch (error) {
+            retries++
+            console.warn(`Attempt ${retries}/${maxRetries} failed:`, error)
+
+            // If it's a rate limit error, wait longer between retries
+            if (error.message?.includes("rate limit")) {
+              await new Promise((resolve) => setTimeout(resolve, 2000 * retries)) // Exponential backoff
+            } else if (retries < maxRetries) {
+              await new Promise((resolve) => setTimeout(resolve, 1000)) // Wait 1 second before retry for other errors
+            } else {
+              // On final retry, rethrow the error
+              throw error
+            }
+          }
         }
 
-        const imageBuffer = await imageResponse.arrayBuffer()
-        const base64Image = Buffer.from(imageBuffer).toString("base64")
-
-        // Upload the new image with transformations
-        const uploadResult = await uploadImage(
-          base64Image,
-          "bookcovers",
-          `Book cover for: ${book.title}`,
-          maxWidth,
-          maxHeight,
-        )
-
         if (!uploadResult) {
-          throw new Error("Failed to upload image to Cloudinary")
+          throw new Error("Failed to upload image to Cloudinary after multiple retries")
         }
 
         // If the book had a cover_image_id, update the image record

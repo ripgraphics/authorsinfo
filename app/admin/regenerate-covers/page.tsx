@@ -152,8 +152,12 @@ export default function RegenerateCoversPage() {
       setIsProcessing(true)
       setIsPaused(false)
 
+      // Add a smaller batch size if we've encountered errors before
+      // This helps with rate limiting issues
+      const adjustedBatchSize = progress.errors.length > 0 ? Math.max(1, Math.floor(batchSize / 2)) : batchSize
+
       const result = await regenerateBookCovers(
-        batchSize,
+        adjustedBatchSize,
         maxWidth,
         maxHeight,
         progress.lastProcessedId,

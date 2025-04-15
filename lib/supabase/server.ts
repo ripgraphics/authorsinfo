@@ -1,6 +1,4 @@
 import { createClient } from "@supabase/supabase-js"
-import { cookies } from "next/headers"
-import type { Database } from "@/types/database"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -23,22 +21,3 @@ export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
     },
   },
 })
-
-// Also export the createClient function for SSR operations if needed
-export function createClientSSR() {
-  const cookieStore = cookies()
-
-  return createClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
-    auth: {
-      persistSession: false,
-    },
-    global: {
-      fetch: (url, options) => {
-        const controller = new AbortController()
-        const { signal } = controller
-        const timeoutId = setTimeout(() => controller.abort(), 15000)
-        return fetch(url, { ...options, signal }).finally(() => clearTimeout(timeoutId))
-      },
-    },
-  })
-}

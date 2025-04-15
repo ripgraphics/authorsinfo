@@ -79,12 +79,34 @@ export async function uploadImage(
       body: formData,
     })
 
+    // Check if the response is ok
     if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(`Cloudinary upload failed: ${errorText}`)
+      // Handle rate limiting specifically
+      if (response.status === 429) {
+        console.error("Cloudinary rate limit exceeded. Waiting before retrying...")
+        // Wait for 1 second before continuing
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+        throw new Error("Cloudinary rate limit exceeded. Please try again in a moment.")
+      }
+
+      // For other errors, try to get the error text
+      try {
+        const errorText = await response.text()
+        throw new Error(`Cloudinary upload failed: ${errorText}`)
+      } catch (textError) {
+        // If we can't even get the error text
+        throw new Error(`Cloudinary upload failed with status: ${response.status}`)
+      }
     }
 
-    const data = await response.json()
+    // Safely parse JSON
+    let data
+    try {
+      data = await response.json()
+    } catch (jsonError) {
+      console.error("Error parsing Cloudinary response:", jsonError)
+      throw new Error("Invalid response from Cloudinary. Could not parse JSON.")
+    }
 
     // First, check the structure of the images table
     const { data: tableInfo, error: tableError } = await supabaseAdmin.from("images").select("*").limit(1)

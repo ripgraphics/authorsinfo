@@ -1,18 +1,8 @@
+// Import directly from the server file path
 import { createClient } from "@supabase/supabase-js"
-import type { Database } from "@/types/database"
 
-// Check if environment variables are defined
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-// Throw a clear error if environment variables are missing
-if (!supabaseUrl) {
-  throw new Error("NEXT_PUBLIC_SUPABASE_URL is required but not set")
-}
-
-if (!supabaseServiceKey) {
-  throw new Error("SUPABASE_SERVICE_ROLE_KEY is required but not set")
-}
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 // Create a Supabase client with admin privileges for server-side operations
 // Add timeout options to prevent hanging connections
@@ -32,11 +22,3 @@ export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
     },
   },
 })
-
-export const supabase = createClient<Database>(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-)
-
-// Re-export from server file for backward compatibility
-export * from "./supabase/server"

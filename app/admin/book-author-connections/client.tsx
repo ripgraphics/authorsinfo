@@ -31,8 +31,8 @@ import {
   Loader2,
   BookX,
   UserX,
-  BarChart3,
   BookCheck,
+  Users,
 } from "lucide-react"
 import {
   connectAuthorToBook,
@@ -89,6 +89,7 @@ interface BatchProcessState {
 interface Stats {
   booksWithoutAuthors: number
   authorsWithoutBooks: number
+  booksWithMultipleAuthors: number
   totalBooks: number
   totalAuthors: number
 }
@@ -475,21 +476,29 @@ export function BookAuthorConnectionsClient({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="relative">
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
-              <BarChart3 className="h-4 w-4 text-blue-500" />
-              Total Authors
+              <Users className="h-4 w-4 text-blue-500" />
+              Books With Multiple Authors
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalAuthors}</div>
+            <div className="text-2xl font-bold">{stats.booksWithMultipleAuthors}</div>
             <div className="text-xs text-muted-foreground mt-1">
-              {stats.totalAuthors > 0
-                ? `${stats.totalAuthors - stats.authorsWithoutBooks} authors have books (${authorsWithBooksPercent}%)`
-                : "No authors in database"}
+              {stats.booksWithMultipleAuthors > 0
+                ? `${stats.booksWithMultipleAuthors} books have more than one author`
+                : "No books with multiple authors"}
             </div>
-            <Progress value={authorsWithBooksPercent} className="h-2 mt-2" />
+            {stats.booksWithMultipleAuthors > 0 && (
+              <Button
+                variant="link"
+                className="absolute bottom-2 right-2 p-0 h-auto text-xs"
+                onClick={() => router.push("/admin/books-with-multiple-authors")}
+              >
+                View all →
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>

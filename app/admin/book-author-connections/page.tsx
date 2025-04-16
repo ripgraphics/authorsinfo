@@ -2,6 +2,7 @@ import { Suspense } from "react"
 import { getBooksWithoutAuthors, getAuthorBookStats } from "@/app/actions/admin-book-authors"
 import { BookAuthorConnectionsClient } from "./client"
 import BookAuthorConnectionsLoading from "./loading"
+import { DebugStats } from "./debug"
 
 interface BookAuthorConnectionsPageProps {
   searchParams: {
@@ -19,7 +20,7 @@ export default async function BookAuthorConnectionsPage({ searchParams }: BookAu
     const [booksResult, statsResult] = await Promise.all([getBooksWithoutAuthors(page, pageSize), getAuthorBookStats()])
 
     const { books, count, error } = booksResult
-    const { booksWithoutAuthors, authorsWithoutBooks, totalBooks, totalAuthors } = statsResult
+    const { booksWithoutAuthors, authorsWithoutBooks, booksWithMultipleAuthors, totalBooks, totalAuthors } = statsResult
 
     if (error) {
       return (
@@ -44,10 +45,12 @@ export default async function BookAuthorConnectionsPage({ searchParams }: BookAu
             stats={{
               booksWithoutAuthors,
               authorsWithoutBooks,
+              booksWithMultipleAuthors,
               totalBooks,
               totalAuthors,
             }}
           />
+          <DebugStats />
         </Suspense>
       </div>
     )

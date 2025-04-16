@@ -22,7 +22,7 @@ export function Navigation() {
         <Link href="/publishers">Publishers</Link>
       </Button>
       <Button variant={pathname.startsWith("/admin") ? "default" : "ghost"} asChild>
-        <Link href="/admin/regenerate-covers">Admin</Link>
+        <Link href="/admin">Admin</Link>
       </Button>
     </nav>
   )

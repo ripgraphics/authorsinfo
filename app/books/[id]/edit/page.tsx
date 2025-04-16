@@ -424,21 +424,23 @@ export default function EditBookPage({ params }: EditBookPageProps) {
         }
       }
 
+      // Get binding_type_id and format_type_id from selected values
+      const bindingTypeId = selectedBindings.length > 0 ? Number.parseInt(selectedBindings[0], 10) : null
+      const formatTypeId = selectedFormats.length > 0 ? Number.parseInt(selectedFormats[0], 10) : null
+
       // Prepare the update data
       const updateData: Partial<Book> = {
         title: formData.get("title") as string,
         title_long: formData.get("title_long") as string,
         isbn10: formData.get("isbn10") as string,
         isbn13: formData.get("isbn13") as string,
-        author_id: selectedAuthorIds[0] || null, // Primary author
-        publisher_id: selectedPublisherIds[0] || null, // Primary publisher
+        author_id: selectedAuthorIds.length > 0 ? selectedAuthorIds[0] : null, // Primary author
+        publisher_id: selectedPublisherIds.length > 0 ? selectedPublisherIds[0] : null, // Primary publisher
         publication_date: formData.get("publication_date") as string,
-        binding_type_id: selectedBindings.length > 0 ? Number.parseInt(selectedBindings[0]) : null,
-        pages: parseNumericField(formData.get("pages")),
-        list_price: parseNumericField(formData.get("list_price")),
+        binding_type_id: bindingTypeId,
+        format_type_id: formatTypeId,
         language: formData.get("language") as string,
         edition: formData.get("edition") as string,
-        format_type_id: selectedFormats.length > 0 ? Number.parseInt(selectedFormats[0]) : null,
         synopsis: formData.get("synopsis") as string,
         overview: formData.get("overview") as string,
         dimensions: formData.get("dimensions") as string,
@@ -446,7 +448,17 @@ export default function EditBookPage({ params }: EditBookPageProps) {
         featured: formData.get("featured") === "on" ? "true" : "false",
         cover_image_url: newCoverImageUrl,
         cover_image_id: newCoverImageId,
-        // We're not updating average_rating and review_count as they should be read-only
+      }
+
+      // Handle numeric fields properly to avoid empty string errors
+      const pages = parseNumericField(formData.get("pages"))
+      if (pages !== undefined) {
+        updateData.pages = pages
+      }
+
+      const listPrice = parseNumericField(formData.get("list_price"))
+      if (listPrice !== undefined) {
+        updateData.list_price = listPrice
       }
 
       // Handle book_gallery_img separately - it might be an array in the database
@@ -668,7 +680,6 @@ export default function EditBookPage({ params }: EditBookPageProps) {
                             placeholder="Select binding type..."
                             emptyMessage="No binding types found."
                           />
-                          <input type="hidden" name="binding_type_id" value={selectedBindings[0] || ""} />
                         </div>
                         <div>
                           <Label htmlFor="format">Format</Label>
@@ -679,7 +690,6 @@ export default function EditBookPage({ params }: EditBookPageProps) {
                             placeholder="Select format..."
                             emptyMessage="No formats found."
                           />
-                          <input type="hidden" name="format_type_id" value={selectedFormats[0] || ""} />
                         </div>
                       </div>
 
@@ -698,7 +708,12 @@ export default function EditBookPage({ params }: EditBookPageProps) {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="pages">Pages</Label>
-                          <Input id="pages" name="pages" type="number" defaultValue={book.pages?.toString() || ""} />
+                          <Input
+                            id="pages"
+                            name="pages"
+                            type="number"
+                            defaultValue={book.pages ? book.pages.toString() : ""}
+                          />
                         </div>
                         <div>
                           <Label htmlFor="list_price">List Price</Label>
@@ -707,7 +722,7 @@ export default function EditBookPage({ params }: EditBookPageProps) {
                             name="list_price"
                             type="number"
                             step="0.01"
-                            defaultValue={book.list_price?.toString() || ""}
+                            defaultValue={book.list_price ? book.list_price.toString() : ""}
                           />
                         </div>
                       </div>

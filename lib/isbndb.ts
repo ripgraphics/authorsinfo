@@ -47,26 +47,65 @@ export async function searchBooks(query: string): Promise<Book[]> {
   }
 }
 
-export async function getBookByISBN(isbn: string): Promise<Book | null> {
+// Update the getBookByISBN function to include retry logic with exponential backoff
+export async function getBookByISBN(isbn: string, retries = 3, delay = 1000): Promise<Book | null> {
   try {
     if (!isbn) {
       console.error("No ISBN provided")
       return null
     }
 
-    const response = await fetch(`${BASE_URL}/book/${isbn}`, {
-      headers: {
-        Authorization: ISBNDB_API_KEY!,
-      },
-    })
+    // Try to fetch the book data with retries
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const response = await fetch(`${BASE_URL}/book/${isbn}`, {
+          headers: {
+            Authorization: ISBNDB_API_KEY!,
+          },
+        })
 
-    if (!response.ok) {
-      console.error(`ISBNDB API error: ${response.status}`)
-      return null
+        // Handle rate limiting
+        if (response.status === 429) {
+          console.warn(`Rate limit hit (attempt ${attempt + 1}/${retries + 1}), waiting before retry...`)
+
+          // If we've used all our retries, throw an error
+          if (attempt === retries) {
+            throw new Error("Rate limit exceeded after multiple retries")
+          }
+
+          // Wait with exponential backoff before retrying
+          await new Promise((resolve) => setTimeout(resolve, delay * Math.pow(2, attempt)))
+          continue
+        }
+
+        // Handle other non-200 responses
+        if (!response.ok) {
+          console.error(`ISBNDB API error: ${response.status}`)
+          return null
+        }
+
+        // Check if the response is JSON
+        const contentType = response.headers.get("content-type")
+        if (!contentType || !contentType.includes("application/json")) {
+          console.error("Invalid response format, expected JSON")
+          return null
+        }
+
+        const data = await response.json()
+        return data.book || null
+      } catch (retryError) {
+        // If this is our last retry, rethrow the error
+        if (attempt === retries) {
+          throw retryError
+        }
+
+        // Otherwise wait and retry
+        console.warn(`Error fetching book (attempt ${attempt + 1}/${retries + 1}), retrying...`, retryError)
+        await new Promise((resolve) => setTimeout(resolve, delay * Math.pow(2, attempt)))
+      }
     }
 
-    const data = await response.json()
-    return data.book || null
+    return null
   } catch (error) {
     console.error("Error fetching book:", error)
     return null

@@ -26,6 +26,33 @@ export async function getFilteredBooks(
   sortDirection: "asc" | "desc" = "asc",
 ) {
   try {
+    // Check if the requested sort field exists in the books table
+    const { data: tableInfo, error: tableError } = await supabaseAdmin.rpc("get_column_names", { table_name: "books" })
+
+    // If we can't get column info or there's an error, fall back to title
+    let validSortField = "title"
+
+    if (!tableError && tableInfo) {
+      // If the requested sort field exists, use it
+      if (tableInfo.includes(sortField)) {
+        validSortField = sortField
+      } else if (sortField === "created_at") {
+        // Try common alternatives for created_at
+        if (tableInfo.includes("inserted_at")) {
+          validSortField = "inserted_at"
+        } else if (tableInfo.includes("date_added")) {
+          validSortField = "date_added"
+        } else if (tableInfo.includes("date_created")) {
+          validSortField = "date_created"
+        } else if (tableInfo.includes("timestamp")) {
+          validSortField = "timestamp"
+        } else if (tableInfo.includes("publication_date")) {
+          // Fall back to publication_date for "recent" sorting
+          validSortField = "publication_date"
+        }
+      }
+    }
+
     // Start building the query
     let query = supabaseAdmin.from("books").select(`
         *,
@@ -82,14 +109,17 @@ export async function getFilteredBooks(
       query = query.lte("average_rating", filters.maxRating)
     }
 
+    let authorData: { id: string; name: string }[] | null = null
     // Handle author filter - this is more complex as it might be in a join table
     if (filters.author) {
       // First try with direct author_id field
-      const { data: authorData } = await supabaseAdmin
+      const { data } = await supabaseAdmin
         .from("authors")
-        .select("id")
+        .select("id, name")
         .ilike("name", `%${filters.author}%`)
         .limit(20)
+
+      authorData = data
 
       if (authorData && authorData.length > 0) {
         const authorIds = authorData.map((author) => author.id)
@@ -97,13 +127,16 @@ export async function getFilteredBooks(
       }
     }
 
+    let publisherData: { id: string; name: string }[] | null = null
     // Handle publisher filter
     if (filters.publisher) {
-      const { data: publisherData } = await supabaseAdmin
+      const { data } = await supabaseAdmin
         .from("publishers")
-        .select("id")
+        .select("id, name")
         .ilike("name", `%${filters.publisher}%`)
         .limit(20)
+
+      publisherData = data
 
       if (publisherData && publisherData.length > 0) {
         const publisherIds = publisherData.map((publisher) => publisher.id)
@@ -111,11 +144,79 @@ export async function getFilteredBooks(
       }
     }
 
-    // Get total count for pagination
-    const { count } = await query.count()
+    // Create a separate query for counting
+    let countQuery = supabaseAdmin.from("books").select("id", { count: "exact" })
 
-    // Apply sorting
-    query = query.order(sortField, { ascending: sortDirection === "asc" })
+    // Apply the same filters to the count query
+    if (filters.title) {
+      countQuery = countQuery.ilike("title", `%${filters.title}%`)
+    }
+
+    if (filters.isbn) {
+      countQuery = countQuery.or(`isbn13.ilike.%${filters.isbn}%,isbn10.ilike.%${filters.isbn}%`)
+    }
+
+    if (filters.language) {
+      countQuery = countQuery.eq("language", filters.language)
+    }
+
+    if (filters.publishedYear) {
+      // We already checked the fields above, so we can use the same logic
+      const { data: sampleBook } = await supabaseAdmin.from("books").select("*").limit(1)
+
+      if (sampleBook && sampleBook.length > 0) {
+        if (sampleBook[0].publication_date) {
+          countQuery = countQuery.ilike("publication_date", `%${filters.publishedYear}%`)
+        } else if (sampleBook[0].publication_year) {
+          countQuery = countQuery.eq("publication_year", filters.publishedYear)
+        } else if (sampleBook[0].year) {
+          countQuery = countQuery.eq("year", filters.publishedYear)
+        }
+      }
+    }
+
+    if (filters.genre) {
+      countQuery = countQuery.eq("genre_id", filters.genre)
+    }
+
+    if (filters.format) {
+      countQuery = countQuery.eq("format_type_id", filters.format)
+    }
+
+    if (filters.binding) {
+      countQuery = countQuery.eq("binding_type_id", filters.binding)
+    }
+
+    if (filters.minRating !== undefined) {
+      countQuery = countQuery.gte("average_rating", filters.minRating)
+    }
+
+    if (filters.maxRating !== undefined) {
+      countQuery = countQuery.lte("average_rating", filters.maxRating)
+    }
+
+    // Apply the same author filter to count query
+    if (filters.author && authorData && authorData.length > 0) {
+      const authorIds = authorData.map((author) => author.id)
+      countQuery = countQuery.in("author_id", authorIds)
+    }
+
+    // Apply the same publisher filter to count query
+    if (filters.publisher && publisherData && publisherData.length > 0) {
+      const publisherIds = publisherData.map((publisher) => publisher.id)
+      countQuery = countQuery.in("publisher_id", publisherIds)
+    }
+
+    // Get total count for pagination
+    const { count, error: countError } = await countQuery
+
+    if (countError) {
+      console.error("Error counting filtered books:", countError)
+      return { books: [], count: 0, error: countError.message }
+    }
+
+    // Apply sorting with the validated sort field
+    query = query.order(validSortField, { ascending: sortDirection === "asc" })
 
     // Apply pagination
     const from = (page - 1) * pageSize

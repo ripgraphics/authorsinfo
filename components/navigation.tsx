@@ -24,6 +24,9 @@ export function Navigation() {
       <Button variant={pathname.startsWith("/admin") ? "default" : "ghost"} asChild>
         <Link href="/admin">Admin</Link>
       </Button>
+      <Button variant={pathname.startsWith("/reading-dashboard") ? "default" : "ghost"} asChild>
+        <Link href="/reading-dashboard">Reading Dashboard</Link>
+      </Button>
     </nav>
   )
 }

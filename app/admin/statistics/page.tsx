@@ -5,31 +5,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 async function getStatistics() {
   try {
-    // Get binding type statistics using a different approach
-    const { data: bindingStats, error: bindingError } = await supabaseAdmin
+    // Get all books with their binding types
+    const { data: booksWithBindingTypes, error: bindingError } = await supabaseAdmin
       .from("books")
-      .select("binding_type_id, count")
+      .select("binding_type_id")
       .not("binding_type_id", "is", null)
-      .select(`
-        binding_type_id,
-        count(*) as count
-      `)
-      .group("binding_type_id")
 
     if (bindingError) {
       console.error("Error fetching binding stats:", bindingError)
       return { bindingTypesWithNames: [], formatTypesWithNames: [] }
     }
 
-    // Get format type statistics using a different approach
-    const { data: formatStats, error: formatError } = await supabaseAdmin
+    // Get all books with their format types
+    const { data: booksWithFormatTypes, error: formatError } = await supabaseAdmin
       .from("books")
-      .select(`
-        format_type_id,
-        count(*) as count
-      `)
+      .select("format_type_id")
       .not("format_type_id", "is", null)
-      .group("format_type_id")
 
     if (formatError) {
       console.error("Error fetching format stats:", formatError)
@@ -54,25 +45,43 @@ async function getStatistics() {
       return { bindingTypesWithNames: [], formatTypesWithNames: [] }
     }
 
+    // Count binding types manually
+    const bindingTypeCounts = {}
+    booksWithBindingTypes?.forEach((book) => {
+      if (book.binding_type_id) {
+        bindingTypeCounts[book.binding_type_id] = (bindingTypeCounts[book.binding_type_id] || 0) + 1
+      }
+    })
+
+    // Count format types manually
+    const formatTypeCounts = {}
+    booksWithFormatTypes?.forEach((book) => {
+      if (book.format_type_id) {
+        formatTypeCounts[book.format_type_id] = (formatTypeCounts[book.format_type_id] || 0) + 1
+      }
+    })
+
     // Process binding stats with names
     const bindingTypesWithNames =
-      bindingStats?.map((stat) => {
-        const bindingType = bindingTypes?.find((type) => type.id === stat.binding_type_id)
-        return {
-          name: bindingType?.name || "Unknown",
-          count: Number.parseInt(stat.count),
-        }
-      }) || []
+      bindingTypes
+        ?.map((type) => {
+          return {
+            name: type.name,
+            count: bindingTypeCounts[type.id] || 0,
+          }
+        })
+        .filter((item) => item.count > 0) || []
 
     // Process format stats with names
     const formatTypesWithNames =
-      formatStats?.map((stat) => {
-        const formatType = formatTypes?.find((type) => type.id === stat.format_type_id)
-        return {
-          name: formatType?.name || "Unknown",
-          count: Number.parseInt(stat.count),
-        }
-      }) || []
+      formatTypes
+        ?.map((type) => {
+          return {
+            name: type.name,
+            count: formatTypeCounts[type.id] || 0,
+          }
+        })
+        .filter((item) => item.count > 0) || []
 
     return {
       bindingTypesWithNames,

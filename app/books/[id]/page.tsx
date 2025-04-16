@@ -1,3 +1,4 @@
+import { Separator } from "@/components/ui/separator"
 import { notFound, redirect } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
@@ -5,7 +6,6 @@ import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
 import { getBookById, getAuthorsByBookId, getPublisherById, getReviewsByBookId } from "@/app/actions/data"
 import { AuthorAvatar } from "@/components/author-avatar"
@@ -59,6 +59,23 @@ interface Review {
   rating: number
   content: string
   created_at?: string
+}
+
+// Define the ReadingProgress type
+interface ReadingProgress {
+  id: string
+  user_id: string
+  book_id: string
+  status: "want_to_read" | "currently_reading" | "read" | "on_hold" | "abandoned"
+  current_page?: number
+  total_pages?: number
+  percentage_complete?: number
+  start_date?: string
+  finish_date?: string
+  notes?: string
+  is_public: boolean
+  created_at?: string
+  updated_at?: string
 }
 
 // Helper function to format date as MM-DD-YYYY
@@ -121,6 +138,87 @@ async function getBookFormatAndBinding(bookId: string) {
   }
 }
 
+// Function to get a sample user from the database
+async function getSampleUser() {
+  try {
+    const { data, error } = await supabaseAdmin.from("users").select("id").limit(1).single()
+
+    if (error) {
+      console.error("Error fetching sample user:", error)
+      return null
+    }
+
+    return data
+  } catch (error) {
+    console.error("Error in getSampleUser:", error)
+    return null
+  }
+}
+
+// Function to get user's reading progress for a book
+async function getUserReadingProgress(userId: string | null, bookId: string): Promise<ReadingProgress | null> {
+  // If no userId is provided, return null
+  if (!userId) {
+    return null
+  }
+
+  try {
+    const { data, error } = await supabaseAdmin
+      .from("reading_progress")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("book_id", bookId)
+      .single()
+
+    if (error) {
+      // If the error is that no rows were returned, that's fine
+      if (error.code === "PGRST116") {
+        return null
+      }
+      console.error("Error fetching reading progress:", error)
+      return null
+    }
+
+    return data as ReadingProgress
+  } catch (error) {
+    console.error("Error in getUserReadingProgress:", error)
+    return null
+  }
+}
+
+// Function to update reading progress
+async function updateReadingProgress(progress: Partial<ReadingProgress> & { user_id: string }) {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from("reading_progress")
+      .upsert({
+        user_id: progress.user_id,
+        book_id: progress.book_id,
+        status: progress.status,
+        current_page: progress.current_page,
+        total_pages: progress.total_pages,
+        percentage_complete: progress.percentage_complete,
+        start_date: progress.start_date,
+        finish_date: progress.finish_date,
+        notes: progress.notes,
+        is_public: progress.is_public ?? true,
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error("Error updating reading progress:", error)
+      return null
+    }
+
+    return data
+  } catch (error) {
+    console.error("Error in updateReadingProgress:", error)
+    return null
+  }
+}
+
 export default async function BookPage({ params }: BookPageProps) {
   // Special case: if id is "add", redirect to the add page
   if (params.id === "add") {
@@ -165,6 +263,22 @@ export default async function BookPage({ params }: BookPageProps) {
 
     // Fetch binding and format types
     const { bindingType, formatType } = await getBookFormatAndBinding(params.id)
+
+    // Get a sample user from the database
+    const sampleUser = await getSampleUser()
+    const userId = sampleUser?.id || null
+
+    // Fetch user's reading progress
+    let readingProgress = null
+    try {
+      readingProgress = await getUserReadingProgress(userId, params.id)
+    } catch (error) {
+      console.error("Error fetching reading progress:", error)
+      // Continue with null reading progress
+    }
+
+    // Default reading status for display purposes when no user is logged in
+    const defaultStatus = "want_to_read"
 
     return (
       <div className="book-page min-h-screen flex flex-col bg-gray-100">
@@ -249,7 +363,9 @@ export default async function BookPage({ params }: BookPageProps) {
                 <div className="reading-actions flex gap-2">
                   <Button className="flex items-center gap-2">
                     <BookMarked className="h-4 w-4" />
-                    <span>Want to Read</span>
+                    <span>
+                      {readingProgress?.status === "currently_reading" ? "Currently Reading" : "Want to Read"}
+                    </span>
                   </Button>
                   <Button variant="outline" className="flex items-center gap-2">
                     <Star className="h-4 w-4" />
@@ -305,19 +421,52 @@ export default async function BookPage({ params }: BookPageProps) {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="reading-status-buttons flex flex-col gap-2">
-                      <Button className="w-full justify-start">
+                      <Button
+                        className="w-full justify-start"
+                        variant={readingProgress?.status === "want_to_read" || !readingProgress ? "default" : "outline"}
+                      >
                         <BookMarked className="mr-2 h-4 w-4" />
                         Want to Read
                       </Button>
-                      <Button variant="outline" className="w-full justify-start">
+                      <Button
+                        variant={readingProgress?.status === "currently_reading" ? "default" : "outline"}
+                        className="w-full justify-start"
+                      >
                         <Clock className="mr-2 h-4 w-4" />
                         Currently Reading
                       </Button>
-                      <Button variant="outline" className="w-full justify-start">
+                      <Button
+                        variant={readingProgress?.status === "read" ? "default" : "outline"}
+                        className="w-full justify-start"
+                      >
                         <BookOpen className="mr-2 h-4 w-4" />
                         Read
                       </Button>
                     </div>
+
+                    {readingProgress?.status === "currently_reading" && (
+                      <div className="reading-progress space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Reading Progress</span>
+                          <span className="text-sm font-medium">{readingProgress.percentage_complete || 0}%</span>
+                        </div>
+                        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-blue-600 rounded-full"
+                            style={{ width: `${readingProgress.percentage_complete || 0}%` }}
+                          ></div>
+                        </div>
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>Page {readingProgress.current_page || 0}</span>
+                          <span>of {readingProgress.total_pages || book.page_count || "?"}</span>
+                        </div>
+                        <div className="pt-2">
+                          <Button size="sm" className="w-full">
+                            Update Progress
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 

@@ -1,6 +1,6 @@
 "use server"
 
-import { supabaseAdmin } from "@/lib/supabase/server"
+import { supabaseAdmin from "@/lib/supabase/server"
 
 // Get content statistics
 export async function getContentStats() {
@@ -218,14 +218,33 @@ export async function getUserEngagementMetrics() {
     const totalGoals = readingChallenges?.reduce((sum, challenge) => sum + (challenge.goal || 0), 0) || 0
     const totalBooksRead = readingChallenges?.reduce((sum, challenge) => sum + (challenge.books_read || 0), 0) || 0
 
-    // Get reading status counts - fixed to use proper Supabase syntax
-    const { data: readingStatusCounts } = await supabaseAdmin
-      .from("reading_status")
-      .select("status, count")
-      .groupBy("status")
+    // Get reading status counts using a different approach
+    const { data: readingStatusData } = await supabaseAdmin.from("reading_status").select("status")
+    
+    // Count statuses manually
+    const statusCounts = {}
+    readingStatusData?.forEach(item => {
+      statusCounts[item.status] = (statusCounts[item.status] || 0) + 1
+    })
+    
+    const readingStatusCounts = Object.entries(statusCounts).map(([status, count]) => ({
+      status,
+      count
+    }))
 
-    // Get review stats - fixed to use proper Supabase syntax
-    const { data: reviewStats } = await supabaseAdmin.from("reviews").select("rating, count").groupBy("rating")
+    // Get review stats using a different approach
+    const { data: reviewData } = await supabaseAdmin.from("reviews").select("rating")
+    
+    // Count ratings manually
+    const ratingCounts = {}
+    reviewData?.forEach(item => {
+      ratingCounts[item.rating] = (ratingCounts[item.rating] || 0) + 1
+    })
+    
+    const reviewStats = Object.entries(ratingCounts).map(([rating, count]) => ({
+      rating: parseInt(rating),
+      count
+    }))
 
     return {
       readingChallenges: {

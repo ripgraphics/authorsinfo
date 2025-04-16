@@ -19,7 +19,9 @@ import {
   User,
   Users,
   Database,
-  Image,
+  ImageIcon,
+  BarChart3,
+  Link2,
 } from "lucide-react"
 
 export function AdminSidebar() {
@@ -84,6 +86,15 @@ export function AdminSidebar() {
                   <FileText className="h-4 w-4" />
                   Statistics
                 </Link>
+                <Link
+                  className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                    pathname === "/admin/reports" ? "bg-white/10 text-white font-medium" : "text-gray-400"
+                  }`}
+                  href="/admin/reports"
+                >
+                  <BarChart3 className="h-4 w-4" />
+                  Reports
+                </Link>
               </div>
             )}
           </div>
@@ -126,6 +137,17 @@ export function AdminSidebar() {
                     <FileText className="h-4 w-4" />
                     Import Books
                   </Link>
+                  <Link
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                      pathname === "/admin/book-author-connections"
+                        ? "bg-white/10 text-white font-medium"
+                        : "text-gray-400"
+                    }`}
+                    href="/admin/book-author-connections"
+                  >
+                    <Link2 className="h-4 w-4" />
+                    Book-Author Connections
+                  </Link>
                 </div>
               )}
             </div>
@@ -145,7 +167,9 @@ export function AdminSidebar() {
               {expanded.authors && (
                 <div className="pl-9 mt-1 space-y-1">
                   <Link
-                    className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                      pathname === "/admin/authors" ? "bg-white/10 text-white font-medium" : "text-gray-400"
+                    }`}
                     href="/admin/authors"
                   >
                     <Users className="h-4 w-4" />
@@ -157,6 +181,18 @@ export function AdminSidebar() {
                   >
                     <Tag className="h-4 w-4" />
                     Add Author
+                  </Link>
+                  {/* Added Book-Author Connections link under Authors section */}
+                  <Link
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                      pathname === "/admin/book-author-connections"
+                        ? "bg-white/10 text-white font-medium"
+                        : "text-gray-400"
+                    }`}
+                    href="/admin/book-author-connections"
+                  >
+                    <Link2 className="h-4 w-4" />
+                    Book Connections
                   </Link>
                 </div>
               )}
@@ -198,7 +234,7 @@ export function AdminSidebar() {
               className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
               href="/admin/regenerate-covers"
             >
-              <Image className="h-5 w-5" />
+              <ImageIcon className="h-5 w-5" />
               <span>Regenerate Covers</span>
             </Link>
           </div>

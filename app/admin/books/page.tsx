@@ -172,7 +172,7 @@ export default function AdminBooksPage({ searchParams }: AdminBooksPageProps) {
               filters={filters}
               page={page}
               pageSize={pageSize}
-              sortField="created_at"
+              sortField="publication_date"
               sortDirection="desc"
             />
           </Suspense>

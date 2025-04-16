@@ -502,7 +502,7 @@ export async function getAuthorBookStats() {
 
     // Step 4: Calculate books with multiple authors
     // Count occurrences of each book_id
-    const bookCounts: Record<string, number> = {}
+    const bookCounts = {}
     bookAuthorData.forEach((ba) => {
       bookCounts[ba.book_id] = (bookCounts[ba.book_id] || 0) + 1
     })
@@ -549,7 +549,7 @@ export async function getBooksWithMultipleAuthors(page = 1, pageSize = 20) {
     }
 
     // Step 2: Count occurrences of each book_id
-    const bookCounts: Record<string, number> = {}
+    const bookCounts = {}
     bookAuthorData.forEach((ba) => {
       bookCounts[ba.book_id] = (bookCounts[ba.book_id] || 0) + 1
     })

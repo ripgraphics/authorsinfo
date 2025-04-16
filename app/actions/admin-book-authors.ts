@@ -1,37 +1,28 @@
 "use server"
 
-import { supabaseAdmin } from "@/lib/supabase/server"
-import { getBookByISBN } from "@/lib/isbndb"
+import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
+import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
+import { getBookByISBN } from "@/lib/isbndb"
 
-// Get books that don't have authors assigned
-export async function getBooksWithoutAuthors(page = 1, pageSize = 20) {
+async function getBooksWithoutAuthors(page = 1, pageSize = 20) {
   try {
-    // Get books where author_id is null or not set
+    const supabase = createServerActionClient({ cookies })
     const from = (page - 1) * pageSize
     const to = from + pageSize - 1
 
-    // First get count
-    const { count, error: countError } = await supabaseAdmin
+    const { data, error, count } = await supabase
       .from("books")
-      .select("id", { count: "exact" })
-      .is("author_id", null)
-
-    if (countError) {
-      console.error("Error counting books without authors:", countError)
-      return { books: [], count: 0, error: countError.message }
-    }
-
-    // Then get the actual books with pagination
-    const { data, error } = await supabaseAdmin
-      .from("books")
-      .select(`
+      .select(
+        `
         id, 
         title,
         isbn10,
         isbn13,
         cover_image:cover_image_id(id, url, alt_text)
-      `)
+      `,
+        { count: "exact" },
+      )
       .is("author_id", null)
       .range(from, to)
 
@@ -40,25 +31,89 @@ export async function getBooksWithoutAuthors(page = 1, pageSize = 20) {
       return { books: [], count: 0, error: error.message }
     }
 
-    return {
-      books: data || [],
-      count: count || 0,
-      error: null,
-    }
+    return { books: data || [], count: count || 0, error: null }
   } catch (error) {
     console.error("Error in getBooksWithoutAuthors:", error)
     return { books: [], count: 0, error: String(error) }
   }
 }
 
-// Search for authors in the database
-export async function searchDatabaseAuthors(query: string) {
+async function getAuthorBookStats() {
   try {
-    const { data, error } = await supabaseAdmin
+    const supabase = createServerActionClient({ cookies })
+
+    // Get count of books without authors
+    const { count: booksWithoutAuthors, error: booksError } = await supabase
+      .from("books")
+      .select("*", { count: "exact" })
+      .is("author_id", null)
+
+    if (booksError) {
+      console.error("Error counting books without authors:", booksError)
+    }
+
+    // Get count of authors without books
+    const { count: authorsWithoutBooks, error: authorsError } = await supabase
       .from("authors")
-      .select("id, name, bio")
-      .ilike("name", `%${query}%`)
-      .limit(10)
+      .select("*", { count: "exact" })
+      .is("author_id", null)
+
+    if (authorsError) {
+      console.error("Error counting authors without books:", authorsError)
+    }
+
+    // Get count of books with multiple authors
+    const { count: booksWithMultipleAuthors, error: multipleAuthorsError } = await supabase
+      .from("book_authors")
+      .select("book_id", { count: "exact", head: true })
+      .groupBy("book_id")
+      .having("count(author_id) > 1")
+
+    if (multipleAuthorsError) {
+      console.error("Error counting books with multiple authors:", multipleAuthorsError)
+    }
+
+    // Get total counts
+    const { count: totalBooks, error: totalBooksError } = await supabase.from("books").select("*", { count: "exact" })
+
+    if (totalBooksError) {
+      console.error("Error counting total books:", totalBooksError)
+    }
+
+    const { count: totalAuthors, error: totalAuthorsError } = await supabase
+      .from("authors")
+      .select("*", { count: "exact" })
+
+    if (totalAuthorsError) {
+      console.error("Error counting total authors:", totalAuthorsError)
+    }
+
+    return {
+      booksWithoutAuthors: booksWithoutAuthors || 0,
+      authorsWithoutBooks: authorsWithoutBooks || 0,
+      booksWithMultipleAuthors: booksWithMultipleAuthors || 0,
+      totalBooks: totalBooks || 0,
+      totalAuthors: totalAuthors || 0,
+      error: null,
+    }
+  } catch (error) {
+    console.error("Error in getAuthorBookStats:", error)
+    return {
+      booksWithoutAuthors: 0,
+      authorsWithoutBooks: 0,
+      booksWithMultipleAuthors: 0,
+      totalBooks: 0,
+      totalAuthors: 0,
+      error: String(error),
+    }
+  }
+}
+
+async function searchDatabaseAuthors(query: string) {
+  try {
+    const supabase = createServerActionClient({ cookies })
+
+    const { data, error } = await supabase.from("authors").select("id, name").ilike("name", `%${query}%`).limit(10)
 
     if (error) {
       console.error("Error searching authors:", error)
@@ -72,126 +127,18 @@ export async function searchDatabaseAuthors(query: string) {
   }
 }
 
-// Get book-author connections
-export async function getBookAuthorConnections(bookId: string) {
+async function connectAuthorToBook(bookId: string, authorId: string) {
   try {
-    // First check if the book_authors table exists
-    const { data: tables, error: tablesError } = await supabaseAdmin.rpc("get_tables")
+    const supabase = createServerActionClient({ cookies })
 
-    if (tablesError) {
-      console.error("Error checking for book_authors table:", tablesError)
-      return { connections: [], error: tablesError.message }
+    const { error } = await supabase.from("book_authors").insert({ book_id: bookId, author_id: authorId })
+
+    if (error) {
+      console.error("Error connecting author to book:", error)
+      return { success: false, error: error.message }
     }
 
-    const hasBookAuthorsTable = tables && tables.some((table: string) => table === "book_authors")
-
-    if (hasBookAuthorsTable) {
-      // Use the join table
-      const { data, error } = await supabaseAdmin
-        .from("book_authors")
-        .select(`
-          id,
-          author:author_id(id, name)
-        `)
-        .eq("book_id", bookId)
-
-      if (error) {
-        console.error("Error fetching book-author connections:", error)
-        return { connections: [], error: error.message }
-      }
-
-      return {
-        connections:
-          data.map((conn) => ({
-            id: conn.id,
-            authorId: conn.author.id,
-            authorName: conn.author.name,
-          })) || [],
-        error: null,
-      }
-    } else {
-      // Check if the book has a single author_id
-      const { data, error } = await supabaseAdmin
-        .from("books")
-        .select(`
-          id,
-          author_id,
-          author:author_id(id, name)
-        `)
-        .eq("id", bookId)
-        .single()
-
-      if (error) {
-        console.error("Error fetching book author:", error)
-        return { connections: [], error: error.message }
-      }
-
-      if (!data.author_id) {
-        return { connections: [], error: null }
-      }
-
-      return {
-        connections: [
-          {
-            id: `${bookId}_${data.author_id}`,
-            authorId: data.author_id,
-            authorName: data.author?.name || "Unknown Author",
-          },
-        ],
-        error: null,
-      }
-    }
-  } catch (error) {
-    console.error("Error in getBookAuthorConnections:", error)
-    return { connections: [], error: String(error) }
-  }
-}
-
-// Connect author to book
-export async function connectAuthorToBook(bookId: string, authorId: string) {
-  try {
-    // First check if the book_authors table exists
-    const { data: tables, error: tablesError } = await supabaseAdmin.rpc("get_tables")
-
-    if (tablesError) {
-      console.error("Error checking for book_authors table:", tablesError)
-      return { success: false, error: tablesError.message }
-    }
-
-    const hasBookAuthorsTable = tables && tables.some((table: string) => table === "book_authors")
-
-    if (hasBookAuthorsTable) {
-      // Use the join table
-      // First check if the connection already exists
-      const { data: existingConn } = await supabaseAdmin
-        .from("book_authors")
-        .select("id")
-        .eq("book_id", bookId)
-        .eq("author_id", authorId)
-        .single()
-
-      if (existingConn) {
-        return { success: true, message: "Author already connected to this book" }
-      }
-
-      // Create the connection
-      const { error } = await supabaseAdmin.from("book_authors").insert({ book_id: bookId, author_id: authorId })
-
-      if (error) {
-        console.error("Error connecting author to book:", error)
-        return { success: false, error: error.message }
-      }
-    } else {
-      // Update the book's author_id field
-      const { error } = await supabaseAdmin.from("books").update({ author_id: authorId }).eq("id", bookId)
-
-      if (error) {
-        console.error("Error updating book author:", error)
-        return { success: false, error: error.message }
-      }
-    }
-
-    revalidatePath("/admin/book-author-connections")
+    revalidatePath(`/books/${bookId}`)
     return { success: true }
   } catch (error) {
     console.error("Error in connectAuthorToBook:", error)
@@ -199,46 +146,18 @@ export async function connectAuthorToBook(bookId: string, authorId: string) {
   }
 }
 
-// Disconnect author from book
-export async function disconnectAuthorFromBook(bookId: string, authorId: string) {
+async function disconnectAuthorFromBook(bookId: string, authorId: string) {
   try {
-    // First check if the book_authors table exists
-    const { data: tables, error: tablesError } = await supabaseAdmin.rpc("get_tables")
+    const supabase = createServerActionClient({ cookies })
 
-    if (tablesError) {
-      console.error("Error checking for book_authors table:", tablesError)
-      return { success: false, error: tablesError.message }
+    const { error } = await supabase.from("book_authors").delete().eq("book_id", bookId).eq("author_id", authorId)
+
+    if (error) {
+      console.error("Error disconnecting author from book:", error)
+      return { success: false, error: error.message }
     }
 
-    const hasBookAuthorsTable = tables && tables.some((table: string) => table === "book_authors")
-
-    if (hasBookAuthorsTable) {
-      // Use the join table
-      const { error } = await supabaseAdmin
-        .from("book_authors")
-        .delete()
-        .eq("book_id", bookId)
-        .eq("author_id", authorId)
-
-      if (error) {
-        console.error("Error disconnecting author from book:", error)
-        return { success: false, error: error.message }
-      }
-    } else {
-      // Update the book's author_id field to null
-      const { error } = await supabaseAdmin
-        .from("books")
-        .update({ author_id: null })
-        .eq("id", bookId)
-        .eq("author_id", authorId)
-
-      if (error) {
-        console.error("Error removing book author:", error)
-        return { success: false, error: error.message }
-      }
-    }
-
-    revalidatePath("/admin/book-author-connections")
+    revalidatePath(`/books/${bookId}`)
     return { success: true }
   } catch (error) {
     console.error("Error in disconnectAuthorFromBook:", error)
@@ -246,33 +165,11 @@ export async function disconnectAuthorFromBook(bookId: string, authorId: string)
   }
 }
 
-// Look up book by ISBN in ISBNDB
-export async function lookupBookByISBN(isbn: string) {
+async function createAuthor(authorData: { name: string; bio?: string }) {
   try {
-    const book = await getBookByISBN(isbn)
+    const supabase = createServerActionClient({ cookies })
 
-    if (!book) {
-      return { book: null, error: "Book not found in ISBNDB" }
-    }
-
-    return { book, error: null }
-  } catch (error) {
-    console.error("Error looking up book by ISBN:", error)
-    return { book: null, error: String(error) }
-  }
-}
-
-// Create a new author
-export async function createAuthor(authorData: { name: string; bio?: string }) {
-  try {
-    const { data, error } = await supabaseAdmin
-      .from("authors")
-      .insert({
-        name: authorData.name,
-        bio: authorData.bio || null,
-      })
-      .select("id, name")
-      .single()
+    const { data, error } = await supabase.from("authors").insert(authorData).select().single()
 
     if (error) {
       console.error("Error creating author:", error)
@@ -287,338 +184,162 @@ export async function createAuthor(authorData: { name: string; bio?: string }) {
   }
 }
 
-// Batch process books without authors
-export async function batchProcessBooksWithoutAuthors(limit = 20) {
+async function getBookAuthorConnections(bookId: string) {
   try {
-    // Get books without authors that have ISBN information
-    const { data: books, error } = await supabaseAdmin
-      .from("books")
-      .select("id, isbn13, isbn10, title")
-      .is("author_id", null)
-      .limit(limit)
+    const supabase = createServerActionClient({ cookies })
+
+    const { data, error } = await supabase
+      .from("book_authors")
+      .select(`id, author_id, authors(name)`)
+      .eq("book_id", bookId)
 
     if (error) {
-      console.error("Error fetching books for batch processing:", error)
-      return { processed: 0, success: false, error: error.message }
+      console.error("Error fetching book author connections:", error)
+      return { connections: [], error: error.message }
     }
 
-    if (!books || books.length === 0) {
-      return { processed: 0, success: true, message: "No books to process" }
+    const connections = data.map((item) => ({
+      id: item.id,
+      authorId: item.author_id,
+      authorName: item.authors?.name || "Unknown Author",
+    }))
+
+    return { connections, error: null }
+  } catch (error) {
+    console.error("Error in getBookAuthorConnections:", error)
+    return { connections: [], error: String(error) }
+  }
+}
+
+async function lookupBookByISBN(isbn: string) {
+  try {
+    const book = await getBookByISBN(isbn)
+
+    if (!book) {
+      return { book: null, error: "Book not found" }
     }
 
-    let processedCount = 0
-    const errors = []
+    return { book, error: null }
+  } catch (error) {
+    console.error("Error in lookupBookByISBN:", error)
+    return { book: null, error: String(error) }
+  }
+}
 
-    // Process each book with a delay between requests to avoid rate limiting
+async function batchProcessBooksWithoutAuthors(batchSize: number) {
+  try {
+    const supabase = createServerActionClient({ cookies })
+
+    // Get books without authors
+    const { data: books, error: booksError } = await supabase
+      .from("books")
+      .select("id, isbn13, isbn10")
+      .is("author_id", null)
+      .limit(batchSize)
+
+    if (booksError) {
+      console.error("Error fetching books without authors:", booksError)
+      return { success: false, error: booksError.message, processed: 0, errors: [] }
+    }
+
+    let processed = 0
+    const errors: string[] = []
+
+    // Process each book
     for (const book of books) {
       try {
-        // Try to use ISBN13 first, then ISBN10
-        const isbn = book.isbn13 || book.isbn10
+        // Try to find author by ISBN
+        let authorName = null
 
-        if (!isbn) {
-          errors.push(`Book ${book.id} (${book.title}) has no ISBN`)
-          continue
+        if (book.isbn13) {
+          const isbnData = await getBookByISBN(book.isbn13)
+          authorName = isbnData?.authors?.[0]
+        } else if (book.isbn10) {
+          const isbnData = await getBookByISBN(book.isbn10)
+          authorName = isbnData?.authors?.[0]
         }
 
-        // Look up book in ISBNDB with retry logic
-        const isbndbBook = await getBookByISBN(isbn, 3, 2000) // 3 retries, starting with 2 second delay
-
-        if (!isbndbBook || !isbndbBook.authors || isbndbBook.authors.length === 0) {
-          errors.push(`No author information found for book ${book.id} (${book.title}, ISBN: ${isbn})`)
-          continue
-        }
-
-        // Check if we have a book_authors join table
-        const { data: tables } = await supabaseAdmin.rpc("get_tables")
-        const hasBookAuthorsTable = tables && tables.some((table: string) => table === "book_authors")
-
-        // Process each author
-        for (const authorName of isbndbBook.authors) {
-          // Search for author in database
-          const { data: existingAuthors } = await supabaseAdmin
+        if (authorName) {
+          // Check if author exists
+          const { data: existingAuthor } = await supabase
             .from("authors")
-            .select("id, name")
-            .ilike("name", authorName)
-            .limit(1)
+            .select("id")
+            .eq("name", authorName)
+            .maybeSingle()
 
-          let authorId
+          let authorId = existingAuthor?.id
 
-          if (existingAuthors && existingAuthors.length > 0) {
-            // Use existing author
-            authorId = existingAuthors[0].id
-          } else {
-            // Create new author
-            const { data: newAuthor, error: createError } = await supabaseAdmin
+          // Create author if not exists
+          if (!authorId) {
+            const { data: newAuthor, error: authorError } = await supabase
               .from("authors")
               .insert({ name: authorName })
               .select("id")
               .single()
 
-            if (createError) {
-              errors.push(`Error creating author ${authorName} for book ${book.title}: ${createError.message}`)
-              continue
+            if (authorError) {
+              throw new Error(`Failed to create author: ${authorError.message}`)
             }
 
             authorId = newAuthor.id
           }
 
           // Connect author to book
-          if (hasBookAuthorsTable) {
-            // Use join table
-            const { error: connError } = await supabaseAdmin
-              .from("book_authors")
-              .insert({ book_id: book.id, author_id: authorId })
+          const { error: connectError } = await supabase.from("books").update({ author_id: authorId }).eq("id", book.id)
 
-            if (connError) {
-              errors.push(`Error connecting author ${authorName} to book ${book.title}: ${connError.message}`)
-              continue
-            }
-          } else {
-            // Use direct author_id field (only for the first author)
-            const { error: updateError } = await supabaseAdmin
-              .from("books")
-              .update({ author_id: authorId })
-              .eq("id", book.id)
-
-            if (updateError) {
-              errors.push(`Error updating book ${book.title} with author ${authorName}: ${updateError.message}`)
-              continue
-            }
+          if (connectError) {
+            throw new Error(`Failed to connect author to book: ${connectError.message}`)
           }
+
+          processed++
         }
-
-        processedCount++
-
-        // Add a significant delay between books to avoid rate limiting
-        await new Promise((resolve) => setTimeout(resolve, 3000))
-      } catch (bookError) {
-        errors.push(`Error processing book ${book.id} (${book.title}): ${String(bookError)}`)
+      } catch (err) {
+        console.error(`Error processing book ${book.id}:`, err)
+        errors.push(`Book ${book.id}: ${String(err)}`)
       }
     }
 
     revalidatePath("/admin/book-author-connections")
-
-    return {
-      processed: processedCount,
-      success: true,
-      errors: errors.length > 0 ? errors : null,
-    }
+    return { success: true, processed, errors }
   } catch (error) {
     console.error("Error in batchProcessBooksWithoutAuthors:", error)
-    return { processed: 0, success: false, error: String(error) }
+    return { success: false, error: String(error), processed: 0, errors: [] }
   }
 }
 
-// Get statistics about authors and books
-export async function getAuthorBookStats() {
+async function getBooksWithMultipleAuthors() {
   try {
-    console.log("Getting author-book stats...")
+    const supabase = createServerActionClient({ cookies })
 
-    // Get total counts first
-    const { count: totalBooks, error: totalBooksError } = await supabaseAdmin
-      .from("books")
-      .select("id", { count: "exact" })
-
-    const { count: totalAuthors, error: totalAuthorsError } = await supabaseAdmin
-      .from("authors")
-      .select("id", { count: "exact" })
-
-    if (totalBooksError || totalAuthorsError) {
-      console.error("Error counting totals:", totalBooksError || totalAuthorsError)
-      return {
-        booksWithoutAuthors: 0,
-        authorsWithoutBooks: 0,
-        booksWithMultipleAuthors: 0,
-        totalBooks: 0,
-        totalAuthors: 0,
-        error: (totalBooksError || totalAuthorsError)?.message,
-      }
-    }
-
-    console.log(`Total books: ${totalBooks}, Total authors: ${totalAuthors}`)
-
-    // Step 1: Get all book_ids from book_authors table
-    const { data: bookAuthorData, error: bookAuthorError } = await supabaseAdmin
+    const { data, error } = await supabase
       .from("book_authors")
-      .select("book_id, author_id")
+      .select("book_id")
+      .groupBy("book_id")
+      .having("count(author_id) > 1")
 
-    if (bookAuthorError) {
-      console.error("Error fetching book-author connections:", bookAuthorError)
-      return {
-        booksWithoutAuthors: 0,
-        authorsWithoutBooks: 0,
-        booksWithMultipleAuthors: 0,
-        totalBooks: totalBooks || 0,
-        totalAuthors: totalAuthors || 0,
-        error: bookAuthorError.message,
-      }
+    if (error) {
+      console.error("Error fetching books with multiple authors:", error)
+      return { bookIds: [], error: error.message }
     }
 
-    // Step 2: Calculate books without authors
-    // Get all book IDs
-    const { data: allBookIds, error: allBookIdsError } = await supabaseAdmin.from("books").select("id")
+    const bookIds = data.map((item) => item.book_id)
 
-    if (allBookIdsError) {
-      console.error("Error fetching all book IDs:", allBookIdsError)
-      return {
-        booksWithoutAuthors: 0,
-        authorsWithoutBooks: 0,
-        booksWithMultipleAuthors: 0,
-        totalBooks: totalBooks || 0,
-        totalAuthors: totalAuthors || 0,
-        error: allBookIdsError.message,
-      }
-    }
-
-    // Get unique book IDs from book_authors
-    const bookIdsWithAuthors = new Set(bookAuthorData.map((ba) => ba.book_id))
-
-    // Books without authors are those not in the book_authors table
-    const booksWithoutAuthors = allBookIds.filter((book) => !bookIdsWithAuthors.has(book.id)).length
-    console.log(`Books without authors: ${booksWithoutAuthors}`)
-
-    // Step 3: Calculate authors without books
-    // Get all author IDs
-    const { data: allAuthorIds, error: allAuthorIdsError } = await supabaseAdmin.from("authors").select("id")
-
-    if (allAuthorIdsError) {
-      console.error("Error fetching all author IDs:", allAuthorIdsError)
-      return {
-        booksWithoutAuthors,
-        authorsWithoutBooks: 0,
-        booksWithMultipleAuthors: 0,
-        totalBooks: totalBooks || 0,
-        totalAuthors: totalAuthors || 0,
-        error: allAuthorIdsError.message,
-      }
-    }
-
-    // Get unique author IDs from book_authors
-    const authorIdsWithBooks = new Set(bookAuthorData.map((ba) => ba.author_id))
-
-    // Authors without books are those not in the book_authors table
-    const authorsWithoutBooks = allAuthorIds.filter((author) => !authorIdsWithBooks.has(author.id)).length
-    console.log(`Authors without books: ${authorsWithoutBooks}`)
-
-    // Step 4: Calculate books with multiple authors
-    // Count occurrences of each book_id
-    const bookCounts = {}
-    bookAuthorData.forEach((ba) => {
-      bookCounts[ba.book_id] = (bookCounts[ba.book_id] || 0) + 1
-    })
-
-    // Books with multiple authors are those that appear more than once
-    const booksWithMultipleAuthors = Object.values(bookCounts).filter((count) => count > 1).length
-    console.log(`Books with multiple authors: ${booksWithMultipleAuthors}`)
-
-    return {
-      booksWithoutAuthors,
-      authorsWithoutBooks,
-      booksWithMultipleAuthors,
-      totalBooks: totalBooks || 0,
-      totalAuthors: totalAuthors || 0,
-      error: null,
-    }
-  } catch (error) {
-    console.error("Error getting author-book stats:", error)
-    return {
-      booksWithoutAuthors: 0,
-      authorsWithoutBooks: 0,
-      booksWithMultipleAuthors: 0,
-      totalBooks: 0,
-      totalAuthors: 0,
-      error: String(error),
-    }
-  }
-}
-
-// Get books with multiple authors
-export async function getBooksWithMultipleAuthors(page = 1, pageSize = 20) {
-  try {
-    const from = (page - 1) * pageSize
-    const to = from + pageSize - 1
-
-    // Step 1: Get all book-author connections
-    const { data: bookAuthorData, error: bookAuthorError } = await supabaseAdmin
-      .from("book_authors")
-      .select("book_id, author_id")
-
-    if (bookAuthorError) {
-      console.error("Error fetching book-author connections:", bookAuthorError)
-      return { books: [], count: 0, error: bookAuthorError.message }
-    }
-
-    // Step 2: Count occurrences of each book_id
-    const bookCounts = {}
-    bookAuthorData.forEach((ba) => {
-      bookCounts[ba.book_id] = (bookCounts[ba.book_id] || 0) + 1
-    })
-
-    // Step 3: Filter books with more than one author
-    const booksWithMultiple = Object.entries(bookCounts)
-      .filter(([_, count]) => count > 1)
-      .map(([bookId]) => bookId)
-
-    // Get the total count
-    const count = booksWithMultiple.length
-
-    if (count === 0) {
-      return { books: [], count: 0, error: null }
-    }
-
-    // Step 4: Paginate the results
-    const paginatedBookIds = booksWithMultiple.slice(from, Math.min(to + 1, booksWithMultiple.length))
-
-    if (paginatedBookIds.length === 0) {
-      return { books: [], count, error: null }
-    }
-
-    // Step 5: Fetch the actual book details
-    const { data: books, error: booksError } = await supabaseAdmin
-      .from("books")
-      .select(`
-        id, 
-        title,
-        isbn10,
-        isbn13,
-        cover_image:cover_image_id(id, url, alt_text)
-      `)
-      .in("id", paginatedBookIds)
-
-    if (booksError) {
-      console.error("Error fetching books with multiple authors:", booksError)
-      return { books: [], count, error: booksError.message }
-    }
-
-    return { books: books || [], count, error: null }
+    return { bookIds, error: null }
   } catch (error) {
     console.error("Error in getBooksWithMultipleAuthors:", error)
-    return { books: [], count: 0, error: String(error) }
+    return { bookIds: [], error: String(error) }
   }
 }
 
-// Create the count_authors_per_book RPC function if it doesn't exist
-export async function createCountAuthorsPerBookFunction() {
-  try {
-    // Check if the function already exists
-    const { data: functions, error: functionsError } = await supabaseAdmin.rpc("get_functions")
-
-    if (functionsError) {
-      console.error("Error checking for functions:", functionsError)
-      return { success: false, error: functionsError.message }
-    }
-
-    const functionExists = functions && functions.some((fn: string) => fn === "count_authors_per_book")
-
-    if (functionExists) {
-      return { success: true, message: "Function already exists" }
-    }
-
-    // Create the function using a different approach
-    // This would require a custom implementation since we can't use exec_sql
-    return { success: false, error: "Function creation not supported without exec_sql" }
-  } catch (error) {
-    console.error("Error in createCountAuthorsPerBookFunction:", error)
-    return { success: false, error: String(error) }
-  }
+export {
+  connectAuthorToBook,
+  createAuthor,
+  disconnectAuthorFromBook,
+  getBookAuthorConnections,
+  lookupBookByISBN,
+  searchDatabaseAuthors,
+  batchProcessBooksWithoutAuthors,
+  getBooksWithoutAuthors,
+  getAuthorBookStats,
+  getBooksWithMultipleAuthors,
 }

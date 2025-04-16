@@ -24,6 +24,7 @@ export async function addFormatType(name: string, description?: string) {
   }
 
   revalidatePath("/admin/format-types")
+  return { success: true }
 }
 
 export async function updateFormatType(id: number, name: string, description?: string) {
@@ -35,6 +36,7 @@ export async function updateFormatType(id: number, name: string, description?: s
   }
 
   revalidatePath("/admin/format-types")
+  return { success: true }
 }
 
 export async function deleteFormatType(id: number) {
@@ -46,6 +48,7 @@ export async function deleteFormatType(id: number) {
   }
 
   revalidatePath("/admin/format-types")
+  return { success: true }
 }
 
 // Binding Types
@@ -69,6 +72,7 @@ export async function addBindingType(name: string, description?: string) {
   }
 
   revalidatePath("/admin/binding-types")
+  return { success: true }
 }
 
 export async function updateBindingType(id: number, name: string, description?: string) {
@@ -80,6 +84,7 @@ export async function updateBindingType(id: number, name: string, description?: 
   }
 
   revalidatePath("/admin/binding-types")
+  return { success: true }
 }
 
 export async function deleteBindingType(id: number) {
@@ -91,6 +96,7 @@ export async function deleteBindingType(id: number) {
   }
 
   revalidatePath("/admin/binding-types")
+  return { success: true }
 }
 
 // Image Types
@@ -114,6 +120,7 @@ export async function addImageType(name: string, description?: string) {
   }
 
   revalidatePath("/admin/image-types")
+  return { success: true }
 }
 
 export async function updateImageType(id: number, name: string, description?: string) {
@@ -125,6 +132,7 @@ export async function updateImageType(id: number, name: string, description?: st
   }
 
   revalidatePath("/admin/image-types")
+  return { success: true }
 }
 
 export async function deleteImageType(id: number) {
@@ -136,6 +144,7 @@ export async function deleteImageType(id: number) {
   }
 
   revalidatePath("/admin/image-types")
+  return { success: true }
 }
 
 // Book Genres
@@ -159,6 +168,7 @@ export async function addBookGenre(name: string, description?: string) {
   }
 
   revalidatePath("/admin/book-genres")
+  return { success: true }
 }
 
 export async function updateBookGenre(id: number, name: string, description?: string) {
@@ -170,6 +180,7 @@ export async function updateBookGenre(id: number, name: string, description?: st
   }
 
   revalidatePath("/admin/book-genres")
+  return { success: true }
 }
 
 export async function deleteBookGenre(id: number) {
@@ -181,6 +192,7 @@ export async function deleteBookGenre(id: number) {
   }
 
   revalidatePath("/admin/book-genres")
+  return { success: true }
 }
 
 // Roles
@@ -204,6 +216,7 @@ export async function addRole(name: string, description?: string) {
   }
 
   revalidatePath("/admin/roles")
+  return { success: true }
 }
 
 export async function updateRole(id: number, name: string, description?: string) {
@@ -215,6 +228,7 @@ export async function updateRole(id: number, name: string, description?: string)
   }
 
   revalidatePath("/admin/roles")
+  return { success: true }
 }
 
 export async function deleteRole(id: number) {
@@ -226,6 +240,7 @@ export async function deleteRole(id: number) {
   }
 
   revalidatePath("/admin/roles")
+  return { success: true }
 }
 
 export async function updateExtraField(table: string, id: number, field: string, value: string) {

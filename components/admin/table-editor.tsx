@@ -6,7 +6,7 @@ import { Pencil, Plus, Save, Trash, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { toast } from "@/hooks/use-toast"
+import { useToast } from "@/hooks/use-toast"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
 // Update the TableItem interface to include description
@@ -54,6 +54,8 @@ export function TableEditor({
   const [editingExtra, setEditingExtra] = useState<Record<string, string>>({})
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+
+  const { toast } = useToast()
 
   // Update the handleAdd function to include description
   const handleAdd = async () => {

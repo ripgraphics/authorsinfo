@@ -1,6 +1,7 @@
 import type { ReactNode } from "react"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { AdminHeader } from "@/components/admin/admin-header"
+import { Toaster } from "@/components/ui/toaster"
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
@@ -13,6 +14,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <AdminHeader />
         <div className="flex-1 overflow-auto">{children}</div>
       </main>
+      <Toaster />
     </div>
   )
 }

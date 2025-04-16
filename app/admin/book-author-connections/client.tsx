@@ -20,20 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import {
-  AlertCircle,
-  BookOpen,
-  Search,
-  User,
-  X,
-  CheckCircle2,
-  RefreshCw,
-  Loader2,
-  BookX,
-  UserX,
-  BookCheck,
-  Users,
-} from "lucide-react"
+import { AlertCircle, BookOpen, Search, User, X, CheckCircle2, RefreshCw, Loader2, BookX, UserX, BookCheck, Users } from 'lucide-react'
 import {
   connectAuthorToBook,
   createAuthor,
@@ -43,6 +30,9 @@ import {
   searchDatabaseAuthors,
   batchProcessBooksWithoutAuthors,
 } from "@/app/actions/admin-book-authors"
+
+// Add a refresh button
+import { revalidatePath } from "next/cache"
 
 // Helper function to safely truncate IDs
 function truncateId(id: string | number | null | undefined): string {
@@ -455,6 +445,10 @@ export function BookAuthorConnectionsClient({
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Book-Author Connections</h1>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={() => revalidatePath("/admin/book-author-connections")} className="flex items-center gap-2">
+            <RefreshCw className="h-4 w-4" />
+            Refresh Stats
+          </Button>
           <Button onClick={handleRefresh} disabled={isRefreshing} variant="outline" className="flex items-center gap-2">
             {isRefreshing ? (
               <>

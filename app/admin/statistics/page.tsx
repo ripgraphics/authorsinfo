@@ -1,53 +1,86 @@
 import { Button } from "@/components/ui/button"
-
 import { supabaseAdmin } from "@/lib/supabase/server"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 async function getStatistics() {
-  // Get binding type statistics
-  const { data: bindingStats } = await supabaseAdmin
-    .from("books")
-    .select("binding_type_id, count(*)")
-    .not("binding_type_id", "is", null)
-    .group("binding_type_id")
+  try {
+    // Get binding type statistics using a different approach
+    const { data: bindingStats, error: bindingError } = await supabaseAdmin
+      .from("books")
+      .select("binding_type_id, count")
+      .not("binding_type_id", "is", null)
+      .select(`
+        binding_type_id,
+        count(*) as count
+      `)
+      .groupBy("binding_type_id")
 
-  // Get format type statistics
-  const { data: formatStats } = await supabaseAdmin
-    .from("books")
-    .select("format_type_id, count(*)")
-    .not("format_type_id", "is", null)
-    .group("format_type_id")
+    if (bindingError) {
+      console.error("Error fetching binding stats:", bindingError)
+      return { bindingTypesWithNames: [], formatTypesWithNames: [] }
+    }
 
-  // Get binding types
-  const { data: bindingTypes } = await supabaseAdmin.from("binding_types").select("id, name")
+    // Get format type statistics using a different approach
+    const { data: formatStats, error: formatError } = await supabaseAdmin
+      .from("books")
+      .select(`
+        format_type_id,
+        count(*) as count
+      `)
+      .not("format_type_id", "is", null)
+      .groupBy("format_type_id")
 
-  // Get format types
-  const { data: formatTypes } = await supabaseAdmin.from("format_types").select("id, name")
+    if (formatError) {
+      console.error("Error fetching format stats:", formatError)
+      return { bindingTypesWithNames: [], formatTypesWithNames: [] }
+    }
 
-  // Process binding stats with names
-  const bindingTypesWithNames =
-    bindingStats?.map((stat) => {
-      const bindingType = bindingTypes?.find((type) => type.id === stat.binding_type_id)
-      return {
-        name: bindingType?.name || "Unknown",
-        count: stat.count,
-      }
-    }) || []
+    // Get binding types
+    const { data: bindingTypes, error: bindingTypesError } = await supabaseAdmin
+      .from("binding_types")
+      .select("id, name")
 
-  // Process format stats with names
-  const formatTypesWithNames =
-    formatStats?.map((stat) => {
-      const formatType = formatTypes?.find((type) => type.id === stat.format_type_id)
-      return {
-        name: formatType?.name || "Unknown",
-        count: stat.count,
-      }
-    }) || []
+    if (bindingTypesError) {
+      console.error("Error fetching binding types:", bindingTypesError)
+      return { bindingTypesWithNames: [], formatTypesWithNames: [] }
+    }
 
-  return {
-    bindingTypesWithNames,
-    formatTypesWithNames,
+    // Get format types
+    const { data: formatTypes, error: formatTypesError } = await supabaseAdmin.from("format_types").select("id, name")
+
+    if (formatTypesError) {
+      console.error("Error fetching format types:", formatTypesError)
+      return { bindingTypesWithNames: [], formatTypesWithNames: [] }
+    }
+
+    // Process binding stats with names
+    const bindingTypesWithNames =
+      bindingStats?.map((stat) => {
+        const bindingType = bindingTypes?.find((type) => type.id === stat.binding_type_id)
+        return {
+          name: bindingType?.name || "Unknown",
+          count: Number.parseInt(stat.count),
+        }
+      }) || []
+
+    // Process format stats with names
+    const formatTypesWithNames =
+      formatStats?.map((stat) => {
+        const formatType = formatTypes?.find((type) => type.id === stat.format_type_id)
+        return {
+          name: formatType?.name || "Unknown",
+          count: Number.parseInt(stat.count),
+        }
+      }) || []
+
+    return {
+      bindingTypesWithNames,
+      formatTypesWithNames,
+    }
+  } catch (error) {
+    console.error("Error in getStatistics:", error)
+    return { bindingTypesWithNames: [], formatTypesWithNames: [] }
   }
 }
 
@@ -83,79 +116,91 @@ export default async function StatisticsPage() {
             </div>
 
             <TabsContent value="binding" className="space-y-4">
-              <div className="h-64">
-                <div className="w-full h-full flex items-end justify-between">
-                  {bindingTypesWithNames.map((item, i) => (
-                    <div key={item.name} className="flex flex-col items-center">
-                      <div className="w-16 flex flex-col items-center">
-                        <div
-                          className="w-full bg-blue-400 rounded-t-sm"
-                          style={{ height: `${Math.min(200, item.count * 10)}px` }}
-                        ></div>
-                      </div>
-                      <div className="text-xs mt-2 text-gray-500">{item.name}</div>
-                      <div className="text-xs font-medium">{item.count}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-4 mt-8">
-                {bindingTypesWithNames.map((item) => (
-                  <div key={item.name} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="font-medium">{item.name}</div>
-                      <div className="text-sm">{item.count}</div>
-                    </div>
-                    <div className="w-full bg-gray-100 rounded-full h-2">
-                      <div
-                        className="h-2 rounded-full bg-blue-500"
-                        style={{
-                          width: `${(item.count / Math.max(...bindingTypesWithNames.map((i) => i.count))) * 100}%`,
-                        }}
-                      ></div>
+              {bindingTypesWithNames.length > 0 ? (
+                <>
+                  <div className="h-64">
+                    <div className="w-full h-full flex items-end justify-between">
+                      {bindingTypesWithNames.map((item, i) => (
+                        <div key={item.name} className="flex flex-col items-center">
+                          <div className="w-16 flex flex-col items-center">
+                            <div
+                              className="w-full bg-blue-400 rounded-t-sm"
+                              style={{ height: `${Math.min(200, item.count * 10)}px` }}
+                            ></div>
+                          </div>
+                          <div className="text-xs mt-2 text-gray-500">{item.name}</div>
+                          <div className="text-xs font-medium">{item.count}</div>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                ))}
-              </div>
+
+                  <div className="space-y-4 mt-8">
+                    {bindingTypesWithNames.map((item) => (
+                      <div key={item.name} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="font-medium">{item.name}</div>
+                          <div className="text-sm">{item.count}</div>
+                        </div>
+                        <div className="w-full bg-gray-100 rounded-full h-2">
+                          <div
+                            className="h-2 rounded-full bg-blue-500"
+                            style={{
+                              width: `${(item.count / Math.max(...bindingTypesWithNames.map((i) => i.count))) * 100}%`,
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-8 text-gray-500">No binding type data available</div>
+              )}
             </TabsContent>
 
             <TabsContent value="format" className="space-y-4">
-              <div className="h-64">
-                <div className="w-full h-full flex items-end justify-between">
-                  {formatTypesWithNames.map((item, i) => (
-                    <div key={item.name} className="flex flex-col items-center">
-                      <div className="w-16 flex flex-col items-center">
-                        <div
-                          className="w-full bg-green-400 rounded-t-sm"
-                          style={{ height: `${Math.min(200, item.count * 10)}px` }}
-                        ></div>
-                      </div>
-                      <div className="text-xs mt-2 text-gray-500">{item.name}</div>
-                      <div className="text-xs font-medium">{item.count}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-4 mt-8">
-                {formatTypesWithNames.map((item) => (
-                  <div key={item.name} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="font-medium">{item.name}</div>
-                      <div className="text-sm">{item.count}</div>
-                    </div>
-                    <div className="w-full bg-gray-100 rounded-full h-2">
-                      <div
-                        className="h-2 rounded-full bg-green-500"
-                        style={{
-                          width: `${(item.count / Math.max(...formatTypesWithNames.map((i) => i.count))) * 100}%`,
-                        }}
-                      ></div>
+              {formatTypesWithNames.length > 0 ? (
+                <>
+                  <div className="h-64">
+                    <div className="w-full h-full flex items-end justify-between">
+                      {formatTypesWithNames.map((item, i) => (
+                        <div key={item.name} className="flex flex-col items-center">
+                          <div className="w-16 flex flex-col items-center">
+                            <div
+                              className="w-full bg-green-400 rounded-t-sm"
+                              style={{ height: `${Math.min(200, item.count * 10)}px` }}
+                            ></div>
+                          </div>
+                          <div className="text-xs mt-2 text-gray-500">{item.name}</div>
+                          <div className="text-xs font-medium">{item.count}</div>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                ))}
-              </div>
+
+                  <div className="space-y-4 mt-8">
+                    {formatTypesWithNames.map((item) => (
+                      <div key={item.name} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="font-medium">{item.name}</div>
+                          <div className="text-sm">{item.count}</div>
+                        </div>
+                        <div className="w-full bg-gray-100 rounded-full h-2">
+                          <div
+                            className="h-2 rounded-full bg-green-500"
+                            style={{
+                              width: `${(item.count / Math.max(...formatTypesWithNames.map((i) => i.count))) * 100}%`,
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-8 text-gray-500">No format type data available</div>
+              )}
             </TabsContent>
           </Tabs>
         </CardContent>

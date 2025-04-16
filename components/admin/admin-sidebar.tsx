@@ -11,7 +11,6 @@ import {
   ChevronUp,
   FileText,
   Home,
-  ImageIcon,
   Layers,
   Library,
   Package,
@@ -19,6 +18,8 @@ import {
   Tag,
   User,
   Users,
+  Database,
+  Image,
 } from "lucide-react"
 
 export function AdminSidebar() {
@@ -28,6 +29,7 @@ export function AdminSidebar() {
     books: false,
     authors: false,
     publishers: false,
+    settings: false,
   })
 
   const toggleExpand = (section: string) => {
@@ -196,20 +198,76 @@ export function AdminSidebar() {
               className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
               href="/admin/regenerate-covers"
             >
-              <ImageIcon className="h-5 w-5" />
+              <Image className="h-5 w-5" />
               <span>Regenerate Covers</span>
             </Link>
           </div>
 
           <div className="pt-4">
             <div className="px-3 py-2 text-xs font-semibold text-gray-400">System</div>
-            <Link
-              className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
-              href="/admin/settings"
-            >
-              <Settings className="h-5 w-5" />
-              Settings
-            </Link>
+
+            <div className="relative">
+              <button
+                className="flex items-center justify-between w-full gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
+                onClick={() => toggleExpand("settings")}
+              >
+                <div className="flex items-center gap-3">
+                  <Settings className="h-5 w-5" />
+                  <span className="opacity-100">Settings</span>
+                </div>
+                {expanded.settings ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              </button>
+
+              {expanded.settings && (
+                <div className="pl-9 mt-1 space-y-1">
+                  <Link
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                      pathname === "/admin/format-types" ? "bg-white/10 text-white font-medium" : "text-gray-400"
+                    }`}
+                    href="/admin/format-types"
+                  >
+                    <Database className="h-4 w-4" />
+                    Format Types
+                  </Link>
+                  <Link
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                      pathname === "/admin/binding-types" ? "bg-white/10 text-white font-medium" : "text-gray-400"
+                    }`}
+                    href="/admin/binding-types"
+                  >
+                    <Database className="h-4 w-4" />
+                    Binding Types
+                  </Link>
+                  <Link
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                      pathname === "/admin/image-types" ? "bg-white/10 text-white font-medium" : "text-gray-400"
+                    }`}
+                    href="/admin/image-types"
+                  >
+                    <Database className="h-4 w-4" />
+                    Image Types
+                  </Link>
+                  <Link
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                      pathname === "/admin/book-genres" ? "bg-white/10 text-white font-medium" : "text-gray-400"
+                    }`}
+                    href="/admin/book-genres"
+                  >
+                    <Database className="h-4 w-4" />
+                    Book Genres
+                  </Link>
+                  <Link
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                      pathname === "/admin/roles" ? "bg-white/10 text-white font-medium" : "text-gray-400"
+                    }`}
+                    href="/admin/roles"
+                  >
+                    <Database className="h-4 w-4" />
+                    Roles
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
         </nav>
       </div>

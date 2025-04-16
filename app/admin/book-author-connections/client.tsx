@@ -126,6 +126,8 @@ export function BookAuthorConnectionsClient({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [currentStats, setCurrentStats] = useState<Stats>(stats)
 
   // Batch processing state
   const [batchState, setBatchState] = useState<BatchProcessState>({
@@ -143,6 +145,17 @@ export function BookAuthorConnectionsClient({
   const handlePageChange = (newPage: number) => {
     setPage(newPage)
     router.push(`/admin/book-author-connections?page=${newPage}&pageSize=${pageSize}`)
+  }
+
+  // Refresh the page to get updated data
+  const handleRefresh = () => {
+    setIsRefreshing(true)
+    // Force a hard refresh to bypass cache
+    router.refresh()
+    // Add a small delay to ensure the refresh is complete
+    setTimeout(() => {
+      window.location.reload()
+    }, 500)
   }
 
   // Open dialog to manage book-author connections
@@ -310,7 +323,7 @@ export function BookAuthorConnectionsClient({
     setBatchState({
       isProcessing: true,
       progress: 0,
-      total: stats.booksWithoutAuthors > 20 ? 20 : stats.booksWithoutAuthors,
+      total: currentStats.booksWithoutAuthors > 20 ? 20 : currentStats.booksWithoutAuthors,
       processed: 0,
       failed: 0,
       currentBook: null,
@@ -340,7 +353,7 @@ export function BookAuthorConnectionsClient({
 
         // Refresh the page to show updated data after a short delay
         setTimeout(() => {
-          router.refresh()
+          handleRefresh()
         }, 2000)
       } else {
         setBatchState((prev) => ({
@@ -382,34 +395,93 @@ export function BookAuthorConnectionsClient({
     }
   }, [batchState.isProcessing, batchState.completed])
 
+  // Fetch the latest stats from the debug API
+  useEffect(() => {
+    const fetchDebugStats = async () => {
+      try {
+        const response = await fetch("/api/debug-query", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            query: `
+              SELECT COUNT(*) AS count
+              FROM authors
+              WHERE id NOT IN (
+                SELECT DISTINCT author_id 
+                FROM book_authors
+              )
+            `,
+          }),
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          console.log("Debug stats:", data)
+
+          // Update the authorsWithoutBooks stat if it's different
+          if (data.authorsWithoutBooks !== currentStats.authorsWithoutBooks) {
+            setCurrentStats((prev) => ({
+              ...prev,
+              authorsWithoutBooks: data.authorsWithoutBooks,
+            }))
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching debug stats:", error)
+      }
+    }
+
+    // Fetch debug stats on initial load
+    fetchDebugStats()
+  }, [])
+
   const totalPages = Math.ceil(totalBooks / pageSize)
 
   // Calculate percentages for stats
   const booksWithAuthorsPercent =
-    stats.totalBooks > 0 ? Math.round(((stats.totalBooks - stats.booksWithoutAuthors) / stats.totalBooks) * 100) : 0
+    currentStats.totalBooks > 0
+      ? Math.round(((currentStats.totalBooks - currentStats.booksWithoutAuthors) / currentStats.totalBooks) * 100)
+      : 0
 
   const authorsWithBooksPercent =
-    stats.totalAuthors > 0
-      ? Math.round(((stats.totalAuthors - stats.authorsWithoutBooks) / stats.totalAuthors) * 100)
+    currentStats.totalAuthors > 0
+      ? Math.round(((currentStats.totalAuthors - currentStats.authorsWithoutBooks) / currentStats.totalAuthors) * 100)
       : 0
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Book-Author Connections</h1>
-        <Button onClick={handleBatchProcess} disabled={batchState.isProcessing} className="flex items-center gap-2">
-          {batchState.isProcessing ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            <>
-              <RefreshCw className="h-4 w-4" />
-              Process Books Without Authors
-            </>
-          )}
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleRefresh} disabled={isRefreshing} variant="outline" className="flex items-center gap-2">
+            {isRefreshing ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Refreshing...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="h-4 w-4" />
+                Refresh Stats
+              </>
+            )}
+          </Button>
+          <Button onClick={handleBatchProcess} disabled={batchState.isProcessing} className="flex items-center gap-2">
+            {batchState.isProcessing ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="h-4 w-4" />
+                Process Books Without Authors
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* Stats Overview */}
@@ -422,10 +494,10 @@ export function BookAuthorConnectionsClient({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.booksWithoutAuthors}</div>
+            <div className="text-2xl font-bold">{currentStats.booksWithoutAuthors}</div>
             <div className="text-xs text-muted-foreground mt-1">
-              {stats.booksWithoutAuthors > 0
-                ? `${stats.booksWithoutAuthors} of ${stats.totalBooks} books need authors`
+              {currentStats.booksWithoutAuthors > 0
+                ? `${currentStats.booksWithoutAuthors} of ${currentStats.totalBooks} books need authors`
                 : "All books have authors"}
             </div>
             <Progress
@@ -444,10 +516,10 @@ export function BookAuthorConnectionsClient({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.authorsWithoutBooks}</div>
+            <div className="text-2xl font-bold">{currentStats.authorsWithoutBooks}</div>
             <div className="text-xs text-muted-foreground mt-1">
-              {stats.authorsWithoutBooks > 0
-                ? `${stats.authorsWithoutBooks} of ${stats.totalAuthors} authors have no books`
+              {currentStats.authorsWithoutBooks > 0
+                ? `${currentStats.authorsWithoutBooks} of ${currentStats.totalAuthors} authors have no books`
                 : "All authors have books"}
             </div>
             <Progress
@@ -466,10 +538,10 @@ export function BookAuthorConnectionsClient({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalBooks}</div>
+            <div className="text-2xl font-bold">{currentStats.totalBooks}</div>
             <div className="text-xs text-muted-foreground mt-1">
-              {stats.totalBooks > 0
-                ? `${stats.totalBooks - stats.booksWithoutAuthors} books have authors (${booksWithAuthorsPercent}%)`
+              {currentStats.totalBooks > 0
+                ? `${currentStats.totalBooks - currentStats.booksWithoutAuthors} books have authors (${booksWithAuthorsPercent}%)`
                 : "No books in database"}
             </div>
             <Progress value={booksWithAuthorsPercent} className="h-2 mt-2" />
@@ -484,13 +556,13 @@ export function BookAuthorConnectionsClient({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.booksWithMultipleAuthors}</div>
+            <div className="text-2xl font-bold">{currentStats.booksWithMultipleAuthors}</div>
             <div className="text-xs text-muted-foreground mt-1">
-              {stats.booksWithMultipleAuthors > 0
-                ? `${stats.booksWithMultipleAuthors} books have more than one author`
+              {currentStats.booksWithMultipleAuthors > 0
+                ? `${currentStats.booksWithMultipleAuthors} books have more than one author`
                 : "No books with multiple authors"}
             </div>
-            {stats.booksWithMultipleAuthors > 0 && (
+            {currentStats.booksWithMultipleAuthors > 0 && (
               <Button
                 variant="link"
                 className="absolute bottom-2 right-2 p-0 h-auto text-xs"

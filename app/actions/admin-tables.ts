@@ -1,14 +1,11 @@
 "use server"
 
-import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
+import { supabaseAdmin } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 
 // Format Types
 export async function getFormatTypes() {
-  const supabase = createServerActionClient({ cookies })
-
-  const { data, error } = await supabase.from("format_types").select("*").order("id")
+  const { data, error } = await supabaseAdmin.from("format_types").select("*").order("id")
 
   if (error) {
     console.error("Error fetching format types:", error)
@@ -19,9 +16,7 @@ export async function getFormatTypes() {
 }
 
 export async function addFormatType(name: string, description?: string) {
-  const supabase = createServerActionClient({ cookies })
-
-  const { error } = await supabase.from("format_types").insert({ name, description })
+  const { error } = await supabaseAdmin.from("format_types").insert({ name, description })
 
   if (error) {
     console.error("Error adding format type:", error)
@@ -32,9 +27,7 @@ export async function addFormatType(name: string, description?: string) {
 }
 
 export async function updateFormatType(id: number, name: string, description?: string) {
-  const supabase = createServerActionClient({ cookies })
-
-  const { error } = await supabase.from("format_types").update({ name, description }).eq("id", id)
+  const { error } = await supabaseAdmin.from("format_types").update({ name, description }).eq("id", id)
 
   if (error) {
     console.error("Error updating format type:", error)
@@ -45,9 +38,7 @@ export async function updateFormatType(id: number, name: string, description?: s
 }
 
 export async function deleteFormatType(id: number) {
-  const supabase = createServerActionClient({ cookies })
-
-  const { error } = await supabase.from("format_types").delete().eq("id", id)
+  const { error } = await supabaseAdmin.from("format_types").delete().eq("id", id)
 
   if (error) {
     console.error("Error deleting format type:", error)
@@ -59,9 +50,7 @@ export async function deleteFormatType(id: number) {
 
 // Binding Types
 export async function getBindingTypes() {
-  const supabase = createServerActionClient({ cookies })
-
-  const { data, error } = await supabase.from("binding_types").select("*").order("id")
+  const { data, error } = await supabaseAdmin.from("binding_types").select("*").order("id")
 
   if (error) {
     console.error("Error fetching binding types:", error)
@@ -72,9 +61,7 @@ export async function getBindingTypes() {
 }
 
 export async function addBindingType(name: string, description?: string) {
-  const supabase = createServerActionClient({ cookies })
-
-  const { error } = await supabase.from("binding_types").insert({ name, description })
+  const { error } = await supabaseAdmin.from("binding_types").insert({ name, description })
 
   if (error) {
     console.error("Error adding binding type:", error)
@@ -85,9 +72,7 @@ export async function addBindingType(name: string, description?: string) {
 }
 
 export async function updateBindingType(id: number, name: string, description?: string) {
-  const supabase = createServerActionClient({ cookies })
-
-  const { error } = await supabase.from("binding_types").update({ name, description }).eq("id", id)
+  const { error } = await supabaseAdmin.from("binding_types").update({ name, description }).eq("id", id)
 
   if (error) {
     console.error("Error updating binding type:", error)
@@ -98,9 +83,7 @@ export async function updateBindingType(id: number, name: string, description?: 
 }
 
 export async function deleteBindingType(id: number) {
-  const supabase = createServerActionClient({ cookies })
-
-  const { error } = await supabase.from("binding_types").delete().eq("id", id)
+  const { error } = await supabaseAdmin.from("binding_types").delete().eq("id", id)
 
   if (error) {
     console.error("Error deleting binding type:", error)
@@ -112,9 +95,7 @@ export async function deleteBindingType(id: number) {
 
 // Image Types
 export async function getImageTypes() {
-  const supabase = createServerActionClient({ cookies })
-
-  const { data, error } = await supabase.from("image_types").select("*").order("id")
+  const { data, error } = await supabaseAdmin.from("image_types").select("*").order("id")
 
   if (error) {
     console.error("Error fetching image types:", error)
@@ -125,9 +106,7 @@ export async function getImageTypes() {
 }
 
 export async function addImageType(name: string, description?: string) {
-  const supabase = createServerActionClient({ cookies })
-
-  const { error } = await supabase.from("image_types").insert({ name, description })
+  const { error } = await supabaseAdmin.from("image_types").insert({ name, description })
 
   if (error) {
     console.error("Error adding image type:", error)
@@ -138,9 +117,7 @@ export async function addImageType(name: string, description?: string) {
 }
 
 export async function updateImageType(id: number, name: string, description?: string) {
-  const supabase = createServerActionClient({ cookies })
-
-  const { error } = await supabase.from("image_types").update({ name, description }).eq("id", id)
+  const { error } = await supabaseAdmin.from("image_types").update({ name, description }).eq("id", id)
 
   if (error) {
     console.error("Error updating image type:", error)
@@ -151,9 +128,7 @@ export async function updateImageType(id: number, name: string, description?: st
 }
 
 export async function deleteImageType(id: number) {
-  const supabase = createServerActionClient({ cookies })
-
-  const { error } = await supabase.from("image_types").delete().eq("id", id)
+  const { error } = await supabaseAdmin.from("image_types").delete().eq("id", id)
 
   if (error) {
     console.error("Error deleting image type:", error)
@@ -165,9 +140,7 @@ export async function deleteImageType(id: number) {
 
 // Book Genres
 export async function getBookGenres() {
-  const supabase = createServerActionClient({ cookies })
-
-  const { data, error } = await supabase.from("book_genres").select("*").order("id")
+  const { data, error } = await supabaseAdmin.from("book_genres").select("*").order("id")
 
   if (error) {
     console.error("Error fetching book genres:", error)
@@ -178,9 +151,7 @@ export async function getBookGenres() {
 }
 
 export async function addBookGenre(name: string, description?: string) {
-  const supabase = createServerActionClient({ cookies })
-
-  const { error } = await supabase.from("book_genres").insert({ name, description })
+  const { error } = await supabaseAdmin.from("book_genres").insert({ name, description })
 
   if (error) {
     console.error("Error adding book genre:", error)
@@ -191,9 +162,7 @@ export async function addBookGenre(name: string, description?: string) {
 }
 
 export async function updateBookGenre(id: number, name: string, description?: string) {
-  const supabase = createServerActionClient({ cookies })
-
-  const { error } = await supabase.from("book_genres").update({ name, description }).eq("id", id)
+  const { error } = await supabaseAdmin.from("book_genres").update({ name, description }).eq("id", id)
 
   if (error) {
     console.error("Error updating book genre:", error)
@@ -204,9 +173,7 @@ export async function updateBookGenre(id: number, name: string, description?: st
 }
 
 export async function deleteBookGenre(id: number) {
-  const supabase = createServerActionClient({ cookies })
-
-  const { error } = await supabase.from("book_genres").delete().eq("id", id)
+  const { error } = await supabaseAdmin.from("book_genres").delete().eq("id", id)
 
   if (error) {
     console.error("Error deleting book genre:", error)
@@ -218,9 +185,7 @@ export async function deleteBookGenre(id: number) {
 
 // Roles
 export async function getRoles() {
-  const supabase = createServerActionClient({ cookies })
-
-  const { data, error } = await supabase.from("roles").select("*").order("id")
+  const { data, error } = await supabaseAdmin.from("roles").select("*").order("id")
 
   if (error) {
     console.error("Error fetching roles:", error)
@@ -231,9 +196,7 @@ export async function getRoles() {
 }
 
 export async function addRole(name: string, description?: string) {
-  const supabase = createServerActionClient({ cookies })
-
-  const { error } = await supabase.from("roles").insert({ name, description })
+  const { error } = await supabaseAdmin.from("roles").insert({ name, description })
 
   if (error) {
     console.error("Error adding role:", error)
@@ -244,9 +207,7 @@ export async function addRole(name: string, description?: string) {
 }
 
 export async function updateRole(id: number, name: string, description?: string) {
-  const supabase = createServerActionClient({ cookies })
-
-  const { error } = await supabase.from("roles").update({ name, description }).eq("id", id)
+  const { error } = await supabaseAdmin.from("roles").update({ name, description }).eq("id", id)
 
   if (error) {
     console.error("Error updating role:", error)
@@ -257,9 +218,7 @@ export async function updateRole(id: number, name: string, description?: string)
 }
 
 export async function deleteRole(id: number) {
-  const supabase = createServerActionClient({ cookies })
-
-  const { error } = await supabase.from("roles").delete().eq("id", id)
+  const { error } = await supabaseAdmin.from("roles").delete().eq("id", id)
 
   if (error) {
     console.error("Error deleting role:", error)
@@ -270,9 +229,7 @@ export async function deleteRole(id: number) {
 }
 
 export async function updateExtraField(table: string, id: number, field: string, value: string) {
-  const supabase = createServerActionClient({ cookies })
-
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from(table)
     .update({ [field]: value })
     .eq("id", id)

@@ -2,6 +2,8 @@ import type { Metadata } from "next"
 import { getBookGenres, addBookGenre, updateBookGenre, deleteBookGenre } from "@/app/actions/admin-tables"
 import { TableEditor } from "@/components/admin/table-editor"
 
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
   title: "Book Genres Management | Author's Info Admin",
   description: "Manage book genres for the application",

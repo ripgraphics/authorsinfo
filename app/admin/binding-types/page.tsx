@@ -2,6 +2,8 @@ import type { Metadata } from "next"
 import { getBindingTypes, addBindingType, updateBindingType, deleteBindingType } from "@/app/actions/admin-tables"
 import { TableEditor } from "@/components/admin/table-editor"
 
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
   title: "Binding Types Management | Author's Info Admin",
   description: "Manage binding types for the application",

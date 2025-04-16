@@ -14,7 +14,7 @@ async function getStatistics() {
         binding_type_id,
         count(*) as count
       `)
-      .groupBy("binding_type_id")
+      .group("binding_type_id")
 
     if (bindingError) {
       console.error("Error fetching binding stats:", bindingError)
@@ -29,7 +29,7 @@ async function getStatistics() {
         count(*) as count
       `)
       .not("format_type_id", "is", null)
-      .groupBy("format_type_id")
+      .group("format_type_id")
 
     if (formatError) {
       console.error("Error fetching format stats:", formatError)

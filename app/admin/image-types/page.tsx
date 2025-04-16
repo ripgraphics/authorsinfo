@@ -2,6 +2,8 @@ import type { Metadata } from "next"
 import { getImageTypes, addImageType, updateImageType, deleteImageType } from "@/app/actions/admin-tables"
 import { TableEditor } from "@/components/admin/table-editor"
 
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
   title: "Image Types Management | Author's Info Admin",
   description: "Manage image types for the application",

@@ -2,6 +2,8 @@ import type { Metadata } from "next"
 import { getFormatTypes, addFormatType, updateFormatType, deleteFormatType } from "@/app/actions/admin-tables"
 import { TableEditor } from "@/components/admin/table-editor"
 
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
   title: "Format Types Management | Author's Info Admin",
   description: "Manage format types for the application",

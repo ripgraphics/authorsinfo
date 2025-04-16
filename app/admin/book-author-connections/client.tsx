@@ -20,7 +20,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertCircle, BookOpen, Search, User, X, CheckCircle2, RefreshCw, Loader2, BookX, UserX, BookCheck, Users } from 'lucide-react'
+import {
+  AlertCircle,
+  BookOpen,
+  Search,
+  User,
+  X,
+  CheckCircle2,
+  RefreshCw,
+  Loader2,
+  BookX,
+  UserX,
+  BookCheck,
+  Users,
+} from "lucide-react"
 import {
   connectAuthorToBook,
   createAuthor,
@@ -30,9 +43,7 @@ import {
   searchDatabaseAuthors,
   batchProcessBooksWithoutAuthors,
 } from "@/app/actions/admin-book-authors"
-
-// Add a refresh button
-import { revalidatePath } from "next/cache"
+import { refreshBookAuthorConnections } from "@/app/actions/book-author-actions"
 
 // Helper function to safely truncate IDs
 function truncateId(id: string | number | null | undefined): string {
@@ -138,10 +149,9 @@ export function BookAuthorConnectionsClient({
   }
 
   // Refresh the page to get updated data
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true)
-    // Force a hard refresh to bypass cache
-    router.refresh()
+    await refreshBookAuthorConnections()
     // Add a small delay to ensure the refresh is complete
     setTimeout(() => {
       window.location.reload()
@@ -445,11 +455,7 @@ export function BookAuthorConnectionsClient({
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Book-Author Connections</h1>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => revalidatePath("/admin/book-author-connections")} className="flex items-center gap-2">
-            <RefreshCw className="h-4 w-4" />
-            Refresh Stats
-          </Button>
-          <Button onClick={handleRefresh} disabled={isRefreshing} variant="outline" className="flex items-center gap-2">
+          <Button variant="outline" onClick={handleRefresh} disabled={isRefreshing} className="flex items-center gap-2">
             {isRefreshing ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -494,11 +500,6 @@ export function BookAuthorConnectionsClient({
                 ? `${currentStats.booksWithoutAuthors} of ${currentStats.totalBooks} books need authors`
                 : "All books have authors"}
             </div>
-            <Progress
-              value={booksWithAuthorsPercent}
-              className="h-2 mt-2"
-              indicatorColor={booksWithAuthorsPercent < 80 ? "bg-amber-500" : "bg-green-500"}
-            />
           </CardContent>
         </Card>
 
@@ -516,11 +517,6 @@ export function BookAuthorConnectionsClient({
                 ? `${currentStats.authorsWithoutBooks} of ${currentStats.totalAuthors} authors have no books`
                 : "All authors have books"}
             </div>
-            <Progress
-              value={authorsWithBooksPercent}
-              className="h-2 mt-2"
-              indicatorColor={authorsWithBooksPercent < 80 ? "bg-amber-500" : "bg-green-500"}
-            />
           </CardContent>
         </Card>
 
@@ -535,10 +531,9 @@ export function BookAuthorConnectionsClient({
             <div className="text-2xl font-bold">{currentStats.totalBooks}</div>
             <div className="text-xs text-muted-foreground mt-1">
               {currentStats.totalBooks > 0
-                ? `${currentStats.totalBooks - currentStats.booksWithoutAuthors} books have authors (${booksWithAuthorsPercent}%)`
+                ? `${currentStats.totalBooks - currentStats.booksWithoutAuthors} books have authors`
                 : "No books in database"}
             </div>
-            <Progress value={booksWithAuthorsPercent} className="h-2 mt-2" />
           </CardContent>
         </Card>
 
@@ -556,15 +551,13 @@ export function BookAuthorConnectionsClient({
                 ? `${currentStats.booksWithMultipleAuthors} books have more than one author`
                 : "No books with multiple authors"}
             </div>
-            {currentStats.booksWithMultipleAuthors > 0 && (
-              <Button
-                variant="link"
-                className="absolute bottom-2 right-2 p-0 h-auto text-xs"
-                onClick={() => router.push("/admin/books-with-multiple-authors")}
-              >
-                View all →
-              </Button>
-            )}
+            <Button
+              variant="link"
+              className="absolute bottom-2 right-2 p-0 h-auto text-xs"
+              onClick={() => router.push("/admin/books-with-multiple-authors")}
+            >
+              View all →
+            </Button>
           </CardContent>
         </Card>
       </div>

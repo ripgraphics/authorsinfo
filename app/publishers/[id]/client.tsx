@@ -970,7 +970,7 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                                   data-state="indeterminate"
                                   data-max="100"
                                   className="h-full w-full flex-1 bg-primary transition-all"
-                                  style={{ transform: "translateX(-35%)" }}
+                                  style={{ transform: `translateX(-35%)` }}
                                 ></div>
                               </div>
                             </div>
@@ -1014,7 +1014,7 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                                   data-state="indeterminate"
                                   data-max="100"
                                   className="h-full w-full flex-1 bg-primary transition-all"
-                                  style={{ transform: "translateX(-77%)" }}
+                                  style={{ transform: `translateX(-77%)` }}
                                 ></div>
                               </div>
                             </div>
@@ -1222,7 +1222,7 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                             <div className="flex-1 min-w-0">
                               <h3 className="font-medium truncate">{friend.name}</h3>
                               <p className="text-xs text-muted-foreground">{friend.mutualFriends} mutual friends</p>
-                              <Button className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3 mt-2">
+                              <Button className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3 mt-2">
                                 Add Friend
                               </Button>
                             </div>

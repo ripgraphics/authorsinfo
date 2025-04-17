@@ -417,7 +417,7 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                               <h4 className="font-medium line-clamp-1">{book.title}</h4>
                               <p className="text-sm text-muted-foreground">by {book.author}</p>
                               <div className="space-y-1">
-                                <div className="flex justify-between text-xs">
+                                <div className="flex justify-between text-sm">
                                   <span>Progress</span>
                                   <span>{book.progress}%</span>
                                 </div>

@@ -1,6 +1,6 @@
 "use server"
 
-import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
+import { createServerActionClient } from "@/lib/supabase/server"
 import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { getBookByISBN } from "@/lib/isbndb"
@@ -15,12 +15,12 @@ async function getBooksWithoutAuthors(page = 1, pageSize = 20) {
       .from("books")
       .select(
         `
-        id, 
-        title,
-        isbn10,
-        isbn13,
-        cover_image:cover_image_id(id, url, alt_text)
-      `,
+       id, 
+       title,
+       isbn10,
+       isbn13,
+       cover_image:cover_image_id(id, url, alt_text)
+     `,
         { count: "exact" },
       )
       .is("author_id", null)
@@ -53,21 +53,29 @@ async function getAuthorBookStats() {
     }
 
     // Get count of authors without books
-    const { count: authorsWithoutBooks, error: authorsError } = await supabase
+    const { data: authorsWithoutBooksData, error: authorsWithoutBooksError } = await supabase
       .from("authors")
-      .select("*", { count: "exact" })
-      .is("author_id", null)
+      .select("id")
+      .not(
+        "id",
+        "in",
+        "(SELECT DISTINCT author_id FROM book_authors)", // Remove explicit casting
+      )
 
-    if (authorsError) {
-      console.error("Error counting authors without books:", authorsError)
+    if (authorsWithoutBooksError) {
+      console.error("Error counting authors without books:", authorsWithoutBooksError)
     }
 
-    // Get count of books with multiple authors
-    const { count: booksWithMultipleAuthors, error: multipleAuthorsError } = await supabase
+    const authorsWithoutBooks = authorsWithoutBooksData ? authorsWithoutBooksData.length : 0
+
+    // Get count of books with multiple authors using a raw SQL query
+    const { data: multipleAuthorsData, error: multipleAuthorsError } = await supabase
       .from("book_authors")
-      .select("book_id", { count: "exact", head: true })
-      .groupBy("book_id")
-      .having("count(author_id) > 1")
+      .select("book_id")
+      .group("book_id", { count: "exact" })
+      .gt("count", 1)
+
+    const booksWithMultipleAuthors = multipleAuthorsData?.length || 0
 
     if (multipleAuthorsError) {
       console.error("Error counting books with multiple authors:", multipleAuthorsError)
@@ -231,7 +239,7 @@ async function batchProcessBooksWithoutAuthors(batchSize: number) {
     const supabase = createServerActionClient({ cookies })
 
     // Get books without authors
-    const { data: books, error: booksError } = await supabase
+    const { data: booksToProcess, error: booksError } = await supabase
       .from("books")
       .select("id, isbn13, isbn10")
       .is("author_id", null)
@@ -246,7 +254,7 @@ async function batchProcessBooksWithoutAuthors(batchSize: number) {
     const errors: string[] = []
 
     // Process each book
-    for (const book of books) {
+    for (const book of booksToProcess) {
       try {
         // Try to find author by ISBN
         let authorName = null
@@ -311,11 +319,7 @@ async function getBooksWithMultipleAuthors() {
   try {
     const supabase = createServerActionClient({ cookies })
 
-    const { data, error } = await supabase
-      .from("book_authors")
-      .select("book_id")
-      .groupBy("book_id")
-      .having("count(author_id) > 1")
+    const { data, error } = await supabase.rpc("get_books_with_multiple_authors", {})
 
     if (error) {
       console.error("Error fetching books with multiple authors:", error)

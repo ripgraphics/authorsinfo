@@ -2,6 +2,11 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
 import {
   BookOpen,
   Users,
@@ -22,11 +27,6 @@ import {
   Filter,
   ChevronDown,
 } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Textarea } from "@/components/ui/textarea"
 
 interface ClientPublisherPageProps {
   publisher: any
@@ -1222,7 +1222,7 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                             <div className="flex-1 min-w-0">
                               <h3 className="font-medium truncate">{friend.name}</h3>
                               <p className="text-xs text-muted-foreground">{friend.mutualFriends} mutual friends</p>
-                              <Button className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3 mt-2">
+                              <Button className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3 mt-2">
                                 Add Friend
                               </Button>
                             </div>
@@ -1433,6 +1433,149 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                             <span>789 members</span>
                             <span>·</span>
                             <span>Joined February 2022</span>
+                          </div>
+                        </div>
+                        <Button variant="outline" className="h-9 rounded-md px-3">
+                          View
+                        </Button>
+                      </div>
+                      <Button className="h-10 px-4 py-2 w-full">
+                        <Users className="h-4 w-4 mr-2" />
+                        Find More Groups
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                    <div className="flex flex-col space-y-1.5 p-6">
+                      <div className="text-2xl font-semibold leading-none tracking-tight">Pages</div>
+                    </div>
+                    <div className="p-6 pt-0 space-y-4">
+                      <div className="flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Brandon Sanderson"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">Brandon Sanderson</h3>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                              Author
+                            </div>
+                            <span>·</span>
+                            <span>Following Since 2020</span>
+                          </div>
+                        </div>
+                        <Button variant="outline" className="h-9 rounded-md px-3">
+                          View
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Tor Books"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">Tor Books</h3>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                              Publisher
+                            </div>
+                            <span>·</span>
+                            <span>Following Since 2021</span>
+                          </div>
+                        </div>
+                        <Button variant="outline" className="h-9 rounded-md px-3">
+                          View
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Powell's Books"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">Powell&apos;s Books</h3>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                              Bookstore
+                            </div>
+                            <span>·</span>
+                            <span>Following Since 2019</span>
+                          </div>
+                        </div>
+                        <Button variant="outline" className="h-9 rounded-md px-3">
+                          View
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Neil Gaiman"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">Neil Gaiman</h3>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                              Author
+                            </div>
+                            <span>·</span>
+                            <span>Following Since 2020</span>
+                          </div>
+                        </div>
+                        <Button variant="outline" className="h-9 rounded-md px-3">
+                          View
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Penguin Random House"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">Penguin Random House</h3>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                              Publisher
+                            </div>
+                            <span>·</span>
+                            <span>Following Since 2022</span>
+                          </div>
+                        </div>
+                        <Button variant="outline" className="h-9 rounded-md px-3">
+                          View
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Barnes & Noble"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">Barnes & Noble</h3>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                              Bookstore
+                            </div>
+                            <span>·</span>
+                            <span>Following Since 2021</span>
                           </div>
                         </div>
                         <Button variant="outline" className="h-9 rounded-md px-3">

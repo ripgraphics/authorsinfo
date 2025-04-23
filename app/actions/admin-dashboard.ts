@@ -1,6 +1,28 @@
 "use server"
 
-import { supabaseAdmin from "@/lib/supabase/server"
+import { supabaseAdmin } from "@/lib/supabase/server"
+
+// Define a type for book authors
+interface BookAuthor {
+  author_id: string;
+  count: number;
+}
+
+// Define a type for reading challenges
+interface ReadingChallenge {
+  goal: number;
+  books_read: number;
+}
+
+// Define a type for reading status
+interface ReadingStatus {
+  status: string;
+}
+
+// Define a type for review data
+interface ReviewData {
+  rating: number;
+}
 
 // Get content statistics
 export async function getContentStats() {
@@ -166,8 +188,8 @@ export async function getPopularContent() {
     const { data: bookAuthors } = await supabaseAdmin.from("book_authors").select("author_id, count")
 
     // Count books per author
-    const authorBookCounts = {}
-    bookAuthors?.forEach((item) => {
+    const authorBookCounts: Record<string, number> = {}
+    bookAuthors?.forEach((item: BookAuthor) => {
       if (item.author_id) {
         authorBookCounts[item.author_id] = (authorBookCounts[item.author_id] || 0) + 1
       }
@@ -215,15 +237,15 @@ export async function getUserEngagementMetrics() {
     const { data: readingChallenges } = await supabaseAdmin.from("reading_challenges").select("goal, books_read")
 
     const totalChallenges = readingChallenges?.length || 0
-    const totalGoals = readingChallenges?.reduce((sum, challenge) => sum + (challenge.goal || 0), 0) || 0
-    const totalBooksRead = readingChallenges?.reduce((sum, challenge) => sum + (challenge.books_read || 0), 0) || 0
+    const totalGoals = readingChallenges?.reduce((sum: number, challenge: ReadingChallenge) => sum + (challenge.goal || 0), 0) || 0
+    const totalBooksRead = readingChallenges?.reduce((sum: number, challenge: ReadingChallenge) => sum + (challenge.books_read || 0), 0) || 0
 
     // Get reading status counts using a different approach
     const { data: readingStatusData } = await supabaseAdmin.from("reading_status").select("status")
     
     // Count statuses manually
-    const statusCounts = {}
-    readingStatusData?.forEach(item => {
+    const statusCounts: Record<string, number> = {}
+    readingStatusData?.forEach((item: ReadingStatus) => {
       statusCounts[item.status] = (statusCounts[item.status] || 0) + 1
     })
     
@@ -236,8 +258,8 @@ export async function getUserEngagementMetrics() {
     const { data: reviewData } = await supabaseAdmin.from("reviews").select("rating")
     
     // Count ratings manually
-    const ratingCounts = {}
-    reviewData?.forEach(item => {
+    const ratingCounts: Record<number, number> = {}
+    reviewData?.forEach((item: ReviewData) => {
       ratingCounts[item.rating] = (ratingCounts[item.rating] || 0) + 1
     })
     

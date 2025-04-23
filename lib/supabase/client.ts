@@ -7,8 +7,6 @@ let supabaseClientInstance: ReturnType<typeof createClientComponentClient<Databa
 export function getSupabaseClient() {
   if (!supabaseClientInstance) {
     supabaseClientInstance = createClientComponentClient<Database>({
-      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-      supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       options: {
         auth: {
           persistSession: true,

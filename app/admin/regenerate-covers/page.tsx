@@ -18,11 +18,13 @@ import {
   getTotalBooksWithProblematicCoversAlt,
 } from "@/app/actions/regenerate-book-covers"
 import { AlertCircle, CheckCircle2, XCircle, Pause, Play, RotateCw, Clock } from "lucide-react"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function RegenerateCoversPage() {
+  const { toast } = useToast()
   const [batchSize, setBatchSize] = useState(10)
-  const [maxWidth, setMaxWidth] = useState(600)
-  const [maxHeight, setMaxHeight] = useState(900)
+  const [maxWidth, setMaxWidth] = useState(400)
+  const [maxHeight, setMaxHeight] = useState(600)
   const [filterEmptyCovers, setFilterEmptyCovers] = useState(true)
   const [problemTypes, setProblemTypes] = useState<string[]>(["empty", "broken", "null_id", "null"])
   const [isProcessing, setIsProcessing] = useState(false)
@@ -180,6 +182,13 @@ export default function RegenerateCoversPage() {
         setIsProcessing(false)
         setIsPaused(false)
         setIsComplete(true)
+
+        // Show success toast
+        toast({
+          title: "Processing Complete",
+          description: `Successfully processed ${progress.processed} book covers.`,
+          duration: 5000,
+        })
 
         // Clear any existing timers
         if (timerRef.current) {
@@ -439,9 +448,11 @@ export default function RegenerateCoversPage() {
                 </div>
 
                 {nextBatchCountdown > 0 && isProcessing && !isPaused && (
-                  <div className="flex items-center justify-center mt-2 text-sm text-gray-500">
-                    <Clock className="h-4 w-4 mr-1" />
-                    Next batch in {nextBatchCountdown} seconds
+                  <div className="flex items-center justify-center mt-2">
+                    <Clock className="h-6 w-6 mr-2 text-blue-500" />
+                    <span className="text-2xl font-bold text-blue-500">
+                      Next batch in {nextBatchCountdown} seconds
+                    </span>
                   </div>
                 )}
 

@@ -5,6 +5,15 @@ import { useEffect, useState } from "react"
 import { BookFilterSidebar } from "@/components/admin/book-filter-sidebar"
 import { BookDataTable } from "@/components/admin/book-data-table"
 import type { BookFilter } from "@/app/actions/admin-books"
+import { Button } from "@/components/ui/button"
+import { Filter } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 interface Book {
   id: string
@@ -48,6 +57,7 @@ export function BookManagementClient({
 }: BookManagementClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
 
   const [page, setPage] = useState(initialPage)
   const [pageSize, setPageSize] = useState(initialPageSize)
@@ -95,30 +105,44 @@ export function BookManagementClient({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-      <div className="md:col-span-1">
-        <BookFilterSidebar
-          genres={genres}
-          formatTypes={formatTypes}
-          bindingTypes={bindingTypes}
-          languages={languages}
-          initialFilters={filters}
-          onApplyFilters={handleApplyFilters}
-          onResetFilters={handleResetFilters}
-        />
-      </div>
-      <div className="md:col-span-3">
-        <BookDataTable
-          books={books}
-          totalBooks={totalBooks}
-          page={page}
-          pageSize={pageSize}
-          sortField={sortField}
-          sortDirection={sortDirection}
-          onPageChange={handlePageChange}
-          onSortChange={handleSortChange}
-        />
-      </div>
+    <div className="space-y-4">
+      <BookDataTable
+        books={books}
+        totalBooks={totalBooks}
+        page={page}
+        pageSize={pageSize}
+        sortField={sortField}
+        sortDirection={sortDirection}
+        onPageChange={handlePageChange}
+        onSortChange={handleSortChange}
+        filterButton={
+          <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Filter className="h-4 w-4 mr-2" />
+                Filters
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Filter Books</DialogTitle>
+              </DialogHeader>
+              <BookFilterSidebar
+                genres={genres}
+                formatTypes={formatTypes}
+                bindingTypes={bindingTypes}
+                languages={languages}
+                initialFilters={filters}
+                onApplyFilters={(newFilters) => {
+                  handleApplyFilters(newFilters)
+                  setIsFilterOpen(false)
+                }}
+                onResetFilters={handleResetFilters}
+              />
+            </DialogContent>
+          </Dialog>
+        }
+      />
     </div>
   )
 }

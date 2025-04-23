@@ -45,11 +45,12 @@ export function AdminSidebar() {
     <aside className="h-screen bg-[#121212] text-white fixed left-0 top-0 bottom-0 z-40 flex flex-col transition-all duration-300 shadow-lg w-64">
       <div className="flex items-center gap-2 px-4 h-16 bg-[#121212] border-b border-white/10">
         <div className="text-cyan-400">
-          <Book className="h-6 w-6" />
+          <img 
+            src="/images/authorsinfo-logo-w-135x45.svg" 
+            alt="Author's Info Logo" 
+            className="h-8 w-auto"
+          />
         </div>
-        <span className="text-xl font-bold text-cyan-400 transition-opacity duration-200 opacity-100">
-          Author&apos;s Info
-        </span>
       </div>
 
       <div className="flex-1 overflow-y-auto scrollbar-hide">
@@ -138,15 +139,18 @@ export function AdminSidebar() {
                     Import Books
                   </Link>
                   <Link
-                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
-                      pathname === "/admin/book-author-connections"
-                        ? "bg-white/10 text-white font-medium"
-                        : "text-gray-400"
-                    }`}
-                    href="/admin/book-author-connections"
+                    className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
+                    href="/admin/new-books"
                   >
-                    <Link2 className="h-4 w-4" />
-                    Book-Author Connections
+                    <FileText className="h-4 w-4" />
+                    New Books
+                  </Link>
+                  <Link
+                    className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
+                    href="/admin/retrieve-books"
+                  >
+                    <Library className="h-4 w-4" />
+                    Retrieve Books
                   </Link>
                 </div>
               )}
@@ -204,7 +208,7 @@ export function AdminSidebar() {
                 onClick={() => toggleExpand("publishers")}
               >
                 <div className="flex items-center gap-3">
-                  <Library className="h-5 w-5" />
+                  <Package className="h-5 w-5" />
                   <span className="opacity-100">Publishers</span>
                 </div>
                 {expanded.publishers ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -213,18 +217,33 @@ export function AdminSidebar() {
               {expanded.publishers && (
                 <div className="pl-9 mt-1 space-y-1">
                   <Link
-                    className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                      pathname === "/admin/publishers" ? "bg-white/10 text-white font-medium" : "text-gray-400"
+                    }`}
                     href="/admin/publishers"
                   >
                     <Package className="h-4 w-4" />
                     All Publishers
                   </Link>
                   <Link
-                    className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                      pathname === "/admin/publishers/add" ? "bg-white/10 text-white font-medium" : "text-gray-400"
+                    }`}
                     href="/admin/publishers/add"
                   >
                     <Tag className="h-4 w-4" />
                     Add Publisher
+                  </Link>
+                  <Link
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                      pathname === "/admin/book-publisher-connections"
+                        ? "bg-white/10 text-white font-medium"
+                        : "text-gray-400"
+                    }`}
+                    href="/admin/book-publisher-connections"
+                  >
+                    <Link2 className="h-4 w-4" />
+                    Book Connections
                   </Link>
                 </div>
               )}

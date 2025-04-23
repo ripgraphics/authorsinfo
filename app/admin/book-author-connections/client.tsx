@@ -42,7 +42,9 @@ import {
   lookupBookByISBN,
   searchDatabaseAuthors,
   batchProcessBooksWithoutAuthors,
+  cleanupAuthorData,
 } from "@/app/actions/admin-book-authors"
+import { importNewestBooks } from "@/app/actions/bulk-import-books"
 
 // Helper function to safely truncate IDs
 function truncateId(id: string | number | null | undefined): string {
@@ -70,8 +72,8 @@ interface Author {
 }
 
 interface BookAuthorConnection {
-  id: string
-  authorId: string
+  id: string | number
+  authorId: string | number | null
   authorName: string
 }
 
@@ -163,7 +165,7 @@ export function BookAuthorConnectionsClient({
       if (error) {
         setError(error)
       } else {
-        setConnections(connections)
+        setConnections(connections as BookAuthorConnection[])
       }
     } catch (err) {
       setError("Failed to load connections")
@@ -209,7 +211,7 @@ export function BookAuthorConnectionsClient({
         setSuccess("Author connected successfully")
         // Refresh connections
         const { connections } = await getBookAuthorConnections(String(selectedBook.id))
-        setConnections(connections)
+        setConnections(connections as BookAuthorConnection[])
       }
     } catch (err) {
       setError("Failed to connect author")
@@ -234,7 +236,7 @@ export function BookAuthorConnectionsClient({
         setSuccess("Author disconnected successfully")
         // Refresh connections
         const { connections } = await getBookAuthorConnections(String(selectedBook.id))
-        setConnections(connections)
+        setConnections(connections as BookAuthorConnection[])
       }
     } catch (err) {
       setError("Failed to disconnect author")
@@ -306,65 +308,90 @@ export function BookAuthorConnectionsClient({
 
   // Batch process books without authors
   const handleBatchProcess = async () => {
-    // Reset batch state
-    setBatchState({
-      isProcessing: true,
-      progress: 0,
-      total: stats.booksWithoutAuthors > 20 ? 20 : stats.booksWithoutAuthors,
-      processed: 0,
-      failed: 0,
-      currentBook: null,
-      errors: [],
-      completed: false,
-    })
+    setError(null);
+    setSuccess(null);
 
-    setError(null)
-    setSuccess(null)
+    let totalProcessed = 0;
+    let totalFailed = 0;
+    let errors: string[] = [];
 
-    try {
-      // Start batch processing
-      const result = await batchProcessBooksWithoutAuthors(20)
-
-      if (result.success) {
-        setBatchState((prev) => ({
-          ...prev,
-          isProcessing: false,
-          processed: result.processed,
-          failed: result.errors ? result.errors.length : 0,
-          errors: result.errors || [],
-          completed: true,
-          progress: 100,
-        }))
-
-        setSuccess(`Processed ${result.processed} books successfully`)
-
-        // Refresh the page to show updated data after a short delay
-        setTimeout(() => {
-          router.refresh()
-        }, 2000)
-      } else {
-        setBatchState((prev) => ({
-          ...prev,
-          isProcessing: false,
-          failed: 1,
-          errors: [result.error || "Unknown error"],
-          completed: true,
-        }))
-
-        setError(result.error || "Batch processing failed")
-      }
-    } catch (err) {
+    while (totalProcessed < stats.booksWithoutAuthors) {
+      // Reset batch state for each batch
       setBatchState((prev) => ({
         ...prev,
-        isProcessing: false,
-        failed: 1,
-        errors: [String(err)],
-        completed: true,
-      }))
+        isProcessing: true,
+        progress: 0,
+        total: Math.min(20, stats.booksWithoutAuthors - totalProcessed),
+        processed: 0,
+        failed: 0,
+        currentBook: null,
+        errors: [],
+        completed: false,
+      }));
 
-      setError(`Batch processing failed: ${String(err)}`)
-      console.error(err)
+      try {
+        // Start batch processing
+        const result = await batchProcessBooksWithoutAuthors(20);
+
+        if (result.success) {
+          totalProcessed += result.processed;
+          totalFailed += result.errors ? result.errors.length : 0;
+          errors = [...errors, ...(result.errors || [])];
+
+          setBatchState((prev) => ({
+            ...prev,
+            processed: totalProcessed,
+            failed: totalFailed,
+            errors,
+            completed: totalProcessed >= stats.booksWithoutAuthors,
+            progress: (totalProcessed / stats.booksWithoutAuthors) * 100,
+          }));
+
+          setSuccess(`Processed ${totalProcessed} books successfully`);
+
+          // If all books are processed, break the loop
+          if (totalProcessed >= stats.booksWithoutAuthors) {
+            break;
+          }
+
+          // Delay before starting the next batch
+          await new Promise((resolve) => setTimeout(resolve, 5000));
+        } else {
+          setBatchState((prev) => ({
+            ...prev,
+            failed: 1,
+            errors: [result.error || "Unknown error"],
+            completed: true,
+          }));
+
+          setError(result.error || "Batch processing failed");
+          break;
+        }
+      } catch (err) {
+        setBatchState((prev) => ({
+          ...prev,
+          failed: 1,
+          errors: [String(err)],
+          completed: true,
+        }));
+
+        setError(`Batch processing failed: ${String(err)}`);
+        console.error(err);
+        break;
+      }
     }
+
+    // Final state update after all batches
+    setBatchState((prev) => ({
+      ...prev,
+      isProcessing: false,
+      completed: true,
+    }));
+
+    // Refresh the page to show updated data after a short delay
+    setTimeout(() => {
+      router.refresh();
+    }, 2000);
   }
 
   // Update progress during batch processing
@@ -382,6 +409,32 @@ export function BookAuthorConnectionsClient({
     }
   }, [batchState.isProcessing, batchState.completed])
 
+  // Clean up author data
+  const handleCleanup = async () => {
+    if (!confirm("This will clear all author connections. Are you sure you want to proceed?")) {
+      return
+    }
+
+    try {
+      setIsLoading(true)
+      setError(null)
+      setSuccess(null)
+      const { success, error } = await cleanupAuthorData()
+      if (error) {
+        setError(error)
+      } else if (success) {
+        setSuccess("Author data cleaned up successfully")
+        // Refresh the page to show updated state
+        router.refresh()
+      }
+    } catch (err) {
+      setError("Failed to clean up author data")
+      console.error(err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const totalPages = Math.ceil(totalBooks / pageSize)
 
   // Calculate percentages for stats
@@ -397,19 +450,39 @@ export function BookAuthorConnectionsClient({
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Book-Author Connections</h1>
-        <Button onClick={handleBatchProcess} disabled={batchState.isProcessing} className="flex items-center gap-2">
-          {batchState.isProcessing ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            <>
-              <RefreshCw className="h-4 w-4" />
-              Process Books Without Authors
-            </>
-          )}
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={handleCleanup} 
+            disabled={isLoading || batchState.isProcessing} 
+            variant="destructive"
+            className="flex items-center gap-2"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Cleaning...
+              </>
+            ) : (
+              <>
+                <X className="h-4 w-4" />
+                Clean Up Author Data
+              </>
+            )}
+          </Button>
+          <Button onClick={handleBatchProcess} disabled={isLoading || batchState.isProcessing} className="flex items-center gap-2">
+            {batchState.isProcessing ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="h-4 w-4" />
+                Process Books Without Authors
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* Stats Overview */}
@@ -428,10 +501,9 @@ export function BookAuthorConnectionsClient({
                 ? `${stats.booksWithoutAuthors} of ${stats.totalBooks} books need authors`
                 : "All books have authors"}
             </div>
-            <Progress
-              value={booksWithAuthorsPercent}
-              className="h-2 mt-2"
-              indicatorColor={booksWithAuthorsPercent < 80 ? "bg-amber-500" : "bg-green-500"}
+            <Progress 
+              value={booksWithAuthorsPercent} 
+              className={`h-2 mt-2 ${booksWithAuthorsPercent < 80 ? "bg-amber-500" : "bg-green-500"}`} 
             />
           </CardContent>
         </Card>
@@ -450,10 +522,9 @@ export function BookAuthorConnectionsClient({
                 ? `${stats.authorsWithoutBooks} of ${stats.totalAuthors} authors have no books`
                 : "All authors have books"}
             </div>
-            <Progress
-              value={authorsWithBooksPercent}
-              className="h-2 mt-2"
-              indicatorColor={authorsWithBooksPercent < 80 ? "bg-amber-500" : "bg-green-500"}
+            <Progress 
+              value={authorsWithBooksPercent} 
+              className={`h-2 mt-2 ${authorsWithBooksPercent < 80 ? "bg-amber-500" : "bg-green-500"}`} 
             />
           </CardContent>
         </Card>
@@ -472,7 +543,10 @@ export function BookAuthorConnectionsClient({
                 ? `${stats.totalBooks - stats.booksWithoutAuthors} books have authors (${booksWithAuthorsPercent}%)`
                 : "No books in database"}
             </div>
-            <Progress value={booksWithAuthorsPercent} className="h-2 mt-2" />
+            <Progress 
+              value={booksWithAuthorsPercent} 
+              className={`h-2 mt-2 ${booksWithAuthorsPercent < 80 ? "bg-amber-500" : "bg-green-500"}`} 
+            />
           </CardContent>
         </Card>
 
@@ -679,7 +753,7 @@ export function BookAuthorConnectionsClient({
                       variant="ghost"
                       size="icon"
                       className="h-4 w-4 ml-1 p-0"
-                      onClick={() => handleDisconnectAuthor(conn.authorId)}
+                      onClick={() => conn.authorId && handleDisconnectAuthor(conn.authorId.toString())}
                       disabled={isLoading}
                     >
                       <X className="h-3 w-3" />
@@ -849,4 +923,22 @@ export function BookAuthorConnectionsClient({
       </Dialog>
     </div>
   )
+}
+
+export function ImportBooksButton() {
+  const handleImport = async () => {
+    try {
+      await importNewestBooks();
+      alert("Books imported successfully!");
+    } catch (error) {
+      console.error("Error importing books:", error);
+      alert("Failed to import books.");
+    }
+  };
+
+  return (
+    <button onClick={handleImport} className="mb-4 px-4 py-2 bg-blue-500 text-white rounded">
+      Import Latest Books
+    </button>
+  );
 }

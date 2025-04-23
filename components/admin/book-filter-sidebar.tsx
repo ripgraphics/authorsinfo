@@ -83,7 +83,7 @@ export function BookFilterSidebar({
         </Button>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-4">
         {/* Basic Filters Section */}
         <div className="border rounded-md">
           <button
@@ -95,45 +95,57 @@ export function BookFilterSidebar({
           </button>
           {expanded.basic && (
             <div className="p-3 border-t space-y-3">
-              <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
-                <Input
-                  id="title"
-                  name="title"
-                  placeholder="Search by title"
-                  value={filters.title || ""}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="author">Author</Label>
-                <Input
-                  id="author"
-                  name="author"
-                  placeholder="Search by author"
-                  value={filters.author || ""}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="publisher">Publisher</Label>
-                <Input
-                  id="publisher"
-                  name="publisher"
-                  placeholder="Search by publisher"
-                  value={filters.publisher || ""}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="isbn">ISBN</Label>
-                <Input
-                  id="isbn"
-                  name="isbn"
-                  placeholder="Search by ISBN"
-                  value={filters.isbn || ""}
-                  onChange={handleInputChange}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Title</Label>
+                  <Input
+                    id="title"
+                    name="title"
+                    placeholder="Search by title"
+                    value={filters.title || ""}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="author">Author</Label>
+                  <Input
+                    id="author"
+                    name="author"
+                    placeholder="Search by author"
+                    value={filters.author || ""}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="publisher">Publisher</Label>
+                  <Input
+                    id="publisher"
+                    name="publisher"
+                    placeholder="Search by publisher"
+                    value={filters.publisher || ""}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="isbn">ISBN</Label>
+                  <Input
+                    id="isbn"
+                    name="isbn"
+                    placeholder="Search by ISBN"
+                    value={filters.isbn || ""}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="publishedYear">Publication Year</Label>
+                  <Input
+                    id="publishedYear"
+                    name="publishedYear"
+                    placeholder="e.g. 2020"
+                    value={filters.publishedYear || ""}
+                    onChange={handleInputChange}
+                  />
+                </div>
               </div>
             </div>
           )}
@@ -150,69 +162,71 @@ export function BookFilterSidebar({
           </button>
           {expanded.format && (
             <div className="p-3 border-t space-y-3">
-              <div className="space-y-2">
-                <Label htmlFor="language">Language</Label>
-                <Select value={filters.language || ""} onValueChange={(value) => handleSelectChange("language", value)}>
-                  <SelectTrigger id="language">
-                    <SelectValue placeholder="All languages" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All languages</SelectItem>
-                    {languages.map((language) => (
-                      <SelectItem key={language} value={language}>
-                        {language}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="genre">Genre</Label>
-                <Select value={filters.genre || ""} onValueChange={(value) => handleSelectChange("genre", value)}>
-                  <SelectTrigger id="genre">
-                    <SelectValue placeholder="All genres" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All genres</SelectItem>
-                    {genres.map((genre) => (
-                      <SelectItem key={genre.id} value={genre.id}>
-                        {genre.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="format">Format</Label>
-                <Select value={filters.format || ""} onValueChange={(value) => handleSelectChange("format", value)}>
-                  <SelectTrigger id="format">
-                    <SelectValue placeholder="All formats" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All formats</SelectItem>
-                    {formatTypes.map((format) => (
-                      <SelectItem key={format.id} value={format.id}>
-                        {format.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="binding">Binding</Label>
-                <Select value={filters.binding || ""} onValueChange={(value) => handleSelectChange("binding", value)}>
-                  <SelectTrigger id="binding">
-                    <SelectValue placeholder="All bindings" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All bindings</SelectItem>
-                    {bindingTypes.map((binding) => (
-                      <SelectItem key={binding.id} value={binding.id}>
-                        {binding.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="language">Language</Label>
+                  <Select value={filters.language || ""} onValueChange={(value) => handleSelectChange("language", value)}>
+                    <SelectTrigger id="language">
+                      <SelectValue placeholder="All languages" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All languages</SelectItem>
+                      {languages.map((language) => (
+                        <SelectItem key={language} value={language}>
+                          {language}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="genre">Genre</Label>
+                  <Select value={filters.genre || ""} onValueChange={(value) => handleSelectChange("genre", value)}>
+                    <SelectTrigger id="genre">
+                      <SelectValue placeholder="All genres" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All genres</SelectItem>
+                      {genres.map((genre) => (
+                        <SelectItem key={genre.id} value={genre.id}>
+                          {genre.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="format">Format</Label>
+                  <Select value={filters.format || ""} onValueChange={(value) => handleSelectChange("format", value)}>
+                    <SelectTrigger id="format">
+                      <SelectValue placeholder="All formats" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All formats</SelectItem>
+                      {formatTypes.map((format) => (
+                        <SelectItem key={format.id} value={format.id}>
+                          {format.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="binding">Binding</Label>
+                  <Select value={filters.binding || ""} onValueChange={(value) => handleSelectChange("binding", value)}>
+                    <SelectTrigger id="binding">
+                      <SelectValue placeholder="All bindings" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All bindings</SelectItem>
+                      {bindingTypes.map((binding) => (
+                        <SelectItem key={binding.id} value={binding.id}>
+                          {binding.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
           )}
@@ -258,35 +272,42 @@ export function BookFilterSidebar({
           </button>
           {expanded.advanced && (
             <div className="p-3 border-t space-y-3">
-              <div className="space-y-2">
-                <Label htmlFor="publishedYear">Publication Year</Label>
-                <Input
-                  id="publishedYear"
-                  name="publishedYear"
-                  placeholder="e.g. 2023"
-                  value={filters.publishedYear || ""}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <Select value={filters.status || ""} onValueChange={(value) => handleSelectChange("status", value)}>
-                  <SelectTrigger id="status">
-                    <SelectValue placeholder="All statuses" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All statuses</SelectItem>
-                    <SelectItem value="published">Published</SelectItem>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="archived">Archived</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="publishedYear">Publication Year</Label>
+                  <Input
+                    id="publishedYear"
+                    name="publishedYear"
+                    placeholder="e.g. 2023"
+                    value={filters.publishedYear || ""}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select value={filters.status || ""} onValueChange={(value) => handleSelectChange("status", value)}>
+                    <SelectTrigger id="status">
+                      <SelectValue placeholder="All statuses" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All statuses</SelectItem>
+                      <SelectItem value="published">Published</SelectItem>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="archived">Archived</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
           )}
         </div>
+      </div>
 
-        <Button className="w-full" onClick={handleApplyFilters}>
+      <div className="flex justify-end gap-2 pt-4 border-t">
+        <Button variant="outline" onClick={() => setIsFilterOpen(false)}>
+          Cancel
+        </Button>
+        <Button onClick={handleApplyFilters}>
           <Filter className="h-4 w-4 mr-2" />
           Apply Filters
         </Button>

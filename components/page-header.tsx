@@ -26,8 +26,11 @@ export function PageHeader() {
         {/* Left section - Logo and Navigation */}
         <div className="flex items-center gap-4 md:gap-6 lg:gap-10">
           <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-            <BookOpen className="h-8 w-8 text-blue-600" />
-            <span className="hidden md:inline-block">Author's Info</span>
+            <img 
+              src="/images/authorsinfo-logo-w-135x45.svg" 
+              alt="Author's Info Logo" 
+              className="h-8 w-auto"
+            />
           </Link>
 
           {/* Navigation moved next to logo */}

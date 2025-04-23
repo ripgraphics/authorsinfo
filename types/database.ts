@@ -208,24 +208,316 @@ export interface Country {
   name: string
 }
 
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
 export interface Database {
   public: {
     Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      [_ in never]: never
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
+      books: {
+        Row: {
+          id: string
+          title: string
+          description: string | null
+          isbn13: string | null
+          isbn10: string | null
+          language: string | null
+          pages: number | null
+          publication_date: string | null
+          publisher_id: string | null
+          created_at: string
+          updated_at: string
+          cover_image_id: number | null
+          binding_type_id: number | null
+          format_type_id: number | null
+          review_count: number | null
+          weight: number | null
+        }
+        Insert: {
+          id?: string
+          title: string
+          description?: string | null
+          isbn13?: string | null
+          isbn10?: string | null
+          language?: string | null
+          pages?: number | null
+          publication_date?: string | null
+          publisher_id?: string | null
+          created_at?: string
+          updated_at?: string
+          cover_image_id?: number | null
+          binding_type_id?: number | null
+          format_type_id?: number | null
+          review_count?: number | null
+          weight?: number | null
+        }
+        Update: {
+          id?: string
+          title?: string
+          description?: string | null
+          isbn13?: string | null
+          isbn10?: string | null
+          language?: string | null
+          pages?: number | null
+          publication_date?: string | null
+          publisher_id?: string | null
+          created_at?: string
+          updated_at?: string
+          cover_image_id?: number | null
+          binding_type_id?: number | null
+          format_type_id?: number | null
+          review_count?: number | null
+          weight?: number | null
+        }
+      }
+      authors: {
+        Row: {
+          id: string
+          name: string
+          bio: string | null
+          created_at: string
+          updated_at: string
+          photo_url: string | null
+          author_image: {
+            id: number
+            url: string
+            alt_text?: string
+            img_type_id?: number
+          } | null
+          cover_image_id: number | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          bio?: string | null
+          created_at?: string
+          updated_at?: string
+          photo_url?: string | null
+          author_image?: {
+            id: number
+            url: string
+            alt_text?: string
+            img_type_id?: number
+          } | null
+          cover_image_id?: number | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          bio?: string | null
+          created_at?: string
+          updated_at?: string
+          photo_url?: string | null
+          author_image?: {
+            id: number
+            url: string
+            alt_text?: string
+            img_type_id?: number
+          } | null
+          cover_image_id?: number | null
+        }
+      }
+      publishers: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          created_at: string
+          updated_at: string
+          featured: boolean
+          website: string | null
+          email: string | null
+          phone: string | null
+          address_line1: string | null
+          address_line2: string | null
+          city: string | null
+          state: string | null
+          postal_code: string | null
+          country: string | null
+          about: string | null
+          cover_image_id: number | null
+          publisher_image_id: number | null
+          publisher_gallery_id: number | null
+          founded_year: number | null
+          country_id: number | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+          featured?: boolean
+          website?: string | null
+          email?: string | null
+          phone?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          state?: string | null
+          postal_code?: string | null
+          country?: string | null
+          about?: string | null
+          cover_image_id?: number | null
+          publisher_image_id?: number | null
+          publisher_gallery_id?: number | null
+          founded_year?: number | null
+          country_id?: number | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+          featured?: boolean
+          website?: string | null
+          email?: string | null
+          phone?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          state?: string | null
+          postal_code?: string | null
+          country?: string | null
+          about?: string | null
+          cover_image_id?: number | null
+          publisher_image_id?: number | null
+          publisher_gallery_id?: number | null
+          founded_year?: number | null
+          country_id?: number | null
+        }
+      }
+      book_reviews: {
+        Row: {
+          id: string
+          book_id: string
+          user_id: string
+          rating: number
+          content: string | null
+          created_at: string
+          updated_at: string
+          contains_spoilers: boolean
+        }
+        Insert: {
+          id?: string
+          book_id: string
+          user_id: string
+          rating: number
+          content?: string | null
+          created_at?: string
+          updated_at?: string
+          contains_spoilers?: boolean
+        }
+        Update: {
+          id?: string
+          book_id?: string
+          user_id?: string
+          rating?: number
+          content?: string | null
+          created_at?: string
+          updated_at?: string
+          contains_spoilers?: boolean
+        }
+      }
+      binding_types: {
+        Row: {
+          id: number
+          name: string
+          description: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          name: string
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          name?: string
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      format_types: {
+        Row: {
+          id: number
+          name: string
+          description: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          name: string
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          name?: string
+          description?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      reading_progress: {
+        Row: {
+          id: string
+          user_id: string
+          book_id: string
+          status: string
+          current_page: number
+          total_pages: number
+          percentage_complete: number
+          created_at: string
+          updated_at: string
+          start_date: string | null
+          finish_date: string | null
+          notes: string | null
+          is_public: boolean
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          book_id: string
+          status: string
+          current_page: number
+          total_pages: number
+          percentage_complete: number
+          created_at?: string
+          updated_at?: string
+          start_date?: string | null
+          finish_date?: string | null
+          notes?: string | null
+          is_public?: boolean
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          book_id?: string
+          status?: string
+          current_page?: number
+          total_pages?: number
+          percentage_complete?: number
+          created_at?: string
+          updated_at?: string
+          start_date?: string | null
+          finish_date?: string | null
+          notes?: string | null
+          is_public?: boolean
+        }
+      }
     }
   }
 }

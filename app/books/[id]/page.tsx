@@ -30,52 +30,14 @@ import {
 import { AboutAuthor } from "@/components/about-author"
 import { AuthorHoverCard } from "@/components/author-hover-card"
 import { supabaseAdmin } from "@/lib/supabase"
+import { BookHeader } from "@/components/admin/book-header"
+import type { Database } from "@/types/database"
+import { Book, Author, Review, BindingType, FormatType, BookWithDetails } from '@/types/book'
 
 interface BookPageProps {
   params: {
     id: string
   }
-}
-
-// Define the Author type
-interface Author {
-  id: string
-  name: string
-  bio?: string
-  photo_url?: string
-  author_image?: {
-    id: string
-    url: string
-    alt_text?: string
-    img_type_id?: string
-  }
-}
-
-// Define the Review type
-interface Review {
-  id: string
-  book_id: string
-  user_id: string
-  rating: number
-  content: string
-  created_at?: string
-}
-
-// Define the ReadingProgress type
-interface ReadingProgress {
-  id: string
-  user_id: string
-  book_id: string
-  status: "want_to_read" | "currently_reading" | "read" | "on_hold" | "abandoned"
-  current_page?: number
-  total_pages?: number
-  percentage_complete?: number
-  start_date?: string
-  finish_date?: string
-  notes?: string
-  is_public: boolean
-  created_at?: string
-  updated_at?: string
 }
 
 // Helper function to format date as MM-DD-YYYY
@@ -103,7 +65,7 @@ function getAuthorImageUrl(author: Author): string {
   }
 
   // Then check for author_image from the joined table
-  if (author.author_image && author.author_image.url) {
+  if (author.author_image?.url) {
     return author.author_image.url
   }
 
@@ -117,8 +79,8 @@ async function getBookFormatAndBinding(bookId: string) {
     const { data, error } = await supabaseAdmin
       .from("books")
       .select(`
-        binding_type:binding_type_id(id, name, description),
-        format_type:format_type_id(id, name, description)
+        binding_types!binding_type_id(id, name, description),
+        format_types!format_type_id(id, name, description)
       `)
       .eq("id", bookId)
       .single()
@@ -128,9 +90,24 @@ async function getBookFormatAndBinding(bookId: string) {
       return { bindingType: null, formatType: null }
     }
 
+    const bindingType = data.binding_types?.[0]
+    const formatType = data.format_types?.[0]
+
     return {
-      bindingType: data.binding_type,
-      formatType: data.format_type,
+      bindingType: bindingType ? {
+        id: bindingType.id,
+        name: bindingType.name,
+        description: bindingType.description,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      } as BindingType : null,
+      formatType: formatType ? {
+        id: formatType.id,
+        name: formatType.name,
+        description: formatType.description,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      } as FormatType : null
     }
   } catch (error) {
     console.error("Error in getBookFormatAndBinding:", error)
@@ -156,7 +133,7 @@ async function getSampleUser() {
 }
 
 // Function to get user's reading progress for a book
-async function getUserReadingProgress(userId: string | null, bookId: string): Promise<ReadingProgress | null> {
+async function getUserReadingProgress(userId: string | null, bookId: string) {
   // If no userId is provided, return null
   if (!userId) {
     return null
@@ -179,7 +156,7 @@ async function getUserReadingProgress(userId: string | null, bookId: string): Pr
       return null
     }
 
-    return data as ReadingProgress
+    return data
   } catch (error) {
     console.error("Error in getUserReadingProgress:", error)
     return null
@@ -187,23 +164,11 @@ async function getUserReadingProgress(userId: string | null, bookId: string): Pr
 }
 
 // Function to update reading progress
-async function updateReadingProgress(progress: Partial<ReadingProgress> & { user_id: string }) {
+async function updateReadingProgress(progress: { user_id: string; book_id?: string; current_page?: number; total_pages?: number; status?: string; started_at?: string; finished_at?: string }) {
   try {
     const { data, error } = await supabaseAdmin
       .from("reading_progress")
-      .upsert({
-        user_id: progress.user_id,
-        book_id: progress.book_id,
-        status: progress.status,
-        current_page: progress.current_page,
-        total_pages: progress.total_pages,
-        percentage_complete: progress.percentage_complete,
-        start_date: progress.start_date,
-        finish_date: progress.finish_date,
-        notes: progress.notes,
-        is_public: progress.is_public ?? true,
-        updated_at: new Date().toISOString(),
-      })
+      .upsert(progress)
       .select()
       .single()
 
@@ -255,7 +220,17 @@ export default async function BookPage({ params }: BookPageProps) {
     // Fetch reviews with error handling
     let reviews: Review[] = []
     try {
-      reviews = await getReviewsByBookId(params.id)
+      const rawReviews = await getReviewsByBookId(params.id)
+      reviews = rawReviews.map(review => ({
+        id: review.id,
+        book_id: review.book_id,
+        user_id: review.user_id,
+        rating: review.rating,
+        content: review.content || null,
+        created_at: review.created_at || '',
+        updated_at: review.updated_at || '',
+        contains_spoilers: false
+      }))
     } catch (error) {
       console.error("Error fetching reviews:", error)
       // Continue with empty reviews array
@@ -306,7 +281,7 @@ export default async function BookPage({ params }: BookPageProps) {
                 <div className="book-header-avatar -mt-16 md:mt-0 z-10">
                   {authors && authors.length > 0 ? (
                     <AuthorAvatar
-                      id={authors[0].id}
+                      id={authors[0].id.toString()}
                       name={authors[0].name}
                       imageUrl={getAuthorImageUrl(authors[0])}
                       size="xl"
@@ -323,7 +298,15 @@ export default async function BookPage({ params }: BookPageProps) {
                   <div className="author-links flex flex-wrap justify-center md:justify-start gap-2 mt-2">
                     {authors && authors.length > 0 ? (
                       authors.map((author) => (
-                        <AuthorHoverCard key={author.id} author={author} bookCount={0}>
+                        <AuthorHoverCard 
+                          key={author.id} 
+                          author={{
+                            ...author,
+                            id: author.id.toString(),
+                            bio: author.bio || undefined
+                          }} 
+                          bookCount={0}
+                        >
                           <Link href={`/authors/${author.id}`} className="hover:underline">
                             {author.name}
                           </Link>
@@ -390,8 +373,8 @@ export default async function BookPage({ params }: BookPageProps) {
               </div>
             </div>
           </div>
-
           <div className="container py-6">
+            <BookHeader book={book} />
             <div className="book-detail-layout grid grid-cols-1 lg:grid-cols-4 gap-6">
               {/* Left Column - Book Cover (1/4 width) */}
               <div className="book-sidebar lg:col-span-1">
@@ -526,7 +509,7 @@ export default async function BookPage({ params }: BookPageProps) {
                           <p className="text-muted-foreground">
                             {authors && authors.length > 0 ? (
                               <AuthorHoverCard author={authors[0]} bookCount={0}>
-                                <Link href={`/authors/${book.author_id}`} className="hover:underline">
+                                <Link href={`/authors/${String(authors[0].id)}`} className="hover:underline">
                                   {authors[0].name}
                                 </Link>
                               </AuthorHoverCard>
@@ -614,13 +597,12 @@ export default async function BookPage({ params }: BookPageProps) {
                         </div>
                       )}
 
-                      {book.weight !== undefined && book.weight !== null && !isNaN(Number(book.weight)) && (
-                        <div className="book-detail-item">
-                          <h3 className="font-medium">Weight</h3>
-                          <p className="text-muted-foreground flex items-center">
-                            <Weight className="h-4 w-4 mr-2" />
-                            {typeof book.weight === "number" ? book.weight.toFixed(2) : Number(book.weight).toFixed(2)}
-                          </p>
+                      {book.weight !== null && book.weight !== undefined && (
+                        <div className="flex items-center space-x-2">
+                          <span className="text-gray-600">Weight:</span>
+                          <span className="font-medium">
+                            {typeof book.weight === 'number' ? Number(book.weight).toFixed(2) : book.weight} kg
+                          </span>
                         </div>
                       )}
 

@@ -1,13 +1,15 @@
 "use client"
 
 import { useState } from "react"
-import { Bell, Menu, Search, Settings, Sun } from "lucide-react"
+import { Bell, Menu, Search, Settings, Sun, Moon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { SearchModal } from "@/components/admin/search-modal"
+import { useTheme } from "next-themes"
 
 export function AdminHeader() {
   const [searchOpen, setSearchOpen] = useState(false)
+  const { theme, setTheme } = useTheme()
 
   return (
     <>
@@ -29,8 +31,17 @@ export function AdminHeader() {
         </div>
 
         <div className="ml-auto flex items-center gap-4">
-          <Button variant="ghost" size="icon" className="h-10 w-10">
-            <Sun className="h-5 w-5" />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-10 w-10"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          >
+            {theme === "dark" ? (
+              <Sun className="h-5 w-5" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )}
             <span className="sr-only">Toggle theme</span>
           </Button>
 

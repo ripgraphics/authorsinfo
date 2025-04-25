@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
-import { getBookById, getAuthorsByBookId, getPublisherById, getReviewsByBookId } from "@/app/actions/data"
+import { getBookById, getAuthorsByBookId, getPublisherById, getReviewsByBookId, getBooksByPublisherId, getBooksByAuthorId } from "@/app/actions/data"
 import { AuthorAvatar } from "@/components/author-avatar"
 import {
   BookOpen,
@@ -30,6 +30,7 @@ import {
 } from "lucide-react"
 import { AboutAuthor } from "@/components/about-author"
 import { AuthorHoverCard } from "@/components/author-hover-card"
+import { PublisherHoverCard } from "@/components/publisher-hover-card"
 import { supabaseAdmin } from "@/lib/supabase"
 import { BookHeader } from "@/components/admin/book-header"
 import type { Book, Author, Review, BindingType, FormatType } from '@/types/book'
@@ -230,6 +231,20 @@ export default async function BookPage({ params }: BookPageProps) {
       // Continue with null publisher
     }
 
+    // Fetch publisher's total books for hover card
+    let publisherBooksCount = 0
+    if (publisher) {
+      const publisherBooks = await getBooksByPublisherId(publisher.id)
+      publisherBooksCount = publisherBooks.length
+    }
+
+    // Fetch book counts for each author for hover cards
+    const authorBookCounts: Record<string, number> = {}
+    for (const author of authors) {
+      const booksByAuthor = await getBooksByAuthorId(author.id)
+      authorBookCounts[author.id] = booksByAuthor.length
+    }
+
     // Map DB reviews to domain Review
     let reviews: Review[] = [];
     try {
@@ -274,11 +289,11 @@ export default async function BookPage({ params }: BookPageProps) {
 
         <main className="book-page-main flex-1">
           {/* Cover Banner */}
-          <div className="book-banner relative h-64 md:h-80 lg:h-96 bg-gradient-to-r from-blue-600 to-blue-800">
-            {book.original_image_url && (
-              <div className="book-banner-image absolute inset-0 opacity-20">
+          <div className="book-page banner relative h-64 md:h-80 lg:h-96 bg-gradient-to-r from-blue-600 to-blue-800">
+            {(book.cover_image_url || book.original_image_url) && (
+              <div className="book-page banner-image absolute inset-0 opacity-20">
                 <Image
-                  src={book.original_image_url || "/placeholder.svg"}
+                  src={book.cover_image_url || book.original_image_url || "/placeholder.svg"}
                   alt={book.title}
                   fill
                   className="object-cover"
@@ -286,12 +301,12 @@ export default async function BookPage({ params }: BookPageProps) {
                 />
               </div>
             )}
-            <div className="banner-overlay absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+            <div className="book-page banner-overlay absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
 
-            <div className="container relative h-full flex items-end pb-6">
-              <div className="book-header flex flex-col md:flex-row items-center md:items-end gap-6">
+            <div className="book-page container relative h-full flex items-end pb-6">
+              <div className="book-page header flex flex-col md:flex-row items-center md:items-end gap-6">
                 {/* Author Avatar */}
-                <div className="book-header-avatar -mt-16 md:mt-0 z-10">
+                <div className="book-page header-avatar -mt-16 md:mt-0 z-10">
                   {authors && authors.length > 0 ? (
                     <AuthorAvatar
                       id={authors[0].id.toString()}
@@ -306,23 +321,17 @@ export default async function BookPage({ params }: BookPageProps) {
                 </div>
 
                 {/* Book Title and Info */}
-                <div className="book-title-info text-center md:text-left text-white">
+                <div className="book-page title-info text-center md:text-left text-white">
                   <h1 className="text-3xl md:text-4xl font-bold">{book.title}</h1>
-                  <div className="author-links flex flex-wrap justify-center md:justify-start gap-2 mt-2">
+                  <div className="book-page author-links flex flex-wrap justify-center md:justify-start gap-2 mt-2">
                     {authors && authors.length > 0 ? (
                       authors.map((author) => (
-                        <AuthorHoverCard 
-                          key={author.id} 
-                          author={{
-                            ...author,
-                            id: author.id.toString(),
-                            bio: author.bio || undefined
-                          }} 
-                          bookCount={0}
+                        <AuthorHoverCard
+                          key={author.id}
+                          author={author}
+                          bookCount={authorBookCounts[author.id] || 0}
                         >
-                          <Link href={`/authors/${author.id}`} className="hover:underline">
-                            {author.name}
-                          </Link>
+                          <span className="hover:underline cursor-pointer">{author.name}</span>
                         </AuthorHoverCard>
                       ))
                     ) : (
@@ -353,7 +362,7 @@ export default async function BookPage({ params }: BookPageProps) {
           </div>
 
           {/* Add to Shelf Section */}
-          <div className="shelf-section space-y-4 container py-2">
+          <div className="book-page shelf-section container space-y-4 py-2">
             <button
               id="shelfTrigger"
               type="button"
@@ -394,17 +403,17 @@ export default async function BookPage({ params }: BookPageProps) {
               </button>
             </div>
           </div>
-          <div className="container py-6">
+          <div className="book-page container py-6">
             <BookHeader book={book} />
             <div className="book-detail-layout grid grid-cols-1 lg:grid-cols-4 gap-6">
               {/* Left Column - Book Cover (1/4 width) */}
               <div className="book-sidebar lg:col-span-1">
                 {/* Book Cover (full width) */}
                 <Card className="book-cover-card overflow-hidden">
-                  {book.original_image_url ? (
+                  {(book.cover_image_url || book.original_image_url) ? (
                     <div className="book-cover w-full h-full">
                       <Image
-                        src={book.original_image_url || "/placeholder.svg"}
+                        src={book.cover_image_url || book.original_image_url || "/placeholder.svg"}
                         alt={book.title}
                         width={400}
                         height={600}
@@ -419,7 +428,7 @@ export default async function BookPage({ params }: BookPageProps) {
                 </Card>
 
                 {/* Add to Shelf Section */}
-                <div className="shelf-section space-y-4 w-full mt-6">
+                <div className="book-page shelf-section space-y-4 w-full mt-6">
                   <button
                     id="shelfTrigger"
                     type="button"
@@ -517,9 +526,7 @@ export default async function BookPage({ params }: BookPageProps) {
                           <p className="text-muted-foreground">
                             {authors && authors.length > 0 ? (
                               <AuthorHoverCard author={authors[0]} bookCount={0}>
-                                <Link href={`/authors/${String(authors[0].id)}`} className="hover:underline">
-                                  {authors[0].name}
-                                </Link>
+                                <span className="hover:underline cursor-pointer">{authors[0].name}</span>
                               </AuthorHoverCard>
                             ) : (
                               book.author_id
@@ -533,9 +540,9 @@ export default async function BookPage({ params }: BookPageProps) {
                           <h3 className="font-medium">Publisher</h3>
                           <p className="text-muted-foreground">
                             {publisher ? (
-                              <Link href={`/publishers/${book.publisher_id}`} className="hover:underline">
-                                {publisher.name}
-                              </Link>
+                              <PublisherHoverCard publisher={publisher} bookCount={publisherBooksCount}>
+                                <span className="hover:underline cursor-pointer">{publisher.name}</span>
+                              </PublisherHoverCard>
                             ) : (
                               book.publisher_id
                             )}

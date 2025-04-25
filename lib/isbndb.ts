@@ -1,3 +1,5 @@
+// Using built-in fetch and FormData provided by Next.js runtime
+
 const ISBNDB_API_KEY = process.env.ISBNDB_API_KEY
 const BASE_URL = "https://api2.isbndb.com"
 
@@ -114,52 +116,50 @@ export async function getBookByISBN(isbn: string, retries = 3, delay = 1000): Pr
 
 // New function to get multiple books by ISBN (bulk)
 export async function getBulkBooks(isbns: string[]): Promise<Book[]> {
-  try {
-    if (!isbns.length) {
-      return []
-    }
+  if (!isbns.length) return [];
 
-    // Limit to 100 ISBNs per request as per Basic plan
-    const batchSize = 100
-    const batches = []
+  const batchSize = 100;
+  const books: Book[] = [];
 
-    for (let i = 0; i < isbns.length; i += batchSize) {
-      batches.push(isbns.slice(i, i + batchSize))
-    }
-
-    const books: Book[] = []
-
-    for (const batch of batches) {
-      const formData = new FormData()
-      batch.forEach((isbn) => formData.append("isbns[]", isbn))
-
-      const response = await fetch(`${BASE_URL}/books`, {
-        method: "POST",
+  for (let i = 0; i < isbns.length; i += batchSize) {
+    const batch = isbns.slice(i, i + batchSize);
+    console.debug('Sending bulk batch to ISBNdb:', batch);
+    try {
+      // Use JSON bulk endpoint as defined in Swagger: `{ isbns: [...] }`
+      const res = await fetch(`${BASE_URL}/books`, {
+        method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
           Authorization: ISBNDB_API_KEY!,
         },
-        body: formData,
-      })
-
-      if (!response.ok) {
-        console.error(`ISBNDB API error: ${response.status}`)
-        continue
+        body: JSON.stringify({ isbns: batch }),
+      });
+      const raw = await res.text();
+      console.debug('Raw bulk response:', raw);
+      if (!res.ok) {
+        console.error(`ISBNdb bulk error ${res.status}:`, raw);
+      } else {
+        let data: any;
+        try {
+          data = JSON.parse(raw);
+        } catch (err) {
+          console.error('Failed to parse bulk JSON:', err);
+          continue;
+        }
+        if (Array.isArray(data.books)) {
+          books.push(...data.books);
+        } else {
+          console.warn('Unexpected bulk response shape:', data);
+        }
       }
-
-      const data = await response.json()
-      if (data.books) {
-        books.push(...data.books)
-      }
-
-      // Respect rate limit (1 request per second for Basic plan)
-      await new Promise((resolve) => setTimeout(resolve, 1100))
+    } catch (err) {
+      console.error('Bulk request failed:', err);
     }
-
-    return books
-  } catch (error) {
-    console.error("Error fetching bulk books:", error)
-    return []
+    // Rate limit: 1 request per second on Basic plan
+    await new Promise((resolve) => setTimeout(resolve, 1100));
   }
+  return books;
 }
 
 // New function to search latest books

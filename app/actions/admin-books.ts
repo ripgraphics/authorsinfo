@@ -109,6 +109,11 @@ export async function getFilteredBooks(
       query = query.lte("average_rating", filters.maxRating)
     }
 
+    // Apply status filter, linked by status_id
+    if (filters.status) {
+      query = query.eq("status_id", filters.status)
+    }
+
     let authorData: { id: string; name: string }[] | null = null
     // Handle author filter - this is more complex as it might be in a join table
     if (filters.author) {
@@ -193,6 +198,11 @@ export async function getFilteredBooks(
 
     if (filters.maxRating !== undefined) {
       countQuery = countQuery.lte("average_rating", filters.maxRating)
+    }
+
+    // Apply status filter to count query
+    if (filters.status) {
+      countQuery = countQuery.eq("status_id", filters.status)
     }
 
     // Apply the same author filter to count query
@@ -289,11 +299,12 @@ export async function bulkUpdateBooks(bookIds: string[], updates: Record<string,
 export async function getBookFormOptions() {
   try {
     // Fetch all the options needed for the book form
-    const [{ data: genres }, { data: formatTypes }, { data: bindingTypes }, { data: languages }] = await Promise.all([
+    const [{ data: genres }, { data: formatTypes }, { data: bindingTypes }, { data: languages }, { data: statuses }] = await Promise.all([
       supabaseAdmin.from("book_genres").select("id, name").order("name"),
       supabaseAdmin.from("format_types").select("id, name").order("name"),
       supabaseAdmin.from("binding_types").select("id, name").order("name"),
       supabaseAdmin.from("books").select("language").not("language", "is", null),
+      supabaseAdmin.from("statuses").select("id, name").order("name"),
     ])
 
     // Extract unique languages
@@ -304,11 +315,13 @@ export async function getBookFormOptions() {
       formatTypes: formatTypes || [],
       bindingTypes: bindingTypes || [],
       languages: uniqueLanguages,
+      statuses: statuses || [],
       error: null,
     }
   } catch (error) {
     console.error("Error fetching book form options:", error)
     return {
+      statuses: [],
       genres: [],
       formatTypes: [],
       bindingTypes: [],

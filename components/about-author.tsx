@@ -1,22 +1,10 @@
 import Link from "next/link"
+import type { Author } from "@/types/book"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AuthorAvatar } from "@/components/author-avatar"
 import { AuthorHoverCard } from "@/components/author-hover-card"
 import { Pencil } from "lucide-react"
-
-interface Author {
-  id: string
-  name: string
-  bio?: string
-  photo_url?: string
-  author_image?: {
-    id: string
-    url: string
-    alt_text?: string
-    img_type_id?: string
-  }
-}
 
 interface AboutAuthorProps {
   authors: Author[]

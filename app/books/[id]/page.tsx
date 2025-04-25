@@ -19,6 +19,7 @@ import {
   Star,
   Clock,
   BookMarked,
+  Heart,
   Globe,
   Tag,
   FileText,
@@ -31,8 +32,7 @@ import { AboutAuthor } from "@/components/about-author"
 import { AuthorHoverCard } from "@/components/author-hover-card"
 import { supabaseAdmin } from "@/lib/supabase"
 import { BookHeader } from "@/components/admin/book-header"
-import type { Database } from "@/types/database"
-import { Book, Author, Review, BindingType, FormatType, BookWithDetails } from '@/types/book'
+import type { Book, Author, Review, BindingType, FormatType } from '@/types/book'
 
 interface BookPageProps {
   params: {
@@ -185,22 +185,35 @@ async function updateReadingProgress(progress: { user_id: string; book_id?: stri
 }
 
 export default async function BookPage({ params }: BookPageProps) {
+  // Next.js App Router requires awaiting params before using
+  const { id } = await params;
+
   // Special case: if id is "add", redirect to the add page
-  if (params.id === "add") {
+  if (id === "add") {
     redirect("/books/add")
   }
 
   try {
-    const book = await getBookById(params.id)
+    const book = (await getBookById(id)) as Book;
 
     if (!book) {
       notFound()
     }
 
-    // Fetch related authors with error handling
-    let authors: Author[] = []
+    // Map DB authors to domain Author
+    let authors: Author[] = [];
     try {
-      authors = await getAuthorsByBookId(params.id)
+      const rawAuthors = (await getAuthorsByBookId(id)) as any[];
+      authors = rawAuthors.map((a) => ({
+        id: String(a.id),
+        name: a.name,
+        bio: a.bio ?? undefined,
+        created_at: a.created_at,
+        updated_at: a.updated_at,
+        photo_url: a.photo_url ?? undefined,
+        author_image: a.author_image ?? null,
+        cover_image_id: a.cover_image_id ?? undefined,
+      }));
     } catch (error) {
       console.error("Error fetching authors:", error)
       // Continue with empty authors array
@@ -217,36 +230,36 @@ export default async function BookPage({ params }: BookPageProps) {
       // Continue with null publisher
     }
 
-    // Fetch reviews with error handling
-    let reviews: Review[] = []
+    // Map DB reviews to domain Review
+    let reviews: Review[] = [];
     try {
-      const rawReviews = await getReviewsByBookId(params.id)
-      reviews = rawReviews.map(review => ({
-        id: review.id,
-        book_id: review.book_id,
-        user_id: review.user_id,
-        rating: review.rating,
-        content: review.content || null,
-        created_at: review.created_at || '',
-        updated_at: review.updated_at || '',
-        contains_spoilers: false
-      }))
+      const rawReviews = (await getReviewsByBookId(id)) as any[];
+      reviews = rawReviews.map((r) => ({
+        id: r.id,
+        book_id: r.book_id,
+        user_id: r.user_id,
+        rating: r.rating,
+        content: r.content ?? null,
+        created_at: r.created_at,
+        updated_at: r.updated_at,
+        contains_spoilers: false,
+      }));
     } catch (error) {
       console.error("Error fetching reviews:", error)
       // Continue with empty reviews array
     }
 
     // Fetch binding and format types
-    const { bindingType, formatType } = await getBookFormatAndBinding(params.id)
+    const { bindingType, formatType } = await getBookFormatAndBinding(id) as { bindingType: BindingType | null; formatType: FormatType | null };
 
     // Get a sample user from the database
     const sampleUser = await getSampleUser()
     const userId = sampleUser?.id || null
 
     // Fetch user's reading progress
-    let readingProgress = null
+    let readingProgress: any = null
     try {
-      readingProgress = await getUserReadingProgress(userId, params.id)
+      readingProgress = await getUserReadingProgress(userId, id)
     } catch (error) {
       console.error("Error fetching reading progress:", error)
       // Continue with null reading progress
@@ -262,10 +275,10 @@ export default async function BookPage({ params }: BookPageProps) {
         <main className="book-page-main flex-1">
           {/* Cover Banner */}
           <div className="book-banner relative h-64 md:h-80 lg:h-96 bg-gradient-to-r from-blue-600 to-blue-800">
-            {book.cover_image_url && (
+            {book.original_image_url && (
               <div className="book-banner-image absolute inset-0 opacity-20">
                 <Image
-                  src={book.cover_image_url || "/placeholder.svg"}
+                  src={book.original_image_url || "/placeholder.svg"}
                   alt={book.title}
                   fill
                   className="object-cover"
@@ -339,38 +352,46 @@ export default async function BookPage({ params }: BookPageProps) {
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="action-buttons bg-white border-b shadow-sm">
-            <div className="container py-2">
-              <div className="flex justify-between items-center">
-                <div className="reading-actions flex gap-2">
-                  <Button className="flex items-center gap-2">
-                    <BookMarked className="h-4 w-4" />
-                    <span>
-                      {readingProgress?.status === "currently_reading" ? "Currently Reading" : "Want to Read"}
-                    </span>
-                  </Button>
-                  <Button variant="outline" className="flex items-center gap-2">
-                    <Star className="h-4 w-4" />
-                    <span>Rate this book</span>
-                  </Button>
-                </div>
-
-                <div className="social-actions flex gap-2">
-                  <Button variant="ghost" className="flex items-center gap-1">
-                    <ThumbsUp className="h-4 w-4" />
-                    <span>Like</span>
-                  </Button>
-                  <Button variant="ghost" className="flex items-center gap-1">
-                    <MessageSquare className="h-4 w-4" />
-                    <span>Comment</span>
-                  </Button>
-                  <Button variant="ghost" className="flex items-center gap-1">
-                    <Share2 className="h-4 w-4" />
-                    <span>Share</span>
-                  </Button>
-                </div>
+          {/* Add to Shelf Section */}
+          <div className="shelf-section space-y-4 container py-2">
+            <button
+              id="shelfTrigger"
+              type="button"
+              aria-haspopup="menu"
+              aria-expanded="false"
+              className="shelf-button inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full"
+            >
+              <BookMarked className="mr-2 h-4 w-4" />
+              Add to Shelf
+            </button>
+            <div
+              data-radix-popper-content-wrapper
+              dir="ltr"
+              className="z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2"
+              role="menu"
+              aria-labelledby="shelfTrigger"
+              tabIndex={-1}
+              data-orientation="vertical"
+              style={{ outline: 'none', pointerEvents: 'auto' }}
+            >
+              <div role="menuitem" className="shelf-menu-item relative flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors focus:bg-accent focus:text-accent-foreground cursor-pointer">
+                ✓ Want to Read
               </div>
+              <div role="menuitem" className="shelf-menu-item relative flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors focus:bg-accent focus:text-accent-foreground cursor-pointer">
+                Currently Reading
+              </div>
+              <div role="menuitem" className="shelf-menu-item relative flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors focus:bg-accent focus:text-accent-foreground cursor-pointer">
+                Read
+              </div>
+              <div role="separator" aria-orientation="horizontal" className="shelf-separator -mx-1 my-1 h-px bg-muted"></div>
+              <button
+                type="button"
+                aria-haspopup="dialog"
+                aria-controls="manageShelvesDialog"
+                className="shelf-manage-button inline-flex items-center gap-2 text-sm font-medium px-4 py-2 w-full text-left cursor-pointer hover:bg-accent hover:text-accent-foreground"
+              >
+                Manage shelves...
+              </button>
             </div>
           </div>
           <div className="container py-6">
@@ -380,10 +401,10 @@ export default async function BookPage({ params }: BookPageProps) {
               <div className="book-sidebar lg:col-span-1">
                 {/* Book Cover (full width) */}
                 <Card className="book-cover-card overflow-hidden">
-                  {book.cover_image_url ? (
+                  {book.original_image_url ? (
                     <div className="book-cover w-full h-full">
                       <Image
-                        src={book.cover_image_url || "/placeholder.svg"}
+                        src={book.original_image_url || "/placeholder.svg"}
                         alt={book.title}
                         width={400}
                         height={600}
@@ -397,67 +418,54 @@ export default async function BookPage({ params }: BookPageProps) {
                   )}
                 </Card>
 
-                {/* Reading Status */}
-                <Card className="reading-status-card mt-6">
-                  <CardHeader>
-                    <CardTitle>Reading Status</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="reading-status-buttons flex flex-col gap-2">
-                      <Button
-                        className="w-full justify-start"
-                        variant={readingProgress?.status === "want_to_read" || !readingProgress ? "default" : "outline"}
-                      >
-                        <BookMarked className="mr-2 h-4 w-4" />
-                        Want to Read
-                      </Button>
-                      <Button
-                        variant={readingProgress?.status === "currently_reading" ? "default" : "outline"}
-                        className="w-full justify-start"
-                      >
-                        <Clock className="mr-2 h-4 w-4" />
-                        Currently Reading
-                      </Button>
-                      <Button
-                        variant={readingProgress?.status === "read" ? "default" : "outline"}
-                        className="w-full justify-start"
-                      >
-                        <BookOpen className="mr-2 h-4 w-4" />
-                        Read
-                      </Button>
+                {/* Add to Shelf Section */}
+                <div className="shelf-section space-y-4 w-full mt-6">
+                  <button
+                    id="shelfTrigger"
+                    type="button"
+                    aria-haspopup="menu"
+                    aria-expanded="false"
+                    className="shelf-button inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full"
+                  >
+                    <BookMarked className="mr-2 h-4 w-4" />
+                    Add to Shelf
+                  </button>
+                  <div
+                    data-radix-popper-content-wrapper
+                    dir="ltr"
+                    className="z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2"
+                    role="menu"
+                    aria-labelledby="shelfTrigger"
+                    tabIndex={-1}
+                    data-orientation="vertical"
+                    style={{ outline: 'none', pointerEvents: 'auto' }}
+                  >
+                    <div role="menuitem" className="shelf-menu-item relative flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors focus:bg-accent focus:text-accent-foreground cursor-pointer">
+                      ✓ Want to Read
                     </div>
-
-                    {readingProgress?.status === "currently_reading" && (
-                      <div className="reading-progress space-y-2">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm">Reading Progress</span>
-                          <span className="text-sm font-medium">{readingProgress.percentage_complete || 0}%</span>
-                        </div>
-                        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-blue-600 rounded-full"
-                            style={{ width: `${readingProgress.percentage_complete || 0}%` }}
-                          ></div>
-                        </div>
-                        <div className="flex justify-between text-xs text-gray-500">
-                          <span>Page {readingProgress.current_page || 0}</span>
-                          <span>of {readingProgress.total_pages || book.page_count || "?"}</span>
-                        </div>
-                        <div className="pt-2">
-                          <Button size="sm" className="w-full">
-                            Update Progress
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                    <div role="menuitem" className="shelf-menu-item relative flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors focus:bg-accent focus:text-accent-foreground cursor-pointer">
+                      Currently Reading
+                    </div>
+                    <div role="menuitem" className="shelf-menu-item relative flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors focus:bg-accent focus:text-accent-foreground cursor-pointer">
+                      Read
+                    </div>
+                    <div role="separator" aria-orientation="horizontal" className="shelf-separator -mx-1 my-1 h-px bg-muted"></div>
+                    <button
+                      type="button"
+                      aria-haspopup="dialog"
+                      aria-controls="manageShelvesDialog"
+                      className="shelf-manage-button inline-flex items-center gap-2 text-sm font-medium px-4 py-2 w-full text-left cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                    >
+                      Manage shelves...
+                    </button>
+                  </div>
+                </div>
 
                 {/* Author Info */}
                 {authors && authors.length > 0 ? (
-                  <AboutAuthor authors={authors} bookId={params.id} className="mt-6" />
+                  <AboutAuthor authors={authors} bookId={id} className="mt-6" />
                 ) : (
-                  <AboutAuthor authors={[]} bookId={params.id} className="mt-6" />
+                  <AboutAuthor authors={[]} bookId={id} className="mt-6" />
                 )}
               </div>
 

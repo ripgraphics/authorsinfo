@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 import Link from "next/link"
-import { BookPlus, Upload } from "lucide-react"
+import { BookPlus, Upload, RefreshCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -96,27 +96,32 @@ function BooksContentSkeleton() {
   )
 }
 
-export default function AdminBooksPage({ searchParams }: AdminBooksPageProps) {
+export default async function AdminBooksPage({ searchParams }: AdminBooksPageProps) {
+  // Await search parameters for Next.js 15
+  const search = await searchParams
   // Parse search params
-  const page = Number(searchParams.page) || 1
-  const pageSize = Number(searchParams.pageSize) || 20
-  const sortField = searchParams.sort || "title"
-  const sortDirection = (searchParams.direction || "asc") as "asc" | "desc"
+  const page = Number(search.page) || 1
+  const pageSize = Number(search.pageSize) || 20
+  const sortField = search.sort || "title"
+  const sortDirection = (search.direction || "asc") as "asc" | "desc"
+
+  // Fetch form options including statuses
+  const { statuses } = await getBookFormOptions()
 
   // Build filters from search params
   const filters: BookFilter = {
-    title: searchParams.title,
-    author: searchParams.author,
-    publisher: searchParams.publisher,
-    isbn: searchParams.isbn,
-    language: searchParams.language,
-    publishedYear: searchParams.publishedYear,
-    genre: searchParams.genre,
-    format: searchParams.format,
-    binding: searchParams.binding,
-    minRating: searchParams.minRating ? Number(searchParams.minRating) : undefined,
-    maxRating: searchParams.maxRating ? Number(searchParams.maxRating) : undefined,
-    status: searchParams.status,
+    title: search.title,
+    author: search.author,
+    publisher: search.publisher,
+    isbn: search.isbn,
+    language: search.language,
+    publishedYear: search.publishedYear,
+    genre: search.genre,
+    format: search.format,
+    binding: search.binding,
+    minRating: search.minRating ? Number(search.minRating) : undefined,
+    maxRating: search.maxRating ? Number(search.maxRating) : undefined,
+    status: search.status,
   }
 
   // Remove undefined values
@@ -133,19 +138,71 @@ export default function AdminBooksPage({ searchParams }: AdminBooksPageProps) {
           <h1 className="text-2xl font-bold">Book Management</h1>
           <p className="text-muted-foreground">Manage your books with advanced filtering and bulk operations</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button asChild>
-            <Link href="/books/add">
-              <BookPlus className="h-4 w-4 mr-2" />
-              Add New Book
-            </Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href="/books/import">
-              <Upload className="h-4 w-4 mr-2" />
-              Import Books
-            </Link>
-          </Button>
+        <div className="flex items-center gap-4">
+          {/* Filter & Sort Controls */}
+          <div className="flex flex-wrap items-center gap-4 px-4 py-2 bg-gray-50 rounded">
+            <form method="get" action="/admin/books" className="flex items-center gap-2">
+              <input type="hidden" name="page" value="1" />
+              <input type="hidden" name="pageSize" value={pageSize} />
+              <input
+                type="text"
+                name="title"
+                defaultValue={search.title ?? ''}
+                placeholder="Filter by title"
+                className="border border-gray-300 rounded px-2 py-1"
+              />
+              {/* Status filter */}
+              <select
+                name="status"
+                defaultValue={search.status ?? ''}
+                className="border border-gray-300 rounded px-2 py-1"
+              >
+                <option value="">All statuses</option>
+                {statuses.map((s) => (
+                  <option key={s.id} value={String(s.id)}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+              <select
+                name="sort"
+                defaultValue={sortField}
+                className="border border-gray-300 rounded px-2 py-1"
+              >
+                <option value="created_at">Date Added</option>
+                <option value="title">Title</option>
+              </select>
+              <select
+                name="direction"
+                defaultValue={sortDirection}
+                className="border border-gray-300 rounded px-2 py-1"
+              >
+                <option value="desc">Newest first</option>
+                <option value="asc">Oldest first</option>
+              </select>
+              <Button type="submit" variant="outline">Filter & Sort</Button>
+            </form>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button asChild>
+              <Link href="/books/add">
+                <BookPlus className="h-4 w-4 mr-2" />
+                Add New Book
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/books/import">
+                <Upload className="h-4 w-4 mr-2" />
+                Import Books
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/api/isbn/import-all">
+                <RefreshCcw className="h-4 w-4 mr-2" />
+                Import All Books
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -172,7 +229,7 @@ export default function AdminBooksPage({ searchParams }: AdminBooksPageProps) {
               filters={filters}
               page={page}
               pageSize={pageSize}
-              sortField="publication_date"
+              sortField="created_at"
               sortDirection="desc"
             />
           </Suspense>

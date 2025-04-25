@@ -14,6 +14,12 @@ export type Author = {
     img_type_id?: number;
   } | null;
   cover_image_id: number | undefined;
+  cover_image?: {
+    id: number;
+    url: string;
+    alt_text?: string;
+    img_type_id?: number;
+  } | null;
 };
 
 export type Review = {
@@ -31,12 +37,15 @@ export type Book = {
   id: string;
   isbn10: string | null;
   isbn13: string | null;
+  isbn: string | null;
   title: string;
   title_long: string | null;
   publisher_id: number | null;
   publication_date: string | null;
+  publish_date: string | null;
   binding: string | null;
   pages: number | null;
+  page_count: number | null;
   list_price: number | null;
   language: string | null;
   edition: string | null;
@@ -44,17 +53,31 @@ export type Book = {
   overview: string | null;
   dimensions: string | null;
   weight: number | null;
+  lexile_measure: string | null;
   cover_image_id: number | null;
   original_image_url: string | null;
+  cover_image_url: string | null;
+  cover_image?: {
+    id: number;
+    url: string;
+    alt_text?: string;
+    img_type_id?: number;
+  } | null;
   author: string | null;
   featured: boolean | null;
   author_id: number | null;
   book_gallery_img: string[] | null;
   average_rating: number | null;
   review_count: number | null;
+  genre: string | null;
+  series: string | null;
+  series_number: number | null;
   binding_type_id: number | null;
   format_type_id: number | null;
+  format: string | null;
   description: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
 export type BindingType = Database['public']['Tables']['binding_types']['Row']

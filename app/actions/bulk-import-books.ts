@@ -1,17 +1,18 @@
 "use server"
 
-import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
-import { getBulkBooks } from "@/lib/isbndb"
+import { supabaseAdmin } from '@/lib/supabase/server'
+import { getBulkBooks } from '@/lib/isbndb'
 import { revalidatePath } from "next/cache"
 import { v2 as cloudinary } from 'cloudinary';
 import fetch from 'node-fetch';
+import newBooksData from '../../new_books.json';
 
 interface ImportResult {
   added: number
   duplicates: number
   errors: number
   errorDetails?: string[]
+  logs?: string[]  // array of log messages for UI display
 }
 
 // Configure Cloudinary
@@ -22,13 +23,13 @@ cloudinary.config({
 });
 
 export async function checkForDuplicates(isbns: string[]) {
-  const supabase = createServerActionClient({ cookies })
+  const supabase = supabaseAdmin;
 
   // Check for existing ISBNs
   const { data: existingBooks, error } = await supabase
     .from("books")
-    .select("isbn, isbn13")
-    .or(`isbn.in.(${isbns.join(",")}),isbn13.in.(${isbns.join(",")})`)
+    .select("isbn10, isbn13")
+    .or(`isbn10.in.(${isbns.join(",")}),isbn13.in.(${isbns.join(",")})`)
 
   if (error) {
     console.error("Error checking for duplicates:", error)
@@ -38,7 +39,7 @@ export async function checkForDuplicates(isbns: string[]) {
   // Create a set of existing ISBNs (both ISBN-10 and ISBN-13)
   const existingIsbns = new Set<string>()
   existingBooks?.forEach((book) => {
-    if (book.isbn) existingIsbns.add(book.isbn)
+    if (book.isbn10) existingIsbns.add(book.isbn10)
     if (book.isbn13) existingIsbns.add(book.isbn13)
   })
 
@@ -50,7 +51,7 @@ export async function checkForDuplicates(isbns: string[]) {
 }
 
 export async function bulkImportBooks(isbns: string[]): Promise<ImportResult> {
-  const supabase = createServerActionClient({ cookies })
+  const supabase = supabaseAdmin;
   const result: ImportResult = { added: 0, duplicates: 0, errors: 0, errorDetails: [] }
 
   try {
@@ -135,32 +136,91 @@ export async function bulkImportBooks(isbns: string[]): Promise<ImportResult> {
           }
         }
 
-        // Insert the book
-        const { error: bookError } = await supabase.from("books").insert({
-          title: book.title,
-          isbn: book.isbn,
-          isbn13: book.isbn13,
-          publisher_id: publisherId,
-          publish_date: book.publish_date,
-          synopsis: book.synopsis,
-          original_image_url: book.image,
-          page_count: book.pages,
-          language: book.language,
-          format: book.binding,
-          // Use the first author as the main author_id
-          author_id: authorIds.length > 0 ? authorIds[0] : null,
-        })
+        // Upload cover image to Cloudinary and insert into images table
+        let coverImageId: number | null = null;
+        if (book.image) {
+          const uploadRes = await cloudinary.uploader.upload(book.image, {
+            folder: 'authorsinfo/bookcovers',
+            transformation: [{ width: 300, height: 600, crop: 'limit' }],
+          });
+          const { data: imgTypeRow } = await supabase
+            .from('image_types')
+            .select('id')
+            .eq('name', 'cover')
+            .maybeSingle();
+          const imgTypeId = imgTypeRow?.id ?? null;
+          const { data: imageRow, error: imgErr } = await supabase
+            .from('images')
+            .insert({ url: uploadRes.secure_url, alt_text: book.title, img_type_id: imgTypeId })
+            .select('id')
+            .single();
+          if (imageRow) {
+            coverImageId = imageRow.id;
+          } else {
+            console.error('Failed to insert image for', book.title, imgErr);
+          }
+        }
+
+        // Insert the book and retrieve its new ID
+        const { data: newBook, error: bookError } = await supabase
+          .from('books')
+          .insert({
+            title: book.title,
+            isbn10: book.isbn,
+            isbn13: book.isbn13,
+            publisher_id: publisherId,
+            publication_date: book.publish_date,
+            synopsis: book.synopsis,
+            original_image_url: book.image,
+            cover_image_id: coverImageId,
+            pages: book.pages,
+            language: book.language,
+            binding: book.binding,
+            // Use the first author as the main author_id
+            author_id: authorIds.length > 0 ? authorIds[0] : null,
+          })
+          .select('id')
+          .single();
 
         if (bookError) {
           result.errors++
           result.errorDetails?.push(`Error adding book ${book.title}: ${bookError.message}`)
-        } else {
+        } else if (newBook?.id) {
           result.added++
 
-          // If we have multiple authors, create book_authors relationships
-          if (authorIds.length > 1) {
-            // This would require a book_authors junction table
-            // Implementation depends on your database schema
+          // Link subjects for this book
+          if (book.subjects && book.subjects.length) {
+            for (const subjectName of book.subjects) {
+              // Find or create subject
+              const { data: existingSub } = await supabase
+                .from("subjects")
+                .select("id")
+                .eq("name", subjectName)
+                .maybeSingle();
+              let subjectId = existingSub?.id;
+              if (!subjectId) {
+                const { data: newSub, error: subError } = await supabase
+                  .from("subjects")
+                  .insert({ name: subjectName })
+                  .select("id")
+                  .single();
+                if (newSub) subjectId = newSub.id;
+              }
+              if (subjectId) {
+                // Upsert into book_subjects to avoid duplicates
+                await supabase
+                  .from("book_subjects")
+                  .upsert({ book_id: newBook.id, subject_id: subjectId });
+              }
+            }
+          }
+          // Link all authors for this book
+          if (authorIds.length > 0) {
+            for (const authId of authorIds) {
+              await supabase
+                .from('book_authors')
+                .upsert({ book_id: newBook.id, author_id: authId });
+            }
           }
         }
       } catch (error) {
@@ -181,91 +241,213 @@ export async function bulkImportBooks(isbns: string[]): Promise<ImportResult> {
   }
 }
 
-// Function to fetch the newest books from ISBNdb
-export async function importNewestBooks() {
-  const supabase = createServerActionClient({ cookies });
-  const apiKey = process.env.ISBNDB_API_KEY;
-  const baseUrl = 'https://api2.isbndb.com';
-  const pageSize = 100; // Adjust as needed
-  let page = 1;
-  let hasMore = true;
+// Static importNewestBooks: load JSON, dedupe, log batches, and process
+export async function importNewestBooks(): Promise<ImportResult> {
+  const supabase = supabaseAdmin;
+  const result: ImportResult = { added: 0, duplicates: 0, errors: 0, errorDetails: [], logs: [] };
 
-  // Log the API key for debugging (be cautious with sensitive information)
-  console.log('Using ISBNdb API key:', apiKey);
-
-  // Ensure apiKey is defined
-  if (!apiKey) {
-    console.error('ISBNdb API key is not defined.');
-    return;
+  const jsonData = newBooksData;
+  const allBooks = Array.isArray(jsonData.books) ? jsonData.books : [];
+  console.log(`Loaded ${allBooks.length} books from new_books.json`);
+  result.logs?.push(`Loaded ${allBooks.length} books from new_books.json`);
+  if (!allBooks.length) {
+    result.errors++;
+    result.errorDetails?.push('new_books.json contains no books');
+    result.logs?.push('No books found in new_books.json');
+    return result;
   }
 
-  while (hasMore) {
+  // Gather ISBNs and check duplicates
+  const isbns = allBooks.map((b: any) => b.isbn10 || b.isbn).filter(Boolean);
+  console.log(`Checking ${isbns.length} ISBNs for duplicates...`);
+  result.logs?.push(`Checking ${isbns.length} ISBNs for duplicates...`);
+  const { duplicates, newIsbns, error } = await checkForDuplicates(isbns);
+  if (error) {
+    console.error('Error checking duplicates:', error);
+    result.errors++;
+    result.errorDetails?.push(`Error checking duplicates: ${error}`);
+    result.logs?.push(`Error checking duplicates: ${error}`);
+    return result;
+  }
+  result.duplicates = duplicates.length;
+  console.log(`Found ${duplicates.length} duplicates, ${newIsbns.length} new books to import.`);
+  result.logs?.push(`Found ${duplicates.length} duplicates, ${newIsbns.length} new books to import.`);
+
+  // Update existing duplicate books with extended metadata
+  for (const isbn of duplicates) {
+    const dataItem = allBooks.find((b: any) => b.isbn10 === isbn || b.isbn === isbn || b.isbn13 === isbn);
+    if (!dataItem) continue;
+    result.logs?.push(`Updating existing book with ISBN ${isbn}`);
+    const updateData: any = {
+      title_long: dataItem.title_long,
+      overview: dataItem.synopsis,
+      dimensions: dataItem.dimensions,
+      weight: dataItem.dimensions_structured?.weight?.value,
+      edition: dataItem.edition,
+      list_price: dataItem.msrp,
+      language: dataItem.language,
+      pages: dataItem.pages,
+      binding: dataItem.binding,
+      original_image_url: dataItem.image_original || dataItem.image,
+    };
+    const { error: updateErr } = await supabase
+      .from('books')
+      .update(updateData)
+      .or(`isbn10.eq.${isbn},isbn13.eq.${isbn}`);
+    if (updateErr) {
+      result.errors++;
+      result.errorDetails?.push(`Error updating book ${dataItem.title}: ${updateErr.message}`);
+      result.logs?.push(`Error updating book ${dataItem.title}: ${updateErr.message}`);
+    } else {
+      result.logs?.push(`Book updated: ${dataItem.title} (ISBN ${isbn})`);
+    }
+  }
+
+  const newBooks = allBooks.filter((b: any) => newIsbns.includes(b.isbn10 || b.isbn));
+  console.log('New book titles:', newBooks.map((b: any) => b.title).join(', '));
+  result.logs?.push(`New book titles: ${newBooks.map((b: any) => b.title).join(', ')}`);
+
+  let processedCount = 0;
+  for (const book of newBooks) {
+    processedCount++;
+    console.log(`Processing (${processedCount}/${newBooks.length}): ${book.title}`);
+    result.logs?.push(`Processing (${processedCount}/${newBooks.length}): ${book.title}`);
     try {
-      console.log(`Fetching page ${page} of books from ISBNdb...`);
-      const response = await fetch(`${baseUrl}/books?page=${page}&pageSize=${pageSize}`, {
-        headers: {
-          Authorization: apiKey,
-        },
-      });
-
-      if (response.status === 429) {
-        console.warn('Rate limit hit, waiting before retry...');
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        continue;
-      }
-
-      if (!response.ok) {
-        console.error('Error fetching books:', response.statusText);
-        break;
-      }
-
-      const data = (await response.json()) as { books: any[] };
-      const books = data.books;
-
-      if (books.length === 0) {
-        console.log('No more books to fetch.');
-        hasMore = false;
-        break;
-      }
-
-      for (const book of books) {
-        try {
-          console.log(`Processing book: ${book.title}`);
-          // Upload book cover image to Cloudinary
-          const imageUrl = book.image;
-          const uploadResponse = await cloudinary.uploader.upload(imageUrl, {
-            folder: 'authorsinfo/bookcovers',
-          });
-
-          // Insert book data into the database
-          const { error: bookError } = await supabase.from('books').insert({
-            title: book.title,
-            isbn: book.isbn,
-            isbn13: book.isbn13,
-            publisher_id: null, // Handle publisher logic as needed
-            publish_date: book.date_published,
-            synopsis: book.synopsis,
-            original_image_url: uploadResponse.secure_url,
-            page_count: book.pages,
-            language: book.language,
-            format: book.binding,
-            author_id: null, // Handle author logic as needed
-          });
-
-          if (bookError) {
-            console.error(`Error adding book ${book.title}:`, bookError.message);
-          } else {
-            console.log(`Book ${book.title} added successfully.`);
-          }
-        } catch (error) {
-          console.error(`Error processing book ${book.title}:`, error);
+      // Find or create publisher
+      let publisherId: number | null = null;
+      if (book.publisher) {
+        const { data: existingPub } = await supabase
+          .from('publishers')
+          .select('id')
+          .eq('name', book.publisher)
+          .maybeSingle();
+        if (existingPub) {
+          publisherId = existingPub.id;
+        } else {
+          const { data: newPub, error: pubErr } = await supabase
+            .from('publishers')
+            .insert({ name: book.publisher })
+            .select('id')
+            .single();
+          if (!pubErr && newPub) publisherId = newPub.id;
         }
       }
 
-      page++;
-    } catch (error) {
-      console.error('Error fetching books:', error);
-      break;
+      // Find or create authors
+      const authorIds: number[] = [];
+      if (Array.isArray(book.authors)) {
+        for (const authorName of book.authors) {
+          const { data: existingAuth } = await supabase
+            .from('authors')
+            .select('id')
+            .eq('name', authorName)
+            .maybeSingle();
+          if (existingAuth) {
+            authorIds.push(existingAuth.id);
+          } else {
+            const { data: newAuth, error: authErr } = await supabase
+              .from('authors')
+              .insert({ name: authorName })
+              .select('id')
+              .single();
+            if (!authErr && newAuth) authorIds.push(newAuth.id);
+          }
+        }
+      }
+
+      // Upload cover image
+      let coverImageId: number | null = null;
+      const imageUrl = book.image_original || book.image;
+      if (imageUrl) {
+        const uploadRes = await cloudinary.uploader.upload(imageUrl, {
+          folder: 'authorsinfo/bookcovers',
+          transformation: [{ width: 300, height: 600, crop: 'limit' }],
+        });
+        const { data: imgTypeRow } = await supabase
+          .from('image_types')
+          .select('id')
+          .eq('name', 'cover')
+          .maybeSingle();
+        const imgTypeId = imgTypeRow?.id ?? null;
+        const { data: imageRow, error: imgErr } = await supabase
+          .from('images')
+          .insert({ url: uploadRes.secure_url, alt_text: book.title, img_type_id: imgTypeId })
+          .select('id')
+          .single();
+        if (imageRow) coverImageId = imageRow.id;
+      }
+
+      // Insert book record with extended data
+      const { data: newBookRec, error: bookErr } = await supabase
+        .from('books')
+        .insert({
+          title: book.title,
+          title_long: book.title_long,
+          isbn10: book.isbn10 || book.isbn,
+          isbn13: book.isbn13,
+          publisher_id: publisherId,
+          publication_date: book.date_published,
+          synopsis: book.synopsis,
+          overview: book.synopsis,
+          dimensions: book.dimensions,
+          weight: book.dimensions_structured?.weight?.value,
+          edition: book.edition,
+          list_price: book.msrp,
+          language: book.language,
+          pages: book.pages,
+          binding: book.binding,
+          original_image_url: imageUrl,
+          cover_image_id: coverImageId,
+          author_id: authorIds[0] || null,
+        })
+        .select('id')
+        .single();
+      if (bookErr) {
+        result.errors++;
+        result.errorDetails?.push(`Error adding book ${book.title}: ${bookErr.message}`);
+        result.logs?.push(`Error adding book ${book.title}: ${bookErr.message}`);
+      } else if (newBookRec?.id) {
+        result.added++;
+        result.logs?.push(`Book added: ${book.title} (ID: ${newBookRec.id})`);
+        // Link subjects
+        if (Array.isArray(book.subjects)) {
+          for (const subjectName of book.subjects) {
+            const { data: existingSub } = await supabase
+              .from('subjects')
+              .select('id')
+              .eq('name', subjectName)
+              .maybeSingle();
+            let subjectId = existingSub?.id;
+            if (!subjectId) {
+              const { data: newSub } = await supabase
+                .from('subjects')
+                .insert({ name: subjectName })
+                .select('id')
+                .single();
+              if (newSub) subjectId = newSub.id;
+            }
+            if (subjectId) {
+              await supabase
+                .from('book_subjects')
+                .upsert({ book_id: newBookRec.id, subject_id: subjectId });
+            }
+          }
+        }
+        // Link authors
+        for (const authId of authorIds) {
+          await supabase
+            .from('book_authors')
+            .upsert({ book_id: newBookRec.id, author_id: authId });
+        }
+      }
+    } catch (err) {
+      result.errors++;
+      result.errorDetails?.push(`Error processing book ${book.title}: ${(err as Error).message}`);
+      result.logs?.push(`Error processing book ${book.title}: ${(err as Error).message}`);
     }
   }
+  console.log(`Import complete. Added: ${result.added}, Duplicates: ${result.duplicates}, Errors: ${result.errors}`);
+  result.logs?.push(`Import complete. Added: ${result.added}, Duplicates: ${result.duplicates}, Errors: ${result.errors}`);
+  revalidatePath('/books');
+  return result;
 }

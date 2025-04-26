@@ -12,6 +12,7 @@ interface AboutAuthorProps {
   showEditButton?: boolean
   className?: string
   books?: any[] // Added books prop to pass book count
+  authorBookCounts?: Record<string, number> // Added authorBookCounts to get accurate book counts
 }
 
 // Helper function to get author image URL
@@ -30,7 +31,14 @@ function getAuthorImageUrl(author: Author): string {
   return "/placeholder.svg"
 }
 
-export function AboutAuthor({ authors, bookId, showEditButton = true, className = "", books = [] }: AboutAuthorProps) {
+export function AboutAuthor({ 
+  authors, 
+  bookId, 
+  showEditButton = true, 
+  className = "", 
+  books = [],
+  authorBookCounts = {} 
+}: AboutAuthorProps) {
   return (
     <Card className={`about-author-card ${className}`}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -68,7 +76,10 @@ export function AboutAuthor({ authors, bookId, showEditButton = true, className 
               </div>
 
               {/* Author Name with HoverCard */}
-              <AuthorHoverCard author={author} bookCount={books.length || 0}>
+              <AuthorHoverCard 
+                author={author} 
+                bookCount={authorBookCounts[author.id] || books.length || 0}
+              >
                 <span className="author-name font-medium text-lg hover:underline">{author.name}</span>
               </AuthorHoverCard>
 
@@ -76,11 +87,6 @@ export function AboutAuthor({ authors, bookId, showEditButton = true, className 
               {author.bio && (
                 <p className="author-bio text-sm mt-2 line-clamp-5 text-muted-foreground text-left">{author.bio}</p>
               )}
-
-              {/* View Page Button */}
-              <Button variant="outline" size="sm" asChild className="view-page-btn mt-3">
-                <Link href={`/authors/${author.id}`}>View Page</Link>
-              </Button>
             </div>
           ))
         ) : (

@@ -138,7 +138,7 @@ export default function ImportBooksPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
+    <div " book-page container mx-auto py-8">
       <div className="flex flex-col space-y-4">
         <h1 className="text-3xl font-bold">Import Books</h1>
         <p className="text-gray-500">

@@ -1,8 +1,9 @@
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Camera, BookOpen, Users, MapPin, Globe } from "lucide-react"
+import { Camera, BookOpen, Users, MapPin, Globe, User } from "lucide-react"
 import Link from "next/link"
 import { Database } from "@/types/database"
+import { AuthorHoverCard } from "@/components/author-hover-card"
 
 type Book = Database['public']['Tables']['books']['Row']
 type Author = Database['public']['Tables']['authors']['Row']
@@ -17,12 +18,33 @@ interface BookHeaderProps {
       alt_text: string
     }
   }
+  mainAuthor?: any // Add optional mainAuthor prop to use when book.author is not available
+  bookCount?: number // Optional book count for hover card
 }
 
-export function BookHeader({ book }: BookHeaderProps) {
+// Add a function to get author image URL
+function getAuthorImageUrl(author?: Author): string {
+  // First check if author has photo_url directly
+  if (author?.photo_url) {
+    return author.photo_url;
+  }
+
+  // Then check for author_image from the joined table
+  if (author?.author_image?.url) {
+    return author.author_image.url;
+  }
+
+  // Default placeholder
+  return "/placeholder.svg";
+}
+
+export function BookHeader({ book, mainAuthor, bookCount = 0 }: BookHeaderProps) {
+  // Use mainAuthor if provided, otherwise use book.author
+  const author = mainAuthor || book.author
+  
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden mb-6">
-      <div className="relative h-[300px]">
+    <div className="book-header-container bg-white rounded-lg shadow overflow-hidden mb-6">
+      <div className="book-header-cover-image relative h-auto aspect-[1344/500]">
         {book.cover_image?.url ? (
           <Image
             src={book.cover_image.url}
@@ -31,74 +53,78 @@ export function BookHeader({ book }: BookHeaderProps) {
             className="object-cover"
           />
         ) : (
-          <div className="absolute inset-0 bg-muted flex items-center justify-center">
+          <div className="book-header-cover-placeholder absolute inset-0 bg-muted flex items-center justify-center">
             <BookOpen className="h-16 w-16 text-muted-foreground" />
           </div>
         )}
         <Button
           variant="outline"
           size="sm"
-          className="absolute bottom-4 right-4 bg-white/80 hover:bg-white"
+          className="book-header-change-cover-btn absolute bottom-4 right-4 bg-white/80 hover:bg-white"
         >
           <Camera className="h-4 w-4 mr-2" />
           Change Cover
         </Button>
       </div>
       
-      <div className="px-6 pb-6">
-        <div className="flex flex-col md:flex-row md:items-end -mt-16 md:-mt-20 relative z-10">
-          <div className="relative">
-            <div className="relative flex shrink-0 overflow-hidden h-32 w-32 md:h-40 md:w-40 border-4 border-white rounded-lg">
-              {book.cover_image?.url ? (
+      <div className="book-header-content px-6 pb-6">
+        <div className="book-header-profile flex flex-col md:flex-row md:items-end -mt-10 relative z-10">
+          <div className="book-header-author-image-container relative">
+            <div className="book-header-author-image relative flex shrink-0 overflow-hidden h-32 w-32 md:h-40 md:w-40 border-4 border-white rounded-full">
+              {author ? (
                 <Image
-                  src={book.cover_image.url}
-                  alt={book.cover_image.alt_text || book.title}
+                  src={getAuthorImageUrl(author)}
+                  alt={`Photo of ${author.name}`}
                   fill
                   className="object-cover"
                 />
               ) : (
-                <div className="flex h-full w-full items-center justify-center bg-muted">
-                  <BookOpen className="h-8 w-8 text-muted-foreground" />
+                <div className="book-header-author-placeholder flex h-full w-full items-center justify-center bg-muted">
+                  <User className="h-8 w-8 text-muted-foreground" />
                 </div>
               )}
             </div>
             <Button
               variant="outline"
               size="icon"
-              className="absolute bottom-2 right-2 rounded-full h-8 w-8 bg-white/80 hover:bg-white"
+              className="book-header-change-author-image absolute bottom-2 right-2 rounded-full h-8 w-8 bg-white/80 hover:bg-white"
             >
               <Camera className="h-4 w-4" />
             </Button>
           </div>
           
-          <div className="mt-4 md:mt-0 md:ml-6 flex-1">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+          <div className="book-header-info mt-4 md:mt-0 md:ml-6 flex-1">
+            <div className="book-header-title-section flex flex-col md:flex-row md:items-center md:justify-between">
               <div>
-                <h1 className="text-3xl font-bold">{book.title}</h1>
-                {book.author && (
-                  <p className="text-muted-foreground">
+                <h1 className="book-header-title text-[1.1rem] font-bold truncate">{book.title}</h1>
+                {author ? (
+                  <p className="book-header-author text-muted-foreground">
                     by{" "}
-                    <Link href={`/authors/${book.author.id}`} className="hover:underline">
-                      {book.author.name}
-                    </Link>
+                    <AuthorHoverCard author={author} bookCount={bookCount}>
+                      <span className="hover:underline cursor-pointer">{author.name}</span>
+                    </AuthorHoverCard>
+                  </p>
+                ) : (
+                  <p className="book-header-author-unknown text-muted-foreground">
+                    by <span>Unknown Author</span>
                   </p>
                 )}
               </div>
-              <div className="flex space-x-2 mt-4 md:mt-0">
-                <Button>
+              <div className="book-header-actions flex space-x-2 mt-4 md:mt-0">
+                <Button className="book-header-read-btn">
                   <BookOpen className="h-4 w-4 mr-2" />
                   Read
                 </Button>
-                <Button variant="outline">
+                <Button variant="outline" className="book-header-share-btn">
                   <Users className="h-4 w-4 mr-2" />
                   Share
                 </Button>
               </div>
             </div>
             
-            <div className="flex flex-wrap gap-x-6 gap-y-2 mt-4">
+            <div className="book-header-metadata flex flex-wrap gap-x-6 gap-y-2 mt-4">
               {book.publisher && (
-                <div className="flex items-center text-muted-foreground">
+                <div className="book-header-publisher flex items-center text-muted-foreground">
                   <BookOpen className="h-4 w-4 mr-1" />
                   <Link href={`/publishers/${book.publisher.id}`} className="hover:underline">
                     {book.publisher.name}
@@ -106,19 +132,19 @@ export function BookHeader({ book }: BookHeaderProps) {
                 </div>
               )}
               {book.publication_date && (
-                <div className="flex items-center text-muted-foreground">
+                <div className="book-header-publication-date flex items-center text-muted-foreground">
                   <MapPin className="h-4 w-4 mr-1" />
                   <span>Published {new Date(book.publication_date).toLocaleDateString()}</span>
                 </div>
               )}
               {book.language && (
-                <div className="flex items-center text-muted-foreground">
+                <div className="book-header-language flex items-center text-muted-foreground">
                   <Globe className="h-4 w-4 mr-1" />
                   <span>{book.language}</span>
                 </div>
               )}
               {book.pages && (
-                <div className="flex items-center text-muted-foreground">
+                <div className="book-header-pages flex items-center text-muted-foreground">
                   <BookOpen className="h-4 w-4 mr-1" />
                   <span>{book.pages} pages</span>
                 </div>
@@ -128,19 +154,19 @@ export function BookHeader({ book }: BookHeaderProps) {
         </div>
       </div>
       
-      <div className="border-t">
+      <div className="book-header-nav border-t">
         <div className="container">
-          <div className="grid grid-cols-4 h-auto mt-0 bg-transparent">
-            <button className="inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 border-b-2 border-primary">
+          <div className="book-header-tabs grid grid-cols-4 h-auto mt-0 bg-transparent">
+            <button className="book-header-tab book-header-tab-active inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 border-b-2 border-primary">
               Overview
             </button>
-            <button className="inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12">
+            <button className="book-header-tab inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12">
               Details
             </button>
-            <button className="inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12">
+            <button className="book-header-tab inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12">
               Reviews
             </button>
-            <button className="inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12">
+            <button className="book-header-tab inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12">
               Similar
             </button>
           </div>

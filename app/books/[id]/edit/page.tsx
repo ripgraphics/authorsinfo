@@ -1,7 +1,6 @@
 "use client"
 
-import type React from "react"
-import { useState, useEffect, useRef, useCallback } from "react"
+import React, { use, useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
@@ -27,6 +26,7 @@ interface EditBookPageProps {
 
 export default function EditBookPage({ params }: EditBookPageProps) {
   const router = useRouter()
+  const bookId = params.id
   const [book, setBook] = useState<Book | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -57,160 +57,10 @@ export default function EditBookPage({ params }: EditBookPageProps) {
     }
   }, [])
 
-  // Fetch book data
-  useEffect(() => {
-    async function fetchBookData() {
-      try {
-        setError(null)
-
-        // Fetch book
-        const { data: bookData, error: bookError } = await supabaseClient
-          .from("books")
-          .select(`
-            *,
-            cover_image:images(id, url, alt_text, img_type_id),
-            binding_type:binding_types(id, name),
-            format_type:format_types(id, name)
-          `)
-          .eq("id", params.id)
-          .single()
-
-        if (bookError) {
-          console.error("Error fetching book:", bookError)
-          setError(`Error fetching book: ${bookError.message}`)
-          return
-        }
-
-        if (!isMounted.current) return
-
-        // Process the book data
-        const processedBook = {
-          ...bookData,
-          // Ensure numeric fields are properly typed
-          average_rating: bookData.average_rating !== null ? Number(bookData.average_rating) : null,
-          price: bookData.price !== null ? Number(bookData.price) : null,
-          list_price: bookData.list_price !== null ? Number(bookData.list_price) : null,
-          page_count: bookData.page_count !== null ? Number(bookData.page_count) : null,
-          pages: bookData.pages !== null ? Number(bookData.pages) : null,
-          series_number: bookData.series_number !== null ? Number(bookData.series_number) : null,
-        } as Book
-
-        setBook(processedBook)
-        console.log("Book data loaded:", processedBook)
-
-        // Set cover preview
-        if (bookData.cover_image?.url) {
-          setCoverPreview(bookData.cover_image.url)
-        } else if (bookData.cover_image_url) {
-          setCoverPreview(bookData.cover_image_url)
-        } else if (bookData.original_image_url) {
-          setCoverPreview(bookData.original_image_url)
-        }
-
-        // Set initial selected authors
-        if (bookData.author_id) {
-          setSelectedAuthorIds([bookData.author_id])
-
-          // Fetch author name for display
-          const { data: authorData } = await supabaseClient
-            .from("authors")
-            .select("id, name")
-            .eq("id", bookData.author_id)
-            .single()
-
-          if (authorData) {
-            setAuthors([authorData as Author])
-          }
-        }
-
-        // Set initial selected publishers
-        if (bookData.publisher_id) {
-          setSelectedPublisherIds([bookData.publisher_id])
-
-          // Fetch publisher name for display
-          const { data: publisherData } = await supabaseClient
-            .from("publishers")
-            .select("id, name")
-            .eq("id", bookData.publisher_id)
-            .single()
-
-          if (publisherData) {
-            setPublishers([publisherData as Publisher])
-          }
-        }
-
-        // Set initial binding and format if available
-        if (bookData.binding_type_id) {
-          setSelectedBindings([bookData.binding_type_id.toString()])
-        }
-
-        if (bookData.format_type_id) {
-          setSelectedFormats([bookData.format_type_id.toString()])
-        }
-      } catch (error) {
-        console.error("Error in fetchBookData:", error)
-        if (isMounted.current) {
-          setError("An unexpected error occurred. Please try again.")
-        }
-      } finally {
-        if (isMounted.current) {
-          setLoading(false)
-        }
-      }
-    }
-
-    fetchBookData()
-    loadAuthors()
-    loadPublishers()
-  }, [params.id])
-
-  // Add this useEffect after the existing useEffects
-  useEffect(() => {
-    async function fetchBindingAndFormatTypes() {
-      try {
-        // Fetch binding types
-        const { data: bindingTypes, error: bindingError } = await supabaseClient
-          .from("binding_types")
-          .select("id, name")
-          .order("name")
-
-        if (bindingError) {
-          console.error("Error fetching binding types:", bindingError)
-        } else if (bindingTypes) {
-          setBindingOptions(
-            bindingTypes.map((type) => ({
-              value: type.id.toString(),
-              label: type.name,
-            })),
-          )
-        }
-
-        // Fetch format types
-        const { data: formatTypes, error: formatError } = await supabaseClient
-          .from("format_types")
-          .select("id, name")
-          .order("name")
-
-        if (formatError) {
-          console.error("Error fetching format types:", formatError)
-        } else if (formatTypes) {
-          setFormatOptions(
-            formatTypes.map((type) => ({
-              value: type.id.toString(),
-              label: type.name,
-            })),
-          )
-        }
-      } catch (error) {
-        console.error("Error fetching binding and format types:", error)
-      }
-    }
-
-    fetchBindingAndFormatTypes()
-  }, [])
-
   // Load authors with pagination and search
   const loadAuthors = useCallback(async (searchTerm = "", startIndex = 0, limit = 50) => {
+    if (!supabaseClient) return;
+    
     try {
       setLoadingMoreAuthors(true)
 
@@ -256,6 +106,8 @@ export default function EditBookPage({ params }: EditBookPageProps) {
 
   // Load publishers with pagination and search
   const loadPublishers = useCallback(async (searchTerm = "", startIndex = 0, limit = 50) => {
+    if (!supabaseClient) return;
+    
     try {
       setLoadingMorePublishers(true)
 
@@ -342,7 +194,7 @@ export default function EditBookPage({ params }: EditBookPageProps) {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    if (!book) return
+    if (!book || !supabaseClient) return
 
     setSaving(true)
     setError(null)
@@ -352,10 +204,10 @@ export default function EditBookPage({ params }: EditBookPageProps) {
       const formData = new FormData(e.currentTarget)
 
       // Helper function to convert empty strings to null for numeric fields
-      const parseNumericField = (value: FormDataEntryValue | null): number | null => {
-        if (value === null || value === "") return null
-        const parsed = Number(value)
-        return isNaN(parsed) ? null : parsed
+      const parseNumericField = (value: FormDataEntryValue | null): number | undefined => {
+        if (value === null || value === "") return undefined;
+        const parsed = Number(value);
+        return isNaN(parsed) ? undefined : parsed;
       }
 
       // Handle cover image upload if changed
@@ -429,36 +281,34 @@ export default function EditBookPage({ params }: EditBookPageProps) {
       const formatTypeId = selectedFormats.length > 0 ? Number.parseInt(selectedFormats[0], 10) : null
 
       // Prepare the update data
-      const updateData: Partial<Book> = {
+      const updateData = {
         title: formData.get("title") as string,
-        title_long: formData.get("title_long") as string,
         isbn10: formData.get("isbn10") as string,
         isbn13: formData.get("isbn13") as string,
-        author_id: selectedAuthorIds.length > 0 ? selectedAuthorIds[0] : null, // Primary author
-        publisher_id: selectedPublisherIds.length > 0 ? selectedPublisherIds[0] : null, // Primary publisher
+        author_id: selectedAuthorIds.length > 0 ? selectedAuthorIds[0] : undefined,
+        publisher_id: selectedPublisherIds.length > 0 ? selectedPublisherIds[0] : undefined,
         publication_date: formData.get("publication_date") as string,
-        binding_type_id: bindingTypeId,
-        format_type_id: formatTypeId,
+        binding_type_id: bindingTypeId || undefined,
+        format_type_id: formatTypeId || undefined,
         language: formData.get("language") as string,
         edition: formData.get("edition") as string,
         synopsis: formData.get("synopsis") as string,
         overview: formData.get("overview") as string,
         dimensions: formData.get("dimensions") as string,
         weight: formData.get("weight") as string,
-        featured: formData.get("featured") === "on" ? "true" : "false",
         cover_image_url: newCoverImageUrl,
         cover_image_id: newCoverImageId,
-      }
+      } as Partial<Book>
 
-      // Handle numeric fields properly to avoid empty string errors
-      const pages = parseNumericField(formData.get("pages"))
+      // Handle numeric fields properly to avoid type errors
+      const pages = parseNumericField(formData.get("pages"));
       if (pages !== undefined) {
-        updateData.pages = pages
+        updateData.pages = pages;
       }
 
-      const listPrice = parseNumericField(formData.get("list_price"))
+      const listPrice = parseNumericField(formData.get("list_price"));
       if (listPrice !== undefined) {
-        updateData.list_price = listPrice
+        updateData.list_price = listPrice;
       }
 
       // Handle book_gallery_img separately - it might be an array in the database
@@ -479,7 +329,7 @@ export default function EditBookPage({ params }: EditBookPageProps) {
       console.log("Updating book with data:", updateData)
 
       // Update the book
-      const { error: updateError } = await supabaseClient.from("books").update(updateData).eq("id", params.id)
+      const { error: updateError } = await supabaseClient.from("books").update(updateData).eq("id", bookId)
 
       if (updateError) {
         console.error("Error updating book:", updateError)
@@ -492,8 +342,8 @@ export default function EditBookPage({ params }: EditBookPageProps) {
 
       // Redirect back to the book page after a short delay
       setTimeout(() => {
-        router.push(`/books/${params.id}`)
-      }, 2000) // Increased from 1500 to 2000ms to ensure the message is seen
+        router.push(`/books/${bookId}`)
+      }, 2000) // 2 second delay to show success message
     } catch (error: any) {
       console.error("Error in handleSubmit:", error)
       setError(`An unexpected error occurred while saving: ${error.message}`)
@@ -502,11 +352,174 @@ export default function EditBookPage({ params }: EditBookPageProps) {
     }
   }
 
+  // Fetch book data
+  useEffect(() => {
+    async function fetchBookData() {
+      if (!supabaseClient) {
+        setError("Supabase client is not available")
+        setLoading(false)
+        return
+      }
+      
+      try {
+        setError(null)
+
+        // Fetch book
+        const { data: bookData, error: bookError } = await supabaseClient
+          .from("books")
+          .select(
+            `
+              *,
+              cover_image:images(id, url, alt_text, img_type_id),
+              binding_type:binding_types(id, name),
+              format_type:format_types(id, name)
+            `
+          )
+          .eq("id", bookId)
+          .single()
+
+        if (bookError) {
+          console.error("Error fetching book:", bookError)
+          setError(`Error fetching book: ${bookError.message}`)
+          return
+        }
+
+        if (!isMounted.current) return
+
+        // Process the book data
+        const processedBook = {
+          ...bookData,
+          // Ensure numeric fields are properly typed
+          average_rating: bookData.average_rating !== null ? Number(bookData.average_rating) : null,
+          price: bookData.price !== null ? Number(bookData.price) : null,
+          list_price: bookData.list_price !== null ? Number(bookData.list_price) : null,
+          page_count: bookData.page_count !== null ? Number(bookData.page_count) : null,
+          pages: bookData.pages !== null ? Number(bookData.pages) : null,
+          series_number: bookData.series_number !== null ? Number(bookData.series_number) : null,
+        } as Book
+
+        setBook(processedBook)
+        console.log("Book data loaded:", processedBook)
+
+        // Set cover preview
+        if (bookData.cover_image?.url) {
+          setCoverPreview(bookData.cover_image.url)
+        } else if (bookData.cover_image_url) {
+          setCoverPreview(bookData.cover_image_url)
+        } else if (bookData.original_image_url) {
+          setCoverPreview(bookData.original_image_url)
+        }
+
+        // Set initial selected authors
+        if (bookData.author_id) {
+          setSelectedAuthorIds([bookData.author_id])
+
+          // Fetch author name for display
+          if (!supabaseClient) return;
+          
+          const { data: authorData } = await supabaseClient
+            .from("authors")
+            .select("id, name")
+            .eq("id", bookData.author_id)
+            .single()
+
+          if (authorData) {
+            setAuthors([authorData as Author])
+          }
+        }
+
+        // Set initial selected publishers
+        if (bookData.publisher_id) {
+          setSelectedPublisherIds([bookData.publisher_id])
+
+          // Fetch publisher name for display
+          if (!supabaseClient) return;
+          
+          const { data: publisherData } = await supabaseClient
+            .from("publishers")
+            .select("id, name")
+            .eq("id", bookData.publisher_id)
+            .single()
+
+          if (publisherData) {
+            setPublishers([publisherData as Publisher])
+          }
+        }
+
+        // Set initial binding and format if available
+        if (bookData.binding_type_id) {
+          setSelectedBindings([bookData.binding_type_id.toString()])
+        }
+
+        if (bookData.format_type_id) {
+          setSelectedFormats([bookData.format_type_id.toString()])
+        }
+      } catch (error) {
+        console.error("Error in fetchBookData:", error)
+        if (isMounted.current) {
+          setError("An unexpected error occurred. Please try again.")
+        }
+      } finally {
+        if (isMounted.current) {
+          setLoading(false)
+        }
+      }
+    }
+
+    // Load binding and format types
+    async function fetchBindingAndFormatTypes() {
+      if (!supabaseClient) return;
+      
+      try {
+        // Fetch binding types
+        const { data: bindingTypes, error: bindingError } = await supabaseClient
+          .from("binding_types")
+          .select("id, name")
+          .order("name");
+
+        if (bindingError) {
+          console.error("Error fetching binding types:", bindingError);
+        } else if (bindingTypes) {
+          setBindingOptions(
+            bindingTypes.map((type) => ({
+              value: type.id.toString(),
+              label: type.name,
+            })),
+          );
+        }
+
+        // Fetch format types
+        const { data: formatTypes, error: formatError } = await supabaseClient
+          .from("format_types")
+          .select("id, name")
+          .order("name")
+
+        if (formatError) {
+          console.error("Error fetching format types:", formatError)
+        } else if (formatTypes) {
+          setFormatOptions(
+            formatTypes.map((type) => ({
+              value: type.id.toString(),
+              label: type.name,
+            })),
+          )
+        }
+      } catch (error) {
+        console.error("Error fetching binding and format types:", error);
+      }
+    }
+
+    fetchBookData()
+    loadAuthors()
+    loadPublishers()
+    fetchBindingAndFormatTypes()
+  }, [bookId, loadAuthors, loadPublishers])
+
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col">
         <PageHeader />
-        <main className="flex-1 container py-8">
+        <main className="flex-1  book-page container py-8">
           <div className="flex items-center justify-center h-full">
             <div className="flex flex-col items-center gap-2">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -522,7 +535,7 @@ export default function EditBookPage({ params }: EditBookPageProps) {
     return (
       <div className="min-h-screen flex flex-col">
         <PageHeader />
-        <main className="flex-1 container py-8">
+        <main className="flex-1  book-page container py-8">
           <div className="flex items-center justify-center h-full">
             <p>Book not found</p>
           </div>
@@ -534,7 +547,7 @@ export default function EditBookPage({ params }: EditBookPageProps) {
   return (
     <div className="min-h-screen flex flex-col">
       <PageHeader />
-      <main className="flex-1 container py-8">
+      <main className="flex-1  book-page container py-8">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold mb-6">Edit Book</h1>
 
@@ -609,7 +622,11 @@ export default function EditBookPage({ params }: EditBookPageProps) {
 
                       <div>
                         <Label htmlFor="title_long">Long Title</Label>
-                        <Input id="title_long" name="title_long" defaultValue={book.title_long || ""} />
+                        <Input 
+                          id="title_long" 
+                          name="title_long" 
+                          defaultValue={(book as any).title_long || ""} 
+                        />
                       </div>
 
                       {/* ISBN Information */}
@@ -775,7 +792,7 @@ export default function EditBookPage({ params }: EditBookPageProps) {
                             id="review_count"
                             name="review_count"
                             type="number"
-                            defaultValue={book.review_count?.toString() || "0"}
+                            defaultValue={(book as any).review_count?.toString() || "0"}
                             disabled
                             className="bg-gray-100"
                           />
@@ -787,7 +804,7 @@ export default function EditBookPage({ params }: EditBookPageProps) {
                         <Checkbox
                           id="featured"
                           name="featured"
-                          defaultChecked={book.featured === "true" || book.featured === true}
+                          defaultChecked={(book as any).featured === "true" || (book as any).featured === true}
                         />
                         <Label htmlFor="featured">Featured Book</Label>
                       </div>
@@ -806,7 +823,7 @@ export default function EditBookPage({ params }: EditBookPageProps) {
 
                     <div className="flex justify-end gap-4">
                       <Button type="button" variant="outline" asChild>
-                        <Link href={`/books/${book.id}`}>Cancel</Link>
+                        <Link href={`/books/${bookId}`}>Cancel</Link>
                       </Button>
                       <Button type="submit" disabled={saving}>
                         {saving ? (

@@ -2,8 +2,8 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect, useRef } from "react"
+import { useRouter, useParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { PageHeader } from "@/components/page-header"
@@ -16,8 +16,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Combobox } from "@/components/ui/combobox"
-import { supabaseClient } from "@/lib/supabase/client"
+import { getSupabaseClient } from "@/lib/supabase/client"
 import { uploadImage } from "@/app/actions/upload"
+import type { SupabaseClient } from "@supabase/supabase-js"
+import type { Database } from "@/types/database"
+import type { Author, Book } from "@/types/database"
 import {
   BookOpen,
   User,
@@ -34,7 +37,6 @@ import {
   Facebook,
   Instagram,
 } from "lucide-react"
-import type { Author, Book } from "@/types/database"
 
 interface AuthorPageProps {
   params: {
@@ -42,8 +44,11 @@ interface AuthorPageProps {
   }
 }
 
-export default function AuthorPage({ params }: AuthorPageProps) {
+export default function AuthorPage() {
   const router = useRouter()
+  const params = useParams()
+  const authorId = params.id as string
+  
   const [author, setAuthor] = useState<Author | null>(null)
   const [books, setBooks] = useState<Book[]>([])
   const [loading, setLoading] = useState(true)
@@ -56,20 +61,31 @@ export default function AuthorPage({ params }: AuthorPageProps) {
   const [nationalities, setNationalities] = useState<string[]>([])
   const [editedAuthor, setEditedAuthor] = useState<Partial<Author>>({})
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  // Store the ID in a ref to avoid dependency issues
+  const authorIdRef = useRef(authorId)
+  // Make sure we have a valid Supabase client
+  const supabase = getSupabaseClient()
+  if (!supabase) {
+    throw new Error("Failed to initialize Supabase client")
+  }
 
   // Fetch author data
   useEffect(() => {
     async function fetchAuthorData() {
+      if (!supabase) return
+      
       try {
+        // Use the ID from the ref
+        const id = authorIdRef.current
         // Fetch author with joined image data for both profile and cover
-        const { data: authorData, error: authorError } = await supabaseClient
+        const { data: authorData, error: authorError } = await supabase
           .from("authors")
           .select(`
     *,
     author_image:author_image_id(id, url, alt_text),
     cover_image:cover_image_id(id, url, alt_text)
   `)
-          .eq("id", params.id)
+          .eq("id", id)
           .single()
 
         if (authorError) {
@@ -94,13 +110,13 @@ export default function AuthorPage({ params }: AuthorPageProps) {
         }
 
         // Fetch books by this author
-        const { data: booksData, error: booksError } = await supabaseClient
+        const { data: booksData, error: booksError } = await supabase
           .from("books")
           .select(`
           *,
           cover_image:cover_image_id(id, url, alt_text)
         `)
-          .eq("author_id", params.id)
+          .eq("author_id", id)
 
         if (booksError) {
           console.error("Error fetching books:", booksError)
@@ -114,7 +130,7 @@ export default function AuthorPage({ params }: AuthorPageProps) {
         }
 
         // Get list of nationalities from existing authors for dropdown
-        const { data: nationalitiesData, error: nationalitiesError } = await supabaseClient
+        const { data: nationalitiesData, error: nationalitiesError } = await supabase
           .from("authors")
           .select("nationality")
           .not("nationality", "is", null)
@@ -138,7 +154,7 @@ export default function AuthorPage({ params }: AuthorPageProps) {
     }
 
     fetchAuthorData()
-  }, [params.id])
+  }, []) // Remove params.id from dependencies since we're using the ref
 
   // Handle cover image change
   const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -171,7 +187,7 @@ export default function AuthorPage({ params }: AuthorPageProps) {
 
   // Save changes
   const saveChanges = async () => {
-    if (!author) return
+    if (!author || !supabase) return
 
     setSaving(true)
     setSuccessMessage(null)
@@ -179,6 +195,7 @@ export default function AuthorPage({ params }: AuthorPageProps) {
     try {
       // Create a clean update object without any joined fields
       const updateData = { ...editedAuthor }
+      const id = authorIdRef.current
 
       // Remove any joined fields that might cause errors
       delete updateData.author_image
@@ -236,7 +253,7 @@ export default function AuthorPage({ params }: AuthorPageProps) {
       }
 
       // Update author in database
-      const { error } = await supabaseClient.from("authors").update(updateData).eq("id", params.id)
+      const { error } = await supabase.from("authors").update(updateData).eq("id", id)
 
       if (error) {
         console.error("Error updating author:", error)
@@ -266,6 +283,51 @@ export default function AuthorPage({ params }: AuthorPageProps) {
     setCoverPreview(null)
     setPhotoFile(null)
     setPhotoPreview(null)
+  }
+
+  // Fix for edit dialogs
+  const handleBioSave = async () => {
+    if (!supabase) return
+    
+    const id = authorIdRef.current
+    const { error } = await supabase.from("authors").update({ bio: editedAuthor.bio }).eq("id", id)
+    if (error) {
+      console.error("Error updating bio:", error)
+      return
+    }
+    setAuthor((prev) => (prev ? { ...prev, bio: editedAuthor.bio || "" } : null))
+  }
+
+  const handleSocialMediaSave = async () => {
+    if (!supabase) return
+    
+    const id = authorIdRef.current
+    const { error } = await supabase
+      .from("authors")
+      .update({
+        website: editedAuthor.website,
+        twitter_handle: editedAuthor.twitter_handle,
+        facebook_handle: editedAuthor.facebook_handle,
+        instagram_handle: editedAuthor.instagram_handle,
+        goodreads_url: editedAuthor.goodreads_url,
+      })
+      .eq("id", id)
+    if (error) {
+      console.error("Error updating social media:", error)
+      return
+    }
+    setAuthor((prev) =>
+      prev
+        ? {
+            ...prev,
+            website: editedAuthor.website,
+            twitter_handle: editedAuthor.twitter_handle,
+            facebook_handle: editedAuthor.facebook_handle,
+            instagram_handle: editedAuthor.instagram_handle,
+            goodreads_url: editedAuthor.goodreads_url,
+          }
+        : null,
+    )
   }
 
   if (loading) {
@@ -301,17 +363,17 @@ export default function AuthorPage({ params }: AuthorPageProps) {
           {coverPreview ? (
             <div className="absolute inset-0 opacity-20">
               <Image
-                src={coverPreview || "/placeholder.svg"}
+                src={coverPreview}
                 alt={author.name}
                 fill
                 className="object-cover"
                 priority
               />
             </div>
-          ) : author.cover_image_url ? (
+          ) : author.cover_image?.url ? (
             <div className="absolute inset-0 opacity-20">
               <Image
-                src={author.cover_image_url || "/placeholder.svg"}
+                src={author.cover_image.url}
                 alt={author.name}
                 fill
                 className="object-cover"
@@ -522,10 +584,7 @@ export default function AuthorPage({ params }: AuthorPageProps) {
                             Cancel
                           </Button>
                           <Button
-                            onClick={async () => {
-                              await supabaseClient.from("authors").update({ bio: editedAuthor.bio }).eq("id", params.id)
-                              setAuthor((prev) => (prev ? { ...prev, bio: editedAuthor.bio || "" } : null))
-                            }}
+                            onClick={handleBioSave}
                           >
                             Save
                           </Button>
@@ -653,30 +712,7 @@ export default function AuthorPage({ params }: AuthorPageProps) {
                             Cancel
                           </Button>
                           <Button
-                            onClick={async () => {
-                              await supabaseClient
-                                .from("authors")
-                                .update({
-                                  website: editedAuthor.website,
-                                  twitter_handle: editedAuthor.twitter_handle,
-                                  facebook_handle: editedAuthor.facebook_handle,
-                                  instagram_handle: editedAuthor.instagram_handle,
-                                  goodreads_url: editedAuthor.goodreads_url,
-                                })
-                                .eq("id", params.id)
-                              setAuthor((prev) =>
-                                prev
-                                  ? {
-                                      ...prev,
-                                      website: editedAuthor.website,
-                                      twitter_handle: editedAuthor.twitter_handle,
-                                      facebook_handle: editedAuthor.facebook_handle,
-                                      instagram_handle: editedAuthor.instagram_handle,
-                                      goodreads_url: editedAuthor.goodreads_url,
-                                    }
-                                  : null,
-                              )
-                            }}
+                            onClick={handleSocialMediaSave}
                           >
                             Save
                           </Button>
@@ -806,7 +842,7 @@ export default function AuthorPage({ params }: AuthorPageProps) {
                           <div className="aspect-[2/3] rounded-md overflow-hidden shadow-md hover:shadow-lg transition-shadow">
                             {book.cover_image_url ? (
                               <Image
-                                src={book.cover_image_url || "/placeholder.svg"}
+                                src={book.cover_image_url}
                                 alt={book.title}
                                 width={150}
                                 height={225}

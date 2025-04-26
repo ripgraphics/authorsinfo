@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 import { supabaseAdmin } from "@/lib/supabase"
 import type { Publisher } from "@/types/database"
 import { ClientPublisherPage } from "./client"
+import { PageHeader } from "@/components/page-header"
 
 interface PublisherPageProps {
   params: {
@@ -58,12 +59,14 @@ async function getPublisherBooks(publisherId: string) {
     return []
   }
 
-  return books.map((book) => ({
+  // Supabase join returns arrays for related fields, so cast to any[] and index
+  const bookRows = (books ?? []) as any[]
+  return bookRows.map((book) => ({
     ...book,
-    cover_image_url: book.cover_image?.url || book.original_image_url || null,
-    author_name: book.authors?.name || "Unknown Author",
-    binding: book.binding_type?.name || book.binding || null,
-    format: book.format_type?.name || book.format || null,
+    cover_image_url: book.cover_image?.[0]?.url || book.original_image_url || null,
+    author_name: book.authors?.[0]?.name || "Unknown Author",
+    binding: book.binding_type?.[0]?.name || null,
+    format: book.format_type?.[0]?.name || null,
   }))
 }
 
@@ -85,11 +88,14 @@ export default async function PublisherPage({ params }: { params: { id: string }
   const coverImageUrl = publisher.cover_image?.url || "/placeholder.svg?height=400&width=1200"
 
   return (
-    <ClientPublisherPage
-      publisher={publisher}
-      publisherImageUrl={publisherImageUrl}
-      coverImageUrl={coverImageUrl}
-      params={params}
-    />
+    <>
+      <PageHeader />
+      <ClientPublisherPage
+        publisher={publisher}
+        publisherImageUrl={publisherImageUrl}
+        coverImageUrl={coverImageUrl}
+        params={params}
+      />
+    </>
   )
 }

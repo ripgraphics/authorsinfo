@@ -261,7 +261,7 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
             <div className="publisher-page__profile-info mt-4 md:mt-0 md:ml-6 flex-1">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                 <div>
-                  <h1 className="text-[1.2rem] font-bold truncate">{mockName}</h1>
+                  <h1 className="text-[1.1rem] font-bold truncate">{mockName}</h1>
                   <p className="text-muted-foreground">@{mockUsername}</p>
                 </div>
 

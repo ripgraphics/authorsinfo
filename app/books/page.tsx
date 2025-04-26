@@ -340,7 +340,7 @@ export default function BooksPage({ searchParams }: BooksPageProps) {
   return (
     <div className="min-h-screen flex flex-col">
       <PageHeader />
-      <main className="flex-1 container py-8">
+      <main className="flex-1 book-page container py-8">
         <div className="space-y-6">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <h1 className="text-3xl font-bold">Books</h1>

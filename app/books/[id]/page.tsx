@@ -34,6 +34,7 @@ import { PublisherHoverCard } from "@/components/publisher-hover-card"
 import { supabaseAdmin } from "@/lib/supabase"
 import { BookHeader } from "@/components/admin/book-header"
 import type { Book, Author, Review, BindingType, FormatType } from '@/types/book'
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 interface BookPageProps {
   params: {
@@ -195,11 +196,11 @@ export default async function BookPage({ params }: BookPageProps) {
   }
 
   try {
-    const book = (await getBookById(id)) as Book;
-
-    if (!book) {
-      notFound()
+    const bookOrNull = await getBookById(id);
+    if (!bookOrNull) {
+      notFound();
     }
+    const book = bookOrNull;
 
     // Map DB authors to domain Author
     let authors: Author[] = [];
@@ -223,8 +224,8 @@ export default async function BookPage({ params }: BookPageProps) {
     // Fetch publisher if available with error handling
     let publisher = null
     try {
-      if (book.publisher_id) {
-        publisher = await getPublisherById(book.publisher_id)
+      if (book.publisher_id != null) {
+        publisher = await getPublisherById(book.publisher_id.toString())
       }
     } catch (error) {
       console.error("Error fetching publisher:", error)
@@ -293,7 +294,7 @@ export default async function BookPage({ params }: BookPageProps) {
             {(book.cover_image_url || book.original_image_url) && (
               <div className="book-page banner-image absolute inset-0 opacity-20">
                 <Image
-                  src={book.cover_image_url || book.original_image_url || "/placeholder.svg"}
+                  src={book.cover_image_url ?? book.original_image_url ?? "/placeholder.svg"}
                   alt={book.title}
                   fill
                   className="object-cover"
@@ -361,50 +362,12 @@ export default async function BookPage({ params }: BookPageProps) {
             </div>
           </div>
 
-          {/* Add to Shelf Section */}
-          <div className="book-page shelf-section container space-y-4 py-2">
-            <button
-              id="shelfTrigger"
-              type="button"
-              aria-haspopup="menu"
-              aria-expanded="false"
-              className="shelf-button inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full"
-            >
-              <BookMarked className="mr-2 h-4 w-4" />
-              Add to Shelf
-            </button>
-            <div
-              data-radix-popper-content-wrapper
-              dir="ltr"
-              className="z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2"
-              role="menu"
-              aria-labelledby="shelfTrigger"
-              tabIndex={-1}
-              data-orientation="vertical"
-              style={{ outline: 'none', pointerEvents: 'auto' }}
-            >
-              <div role="menuitem" className="shelf-menu-item relative flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors focus:bg-accent focus:text-accent-foreground cursor-pointer">
-                ✓ Want to Read
-              </div>
-              <div role="menuitem" className="shelf-menu-item relative flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors focus:bg-accent focus:text-accent-foreground cursor-pointer">
-                Currently Reading
-              </div>
-              <div role="menuitem" className="shelf-menu-item relative flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors focus:bg-accent focus:text-accent-foreground cursor-pointer">
-                Read
-              </div>
-              <div role="separator" aria-orientation="horizontal" className="shelf-separator -mx-1 my-1 h-px bg-muted"></div>
-              <button
-                type="button"
-                aria-haspopup="dialog"
-                aria-controls="manageShelvesDialog"
-                className="shelf-manage-button inline-flex items-center gap-2 text-sm font-medium px-4 py-2 w-full text-left cursor-pointer hover:bg-accent hover:text-accent-foreground"
-              >
-                Manage shelves...
-              </button>
-            </div>
-          </div>
           <div className="book-page container py-6">
-            <BookHeader book={book} />
+            <BookHeader 
+              book={book as any} 
+              mainAuthor={authors && authors.length > 0 ? authors[0] : undefined} 
+              bookCount={authors && authors.length > 0 ? authorBookCounts[authors[0].id] || 0 : 0}
+            />
             <div className="book-detail-layout grid grid-cols-1 lg:grid-cols-4 gap-6">
               {/* Left Column - Book Cover (1/4 width) */}
               <div className="book-sidebar lg:col-span-1">
@@ -413,7 +376,7 @@ export default async function BookPage({ params }: BookPageProps) {
                   {(book.cover_image_url || book.original_image_url) ? (
                     <div className="book-cover w-full h-full">
                       <Image
-                        src={book.cover_image_url || book.original_image_url || "/placeholder.svg"}
+                        src={book.cover_image_url ?? book.original_image_url ?? "/placeholder.svg"}
                         alt={book.title}
                         width={400}
                         height={600}
@@ -427,54 +390,52 @@ export default async function BookPage({ params }: BookPageProps) {
                   )}
                 </Card>
 
-                {/* Add to Shelf Section */}
+                {/* Add to Shelf Section - KEEP THIS ONE */}
                 <div className="book-page shelf-section space-y-4 w-full mt-6">
-                  <button
-                    id="shelfTrigger"
-                    type="button"
-                    aria-haspopup="menu"
-                    aria-expanded="false"
-                    className="shelf-button inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full"
-                  >
-                    <BookMarked className="mr-2 h-4 w-4" />
-                    Add to Shelf
-                  </button>
-                  <div
-                    data-radix-popper-content-wrapper
-                    dir="ltr"
-                    className="z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2"
-                    role="menu"
-                    aria-labelledby="shelfTrigger"
-                    tabIndex={-1}
-                    data-orientation="vertical"
-                    style={{ outline: 'none', pointerEvents: 'auto' }}
-                  >
-                    <div role="menuitem" className="shelf-menu-item relative flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors focus:bg-accent focus:text-accent-foreground cursor-pointer">
-                      ✓ Want to Read
-                    </div>
-                    <div role="menuitem" className="shelf-menu-item relative flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors focus:bg-accent focus:text-accent-foreground cursor-pointer">
-                      Currently Reading
-                    </div>
-                    <div role="menuitem" className="shelf-menu-item relative flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors focus:bg-accent focus:text-accent-foreground cursor-pointer">
-                      Read
-                    </div>
-                    <div role="separator" aria-orientation="horizontal" className="shelf-separator -mx-1 my-1 h-px bg-muted"></div>
-                    <button
-                      type="button"
-                      aria-haspopup="dialog"
-                      aria-controls="manageShelvesDialog"
-                      className="shelf-manage-button inline-flex items-center gap-2 text-sm font-medium px-4 py-2 w-full text-left cursor-pointer hover:bg-accent hover:text-accent-foreground"
-                    >
-                      Manage shelves...
-                    </button>
-                  </div>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <button className="shelf-button inline-flex items-center justify-center gap-2 w-full rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-10 px-4 py-2">
+                        <BookMarked className="mr-2 h-4 w-4" />
+                        Add to Shelf
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-lg p-6">
+                      <DialogHeader>
+                        <DialogTitle>Add Book to Shelf</DialogTitle>
+                        {/* Optional: Add DialogDescription here if needed */}
+                      </DialogHeader>
+                      <div role="menuitem" className="shelf-menu-item flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                        ✓ Want to Read
+                      </div>
+                      <div role="menuitem" className="shelf-menu-item flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                        Currently Reading
+                      </div>
+                      <div role="menuitem" className="shelf-menu-item flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer">
+                        Read
+                      </div>
+                      <div role="separator" className="shelf-separator my-2 h-px bg-muted" />
+                      <button type="button" className="shelf-manage-button w-full text-left px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground">
+                        Manage shelves...
+                      </button>
+                    </DialogContent>
+                  </Dialog>
                 </div>
 
                 {/* Author Info */}
                 {authors && authors.length > 0 ? (
-                  <AboutAuthor authors={authors} bookId={id} className="mt-6" />
+                  <AboutAuthor 
+                    authors={authors} 
+                    bookId={id} 
+                    className="mt-6" 
+                    books={authors.map(author => ({ author_id: author.id }))}
+                    authorBookCounts={authorBookCounts}
+                  />
                 ) : (
-                  <AboutAuthor authors={[]} bookId={id} className="mt-6" />
+                  <AboutAuthor 
+                    authors={[]} 
+                    bookId={id} 
+                    className="mt-6" 
+                  />
                 )}
               </div>
 
@@ -523,22 +484,22 @@ export default async function BookPage({ params }: BookPageProps) {
                       {book.author_id && (
                         <div className="book-detail-item">
                           <h3 className="font-medium">Author</h3>
-                          <p className="text-muted-foreground">
+                          <div className="text-muted-foreground">
                             {authors && authors.length > 0 ? (
-                              <AuthorHoverCard author={authors[0]} bookCount={0}>
+                              <AuthorHoverCard author={authors[0]} bookCount={authorBookCounts[authors[0].id] || 0}>
                                 <span className="hover:underline cursor-pointer">{authors[0].name}</span>
                               </AuthorHoverCard>
                             ) : (
                               book.author_id
                             )}
-                          </p>
+                          </div>
                         </div>
                       )}
 
                       {book.publisher_id && (
                         <div className="book-detail-item">
                           <h3 className="font-medium">Publisher</h3>
-                          <p className="text-muted-foreground">
+                          <div className="text-muted-foreground">
                             {publisher ? (
                               <PublisherHoverCard publisher={publisher} bookCount={publisherBooksCount}>
                                 <span className="hover:underline cursor-pointer">{publisher.name}</span>
@@ -546,7 +507,7 @@ export default async function BookPage({ params }: BookPageProps) {
                             ) : (
                               book.publisher_id
                             )}
-                          </p>
+                          </div>
                         </div>
                       )}
 

@@ -224,10 +224,10 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
   ]
 
   return (
-    <main className="container py-6">
+    <main className="publisher-page publisher-page__container container py-6">
       {/* Cover Photo and Profile Section */}
-      <div className="bg-white rounded-lg shadow overflow-hidden mb-6">
-        <div className="relative h-[300px]">
+      <div className="publisher-page__header bg-white rounded-lg shadow overflow-hidden mb-6">
+        <div className="publisher-page__cover relative h-[300px]">
           <img
             src={coverImageUrl || "/placeholder.svg?height=400&width=1200"}
             alt="Cover"
@@ -239,10 +239,10 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
           </Button>
         </div>
 
-        <div className="px-6 pb-6">
-          <div className="flex flex-col md:flex-row md:items-end -mt-16 md:-mt-20 relative z-10">
+        <div className="publisher-header-content px-6 pb-6">
+          <div className="publisher-profile-section flex flex-col md:flex-row md:items-end -mt-10 relative z-10">
             <div className="relative">
-              <span className="relative flex shrink-0 overflow-hidden h-32 w-32 md:h-40 md:w-40 border-4 border-white rounded-full">
+              <span className="publisher-page__avatar relative flex shrink-0 overflow-hidden h-32 w-32 md:h-40 md:w-40 border-4 border-white rounded-full">
                 <img
                   src={publisherImageUrl || "/placeholder.svg?height=200&width=200"}
                   alt={mockName}
@@ -252,20 +252,20 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
               <Button
                 variant="outline"
                 size="icon"
-                className="absolute bottom-2 right-2 rounded-full h-8 w-8 bg-white/80 hover:bg-white"
+                className="publisher-page__avatar-button absolute bottom-2 right-2 rounded-full h-8 w-8 bg-white/80 hover:bg-white"
               >
                 <Camera className="h-4 w-4" />
               </Button>
             </div>
 
-            <div className="mt-4 md:mt-0 md:ml-6 flex-1">
+            <div className="publisher-page__profile-info mt-4 md:mt-0 md:ml-6 flex-1">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                 <div>
-                  <h1 className="text-3xl font-bold">{mockName}</h1>
+                  <h1 className="text-[1.2rem] font-bold truncate">{mockName}</h1>
                   <p className="text-muted-foreground">@{mockUsername}</p>
                 </div>
 
-                <div className="flex space-x-2 mt-4 md:mt-0">
+                <div className="publisher-page__actions flex space-x-2 mt-4 md:mt-0">
                   <Button className="flex items-center">
                     <MessageSquare className="h-4 w-4 mr-2" />
                     Message
@@ -311,11 +311,11 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
       </div>
 
       {/* Tabs Navigation */}
-      <div className="border-t">
-        <div className="w-full">
-          <div className="container">
-            <Tabs defaultValue="timeline" value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid grid-cols-6 h-auto mt-0 bg-transparent">
+      <div className="publisher-page__tabs-divider border-t">
+        <div className="publisher-page__tabs-wrapper w-full">
+          <div className="publisher-page__tabs-container">
+            <Tabs defaultValue="timeline" value={activeTab} onValueChange={setActiveTab} className="publisher-page__tabs w-full">
+              <TabsList className="publisher-page__tabs-list grid grid-cols-6 h-auto mt-0 bg-transparent">
                 <TabsTrigger
                   value="timeline"
                   className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none h-12"
@@ -355,7 +355,7 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
               </TabsList>
 
               {/* Timeline Tab Content */}
-              <TabsContent value="timeline">
+              <TabsContent value="timeline" className="publisher-page__tabs-content">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   {/* Left Sidebar */}
                   <div className="lg:col-span-1 space-y-6">
@@ -617,7 +617,7 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
               </TabsContent>
 
               {/* About Tab Content */}
-              <TabsContent value="about">
+              <TabsContent value="about" className="publisher-page__tabs-content">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="lg:col-span-1">
                     <div className="bg-white rounded-lg shadow overflow-hidden sticky top-20">
@@ -839,7 +839,7 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
               </TabsContent>
 
               {/* Books Tab Content */}
-              <TabsContent value="books">
+              <TabsContent value="books" className="publisher-page__tabs-content">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="lg:col-span-1">
                     <div className="bg-white rounded-lg shadow overflow-hidden sticky top-20">
@@ -874,8 +874,8 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                               <span className="font-medium">127</span>
                             </div>
                             <div
-                              aria-valuemax="100"
-                              aria-valuemin="0"
+                              aria-valuemax={100}
+                              aria-valuemin={0}
                               role="progressbar"
                               data-state="indeterminate"
                               data-max="100"
@@ -895,8 +895,8 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                               <span className="font-medium">342</span>
                             </div>
                             <div
-                              aria-valuemax="100"
-                              aria-valuemin="0"
+                              aria-valuemax={100}
+                              aria-valuemin={0}
                               role="progressbar"
                               data-state="indeterminate"
                               data-max="100"
@@ -916,8 +916,8 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                               <span className="font-medium">24/50 books</span>
                             </div>
                             <div
-                              aria-valuemax="100"
-                              aria-valuemin="0"
+                              aria-valuemax={100}
+                              aria-valuemin={0}
                               role="progressbar"
                               data-state="indeterminate"
                               data-max="100"
@@ -960,8 +960,8 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                                 <span>65%</span>
                               </div>
                               <div
-                                aria-valuemax="100"
-                                aria-valuemin="0"
+                                aria-valuemax={100}
+                                aria-valuemin={0}
                                 role="progressbar"
                                 data-state="indeterminate"
                                 data-max="100"
@@ -1004,8 +1004,8 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                                 <span>23%</span>
                               </div>
                               <div
-                                aria-valuemax="100"
-                                aria-valuemin="0"
+                                aria-valuemax={100}
+                                aria-valuemin={0}
                                 role="progressbar"
                                 data-state="indeterminate"
                                 data-max="100"
@@ -1164,7 +1164,7 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
               </TabsContent>
 
               {/* Friends Tab Content */}
-              <TabsContent value="friends">
+              <TabsContent value="friends" className="publisher-page__tabs-content">
                 <div className="space-y-6">
                   <Card className="rounded-lg border bg-card text-card-foreground shadow-sm">
                     <div className="flex flex-col space-y-1.5 p-6">
@@ -1236,7 +1236,7 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
               </TabsContent>
 
               {/* Photos Tab Content */}
-              <TabsContent value="photos">
+              <TabsContent value="photos" className="publisher-page__tabs-content">
                 <div className="space-y-6">
                   <Card className="rounded-lg border bg-card text-card-foreground shadow-sm">
                     <div className="flex flex-col space-y-1.5 p-6">
@@ -1289,7 +1289,7 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
               </TabsContent>
 
               {/* More Tab Content */}
-              <TabsContent value="more">
+              <TabsContent value="more" className="publisher-page__tabs-content">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
                     <div className="flex flex-col space-y-1.5 p-6">

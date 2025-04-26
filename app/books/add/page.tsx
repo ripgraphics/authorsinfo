@@ -21,7 +21,7 @@ export default async function AddBookPage({ searchParams }: AddBookPageProps) {
     return (
       <div className="min-h-screen flex flex-col">
         <PageHeader />
-        <main className="flex-1 container py-8">
+        <main className="flex-1 book-page container py-8">
           <div className="max-w-2xl mx-auto">
             <h1 className="text-3xl font-bold mb-6">Add a New Book</h1>
             <Card>
@@ -42,25 +42,38 @@ export default async function AddBookPage({ searchParams }: AddBookPageProps) {
   }
 
   // Fetch book data from ISBNDB
-  const book = await getBookByISBN(isbn)
+  const bookData = await getBookByISBN(isbn)
 
-  if (!book) {
+  if (!bookData) {
     notFound()
+    return
   }
 
+  // Destructure fields for later use (ensures non-nullable)
+  const {
+    title: bookTitle,
+    isbn: bookIsbn,
+    isbn13: bookIsbn13,
+    authors: bookAuthors,
+    publisher: bookPublisher,
+    publish_date: bookPublishDate,
+    image: bookImage,
+    synopsis: bookSynopsis,
+  } = bookData
+
   // Function to handle adding the book to the database
-  async function addBook() {
+  async function addBook(formData: FormData) {
     "use server"
 
     const result = await addBookFromISBNDB({
-      title: book.title,
-      isbn: book.isbn,
-      isbn13: book.isbn13,
-      authors: book.authors,
-      publisher: book.publisher,
-      publish_date: book.publish_date,
-      image: book.image,
-      synopsis: book.synopsis,
+      title: bookTitle,
+      isbn: bookIsbn,
+      isbn13: bookIsbn13,
+      authors: bookAuthors,
+      publisher: bookPublisher,
+      publish_date: bookPublishDate,
+      image: bookImage,
+      synopsis: bookSynopsis,
     })
 
     if (result.success && result.bookId) {
@@ -73,7 +86,7 @@ export default async function AddBookPage({ searchParams }: AddBookPageProps) {
   return (
     <div className="min-h-screen flex flex-col">
       <PageHeader />
-      <main className="flex-1 container py-8">
+      <main className="flex-1 book-page container py-8">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold mb-6">Add Book to Library</h1>
 
@@ -81,11 +94,11 @@ export default async function AddBookPage({ searchParams }: AddBookPageProps) {
             {/* Book Cover */}
             <div>
               <Card className="overflow-hidden">
-                {book.image ? (
+                {bookImage ? (
                   <div className="w-full h-full">
                     <Image
-                      src={book.image || "/placeholder.svg"}
-                      alt={book.title}
+                      src={bookImage || "/placeholder.svg"}
+                      alt={bookTitle}
                       width={400}
                       height={600}
                       className="w-full aspect-[2/3] object-cover"
@@ -103,48 +116,48 @@ export default async function AddBookPage({ searchParams }: AddBookPageProps) {
             <div className="md:col-span-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>{book.title}</CardTitle>
+                  <CardTitle>{bookTitle}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {book.authors && book.authors.length > 0 && (
+                  {bookAuthors && bookAuthors.length > 0 && (
                     <div>
                       <h3 className="font-medium">Author</h3>
-                      <p className="text-muted-foreground">{book.authors.join(", ")}</p>
+                      <p className="text-muted-foreground">{bookAuthors.join(", ")}</p>
                     </div>
                   )}
 
-                  {book.publisher && (
+                  {bookPublisher && (
                     <div>
                       <h3 className="font-medium">Publisher</h3>
-                      <p className="text-muted-foreground">{book.publisher}</p>
+                      <p className="text-muted-foreground">{bookPublisher}</p>
                     </div>
                   )}
 
-                  {book.publish_date && (
+                  {bookPublishDate && (
                     <div>
                       <h3 className="font-medium">Publication Date</h3>
-                      <p className="text-muted-foreground">{book.publish_date}</p>
+                      <p className="text-muted-foreground">{bookPublishDate}</p>
                     </div>
                   )}
 
-                  {book.isbn && (
+                  {bookIsbn && (
                     <div>
                       <h3 className="font-medium">ISBN</h3>
-                      <p className="text-muted-foreground">{book.isbn}</p>
+                      <p className="text-muted-foreground">{bookIsbn}</p>
                     </div>
                   )}
 
-                  {book.isbn13 && (
+                  {bookIsbn13 && (
                     <div>
                       <h3 className="font-medium">ISBN-13</h3>
-                      <p className="text-muted-foreground">{book.isbn13}</p>
+                      <p className="text-muted-foreground">{bookIsbn13}</p>
                     </div>
                   )}
 
-                  {book.synopsis && (
+                  {bookSynopsis && (
                     <div>
                       <h3 className="font-medium">Synopsis</h3>
-                      <p className="text-muted-foreground">{book.synopsis}</p>
+                      <p className="text-muted-foreground">{bookSynopsis}</p>
                     </div>
                   )}
 

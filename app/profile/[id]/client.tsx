@@ -22,7 +22,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl }: ClientProf
   return (
     <div className="profile-page bg-gray-100 min-h-screen">
       {/* Cover Image */}
-      <div className="profile-cover relative w-full h-[300px]">
+      <div className="profile-page__header-cover-image relative h-auto aspect-[1344/500]">
         <Image
           src={coverImageUrl}
           alt={`Cover for ${user.username}`}

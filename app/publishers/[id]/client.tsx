@@ -227,7 +227,7 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
     <main className="publisher-page publisher-page__container container py-6">
       {/* Cover Photo and Profile Section */}
       <div className="publisher-page__header bg-white rounded-lg shadow overflow-hidden mb-6">
-        <div className="publisher-page__cover relative h-[300px]">
+        <div className="publisher-page__cover publisher-page__header-cover-image relative h-auto aspect-[1344/500]">
           <img
             src={coverImageUrl || "/placeholder.svg?height=400&width=1200"}
             alt="Cover"

@@ -72,14 +72,6 @@ book_clubs,updated_at,timestamp with time zone
 book_clubs,is_private,boolean
 book_clubs,current_book_id,integer
 book_clubs,member_count,integer
-book_discussions,id,uuid
-book_discussions,book_id,integer
-book_discussions,user_id,uuid
-book_discussions,title,text
-book_discussions,content,text
-book_discussions,is_pinned,boolean
-book_discussions,created_at,timestamp with time zone
-book_discussions,updated_at,timestamp with time zone
 book_genre_mappings,id,integer
 book_genre_mappings,book_id,integer
 book_genre_mappings,genre_id,integer
@@ -151,6 +143,8 @@ books,average_rating,numeric
 books,review_count,integer
 books,binding_type_id,integer
 books,format_type_id,integer
+books,created_at,timestamp with time zone
+books,status_id,integer
 carousel_images,id,integer
 carousel_images,carousel_name,character varying
 carousel_images,image_url,text
@@ -170,6 +164,14 @@ discussion_comments,user_id,uuid
 discussion_comments,content,text
 discussion_comments,created_at,timestamp with time zone
 discussion_comments,updated_at,timestamp with time zone
+discussions,id,uuid
+discussions,book_id,integer
+discussions,user_id,uuid
+discussions,title,text
+discussions,content,text
+discussions,is_pinned,boolean
+discussions,created_at,timestamp with time zone
+discussions,updated_at,timestamp with time zone
 follows,id,uuid
 follows,follower_id,uuid
 follows,following_id,uuid
@@ -184,6 +186,11 @@ group_members,group_id,uuid
 group_members,user_id,uuid
 group_members,joined_at,timestamp with time zone
 group_members,role,character varying
+group_targets,id,uuid
+group_targets,group_id,uuid
+group_targets,target_type,text
+group_targets,target_id,uuid
+group_targets,created_at,timestamp with time zone
 groups,id,uuid
 groups,name,character varying
 groups,description,text
@@ -191,6 +198,8 @@ groups,is_public,boolean
 groups,created_by,uuid
 groups,created_at,timestamp with time zone
 groups,updated_at,timestamp with time zone
+groups,cover_image_id,integer
+groups,group_image_id,integer
 image_types,id,integer
 image_types,name,character varying
 image_types,description,text
@@ -357,6 +366,8 @@ similar_books,book_id,integer
 similar_books,similar_book_id,integer
 similar_books,similarity_score,double precision
 similar_books,created_at,timestamp with time zone
+statuses,id,integer
+statuses,name,character varying
 subjects,id,integer
 subjects,name,character varying
 subjects,parent_id,integer

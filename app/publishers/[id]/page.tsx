@@ -5,6 +5,8 @@ import { supabaseAdmin } from "@/lib/supabase"
 import type { Publisher } from "@/types/database"
 import { ClientPublisherPage } from "./client"
 import { PageHeader } from "@/components/page-header"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
 interface PublisherPageProps {
   params: {
@@ -90,6 +92,11 @@ export default async function PublisherPage({ params }: { params: { id: string }
   return (
     <>
       <PageHeader />
+      <div className="container mx-auto py-4 flex justify-end">
+        <Link href={`/groups/add?target_type=publisher&target_id=${params.id}`}>
+          <Button>Create Group</Button>
+        </Link>
+      </div>
       <ClientPublisherPage
         publisher={publisher}
         publisherImageUrl={publisherImageUrl}

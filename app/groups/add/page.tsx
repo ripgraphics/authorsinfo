@@ -22,7 +22,6 @@ export default function AddGroupPage() {
   const router = useRouter()
   const [step, setStep] = useState<number>(0)
   const [selectedType, setSelectedType] = useState<number | null>(null)
-  const [userId, setUserId] = useState<string | null>(null)
   const [groupTypes, setGroupTypes] = useState<{ id: number; slug: string; display_name: string }[]>([])
   const [groupTypesLoading, setGroupTypesLoading] = useState<boolean>(true)
   const [groupTypesError, setGroupTypesError] = useState<string | null>(null)
@@ -30,10 +29,6 @@ export default function AddGroupPage() {
   const [targetsLoading, setTargetsLoading] = useState<boolean>(false)
   const [targetsError, setTargetsError] = useState<string | null>(null)
   const [selectedTarget, setSelectedTarget] = useState<string>("")
-  const [userTypeLoading, setUserTypeLoading] = useState<boolean>(true)
-  const [userTypeError, setUserTypeError] = useState<string | null>(null)
-  const [userLoading, setUserLoading] = useState<boolean>(true)
-  const [userError, setUserError] = useState<string | null>(null)
 
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
@@ -64,32 +59,14 @@ export default function AddGroupPage() {
     loadGroupTypes()
   }, [])
 
-  // Load current user's ID
-  useEffect(() => {
-    async function fetchUser() {
-      setUserLoading(true)
-      try {
-        const { data, error } = await supabaseClient.auth.getUser()
-        if (error) throw error
-        setUserId(data.user?.id ?? null)
-      } catch (err: any) {
-        console.error(err)
-        setUserError(err.message)
-      } finally {
-        setUserLoading(false)
-      }
-    }
-    fetchUser()
-  }, [])
-
-  // Load targets whenever a non-user type is selected
+  // Load targets whenever a type is selected
   useEffect(() => {
     async function loadTargets() {
       setTargetsLoading(true)
       setTargetsError(null)
       try {
         const type = groupTypes.find((gt) => gt.id === selectedType)
-        if (!type || type.slug === 'user') {
+        if (!type) {
           setTargets([])
           return
         }
@@ -181,12 +158,10 @@ export default function AddGroupPage() {
         .single()
       if (groupError || !newGroup) throw groupError
 
-      // Attach to target using numeric group_type_id and selected target or current user
-      const type = groupTypes.find((gt) => gt.id === selectedType)
-      const targetValue = type?.slug === 'user' ? user?.id : selectedTarget
+      // Attach to target using numeric group_type_id and selected target
       await supabaseClient
         .from('group_target_type')
-        .insert({ group_id: newGroup.id, target_type_id: selectedType!, target_id: targetValue })
+        .insert({ group_id: newGroup.id, target_type_id: selectedType!, target_id: selectedTarget })
 
       // Add creator as member
       await supabaseClient
@@ -211,8 +186,7 @@ export default function AddGroupPage() {
         </DialogHeader>
         {error && <p className="text-red-600 mb-4">{error}</p>}
         {groupTypesError && <p className="text-red-600 mb-4">Failed to load group types: {groupTypesError}</p>}
-        {userError && <p className="text-red-600 mb-4">Failed to load user: {userError}</p>}
-        {(groupTypesLoading || userLoading) ? (
+        {(groupTypesLoading) ? (
           <p>Loading…</p>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -238,14 +212,6 @@ export default function AddGroupPage() {
             {step === 1 && selectedType !== null && (() => {
               const type = groupTypes.find((gt) => gt.id === selectedType)
               if (!type) return null
-              if (type.slug === 'user') {
-                return (
-                  <div>
-                    <Label>Linked To</Label>
-                    <p className="mt-1 font-medium">You ({userId})</p>
-                  </div>
-                )
-              }
               return (
                 <div>
                   <Label htmlFor="targetItem">Select {type.display_name}</Label>

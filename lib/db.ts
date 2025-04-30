@@ -5,6 +5,11 @@ import { Database } from "@/types/database"
 type QueryOptions = {
   ttl?: number
   cacheKey?: string
+  orderBy?: Record<string, 'asc' | 'desc'>
+  limit?: number
+  offset?: number
+  count?: boolean
+  select?: string | string[]
 }
 
 export class DB {
@@ -28,7 +33,7 @@ export class DB {
     table: string,
     query: any,
     options: QueryOptions = {}
-  ): Promise<T[]> {
+  ): Promise<T[] | { count: number }> {
     const cacheKey = options.cacheKey || this.generateCacheKey(table, query)
     const cached = cache.get<T[]>(cacheKey)
     
@@ -36,7 +41,7 @@ export class DB {
       return cached
     }
 
-    let q = this.supabase.from(table).select()
+    let q = this.supabase.from(table).select(options.select || '*', { count: options.count ? 'exact' : undefined })
 
     // Handle date ranges and other special queries
     Object.entries(query).forEach(([key, value]) => {
@@ -48,21 +53,40 @@ export class DB {
         } else if ('not' in value) {
           q = q.not(key, 'is', null)
         } else {
-          q = q.match({ [key]: value })
+          q = q.match(value)
         }
       } else {
-        q = q.match({ [key]: value })
+        q = q.eq(key, value)
       }
     })
 
-    const { data, error } = await q
+    if (options.orderBy) {
+      Object.entries(options.orderBy).forEach(([key, direction]) => {
+        q = q.order(key, { ascending: direction === 'asc' })
+      })
+    }
+
+    if (options.limit) {
+      q = q.limit(options.limit)
+    }
+
+    if (options.offset) {
+      q = q.range(options.offset, options.offset + (options.limit || 0) - 1)
+    }
+
+    const { data, error, count } = await q
 
     if (error) {
       throw error
     }
 
-    cache.set(cacheKey, data, options.ttl)
-    return data
+    if (options.count) {
+      return { count: count || 0 }
+    }
+
+    const result = data as T[]
+    cache.set(cacheKey, result, options.ttl)
+    return result
   }
 
   async getById<T = any>(

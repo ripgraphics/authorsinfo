@@ -224,29 +224,29 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
   ]
 
   return (
-    <main className="publisher-page publisher-page__container container py-6">
+    <div className="publisher-page publisher-page__container container py-6">
       {/* Cover Photo and Profile Section */}
       <div className="publisher-page__header bg-white rounded-lg shadow overflow-hidden mb-6">
-        <div className="publisher-page__cover publisher-page__header-cover-image relative h-auto aspect-[1344/500]">
+        <div className="publisher-page__cover-image relative h-auto aspect-[1344/500]">
           <img
             src={coverImageUrl || "/placeholder.svg?height=400&width=1200"}
             alt="Cover"
-            className="object-cover absolute inset-0 w-full h-full"
+            className="publisher-page__cover-image-content object-cover absolute inset-0 w-full h-full"
           />
-          <Button variant="outline" size="sm" className="absolute bottom-4 right-4 bg-white/80 hover:bg-white">
+          <Button variant="outline" size="sm" className="publisher-page__cover-image-button absolute bottom-4 right-4 bg-white/80 hover:bg-white">
             <Camera className="h-4 w-4 mr-2" />
             Change Cover
           </Button>
         </div>
 
-        <div className="publisher-header-content px-6 pb-6">
-          <div className="publisher-profile-section flex flex-col md:flex-row md:items-end -mt-10 relative z-10">
-            <div className="relative">
+        <div className="publisher-page__header-content px-6 pb-6">
+          <div className="publisher-page__profile-section flex flex-col md:flex-row md:items-end -mt-10 relative z-10">
+            <div className="publisher-page__avatar-container relative">
               <span className="publisher-page__avatar relative flex shrink-0 overflow-hidden h-32 w-32 md:h-40 md:w-40 border-4 border-white rounded-full">
                 <img
                   src={publisherImageUrl || "/placeholder.svg?height=200&width=200"}
                   alt={mockName}
-                  className="aspect-square h-full w-full"
+                  className="publisher-page__avatar-image aspect-square h-full w-full"
                 />
               </span>
               <Button
@@ -1291,23 +1291,29 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
               {/* More Tab Content */}
               <TabsContent value="more" className="publisher-page__tabs-content">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-                    <div className="flex flex-col space-y-1.5 p-6">
-                      <div className="text-2xl font-semibold leading-none tracking-tight">Groups</div>
+                  <div className="publisher-groups__card rounded-lg border bg-card text-card-foreground shadow-sm">
+                    <div className="publisher-groups__header flex items-center justify-between p-6">
+                      <h2 className="publisher-groups__title text-2xl font-semibold leading-none tracking-tight">Groups</h2>
+                      <Link href={`/groups/add?target_type=publisher&target_id=${params.id}`}>
+                        <Button className="publisher-groups__create-button">
+                          <Users className="h-4 w-4 mr-2" />
+                          Create Group
+                        </Button>
+                      </Link>
                     </div>
-                    <div className="p-6 pt-0 space-y-4">
-                      <div className="flex items-center gap-3 p-3 border rounded-lg">
-                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                    <div className="publisher-groups__list p-6 pt-0 space-y-4">
+                      <div className="publisher-groups__item flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="publisher-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
                           <img
                             src="/placeholder.svg?height=100&width=100"
                             alt="Fantasy Book Club"
                             className="aspect-square h-full w-full"
                           />
                         </span>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium truncate">Fantasy Book Club</h3>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                        <div className="publisher-groups__content flex-1 min-w-0">
+                          <h3 className="publisher-groups__name font-medium truncate">Fantasy Book Club</h3>
+                          <div className="publisher-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="publisher-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
                               Moderator
                             </div>
                             <span>·</span>
@@ -1316,22 +1322,22 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                             <span>Joined January 2021</span>
                           </div>
                         </div>
-                        <Button variant="outline" className="h-9 rounded-md px-3">
+                        <Button variant="outline" className="publisher-groups__view-button h-9 rounded-md px-3">
                           View
                         </Button>
                       </div>
-                      <div className="flex items-center gap-3 p-3 border rounded-lg">
-                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                      <div className="publisher-groups__item flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="publisher-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
                           <img
                             src="/placeholder.svg?height=100&width=100"
                             alt="Science Fiction Readers"
                             className="aspect-square h-full w-full"
                           />
                         </span>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium truncate">Science Fiction Readers</h3>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                        <div className="publisher-groups__content flex-1 min-w-0">
+                          <h3 className="publisher-groups__name font-medium truncate">Science Fiction Readers</h3>
+                          <div className="publisher-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="publisher-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
                               Member
                             </div>
                             <span>·</span>
@@ -1340,22 +1346,22 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                             <span>Joined March 2021</span>
                           </div>
                         </div>
-                        <Button variant="outline" className="h-9 rounded-md px-3">
+                        <Button variant="outline" className="publisher-groups__view-button h-9 rounded-md px-3">
                           View
                         </Button>
                       </div>
-                      <div className="flex items-center gap-3 p-3 border rounded-lg">
-                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                      <div className="publisher-groups__item flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="publisher-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
                           <img
                             src="/placeholder.svg?height=100&width=100"
                             alt="Portland Book Lovers"
                             className="aspect-square h-full w-full"
                           />
                         </span>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium truncate">Portland Book Lovers</h3>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                        <div className="publisher-groups__content flex-1 min-w-0">
+                          <h3 className="publisher-groups__name font-medium truncate">Portland Book Lovers</h3>
+                          <div className="publisher-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="publisher-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
                               Member
                             </div>
                             <span>·</span>
@@ -1364,22 +1370,22 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                             <span>Joined April 2020</span>
                           </div>
                         </div>
-                        <Button variant="outline" className="h-9 rounded-md px-3">
+                        <Button variant="outline" className="publisher-groups__view-button h-9 rounded-md px-3">
                           View
                         </Button>
                       </div>
-                      <div className="flex items-center gap-3 p-3 border rounded-lg">
-                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                      <div className="publisher-groups__item flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="publisher-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
                           <img
                             src="/placeholder.svg?height=100&width=100"
                             alt="Women Writers Book Club"
                             className="aspect-square h-full w-full"
                           />
                         </span>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium truncate">Women Writers Book Club</h3>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                        <div className="publisher-groups__content flex-1 min-w-0">
+                          <h3 className="publisher-groups__name font-medium truncate">Women Writers Book Club</h3>
+                          <div className="publisher-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="publisher-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
                               Member
                             </div>
                             <span>·</span>
@@ -1388,22 +1394,22 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                             <span>Joined September 2022</span>
                           </div>
                         </div>
-                        <Button variant="outline" className="h-9 rounded-md px-3">
+                        <Button variant="outline" className="publisher-groups__view-button h-9 rounded-md px-3">
                           View
                         </Button>
                       </div>
-                      <div className="flex items-center gap-3 p-3 border rounded-lg">
-                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                      <div className="publisher-groups__item flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="publisher-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
                           <img
                             src="/placeholder.svg?height=100&width=100"
                             alt="Literary Fiction Fans"
                             className="aspect-square h-full w-full"
                           />
                         </span>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium truncate">Literary Fiction Fans</h3>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                        <div className="publisher-groups__content flex-1 min-w-0">
+                          <h3 className="publisher-groups__name font-medium truncate">Literary Fiction Fans</h3>
+                          <div className="publisher-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="publisher-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
                               Member
                             </div>
                             <span>·</span>
@@ -1412,22 +1418,22 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                             <span>Joined July 2021</span>
                           </div>
                         </div>
-                        <Button variant="outline" className="h-9 rounded-md px-3">
+                        <Button variant="outline" className="publisher-groups__view-button h-9 rounded-md px-3">
                           View
                         </Button>
                       </div>
-                      <div className="flex items-center gap-3 p-3 border rounded-lg">
-                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                      <div className="publisher-groups__item flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="publisher-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
                           <img
                             src="/placeholder.svg?height=100&width=100"
                             alt="Classic Literature Society"
                             className="aspect-square h-full w-full"
                           />
                         </span>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium truncate">Classic Literature Society</h3>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                        <div className="publisher-groups__content flex-1 min-w-0">
+                          <h3 className="publisher-groups__name font-medium truncate">Classic Literature Society</h3>
+                          <div className="publisher-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="publisher-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
                               Member
                             </div>
                             <span>·</span>
@@ -1436,11 +1442,11 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                             <span>Joined February 2022</span>
                           </div>
                         </div>
-                        <Button variant="outline" className="h-9 rounded-md px-3">
+                        <Button variant="outline" className="publisher-groups__view-button h-9 rounded-md px-3">
                           View
                         </Button>
                       </div>
-                      <Button className="h-10 px-4 py-2 w-full">
+                      <Button className="publisher-groups__find-more h-10 px-4 py-2 w-full">
                         <Users className="h-4 w-4 mr-2" />
                         Find More Groups
                       </Button>
@@ -1595,6 +1601,6 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
           </div>
         </div>
       </div>
-    </main>
+    </div>
   )
 }

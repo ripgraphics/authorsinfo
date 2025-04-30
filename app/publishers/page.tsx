@@ -29,6 +29,30 @@ import {
 import { Label } from "@/components/ui/label"
 import { InteractiveControls } from "./components/InteractiveControls"
 
+interface Publisher {
+  id: number
+  name: string
+  country_id: number | null
+  country_details?: {
+    id: number
+    name: string
+    code: string
+  }
+  founded_year?: number
+  logo_url?: string
+}
+
+interface Country {
+  id: number
+  name: string
+  code: string
+}
+
+interface QueryResponse<T> {
+  data: T[]
+  count: number | null
+}
+
 interface PublishersPageProps {
   searchParams: {
     page?: string
@@ -42,31 +66,30 @@ interface PublishersPageProps {
 async function detectLocationField() {
   try {
     // Get a sample publisher to examine its structure
-    const samplePublisher = await db.query(
+    const publishers = await db.query<Publisher>(
       "publishers",
       {},
       {
         ttl: 3600, // Cache for 1 hour
         cacheKey: "sample_publisher",
-        limit: 1
+        limit: 1,
+        select: "*, country_details:country_id(id, name, code)"
       }
     )
 
-    if (!samplePublisher || samplePublisher.length === 0) {
+    if (!Array.isArray(publishers) || publishers.length === 0) {
       console.error("No sample publisher found")
       return null
     }
 
-    // Check for various possible location field names
-    const possibleLocationFields = ["location", "headquarters", "hq", "address", "city", "country", "region", "state"]
+    // Check if country_id exists in the publisher object
+    if ('country_id' in publishers[0] && publishers[0].country_id !== null) {
+      console.log("Detected location field: country_id")
+      return 'country_id'
+    }
 
-    // Find the first field that exists in the publisher object
-    const locationField = possibleLocationFields.find(
-      (field) => field in samplePublisher[0] && samplePublisher[0][field] !== null,
-    )
-
-    console.log("Detected location field:", locationField)
-    return locationField || null
+    console.log("No location field found in publishers table")
+    return null
   } catch (error) {
     console.error("Error detecting location field:", error)
     return null
@@ -83,19 +106,31 @@ async function getUniqueLocations() {
       return []
     }
 
-    // Use the detected field to fetch unique locations
-    const publishers = await db.query(
+    // Use the detected field to fetch unique locations with country details
+    const publishers = await db.query<Publisher>(
       "publishers",
       { [locationField]: { not: "is", value: null } },
       {
         ttl: 3600, // Cache for 1 hour
         cacheKey: `unique_locations_${locationField}`,
-        orderBy: { [locationField]: "asc" }
+        orderBy: { [locationField]: "asc" },
+        select: "*, country_details:country_id(id, name, code)"
       }
     )
 
-    // Extract unique locations
-    const uniqueLocations = Array.from(new Set(publishers.map((item) => item[locationField]).filter(Boolean)))
+    if (!Array.isArray(publishers)) {
+      return []
+    }
+
+    // Extract unique locations with country details
+    const uniqueLocations = Array.from(
+      new Set(
+        publishers
+          .map((item) => item.country_details)
+          .filter((country): country is Country => country !== null)
+          .map((country) => country.id.toString())
+      )
+    )
 
     return uniqueLocations
   } catch (error) {
@@ -121,18 +156,21 @@ async function PublishersList({
   // Build the query
   const query = {
     ...(search && { name: { ilike: `%${search}%` } }),
-    ...(location && location !== "all" && { location }),
+    ...(location && location !== "all" && { country_id: location }),
   }
 
-  const orderBy = sort === "name_asc" ? { name: "asc" } :
-                 sort === "name_desc" ? { name: "desc" } :
-                 sort === "founded_year_asc" ? { founded_year: "asc" } :
-                 sort === "founded_year_desc" ? { founded_year: "desc" } :
-                 { name: "asc" }
+  // Define a more specific type for orderBy
+  type OrderByType = { name?: "asc" | "desc"; founded_year?: "asc" | "desc" }
+  
+  const orderBy: OrderByType = sort === "name_asc" ? { name: "asc" } :
+                              sort === "name_desc" ? { name: "desc" } :
+                              sort === "founded_year_asc" ? { founded_year: "asc" } :
+                              sort === "founded_year_desc" ? { founded_year: "desc" } :
+                              { name: "asc" }
 
   // Execute the query with caching
-  const [publishers, { count }] = await Promise.all([
-    db.query(
+  const [publishers, countResponse] = await Promise.all([
+    db.query<Publisher>(
       "publishers",
       query,
       {
@@ -140,10 +178,11 @@ async function PublishersList({
         cacheKey: `publishers:${JSON.stringify({ page, search, location, sort })}`,
         orderBy,
         limit: pageSize,
-        offset
+        offset,
+        select: "*, country_details:country_id(id, name, code)"
       }
     ),
-    db.query(
+    db.query<Publisher>(
       "publishers",
       query,
       {
@@ -154,7 +193,11 @@ async function PublishersList({
     )
   ])
 
-  const totalPages = Math.ceil((count || 0) / pageSize)
+  if (!Array.isArray(publishers) || !('count' in countResponse)) {
+    return null
+  }
+
+  const totalPages = Math.ceil((countResponse.count || 0) / pageSize)
 
   // Get unique locations for the filter
   const locationsList = await getUniqueLocations()
@@ -182,8 +225,8 @@ async function PublishersList({
                 </div>
                 <CardContent className="p-3">
                   <h3 className="font-medium text-sm line-clamp-1">{publisher.name}</h3>
-                  {location && publisher[location] && (
-                    <p className="text-sm text-muted-foreground line-clamp-1">{publisher[location]}</p>
+                  {publisher.country_details && (
+                    <p className="text-sm text-muted-foreground line-clamp-1">{publisher.country_details.name}</p>
                   )}
                   {publisher.founded_year && (
                     <p className="text-xs text-muted-foreground mt-1">Founded: {publisher.founded_year}</p>

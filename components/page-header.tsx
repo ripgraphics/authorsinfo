@@ -16,7 +16,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Navigation } from "@/components/navigation"
 import { SearchModal } from "@/components/search-modal"
 
-export function PageHeader() {
+interface PageHeaderProps {
+  title?: string
+  description?: string
+}
+
+export function PageHeader({ title, description }: PageHeaderProps) {
   const router = useRouter()
   const [searchOpen, setSearchOpen] = useState(false)
 
@@ -101,6 +106,15 @@ export function PageHeader() {
           </Button>
         </div>
       </div>
+
+      {title && (
+        <div className="container mx-auto px-4 max-w-7xl py-6">
+          <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
+          {description && (
+            <p className="text-muted-foreground mt-2">{description}</p>
+          )}
+        </div>
+      )}
 
       {/* Search Modal */}
       <SearchModal open={searchOpen} onOpenChange={setSearchOpen} />

@@ -73,17 +73,11 @@ async function getPublisherBooks(publisherId: string) {
 }
 
 export default async function PublisherPage({ params }: { params: { id: string } }) {
-  // Create Supabase client first
-  const supabase = createServerComponentClient({ cookies })
+  const id = await params.id
+  // Get publisher data using the existing function
+  const publisher = await getPublisher(id)
 
-  // Fetch publisher data
-  const { data: publisher, error } = await supabase
-    .from("publishers")
-    .select("*")
-    .eq("id", params.id)
-    .single()
-
-  if (error || !publisher) {
+  if (!publisher) {
     notFound()
   }
 
@@ -95,16 +89,11 @@ export default async function PublisherPage({ params }: { params: { id: string }
   const coverImageUrl = publisher.cover_image?.url || "/placeholder.svg?height=400&width=1200"
 
   return (
-    <div className="container py-6 space-y-6">
+    <div className="publisher-page-container">
       <PageHeader
         title={publisher.name}
-        description={publisher.description || "Publisher details"}
+        description={publisher.about || "Publisher details"}
       />
-      <div className="container mx-auto py-4 flex justify-end">
-        <Link href={`/groups/add?target_type=publisher&target_id=${publisher.id}`}>
-          <Button>Create Group</Button>
-        </Link>
-      </div>
       <ClientPublisherPage
         publisher={publisher}
         publisherImageUrl={publisherImageUrl}

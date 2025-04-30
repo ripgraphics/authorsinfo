@@ -13,7 +13,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import { supabaseAdmin } from "@/lib/supabase"
+import { db } from "@/lib/db"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
@@ -38,21 +38,17 @@ interface AuthorsPageProps {
 }
 
 async function getUniqueNationalities() {
-  const { data, error } = await supabaseAdmin
-    .from("authors")
-    .select("nationality")
-    .not("nationality", "is", null)
-    .order("nationality")
-
-  if (error) {
-    console.error("Error fetching nationalities:", error)
-    return []
-  }
+  const nationalities = await db.query(
+    "authors",
+    { nationality: { not: "is", value: null } },
+    {
+      ttl: 3600, // Cache for 1 hour
+      cacheKey: "unique_nationalities"
+    }
+  )
 
   // Extract unique nationalities
-  const uniqueNationalities = Array.from(new Set(data.map((item) => item.nationality).filter(Boolean)))
-
-  return uniqueNationalities
+  return Array.from(new Set(nationalities.map((item) => item.nationality).filter(Boolean)))
 }
 
 async function AuthorsList({
@@ -70,45 +66,34 @@ async function AuthorsList({
   const offset = (page - 1) * pageSize
 
   // Build the query
-  let query = supabaseAdmin.from("authors").select(`
-      *,
-      author_image:author_image_id(id, url, alt_text)
-    `)
-
-  // Apply search filter if provided
-  if (search) {
-    query = query.ilike("name", `%${search}%`)
+  const query = {
+    ...(search && { name: { ilike: `%${search}%` } }),
+    ...(nationality && { nationality }),
   }
 
-  // Apply nationality filter if provided
-  if (nationality) {
-    query = query.eq("nationality", nationality)
-  }
+  const orderBy = sort === "name_asc" ? { name: "asc" } :
+                 sort === "name_desc" ? { name: "desc" } :
+                 sort === "birth_date_asc" ? { birth_date: "asc" } :
+                 sort === "birth_date_desc" ? { birth_date: "desc" } :
+                 { name: "asc" }
 
-  // Apply sorting
-  if (sort === "name_asc") {
-    query = query.order("name", { ascending: true })
-  } else if (sort === "name_desc") {
-    query = query.order("name", { ascending: false })
-  } else if (sort === "birth_date_asc") {
-    query = query.order("birth_date", { ascending: true })
-  } else if (sort === "birth_date_desc") {
-    query = query.order("birth_date", { ascending: false })
-  } else {
-    // Default sorting
-    query = query.order("name", { ascending: true })
-  }
-
-  // Apply pagination
-  query = query.range(offset, offset + pageSize - 1)
-
-  // Execute the query
-  const { data: authors, error } = await query
-
-  if (error) {
-    console.error("Error fetching authors:", error)
-    return <div>Error loading authors</div>
-  }
+  // Execute the query with caching
+  const authors = await db.query(
+    "authors",
+    query,
+    {
+      ttl: 300, // Cache for 5 minutes
+      cacheKey: `authors:${JSON.stringify({ page, search, nationality, sort })}`,
+      orderBy,
+      limit: pageSize,
+      offset,
+      include: {
+        author_image: {
+          select: ["id", "url", "alt_text"]
+        }
+      }
+    }
+  )
 
   // Process authors to include image URL
   const processedAuthors = authors.map((author) => ({
@@ -117,24 +102,15 @@ async function AuthorsList({
   }))
 
   // Get total count for pagination
-  let countQuery = supabaseAdmin.from("authors").select("*", { count: "exact", head: true })
+  const totalAuthors = await db.count(
+    "authors",
+    query,
+    {
+      ttl: 300, // Cache for 5 minutes
+      cacheKey: `authors_count:${JSON.stringify({ search, nationality })}`
+    }
+  )
 
-  if (search) {
-    countQuery = countQuery.ilike("name", `%${search}%`)
-  }
-
-  if (nationality) {
-    countQuery = countQuery.eq("nationality", nationality)
-  }
-
-  const { count, error: countError } = await countQuery
-
-  if (countError) {
-    console.error("Error counting authors:", countError)
-    return <div>Error loading authors</div>
-  }
-
-  const totalAuthors = count || 0
   const totalPages = Math.ceil(totalAuthors / pageSize)
 
   // Get unique nationalities for the filter
@@ -220,103 +196,128 @@ async function AuthorsList({
   )
 }
 
-export default function AuthorsPage({ searchParams }: AuthorsPageProps) {
-  const page = Number(searchParams.page) || 1
-  const search = searchParams.search || ""
-  const nationality = searchParams.nationality || ""
-  const sort = searchParams.sort || "name_asc"
+export default async function AuthorsPage({ searchParams }: AuthorsPageProps) {
+  const page = await searchParams.page ? parseInt(await searchParams.page) : 1
+  const search = await searchParams.search
+  const nationality = await searchParams.nationality
+  const sort = await searchParams.sort
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <PageHeader />
-      <main className="flex-1 container py-8">
-        <div className="space-y-6">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <h1 className="text-3xl font-bold">Authors</h1>
-
-            <div className="flex flex-col sm:flex-row w-full md:w-auto gap-4">
-              <div className="relative flex-1 sm:max-w-md">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <form>
-                  <Input
-                    type="search"
-                    name="search"
-                    placeholder="Search authors..."
-                    className="pl-8"
-                    defaultValue={search}
-                  />
-                </form>
+    <div className="container py-6 space-y-6">
+      <PageHeader
+        title="Authors"
+        description="Browse and discover authors from our collection."
+      />
+      <div className="flex items-center gap-4">
+        <div className="flex-1">
+          <Input
+            type="search"
+            placeholder="Search authors..."
+            defaultValue={search}
+            onChange={(e) => {
+              const searchParams = new URLSearchParams(window.location.search)
+              if (e.target.value) {
+                searchParams.set("search", e.target.value)
+              } else {
+                searchParams.delete("search")
+              }
+              searchParams.delete("page")
+              window.location.search = searchParams.toString()
+            }}
+          />
+        </div>
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="outline" size="icon">
+              <Filter className="h-4 w-4" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>Filters</SheetTitle>
+              <SheetDescription>
+                Filter authors by nationality and sort order.
+              </SheetDescription>
+            </SheetHeader>
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="nationality">Nationality</Label>
+                <Select
+                  defaultValue={nationality}
+                  onValueChange={(value) => {
+                    const searchParams = new URLSearchParams(window.location.search)
+                    if (value) {
+                      searchParams.set("nationality", value)
+                    } else {
+                      searchParams.delete("nationality")
+                    }
+                    searchParams.delete("page")
+                    window.location.search = searchParams.toString()
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select nationality" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All nationalities</SelectItem>
+                    {nationalities.map((nat) => (
+                      <SelectItem key={nat} value={nat}>
+                        {nat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-
-              <div className="flex gap-2">
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <Button variant="outline" className="flex items-center gap-2">
-                      <Filter className="h-4 w-4" />
-                      <span>Filters</span>
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent>
-                    <SheetHeader>
-                      <SheetTitle>Filter Authors</SheetTitle>
-                      <SheetDescription>Apply filters to narrow down the list of authors.</SheetDescription>
-                    </SheetHeader>
-                    <form action="/authors" className="py-4 space-y-6">
-                      {/* Hidden fields to preserve other params */}
-                      <input type="hidden" name="page" value="1" />
-                      {search && <input type="hidden" name="search" value={search} />}
-
-                      <div className="space-y-4">
-                        <Label htmlFor="nationality">Nationality</Label>
-                        <Select name="nationality" defaultValue={nationality}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="All nationalities" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All nationalities</SelectItem>
-                            <Suspense fallback={<SelectItem value="loading">Loading...</SelectItem>}>
-                              {/* This will be populated server-side */}
-                            </Suspense>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-4">
-                        <Label htmlFor="sort">Sort By</Label>
-                        <Select name="sort" defaultValue={sort}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Name (A-Z)" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="name_asc">Name (A-Z)</SelectItem>
-                            <SelectItem value="name_desc">Name (Z-A)</SelectItem>
-                            <SelectItem value="birth_date_asc">Birth Date (Oldest first)</SelectItem>
-                            <SelectItem value="birth_date_desc">Birth Date (Newest first)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <SheetFooter>
-                        <SheetClose asChild>
-                          <Button type="submit">Apply Filters</Button>
-                        </SheetClose>
-                      </SheetFooter>
-                    </form>
-                  </SheetContent>
-                </Sheet>
-
-                <Link href="/authors/add">
-                  <Button>Add New Author</Button>
-                </Link>
+              <div className="space-y-2">
+                <Label htmlFor="sort">Sort by</Label>
+                <Select
+                  defaultValue={sort}
+                  onValueChange={(value) => {
+                    const searchParams = new URLSearchParams(window.location.search)
+                    if (value) {
+                      searchParams.set("sort", value)
+                    } else {
+                      searchParams.delete("sort")
+                    }
+                    searchParams.delete("page")
+                    window.location.search = searchParams.toString()
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select sort order" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="name_asc">Name (A-Z)</SelectItem>
+                    <SelectItem value="name_desc">Name (Z-A)</SelectItem>
+                    <SelectItem value="birth_date_asc">Birth Date (Oldest first)</SelectItem>
+                    <SelectItem value="birth_date_desc">Birth Date (Newest first)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-          </div>
-
-          <Suspense fallback={<div>Loading authors...</div>}>
-            <AuthorsList page={page} search={search} nationality={nationality} sort={sort} />
-          </Suspense>
-        </div>
-      </main>
+            <SheetFooter>
+              <SheetClose asChild>
+                <Button
+                  onClick={() => {
+                    window.location.search = ""
+                  }}
+                  variant="outline"
+                >
+                  Clear filters
+                </Button>
+              </SheetClose>
+            </SheetFooter>
+          </SheetContent>
+        </Sheet>
+      </div>
+      <Suspense fallback={<div>Loading...</div>}>
+        <AuthorsList
+          page={page}
+          search={search}
+          nationality={nationality}
+          sort={sort}
+        />
+      </Suspense>
     </div>
   )
 }

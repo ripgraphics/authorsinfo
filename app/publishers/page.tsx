@@ -13,7 +13,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import { supabaseAdmin } from "@/lib/supabase/server"
+import { db } from "@/lib/db"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
@@ -27,6 +27,7 @@ import {
   SheetClose,
 } from "@/components/ui/sheet"
 import { Label } from "@/components/ui/label"
+import { InteractiveControls } from "./components/InteractiveControls"
 
 interface PublishersPageProps {
   searchParams: {
@@ -41,10 +42,18 @@ interface PublishersPageProps {
 async function detectLocationField() {
   try {
     // Get a sample publisher to examine its structure
-    const { data: samplePublisher, error } = await supabaseAdmin.from("publishers").select("*").limit(1).single()
+    const samplePublisher = await db.query(
+      "publishers",
+      {},
+      {
+        ttl: 3600, // Cache for 1 hour
+        cacheKey: "sample_publisher",
+        limit: 1
+      }
+    )
 
-    if (error || !samplePublisher) {
-      console.error("Error fetching sample publisher:", error)
+    if (!samplePublisher || samplePublisher.length === 0) {
+      console.error("No sample publisher found")
       return null
     }
 
@@ -53,7 +62,7 @@ async function detectLocationField() {
 
     // Find the first field that exists in the publisher object
     const locationField = possibleLocationFields.find(
-      (field) => field in samplePublisher && samplePublisher[field] !== null,
+      (field) => field in samplePublisher[0] && samplePublisher[0][field] !== null,
     )
 
     console.log("Detected location field:", locationField)
@@ -75,19 +84,18 @@ async function getUniqueLocations() {
     }
 
     // Use the detected field to fetch unique locations
-    const { data, error } = await supabaseAdmin
-      .from("publishers")
-      .select(locationField)
-      .not(locationField, "is", null)
-      .order(locationField)
-
-    if (error) {
-      console.error(`Error fetching ${locationField}:`, error)
-      return []
-    }
+    const publishers = await db.query(
+      "publishers",
+      { [locationField]: { not: "is", value: null } },
+      {
+        ttl: 3600, // Cache for 1 hour
+        cacheKey: `unique_locations_${locationField}`,
+        orderBy: { [locationField]: "asc" }
+      }
+    )
 
     // Extract unique locations
-    const uniqueLocations = Array.from(new Set(data.map((item) => item[locationField]).filter(Boolean)))
+    const uniqueLocations = Array.from(new Set(publishers.map((item) => item[locationField]).filter(Boolean)))
 
     return uniqueLocations
   } catch (error) {
@@ -110,67 +118,43 @@ async function PublishersList({
   const pageSize = 24
   const offset = (page - 1) * pageSize
 
-  // Detect the location field
-  const locationField = await detectLocationField()
-
   // Build the query
-  let query = supabaseAdmin.from("publishers").select("*")
-
-  // Apply search filter if provided
-  if (search) {
-    query = query.ilike("name", `%${search}%`)
+  const query = {
+    ...(search && { name: { ilike: `%${search}%` } }),
+    ...(location && location !== "all" && { location }),
   }
 
-  // Apply location filter if provided and location field exists
-  if (location && location !== "all" && locationField) {
-    query = query.eq(locationField, location)
-  }
+  const orderBy = sort === "name_asc" ? { name: "asc" } :
+                 sort === "name_desc" ? { name: "desc" } :
+                 sort === "founded_year_asc" ? { founded_year: "asc" } :
+                 sort === "founded_year_desc" ? { founded_year: "desc" } :
+                 { name: "asc" }
 
-  // Apply sorting
-  if (sort === "name_asc") {
-    query = query.order("name", { ascending: true })
-  } else if (sort === "name_desc") {
-    query = query.order("name", { ascending: false })
-  } else if (sort === "founded_year_asc") {
-    query = query.order("founded_year", { ascending: true })
-  } else if (sort === "founded_year_desc") {
-    query = query.order("founded_year", { ascending: false })
-  } else {
-    // Default sorting
-    query = query.order("name", { ascending: true })
-  }
+  // Execute the query with caching
+  const [publishers, { count }] = await Promise.all([
+    db.query(
+      "publishers",
+      query,
+      {
+        ttl: 300, // Cache for 5 minutes
+        cacheKey: `publishers:${JSON.stringify({ page, search, location, sort })}`,
+        orderBy,
+        limit: pageSize,
+        offset
+      }
+    ),
+    db.query(
+      "publishers",
+      query,
+      {
+        ttl: 300, // Cache for 5 minutes
+        cacheKey: `publishers_count:${JSON.stringify({ search, location })}`,
+        count: true
+      }
+    )
+  ])
 
-  // Apply pagination
-  query = query.range(offset, offset + pageSize - 1)
-
-  // Execute the query
-  const { data: publishers, error } = await query
-
-  if (error) {
-    console.error("Error fetching publishers:", error)
-    return <div>Error loading publishers</div>
-  }
-
-  // Get total count for pagination
-  let countQuery = supabaseAdmin.from("publishers").select("*", { count: "exact", head: true })
-
-  if (search) {
-    countQuery = countQuery.ilike("name", `%${search}%`)
-  }
-
-  if (location && location !== "all" && locationField) {
-    countQuery = countQuery.eq(locationField, location)
-  }
-
-  const { count, error: countError } = await countQuery
-
-  if (countError) {
-    console.error("Error counting publishers:", countError)
-    return <div>Error loading publishers</div>
-  }
-
-  const totalPublishers = count || 0
-  const totalPages = Math.ceil(totalPublishers / pageSize)
+  const totalPages = Math.ceil((count || 0) / pageSize)
 
   // Get unique locations for the filter
   const locationsList = await getUniqueLocations()
@@ -198,11 +182,11 @@ async function PublishersList({
                 </div>
                 <CardContent className="p-3">
                   <h3 className="font-medium text-sm line-clamp-1">{publisher.name}</h3>
-                  {locationField && publisher[locationField] && (
-                    <p className="text-sm text-muted-foreground line-clamp-1">{publisher[locationField]}</p>
+                  {location && publisher[location] && (
+                    <p className="text-sm text-muted-foreground line-clamp-1">{publisher[location]}</p>
                   )}
                   {publisher.founded_year && (
-                    <p className="text-xs text-muted-foreground mt-1">Est. {publisher.founded_year}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Founded: {publisher.founded_year}</p>
                   )}
                 </CardContent>
               </Card>
@@ -221,9 +205,7 @@ async function PublishersList({
             {page > 1 && (
               <PaginationItem>
                 <PaginationPrevious
-                  href={`/publishers?page=${page - 1}${search ? `&search=${search}` : ""}${
-                    location ? `&location=${location}` : ""
-                  }${sort ? `&sort=${sort}` : ""}`}
+                  href={`/publishers?page=${page - 1}${search ? `&search=${search}` : ""}${location ? `&location=${location}` : ""}${sort ? `&sort=${sort}` : ""}`}
                 />
               </PaginationItem>
             )}
@@ -236,9 +218,7 @@ async function PublishersList({
               return (
                 <PaginationItem key={pageNumber}>
                   <PaginationLink
-                    href={`/publishers?page=${pageNumber}${search ? `&search=${search}` : ""}${
-                      location ? `&location=${location}` : ""
-                    }${sort ? `&sort=${sort}` : ""}`}
+                    href={`/publishers?page=${pageNumber}${search ? `&search=${search}` : ""}${location ? `&location=${location}` : ""}${sort ? `&sort=${sort}` : ""}`}
                     isActive={pageNumber === page}
                   >
                     {pageNumber}
@@ -250,9 +230,7 @@ async function PublishersList({
             {page < totalPages && (
               <PaginationItem>
                 <PaginationNext
-                  href={`/publishers?page=${page + 1}${search ? `&search=${search}` : ""}${
-                    location ? `&location=${location}` : ""
-                  }${sort ? `&sort=${sort}` : ""}`}
+                  href={`/publishers?page=${page + 1}${search ? `&search=${search}` : ""}${location ? `&location=${location}` : ""}${sort ? `&sort=${sort}` : ""}`}
                 />
               </PaginationItem>
             )}
@@ -263,103 +241,38 @@ async function PublishersList({
   )
 }
 
-export default function PublishersPage({ searchParams }: PublishersPageProps) {
-  const page = Number(searchParams.page) || 1
-  const search = searchParams.search || ""
-  const location = searchParams.location || ""
-  const sort = searchParams.sort || "name_asc"
+export default async function PublishersPage({ searchParams }: PublishersPageProps) {
+  // Get all required data first
+  const [locationsList, params] = await Promise.all([
+    getUniqueLocations(),
+    Promise.resolve(searchParams)
+  ])
+
+  const page = params?.page ? parseInt(params.page) : 1
+  const search = params?.search
+  const location = params?.location
+  const sort = params?.sort
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <PageHeader />
-      <main className="flex-1 container py-8">
-        <div className="space-y-6">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <h1 className="text-3xl font-bold">Publishers</h1>
-
-            <div className="flex flex-col sm:flex-row w-full md:w-auto gap-4">
-              <div className="relative flex-1 sm:max-w-md">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <form>
-                  <Input
-                    type="search"
-                    name="search"
-                    placeholder="Search publishers..."
-                    className="pl-8"
-                    defaultValue={search}
-                  />
-                </form>
-              </div>
-
-              <div className="flex gap-2">
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <Button variant="outline" className="flex items-center gap-2">
-                      <Filter className="h-4 w-4" />
-                      <span>Filters</span>
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent>
-                    <SheetHeader>
-                      <SheetTitle>Filter Publishers</SheetTitle>
-                      <SheetDescription>Apply filters to narrow down the list of publishers.</SheetDescription>
-                    </SheetHeader>
-                    <form action="/publishers" className="py-4 space-y-6">
-                      {/* Hidden fields to preserve other params */}
-                      <input type="hidden" name="page" value="1" />
-                      {search && <input type="hidden" name="search" value={search} />}
-
-                      <div className="space-y-4">
-                        <Label htmlFor="location">Location</Label>
-                        <Select name="location" defaultValue={location}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="All locations" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All locations</SelectItem>
-                            <Suspense fallback={<SelectItem value="loading">Loading...</SelectItem>}>
-                              {/* This will be populated server-side */}
-                            </Suspense>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-4">
-                        <Label htmlFor="sort">Sort By</Label>
-                        <Select name="sort" defaultValue={sort}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Name (A-Z)" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="name_asc">Name (A-Z)</SelectItem>
-                            <SelectItem value="name_desc">Name (Z-A)</SelectItem>
-                            <SelectItem value="founded_year_asc">Founded Year (Oldest first)</SelectItem>
-                            <SelectItem value="founded_year_desc">Founded Year (Newest first)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <SheetFooter>
-                        <SheetClose asChild>
-                          <Button type="submit">Apply Filters</Button>
-                        </SheetClose>
-                      </SheetFooter>
-                    </form>
-                  </SheetContent>
-                </Sheet>
-
-                <Link href="/publishers/add">
-                  <Button>Add New Publisher</Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          <Suspense fallback={<div>Loading publishers...</div>}>
-            <PublishersList page={page} search={search} location={location} sort={sort} />
-          </Suspense>
-        </div>
-      </main>
+    <div className="container py-6 space-y-6">
+      <PageHeader
+        title="Publishers"
+        description="Browse and discover publishers from our collection."
+      />
+      <InteractiveControls
+        locations={locationsList}
+        search={search}
+        location={location}
+        sort={sort}
+      />
+      <Suspense fallback={<div>Loading...</div>}>
+        <PublishersList
+          page={page}
+          search={search}
+          location={location}
+          sort={sort}
+        />
+      </Suspense>
     </div>
   )
 }

@@ -6,22 +6,7 @@ let supabaseClientInstance: ReturnType<typeof createClientComponentClient<Databa
 
 export function getSupabaseClient() {
   if (!supabaseClientInstance) {
-    supabaseClientInstance = createClientComponentClient<Database>({
-      options: {
-        auth: {
-          persistSession: true,
-          storageKey: "authors-info-auth",
-        },
-        global: {
-          fetch: (url, options) => {
-            const controller = new AbortController()
-            const { signal } = controller
-            const timeoutId = setTimeout(() => controller.abort(), 15000)
-            return fetch(url, { ...options, signal }).finally(() => clearTimeout(timeoutId))
-          },
-        },
-      },
-    })
+    supabaseClientInstance = createClientComponentClient<Database>()
   }
   return supabaseClientInstance
 }

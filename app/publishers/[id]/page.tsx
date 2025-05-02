@@ -7,6 +7,7 @@ import { ClientPublisherPage } from "./client"
 import { PageHeader } from "@/components/page-header"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { getFollowers, getFollowersCount } from "@/lib/follows-server"
 
 interface PublisherPageProps {
   params: {
@@ -72,6 +73,17 @@ async function getPublisherBooks(publisherId: string) {
   }))
 }
 
+async function getPublisherFollowers(publisherId: string) {
+  try {
+    // Get first 50 followers
+    const { followers, count } = await getFollowers(publisherId, 'publisher', 1, 50)
+    return { followers, count }
+  } catch (error) {
+    console.error("Error fetching publisher followers:", error)
+    return { followers: [], count: 0 }
+  }
+}
+
 export default async function PublisherPage({ params }: { params: { id: string } }) {
   const id = await params.id
   // Get publisher data using the existing function
@@ -88,6 +100,9 @@ export default async function PublisherPage({ params }: { params: { id: string }
   // Get cover image URL (you can modify this based on your schema)
   const coverImageUrl = publisher.cover_image?.url || "/placeholder.svg?height=400&width=1200"
 
+  // Get publisher followers
+  const { followers, count: followersCount } = await getPublisherFollowers(id)
+
   return (
     <div className="publisher-page-container">
       <PageHeader
@@ -99,6 +114,8 @@ export default async function PublisherPage({ params }: { params: { id: string }
         publisherImageUrl={publisherImageUrl}
         coverImageUrl={coverImageUrl}
         params={params}
+        followers={followers}
+        followersCount={followersCount}
       />
     </div>
   )

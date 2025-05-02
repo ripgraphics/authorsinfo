@@ -36,16 +36,18 @@ interface ClientPublisherPageProps {
   params: {
     id: string
   }
+  followers?: any[]
+  followersCount?: number
 }
 
-export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUrl, params }: ClientPublisherPageProps) {
+export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUrl, params, followers = [], followersCount = 0 }: ClientPublisherPageProps) {
   const [activeTab, setActiveTab] = useState("timeline")
 
   // Mock data for the profile
   const mockName = publisher?.name || "Jane Reader"
   const mockUsername = publisher?.name ? publisher.name.replace(/\s+/g, "").toLowerCase() : "janereader"
   const mockBooksRead = 127
-  const mockFriendsCount = 248
+  const mockFriendsCount = followersCount || 248
   const mockLocation = "Portland, OR"
   const mockWebsite = mockUsername + ".com"
   const mockAbout =
@@ -335,10 +337,10 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                   Books
                 </TabsTrigger>
                 <TabsTrigger
-                  value="friends"
+                  value="followers"
                   className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none h-12"
                 >
-                  Friends
+                  Followers
                 </TabsTrigger>
                 <TabsTrigger
                   value="photos"
@@ -1163,17 +1165,17 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                 </div>
               </TabsContent>
 
-              {/* Friends Tab Content */}
-              <TabsContent value="friends" className="publisher-page__tabs-content">
+              {/* Followers Tab Content */}
+              <TabsContent value="followers" className="publisher-page__tabs-content">
                 <div className="space-y-6">
                   <Card className="rounded-lg border bg-card text-card-foreground shadow-sm">
                     <div className="flex flex-col space-y-1.5 p-6">
                       <div className="flex justify-between items-center">
                         <div className="text-2xl font-semibold leading-none tracking-tight">
-                          Friends · {mockFriendsCount}
+                          Followers · {followersCount}
                         </div>
                         <div className="flex items-center gap-2">
-                          <Input className="w-[200px]" placeholder="Search friends..." type="search" />
+                          <Input className="w-[200px]" placeholder="Search followers..." type="search" />
                           <Button variant="outline" size="icon">
                             <Filter className="h-4 w-4" />
                           </Button>
@@ -1182,53 +1184,33 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                     </div>
                     <CardContent className="p-6 pt-0">
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {mockFriendsTabData.map((friend) => (
-                          <div key={friend.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                            <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                              <img
-                                src={friend.avatar || "/placeholder.svg"}
-                                alt={friend.name}
-                                className="aspect-square h-full w-full"
-                              />
-                            </span>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-medium truncate">{friend.name}</h3>
-                              <p className="text-xs text-muted-foreground">{friend.location}</p>
-                              <p className="text-xs text-muted-foreground">{friend.mutualFriends} mutual friends</p>
-                            </div>
-                            <Button variant="ghost" size="icon">
-                              <Ellipsis className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="rounded-lg border bg-card text-card-foreground shadow-sm">
-                    <div className="flex flex-col space-y-1.5 p-6">
-                      <div className="text-2xl font-semibold leading-none tracking-tight">Friend Suggestions</div>
-                    </div>
-                    <CardContent className="p-6 pt-0">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {mockFriendSuggestions.map((friend) => (
-                          <div key={friend.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                            <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                              <img
-                                src={friend.avatar || "/placeholder.svg"}
-                                alt={friend.name}
-                                className="aspect-square h-full w-full"
-                              />
-                            </span>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-medium truncate">{friend.name}</h3>
-                              <p className="text-xs text-muted-foreground">{friend.mutualFriends} mutual friends</p>
-                              <Button className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3 mt-2">
-                                Add Friend
+                        {followers.length > 0 ? (
+                          followers.map((follower) => (
+                            <div key={follower.id} className="flex items-center gap-3 p-3 border rounded-lg">
+                              <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14 bg-muted">
+                                <img
+                                  src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(follower.name || 'User')}`}
+                                  alt={follower.name || 'User'}
+                                  className="aspect-square h-full w-full"
+                                />
+                              </span>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-medium truncate">{follower.name || 'Unknown User'}</h3>
+                                <p className="text-xs text-muted-foreground">{follower.email || 'No email available'}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Following since {follower.followSince ? new Date(follower.followSince).toLocaleDateString() : 'unknown date'}
+                                </p>
+                              </div>
+                              <Button variant="ghost" size="icon">
+                                <Ellipsis className="h-4 w-4" />
                               </Button>
                             </div>
+                          ))
+                        ) : (
+                          <div className="col-span-3 text-center p-6">
+                            <p className="text-muted-foreground">No followers yet</p>
                           </div>
-                        ))}
+                        )}
                       </div>
                     </CardContent>
                   </Card>

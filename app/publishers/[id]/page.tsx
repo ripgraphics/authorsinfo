@@ -68,6 +68,7 @@ async function getPublisherBooks(publisherId: string) {
     ...book,
     cover_image_url: book.cover_image?.[0]?.url || book.original_image_url || null,
     author_name: book.authors?.[0]?.name || "Unknown Author",
+    authorId: book.authors?.[0]?.id || null,
     binding: book.binding_type?.[0]?.name || null,
     format: book.format_type?.[0]?.name || null,
   }))
@@ -102,6 +103,15 @@ export default async function PublisherPage({ params }: { params: { id: string }
 
   // Get publisher followers
   const { followers, count: followersCount } = await getPublisherFollowers(id)
+  
+  // Get publisher books
+  const books = await getPublisherBooks(id)
+  
+  // Get total book count for this publisher
+  const { count: totalBooksCount } = await supabaseAdmin
+    .from("books")
+    .select("*", { count: 'exact', head: true })
+    .eq("publisher_id", id)
 
   return (
     <div className="publisher-page-container">
@@ -116,6 +126,8 @@ export default async function PublisherPage({ params }: { params: { id: string }
         params={params}
         followers={followers}
         followersCount={followersCount}
+        books={books}
+        booksCount={totalBooksCount || 0}
       />
     </div>
   )

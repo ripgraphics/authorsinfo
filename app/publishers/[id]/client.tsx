@@ -28,6 +28,7 @@ import {
   Filter,
   ChevronDown,
 } from "lucide-react"
+import { BookCard } from "@/components/book-card"
 
 interface ClientPublisherPageProps {
   publisher: any
@@ -38,9 +39,11 @@ interface ClientPublisherPageProps {
   }
   followers?: any[]
   followersCount?: number
+  books?: any[]
+  booksCount?: number
 }
 
-export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUrl, params, followers = [], followersCount = 0 }: ClientPublisherPageProps) {
+export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUrl, params, followers = [], followersCount = 0, books = [], booksCount = 0 }: ClientPublisherPageProps) {
   const [activeTab, setActiveTab] = useState("timeline")
 
   // Mock data for the profile
@@ -285,11 +288,11 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
               <div className="flex flex-wrap gap-x-6 gap-y-2 mt-4">
                 <div className="flex items-center text-muted-foreground">
                   <BookOpen className="h-4 w-4 mr-1" />
-                  <span>{mockBooksRead} books read</span>
+                  <span>{booksCount} books published</span>
                 </div>
                 <div className="flex items-center text-muted-foreground">
                   <Users className="h-4 w-4 mr-1" />
-                  <span>{mockFriendsCount} friends</span>
+                  <span>{followersCount} followers</span>
                 </div>
                 <div className="flex items-center text-muted-foreground">
                   <MapPin className="h-4 w-4 mr-1" />
@@ -848,89 +851,15 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                       <div className="p-4 border-b">
                         <h2 className="text-lg font-medium">Books</h2>
                       </div>
-                      <nav className="p-2">
-                        <a
-                          href="#currently-reading"
-                          className="flex items-center px-3 py-2 rounded-md hover:bg-muted text-primary"
-                        >
-                          Currently Reading
-                        </a>
-                        <a href="#favorite-books" className="flex items-center px-3 py-2 rounded-md hover:bg-muted">
-                          Favorite Books
-                        </a>
-                        <a href="#recently-read" className="flex items-center px-3 py-2 rounded-md hover:bg-muted">
-                          Recently Read
-                        </a>
-                        <a href="#bookshelves" className="flex items-center px-3 py-2 rounded-md hover:bg-muted">
-                          Bookshelves
-                        </a>
-                      </nav>
-                      <div className="p-4 border-t">
+                      <div className="p-4">
                         <div className="flex justify-between items-center mb-2">
-                          <h3 className="font-medium">Reading Stats</h3>
+                          <h3 className="font-medium">Publishing Stats</h3>
                         </div>
                         <div className="space-y-3">
                           <div>
                             <div className="flex justify-between text-sm mb-1">
-                              <span>Books Read</span>
-                              <span className="font-medium">127</span>
-                            </div>
-                            <div
-                              aria-valuemax={100}
-                              aria-valuemin={0}
-                              role="progressbar"
-                              data-state="indeterminate"
-                              data-max="100"
-                              className="relative w-full overflow-hidden rounded-full bg-secondary h-2"
-                            >
-                              <div
-                                data-state="indeterminate"
-                                data-max="100"
-                                className="h-full w-full flex-1 bg-primary transition-all"
-                                style={{ transform: "translateX(-36.5%)" }}
-                              ></div>
-                            </div>
-                          </div>
-                          <div>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span>To Read</span>
-                              <span className="font-medium">342</span>
-                            </div>
-                            <div
-                              aria-valuemax={100}
-                              aria-valuemin={0}
-                              role="progressbar"
-                              data-state="indeterminate"
-                              data-max="100"
-                              className="relative w-full overflow-hidden rounded-full bg-secondary h-2"
-                            >
-                              <div
-                                data-state="indeterminate"
-                                data-max="100"
-                                className="h-full w-full flex-1 bg-primary transition-all"
-                                style={{ transform: "translateX(-31.6%)" }}
-                              ></div>
-                            </div>
-                          </div>
-                          <div>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span>2023 Reading Goal</span>
-                              <span className="font-medium">24/50 books</span>
-                            </div>
-                            <div
-                              aria-valuemax={100}
-                              aria-valuemin={0}
-                              role="progressbar"
-                              data-state="indeterminate"
-                              data-max="100"
-                              className="relative w-full overflow-hidden rounded-full bg-secondary h-2"
-                            >
-                              <div
-                                data-state="indeterminate"
-                                data-max="100"
-                                className="h-full w-full flex-1 bg-primary transition-all"
-                                style={{ transform: "translateX(-52%)" }}
-                              ></div>
+                              <span>Books Published</span>
+                              <span className="font-medium">{booksCount}</span>
                             </div>
                           </div>
                         </div>
@@ -938,227 +867,32 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                     </div>
                   </div>
                   <div className="lg:col-span-2 space-y-6">
-                    <div className="rounded-lg border bg-card text-card-foreground shadow-sm" id="currently-reading">
+                    <div className="rounded-lg border bg-card text-card-foreground shadow-sm" id="published-books">
                       <div className="flex flex-col space-y-1.5 p-6">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">Currently Reading</div>
-                      </div>
-                      <div className="p-6 pt-0 space-y-6">
-                        <div className="flex gap-4 p-4 border rounded-lg">
-                          <div className="relative h-32 w-20 flex-shrink-0">
-                            <img
-                              src="/placeholder.svg?height=240&width=160"
-                              alt="The Name of the Wind"
-                              className="object-cover rounded-md"
-                            />
-                          </div>
-                          <div className="flex-1 space-y-2">
-                            <div>
-                              <h3 className="font-medium">The Name of the Wind</h3>
-                              <p className="text-sm text-muted-foreground">by Patrick Rothfuss</p>
-                            </div>
-                            <div className="space-y-1">
-                              <div className="flex justify-between text-sm">
-                                <span>Progress</span>
-                                <span>65%</span>
-                              </div>
-                              <div
-                                aria-valuemax={100}
-                                aria-valuemin={0}
-                                role="progressbar"
-                                data-state="indeterminate"
-                                data-max="100"
-                                className="relative w-full overflow-hidden rounded-full bg-secondary h-1.5"
-                              >
-                                <div
-                                  data-state="indeterminate"
-                                  data-max="100"
-                                  className="h-full w-full flex-1 bg-primary transition-all"
-                                  style={{ transform: "translateX(-35%)" }}
-                                ></div>
-                              </div>
-                            </div>
-                            <div className="flex space-x-2">
-                              <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3">
-                                Update Progress
-                              </Button>
-                              <Button variant="outline" className="h-9 rounded-md px-3">
-                                Finished
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex gap-4 p-4 border rounded-lg">
-                          <div className="relative h-32 w-20 flex-shrink-0">
-                            <img
-                              src="/placeholder.svg?height=240&width=160"
-                              alt="Project Hail Mary"
-                              className="object-cover rounded-md"
-                            />
-                          </div>
-                          <div className="flex-1 space-y-2">
-                            <div>
-                              <h3 className="font-medium">Project Hail Mary</h3>
-                              <p className="text-sm text-muted-foreground">by Andy Weir</p>
-                            </div>
-                            <div className="space-y-1">
-                              <div className="flex justify-between text-sm">
-                                <span>Progress</span>
-                                <span>23%</span>
-                              </div>
-                              <div
-                                aria-valuemax={100}
-                                aria-valuemin={0}
-                                role="progressbar"
-                                data-state="indeterminate"
-                                data-max="100"
-                                className="relative w-full overflow-hidden rounded-full bg-secondary h-1.5"
-                              >
-                                <div
-                                  data-state="indeterminate"
-                                  data-max="100"
-                                  className="h-full w-full flex-1 bg-primary transition-all"
-                                  style={{ transform: "translateX(-77%)" }}
-                                ></div>
-                              </div>
-                            </div>
-                            <div className="flex space-x-2">
-                              <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3">
-                                Update Progress
-                              </Button>
-                              <Button variant="outline" className="h-9 rounded-md px-3">
-                                Finished
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="rounded-lg border bg-card text-card-foreground shadow-sm" id="favorite-books">
-                      <div className="flex flex-col space-y-1.5 p-6">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">Favorite Books</div>
+                        <div className="text-2xl font-semibold leading-none tracking-tight">Published Books</div>
                       </div>
                       <div className="p-6 pt-0">
-                        <div className="space-y-6">
-                          <div className="flex gap-4 p-4 border rounded-lg">
-                            <div className="relative h-40 w-24 flex-shrink-0">
-                              <img
-                                src="/placeholder.svg?height=240&width=160"
-                                alt="The Way of Kings"
-                                className="object-cover rounded-md shadow-md hover:shadow-lg transition-shadow"
+                        {books.length > 0 ? (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                            {books.map((book) => (
+                              <BookCard
+                                key={book.id}
+                                id={book.id}
+                                title={book.title}
+                                coverImageUrl={book.cover_image_url}
+                                authorName={book.author_name}
+                                authorId={book.authorId}
+                                aspectRatio="portrait"
                               />
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="font-medium text-lg">The Way of Kings</h3>
-                              <p className="text-muted-foreground">by Brandon Sanderson</p>
-                              <div className="flex items-center mt-2 mb-3">
-                                <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
-                                <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
-                                <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
-                                <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
-                                <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
-                              </div>
-                              <p className="text-sm">
-                                Absolutely incredible world-building and character development. One of my all-time
-                                favorites.
-                              </p>
-                            </div>
+                            ))}
                           </div>
-                          <div className="flex gap-4 p-4 border rounded-lg">
-                            <div className="relative h-40 w-24 flex-shrink-0">
-                              <img
-                                src="/placeholder.svg?height=240&width=160"
-                                alt="Pride and Prejudice"
-                                className="object-cover rounded-md shadow-md hover:shadow-lg transition-shadow"
-                              />
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="font-medium text-lg">Pride and Prejudice</h3>
-                              <p className="text-muted-foreground">by Jane Austen</p>
-                              <div className="flex items-center mt-2 mb-3">
-                                <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
-                                <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
-                                <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
-                                <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
-                                <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
-                              </div>
-                              <p className="text-sm">A timeless classic that I return to again and again.</p>
-                            </div>
+                        ) : (
+                          <div className="text-center py-10">
+                            <Book className="mx-auto h-10 w-10 text-muted-foreground" />
+                            <h3 className="mt-2 text-lg font-medium">No books found</h3>
+                            <p className="mt-1 text-sm text-muted-foreground">This publisher hasn't published any books yet.</p>
                           </div>
-                          <div className="flex gap-4 p-4 border rounded-lg">
-                            <div className="relative h-40 w-24 flex-shrink-0">
-                              <img
-                                src="/placeholder.svg?height=240&width=160"
-                                alt="The Hitchhiker's Guide to the Galaxy"
-                                className="object-cover rounded-md shadow-md hover:shadow-lg transition-shadow"
-                              />
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="font-medium text-lg">The Hitchhiker&apos;s Guide to the Galaxy</h3>
-                              <p className="text-muted-foreground">by Douglas Adams</p>
-                              <div className="flex items-center mt-2 mb-3">
-                                <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
-                                <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
-                                <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
-                                <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
-                                <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
-                              </div>
-                              <p className="text-sm">
-                                Hilarious and thought-provoking. The perfect blend of sci-fi and comedy.
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="rounded-lg border bg-card text-card-foreground shadow-sm" id="recently-read">
-                      <div className="flex flex-col space-y-1.5 p-6">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">Recently Read</div>
-                      </div>
-                      <div className="p-6 pt-0">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="flex gap-3 p-3 border rounded-lg">
-                            <div className="relative h-24 w-16 flex-shrink-0">
-                              <img
-                                src="/placeholder.svg?height=240&width=160"
-                                alt="Circe"
-                                className="object-cover rounded-md"
-                              />
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="font-medium">Circe</h3>
-                              <p className="text-sm text-muted-foreground">by Madeline Miller</p>
-                              <div className="flex items-center mt-1">
-                                <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-                                <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-                                <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-                                <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-                                <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-                              </div>
-                              <p className="text-xs text-muted-foreground mt-1">Read in June 2023</p>
-                            </div>
-                          </div>
-                          <div className="flex gap-3 p-3 border rounded-lg">
-                            <div className="relative h-24 w-16 flex-shrink-0">
-                              <img
-                                src="/placeholder.svg?height=240&width=160"
-                                alt="The Invisible Life of Addie LaRue"
-                                className="object-cover rounded-md"
-                              />
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="font-medium">The Invisible Life of Addie LaRue</h3>
-                              <p className="text-sm text-muted-foreground">by V.E. Schwab</p>
-                              <div className="flex items-center mt-1">
-                                <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-                                <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-                                <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-                                <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-                                <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-                              </div>
-                              <p className="text-xs text-muted-foreground mt-1">Read in May 2023</p>
-                            </div>
-                          </div>
-                        </div>
+                        )}
                       </div>
                     </div>
                   </div>

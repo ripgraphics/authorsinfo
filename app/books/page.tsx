@@ -63,12 +63,12 @@ async function getPublicationYears() {
 
   if (sampleError || !bookSample || bookSample.length === 0) {
     console.error("Error fetching book sample:", sampleError)
-    return []
+    return { years: [], dateField: null }
   }
 
   // Check which date field exists in the sample
-  const sampleBook = bookSample[0]
-  let dateField = null
+  const sampleBook = bookSample[0] as Record<string, any>
+  let dateField: string | null = null
 
   // Check potential date field names
   if (sampleBook.publication_date !== undefined) {
@@ -85,7 +85,7 @@ async function getPublicationYears() {
 
   if (!dateField) {
     console.log("No date field found in books table. Sample book:", sampleBook)
-    return []
+    return { years: [], dateField: null }
   }
 
   // Now use the correct field to get the years
@@ -93,21 +93,21 @@ async function getPublicationYears() {
 
   if (error) {
     console.error(`Error fetching ${dateField}:`, error)
-    return []
+    return { years: [], dateField }
   }
 
   // Extract years from the date field
   const years = data
-    .map((item) => {
-      if (!item[dateField]) return null
+    .map((item: Record<string, any>) => {
+      if (!item[dateField!]) return null
 
       // If it's already a year (number or string representing a year)
-      if (typeof item[dateField] === "number" || /^\d{4}$/.test(item[dateField])) {
-        return String(item[dateField])
+      if (typeof item[dateField!] === "number" || /^\d{4}$/.test(String(item[dateField!]))) {
+        return String(item[dateField!])
       }
 
       // If it's a date string, extract the year
-      const match = String(item[dateField]).match(/(\d{4})/)
+      const match = String(item[dateField!]).match(/(\d{4})/)
       return match ? match[1] : null
     })
     .filter(Boolean)
@@ -189,7 +189,7 @@ async function BooksList({
   }
 
   // Process books to include cover image URL
-  const processedBooks = books.map((book) => {
+  const processedBooks = books.map((book: Record<string, any>) => {
     // Safely determine the cover image URL
     let coverImageUrl = null
     if (book.cover_image?.url) {
@@ -200,16 +200,26 @@ async function BooksList({
       coverImageUrl = book.original_image_url
     }
 
+    // Safely extract publication year
+    let publicationYear = null
+    if (dateField && book[dateField]) {
+      if (typeof book[dateField] === "number" || /^\d{4}$/.test(String(book[dateField]))) {
+        publicationYear = String(book[dateField])
+      } else {
+        const match = String(book[dateField]).match(/(\d{4})/)
+        if (match && match[1]) {
+          publicationYear = match[1]
+        }
+      }
+    }
+
     return {
-      ...book,
+      id: book.id,
+      title: book.title,
       cover_image_url: coverImageUrl,
-      publication_year: book[dateField]
-        ? typeof book[dateField] === "number" || /^\d{4}$/.test(book[dateField])
-          ? String(book[dateField])
-          : String(book[dateField]).match(/(\d{4})/)
-            ? String(book[dateField]).match(/(\d{4})/)[1]
-            : null
-        : null,
+      publication_year: publicationYear,
+      // Include other fields needed from the original book
+      ...book,
     }
   })
 
@@ -312,12 +322,15 @@ async function BooksList({
   )
 }
 
-export default function BooksPage({ searchParams }: BooksPageProps) {
-  const page = Number(searchParams.page) || 1
-  const search = searchParams.search || ""
-  const language = searchParams.language || ""
-  const year = searchParams.year || ""
-  const sort = searchParams.sort || "title_asc"
+export default async function BooksPage({ searchParams }: BooksPageProps) {
+  // Await searchParams before accessing its properties
+  const params = await searchParams;
+  
+  const page = Number(params.page) || 1
+  const search = params.search || ""
+  const language = params.language || ""
+  const year = params.year || ""
+  const sort = params.sort || "title_asc"
 
   return (
     <div className="min-h-screen flex flex-col">

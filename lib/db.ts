@@ -41,7 +41,14 @@ export class DB {
       return cached
     }
 
-    let q = this.supabase.from(table).select(options.select || '*', { count: options.count ? 'exact' : undefined })
+    // Convert string[] to comma-separated string for Supabase select
+    const selectValue = options.select 
+      ? Array.isArray(options.select) 
+        ? options.select.join(',') 
+        : options.select 
+      : '*'
+
+    let q = this.supabase.from(table).select(selectValue, { count: options.count ? 'exact' : undefined })
 
     // Handle date ranges and other special queries
     Object.entries(query).forEach(([key, value]) => {
@@ -49,7 +56,7 @@ export class DB {
         if ('gte' in value && 'lte' in value) {
           q = q.gte(key, value.gte).lte(key, value.lte)
         } else if ('ilike' in value) {
-          q = q.ilike(key, value.ilike)
+          q = q.ilike(key, value.ilike as string)
         } else if ('not' in value) {
           q = q.not(key, 'is', null)
         } else {

@@ -125,7 +125,11 @@ export default async function PublisherPage({ params }: { params: Promise<{ id: 
     <div className="publisher-page-container">
       <PageHeader
         title={publisher.name}
-        description={publisher.about || "Publisher details"}
+        description={publisher.about ? 
+          (publisher.about.length > 150 ? 
+            `${publisher.about.substring(0, 150)}...` : 
+            publisher.about) : 
+          "Publisher details"}
       />
       <ClientPublisherPage
         publisher={publisher}

@@ -41,17 +41,14 @@ async function getPublisher(id: string) {
 }
 
 async function getPublisherBooks(publisherId: string) {
+  // This query should match the query structure used in the books page
   const { data: books, error } = await supabaseAdmin
     .from("books")
     .select(`
       id,
       title,
       cover_image:cover_image_id(id, url, alt_text),
-      original_image_url,
-      author_id,
-      authors:author_id(id, name),
-      binding_type:binding_type_id(id, name),
-      format_type:format_type_id(id, name)
+      original_image_url
     `)
     .eq("publisher_id", publisherId)
     .order("title")
@@ -62,16 +59,25 @@ async function getPublisherBooks(publisherId: string) {
     return []
   }
 
-  // Supabase join returns arrays for related fields, so cast to any[] and index
+  // Process books to include cover image URL - same approach as books page
   const bookRows = (books ?? []) as any[]
-  return bookRows.map((book) => ({
-    ...book,
-    cover_image_url: book.cover_image?.[0]?.url || book.original_image_url || null,
-    author_name: book.authors?.[0]?.name || "Unknown Author",
-    authorId: book.authors?.[0]?.id || null,
-    binding: book.binding_type?.[0]?.name || null,
-    format: book.format_type?.[0]?.name || null,
-  }))
+  return bookRows.map((book) => {
+    // Determine the cover image URL exactly like the books page does
+    let coverImageUrl = null
+    if (book.cover_image?.url) {
+      coverImageUrl = book.cover_image.url
+    } else if (book.cover_image_url) {
+      coverImageUrl = book.cover_image_url
+    } else if (book.original_image_url) {
+      coverImageUrl = book.original_image_url
+    }
+
+    return {
+      id: book.id,
+      title: book.title,
+      cover_image_url: coverImageUrl
+    }
+  })
 }
 
 async function getPublisherFollowers(publisherId: string) {
@@ -86,7 +92,7 @@ async function getPublisherFollowers(publisherId: string) {
 }
 
 export default async function PublisherPage({ params }: { params: { id: string } }) {
-  const id = await params.id
+  const id = params.id
   // Get publisher data using the existing function
   const publisher = await getPublisher(id)
 

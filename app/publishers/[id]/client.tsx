@@ -29,6 +29,7 @@ import {
   ChevronDown,
 } from "lucide-react"
 import { BookCard } from "@/components/book-card"
+import Image from "next/image"
 
 interface ClientPublisherPageProps {
   publisher: any
@@ -845,58 +846,35 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
 
               {/* Books Tab Content */}
               <TabsContent value="books" className="publisher-page__tabs-content">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-1">
-                    <div className="bg-white rounded-lg shadow overflow-hidden sticky top-20">
-                      <div className="p-4 border-b">
-                        <h2 className="text-lg font-medium">Books</h2>
-                      </div>
-                      <div className="p-4">
-                        <div className="flex justify-between items-center mb-2">
-                          <h3 className="font-medium">Publishing Stats</h3>
-                        </div>
-                        <div className="space-y-3">
-                          <div>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span>Books Published</span>
-                              <span className="font-medium">{booksCount}</span>
-                            </div>
-                          </div>
-                        </div>
+                <Card className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                  <div className="flex flex-col space-y-1.5 p-6">
+                    <div className="flex justify-between items-center">
+                      <div className="text-2xl font-semibold leading-none tracking-tight">
+                        Published Books · {booksCount}
                       </div>
                     </div>
                   </div>
-                  <div className="lg:col-span-2 space-y-6">
-                    <div className="rounded-lg border bg-card text-card-foreground shadow-sm" id="published-books">
-                      <div className="flex flex-col space-y-1.5 p-6">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">Published Books</div>
+                  <CardContent className="p-6 pt-0">
+                    {books && books.length > 0 ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+                        {books.map((book) => (
+                          <BookCard
+                            key={book.id}
+                            id={book.id.toString()}
+                            title={book.title}
+                            coverImageUrl={book.cover_image_url}
+                          />
+                        ))}
                       </div>
-                      <div className="p-6 pt-0">
-                        {books.length > 0 ? (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                            {books.map((book) => (
-                              <BookCard
-                                key={book.id}
-                                id={book.id}
-                                title={book.title}
-                                coverImageUrl={book.cover_image_url}
-                                authorName={book.author_name}
-                                authorId={book.authorId}
-                                aspectRatio="portrait"
-                              />
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-center py-10">
-                            <Book className="mx-auto h-10 w-10 text-muted-foreground" />
-                            <h3 className="mt-2 text-lg font-medium">No books found</h3>
-                            <p className="mt-1 text-sm text-muted-foreground">This publisher hasn't published any books yet.</p>
-                          </div>
-                        )}
+                    ) : (
+                      <div className="text-center py-10">
+                        <BookOpen className="mx-auto h-10 w-10 text-muted-foreground" />
+                        <h3 className="mt-2 text-lg font-medium">No books found</h3>
+                        <p className="mt-1 text-sm text-muted-foreground">This publisher hasn't published any books yet.</p>
                       </div>
-                    </div>
-                  </div>
-                </div>
+                    )}
+                  </CardContent>
+                </Card>
               </TabsContent>
 
               {/* Followers Tab Content */}

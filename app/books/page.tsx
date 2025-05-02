@@ -27,6 +27,7 @@ import {
   SheetClose,
 } from "@/components/ui/sheet"
 import { Label } from "@/components/ui/label"
+import { BookCard } from "@/components/book-card"
 
 interface BooksPageProps {
   searchParams: {
@@ -249,31 +250,12 @@ async function BooksList({
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
         {processedBooks.length > 0 ? (
           processedBooks.map((book) => (
-            <Link href={`/books/${book.id}`} key={book.id} className="block">
-              <Card className="overflow-hidden h-full transition-transform hover:scale-105">
-                {/* Image container with 2:3 aspect ratio */}
-                <div className="relative w-full" style={{ aspectRatio: "2/3" }}>
-                  {book.cover_image_url ? (
-                    <Image
-                      src={book.cover_image_url || "/placeholder.svg"}
-                      alt={book.cover_image?.alt_text || book.title}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-muted flex items-center justify-center">
-                      <BookOpen className="h-12 w-12 text-muted-foreground" />
-                    </div>
-                  )}
-                </div>
-                <div className="p-3 text-center">
-                  <h3 className="font-medium text-sm line-clamp-1">{book.title}</h3>
-                  {book.publication_year && (
-                    <p className="text-xs text-muted-foreground mt-1">{book.publication_year}</p>
-                  )}
-                </div>
-              </Card>
-            </Link>
+            <BookCard
+              key={book.id}
+              id={book.id.toString()}
+              title={book.title}
+              coverImageUrl={book.cover_image_url}
+            />
           ))
         ) : (
           <div className="col-span-full text-center py-12">

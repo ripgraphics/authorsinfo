@@ -2,8 +2,8 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect, useRef } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
@@ -26,6 +26,14 @@ interface PublisherEditPageProps {
 
 export default function PublisherEditPage({ params }: PublisherEditPageProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const section = searchParams.get('section')
+  
+  // Add refs for each section
+  const overviewRef = useRef<HTMLDivElement>(null)
+  const contactRef = useRef<HTMLDivElement>(null)
+  const locationRef = useRef<HTMLDivElement>(null)
+  
   const [publisher, setPublisher] = useState<Publisher | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -85,6 +93,36 @@ export default function PublisherEditPage({ params }: PublisherEditPageProps) {
 
     fetchPublisher()
   }, [params.id])
+
+  // Scroll to the specific section when the component mounts and data is loaded
+  useEffect(() => {
+    if (!loading && section) {
+      setTimeout(() => {
+        let targetRef = null
+        
+        switch (section) {
+          case 'overview':
+            targetRef = overviewRef.current
+            break
+          case 'contact':
+            targetRef = contactRef.current
+            break
+          case 'location':
+            targetRef = locationRef.current
+            break
+        }
+        
+        if (targetRef) {
+          targetRef.scrollIntoView({ behavior: 'smooth' })
+          // Add a highlight effect
+          targetRef.classList.add('ring-2', 'ring-primary', 'ring-opacity-50')
+          setTimeout(() => {
+            targetRef.classList.remove('ring-2', 'ring-primary', 'ring-opacity-50')
+          }, 2000)
+        }
+      }, 500) // Short delay to ensure the component is fully rendered
+    }
+  }, [loading, section])
 
   // Handle logo image change
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -254,179 +292,178 @@ export default function PublisherEditPage({ params }: PublisherEditPageProps) {
           )}
 
           {successMessage && (
-            <Alert className="mb-6 bg-green-50 border-green-200">
-              <AlertDescription className="text-green-800">{successMessage}</AlertDescription>
+            <Alert className="mb-6 bg-green-50 text-green-800 border-green-200">
+              <AlertDescription>{successMessage}</AlertDescription>
             </Alert>
           )}
 
           <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Publisher Images */}
-              <div>
-                <Card className="mb-6">
-                  <CardHeader>
-                    <CardTitle>Logo</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="w-full aspect-square relative mb-4 bg-gray-100 rounded-md overflow-hidden">
-                      {logoPreview ? (
-                        <Image
-                          src={logoPreview || "/placeholder.svg"}
-                          alt={publisher.name}
-                          fill
-                          className="object-contain"
-                        />
-                      ) : publisher.publisher_image?.url ? (
-                        <Image
-                          src={publisher.publisher_image.url || "/placeholder.svg"}
-                          alt={publisher.name}
-                          fill
-                          className="object-contain"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Building className="h-16 w-16 text-muted-foreground" />
-                        </div>
-                      )}
-                    </div>
-                    <Input id="logo-upload" type="file" accept="image/*" onChange={handleLogoChange} />
-                    <p className="text-xs text-muted-foreground mt-1">Upload a logo image for the publisher.</p>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Cover Image</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="w-full aspect-[3/1] relative mb-4 bg-gray-100 rounded-md overflow-hidden">
-                      {coverPreview ? (
-                        <Image
-                          src={coverPreview || "/placeholder.svg"}
-                          alt={`${publisher.name} cover`}
-                          fill
-                          className="object-cover"
-                        />
-                      ) : publisher.cover_image?.url ? (
-                        <Image
-                          src={publisher.cover_image.url || "/placeholder.svg"}
-                          alt={`${publisher.name} cover`}
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Building className="h-16 w-16 text-muted-foreground" />
-                        </div>
-                      )}
-                    </div>
-                    <Input id="cover-upload" type="file" accept="image/*" onChange={handleCoverChange} />
-                    <p className="text-xs text-muted-foreground mt-1">Upload a cover image for the publisher's page.</p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Publisher Details Form */}
-              <div className="md:col-span-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Publisher Information</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {/* Basic Information */}
-                    <div>
-                      <Label htmlFor="name">Name</Label>
-                      <Input id="name" name="name" defaultValue={publisher.name} required />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="founded_year">Founded Year</Label>
-                      <Input
-                        id="founded_year"
-                        name="founded_year"
-                        type="number"
-                        defaultValue={publisher.founded_year?.toString() || ""}
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="website">Website</Label>
-                      <Input id="website" name="website" defaultValue={publisher.website || ""} />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="email">Email</Label>
-                        <Input id="email" name="email" defaultValue={publisher.email || ""} />
-                      </div>
-                      <div>
-                        <Label htmlFor="phone">Phone</Label>
-                        <Input id="phone" name="phone" defaultValue={publisher.phone || ""} />
-                      </div>
-                    </div>
-
-                    {/* Address Information */}
-                    <div>
-                      <Label htmlFor="address_line1">Address Line 1</Label>
-                      <Input id="address_line1" name="address_line1" defaultValue={publisher.address_line1 || ""} />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="address_line2">Address Line 2</Label>
-                      <Input id="address_line2" name="address_line2" defaultValue={publisher.address_line2 || ""} />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="city">City</Label>
-                        <Input id="city" name="city" defaultValue={publisher.city || ""} />
-                      </div>
-                      <div>
-                        <Label htmlFor="state">State/Province</Label>
-                        <Input id="state" name="state" defaultValue={publisher.state || ""} />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="postal_code">Postal Code</Label>
-                        <Input id="postal_code" name="postal_code" defaultValue={publisher.postal_code || ""} />
-                      </div>
-                      <div>
-                        <Label htmlFor="country">Country</Label>
-                        <CountrySelect value={countryId} onChange={setCountryId} placeholder="Select country" />
-                      </div>
-                    </div>
-
-                    {/* About */}
-                    <div>
-                      <Label htmlFor="about">About</Label>
-                      <Textarea
-                        id="about"
-                        name="about"
-                        rows={8}
-                        defaultValue={publisher.about || ""}
-                        placeholder="Enter information about the publisher..."
-                      />
-                    </div>
-
-                    <div className="flex justify-end gap-4 pt-4">
-                      <Button type="button" variant="outline" onClick={() => router.push(`/publishers/${params.id}`)}>
-                        Cancel
-                      </Button>
-                      <Button type="submit" disabled={saving}>
-                        {saving ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Saving...
-                          </>
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Publisher Images</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Logo upload section */}
+                  <div>
+                    <Label htmlFor="logo">Logo</Label>
+                    <div className="mt-2 flex items-center gap-4">
+                      <div className="relative h-32 w-32 overflow-hidden rounded-md border">
+                        {logoPreview ? (
+                          <Image src={logoPreview} alt="Publisher logo" fill className="object-cover" />
                         ) : (
-                          "Save Changes"
+                          <div className="flex h-full w-full items-center justify-center bg-secondary">
+                            <Building className="h-12 w-12 text-muted-foreground" />
+                          </div>
                         )}
-                      </Button>
+                      </div>
+                      <Input
+                        id="logo"
+                        name="logo"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleLogoChange}
+                        className="max-w-xs"
+                      />
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+
+                  {/* Cover image upload section */}
+                  <div>
+                    <Label htmlFor="cover">Cover Image</Label>
+                    <div className="mt-2 flex flex-col gap-4">
+                      <div className="relative h-48 w-full overflow-hidden rounded-md border">
+                        {coverPreview ? (
+                          <Image
+                            src={coverPreview}
+                            alt="Publisher cover"
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-secondary">
+                            <span className="text-muted-foreground">No cover image</span>
+                          </div>
+                        )}
+                      </div>
+                      <Input
+                        id="cover"
+                        name="cover"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCoverChange}
+                        className="max-w-xs"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Overview Section */}
+              <Card ref={overviewRef}>
+                <CardHeader>
+                  <CardTitle>Overview</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="name">Publisher Name</Label>
+                    <Input id="name" name="name" defaultValue={publisher.name || ""} required />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="founded_year">Founded Year</Label>
+                    <Input
+                      id="founded_year"
+                      name="founded_year"
+                      type="number"
+                      defaultValue={publisher.founded_year?.toString() || ""}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="website">Website</Label>
+                    <Input id="website" name="website" type="url" defaultValue={publisher.website || ""} />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="about">About</Label>
+                    <Textarea
+                      id="about"
+                      name="about"
+                      rows={8}
+                      defaultValue={publisher.about || ""}
+                      placeholder="Enter information about the publisher..."
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Contact Information Section */}
+              <Card ref={contactRef}>
+                <CardHeader>
+                  <CardTitle>Contact Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="email">Email</Label>
+                    <Input id="email" name="email" type="email" defaultValue={publisher.email || ""} />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input id="phone" name="phone" defaultValue={publisher.phone || ""} />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Location Section */}
+              <Card ref={locationRef}>
+                <CardHeader>
+                  <CardTitle>Location</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="address_line1">Address Line 1</Label>
+                    <Input id="address_line1" name="address_line1" defaultValue={publisher.address_line1 || ""} />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="address_line2">Address Line 2</Label>
+                    <Input id="address_line2" name="address_line2" defaultValue={publisher.address_line2 || ""} />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="city">City</Label>
+                      <Input id="city" name="city" defaultValue={publisher.city || ""} />
+                    </div>
+                    <div>
+                      <Label htmlFor="state">State/Province</Label>
+                      <Input id="state" name="state" defaultValue={publisher.state || ""} />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="postal_code">Postal Code</Label>
+                      <Input id="postal_code" name="postal_code" defaultValue={publisher.postal_code || ""} />
+                    </div>
+                    <div>
+                      <Label htmlFor="country">Country</Label>
+                      <CountrySelect value={countryId} onChange={setCountryId} placeholder="Select country" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="flex gap-4 justify-end">
+                <Button type="button" variant="outline" onClick={() => router.back()}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={saving}>
+                  {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Save Changes
+                </Button>
               </div>
             </div>
           </form>

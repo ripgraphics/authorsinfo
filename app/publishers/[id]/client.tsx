@@ -27,9 +27,17 @@ import {
   Ellipsis,
   Filter,
   ChevronDown,
+  Building,
 } from "lucide-react"
 import { BookCard } from "@/components/book-card"
 import Image from "next/image"
+import { 
+  AboutNavigation, 
+  OverviewSection, 
+  ContactSection, 
+  LocationSection, 
+  BooksSection 
+} from "./components/AboutSections"
 
 interface ClientPublisherPageProps {
   publisher: any
@@ -626,220 +634,17 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
               <TabsContent value="about" className="publisher-page__tabs-content">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="lg:col-span-1">
-                    <div className="bg-white rounded-lg shadow overflow-hidden sticky top-20">
-                      <div className="p-4 border-b">
-                        <h2 className="text-lg font-medium">About</h2>
-                      </div>
-                      <nav className="p-2">
-                        <a
-                          href="#overview"
-                          className="flex items-center px-3 py-2 rounded-md hover:bg-muted text-primary"
-                        >
-                          Overview
-                        </a>
-                        <a href="#work-education" className="flex items-center px-3 py-2 rounded-md hover:bg-muted">
-                          Work and Education
-                        </a>
-                        <a href="#contact-info" className="flex items-center px-3 py-2 rounded-md hover:bg-muted">
-                          Contact Information
-                        </a>
-                        <a href="#interests" className="flex items-center px-3 py-2 rounded-md hover:bg-muted">
-                          Interests
-                        </a>
-                        <a href="#favorite-quotes" className="flex items-center px-3 py-2 rounded-md hover:bg-muted">
-                          Favorite Quotes
-                        </a>
-                      </nav>
-                    </div>
+                    <AboutNavigation />
                   </div>
-                  <div className="lg:col-span-2 space-y-6">
-                    <div className="rounded-lg border bg-card text-card-foreground shadow-sm" id="overview">
-                      <div className="flex flex-col space-y-1.5 p-6">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">Overview</div>
-                      </div>
-                      <div className="p-6 pt-0 space-y-4">
-                        <p className="text-muted-foreground">
-                          Book lover, coffee addict, and aspiring writer. I read mostly fantasy, sci-fi, and literary
-                          fiction.
-                        </p>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="flex items-start gap-3">
-                            <Globe className="h-5 w-5 text-muted-foreground mt-0.5" />
-                            <div>
-                              <h3 className="font-medium">Website</h3>
-                              <a
-                                href="https://janereader.com"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-primary hover:underline"
-                              >
-                                janereader.com
-                              </a>
-                            </div>
-                          </div>
-                          <div className="flex items-start gap-3">
-                            <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
-                            <div>
-                              <h3 className="font-medium">Joined</h3>
-                              <p className="text-muted-foreground">March 2020</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="rounded-lg border bg-card text-card-foreground shadow-sm" id="work-education">
-                      <div className="flex flex-col space-y-1.5 p-6">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">Work and Education</div>
-                      </div>
-                      <div className="p-6 pt-0 space-y-6">
-                        <div>
-                          <h3 className="font-medium text-lg mb-3 flex items-center">
-                            <Globe className="h-5 w-5 mr-2 text-muted-foreground" />
-                            Work
-                          </h3>
-                          <div className="space-y-4">
-                            <div className="flex items-start gap-3">
-                              <div className="bg-muted h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0">
-                                <Globe className="h-5 w-5 text-muted-foreground" />
-                              </div>
-                              <div>
-                                <h4 className="font-medium">Book Specialist</h4>
-                                <p className="text-muted-foreground">Powell&apos;s Books</p>
-                                <p className="text-sm text-muted-foreground">2018-Present</p>
-                              </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                              <div className="bg-muted h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0">
-                                <Globe className="h-5 w-5 text-muted-foreground" />
-                              </div>
-                              <div>
-                                <h4 className="font-medium">Assistant Librarian</h4>
-                                <p className="text-muted-foreground">Portland Library</p>
-                                <p className="text-sm text-muted-foreground">2016-2018</p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-lg mb-3 flex items-center">
-                            <Globe className="h-5 w-5 mr-2 text-muted-foreground" />
-                            Education
-                          </h3>
-                          <div className="space-y-4">
-                            <div className="flex items-start gap-3">
-                              <div className="bg-muted h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0">
-                                <Globe className="h-5 w-5 text-muted-foreground" />
-                              </div>
-                              <div>
-                                <h4 className="font-medium">University of Oregon</h4>
-                                <p className="text-muted-foreground">Bachelor of Arts in English Literature</p>
-                                <p className="text-sm text-muted-foreground">2012-2016</p>
-                              </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                              <div className="bg-muted h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0">
-                                <Globe className="h-5 w-5 text-muted-foreground" />
-                              </div>
-                              <div>
-                                <h4 className="font-medium">Portland Community College</h4>
-                                <p className="text-muted-foreground">Associate&apos;s Degree in Creative Writing</p>
-                                <p className="text-sm text-muted-foreground">2010-2012</p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="rounded-lg border bg-card text-card-foreground shadow-sm" id="contact-info">
-                      <div className="flex flex-col space-y-1.5 p-6">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">Contact Information</div>
-                      </div>
-                      <div className="p-6 pt-0">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="flex items-start gap-3">
-                            <Globe className="h-5 w-5 text-muted-foreground mt-0.5" />
-                            <div>
-                              <h3 className="font-medium">Email</h3>
-                              <a href="mailto:jane.reader@example.com" className="text-primary hover:underline">
-                                jane.reader@example.com
-                              </a>
-                            </div>
-                          </div>
-                          <div className="flex items-start gap-3">
-                            <Globe className="h-5 w-5 text-muted-foreground mt-0.5" />
-                            <div>
-                              <h3 className="font-medium">Phone</h3>
-                              <p className="text-muted-foreground">(503) 555-1234</p>
-                            </div>
-                          </div>
-                          <div className="flex items-start gap-3">
-                            <Globe className="h-5 w-5 text-muted-foreground mt-0.5" />
-                            <div>
-                              <h3 className="font-medium">Website</h3>
-                              <a
-                                href="https://janereader.com"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-primary hover:underline"
-                              >
-                                janereader.com
-                              </a>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="rounded-lg border bg-card text-card-foreground shadow-sm" id="interests">
-                      <div className="flex flex-col space-y-1.5 p-6">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">Interests</div>
-                      </div>
-                      <div className="p-6 pt-0">
-                        <div className="flex flex-wrap gap-2">
-                          <div className="inline-flex items-center rounded-full border font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 px-3 py-1 text-sm">
-                            Fantasy Fiction
-                          </div>
-                          <div className="inline-flex items-center rounded-full border font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 px-3 py-1 text-sm">
-                            Science Fiction
-                          </div>
-                          <div className="inline-flex items-center rounded-full border font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 px-3 py-1 text-sm">
-                            Literary Criticism
-                          </div>
-                          <div className="inline-flex items-center rounded-full border font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 px-3 py-1 text-sm">
-                            Book Clubs
-                          </div>
-                          <div className="inline-flex items-center rounded-full border font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 px-3 py-1 text-sm">
-                            Writing
-                          </div>
-                          <div className="inline-flex items-center rounded-full border font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 px-3 py-1 text-sm">
-                            Coffee
-                          </div>
-                          <div className="inline-flex items-center rounded-full border font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 px-3 py-1 text-sm">
-                            Hiking
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="rounded-lg border bg-card text-card-foreground shadow-sm" id="favorite-quotes">
-                      <div className="flex flex-col space-y-1.5 p-6">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">Favorite Quotes</div>
-                      </div>
-                      <div className="p-6 pt-0">
-                        <div className="space-y-4">
-                          <div className="border-l-4 border-muted pl-4 italic">
-                            <p className="text-muted-foreground">
-                              A reader lives a thousand lives before he dies. The man who never reads lives only one. -
-                              George R.R. Martin
-                            </p>
-                          </div>
-                          <div className="border-l-4 border-muted pl-4 italic">
-                            <p className="text-muted-foreground">Books are a uniquely portable magic. - Stephen King</p>
-                          </div>
-                          <div className="border-l-4 border-muted pl-4 italic">
-                            <p className="text-muted-foreground">I cannot live without books. - Thomas Jefferson</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                  <div className="lg:col-span-2">
+                    <OverviewSection publisher={publisher} />
+                    <ContactSection publisher={publisher} />
+                    <LocationSection publisher={publisher} />
+                    <BooksSection 
+                      books={books} 
+                      booksCount={booksCount} 
+                      onViewAllBooks={() => setActiveTab("books")} 
+                    />
                   </div>
                 </div>
               </TabsContent>

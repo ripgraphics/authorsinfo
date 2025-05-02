@@ -91,8 +91,10 @@ async function getPublisherFollowers(publisherId: string) {
   }
 }
 
-export default async function PublisherPage({ params }: { params: { id: string } }) {
-  const id = params.id
+export default async function PublisherPage({ params }: { params: Promise<{ id: string }> }) {
+  // Wait for params to be properly resolved
+  const { id } = await params
+  
   // Get publisher data using the existing function
   const publisher = await getPublisher(id)
 
@@ -129,7 +131,7 @@ export default async function PublisherPage({ params }: { params: { id: string }
         publisher={publisher}
         publisherImageUrl={publisherImageUrl}
         coverImageUrl={coverImageUrl}
-        params={params}
+        params={{ id }}
         followers={followers}
         followersCount={followersCount}
         books={books}

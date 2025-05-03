@@ -1,7 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Building, Globe, MapPin, Edit2 } from "lucide-react"
+import { Building, Globe, MapPin, Edit2, Settings } from "lucide-react"
 import { BookCard } from "@/components/book-card"
+import { useState, useRef, useEffect } from "react"
+import { EditSectionModal } from "./EditSectionModal"
 import Link from "next/link"
 
 interface PublisherData {
@@ -32,23 +34,65 @@ interface BookData {
 }
 
 // Overview Section
-export function OverviewSection({ publisher }: { publisher: PublisherData }) {
+export function OverviewSection({ publisher, onRefresh }: { publisher: PublisherData, onRefresh?: () => void }) {
+  const [expanded, setExpanded] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  
+  const handleRefresh = () => {
+    setRefreshKey(prev => prev + 1);
+    if (onRefresh) onRefresh();
+  };
+  
+  // Function to count approx lines based on character count and average line length
+  const countApproxLines = (text: string) => {
+    const avgCharsPerLine = 80; // Approximate average characters per line
+    return Math.ceil(text.length / avgCharsPerLine);
+  };
+  
+  const hasLongContent = publisher.about && countApproxLines(publisher.about) > 20;
+  
   return (
-    <Card className="mb-6" id="overview">
+    <Card className="mb-6" id="overview" key={`overview-${refreshKey}`}>
       <div className="flex flex-col space-y-1.5 p-6 border-b">
         <div className="flex justify-between items-center">
           <h3 className="text-xl font-semibold">Overview</h3>
-          <Link href={`/publishers/${publisher.id}/edit?section=overview`}>
-            <Button variant="ghost" size="sm" className="h-8 gap-1">
-              <Edit2 className="h-4 w-4" />
-              <span>Edit</span>
-            </Button>
-          </Link>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-8 gap-1"
+            onClick={() => setIsEditModalOpen(true)}
+          >
+            <Edit2 className="h-4 w-4" />
+            <span>Edit</span>
+          </Button>
         </div>
       </div>
       <CardContent className="p-6 space-y-4">
         {publisher.about ? (
-          <p className="text-base">{publisher.about}</p>
+          <div className="space-y-2">
+            <div className="relative">
+              <div 
+                className={`whitespace-pre-wrap text-base ${!expanded && hasLongContent ? "line-clamp-20 overflow-hidden" : ""}`}
+                style={{ maxHeight: !expanded && hasLongContent ? '500px' : 'none', overflow: !expanded && hasLongContent ? 'hidden' : 'visible' }}
+              >
+                {publisher.about}
+              </div>
+              {!expanded && hasLongContent && (
+                <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent"></div>
+              )}
+            </div>
+            {hasLongContent && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="text-xs mt-2"
+                onClick={() => setExpanded(!expanded)}
+              >
+                {expanded ? "View Less" : "View More"}
+              </Button>
+            )}
+          </div>
         ) : (
           <p className="text-muted-foreground italic">No overview information available.</p>
         )}
@@ -70,23 +114,47 @@ export function OverviewSection({ publisher }: { publisher: PublisherData }) {
           </div>
         )}
       </CardContent>
+      
+      <EditSectionModal
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        section="overview"
+        publisherId={publisher.id || ""}
+        initialData={{
+          about: publisher.about,
+          founded_year: publisher.founded_year,
+          website: publisher.website
+        }}
+        onSuccess={handleRefresh}
+      />
     </Card>
   )
 }
 
 // Contact Information Section
-export function ContactSection({ publisher }: { publisher: PublisherData }) {
+export function ContactSection({ publisher, onRefresh }: { publisher: PublisherData, onRefresh?: () => void }) {
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  
+  const handleRefresh = () => {
+    setRefreshKey(prev => prev + 1);
+    if (onRefresh) onRefresh();
+  };
+  
   return (
-    <Card className="mb-6" id="contact-info">
+    <Card className="mb-6" id="contact-info" key={`contact-${refreshKey}`}>
       <div className="flex flex-col space-y-1.5 p-6 border-b">
         <div className="flex justify-between items-center">
           <h3 className="text-xl font-semibold">Contact Information</h3>
-          <Link href={`/publishers/${publisher.id}/edit?section=contact`}>
-            <Button variant="ghost" size="sm" className="h-8 gap-1">
-              <Edit2 className="h-4 w-4" />
-              <span>Edit</span>
-            </Button>
-          </Link>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-8 gap-1"
+            onClick={() => setIsEditModalOpen(true)}
+          >
+            <Edit2 className="h-4 w-4" />
+            <span>Edit</span>
+          </Button>
         </div>
       </div>
       <CardContent className="p-6">
@@ -109,12 +177,32 @@ export function ContactSection({ publisher }: { publisher: PublisherData }) {
           )}
         </div>
       </CardContent>
+      
+      <EditSectionModal
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        section="contact"
+        publisherId={publisher.id || ""}
+        initialData={{
+          email: publisher.email,
+          phone: publisher.phone
+        }}
+        onSuccess={handleRefresh}
+      />
     </Card>
   )
 }
 
 // Location Section
-export function LocationSection({ publisher }: { publisher: PublisherData }) {
+export function LocationSection({ publisher, onRefresh }: { publisher: PublisherData, onRefresh?: () => void }) {
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  
+  const handleRefresh = () => {
+    setRefreshKey(prev => prev + 1);
+    if (onRefresh) onRefresh();
+  };
+  
   // Format location with state and country code when available
   const formatLocation = () => {
     const parts = [];
@@ -147,16 +235,19 @@ export function LocationSection({ publisher }: { publisher: PublisherData }) {
   };
 
   return (
-    <Card className="mb-6" id="location">
+    <Card className="mb-6" id="location" key={`location-${refreshKey}`}>
       <div className="flex flex-col space-y-1.5 p-6 border-b">
         <div className="flex justify-between items-center">
           <h3 className="text-xl font-semibold">Location</h3>
-          <Link href={`/publishers/${publisher.id}/edit?section=location`}>
-            <Button variant="ghost" size="sm" className="h-8 gap-1">
-              <Edit2 className="h-4 w-4" />
-              <span>Edit</span>
-            </Button>
-          </Link>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-8 gap-1"
+            onClick={() => setIsEditModalOpen(true)}
+          >
+            <Edit2 className="h-4 w-4" />
+            <span>Edit</span>
+          </Button>
         </div>
       </div>
       <CardContent className="p-6">
@@ -196,6 +287,22 @@ export function LocationSection({ publisher }: { publisher: PublisherData }) {
           <p className="text-muted-foreground italic">No location information available.</p>
         )}
       </CardContent>
+      
+      <EditSectionModal
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        section="location"
+        publisherId={publisher.id || ""}
+        initialData={{
+          address_line1: publisher.address_line1,
+          address_line2: publisher.address_line2,
+          city: publisher.city,
+          state: publisher.state,
+          postal_code: publisher.postal_code,
+          country: publisher.country
+        }}
+        onSuccess={handleRefresh}
+      />
     </Card>
   )
 }
@@ -250,11 +357,60 @@ export function BooksSection({
 }
 
 // About Tab Navigation
-export function AboutNavigation() {
+export function AboutNavigation({ publisherId }: { publisherId?: string | number }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close the menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden sticky top-20">
-      <div className="p-4 border-b">
+      <div className="p-4 border-b flex justify-between items-center">
         <h2 className="text-lg font-medium">About</h2>
+        <div className="relative" ref={menuRef}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-8 w-8 rounded-full"
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
+          {menuOpen && (
+            <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+              <div className="py-1" role="menu" aria-orientation="vertical">
+                <Link 
+                  href={`/publishers/${publisherId}/edit?section=about`}
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  role="menuitem"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <Edit2 className="h-4 w-4 mr-2" />
+                  Edit About
+                </Link>
+                <Link 
+                  href={`/publishers/${publisherId}/settings`}
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  role="menuitem"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Settings
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
       <nav className="p-2">
         <a

@@ -2,7 +2,7 @@
 
 import { Input } from "@/components/ui/input"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -38,6 +38,7 @@ import {
   LocationSection, 
   BooksSection 
 } from "./components/AboutSections"
+import { useToast } from "@/components/ui/use-toast"
 
 interface ClientPublisherPageProps {
   publisher: any
@@ -52,8 +53,33 @@ interface ClientPublisherPageProps {
   booksCount?: number
 }
 
-export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUrl, params, followers = [], followersCount = 0, books = [], booksCount = 0 }: ClientPublisherPageProps) {
+export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl, publisherImageUrl, params, followers = [], followersCount = 0, books = [], booksCount = 0 }: ClientPublisherPageProps) {
   const [activeTab, setActiveTab] = useState("timeline")
+  const [publisher, setPublisher] = useState(initialPublisher)
+  const [refreshing, setRefreshing] = useState(false)
+  const { toast } = useToast()
+
+  // Function to refresh publisher data
+  const refreshPublisherData = async () => {
+    setRefreshing(true)
+    try {
+      const response = await fetch(`/api/publishers/${params.id}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch publisher data')
+      }
+      const updatedPublisher = await response.json()
+      setPublisher(updatedPublisher)
+    } catch (error) {
+      console.error('Error refreshing publisher data:', error)
+      toast({
+        title: "Error",
+        description: "Failed to refresh publisher data",
+        variant: "destructive",
+      })
+    } finally {
+      setRefreshing(false)
+    }
+  }
 
   // Mock data for the profile
   const mockName = publisher?.name || "Jane Reader"
@@ -642,15 +668,15 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
         {activeTab === "about" && (
           <div className="publisher-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="lg:col-span-1">
-              <AboutNavigation />
+              <AboutNavigation publisherId={publisher?.id} />
                       </div>
             <div className="lg:col-span-2">
-              <OverviewSection publisher={publisher} />
-              <ContactSection publisher={publisher} />
-              <LocationSection publisher={publisher} />
+              <OverviewSection publisher={publisher} onRefresh={refreshPublisherData} />
+              <ContactSection publisher={publisher} onRefresh={refreshPublisherData} />
+              <LocationSection publisher={publisher} onRefresh={refreshPublisherData} />
               <BooksSection 
                 books={books} 
-                booksCount={booksCount} 
+                booksCount={booksCount}
                 onViewAllBooks={() => setActiveTab("books")} 
               />
                     </div>

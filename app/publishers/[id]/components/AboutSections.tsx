@@ -57,13 +57,15 @@ export function OverviewSection({ publisher }: { publisher: PublisherData }) {
           <span>Founded in {publisher.founded_year || "N/A"}</span>
         </div>
         {publisher.website && (
-          <div className="flex items-center">
+          <div className="flex items-start">
+            <Globe className="h-4 w-4 mr-2 text-muted-foreground flex-shrink-0 mt-1" />
             <a
               href={publisher.website.startsWith('http') ? publisher.website : `https://${publisher.website}`}
               target="_blank"
               rel="noopener noreferrer"
+              className="text-primary hover:underline break-words"
             >
-              <Globe className="h-4 w-4" />
+              {publisher.website}
             </a>
           </div>
         )}

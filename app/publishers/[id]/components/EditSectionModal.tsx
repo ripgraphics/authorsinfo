@@ -76,19 +76,19 @@ export function EditSectionModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="edit-section-modal sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="edit-section-modal__title">
             {section === 'overview' && 'Edit Overview'}
             {section === 'contact' && 'Edit Contact Information'}
             {section === 'location' && 'Edit Location'}
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 py-4">
+        <form onSubmit={handleSubmit} className="edit-section-modal__form space-y-4 py-4">
           {section === 'overview' && (
             <>
-              <div className="grid w-full gap-1.5">
-                <Label htmlFor="about">About</Label>
+              <div className="edit-section-modal__field grid w-full gap-1.5">
+                <Label htmlFor="about" className="edit-section-modal__label">About</Label>
                 <Textarea
                   id="about"
                   name="about"
@@ -96,10 +96,11 @@ export function EditSectionModal({
                   placeholder="Enter publisher description"
                   value={formData.about || ''}
                   onChange={handleChange}
+                  className="edit-section-modal__textarea"
                 />
               </div>
-              <div className="grid w-full gap-1.5">
-                <Label htmlFor="founded_year">Founded Year</Label>
+              <div className="edit-section-modal__field grid w-full gap-1.5">
+                <Label htmlFor="founded_year" className="edit-section-modal__label">Founded Year</Label>
                 <Input
                   id="founded_year"
                   name="founded_year"
@@ -107,10 +108,11 @@ export function EditSectionModal({
                   placeholder="e.g. 1995"
                   value={formData.founded_year || ''}
                   onChange={handleChange}
+                  className="edit-section-modal__input"
                 />
               </div>
-              <div className="grid w-full gap-1.5">
-                <Label htmlFor="website">Website</Label>
+              <div className="edit-section-modal__field grid w-full gap-1.5">
+                <Label htmlFor="website" className="edit-section-modal__label">Website</Label>
                 <Input
                   id="website"
                   name="website"
@@ -118,6 +120,7 @@ export function EditSectionModal({
                   placeholder="e.g. https://publisher.com"
                   value={formData.website || ''}
                   onChange={handleChange}
+                  className="edit-section-modal__input"
                 />
               </div>
             </>
@@ -125,8 +128,8 @@ export function EditSectionModal({
 
           {section === 'contact' && (
             <>
-              <div className="grid w-full gap-1.5">
-                <Label htmlFor="email">Email</Label>
+              <div className="edit-section-modal__field grid w-full gap-1.5">
+                <Label htmlFor="email" className="edit-section-modal__label">Email</Label>
                 <Input
                   id="email"
                   name="email"
@@ -134,10 +137,11 @@ export function EditSectionModal({
                   placeholder="contact@publisher.com"
                   value={formData.email || ''}
                   onChange={handleChange}
+                  className="edit-section-modal__input"
                 />
               </div>
-              <div className="grid w-full gap-1.5">
-                <Label htmlFor="phone">Phone</Label>
+              <div className="edit-section-modal__field grid w-full gap-1.5">
+                <Label htmlFor="phone" className="edit-section-modal__label">Phone</Label>
                 <Input
                   id="phone"
                   name="phone"
@@ -145,6 +149,7 @@ export function EditSectionModal({
                   placeholder="+1 (555) 123-4567"
                   value={formData.phone || ''}
                   onChange={handleChange}
+                  className="edit-section-modal__input"
                 />
               </div>
             </>
@@ -152,83 +157,94 @@ export function EditSectionModal({
 
           {section === 'location' && (
             <>
-              <div className="grid w-full gap-1.5">
-                <Label htmlFor="address_line1">Address Line 1</Label>
+              <div className="edit-section-modal__field grid w-full gap-1.5">
+                <Label htmlFor="address_line1" className="edit-section-modal__label">Address Line 1</Label>
                 <Input
                   id="address_line1"
                   name="address_line1"
                   placeholder="Street address, P.O. box, etc."
                   value={formData.address_line1 || ''}
                   onChange={handleChange}
+                  className="edit-section-modal__input"
                 />
               </div>
-              <div className="grid w-full gap-1.5">
-                <Label htmlFor="address_line2">Address Line 2</Label>
+              <div className="edit-section-modal__field grid w-full gap-1.5">
+                <Label htmlFor="address_line2" className="edit-section-modal__label">Address Line 2</Label>
                 <Input
                   id="address_line2"
                   name="address_line2"
                   placeholder="Apartment, suite, unit, building, floor, etc."
                   value={formData.address_line2 || ''}
                   onChange={handleChange}
+                  className="edit-section-modal__input"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="grid w-full gap-1.5">
-                  <Label htmlFor="city">City</Label>
+              <div className="edit-section-modal__field-group grid grid-cols-2 gap-2">
+                <div className="edit-section-modal__field grid w-full gap-1.5">
+                  <Label htmlFor="city" className="edit-section-modal__label">City</Label>
                   <Input
                     id="city"
                     name="city"
                     placeholder="City"
                     value={formData.city || ''}
                     onChange={handleChange}
+                    className="edit-section-modal__input"
                   />
                 </div>
-                <div className="grid w-full gap-1.5">
-                  <Label htmlFor="state">State/Province</Label>
+                <div className="edit-section-modal__field grid w-full gap-1.5">
+                  <Label htmlFor="state" className="edit-section-modal__label">State/Province</Label>
                   <Input
                     id="state"
                     name="state"
                     placeholder="State/Province"
                     value={formData.state || ''}
                     onChange={handleChange}
+                    className="edit-section-modal__input"
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="grid w-full gap-1.5">
-                  <Label htmlFor="postal_code">Postal Code</Label>
+              <div className="edit-section-modal__field-group grid grid-cols-2 gap-2">
+                <div className="edit-section-modal__field grid w-full gap-1.5">
+                  <Label htmlFor="postal_code" className="edit-section-modal__label">Postal Code</Label>
                   <Input
                     id="postal_code"
                     name="postal_code"
                     placeholder="Postal Code"
                     value={formData.postal_code || ''}
                     onChange={handleChange}
+                    className="edit-section-modal__input"
                   />
                 </div>
-                <div className="grid w-full gap-1.5">
-                  <Label htmlFor="country">Country</Label>
+                <div className="edit-section-modal__field grid w-full gap-1.5">
+                  <Label htmlFor="country" className="edit-section-modal__label">Country</Label>
                   <Input
                     id="country"
                     name="country"
                     placeholder="Country"
                     value={formData.country || ''}
                     onChange={handleChange}
+                    className="edit-section-modal__input"
                   />
                 </div>
               </div>
             </>
           )}
 
-          <DialogFooter>
+          <DialogFooter className="edit-section-modal__footer">
             <Button 
               type="button" 
               variant="outline" 
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
+              className="edit-section-modal__cancel-button"
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button 
+              type="submit" 
+              disabled={isSubmitting} 
+              className="edit-section-modal__submit-button"
+            >
               {isSubmitting ? 'Saving...' : 'Save Changes'}
             </Button>
           </DialogFooter>

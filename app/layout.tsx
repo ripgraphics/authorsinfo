@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Author's Info",
   description: "A social platform for book lovers",
-    generator: 'v0.dev'
+  generator: 'v0.dev'
 }
 
 export default function RootLayout({
@@ -21,7 +21,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning className={`${inter.className} min-h-screen flex flex-col items-center`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <div className="w-full">{children}</div>
+          <div className="w-full">
+            {children}
+          </div>
         </ThemeProvider>
       </body>
     </html>

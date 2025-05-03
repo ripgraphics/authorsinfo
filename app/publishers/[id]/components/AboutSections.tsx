@@ -58,14 +58,12 @@ export function OverviewSection({ publisher }: { publisher: PublisherData }) {
         </div>
         {publisher.website && (
           <div className="flex items-center">
-            <Globe className="h-4 w-4 mr-2 text-muted-foreground" />
             <a
               href={publisher.website.startsWith('http') ? publisher.website : `https://${publisher.website}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary hover:underline"
             >
-              {publisher.website}
+              <Globe className="h-4 w-4" />
             </a>
           </div>
         )}
@@ -115,6 +113,37 @@ export function ContactSection({ publisher }: { publisher: PublisherData }) {
 
 // Location Section
 export function LocationSection({ publisher }: { publisher: PublisherData }) {
+  // Format location with state and country code when available
+  const formatLocation = () => {
+    const parts = [];
+    
+    // Add city if available
+    if (publisher.city) {
+      parts.push(publisher.city);
+    }
+    
+    // Format state and country code in "MD, USA" format when both available
+    if (publisher.state && publisher.country_details?.code) {
+      parts.push(`${publisher.state}, ${publisher.country_details.code}`);
+    } else {
+      // Otherwise, add state if available
+      if (publisher.state) {
+        parts.push(publisher.state);
+      }
+      
+      // Add country if available (prefer code if available)
+      if (publisher.country_details?.code) {
+        parts.push(publisher.country_details.code);
+      } else if (publisher.country) {
+        parts.push(publisher.country);
+      } else if (publisher.country_details?.name) {
+        parts.push(publisher.country_details.name);
+      }
+    }
+    
+    return parts;
+  };
+
   return (
     <Card className="mb-6" id="location">
       <div className="flex flex-col space-y-1.5 p-6 border-b">
@@ -144,7 +173,11 @@ export function LocationSection({ publisher }: { publisher: PublisherData }) {
                       publisher.postal_code
                     ].filter(Boolean).join(', ')}
                   </span>
-                  <span>{publisher.country || (publisher.country_details && publisher.country_details.name)}</span>
+                  {(publisher.country || publisher.country_details) && (
+                    <span>
+                      {publisher.country_details?.code || publisher.country || publisher.country_details?.name}
+                    </span>
+                  )}
                 </div>
               </div>
             )}
@@ -152,11 +185,7 @@ export function LocationSection({ publisher }: { publisher: PublisherData }) {
               <div className="flex items-center">
                 <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
                 <span>
-                  {[
-                    publisher.city,
-                    publisher.state,
-                    publisher.country || (publisher.country_details && publisher.country_details.name)
-                  ].filter(Boolean).join(', ')}
+                  {formatLocation().join(', ')}
                 </span>
               </div>
             )}

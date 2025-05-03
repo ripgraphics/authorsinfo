@@ -2,7 +2,7 @@ import { supabaseAdmin } from "@/lib/supabase"
 import { notFound } from "next/navigation"
 // Removed User import since passing only name
 import { ClientProfilePage } from "./client"
-import { PageHeader } from "@/components/page-header"
+import { PageContainer } from "@/components/page-container"
 
 export const dynamic = "force-dynamic"
 
@@ -32,14 +32,13 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const user = { name: row.name }
 
   return (
-    <>
-      <PageHeader />
+    <PageContainer>
       <ClientProfilePage
         user={user}
         avatarUrl={avatarUrl}
         coverImageUrl={coverImageUrl}
         params={{ id }}
       />
-    </>
+    </PageContainer>
   )
 }

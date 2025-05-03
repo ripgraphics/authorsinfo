@@ -224,7 +224,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
   ]
 
   return (
-    <main className="publisher-page publisher-page__container container py-6">
+    <main className="publisher-page publisher-page__container py-6">
       {/* Cover Photo and Profile Section */}
       <div className="publisher-page__header bg-white rounded-lg shadow overflow-hidden mb-6">
         <div className="publisher-page__cover publisher-page__header-cover-image relative h-auto aspect-[1344/500]">

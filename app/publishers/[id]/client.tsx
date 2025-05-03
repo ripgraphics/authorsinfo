@@ -316,7 +316,7 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                 {publisher?.website && (
                 <div className="flex items-center text-muted-foreground">
                   <a
-                      href={publisher.website.startsWith('http') ? publisher.website : `https://${publisher.website}`}
+                    href={publisher.website.startsWith('http') ? publisher.website : `https://${publisher.website}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >

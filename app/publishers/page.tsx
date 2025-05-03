@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/sheet"
 import { Label } from "@/components/ui/label"
 import { InteractiveControls } from "./components/InteractiveControls"
+import { PageContainer } from "@/components/page-container"
 
 interface Publisher {
   id: number
@@ -297,25 +298,27 @@ export default async function PublishersPage({ searchParams }: PublishersPagePro
   const sort = params?.sort
 
   return (
-    <div className="container py-6 space-y-6">
-      <PageHeader
-        title="Publishers"
-        description="Browse and discover publishers from our collection."
-      />
-      <InteractiveControls
-        locations={locationsList}
-        search={search}
-        location={location}
-        sort={sort}
-      />
-      <Suspense fallback={<div>Loading...</div>}>
-        <PublishersList
-          page={page}
+    <PageContainer>
+      <div className="space-y-6">
+        <PageHeader
+          title="Publishers"
+          description="Browse and discover publishers from our collection."
+        />
+        <InteractiveControls
+          locations={locationsList}
           search={search}
           location={location}
           sort={sort}
         />
-      </Suspense>
-    </div>
+        <Suspense fallback={<div>Loading...</div>}>
+          <PublishersList
+            page={page}
+            search={search}
+            location={location}
+            sort={sort}
+          />
+        </Suspense>
+      </div>
+    </PageContainer>
   )
 }

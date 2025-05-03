@@ -35,6 +35,7 @@ import { supabaseAdmin } from "@/lib/supabase"
 import { BookHeader } from "@/components/admin/book-header"
 import type { Book, Author, Review, BindingType, FormatType } from '@/types/book'
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { PageContainer } from "@/components/page-container"
 
 interface BookPageProps {
   params: {
@@ -285,14 +286,12 @@ export default async function BookPage({ params }: BookPageProps) {
     const defaultStatus = "want_to_read"
 
     return (
-      <div className="book-page min-h-screen flex flex-col bg-gray-100">
-        <PageHeader />
-
-        <main className="book-page-main flex-1">
-          {/* Cover Banner */}
-          <div className="book-page banner relative h-64 md:h-80 lg:h-96 bg-gradient-to-r from-blue-600 to-blue-800">
+      <PageContainer>
+        <div className="book-page">
+          <div className="book-page banner relative h-36 md:h-72 bg-gray-200 overflow-hidden">
+            {/* Banner background */}
             {(book.cover_image_url || book.original_image_url) && (
-              <div className="book-page banner-image absolute inset-0 opacity-20">
+              <div className="book-page banner-image absolute inset-0">
                 <Image
                   src={book.cover_image_url ?? book.original_image_url ?? "/placeholder.svg"}
                   alt={book.title}
@@ -304,7 +303,7 @@ export default async function BookPage({ params }: BookPageProps) {
             )}
             <div className="book-page banner-overlay absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
 
-            <div className="book-page container relative h-full flex items-end pb-6">
+            <div className="relative h-full flex items-end pb-6">
               <div className="book-page header flex flex-col md:flex-row items-center md:items-end gap-6">
                 {/* Author Avatar */}
                 <div className="book-page header-avatar -mt-16 md:mt-0 z-10">
@@ -362,7 +361,7 @@ export default async function BookPage({ params }: BookPageProps) {
             </div>
           </div>
 
-          <div className="book-page container py-6">
+          <div className="py-6">
             <BookHeader 
               book={book as any} 
               mainAuthor={authors && authors.length > 0 ? authors[0] : undefined} 
@@ -770,8 +769,8 @@ export default async function BookPage({ params }: BookPageProps) {
               </div>
             </div>
           </div>
-        </main>
-      </div>
+        </div>
+      </PageContainer>
     )
   } catch (error) {
     console.error("Error in BookPage:", error)

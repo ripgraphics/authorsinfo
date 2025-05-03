@@ -26,7 +26,7 @@ export function PageHeader({ title, description }: PageHeaderProps) {
   const [searchOpen, setSearchOpen] = useState(false)
 
   return (
-    <header className="page-header page-header--sticky page-header--bordered">
+    <header className="page-header sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 max-w-7xl">
         {/* Left section - Logo and Navigation */}
         <div className="page-header__left flex items-center gap-4 md:gap-6 lg:gap-10">

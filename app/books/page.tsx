@@ -1,10 +1,10 @@
 import { Suspense } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { BookOpen, Search, Filter } from "lucide-react"
+import { PageContainer } from "@/components/page-container"
 import {
   Pagination,
   PaginationContent,
@@ -333,111 +333,106 @@ export default async function BooksPage({ searchParams }: BooksPageProps) {
   const sort = params.sort || "title_asc"
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <PageHeader />
-      <main className="flex-1 book-page container py-8">
-        <div className="space-y-6">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <h1 className="text-3xl font-bold">Books</h1>
+    <PageContainer title="Books">
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row w-full md:w-auto gap-4">
+            <div className="relative flex-1 sm:max-w-md">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <form>
+                <Input
+                  type="search"
+                  name="search"
+                  placeholder="Search books..."
+                  className="pl-8"
+                  defaultValue={search}
+                />
+              </form>
+            </div>
 
-            <div className="flex flex-col sm:flex-row w-full md:w-auto gap-4">
-              <div className="relative flex-1 sm:max-w-md">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <form>
-                  <Input
-                    type="search"
-                    name="search"
-                    placeholder="Search books..."
-                    className="pl-8"
-                    defaultValue={search}
-                  />
-                </form>
-              </div>
+            <div className="flex gap-2">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <Filter className="h-4 w-4" />
+                    <span>Filters</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent>
+                  <SheetHeader>
+                    <SheetTitle>Filter Books</SheetTitle>
+                    <SheetDescription>Apply filters to narrow down the list of books.</SheetDescription>
+                  </SheetHeader>
+                  <form action="/books" className="py-4 space-y-6">
+                    {/* Hidden fields to preserve other params */}
+                    <input type="hidden" name="page" value="1" />
+                    {search && <input type="hidden" name="search" value={search} />}
 
-              <div className="flex gap-2">
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <Button variant="outline" className="flex items-center gap-2">
-                      <Filter className="h-4 w-4" />
-                      <span>Filters</span>
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent>
-                    <SheetHeader>
-                      <SheetTitle>Filter Books</SheetTitle>
-                      <SheetDescription>Apply filters to narrow down the list of books.</SheetDescription>
-                    </SheetHeader>
-                    <form action="/books" className="py-4 space-y-6">
-                      {/* Hidden fields to preserve other params */}
-                      <input type="hidden" name="page" value="1" />
-                      {search && <input type="hidden" name="search" value={search} />}
+                    <div className="space-y-4">
+                      <Label htmlFor="language">Language</Label>
+                      <Select name="language" defaultValue={language}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="All languages" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All languages</SelectItem>
+                          <Suspense fallback={<SelectItem value="loading">Loading...</SelectItem>}>
+                            {/* This will be populated server-side */}
+                          </Suspense>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                      <div className="space-y-4">
-                        <Label htmlFor="language">Language</Label>
-                        <Select name="language" defaultValue={language}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="All languages" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All languages</SelectItem>
-                            <Suspense fallback={<SelectItem value="loading">Loading...</SelectItem>}>
-                              {/* This will be populated server-side */}
-                            </Suspense>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                    <div className="space-y-4">
+                      <Label htmlFor="year">Publication Year</Label>
+                      <Select name="year" defaultValue={year}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="All years" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All years</SelectItem>
+                          <Suspense fallback={<SelectItem value="loading">Loading...</SelectItem>}>
+                            {/* This will be populated server-side */}
+                          </Suspense>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                      <div className="space-y-4">
-                        <Label htmlFor="year">Publication Year</Label>
-                        <Select name="year" defaultValue={year}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="All years" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All years</SelectItem>
-                            <Suspense fallback={<SelectItem value="loading">Loading...</SelectItem>}>
-                              {/* This will be populated server-side */}
-                            </Suspense>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                    <div className="space-y-4">
+                      <Label htmlFor="sort">Sort By</Label>
+                      <Select name="sort" defaultValue={sort}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Title (A-Z)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="title_asc">Title (A-Z)</SelectItem>
+                          <SelectItem value="title_desc">Title (Z-A)</SelectItem>
+                          <SelectItem value="date_asc">Publication Date (Oldest first)</SelectItem>
+                          <SelectItem value="date_desc">Publication Date (Newest first)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                      <div className="space-y-4">
-                        <Label htmlFor="sort">Sort By</Label>
-                        <Select name="sort" defaultValue={sort}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Title (A-Z)" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="title_asc">Title (A-Z)</SelectItem>
-                            <SelectItem value="title_desc">Title (Z-A)</SelectItem>
-                            <SelectItem value="date_asc">Publication Date (Oldest first)</SelectItem>
-                            <SelectItem value="date_desc">Publication Date (Newest first)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                    <SheetFooter>
+                      <SheetClose asChild>
+                        <Button type="submit">Apply Filters</Button>
+                      </SheetClose>
+                    </SheetFooter>
+                  </form>
+                </SheetContent>
+              </Sheet>
 
-                      <SheetFooter>
-                        <SheetClose asChild>
-                          <Button type="submit">Apply Filters</Button>
-                        </SheetClose>
-                      </SheetFooter>
-                    </form>
-                  </SheetContent>
-                </Sheet>
-
-                <Link href="/books/add">
-                  <Button>Add New Book</Button>
-                </Link>
-              </div>
+              <Link href="/books/add">
+                <Button>Add New Book</Button>
+              </Link>
             </div>
           </div>
-
-          <Suspense fallback={<div>Loading books...</div>}>
-            <BooksList page={page} search={search} language={language} year={year} sort={sort} />
-          </Suspense>
         </div>
-      </main>
-    </div>
+
+        <Suspense fallback={<div>Loading books...</div>}>
+          <BooksList page={page} search={search} language={language} year={year} sort={sort} />
+        </Suspense>
+      </div>
+    </PageContainer>
   )
 }

@@ -1,11 +1,11 @@
 import Link from "next/link"
 import Image from "next/image"
-import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getRecentBooks, getRecentAuthors, getRecentPublishers } from "./actions/data"
 import { BookOpen, User, Building } from "lucide-react"
+import { PageContainer } from "@/components/page-container"
 
 async function RecentBooks() {
   const books = await getRecentBooks(6)
@@ -145,58 +145,52 @@ async function RecentPublishers() {
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100">
-      <PageHeader />
-
-      <main className="flex-1 container mx-auto py-8 px-4 max-w-7xl">
-        <div className="space-y-8">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold mb-2">Welcome to Author's Info</h1>
-            <p className="text-muted-foreground">Discover books, authors, and publishers in one place</p>
-          </div>
-
-          <div className="flex justify-center gap-4">
-            <Button asChild size="lg">
-              <Link href="/books">
-                <BookOpen className="mr-2 h-5 w-5" />
-                All Books
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="/authors">
-                <User className="mr-2 h-5 w-5" />
-                All Authors
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="/publishers">
-                <Building className="mr-2 h-5 w-5" />
-                All Publishers
-              </Link>
-            </Button>
-          </div>
-
-          <Tabs defaultValue="books" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="books">Books</TabsTrigger>
-              <TabsTrigger value="authors">Authors</TabsTrigger>
-              <TabsTrigger value="publishers">Publishers</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="books" className="mt-6">
-              <RecentBooks />
-            </TabsContent>
-
-            <TabsContent value="authors" className="mt-6">
-              <RecentAuthors />
-            </TabsContent>
-
-            <TabsContent value="publishers" className="mt-6">
-              <RecentPublishers />
-            </TabsContent>
-          </Tabs>
+    <PageContainer
+      title="Welcome to Author's Info"
+      description="Discover books, authors, and publishers in one place"
+    >
+      <div className="space-y-8">
+        <div className="flex justify-center gap-4">
+          <Button asChild size="lg">
+            <Link href="/books">
+              <BookOpen className="mr-2 h-5 w-5" />
+              All Books
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline">
+            <Link href="/authors">
+              <User className="mr-2 h-5 w-5" />
+              All Authors
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline">
+            <Link href="/publishers">
+              <Building className="mr-2 h-5 w-5" />
+              All Publishers
+            </Link>
+          </Button>
         </div>
-      </main>
-    </div>
+
+        <Tabs defaultValue="books" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="books">Books</TabsTrigger>
+            <TabsTrigger value="authors">Authors</TabsTrigger>
+            <TabsTrigger value="publishers">Publishers</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="books" className="mt-6">
+            <RecentBooks />
+          </TabsContent>
+
+          <TabsContent value="authors" className="mt-6">
+            <RecentAuthors />
+          </TabsContent>
+
+          <TabsContent value="publishers" className="mt-6">
+            <RecentPublishers />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </PageContainer>
   )
 }

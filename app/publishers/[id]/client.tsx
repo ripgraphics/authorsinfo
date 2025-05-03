@@ -238,7 +238,7 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
   ]
 
   return (
-    <div className="publisher-page publisher-page__container container py-6">
+    <div className="publisher-page publisher-page__container py-6">
       {/* Cover Photo and Profile Section */}
       <div className="publisher-page__header bg-white rounded-lg shadow overflow-hidden mb-6">
         <div className="publisher-page__cover-image relative h-auto aspect-[1344/500]">
@@ -259,7 +259,7 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
               <span className="publisher-page__avatar relative flex shrink-0 overflow-hidden h-32 w-32 md:h-40 md:w-40 border-4 border-white rounded-full">
                 <img
                   src={publisherImageUrl || "/placeholder.svg?height=200&width=200"}
-                  alt={mockName}
+                  alt={publisher?.name || "Publisher Name"}
                   className="publisher-page__avatar-image aspect-square h-full w-full"
                 />
               </span>
@@ -275,8 +275,8 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
             <div className="publisher-page__profile-info mt-4 md:mt-0 md:ml-6 flex-1">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                 <div>
-                  <h1 className="text-[1.1rem] font-bold truncate">{mockName}</h1>
-                  <p className="text-muted-foreground">@{mockUsername}</p>
+                  <h1 className="text-[1.1rem] font-bold truncate">{publisher?.name || "Publisher Name"}</h1>
+                  <p className="text-muted-foreground">@{publisher?.name ? publisher.name.replace(/\s+/g, "").toLowerCase() : "publisher"}</p>
                 </div>
 
                 <div className="publisher-page__actions flex space-x-2 mt-4 md:mt-0">
@@ -303,26 +303,32 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                   <Users className="h-4 w-4 mr-1" />
                   <span>{followersCount} followers</span>
                 </div>
+                {(publisher?.state || publisher?.country || (publisher?.country_details && publisher?.country_details.code)) && (
                 <div className="flex items-center text-muted-foreground">
-                  <MapPin className="h-4 w-4 mr-1" />
-                  <span>{mockLocation}</span>
+                  <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <span>
+                      {publisher?.state && publisher?.country_details?.code 
+                        ? `${publisher.state}, ${publisher.country_details.code}`
+                        : publisher?.state || publisher?.country || (publisher?.country_details ? publisher.country_details.name : '')}
+                    </span>
                 </div>
+                )}
+                {publisher?.website && (
                 <div className="flex items-center text-muted-foreground">
-                  <Globe className="h-4 w-4 mr-1" />
                   <a
-                    href={`https://${mockWebsite}`}
+                      href={publisher.website.startsWith('http') ? publisher.website : `https://${publisher.website}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:underline"
                   >
-                    {mockWebsite}
+                    <Globe className="h-4 w-4" />
                   </a>
                 </div>
-              </div>
+                )}
             </div>
           </div>
         </div>
-        
+      </div>
+
         {/* Tabs Navigation moved inside header */}
         <div className="publisher-page__header-nav border-t">
           <div className="publisher-page__header-nav-container">
@@ -330,20 +336,20 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
               <button 
                 className={`publisher-page__header-tab inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 ${activeTab === "timeline" ? "border-b-2 border-primary" : ""}`}
                 onClick={() => setActiveTab("timeline")}
-              >
-                Timeline
+                >
+                  Timeline
               </button>
               <button 
                 className={`publisher-page__header-tab inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 ${activeTab === "about" ? "border-b-2 border-primary" : ""}`}
                 onClick={() => setActiveTab("about")}
-              >
-                About
+                >
+                  About
               </button>
               <button 
                 className={`publisher-page__header-tab inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 ${activeTab === "books" ? "border-b-2 border-primary" : ""}`}
                 onClick={() => setActiveTab("books")}
-              >
-                Books
+                >
+                  Books
               </button>
               <button 
                 className={`publisher-page__header-tab inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 ${activeTab === "followers" ? "border-b-2 border-primary" : ""}`}
@@ -354,14 +360,14 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
               <button 
                 className={`publisher-page__header-tab inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 ${activeTab === "photos" ? "border-b-2 border-primary" : ""}`}
                 onClick={() => setActiveTab("photos")}
-              >
-                Photos
+                >
+                  Photos
               </button>
               <button 
                 className={`publisher-page__header-tab inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 ${activeTab === "more" ? "border-b-2 border-primary" : ""}`}
                 onClick={() => setActiveTab("more")}
-              >
-                More
+                >
+                  More
               </button>
             </div>
           </div>
@@ -372,270 +378,272 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
       <div className="publisher-page__content">
         {activeTab === "timeline" && (
           <div className="publisher-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Sidebar */}
-            <div className="lg:col-span-1 space-y-6">
-              {/* About Section */}
-              <Card>
-                <div className="flex flex-col space-y-1.5 p-6">
-                  <div className="text-2xl font-semibold leading-none tracking-tight">About</div>
-                </div>
-                <CardContent className="p-6 pt-0 space-y-4">
-                  <p>{mockAbout}</p>
-                  <div className="space-y-2">
-                    <div className="flex items-center">
-                      <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <span>Lives in {mockLocation}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <span>Joined {mockJoinedDate}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Globe className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <a
-                        href={`https://${mockWebsite}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:underline"
-                      >
-                        {mockWebsite}
-                      </a>
-                    </div>
-                  </div>
-                  <Link href="/profile/edit" className="w-full">
-                    <Button variant="outline" className="w-full">
-                      <SquarePen className="h-4 w-4 mr-2" />
-                      Edit Details
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-
-              {/* Currently Reading Section */}
-              <Card>
-                <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
-                  <div className="text-2xl font-semibold leading-none tracking-tight">Currently Reading</div>
-                  <Link href="/my-books" className="text-sm text-primary hover:underline">
-                    See All
-                  </Link>
-                </div>
-                <CardContent className="p-6 pt-0 space-y-4">
-                  {mockCurrentlyReading.map((book, index) => (
-                    <div key={index} className="flex gap-3">
-                      <div className="relative h-20 w-14 flex-shrink-0">
-                        <img
-                          src={book.coverUrl || "/placeholder.svg"}
-                          alt={book.title}
-                          className="object-cover rounded-md absolute inset-0 w-full h-full"
-                        />
+                  {/* Left Sidebar */}
+                  <div className="lg:col-span-1 space-y-6">
+                    {/* About Section */}
+                    <Card>
+                      <div className="flex flex-col space-y-1.5 p-6">
+                        <div className="text-2xl font-semibold leading-none tracking-tight">About</div>
                       </div>
-                      <div className="flex-1 space-y-1">
-                        <h4 className="font-medium line-clamp-1">{book.title}</h4>
-                        <p className="text-sm text-muted-foreground">by {book.author}</p>
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-xs">
-                            <span>Progress</span>
-                            <span>{book.progress}%</span>
+                      <CardContent className="p-6 pt-0 space-y-4">
+                        <p>{publisher?.about || "No information available about this publisher."}</p>
+                        <div className="space-y-2">
+                          {(publisher?.state || publisher?.country || (publisher?.country_details && publisher?.country_details.code)) && (
+                          <div className="flex items-center">
+                            <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                              <span>
+                                Lives in {publisher?.state && publisher?.country_details?.code 
+                                  ? `${publisher.state}, ${publisher.country_details.code}`
+                                  : publisher?.state || publisher?.country || (publisher?.country_details ? publisher.country_details.name : '')}
+                              </span>
                           </div>
-                          <div className="relative w-full overflow-hidden rounded-full bg-secondary h-1.5">
-                            <div
-                              className="h-full w-full flex-1 bg-primary transition-all"
-                              style={{ transform: `translateX(-${100 - book.progress}%)` }}
-                            ></div>
+                          )}
+                          {publisher?.website && (
+                          <div className="flex items-center">
+                            <a
+                                href={publisher.website.startsWith('http') ? publisher.website : `https://${publisher.website}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <Globe className="h-4 w-4" />
+                            </a>
                           </div>
+                          )}
                         </div>
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
+                        <Link href="/profile/edit" className="w-full">
+                          <Button variant="outline" className="w-full">
+                            <SquarePen className="h-4 w-4 mr-2" />
+                            Edit Details
+                          </Button>
+                        </Link>
+                      </CardContent>
+                    </Card>
 
-              {/* Photos Section */}
-              <Card>
-                <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
-                  <div className="text-2xl font-semibold leading-none tracking-tight">Photos</div>
-                  <Link href="/profile/janereader/photos" className="text-sm text-primary hover:underline">
-                    See All
-                  </Link>
-                </div>
-                <CardContent className="p-6 pt-0">
-                  <div className="grid grid-cols-3 gap-2">
-                    {mockPhotos.map((photoUrl, index) => (
-                      <div key={index} className="aspect-square relative rounded overflow-hidden">
-                        <img
-                          src={photoUrl || "/placeholder.svg"}
-                          alt={`Photo ${index + 1}`}
-                          className="object-cover hover:scale-105 transition-transform absolute inset-0 w-full h-full"
-                        />
+                    {/* Currently Reading Section */}
+                    <Card>
+                      <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
+                        <div className="text-2xl font-semibold leading-none tracking-tight">Currently Reading</div>
+                        <Link href="/my-books" className="text-sm text-primary hover:underline">
+                          See All
+                        </Link>
                       </div>
-                    ))}
+                      <CardContent className="p-6 pt-0 space-y-4">
+                        {mockCurrentlyReading.map((book, index) => (
+                          <div key={index} className="flex gap-3">
+                            <div className="relative h-20 w-14 flex-shrink-0">
+                              <img
+                                src={book.coverUrl || "/placeholder.svg"}
+                                alt={book.title}
+                                className="object-cover rounded-md absolute inset-0 w-full h-full"
+                              />
+                            </div>
+                            <div className="flex-1 space-y-1">
+                              <h4 className="font-medium line-clamp-1">{book.title}</h4>
+                              <p className="text-sm text-muted-foreground">by {book.author}</p>
+                              <div className="space-y-1">
+                                <div className="flex justify-between text-xs">
+                                  <span>Progress</span>
+                                  <span>{book.progress}%</span>
+                                </div>
+                                <div className="relative w-full overflow-hidden rounded-full bg-secondary h-1.5">
+                                  <div
+                                    className="h-full w-full flex-1 bg-primary transition-all"
+                                    style={{ transform: `translateX(-${100 - book.progress}%)` }}
+                                  ></div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+
+                    {/* Photos Section */}
+                    <Card>
+                      <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
+                        <div className="text-2xl font-semibold leading-none tracking-tight">Photos</div>
+                        <Link href="/profile/janereader/photos" className="text-sm text-primary hover:underline">
+                          See All
+                        </Link>
+                      </div>
+                      <CardContent className="p-6 pt-0">
+                        <div className="grid grid-cols-3 gap-2">
+                          {mockPhotos.map((photoUrl, index) => (
+                            <div key={index} className="aspect-square relative rounded overflow-hidden">
+                              <img
+                                src={photoUrl || "/placeholder.svg"}
+                                alt={`Photo ${index + 1}`}
+                                className="object-cover hover:scale-105 transition-transform absolute inset-0 w-full h-full"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Friends Section */}
+                    <Card>
+                      <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
+                        <div className="text-2xl font-semibold leading-none tracking-tight">Friends</div>
+                        <Link href="/profile/janereader/friends" className="text-sm text-primary hover:underline">
+                          See All
+                        </Link>
+                      </div>
+                      <CardContent className="p-6 pt-0">
+                        <div className="grid grid-cols-3 gap-2">
+                          {mockFriends.map((friend) => (
+                            <Link
+                              key={friend.id}
+                              href={`/profile/${friend.id}`}
+                              className="flex flex-col items-center text-center"
+                            >
+                              <span className="relative flex shrink-0 overflow-hidden rounded-full h-16 w-16 mb-1">
+                                <img
+                                  src={friend.avatar || "/placeholder.svg"}
+                                  alt={friend.name}
+                                  className="aspect-square h-full w-full"
+                                />
+                              </span>
+                              <span className="text-xs line-clamp-1">{friend.name}</span>
+                            </Link>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
-                </CardContent>
-              </Card>
 
-              {/* Friends Section */}
-              <Card>
-                <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
-                  <div className="text-2xl font-semibold leading-none tracking-tight">Friends</div>
-                  <Link href="/profile/janereader/friends" className="text-sm text-primary hover:underline">
-                    See All
-                  </Link>
-                </div>
-                <CardContent className="p-6 pt-0">
-                  <div className="grid grid-cols-3 gap-2">
-                    {mockFriends.map((friend) => (
-                      <Link
-                        key={friend.id}
-                        href={`/profile/${friend.id}`}
-                        className="flex flex-col items-center text-center"
-                      >
-                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-16 w-16 mb-1">
-                          <img
-                            src={friend.avatar || "/placeholder.svg"}
-                            alt={friend.name}
-                            className="aspect-square h-full w-full"
-                          />
-                        </span>
-                        <span className="text-xs line-clamp-1">{friend.name}</span>
-                      </Link>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Main Content Area */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Post Creation Form */}
-              <Card>
-                <CardContent className="p-6 pt-6">
-                  <form>
-                    <div className="flex gap-3">
-                      <span className="relative flex shrink-0 overflow-hidden rounded-full h-10 w-10">
-                        <img
-                          src={publisherImageUrl || "/placeholder.svg?height=200&width=200"}
-                          alt={mockName}
-                          className="aspect-square h-full w-full"
-                        />
-                      </span>
-                      <Textarea
-                        placeholder={`What are you reading, ${mockName.split(" ")[0]}?`}
-                        className="flex-1 resize-none"
-                      />
-                    </div>
-                    <div className="flex justify-between mt-4">
-                      <div className="flex gap-2">
-                        <Button type="button" variant="ghost" size="sm">
-                          <ImageIcon className="h-4 w-4 mr-2" />
-                          Photo
-                        </Button>
-                        <Button type="button" variant="ghost" size="sm">
-                          <Book className="h-4 w-4 mr-2" />
-                          Book
-                        </Button>
-                        <Button type="button" variant="ghost" size="sm">
-                          <Star className="h-4 w-4 mr-2" />
-                          Review
-                        </Button>
-                      </div>
-                      <Button type="submit" disabled>
-                        Post
-                      </Button>
-                    </div>
-                  </form>
-                </CardContent>
-              </Card>
-
-              {/* Activity Feed */}
-              <div className="space-y-6">
-                {mockActivities.map((activity) => (
-                  <Card key={activity.id}>
-                    <div className="flex flex-col space-y-1.5 p-6 pb-3">
-                      <div className="flex justify-between">
-                        <div className="flex items-center gap-3">
-                          <span className="relative flex shrink-0 overflow-hidden rounded-full h-10 w-10">
-                            <img
-                              src={publisherImageUrl || "/placeholder.svg?height=200&width=200"}
-                              alt={mockName}
-                              className="aspect-square h-full w-full"
+                  {/* Main Content Area */}
+                  <div className="lg:col-span-2 space-y-6">
+                    {/* Post Creation Form */}
+                    <Card>
+                      <CardContent className="p-6 pt-6">
+                        <form>
+                          <div className="flex gap-3">
+                            <span className="relative flex shrink-0 overflow-hidden rounded-full h-10 w-10">
+                              <img
+                                src={publisherImageUrl || "/placeholder.svg?height=200&width=200"}
+                                alt={publisher?.name || "Publisher Name"}
+                                className="aspect-square h-full w-full"
+                              />
+                            </span>
+                            <Textarea
+                              placeholder={`What are you reading, ${publisher?.name?.split(" ")[0]}?`}
+                              className="flex-1 resize-none"
                             />
-                          </span>
-                          <div>
-                            <div className="font-medium">{mockName}</div>
-                            <div className="text-xs text-muted-foreground">{activity.timeAgo}</div>
                           </div>
-                        </div>
-                        <Button variant="ghost" size="icon">
-                          <Ellipsis className="h-4 w-4" />
-                        </Button>
-                      </div>
+                          <div className="flex justify-between mt-4">
+                            <div className="flex gap-2">
+                              <Button type="button" variant="ghost" size="sm">
+                                <ImageIcon className="h-4 w-4 mr-2" />
+                                Photo
+                              </Button>
+                              <Button type="button" variant="ghost" size="sm">
+                                <Book className="h-4 w-4 mr-2" />
+                                Book
+                              </Button>
+                              <Button type="button" variant="ghost" size="sm">
+                                <Star className="h-4 w-4 mr-2" />
+                                Review
+                              </Button>
+                            </div>
+                            <Button type="submit" disabled>
+                              Post
+                            </Button>
+                          </div>
+                        </form>
+                      </CardContent>
+                    </Card>
+
+                    {/* Activity Feed */}
+                    <div className="space-y-6">
+                      {mockActivities.map((activity) => (
+                        <Card key={activity.id}>
+                          <div className="flex flex-col space-y-1.5 p-6 pb-3">
+                            <div className="flex justify-between">
+                              <div className="flex items-center gap-3">
+                                <span className="relative flex shrink-0 overflow-hidden rounded-full h-10 w-10">
+                                  <img
+                                    src={publisherImageUrl || "/placeholder.svg?height=200&width=200"}
+                                    alt={publisher?.name || "Publisher Name"}
+                                    className="aspect-square h-full w-full"
+                                  />
+                                </span>
+                                <div>
+                                  <div className="font-medium">{publisher?.name || "Publisher Name"}</div>
+                                  <div className="text-xs text-muted-foreground">{activity.timeAgo}</div>
+                                </div>
+                              </div>
+                              <Button variant="ghost" size="icon">
+                                <Ellipsis className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="p-6 pt-0 pb-3">
+                            {activity.type === "rating" && (
+                              <p>
+                                Rated{" "}
+                                <Link href="#" className="text-primary hover:underline font-medium">
+                                  {activity.bookTitle}
+                                </Link>{" "}
+                                by {activity.bookAuthor} {activity.rating} stars
+                              </p>
+                            )}
+                            {activity.type === "finished" && (
+                              <p>
+                                Finished reading{" "}
+                                <Link href="#" className="text-primary hover:underline font-medium">
+                                  {activity.bookTitle}
+                                </Link>{" "}
+                                by {activity.bookAuthor}
+                              </p>
+                            )}
+                            {activity.type === "added" && (
+                              <p>
+                                Added{" "}
+                                <Link href="#" className="text-primary hover:underline font-medium">
+                                  {activity.bookTitle}
+                                </Link>{" "}
+                                by {activity.bookAuthor} to {activity.shelf}
+                              </p>
+                            )}
+                            {activity.type === "reviewed" && (
+                              <p>
+                                Reviewed{" "}
+                                <Link href="#" className="text-primary hover:underline font-medium">
+                                  {activity.bookTitle}
+                                </Link>{" "}
+                                by {activity.bookAuthor}
+                              </p>
+                            )}
+                          </div>
+                          <div className="p-6 flex items-center justify-between py-3">
+                            <div className="flex items-center gap-6">
+                              <Button variant="ghost" size="sm" className="gap-1">
+                                <Heart className="h-4 w-4" />
+                                <span>Like</span>
+                              </Button>
+                              <Button variant="ghost" size="sm" className="gap-1">
+                                <MessageSquare className="h-4 w-4" />
+                                <span>Comment</span>
+                              </Button>
+                              <Button variant="ghost" size="sm">
+                                <Share2 className="h-4 w-4" />
+                                <span className="ml-1">Share</span>
+                              </Button>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
                     </div>
-                    <div className="p-6 pt-0 pb-3">
-                      {activity.type === "rating" && (
-                        <p>
-                          Rated{" "}
-                          <Link href="#" className="text-primary hover:underline font-medium">
-                            {activity.bookTitle}
-                          </Link>{" "}
-                          by {activity.bookAuthor} {activity.rating} stars
-                        </p>
-                      )}
-                      {activity.type === "finished" && (
-                        <p>
-                          Finished reading{" "}
-                          <Link href="#" className="text-primary hover:underline font-medium">
-                            {activity.bookTitle}
-                          </Link>{" "}
-                          by {activity.bookAuthor}
-                        </p>
-                      )}
-                      {activity.type === "added" && (
-                        <p>
-                          Added{" "}
-                          <Link href="#" className="text-primary hover:underline font-medium">
-                            {activity.bookTitle}
-                          </Link>{" "}
-                          by {activity.bookAuthor} to {activity.shelf}
-                        </p>
-                      )}
-                      {activity.type === "reviewed" && (
-                        <p>
-                          Reviewed{" "}
-                          <Link href="#" className="text-primary hover:underline font-medium">
-                            {activity.bookTitle}
-                          </Link>{" "}
-                          by {activity.bookAuthor}
-                        </p>
-                      )}
-                    </div>
-                    <div className="p-6 flex items-center justify-between py-3">
-                      <div className="flex items-center gap-6">
-                        <Button variant="ghost" size="sm" className="gap-1">
-                          <Heart className="h-4 w-4" />
-                          <span>Like</span>
-                        </Button>
-                        <Button variant="ghost" size="sm" className="gap-1">
-                          <MessageSquare className="h-4 w-4" />
-                          <span>Comment</span>
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <Share2 className="h-4 w-4" />
-                          <span className="ml-1">Share</span>
-                        </Button>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          </div>
+                  </div>
+                </div>
         )}
 
         {activeTab === "about" && (
           <div className="publisher-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-1">
+                  <div className="lg:col-span-1">
               <AboutNavigation />
-            </div>
+                      </div>
             <div className="lg:col-span-2">
               <OverviewSection publisher={publisher} />
               <ContactSection publisher={publisher} />
@@ -645,20 +653,20 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                 booksCount={booksCount} 
                 onViewAllBooks={() => setActiveTab("books")} 
               />
-            </div>
-          </div>
+                    </div>
+                  </div>
         )}
 
         {activeTab === "books" && (
           <div className="publisher-page__tab-content">
             <Card className="rounded-lg border bg-card text-card-foreground shadow-sm">
-              <div className="flex flex-col space-y-1.5 p-6">
+                      <div className="flex flex-col space-y-1.5 p-6">
                 <div className="flex justify-between items-center">
                   <div className="text-2xl font-semibold leading-none tracking-tight">
                     Published Books · {booksCount}
-                  </div>
-                </div>
-              </div>
+                      </div>
+                          </div>
+                            </div>
               <CardContent className="p-6 pt-0">
                 {books && books.length > 0 ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
@@ -670,37 +678,37 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                         coverImageUrl={book.cover_image_url}
                       />
                     ))}
-                  </div>
+                          </div>
                 ) : (
                   <div className="text-center py-10">
                     <BookOpen className="mx-auto h-10 w-10 text-muted-foreground" />
                     <h3 className="mt-2 text-lg font-medium">No books found</h3>
                     <p className="mt-1 text-sm text-muted-foreground">This publisher hasn't published any books yet.</p>
-                  </div>
+                            </div>
                 )}
               </CardContent>
             </Card>
-          </div>
+                              </div>
         )}
 
         {activeTab === "followers" && (
           <div className="publisher-page__tab-content space-y-6">
-            <Card className="rounded-lg border bg-card text-card-foreground shadow-sm">
-              <div className="flex flex-col space-y-1.5 p-6">
-                <div className="flex justify-between items-center">
-                  <div className="text-2xl font-semibold leading-none tracking-tight">
+                  <Card className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                    <div className="flex flex-col space-y-1.5 p-6">
+                      <div className="flex justify-between items-center">
+                        <div className="text-2xl font-semibold leading-none tracking-tight">
                     Followers · {followersCount}
-                  </div>
-                  <div className="flex items-center gap-2">
+                        </div>
+                        <div className="flex items-center gap-2">
                     <Input className="w-[200px]" placeholder="Search followers..." type="search" />
-                    <Button variant="outline" size="icon">
-                      <Filter className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-              <CardContent className="p-6 pt-0">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          <Button variant="outline" size="icon">
+                            <Filter className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                    <CardContent className="p-6 pt-0">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {followers.length > 0 ? (
                     followers.map((follower) => (
                       <div key={follower.id} className="flex items-center gap-3 p-3 border rounded-lg">
@@ -708,82 +716,82 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                           <img
                             src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(follower.name || 'User')}`}
                             alt={follower.name || 'User'}
-                            className="aspect-square h-full w-full"
-                          />
-                        </span>
-                        <div className="flex-1 min-w-0">
+                                className="aspect-square h-full w-full"
+                              />
+                            </span>
+                            <div className="flex-1 min-w-0">
                           <h3 className="font-medium truncate">{follower.name || 'Unknown User'}</h3>
                           <p className="text-xs text-muted-foreground">{follower.email || 'No email available'}</p>
                           <p className="text-xs text-muted-foreground">
                             Following since {follower.followSince ? new Date(follower.followSince).toLocaleDateString() : 'unknown date'}
                           </p>
-                        </div>
-                        <Button variant="ghost" size="icon">
-                          <Ellipsis className="h-4 w-4" />
-                        </Button>
-                      </div>
+                            </div>
+                            <Button variant="ghost" size="icon">
+                              <Ellipsis className="h-4 w-4" />
+                            </Button>
+                          </div>
                     ))
                   ) : (
                     <div className="col-span-3 text-center p-6">
                       <p className="text-muted-foreground">No followers yet</p>
-                    </div>
+                      </div>
                   )}
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
         )}
 
         {activeTab === "photos" && (
           <div className="publisher-page__tab-content space-y-6">
-            <Card className="rounded-lg border bg-card text-card-foreground shadow-sm">
-              <div className="flex flex-col space-y-1.5 p-6">
-                <div className="flex justify-between items-center">
-                  <div className="text-2xl font-semibold leading-none tracking-tight">Photos</div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="button"
-                      role="combobox"
-                      aria-controls="radix-:rk:"
-                      aria-expanded="false"
-                      aria-autocomplete="none"
-                      dir="ltr"
-                      data-state="closed"
-                      className="flex h-10 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-[180px]"
-                    >
-                      <span style={{ pointerEvents: "none" }}>All Photos</span>
-                      <ChevronDown className="h-4 w-4 opacity-50" aria-hidden="true" />
-                    </Button>
-                    <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
-                      <ImageIcon className="h-4 w-4 mr-2" />
-                      Add Photos
-                    </Button>
-                  </div>
-                </div>
-              </div>
-              <CardContent className="p-6 pt-0">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {mockPhotosTabData.map((photo) => (
-                    <div key={photo.id} className="group relative">
-                      <div className="aspect-square relative rounded-lg overflow-hidden">
-                        <img
-                          alt={photo.title}
-                          src={photo.url || "/placeholder.svg"}
-                          className="object-cover group-hover:scale-105 transition-transform absolute inset-0 w-full h-full"
-                        />
-                      </div>
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-end">
-                        <div className="p-3 text-white w-full">
-                          <p className="text-sm truncate">{photo.title}</p>
-                          <p className="text-xs opacity-80">{photo.date}</p>
+                  <Card className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                    <div className="flex flex-col space-y-1.5 p-6">
+                      <div className="flex justify-between items-center">
+                        <div className="text-2xl font-semibold leading-none tracking-tight">Photos</div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            role="combobox"
+                            aria-controls="radix-:rk:"
+                            aria-expanded="false"
+                            aria-autocomplete="none"
+                            dir="ltr"
+                            data-state="closed"
+                            className="flex h-10 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-[180px]"
+                          >
+                            <span style={{ pointerEvents: "none" }}>All Photos</span>
+                            <ChevronDown className="h-4 w-4 opacity-50" aria-hidden="true" />
+                          </Button>
+                          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                            <ImageIcon className="h-4 w-4 mr-2" />
+                            Add Photos
+                          </Button>
                         </div>
                       </div>
                     </div>
-                  ))}
+                    <CardContent className="p-6 pt-0">
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {mockPhotosTabData.map((photo) => (
+                          <div key={photo.id} className="group relative">
+                            <div className="aspect-square relative rounded-lg overflow-hidden">
+                              <img
+                                alt={photo.title}
+                                src={photo.url || "/placeholder.svg"}
+                                className="object-cover group-hover:scale-105 transition-transform absolute inset-0 w-full h-full"
+                              />
+                            </div>
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-end">
+                              <div className="p-3 text-white w-full">
+                                <p className="text-sm truncate">{photo.title}</p>
+                                <p className="text-xs opacity-80">{photo.date}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
         )}
 
         {activeTab === "more" && (
@@ -797,304 +805,304 @@ export function ClientPublisherPage({ publisher, coverImageUrl, publisherImageUr
                     Create Group
                   </Button>
                 </Link>
-              </div>
+                    </div>
               <div className="publisher-groups__list p-6 pt-0 space-y-4">
                 <div className="publisher-groups__item flex items-center gap-3 p-3 border rounded-lg">
                   <span className="publisher-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img
-                      src="/placeholder.svg?height=100&width=100"
-                      alt="Fantasy Book Club"
-                      className="aspect-square h-full w-full"
-                    />
-                  </span>
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Fantasy Book Club"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
                   <div className="publisher-groups__content flex-1 min-w-0">
                     <h3 className="publisher-groups__name font-medium truncate">Fantasy Book Club</h3>
                     <div className="publisher-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
                       <div className="publisher-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                        Moderator
-                      </div>
-                      <span>·</span>
-                      <span>1243 members</span>
-                      <span>·</span>
-                      <span>Joined January 2021</span>
-                    </div>
-                  </div>
+                              Moderator
+                            </div>
+                            <span>·</span>
+                            <span>1243 members</span>
+                            <span>·</span>
+                            <span>Joined January 2021</span>
+                          </div>
+                        </div>
                   <Button variant="outline" className="publisher-groups__view-button h-9 rounded-md px-3">
-                    View
-                  </Button>
-                </div>
+                          View
+                        </Button>
+                      </div>
                 <div className="publisher-groups__item flex items-center gap-3 p-3 border rounded-lg">
                   <span className="publisher-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img
-                      src="/placeholder.svg?height=100&width=100"
-                      alt="Science Fiction Readers"
-                      className="aspect-square h-full w-full"
-                    />
-                  </span>
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Science Fiction Readers"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
                   <div className="publisher-groups__content flex-1 min-w-0">
                     <h3 className="publisher-groups__name font-medium truncate">Science Fiction Readers</h3>
                     <div className="publisher-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
                       <div className="publisher-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                        Member
-                      </div>
-                      <span>·</span>
-                      <span>3567 members</span>
-                      <span>·</span>
-                      <span>Joined March 2021</span>
-                    </div>
-                  </div>
+                              Member
+                            </div>
+                            <span>·</span>
+                            <span>3567 members</span>
+                            <span>·</span>
+                            <span>Joined March 2021</span>
+                          </div>
+                        </div>
                   <Button variant="outline" className="publisher-groups__view-button h-9 rounded-md px-3">
-                    View
-                  </Button>
-                </div>
+                          View
+                        </Button>
+                      </div>
                 <div className="publisher-groups__item flex items-center gap-3 p-3 border rounded-lg">
                   <span className="publisher-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img
-                      src="/placeholder.svg?height=100&width=100"
-                      alt="Portland Book Lovers"
-                      className="aspect-square h-full w-full"
-                    />
-                  </span>
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Portland Book Lovers"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
                   <div className="publisher-groups__content flex-1 min-w-0">
                     <h3 className="publisher-groups__name font-medium truncate">Portland Book Lovers</h3>
                     <div className="publisher-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
                       <div className="publisher-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                        Member
-                      </div>
-                      <span>·</span>
-                      <span>567 members</span>
-                      <span>·</span>
-                      <span>Joined April 2020</span>
-                    </div>
-                  </div>
+                              Member
+                            </div>
+                            <span>·</span>
+                            <span>567 members</span>
+                            <span>·</span>
+                            <span>Joined April 2020</span>
+                          </div>
+                        </div>
                   <Button variant="outline" className="publisher-groups__view-button h-9 rounded-md px-3">
-                    View
-                  </Button>
-                </div>
+                          View
+                        </Button>
+                      </div>
                 <div className="publisher-groups__item flex items-center gap-3 p-3 border rounded-lg">
                   <span className="publisher-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img
-                      src="/placeholder.svg?height=100&width=100"
-                      alt="Women Writers Book Club"
-                      className="aspect-square h-full w-full"
-                    />
-                  </span>
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Women Writers Book Club"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
                   <div className="publisher-groups__content flex-1 min-w-0">
                     <h3 className="publisher-groups__name font-medium truncate">Women Writers Book Club</h3>
                     <div className="publisher-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
                       <div className="publisher-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                        Member
-                      </div>
-                      <span>·</span>
-                      <span>892 members</span>
-                      <span>·</span>
-                      <span>Joined September 2022</span>
-                    </div>
-                  </div>
+                              Member
+                            </div>
+                            <span>·</span>
+                            <span>892 members</span>
+                            <span>·</span>
+                            <span>Joined September 2022</span>
+                          </div>
+                        </div>
                   <Button variant="outline" className="publisher-groups__view-button h-9 rounded-md px-3">
-                    View
-                  </Button>
-                </div>
+                          View
+                        </Button>
+                      </div>
                 <div className="publisher-groups__item flex items-center gap-3 p-3 border rounded-lg">
                   <span className="publisher-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img
-                      src="/placeholder.svg?height=100&width=100"
-                      alt="Literary Fiction Fans"
-                      className="aspect-square h-full w-full"
-                    />
-                  </span>
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Literary Fiction Fans"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
                   <div className="publisher-groups__content flex-1 min-w-0">
                     <h3 className="publisher-groups__name font-medium truncate">Literary Fiction Fans</h3>
                     <div className="publisher-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
                       <div className="publisher-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                        Member
-                      </div>
-                      <span>·</span>
-                      <span>1456 members</span>
-                      <span>·</span>
-                      <span>Joined July 2021</span>
-                    </div>
-                  </div>
+                              Member
+                            </div>
+                            <span>·</span>
+                            <span>1456 members</span>
+                            <span>·</span>
+                            <span>Joined July 2021</span>
+                          </div>
+                        </div>
                   <Button variant="outline" className="publisher-groups__view-button h-9 rounded-md px-3">
-                    View
-                  </Button>
-                </div>
+                          View
+                        </Button>
+                      </div>
                 <div className="publisher-groups__item flex items-center gap-3 p-3 border rounded-lg">
                   <span className="publisher-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img
-                      src="/placeholder.svg?height=100&width=100"
-                      alt="Classic Literature Society"
-                      className="aspect-square h-full w-full"
-                    />
-                  </span>
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Classic Literature Society"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
                   <div className="publisher-groups__content flex-1 min-w-0">
                     <h3 className="publisher-groups__name font-medium truncate">Classic Literature Society</h3>
                     <div className="publisher-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
                       <div className="publisher-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                        Member
-                      </div>
-                      <span>·</span>
-                      <span>789 members</span>
-                      <span>·</span>
-                      <span>Joined February 2022</span>
-                    </div>
-                  </div>
+                              Member
+                            </div>
+                            <span>·</span>
+                            <span>789 members</span>
+                            <span>·</span>
+                            <span>Joined February 2022</span>
+                          </div>
+                        </div>
                   <Button variant="outline" className="publisher-groups__view-button h-9 rounded-md px-3">
-                    View
-                  </Button>
-                </div>
+                          View
+                        </Button>
+                      </div>
                 <Button className="publisher-groups__find-more h-10 px-4 py-2 w-full">
-                  <Users className="h-4 w-4 mr-2" />
-                  Find More Groups
-                </Button>
-              </div>
-            </div>
-            <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-              <div className="flex flex-col space-y-1.5 p-6">
-                <div className="text-2xl font-semibold leading-none tracking-tight">Pages</div>
-              </div>
-              <div className="p-6 pt-0 space-y-4">
-                <div className="flex items-center gap-3 p-3 border rounded-lg">
-                  <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img
-                      src="/placeholder.svg?height=100&width=100"
-                      alt="Brandon Sanderson"
-                      className="aspect-square h-full w-full"
-                    />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium truncate">Brandon Sanderson</h3>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                        Author
-                      </div>
-                      <span>·</span>
-                      <span>Following Since 2020</span>
+                        <Users className="h-4 w-4 mr-2" />
+                        Find More Groups
+                      </Button>
                     </div>
                   </div>
-                  <Button variant="outline" className="h-9 rounded-md px-3">
-                    View
-                  </Button>
-                </div>
-                <div className="flex items-center gap-3 p-3 border rounded-lg">
-                  <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img
-                      src="/placeholder.svg?height=100&width=100"
-                      alt="Tor Books"
-                      className="aspect-square h-full w-full"
-                    />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium truncate">Tor Books</h3>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                        Publisher
+                  <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                    <div className="flex flex-col space-y-1.5 p-6">
+                      <div className="text-2xl font-semibold leading-none tracking-tight">Pages</div>
+                    </div>
+                    <div className="p-6 pt-0 space-y-4">
+                      <div className="flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Brandon Sanderson"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">Brandon Sanderson</h3>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                              Author
+                            </div>
+                            <span>·</span>
+                            <span>Following Since 2020</span>
+                          </div>
+                        </div>
+                        <Button variant="outline" className="h-9 rounded-md px-3">
+                          View
+                        </Button>
                       </div>
-                      <span>·</span>
-                      <span>Following Since 2021</span>
+                      <div className="flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Tor Books"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">Tor Books</h3>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                              Publisher
+                            </div>
+                            <span>·</span>
+                            <span>Following Since 2021</span>
+                          </div>
+                        </div>
+                        <Button variant="outline" className="h-9 rounded-md px-3">
+                          View
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Powell's Books"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">Powell&apos;s Books</h3>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                              Bookstore
+                            </div>
+                            <span>·</span>
+                            <span>Following Since 2019</span>
+                          </div>
+                        </div>
+                        <Button variant="outline" className="h-9 rounded-md px-3">
+                          View
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Neil Gaiman"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">Neil Gaiman</h3>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                              Author
+                            </div>
+                            <span>·</span>
+                            <span>Following Since 2020</span>
+                          </div>
+                        </div>
+                        <Button variant="outline" className="h-9 rounded-md px-3">
+                          View
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Penguin Random House"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">Penguin Random House</h3>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                              Publisher
+                            </div>
+                            <span>·</span>
+                            <span>Following Since 2022</span>
+                          </div>
+                        </div>
+                        <Button variant="outline" className="h-9 rounded-md px-3">
+                          View
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Barnes & Noble"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">Barnes & Noble</h3>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                              Bookstore
+                            </div>
+                            <span>·</span>
+                            <span>Following Since 2021</span>
+                          </div>
+                        </div>
+                        <Button variant="outline" className="h-9 rounded-md px-3">
+                          View
+                        </Button>
+                      </div>
+                      <Button className="h-10 px-4 py-2 w-full">
+                        <Book className="h-4 w-4 mr-2" />
+                        Discover More Pages
+                      </Button>
                     </div>
                   </div>
-                  <Button variant="outline" className="h-9 rounded-md px-3">
-                    View
-                  </Button>
                 </div>
-                <div className="flex items-center gap-3 p-3 border rounded-lg">
-                  <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img
-                      src="/placeholder.svg?height=100&width=100"
-                      alt="Powell's Books"
-                      className="aspect-square h-full w-full"
-                    />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium truncate">Powell&apos;s Books</h3>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                        Bookstore
-                      </div>
-                      <span>·</span>
-                      <span>Following Since 2019</span>
-                    </div>
-                  </div>
-                  <Button variant="outline" className="h-9 rounded-md px-3">
-                    View
-                  </Button>
-                </div>
-                <div className="flex items-center gap-3 p-3 border rounded-lg">
-                  <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img
-                      src="/placeholder.svg?height=100&width=100"
-                      alt="Neil Gaiman"
-                      className="aspect-square h-full w-full"
-                    />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium truncate">Neil Gaiman</h3>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                        Author
-                      </div>
-                      <span>·</span>
-                      <span>Following Since 2020</span>
-                    </div>
-                  </div>
-                  <Button variant="outline" className="h-9 rounded-md px-3">
-                    View
-                  </Button>
-                </div>
-                <div className="flex items-center gap-3 p-3 border rounded-lg">
-                  <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img
-                      src="/placeholder.svg?height=100&width=100"
-                      alt="Penguin Random House"
-                      className="aspect-square h-full w-full"
-                    />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium truncate">Penguin Random House</h3>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                        Publisher
-                      </div>
-                      <span>·</span>
-                      <span>Following Since 2022</span>
-                    </div>
-                  </div>
-                  <Button variant="outline" className="h-9 rounded-md px-3">
-                    View
-                  </Button>
-                </div>
-                <div className="flex items-center gap-3 p-3 border rounded-lg">
-                  <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img
-                      src="/placeholder.svg?height=100&width=100"
-                      alt="Barnes & Noble"
-                      className="aspect-square h-full w-full"
-                    />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium truncate">Barnes & Noble</h3>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                        Bookstore
-                      </div>
-                      <span>·</span>
-                      <span>Following Since 2021</span>
-                    </div>
-                  </div>
-                  <Button variant="outline" className="h-9 rounded-md px-3">
-                    View
-                  </Button>
-                </div>
-                <Button className="h-10 px-4 py-2 w-full">
-                  <Book className="h-4 w-4 mr-2" />
-                  Discover More Pages
-                </Button>
-              </div>
-            </div>
-          </div>
         )}
-      </div>
-    </div>
+          </div>
+        </div>
   )
 }

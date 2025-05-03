@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 import { supabaseAdmin } from "@/lib/supabase"
 import type { Publisher } from "@/types/database"
 import { ClientPublisherPage } from "./client"
+import { PageContainer } from "@/components/page-container"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { getFollowers, getFollowersCount } from "@/lib/follows-server"
@@ -121,15 +122,17 @@ export default async function PublisherPage({ params }: { params: Promise<{ id: 
     .eq("publisher_id", id)
 
   return (
-    <ClientPublisherPage
-      publisher={publisher}
-      publisherImageUrl={publisherImageUrl}
-      coverImageUrl={coverImageUrl}
-      params={{ id }}
-      followers={followers}
-      followersCount={followersCount}
-      books={books}
-      booksCount={totalBooksCount || 0}
-    />
+    <PageContainer>
+      <ClientPublisherPage
+        publisher={publisher}
+        publisherImageUrl={publisherImageUrl}
+        coverImageUrl={coverImageUrl}
+        params={{ id }}
+        followers={followers}
+        followersCount={followersCount}
+        books={books}
+        booksCount={totalBooksCount || 0}
+      />
+    </PageContainer>
   )
 }

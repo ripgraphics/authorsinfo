@@ -53,40 +53,40 @@ export function OverviewSection({ publisher, onRefresh }: { publisher: Publisher
   const hasLongContent = publisher.about && countApproxLines(publisher.about) > 20;
   
   return (
-    <Card className="mb-6" id="overview" key={`overview-${refreshKey}`}>
-      <div className="flex flex-col space-y-1.5 p-6 border-b">
-        <div className="flex justify-between items-center">
-          <h3 className="text-xl font-semibold">Overview</h3>
+    <Card className="overview-section mb-6" id="overview" key={`overview-${refreshKey}`}>
+      <div className="overview-section__header flex flex-col space-y-1.5 p-6 border-b">
+        <div className="overview-section__title-row flex justify-between items-center">
+          <h3 className="overview-section__title text-xl font-semibold">Overview</h3>
           <Button 
             variant="ghost" 
             size="sm" 
-            className="h-8 gap-1"
+            className="overview-section__edit-button h-8 gap-1"
             onClick={() => setIsEditModalOpen(true)}
           >
-            <Edit2 className="h-4 w-4" />
+            <Edit2 className="overview-section__edit-icon h-4 w-4" />
             <span>Edit</span>
           </Button>
         </div>
       </div>
-      <CardContent className="p-6 space-y-4">
+      <CardContent className="overview-section__content p-6 space-y-4">
         {publisher.about ? (
-          <div className="space-y-2">
-            <div className="relative">
+          <div className="overview-section__about space-y-2">
+            <div className="overview-section__about-wrapper relative">
               <div 
-                className={`whitespace-pre-wrap text-base ${!expanded && hasLongContent ? "line-clamp-20 overflow-hidden" : ""}`}
+                className={`overview-section__about-text whitespace-pre-wrap text-base ${!expanded && hasLongContent ? "line-clamp-20 overflow-hidden" : ""}`}
                 style={{ maxHeight: !expanded && hasLongContent ? '500px' : 'none', overflow: !expanded && hasLongContent ? 'hidden' : 'visible' }}
               >
                 {publisher.about}
               </div>
               {!expanded && hasLongContent && (
-                <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent"></div>
+                <div className="overview-section__fade-gradient absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent"></div>
               )}
             </div>
             {hasLongContent && (
               <Button 
                 variant="outline" 
                 size="sm"
-                className="text-xs mt-2"
+                className="overview-section__toggle-button text-xs mt-2"
                 onClick={() => setExpanded(!expanded)}
               >
                 {expanded ? "View Less" : "View More"}
@@ -94,20 +94,20 @@ export function OverviewSection({ publisher, onRefresh }: { publisher: Publisher
             )}
           </div>
         ) : (
-          <p className="text-muted-foreground italic">No overview information available.</p>
+          <p className="overview-section__empty-message text-muted-foreground italic">No overview information available.</p>
         )}
-        <div className="flex items-center">
-          <Building className="h-4 w-4 mr-2 text-muted-foreground" />
-          <span>Founded in {publisher.founded_year || "N/A"}</span>
+        <div className="overview-section__founded flex items-center">
+          <Building className="overview-section__founded-icon h-4 w-4 mr-2 text-muted-foreground" />
+          <span className="overview-section__founded-text">Founded in {publisher.founded_year || "N/A"}</span>
         </div>
         {publisher.website && (
-          <div className="flex items-start">
-            <Globe className="h-4 w-4 mr-2 text-muted-foreground flex-shrink-0 mt-1" />
+          <div className="overview-section__website flex items-start">
+            <Globe className="overview-section__website-icon h-4 w-4 mr-2 text-muted-foreground flex-shrink-0 mt-1" />
             <a
               href={publisher.website.startsWith('http') ? publisher.website : `https://${publisher.website}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary hover:underline break-words"
+              className="overview-section__website-link text-primary hover:underline break-words"
             >
               {publisher.website}
             </a>
@@ -142,35 +142,35 @@ export function ContactSection({ publisher, onRefresh }: { publisher: PublisherD
   };
   
   return (
-    <Card className="mb-6" id="contact-info" key={`contact-${refreshKey}`}>
-      <div className="flex flex-col space-y-1.5 p-6 border-b">
-        <div className="flex justify-between items-center">
-          <h3 className="text-xl font-semibold">Contact Information</h3>
+    <Card className="contact-section mb-6" id="contact-info" key={`contact-${refreshKey}`}>
+      <div className="contact-section__header flex flex-col space-y-1.5 p-6 border-b">
+        <div className="contact-section__title-row flex justify-between items-center">
+          <h3 className="contact-section__title text-xl font-semibold">Contact Information</h3>
           <Button 
             variant="ghost" 
             size="sm" 
-            className="h-8 gap-1"
+            className="contact-section__edit-button h-8 gap-1"
             onClick={() => setIsEditModalOpen(true)}
           >
-            <Edit2 className="h-4 w-4" />
+            <Edit2 className="contact-section__edit-icon h-4 w-4" />
             <span>Edit</span>
           </Button>
         </div>
       </div>
-      <CardContent className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <CardContent className="contact-section__content p-6">
+        <div className="contact-section__grid grid grid-cols-1 md:grid-cols-2 gap-4">
           {publisher.email && (
-            <div className="flex flex-col">
-              <span className="text-sm text-muted-foreground">Email</span>
-              <a href={`mailto:${publisher.email}`} className="text-primary hover:underline">
+            <div className="contact-section__email flex flex-col">
+              <span className="contact-section__label text-sm text-muted-foreground">Email</span>
+              <a href={`mailto:${publisher.email}`} className="contact-section__email-link text-primary hover:underline">
                 {publisher.email}
               </a>
             </div>
           )}
           {publisher.phone && (
-            <div className="flex flex-col">
-              <span className="text-sm text-muted-foreground">Phone</span>
-              <a href={`tel:${publisher.phone}`} className="text-primary hover:underline">
+            <div className="contact-section__phone flex flex-col">
+              <span className="contact-section__label text-sm text-muted-foreground">Phone</span>
+              <a href={`tel:${publisher.phone}`} className="contact-section__phone-link text-primary hover:underline">
                 {publisher.phone}
               </a>
             </div>
@@ -235,31 +235,31 @@ export function LocationSection({ publisher, onRefresh }: { publisher: Publisher
   };
 
   return (
-    <Card className="mb-6" id="location" key={`location-${refreshKey}`}>
-      <div className="flex flex-col space-y-1.5 p-6 border-b">
-        <div className="flex justify-between items-center">
-          <h3 className="text-xl font-semibold">Location</h3>
+    <Card className="location-section mb-6" id="location" key={`location-${refreshKey}`}>
+      <div className="location-section__header flex flex-col space-y-1.5 p-6 border-b">
+        <div className="location-section__title-row flex justify-between items-center">
+          <h3 className="location-section__title text-xl font-semibold">Location</h3>
           <Button 
             variant="ghost" 
             size="sm" 
-            className="h-8 gap-1"
+            className="location-section__edit-button h-8 gap-1"
             onClick={() => setIsEditModalOpen(true)}
           >
-            <Edit2 className="h-4 w-4" />
+            <Edit2 className="location-section__edit-icon h-4 w-4" />
             <span>Edit</span>
           </Button>
         </div>
       </div>
-      <CardContent className="p-6">
+      <CardContent className="location-section__content p-6">
         {(publisher.address_line1 || publisher.city || publisher.state || publisher.country) ? (
-          <div className="space-y-2">
+          <div className="location-section__info space-y-2">
             {publisher.address_line1 && (
-              <div className="flex items-start">
-                <MapPin className="h-4 w-4 mr-2 mt-1 text-muted-foreground" />
-                <div className="flex flex-col">
-                  <span>{publisher.address_line1}</span>
-                  {publisher.address_line2 && <span>{publisher.address_line2}</span>}
-                  <span>
+              <div className="location-section__address flex items-start">
+                <MapPin className="location-section__map-icon h-4 w-4 mr-2 mt-1 text-muted-foreground" />
+                <div className="location-section__address-details flex flex-col">
+                  <span className="location-section__address-line">{publisher.address_line1}</span>
+                  {publisher.address_line2 && <span className="location-section__address-line">{publisher.address_line2}</span>}
+                  <span className="location-section__address-line">
                     {[
                       publisher.city,
                       publisher.state,
@@ -267,7 +267,7 @@ export function LocationSection({ publisher, onRefresh }: { publisher: Publisher
                     ].filter(Boolean).join(', ')}
                   </span>
                   {(publisher.country || publisher.country_details) && (
-                    <span>
+                    <span className="location-section__country">
                       {publisher.country_details?.code || publisher.country || publisher.country_details?.name}
                     </span>
                   )}
@@ -275,16 +275,16 @@ export function LocationSection({ publisher, onRefresh }: { publisher: Publisher
               </div>
             )}
             {!publisher.address_line1 && (
-              <div className="flex items-center">
-                <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                <span>
+              <div className="location-section__simple-location flex items-center">
+                <MapPin className="location-section__map-icon h-4 w-4 mr-2 text-muted-foreground" />
+                <span className="location-section__location-text">
                   {formatLocation().join(', ')}
                 </span>
               </div>
             )}
           </div>
         ) : (
-          <p className="text-muted-foreground italic">No location information available.</p>
+          <p className="location-section__empty-message text-muted-foreground italic">No location information available.</p>
         )}
       </CardContent>
       
@@ -318,15 +318,15 @@ export function BooksSection({
   onViewAllBooks: () => void
 }) {
   return (
-    <Card className="mb-6" id="books">
-      <div className="flex flex-col space-y-1.5 p-6 border-b">
-        <h3 className="text-xl font-semibold">Published Books</h3>
+    <Card className="books-section mb-6" id="books">
+      <div className="books-section__header flex flex-col space-y-1.5 p-6 border-b">
+        <h3 className="books-section__title text-xl font-semibold">Published Books</h3>
       </div>
-      <CardContent className="p-6">
+      <CardContent className="books-section__content p-6">
         {books && books.length > 0 ? (
-          <div>
-            <p className="mb-4">This publisher has published {booksCount} books.</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          <div className="books-section__with-content">
+            <p className="books-section__count mb-4">This publisher has published {booksCount} books.</p>
+            <div className="books-section__grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {books.slice(0, 8).map((book) => (
                 <BookCard
                   key={book.id}
@@ -337,11 +337,11 @@ export function BooksSection({
               ))}
             </div>
             {(booksCount || 0) > 8 && (
-              <div className="mt-4 text-center">
+              <div className="books-section__view-all mt-4 text-center">
                 <Button 
                   variant="outline" 
                   onClick={onViewAllBooks}
-                  className="mt-2"
+                  className="books-section__view-all-button mt-2"
                 >
                   View All Books
                 </Button>
@@ -349,7 +349,7 @@ export function BooksSection({
             )}
           </div>
         ) : (
-          <p className="text-muted-foreground italic">No books have been published yet.</p>
+          <p className="books-section__empty-message text-muted-foreground italic">No books have been published yet.</p>
         )}
       </CardContent>
     </Card>
@@ -374,37 +374,37 @@ export function AboutNavigation({ publisherId }: { publisherId?: string | number
   }, []);
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden sticky top-20">
-      <div className="p-4 border-b flex justify-between items-center">
-        <h2 className="text-lg font-medium">About</h2>
-        <div className="relative" ref={menuRef}>
+    <div className="about-navigation bg-white rounded-lg shadow overflow-hidden sticky top-20">
+      <div className="about-navigation__header p-4 border-b flex justify-between items-center">
+        <h2 className="about-navigation__title text-lg font-medium">About</h2>
+        <div className="about-navigation__settings-wrapper relative" ref={menuRef}>
           <Button 
             variant="ghost" 
             size="icon" 
-            className="h-8 w-8 rounded-full"
+            className="about-navigation__settings-button h-8 w-8 rounded-full"
             onClick={() => setMenuOpen(!menuOpen)}
           >
-            <Settings className="h-4 w-4" />
+            <Settings className="about-navigation__settings-icon h-4 w-4" />
           </Button>
           {menuOpen && (
-            <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
-              <div className="py-1" role="menu" aria-orientation="vertical">
+            <div className="about-navigation__dropdown absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+              <div className="about-navigation__dropdown-menu py-1" role="menu" aria-orientation="vertical">
                 <Link 
                   href={`/publishers/${publisherId}/edit?section=about`}
-                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  className="about-navigation__dropdown-item flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   role="menuitem"
                   onClick={() => setMenuOpen(false)}
                 >
-                  <Edit2 className="h-4 w-4 mr-2" />
+                  <Edit2 className="about-navigation__dropdown-icon h-4 w-4 mr-2" />
                   Edit About
                 </Link>
                 <Link 
                   href={`/publishers/${publisherId}/settings`}
-                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  className="about-navigation__dropdown-item flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   role="menuitem"
                   onClick={() => setMenuOpen(false)}
                 >
-                  <Settings className="h-4 w-4 mr-2" />
+                  <Settings className="about-navigation__dropdown-icon h-4 w-4 mr-2" />
                   Settings
                 </Link>
               </div>
@@ -412,28 +412,28 @@ export function AboutNavigation({ publisherId }: { publisherId?: string | number
           )}
         </div>
       </div>
-      <nav className="p-2">
+      <nav className="about-navigation__nav p-2">
         <a
           href="#overview"
-          className="flex items-center px-3 py-2 rounded-md hover:bg-muted text-primary"
+          className="about-navigation__nav-link flex items-center px-3 py-2 rounded-md hover:bg-muted text-primary"
         >
           Overview
         </a>
         <a 
           href="#contact-info" 
-          className="flex items-center px-3 py-2 rounded-md hover:bg-muted"
+          className="about-navigation__nav-link flex items-center px-3 py-2 rounded-md hover:bg-muted"
         >
           Contact Information
         </a>
         <a 
           href="#location" 
-          className="flex items-center px-3 py-2 rounded-md hover:bg-muted"
+          className="about-navigation__nav-link flex items-center px-3 py-2 rounded-md hover:bg-muted"
         >
           Location
         </a>
         <a 
           href="#books" 
-          className="flex items-center px-3 py-2 rounded-md hover:bg-muted"
+          className="about-navigation__nav-link flex items-center px-3 py-2 rounded-md hover:bg-muted"
         >
           Published Books
         </a>

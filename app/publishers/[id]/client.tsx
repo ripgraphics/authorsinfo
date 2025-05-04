@@ -28,6 +28,7 @@ import {
   Filter,
   ChevronDown,
   Building,
+  Info,
 } from "lucide-react"
 import { BookCard } from "@/components/book-card"
 import Image from "next/image"
@@ -407,41 +408,62 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
                   {/* Left Sidebar */}
                   <div className="lg:col-span-1 space-y-6">
                     {/* About Section */}
-                    <Card>
-                      <div className="flex flex-col space-y-1.5 p-6">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">About</div>
+                    <Card className="timeline-about-section">
+                      <div className="timeline-about-section__header flex flex-col space-y-1.5 p-6">
+                        <div className="timeline-about-section__title-row flex justify-between items-center">
+                          <div className="timeline-about-section__title text-2xl font-semibold leading-none tracking-tight">About</div>
+                          <button 
+                            className="timeline-about-section__view-more text-sm text-primary hover:underline"
+                            onClick={() => setActiveTab("about")}
+                          >
+                            View More
+                          </button>
+                        </div>
                       </div>
-                      <CardContent className="p-6 pt-0 space-y-4">
-                        <p>{publisher?.about || "No information available about this publisher."}</p>
-                        <div className="space-y-2">
+                      <CardContent className="timeline-about-section__content p-6 pt-0 space-y-4">
+                        {publisher?.about ? (
+                          <div className="timeline-about-section__about-wrapper relative">
+                            <p className="timeline-about-section__about-text line-clamp-10">
+                              {publisher.about}
+                            </p>
+                            <div className="timeline-about-section__gradient absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent"></div>
+                          </div>
+                        ) : (
+                          <p className="timeline-about-section__empty-message">No information available about this publisher.</p>
+                        )}
+                        <div className="timeline-about-section__details space-y-2">
                           {(publisher?.state || publisher?.country || (publisher?.country_details && publisher?.country_details.code)) && (
-                          <div className="flex items-center">
-                            <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                              <span>
-                                Lives in {publisher?.state && publisher?.country_details?.code 
+                          <div className="timeline-about-section__location flex items-center">
+                            <MapPin className="timeline-about-section__location-icon h-4 w-4 mr-2 text-muted-foreground" />
+                              <span className="timeline-about-section__location-text">
+                                Located in {publisher?.state && publisher?.country_details?.code 
                                   ? `${publisher.state}, ${publisher.country_details.code}`
                                   : publisher?.state || publisher?.country || (publisher?.country_details ? publisher.country_details.name : '')}
                               </span>
                           </div>
                           )}
                           {publisher?.website && (
-                          <div className="flex items-center">
+                          <div className="timeline-about-section__website flex items-center">
+                            <Globe className="timeline-about-section__website-icon h-4 w-4 mr-2 text-muted-foreground" />
                             <a
-                                href={publisher.website.startsWith('http') ? publisher.website : `https://${publisher.website}`}
+                              href={publisher.website.startsWith('http') ? publisher.website : `https://${publisher.website}`}
+                              className="timeline-about-section__website-link hover:underline"
                               target="_blank"
                               rel="noopener noreferrer"
                             >
-                              <Globe className="h-4 w-4" />
+                              {publisher.website}
                             </a>
                           </div>
                           )}
                         </div>
-                        <Link href="/profile/edit" className="w-full">
-                          <Button variant="outline" className="w-full">
-                            <SquarePen className="h-4 w-4 mr-2" />
-                            Edit Details
-                          </Button>
-                        </Link>
+                        <Button 
+                          variant="outline" 
+                          className="timeline-about-section__about-tab-button w-full"
+                          onClick={() => setActiveTab("about")}
+                        >
+                          <Info className="h-4 w-4 mr-2" />
+                          View Full About
+                        </Button>
                       </CardContent>
                     </Card>
 

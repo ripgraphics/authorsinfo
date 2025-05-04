@@ -1,0 +1,93 @@
+import { notFound } from "next/navigation"
+import { supabaseAdmin } from "@/lib/supabase"
+import { ClientAuthorPage } from "./client"
+import { PageContainer } from "@/components/page-container"
+import { getFollowers } from "@/lib/follows-server"
+
+export default async function Page({ params }: { params: { id: string } }) {
+  const id = params.id
+  
+  // Get author data
+  const { data: author, error } = await supabaseAdmin
+    .from("authors")
+    .select(`
+      *,
+      cover_image:cover_image_id(id, url, alt_text),
+      author_image:author_image_id(id, url, alt_text)
+    `)
+    .eq("id", id)
+    .single()
+
+  if (error || !author) {
+    notFound()
+  }
+
+  // Get author image URL
+  const authorImageUrl =
+    author.author_image?.url || author.photo_url || "/placeholder.svg?height=200&width=200"
+
+  // Get cover image URL
+  const coverImageUrl = author.cover_image?.url || "/placeholder.svg?height=400&width=1200"
+
+  // Get author followers
+  let followers = []
+  let followersCount = 0
+  try {
+    const response = await getFollowers(id, 'author', 1, 50)
+    followers = response.followers
+    followersCount = response.count
+  } catch (error) {
+    console.error("Error fetching author followers:", error)
+  }
+  
+  // Get author books
+  const { data: booksData } = await supabaseAdmin
+    .from("books")
+    .select(`
+      id,
+      title,
+      cover_image:cover_image_id(id, url, alt_text),
+      original_image_url
+    `)
+    .eq("author_id", id)
+    .order("title")
+    .limit(12)
+
+  const books = (booksData || []).map((book) => {
+    let coverImageUrl = null
+    if (book.cover_image?.url) {
+      coverImageUrl = book.cover_image.url
+    } else if (book.cover_image_url) {
+      coverImageUrl = book.cover_image_url
+    } else if (book.original_image_url) {
+      coverImageUrl = book.original_image_url
+    }
+
+    return {
+      id: book.id,
+      title: book.title,
+      cover_image_url: coverImageUrl
+    }
+  })
+  
+  // Get total book count for this author
+  const { count: booksCount } = await supabaseAdmin
+    .from("books")
+    .select("*", { count: 'exact', head: true })
+    .eq("author_id", id)
+
+  return (
+    <PageContainer>
+      <ClientAuthorPage
+        author={author}
+        authorImageUrl={authorImageUrl}
+        coverImageUrl={coverImageUrl}
+        params={{ id }}
+        followers={followers}
+        followersCount={followersCount}
+        books={books}
+        booksCount={booksCount || 0}
+      />
+    </PageContainer>
+  )
+} 

@@ -27,6 +27,10 @@ const config: Config = {
       },
     },
     extend: {
+      lineClamp: {
+        10: '10',
+        20: '20',
+      },
       colors: {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
@@ -108,6 +112,9 @@ const config: Config = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    require("@tailwindcss/line-clamp"),
+  ],
 }
 export default config

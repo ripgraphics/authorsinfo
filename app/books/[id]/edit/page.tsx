@@ -4,7 +4,6 @@ import React, { use, useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -17,6 +16,7 @@ import { MultiCombobox } from "@/components/ui/multi-combobox"
 import { supabaseClient } from "@/lib/supabase/client"
 import { uploadImage } from "@/app/actions/upload"
 import type { Book, Author, Publisher } from "@/types/database"
+import { PageContainer } from "@/components/page-container"
 
 interface EditBookPageProps {
   params: {
@@ -26,7 +26,7 @@ interface EditBookPageProps {
 
 export default function EditBookPage({ params }: EditBookPageProps) {
   const router = useRouter()
-  const bookId = params.id
+  const bookId = use(params).id
   const [book, setBook] = useState<Book | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -517,332 +517,319 @@ export default function EditBookPage({ params }: EditBookPageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <PageHeader />
-        <main className="flex-1  book-page container py-8">
-          <div className="flex items-center justify-center h-full">
-            <div className="flex flex-col items-center gap-2">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p>Loading book information...</p>
-            </div>
+      <PageContainer>
+        <div className="flex items-center justify-center h-full py-12">
+          <div className="flex flex-col items-center gap-2">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p>Loading book information...</p>
           </div>
-        </main>
-      </div>
+        </div>
+      </PageContainer>
     )
   }
 
   if (!book) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <PageHeader />
-        <main className="flex-1  book-page container py-8">
-          <div className="flex items-center justify-center h-full">
-            <p>Book not found</p>
-          </div>
-        </main>
-      </div>
+      <PageContainer>
+        <div className="flex items-center justify-center h-full py-12">
+          <p>Book not found</p>
+        </div>
+      </PageContainer>
     )
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <PageHeader />
-      <main className="flex-1  book-page container py-8">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-6">Edit Book</h1>
+    <PageContainer title="Edit Book">
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
-          {error && (
-            <Alert variant="destructive" className="mb-6">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+      {successMessage && (
+        <Alert className="mb-6 bg-green-50 border-green-200">
+          <AlertDescription className="text-green-800">{successMessage}</AlertDescription>
+        </Alert>
+      )}
 
-          {successMessage && (
-            <Alert className="mb-6 bg-green-50 border-green-200">
-              <AlertDescription className="text-green-800">{successMessage}</AlertDescription>
-            </Alert>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Book Cover */}
-            <div>
-              <Card className="overflow-hidden">
-                {coverPreview ? (
-                  <div className="w-full h-full">
-                    <Image
-                      src={coverPreview || "/placeholder.svg"}
-                      alt={book.title}
-                      width={400}
-                      height={600}
-                      className="w-full aspect-[2/3] object-cover"
-                    />
-                  </div>
-                ) : book.cover_image_url ? (
-                  <div className="w-full h-full">
-                    <Image
-                      src={book.cover_image_url || "/placeholder.svg"}
-                      alt={book.title}
-                      width={400}
-                      height={600}
-                      className="w-full aspect-[2/3] object-cover"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-full aspect-[2/3] bg-muted flex items-center justify-center">
-                    <BookOpen className="h-16 w-16 text-muted-foreground" />
-                  </div>
-                )}
-              </Card>
-              <div className="mt-4">
-                <Label htmlFor="cover-image" className="block mb-2">
-                  Change Cover Image
-                </Label>
-                <Input id="cover-image" type="file" accept="image/*" onChange={handleCoverImageChange} />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Images will be stored in Cloudinary in the authorsinfo/bookcovers folder
-                </p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Book Cover */}
+        <div>
+          <Card className="overflow-hidden">
+            {coverPreview ? (
+              <div className="w-full h-full">
+                <Image
+                  src={coverPreview || "/placeholder.svg"}
+                  alt={book.title}
+                  width={400}
+                  height={600}
+                  className="w-full aspect-[2/3] object-cover"
+                />
               </div>
-            </div>
-
-            {/* Book Details Form */}
-            <div className="md:col-span-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Book Information</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="space-y-4">
-                      {/* Basic Information */}
-                      <div>
-                        <Label htmlFor="title">Title</Label>
-                        <Input id="title" name="title" defaultValue={book.title} />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="title_long">Long Title</Label>
-                        <Input 
-                          id="title_long" 
-                          name="title_long" 
-                          defaultValue={(book as any).title_long || ""} 
-                        />
-                      </div>
-
-                      {/* ISBN Information */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="isbn10">ISBN-10</Label>
-                          <Input id="isbn10" name="isbn10" defaultValue={book.isbn10 || ""} />
-                        </div>
-                        <div>
-                          <Label htmlFor="isbn13">ISBN-13</Label>
-                          <Input id="isbn13" name="isbn13" defaultValue={book.isbn13 || ""} />
-                        </div>
-                      </div>
-
-                      {/* Author Selection */}
-                      <div>
-                        <Label htmlFor="authors">Authors</Label>
-                        <MultiCombobox
-                          options={authors.map((author) => ({ value: author.id, label: author.name }))}
-                          selected={selectedAuthorIds}
-                          onChange={setSelectedAuthorIds}
-                          placeholder="Search and select authors..."
-                          emptyMessage="No authors found."
-                          onSearch={handleAuthorSearch}
-                          onScrollEnd={loadMoreAuthors}
-                          loading={loadingMoreAuthors}
-                        />
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Search for authors by name. The first author will be set as the primary author.
-                        </p>
-                      </div>
-
-                      {/* Publisher Selection */}
-                      <div>
-                        <Label htmlFor="publishers">Publishers</Label>
-                        <MultiCombobox
-                          options={publishers.map((publisher) => ({ value: publisher.id, label: publisher.name }))}
-                          selected={selectedPublisherIds}
-                          onChange={setSelectedPublisherIds}
-                          placeholder="Search and select publishers..."
-                          emptyMessage="No publishers found."
-                          onSearch={handlePublisherSearch}
-                          onScrollEnd={loadMorePublishers}
-                          loading={loadingMorePublishers}
-                        />
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Search for publishers by name. The first publisher will be set as the primary publisher.
-                        </p>
-                      </div>
-
-                      {/* Publication Details */}
-                      <div>
-                        <Label htmlFor="publication_date">Publication Date</Label>
-                        <Input
-                          id="publication_date"
-                          name="publication_date"
-                          defaultValue={book.publication_date || ""}
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="binding">Binding</Label>
-                          <MultiCombobox
-                            options={bindingOptions}
-                            selected={selectedBindings}
-                            onChange={setSelectedBindings}
-                            placeholder="Select binding type..."
-                            emptyMessage="No binding types found."
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="format">Format</Label>
-                          <MultiCombobox
-                            options={formatOptions}
-                            selected={selectedFormats}
-                            onChange={setSelectedFormats}
-                            placeholder="Select format..."
-                            emptyMessage="No formats found."
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="edition">Edition</Label>
-                          <Input id="edition" name="edition" defaultValue={book.edition || ""} />
-                        </div>
-                        <div>
-                          <Label htmlFor="language">Language</Label>
-                          <Input id="language" name="language" defaultValue={book.language || ""} />
-                        </div>
-                      </div>
-
-                      {/* Physical Details */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="pages">Pages</Label>
-                          <Input
-                            id="pages"
-                            name="pages"
-                            type="number"
-                            defaultValue={book.pages ? book.pages.toString() : ""}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="list_price">List Price</Label>
-                          <Input
-                            id="list_price"
-                            name="list_price"
-                            type="number"
-                            step="0.01"
-                            defaultValue={book.list_price ? book.list_price.toString() : ""}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="dimensions">Dimensions</Label>
-                          <Input id="dimensions" name="dimensions" defaultValue={book.dimensions || ""} />
-                        </div>
-                        <div>
-                          <Label htmlFor="weight">Weight</Label>
-                          <Input id="weight" name="weight" defaultValue={book.weight || ""} />
-                        </div>
-                      </div>
-
-                      {/* Gallery Images */}
-                      <div>
-                        <Label htmlFor="book_gallery_img">Book Gallery Images</Label>
-                        <Input
-                          id="book_gallery_img"
-                          name="book_gallery_img"
-                          defaultValue={
-                            Array.isArray(book.book_gallery_img)
-                              ? book.book_gallery_img.join(", ")
-                              : book.book_gallery_img || ""
-                          }
-                        />
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Enter comma-separated URLs for additional book images.
-                        </p>
-                      </div>
-
-                      {/* Ratings - Read Only */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="average_rating">Average Rating (Read Only)</Label>
-                          <Input
-                            id="average_rating"
-                            name="average_rating"
-                            type="number"
-                            step="0.01"
-                            defaultValue={book.average_rating?.toString() || "0.00"}
-                            disabled
-                            className="bg-gray-100"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="review_count">Review Count (Read Only)</Label>
-                          <Input
-                            id="review_count"
-                            name="review_count"
-                            type="number"
-                            defaultValue={(book as any).review_count?.toString() || "0"}
-                            disabled
-                            className="bg-gray-100"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Featured Flag */}
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="featured"
-                          name="featured"
-                          defaultChecked={(book as any).featured === "true" || (book as any).featured === true}
-                        />
-                        <Label htmlFor="featured">Featured Book</Label>
-                      </div>
-
-                      {/* Content */}
-                      <div>
-                        <Label htmlFor="synopsis">Synopsis</Label>
-                        <Textarea id="synopsis" name="synopsis" rows={5} defaultValue={book.synopsis || ""} />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="overview">Overview</Label>
-                        <Textarea id="overview" name="overview" rows={5} defaultValue={book.overview || ""} />
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end gap-4">
-                      <Button type="button" variant="outline" asChild>
-                        <Link href={`/books/${bookId}`}>Cancel</Link>
-                      </Button>
-                      <Button type="submit" disabled={saving}>
-                        {saving ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Saving...
-                          </>
-                        ) : (
-                          "Save Changes"
-                        )}
-                      </Button>
-                    </div>
-                  </form>
-                </CardContent>
-              </Card>
-            </div>
+            ) : book.cover_image_url ? (
+              <div className="w-full h-full">
+                <Image
+                  src={book.cover_image_url || "/placeholder.svg"}
+                  alt={book.title}
+                  width={400}
+                  height={600}
+                  className="w-full aspect-[2/3] object-cover"
+                />
+              </div>
+            ) : (
+              <div className="w-full aspect-[2/3] bg-muted flex items-center justify-center">
+                <BookOpen className="h-16 w-16 text-muted-foreground" />
+              </div>
+            )}
+          </Card>
+          <div className="mt-4">
+            <Label htmlFor="cover-image" className="block mb-2">
+              Change Cover Image
+            </Label>
+            <Input id="cover-image" type="file" accept="image/*" onChange={handleCoverImageChange} />
+            <p className="text-xs text-muted-foreground mt-1">
+              Images will be stored in Cloudinary in the authorsinfo/bookcovers folder
+            </p>
           </div>
         </div>
-      </main>
-    </div>
+
+        {/* Book Details Form */}
+        <div className="md:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Book Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-4">
+                  {/* Basic Information */}
+                  <div>
+                    <Label htmlFor="title">Title</Label>
+                    <Input id="title" name="title" defaultValue={book.title} />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="title_long">Long Title</Label>
+                    <Input 
+                      id="title_long" 
+                      name="title_long" 
+                      defaultValue={(book as any).title_long || ""} 
+                    />
+                  </div>
+
+                  {/* ISBN Information */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="isbn10">ISBN-10</Label>
+                      <Input id="isbn10" name="isbn10" defaultValue={book.isbn10 || ""} />
+                    </div>
+                    <div>
+                      <Label htmlFor="isbn13">ISBN-13</Label>
+                      <Input id="isbn13" name="isbn13" defaultValue={book.isbn13 || ""} />
+                    </div>
+                  </div>
+
+                  {/* Author Selection */}
+                  <div>
+                    <Label htmlFor="authors">Authors</Label>
+                    <MultiCombobox
+                      options={authors.map((author) => ({ value: author.id, label: author.name }))}
+                      selected={selectedAuthorIds}
+                      onChange={setSelectedAuthorIds}
+                      placeholder="Search and select authors..."
+                      emptyMessage="No authors found."
+                      onSearch={handleAuthorSearch}
+                      onScrollEnd={loadMoreAuthors}
+                      loading={loadingMoreAuthors}
+                    />
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Search for authors by name. The first author will be set as the primary author.
+                    </p>
+                  </div>
+
+                  {/* Publisher Selection */}
+                  <div>
+                    <Label htmlFor="publishers">Publishers</Label>
+                    <MultiCombobox
+                      options={publishers.map((publisher) => ({ value: publisher.id, label: publisher.name }))}
+                      selected={selectedPublisherIds}
+                      onChange={setSelectedPublisherIds}
+                      placeholder="Search and select publishers..."
+                      emptyMessage="No publishers found."
+                      onSearch={handlePublisherSearch}
+                      onScrollEnd={loadMorePublishers}
+                      loading={loadingMorePublishers}
+                    />
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Search for publishers by name. The first publisher will be set as the primary publisher.
+                    </p>
+                  </div>
+
+                  {/* Publication Details */}
+                  <div>
+                    <Label htmlFor="publication_date">Publication Date</Label>
+                    <Input
+                      id="publication_date"
+                      name="publication_date"
+                      defaultValue={book.publication_date || ""}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="binding">Binding</Label>
+                      <MultiCombobox
+                        options={bindingOptions}
+                        selected={selectedBindings}
+                        onChange={setSelectedBindings}
+                        placeholder="Select binding type..."
+                        emptyMessage="No binding types found."
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="format">Format</Label>
+                      <MultiCombobox
+                        options={formatOptions}
+                        selected={selectedFormats}
+                        onChange={setSelectedFormats}
+                        placeholder="Select format..."
+                        emptyMessage="No formats found."
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="edition">Edition</Label>
+                      <Input id="edition" name="edition" defaultValue={book.edition || ""} />
+                    </div>
+                    <div>
+                      <Label htmlFor="language">Language</Label>
+                      <Input id="language" name="language" defaultValue={book.language || ""} />
+                    </div>
+                  </div>
+
+                  {/* Physical Details */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="pages">Pages</Label>
+                      <Input
+                        id="pages"
+                        name="pages"
+                        type="number"
+                        defaultValue={book.pages ? book.pages.toString() : ""}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="list_price">List Price</Label>
+                      <Input
+                        id="list_price"
+                        name="list_price"
+                        type="number"
+                        step="0.01"
+                        defaultValue={book.list_price ? book.list_price.toString() : ""}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="dimensions">Dimensions</Label>
+                      <Input id="dimensions" name="dimensions" defaultValue={book.dimensions || ""} />
+                    </div>
+                    <div>
+                      <Label htmlFor="weight">Weight</Label>
+                      <Input id="weight" name="weight" defaultValue={book.weight || ""} />
+                    </div>
+                  </div>
+
+                  {/* Gallery Images */}
+                  <div>
+                    <Label htmlFor="book_gallery_img">Book Gallery Images</Label>
+                    <Input
+                      id="book_gallery_img"
+                      name="book_gallery_img"
+                      defaultValue={
+                        Array.isArray(book.book_gallery_img)
+                          ? book.book_gallery_img.join(", ")
+                          : book.book_gallery_img || ""
+                      }
+                    />
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Enter comma-separated URLs for additional book images.
+                    </p>
+                  </div>
+
+                  {/* Ratings - Read Only */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="average_rating">Average Rating (Read Only)</Label>
+                      <Input
+                        id="average_rating"
+                        name="average_rating"
+                        type="number"
+                        step="0.01"
+                        defaultValue={book.average_rating?.toString() || "0.00"}
+                        disabled
+                        className="bg-gray-100"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="review_count">Review Count (Read Only)</Label>
+                      <Input
+                        id="review_count"
+                        name="review_count"
+                        type="number"
+                        defaultValue={(book as any).review_count?.toString() || "0"}
+                        disabled
+                        className="bg-gray-100"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Featured Flag */}
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="featured"
+                      name="featured"
+                      defaultChecked={(book as any).featured === "true" || (book as any).featured === true}
+                    />
+                    <Label htmlFor="featured">Featured Book</Label>
+                  </div>
+
+                  {/* Content */}
+                  <div>
+                    <Label htmlFor="synopsis">Synopsis</Label>
+                    <Textarea id="synopsis" name="synopsis" rows={5} defaultValue={book.synopsis || ""} />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="overview">Overview</Label>
+                    <Textarea id="overview" name="overview" rows={5} defaultValue={book.overview || ""} />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-4">
+                  <Button type="button" variant="outline" asChild>
+                    <Link href={`/books/${bookId}`}>Cancel</Link>
+                  </Button>
+                  <Button type="submit" disabled={saving}>
+                    {saving ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      "Save Changes"
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </PageContainer>
   )
 }

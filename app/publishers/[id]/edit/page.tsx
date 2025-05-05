@@ -1,11 +1,9 @@
 "use client"
 
 import type React from "react"
-
-import { useState, useEffect, useRef } from "react"
+import { use, useState, useEffect, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
-import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -28,6 +26,7 @@ export default function PublisherEditPage({ params }: PublisherEditPageProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const section = searchParams.get('section')
+  const publisherId = use(params).id
   
   // Add refs for each section
   const overviewRef = useRef<HTMLDivElement>(null)
@@ -58,7 +57,7 @@ export default function PublisherEditPage({ params }: PublisherEditPageProps) {
             cover_image:cover_image_id(id, url, alt_text),
             country_details:country_id(id, name, code)
           `)
-          .eq("id", params.id)
+          .eq("id", publisherId)
           .single()
 
         if (error) {
@@ -92,7 +91,7 @@ export default function PublisherEditPage({ params }: PublisherEditPageProps) {
     }
 
     fetchPublisher()
-  }, [params.id])
+  }, [publisherId])
 
   // Scroll to the specific section when the component mounts and data is loaded
   useEffect(() => {
@@ -225,7 +224,7 @@ export default function PublisherEditPage({ params }: PublisherEditPageProps) {
       }
 
       // Update publisher in database
-      const { error: updateError } = await supabaseClient.from("publishers").update(updateData).eq("id", params.id)
+      const { error: updateError } = await supabaseClient.from("publishers").update(updateData).eq("id", publisherId)
 
       if (updateError) {
         console.error("Error updating publisher:", updateError)
@@ -238,7 +237,7 @@ export default function PublisherEditPage({ params }: PublisherEditPageProps) {
 
       // Redirect back to the publisher page after a short delay
       setTimeout(() => {
-        router.push(`/publishers/${params.id}`)
+        router.push(`/publishers/${publisherId}`)
       }, 1500)
     } catch (error: any) {
       console.error("Error in handleSubmit:", error)
@@ -251,7 +250,6 @@ export default function PublisherEditPage({ params }: PublisherEditPageProps) {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col">
-        <PageHeader />
         <main className="flex-1 container py-8">
           <div className="flex items-center justify-center h-full">
             <div className="flex flex-col items-center gap-2">
@@ -267,7 +265,6 @@ export default function PublisherEditPage({ params }: PublisherEditPageProps) {
   if (!publisher) {
     return (
       <div className="min-h-screen flex flex-col">
-        <PageHeader />
         <main className="flex-1 container py-8">
           <div className="flex items-center justify-center h-full">
             <p>Publisher not found</p>
@@ -279,7 +276,6 @@ export default function PublisherEditPage({ params }: PublisherEditPageProps) {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <PageHeader />
       <main className="flex-1 container py-8">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold mb-6">Edit Publisher</h1>

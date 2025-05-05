@@ -358,19 +358,21 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        {publisher.website}
+                        Website
                       </a>
                     </div>
                     )}
                   </div>
-                  <Button 
-                    variant="outline" 
-                    className="timeline-about-section__about-tab-button w-full"
-                    onClick={() => setActiveTab("about")}
-                  >
-                    <Info className="h-4 w-4 mr-2" />
-                    View Full About
-                  </Button>
+                  {publisher?.about && publisher.about.split('\n').length > 10 && (
+                    <Button 
+                      variant="outline" 
+                      className="timeline-about-section__about-tab-button w-full"
+                      onClick={() => setActiveTab("about")}
+                    >
+                      <Info className="h-4 w-4 mr-2" />
+                      Show More
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
 

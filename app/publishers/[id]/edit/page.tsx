@@ -183,7 +183,7 @@ export default function PublisherEditPage({ params }: PublisherEditPageProps) {
           })
 
           const base64Image = await base64Promise
-          const logoResult = await uploadImage(base64Image, "publisher_image", `Logo for ${publisher.name}`)
+          const logoResult = await uploadImage(base64Image, "authorsinfo/publisher_image", `Logo for ${publisher.name}`)
 
           if (logoResult) {
             updateData.publisher_image_id = logoResult.imageId
@@ -210,7 +210,7 @@ export default function PublisherEditPage({ params }: PublisherEditPageProps) {
           })
 
           const base64Image = await base64Promise
-          const coverResult = await uploadImage(base64Image, "page_cover", `Cover for ${publisher.name}`)
+          const coverResult = await uploadImage(base64Image, "authorsinfo/page_cover", `Cover for ${publisher.name}`)
 
           if (coverResult) {
             updateData.cover_image_id = coverResult.imageId

@@ -23,13 +23,13 @@ export async function uploadImage(
     const timestamp = Math.round(new Date().getTime() / 1000)
 
     // Prepare transformation parameters if provided
-    let transformationString = ""
+    let transformationString = "f_webp"  // Always convert to WebP format
     if (maxWidth && maxHeight) {
-      transformationString = `c_fit,w_${maxWidth},h_${maxHeight}`
+      transformationString += `,c_fit,w_${maxWidth},h_${maxHeight}`
     } else if (maxWidth) {
-      transformationString = `c_fit,w_${maxWidth}`
+      transformationString += `,c_fit,w_${maxWidth}`
     } else if (maxHeight) {
-      transformationString = `c_fit,h_${maxHeight}`
+      transformationString += `,c_fit,h_${maxHeight}`
     }
 
     // Create the parameters object for signature
@@ -67,11 +67,9 @@ export async function uploadImage(
     formData.append("timestamp", timestamp.toString())
     formData.append("signature", signature)
     formData.append("folder", folder)
-
-    // Add transformation to form data if it exists
-    if (transformationString) {
-      formData.append("transformation", transformationString)
-    }
+    
+    // Always add transformation, even if just WebP conversion
+    formData.append("transformation", transformationString)
 
     // Upload to Cloudinary
     const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {

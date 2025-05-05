@@ -132,8 +132,13 @@ export default function AddGroupPage() {
     try {
       let coverImageId: number | null = null
       if (coverFile) {
-        const base64 = await fileToBase64(coverFile)
-        const result = await uploadImage(base64, "page_cover", `Cover for ${name}`)
+        const base64 = await new Promise<string>((resolve) => {
+          const reader = new FileReader()
+          reader.onload = () => resolve(reader.result as string)
+          reader.readAsDataURL(coverFile)
+        })
+        
+        const result = await uploadImage(base64, "authorsinfo/page_cover", `Cover for ${name}`)
         coverImageId = result.imageId
       }
 

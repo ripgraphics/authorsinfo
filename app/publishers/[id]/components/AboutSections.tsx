@@ -109,7 +109,7 @@ export function OverviewSection({ publisher, onRefresh }: { publisher: Publisher
               rel="noopener noreferrer"
               className="overview-section__website-link text-primary hover:underline break-words"
             >
-              {publisher.website}
+              Website
             </a>
           </div>
         )}

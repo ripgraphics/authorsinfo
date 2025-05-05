@@ -1,5 +1,4 @@
 import type { Metadata } from "next"
-import { PageHeader } from "@/components/page-header"
 import { ReadingStats } from "@/components/reading-progress/reading-stats"
 import { ActivityFeed } from "@/components/reading-progress/activity-feed"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,8 +17,6 @@ export default async function ReadingDashboardPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
-      <PageHeader />
-
       <main className="flex-1 container py-6">
         <h1 className="text-3xl font-bold mb-6">Reading Dashboard</h1>
 

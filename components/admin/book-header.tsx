@@ -157,11 +157,11 @@ export function BookHeader({ book, mainAuthor, bookCount = 0 }: BookHeaderProps)
       <div className="book-header-nav border-t">
         <div className="container">
           <div className="book-header-tabs grid grid-cols-4 h-auto mt-0 bg-transparent">
-            <button className="book-header-tab book-header-tab-active inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 border-b-2 border-primary">
-              Overview
-            </button>
             <button className="book-header-tab inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12">
-              Details
+              Timeline
+            </button>
+            <button className="book-header-tab book-header-tab-active inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 border-b-2 border-primary">
+              Detail
             </button>
             <button className="book-header-tab inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12">
               Reviews
@@ -175,3 +175,4 @@ export function BookHeader({ book, mainAuthor, bookCount = 0 }: BookHeaderProps)
     </div>
   )
 } 
+

@@ -5,6 +5,7 @@ import type { Book, Author, Review, BindingType, FormatType } from '@/types/book
 import { PageContainer } from "@/components/page-container"
 import { PageBanner } from "@/components/page-banner"
 import { ClientBookPage } from "./client"
+import { getFollowers, getFollowersCount } from "@/lib/follows-server"
 
 interface BookPageProps {
   params: {
@@ -197,6 +198,18 @@ export default async function BookPage({ params }: BookPageProps) {
       // Continue with null reading progress
     }
 
+    // Fetch followers for this book
+    let followers: any[] = []
+    let followersCount = 0
+    try {
+      const followersData = await getFollowers(id, 'book')
+      followers = followersData.followers
+      followersCount = followersData.count
+    } catch (error) {
+      console.error("Error fetching book followers:", error)
+      // Continue with empty followers array
+    }
+
     return (
       <>
         {/* Full width banner outside container constraints */}
@@ -215,6 +228,8 @@ export default async function BookPage({ params }: BookPageProps) {
             bindingType={bindingType}
             formatType={formatType}
             readingProgress={readingProgress}
+            followers={followers}
+            followersCount={followersCount}
             params={{ id }}
           />
         </PageContainer>
@@ -224,4 +239,4 @@ export default async function BookPage({ params }: BookPageProps) {
     console.error("Error in BookPage:", error)
     return <div>Error loading book details.</div> // Or a more user-friendly error message
   }
-} 
+}

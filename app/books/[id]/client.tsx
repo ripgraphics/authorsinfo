@@ -70,6 +70,8 @@ interface ClientBookPageProps {
   bindingType: BindingType | null
   formatType: FormatType | null
   readingProgress: any | null
+  followers?: any[]
+  followersCount: number
   params: { id: string }
 }
 
@@ -83,6 +85,7 @@ export function ClientBookPage({
   bindingType,
   formatType,
   readingProgress,
+  followers = [],
   params
 }: ClientBookPageProps) {
   // Default reading status for display purposes when no user is logged in
@@ -104,19 +107,6 @@ export function ClientBookPage({
     { id: "9", title: "Reading by the fireplace", date: "October 22, 2022", url: "/placeholder.svg?height=300&width=300" }
   ]
   
-  // Mock followers data
-  const followers = [
-    { id: "1", name: "John Doe", email: "john@example.com", followSince: "2023-01-15" },
-    { id: "2", name: "Jane Smith", email: "jane@example.com", followSince: "2023-02-20" },
-    { id: "3", name: "Bob Johnson", email: "bob@example.com", followSince: "2023-03-10" },
-    { id: "4", name: "Alice Brown", email: "alice@example.com", followSince: "2023-04-05" },
-    { id: "5", name: "Charlie Davis", email: "charlie@example.com", followSince: "2023-05-12" },
-    { id: "6", name: "Eva Wilson", email: "eva@example.com", followSince: "2023-06-08" }
-  ]
-  
-  // Mock follower count
-  const followersCount = 42
-
   // Mock currently reading books
   const mockCurrentlyReading = [
     {
@@ -211,7 +201,7 @@ export function ClientBookPage({
     },
     { 
       icon: <Users className="h-4 w-4 mr-1" />, 
-      text: `${followersCount} followers` 
+      text: `${followers.length} followers` 
     }
   ]
 
@@ -1009,7 +999,7 @@ export function ClientBookPage({
               <div className="flex flex-col space-y-1.5 p-6">
                 <div className="flex justify-between items-center">
                   <div className="text-2xl font-semibold leading-none tracking-tight">
-                    Followers · {followersCount}
+                    Followers · {followers.length}
                   </div>
                   <div className="flex items-center gap-2">
                     <Input className="w-[200px]" placeholder="Search followers..." type="search" />

@@ -18,14 +18,14 @@ interface AuthorPageProps {
 async function getAuthor(id: string) {
   try {
     const { data: author, error } = await supabaseAdmin
-      .from("authors")
-      .select(`
-        *,
+          .from("authors")
+          .select(`
+    *,
         cover_image:cover_image_id(id, url, alt_text),
         author_image:author_image_id(id, url, alt_text)
-      `)
+  `)
       .eq("id", id)
-      .single()
+          .single()
 
     if (error) {
       console.error("Error fetching author:", error)
@@ -42,8 +42,8 @@ async function getAuthor(id: string) {
 async function getAuthorBooks(authorId: string) {
   // This query should match the query structure used in the books page
   const { data: books, error } = await supabaseAdmin
-    .from("books")
-    .select(`
+          .from("books")
+          .select(`
       id,
       title,
       cover_image:cover_image_id(id, url, alt_text),
@@ -84,7 +84,7 @@ async function getAuthorFollowers(authorId: string) {
     // Get first 50 followers
     const { followers, count } = await getFollowers(authorId, 'author', 1, 50)
     return { followers, count }
-  } catch (error) {
+        } catch (error) {
     console.error("Error fetching author followers:", error)
     return { followers: [], count: 0 }
   }

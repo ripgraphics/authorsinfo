@@ -105,10 +105,14 @@ export function ClientAuthorPage({
           <div className="author-page__profile-section flex flex-col md:flex-row md:items-end -mt-10 relative z-10">
             <div className="author-page__avatar-container relative">
               <span className="author-page__avatar relative flex shrink-0 overflow-hidden h-32 w-32 md:h-40 md:w-40 border-4 border-white rounded-full">
-                <img
+                <Image
                   src={authorImageUrl || "/placeholder.svg?height=200&width=200"}
                   alt={author?.name || "Author"}
-                  className="author-page__avatar-image aspect-square h-full w-full"
+                  width={160}
+                  height={160}
+                  className="author-page__avatar-image h-full w-full object-cover"
+                  style={{ aspectRatio: '1 / 1', minWidth: 0, minHeight: 0 }}
+                  priority
                 />
               </span>
               <Button variant="outline" size="icon" className="author-page__avatar-button absolute bottom-2 right-2 rounded-full h-8 w-8 bg-white/80 hover:bg-white">

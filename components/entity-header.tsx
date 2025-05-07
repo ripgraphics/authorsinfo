@@ -69,11 +69,14 @@ export function EntityHeader({
           {/* Profile Image */}
           <div className="entity-header__avatar-container relative">
             <span className="entity-header__avatar relative flex shrink-0 overflow-hidden h-28 w-28 md:h-40 md:w-40 border-4 border-white rounded-full">
-              <img
+              <Image
                 src={profileImageUrl || "/placeholder.svg?height=200&width=200"}
                 alt={name}
+                width={160}
+                height={160}
                 className="entity-header__avatar-image h-full w-full object-cover"
                 style={{ aspectRatio: '1 / 1', minWidth: 0, minHeight: 0 }}
+                priority
               />
             </span>
             <Button

@@ -193,7 +193,7 @@ export function ClientAuthorPage({
                 className={`author-page__header-tab inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 ${activeTab === "followers" ? "border-b-2 border-primary" : ""}`}
                 onClick={() => setActiveTab("followers")}
               >
-                Followers
+                Followers ({followersCount})
               </button>
               <button 
                 className={`author-page__header-tab inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 ${activeTab === "photos" ? "border-b-2 border-primary" : ""}`}
@@ -919,7 +919,7 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
             <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
               <div className="flex flex-col space-y-1.5 p-6">
                 <div className="flex justify-between items-center">
-                  <div className="text-2xl font-semibold leading-none tracking-tight">Followers · {followersCount || 21}</div>
+                  <div className="text-2xl font-semibold leading-none tracking-tight">Followers · {followersCount}</div>
                   <div className="flex items-center gap-2">
                     <Input 
                       className="w-[200px]" 
@@ -932,63 +932,37 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                   </div>
                 </div>
               </div>
-              <div className="p-6 pt-0">
+              <CardContent className="p-6 pt-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {followers && followers.length > 0 ? (
-                    followers.map((follower, index) => (
-                      <div key={follower.id || index} className="flex items-center gap-3 p-3 border rounded-lg">
+                    followers.map((follower) => (
+                      <div key={follower.id} className="flex items-center gap-3 p-3 border rounded-lg">
                         <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14 bg-muted">
                           <img 
-                            alt={follower.name || `Follower ${index + 1}`}
+                            src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(follower.name || 'User')}`}
+                            alt={follower.name || 'User'}
                             className="aspect-square h-full w-full"
-                            src={follower.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(follower.name || `User ${index + 1}`)}`}
                           />
                         </span>
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-medium truncate">{follower.name || `User ${index + 1}`}</h3>
-                          <p className="text-xs text-muted-foreground">{follower.email || `user${index}@authorsinfo.com`}</p>
-                          <p className="text-xs text-muted-foreground">Following since {follower.following_since || "5/1/2025"}</p>
+                          <h3 className="font-medium truncate">{follower.name || 'Unknown User'}</h3>
+                          <p className="text-xs text-muted-foreground">{follower.email || 'No email available'}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Following since {follower.followSince ? new Date(follower.followSince).toLocaleDateString() : 'unknown date'}
+                          </p>
                         </div>
-                        <Button variant="ghost" size="icon" className="h-10 w-10">
+                        <Button variant="ghost" size="icon">
                           <Ellipsis className="h-4 w-4" />
                         </Button>
                       </div>
                     ))
                   ) : (
-                    // Placeholder followers if none provided
-                    Array(18).fill(0).map((_, index) => {
-                      const names = [
-                        "James Rodriguez", "Jennifer Garcia", "Robert Jones", "James Wilson", 
-                        "Michael Miller", "James Moore", "James Smith", "Test User", 
-                        "James Anderson", "James Lee", "Mary Johnson", "James Johnson", 
-                        "James Davis", "James Williams", "James Martinez", "James Gonzalez",
-                        "Test User", "James Jackson", "James Jones", "James Martin", "James Garcia"
-                      ];
-                      return (
-                        <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
-                          <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14 bg-muted">
-                            <img 
-                              alt={names[index % names.length]}
-                              className="aspect-square h-full w-full"
-                              src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(names[index % names.length])}`}
-                            />
-                          </span>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-medium truncate">{names[index % names.length]}</h3>
-                            <p className="text-xs text-muted-foreground">
-                              {names[index % names.length].toLowerCase().replace(" ", ".")}@authorsinfo.com
-                            </p>
-                            <p className="text-xs text-muted-foreground">Following since 5/1/2025</p>
-                          </div>
-                          <Button variant="ghost" size="icon" className="h-10 w-10">
-                            <Ellipsis className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      );
-                    })
+                    <div className="col-span-3 text-center p-6">
+                      <p className="text-muted-foreground">No followers yet</p>
+                    </div>
                   )}
                 </div>
-              </div>
+              </CardContent>
             </div>
           </div>
         </div>

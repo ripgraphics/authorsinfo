@@ -64,15 +64,16 @@ export function EntityHeader({
       </div>
 
       {/* Header Content */}
-      <div className="entity-header__content px-6 pb-6">
+      <div className="entity-header__content px-3 sm:px-6 pb-6">
         <div className="entity-header__profile-section flex flex-col md:flex-row md:items-end -mt-10 relative z-10">
           {/* Profile Image */}
           <div className="entity-header__avatar-container relative">
-            <span className="entity-header__avatar relative flex shrink-0 overflow-hidden h-32 w-32 md:h-40 md:w-40 border-4 border-white rounded-full">
+            <span className="entity-header__avatar relative flex shrink-0 overflow-hidden h-28 w-28 md:h-40 md:w-40 border-4 border-white rounded-full">
               <img
                 src={profileImageUrl || "/placeholder.svg?height=200&width=200"}
                 alt={name}
-                className="entity-header__avatar-image aspect-square h-full w-full"
+                className="entity-header__avatar-image h-full w-full object-cover"
+                style={{ aspectRatio: '1 / 1', minWidth: 0, minHeight: 0 }}
               />
             </span>
             <Button
@@ -85,21 +86,25 @@ export function EntityHeader({
           </div>
 
           {/* Entity Info */}
-          <div className="entity-header__info mt-4 md:mt-0 md:ml-6 flex-1">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-              <div>
-                <h1 className="text-[1.1rem] font-bold truncate">{name}</h1>
-                {username && <p className="text-muted-foreground">@{username}</p>}
+          <div className="entity-header__info mt-4 md:mt-0 md:ml-6 flex-1 min-w-0">
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+              <div className="max-w-full md:max-w-[calc(100%-240px)] min-w-0">
+                <h1 className="text-base sm:text-[1.1rem] font-bold truncate">{name}</h1>
+                {username && (
+                  <p className="text-muted-foreground truncate text-sm">
+                    {username.startsWith('@') || username.startsWith('by ') ? username : `@${username}`}
+                  </p>
+                )}
               </div>
 
-              <div className="entity-header__actions flex space-x-2 mt-4 md:mt-0">
+              <div className="entity-header__actions flex flex-wrap gap-2 mt-2 md:mt-0 shrink-0 md:flex-nowrap">
                 <Button className="flex items-center">
                   <MessageSquare className="h-4 w-4 mr-2" />
-                  Message
+                  <span className="hidden sm:inline">Message</span>
                 </Button>
                 <Button variant="outline" className="flex items-center">
                   <UserPlus className="h-4 w-4 mr-2" />
-                  {entityType === 'book' ? 'Add to Shelf' : 'Follow'}
+                  <span className="hidden sm:inline">{entityType === 'book' ? 'Add to Shelf' : 'Follow'}</span>
                 </Button>
                 <Button variant="outline" size="icon">
                   <MoreHorizontal className="h-4 w-4" />

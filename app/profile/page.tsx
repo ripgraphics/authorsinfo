@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation"
-import { PageHeader } from "@/components/page-header"
+import { PageContainer } from "@/components/page-container"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
 export default function ProfilePage() {
   // In a real app, this would fetch the current user ID from the session
@@ -14,11 +16,13 @@ export default function ProfilePage() {
   
   // This won't render, but is needed for TypeScript
   return (
-    <div className="min-h-screen flex flex-col">
-      <PageHeader />
-      <main className="flex-1 container py-8">
+    <PageContainer>
+      <div className="py-8 space-y-4">
         <div>Redirecting to your profile...</div>
-      </main>
+        <div>
+          <p>To see all users, visit the <Link href="/profile/user-list" className="text-primary underline">user list page</Link>.</p>
+        </div>
     </div>
+    </PageContainer>
   )
 }

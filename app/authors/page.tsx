@@ -1,7 +1,6 @@
 import { Suspense } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { User, Search, Filter } from "lucide-react"
@@ -27,6 +26,8 @@ import {
   SheetClose,
 } from "@/components/ui/sheet"
 import { Label } from "@/components/ui/label"
+import { AuthorsFilters } from "./components/AuthorsFilters"
+import { useRouter, useSearchParams } from "next/navigation"
 
 interface AuthorsPageProps {
   searchParams: {
@@ -87,29 +88,44 @@ async function AuthorsList({
       orderBy,
       limit: pageSize,
       offset,
-      include: {
-        author_image: {
-          select: ["id", "url", "alt_text"]
-        }
-      }
+      select: `
+        *,
+        author_image:author_image_id(id, url, alt_text)
+      `
     }
   )
 
   // Process authors to include image URL
-  const processedAuthors = authors.map((author) => ({
-    ...author,
-    photo_url: author.author_image?.url || author.photo_url || null,
-  }))
+  const processedAuthors = authors.map((author) => {
+    console.log("Author data:", JSON.stringify(author, null, 2))
+    console.log("Author image URLs:", {
+      id: author.id,
+      name: author.name,
+      author_image_url: author.author_image?.url,
+      photo_url: author.photo_url,
+      final_url: author.author_image?.url || author.photo_url || null
+    });
+    return {
+      ...author,
+      photo_url: author.author_image?.url || author.photo_url || null,
+    }
+  })
 
   // Get total count for pagination
-  const totalAuthors = await db.count(
+  const totalAuthorsResult = await db.query(
     "authors",
     query,
     {
       ttl: 300, // Cache for 5 minutes
-      cacheKey: `authors_count:${JSON.stringify({ search, nationality })}`
+      cacheKey: `authors_count:${JSON.stringify({ search, nationality })}`,
+      count: true
     }
   )
+
+  // Extract count from result
+  const totalAuthors = typeof totalAuthorsResult === 'object' && 'count' in totalAuthorsResult 
+    ? totalAuthorsResult.count 
+    : 0
 
   const totalPages = Math.ceil(totalAuthors / pageSize)
 
@@ -125,12 +141,13 @@ async function AuthorsList({
               <Card className="overflow-hidden h-full transition-transform hover:scale-105">
                 <div className="relative w-full" style={{ aspectRatio: "1/1" }}>
                   {author.photo_url ? (
-                    <Image
-                      src={author.photo_url || "/placeholder.svg"}
-                      alt={author.author_image?.alt_text || author.name}
-                      fill
-                      className="object-cover"
-                    />
+                    <div className="h-full w-full overflow-hidden">
+                      <img 
+                        src={author.photo_url} 
+                        alt={author.name}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    </div>
                   ) : (
                     <div className="w-full h-full bg-muted flex items-center justify-center">
                       <User className="h-12 w-12 text-muted-foreground" />
@@ -197,120 +214,25 @@ async function AuthorsList({
 }
 
 export default async function AuthorsPage({ searchParams }: AuthorsPageProps) {
-  const page = await searchParams.page ? parseInt(await searchParams.page) : 1
-  const search = await searchParams.search
-  const nationality = await searchParams.nationality
-  const sort = await searchParams.sort
+  // Access searchParams without await
+  const page = searchParams.page ? parseInt(searchParams.page) : 1
+  const search = searchParams.search
+  const nationality = searchParams.nationality
+  const sort = searchParams.sort
+  
+  // Get unique nationalities for the filter
+  const nationalities = await getUniqueNationalities()
 
   return (
     <div className="container py-6 space-y-6">
-      <PageHeader
-        title="Authors"
-        description="Browse and discover authors from our collection."
+      <AuthorsFilters
+        search={search}
+        nationality={nationality}
+        sort={sort}
+        nationalities={nationalities}
       />
-      <div className="flex items-center gap-4">
-        <div className="flex-1">
-          <Input
-            type="search"
-            placeholder="Search authors..."
-            defaultValue={search}
-            onChange={(e) => {
-              const searchParams = new URLSearchParams(window.location.search)
-              if (e.target.value) {
-                searchParams.set("search", e.target.value)
-              } else {
-                searchParams.delete("search")
-              }
-              searchParams.delete("page")
-              window.location.search = searchParams.toString()
-            }}
-          />
-        </div>
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="outline" size="icon">
-              <Filter className="h-4 w-4" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>Filters</SheetTitle>
-              <SheetDescription>
-                Filter authors by nationality and sort order.
-              </SheetDescription>
-            </SheetHeader>
-            <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="nationality">Nationality</Label>
-                <Select
-                  defaultValue={nationality}
-                  onValueChange={(value) => {
-                    const searchParams = new URLSearchParams(window.location.search)
-                    if (value) {
-                      searchParams.set("nationality", value)
-                    } else {
-                      searchParams.delete("nationality")
-                    }
-                    searchParams.delete("page")
-                    window.location.search = searchParams.toString()
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select nationality" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">All nationalities</SelectItem>
-                    {nationalities.map((nat) => (
-                      <SelectItem key={nat} value={nat}>
-                        {nat}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="sort">Sort by</Label>
-                <Select
-                  defaultValue={sort}
-                  onValueChange={(value) => {
-                    const searchParams = new URLSearchParams(window.location.search)
-                    if (value) {
-                      searchParams.set("sort", value)
-                    } else {
-                      searchParams.delete("sort")
-                    }
-                    searchParams.delete("page")
-                    window.location.search = searchParams.toString()
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select sort order" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="name_asc">Name (A-Z)</SelectItem>
-                    <SelectItem value="name_desc">Name (Z-A)</SelectItem>
-                    <SelectItem value="birth_date_asc">Birth Date (Oldest first)</SelectItem>
-                    <SelectItem value="birth_date_desc">Birth Date (Newest first)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <SheetFooter>
-              <SheetClose asChild>
-                <Button
-                  onClick={() => {
-                    window.location.search = ""
-                  }}
-                  variant="outline"
-                >
-                  Clear filters
-                </Button>
-              </SheetClose>
-            </SheetFooter>
-          </SheetContent>
-        </Sheet>
-      </div>
-      <Suspense fallback={<div>Loading...</div>}>
+      
+      <Suspense fallback={<div>Loading authors...</div>}>
         <AuthorsList
           page={page}
           search={search}

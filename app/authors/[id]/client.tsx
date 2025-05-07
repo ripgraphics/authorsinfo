@@ -31,9 +31,10 @@ import {
   Settings
 } from "lucide-react"
 import { BookCard } from "@/components/book-card"
-import Image from "next/image"
+import { Avatar } from "@/components/ui/avatar"
 import { useToast } from "@/components/ui/use-toast"
 import type { Author } from "@/types/database"
+import { Timeline, TimelineItem } from "@/components/timeline"
 
 interface ClientAuthorPageProps {
   author: Author
@@ -47,6 +48,40 @@ interface ClientAuthorPageProps {
   books?: any[]
   booksCount?: number
 }
+
+// Add mockActivities array for the timeline
+const mockActivities = [
+  {
+    id: "1",
+    type: "rating",
+    bookTitle: "Dune",
+    bookAuthor: "Frank Herbert",
+    rating: 5,
+    timeAgo: "2 days ago",
+  },
+  {
+    id: "2",
+    type: "finished",
+    bookTitle: "The Hobbit",
+    bookAuthor: "J.R.R. Tolkien",
+    timeAgo: "1 week ago",
+  },
+  {
+    id: "3",
+    type: "added",
+    bookTitle: "The Way of Kings",
+    bookAuthor: "Brandon Sanderson",
+    shelf: "Want to Read",
+    timeAgo: "2 weeks ago",
+  },
+  {
+    id: "4",
+    type: "reviewed",
+    bookTitle: "Circe",
+    bookAuthor: "Madeline Miller",
+    timeAgo: "3 weeks ago",
+  },
+];
 
 export function ClientAuthorPage({ 
   author: initialAuthor, 
@@ -104,17 +139,7 @@ export function ClientAuthorPage({
         <div className="author-page__header-content px-6 pb-6">
           <div className="author-page__profile-section flex flex-col md:flex-row md:items-end -mt-10 relative z-10">
             <div className="author-page__avatar-container relative">
-              <span className="author-page__avatar relative flex shrink-0 overflow-hidden h-32 w-32 md:h-40 md:w-40 border-4 border-white rounded-full">
-                <Image
-                  src={authorImageUrl || "/placeholder.svg?height=200&width=200"}
-                  alt={author?.name || "Author"}
-                  width={160}
-                  height={160}
-                  className="author-page__avatar-image h-full w-full object-cover"
-                  style={{ aspectRatio: '1 / 1', minWidth: 0, minHeight: 0 }}
-                  priority
-                />
-              </span>
+              <Avatar src={authorImageUrl || "/placeholder.svg?height=200&width=200"} alt={author?.name || "Author"} name={author?.name} size="lg" id={author?.id} />
               <Button variant="outline" size="icon" className="author-page__avatar-button absolute bottom-2 right-2 rounded-full h-8 w-8 bg-white/80 hover:bg-white">
                 <Camera className="h-4 w-4" />
               </Button>
@@ -355,11 +380,7 @@ export function ClientAuthorPage({
                       followers.slice(0, 9).map((follower, index) => (
                         <Link key={index} className="flex flex-col items-center text-center" href={`/profile/${follower.id}`}>
                           <span className="relative flex shrink-0 overflow-hidden rounded-full h-16 w-16 mb-1">
-                            <img 
-                              src={follower.avatar_url || "/placeholder.svg?height=100&width=100"}
-                              alt={follower.name || `Follower ${index + 1}`}
-                              className="aspect-square h-full w-full"
-                            />
+                            <Avatar src={follower.avatar_url || "/placeholder.svg?height=100&width=100"} alt={follower.name || `Follower ${index + 1}`} name={follower.name} size="md" id={follower.id} className="followers-list__avatar" />
                           </span>
                           <span className="text-xs line-clamp-1">{follower.name || `User ${index + 1}`}</span>
                         </Link>
@@ -369,11 +390,7 @@ export function ClientAuthorPage({
                       Array(9).fill(0).map((_, index) => (
                         <Link key={index} className="flex flex-col items-center text-center" href={`/profile/${index + 1}`}>
                           <span className="relative flex shrink-0 overflow-hidden rounded-full h-16 w-16 mb-1">
-                            <img 
-                              src="/placeholder.svg?height=100&width=100"
-                              alt={`Follower ${index + 1}`}
-                              className="aspect-square h-full w-full"
-                            />
+                            <Avatar src="/placeholder.svg?height=100&width=100" alt={`Follower ${index + 1}`} name={`Follower ${index + 1}`} size="md" id={index + 1} className="followers-list__avatar" />
                           </span>
                           <span className="text-xs line-clamp-1">{[
                             "Alex Thompson", "Maria Garcia", "James Wilson", 
@@ -395,13 +412,7 @@ export function ClientAuthorPage({
                 <div className="p-6 pt-6">
                   <form>
                     <div className="flex gap-3">
-                      <span className="relative flex shrink-0 overflow-hidden rounded-full h-10 w-10">
-                        <img
-                          src={authorImageUrl || "/placeholder.svg?height=200&width=200"}
-                          alt={author?.name || "Author"}
-                          className="aspect-square h-full w-full"
-                        />
-                      </span>
+                      <Avatar src={authorImageUrl || "/placeholder.svg?height=200&width=200"} alt={author?.name || "Author"} name={author?.name} size="sm" id={author?.id} />
                       <Textarea 
                         className="flex-1 resize-none"
                         placeholder={`What are you reading, ${author?.name?.split(' ')[0] || "Author"}?`}
@@ -428,180 +439,30 @@ export function ClientAuthorPage({
                 </div>
               </Card>
 
-              {/* Timeline Posts */}
-              <div className="space-y-6">
-                {/* Post 1 */}
-                <Card>
-                  <div className="flex flex-col space-y-1.5 p-6 pb-3">
-                    <div className="flex justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-10 w-10">
-                          <img
-                            src={authorImageUrl || "/placeholder.svg?height=200&width=200"}
-                            alt={author?.name || "Author"}
-                            className="aspect-square h-full w-full"
-                          />
-                        </span>
-                        <div>
-                          <div className="font-medium">{author?.name}</div>
-                          <div className="text-xs text-muted-foreground">2 days ago</div>
-                        </div>
-                      </div>
-                      <Button variant="ghost" size="icon">
-                        <Ellipsis className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="p-6 pt-0 pb-3">
-                    <p>Rated <Link href="#" className="text-primary hover:underline font-medium">Dune</Link> by Frank Herbert 5 stars</p>
-                  </div>
-                  <div className="p-6 flex items-center justify-between py-3">
-                    <div className="flex items-center gap-6">
-                      <Button variant="ghost" className="h-9 rounded-md px-3 gap-1">
-                        <Heart className="h-4 w-4" />
-                        <span>Like</span>
-                      </Button>
-                      <Button variant="ghost" className="h-9 rounded-md px-3 gap-1">
-                        <MessageSquare className="h-4 w-4" />
-                        <span>Comment</span>
-                      </Button>
-                      <Button variant="ghost" className="h-9 rounded-md px-3">
-                        <Share2 className="h-4 w-4" />
-                        <span className="ml-1">Share</span>
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-
-                {/* Post 2 */}
-                <Card>
-                  <div className="flex flex-col space-y-1.5 p-6 pb-3">
-                    <div className="flex justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-10 w-10">
-                          <img
-                            src={authorImageUrl || "/placeholder.svg?height=200&width=200"}
-                            alt={author?.name || "Author"}
-                            className="aspect-square h-full w-full"
-                          />
-                        </span>
-                        <div>
-                          <div className="font-medium">{author?.name}</div>
-                          <div className="text-xs text-muted-foreground">1 week ago</div>
-                        </div>
-                      </div>
-                      <Button variant="ghost" size="icon">
-                        <Ellipsis className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="p-6 pt-0 pb-3">
-                    <p>Finished reading <Link href="#" className="text-primary hover:underline font-medium">The Hobbit</Link> by J.R.R. Tolkien</p>
-                  </div>
-                  <div className="p-6 flex items-center justify-between py-3">
-                    <div className="flex items-center gap-6">
-                      <Button variant="ghost" className="h-9 rounded-md px-3 gap-1">
-                        <Heart className="h-4 w-4" />
-                        <span>Like</span>
-                      </Button>
-                      <Button variant="ghost" className="h-9 rounded-md px-3 gap-1">
-                        <MessageSquare className="h-4 w-4" />
-                        <span>Comment</span>
-                      </Button>
-                      <Button variant="ghost" className="h-9 rounded-md px-3">
-                        <Share2 className="h-4 w-4" />
-                        <span className="ml-1">Share</span>
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-
-                {/* Post 3 */}
-                <Card>
-                  <div className="flex flex-col space-y-1.5 p-6 pb-3">
-                    <div className="flex justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-10 w-10">
-                          <img
-                            src={authorImageUrl || "/placeholder.svg?height=200&width=200"}
-                            alt={author?.name || "Author"}
-                            className="aspect-square h-full w-full"
-                          />
-                        </span>
-                        <div>
-                          <div className="font-medium">{author?.name}</div>
-                          <div className="text-xs text-muted-foreground">2 weeks ago</div>
-                        </div>
-                      </div>
-                      <Button variant="ghost" size="icon">
-                        <Ellipsis className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="p-6 pt-0 pb-3">
-                    <p>Added <Link href="#" className="text-primary hover:underline font-medium">The Way of Kings</Link> by Brandon Sanderson to Want to Read</p>
-                  </div>
-                  <div className="p-6 flex items-center justify-between py-3">
-                    <div className="flex items-center gap-6">
-                      <Button variant="ghost" className="h-9 rounded-md px-3 gap-1">
-                        <Heart className="h-4 w-4" />
-                        <span>Like</span>
-                      </Button>
-                      <Button variant="ghost" className="h-9 rounded-md px-3 gap-1">
-                        <MessageSquare className="h-4 w-4" />
-                        <span>Comment</span>
-                      </Button>
-                      <Button variant="ghost" className="h-9 rounded-md px-3">
-                        <Share2 className="h-4 w-4" />
-                        <span className="ml-1">Share</span>
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-
-                {/* Post 4 */}
-                <Card>
-                  <div className="flex flex-col space-y-1.5 p-6 pb-3">
-                    <div className="flex justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-10 w-10">
-                          <img
-                            src={authorImageUrl || "/placeholder.svg?height=200&width=200"}
-                            alt={author?.name || "Author"}
-                            className="aspect-square h-full w-full"
-                          />
-                        </span>
-                        <div>
-                          <div className="font-medium">{author?.name}</div>
-                          <div className="text-xs text-muted-foreground">3 weeks ago</div>
-                        </div>
-                      </div>
-                      <Button variant="ghost" size="icon">
-                        <Ellipsis className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="p-6 pt-0 pb-3">
-                    <p>Reviewed <Link href="#" className="text-primary hover:underline font-medium">Circe</Link> by Madeline Miller</p>
-                  </div>
-                  <div className="p-6 flex items-center justify-between py-3">
-                    <div className="flex items-center gap-6">
-                      <Button variant="ghost" className="h-9 rounded-md px-3 gap-1">
-                        <Heart className="h-4 w-4" />
-                        <span>Like</span>
-                      </Button>
-                      <Button variant="ghost" className="h-9 rounded-md px-3 gap-1">
-                        <MessageSquare className="h-4 w-4" />
-                        <span>Comment</span>
-                      </Button>
-                      <Button variant="ghost" className="h-9 rounded-md px-3">
-                        <Share2 className="h-4 w-4" />
-                        <span className="ml-1">Share</span>
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              </div>
+              {/* Timeline Feed */}
+              <Timeline
+                items={mockActivities.map((activity) => ({
+                  id: activity.id,
+                  avatarUrl: authorImageUrl,
+                  name: author?.name || "Author",
+                  profileUrl: `/authors/${author?.id}`,
+                  timestamp: activity.timeAgo,
+                  content: (() => {
+                    switch (activity.type) {
+                      case "rating":
+                        return <span>Rated <Link href="#" className="text-primary hover:underline font-medium">{activity.bookTitle}</Link> by {activity.bookAuthor} {activity.rating} stars</span>;
+                      case "finished":
+                        return <span>Finished reading <Link href="#" className="text-primary hover:underline font-medium">{activity.bookTitle}</Link> by {activity.bookAuthor}</span>;
+                      case "added":
+                        return <span>Added <Link href="#" className="text-primary hover:underline font-medium">{activity.bookTitle}</Link> by {activity.bookAuthor} to {activity.shelf}</span>;
+                      case "reviewed":
+                        return <span>Reviewed <Link href="#" className="text-primary hover:underline font-medium">{activity.bookTitle}</Link> by {activity.bookAuthor}</span>;
+                      default:
+                        return null;
+                    }
+                  })(),
+                }))}
+              />
             </div>
           </div>
         </div>
@@ -942,11 +803,7 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                     followers.map((follower) => (
                       <div key={follower.id} className="flex items-center gap-3 p-3 border rounded-lg">
                         <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14 bg-muted">
-                          <img 
-                            src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(follower.name || 'User')}`}
-                            alt={follower.name || 'User'}
-                            className="aspect-square h-full w-full"
-                          />
+                          <Avatar src={follower.avatar_url || "/placeholder.svg?height=100&width=100"} alt={follower.name || 'User'} name={follower.name} size="md" id={follower.id} className="followers-list__avatar" />
                         </span>
                         <div className="flex-1 min-w-0">
                           <h3 className="font-medium truncate">{follower.name || 'Unknown User'}</h3>
@@ -1017,7 +874,7 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
               <div className="publisher-groups__list p-6 pt-0 space-y-4">
                 <div className="publisher-groups__item flex items-center gap-3 p-3 border rounded-lg">
                   <span className="publisher-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img alt="Fantasy Book Club" className="aspect-square h-full w-full" src="/placeholder.svg?height=100&width=100" />
+                    <Avatar alt="Fantasy Book Club" name="Fantasy Book Club" size="md" id="1" />
                   </span>
                   <div className="publisher-groups__content flex-1 min-w-0">
                     <h3 className="publisher-groups__name font-medium truncate">Fantasy Book Club</h3>
@@ -1033,7 +890,7 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                 </div>
                 <div className="publisher-groups__item flex items-center gap-3 p-3 border rounded-lg">
                   <span className="publisher-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img alt="Science Fiction Readers" className="aspect-square h-full w-full" src="/placeholder.svg?height=100&width=100" />
+                    <Avatar alt="Science Fiction Readers" name="Science Fiction Readers" size="md" id="2" />
                   </span>
                   <div className="publisher-groups__content flex-1 min-w-0">
                     <h3 className="publisher-groups__name font-medium truncate">Science Fiction Readers</h3>
@@ -1049,7 +906,7 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                 </div>
                 <div className="publisher-groups__item flex items-center gap-3 p-3 border rounded-lg">
                   <span className="publisher-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img alt="Portland Book Lovers" className="aspect-square h-full w-full" src="/placeholder.svg?height=100&width=100" />
+                    <Avatar alt="Portland Book Lovers" name="Portland Book Lovers" size="md" id="3" />
                   </span>
                   <div className="publisher-groups__content flex-1 min-w-0">
                     <h3 className="publisher-groups__name font-medium truncate">Portland Book Lovers</h3>
@@ -1065,7 +922,7 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                 </div>
                 <div className="publisher-groups__item flex items-center gap-3 p-3 border rounded-lg">
                   <span className="publisher-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img alt="Women Writers Book Club" className="aspect-square h-full w-full" src="/placeholder.svg?height=100&width=100" />
+                    <Avatar alt="Women Writers Book Club" name="Women Writers Book Club" size="md" id="4" />
                   </span>
                   <div className="publisher-groups__content flex-1 min-w-0">
                     <h3 className="publisher-groups__name font-medium truncate">Women Writers Book Club</h3>
@@ -1081,7 +938,7 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                 </div>
                 <div className="publisher-groups__item flex items-center gap-3 p-3 border rounded-lg">
                   <span className="publisher-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img alt="Literary Fiction Fans" className="aspect-square h-full w-full" src="/placeholder.svg?height=100&width=100" />
+                    <Avatar alt="Literary Fiction Fans" name="Literary Fiction Fans" size="md" id="5" />
                   </span>
                   <div className="publisher-groups__content flex-1 min-w-0">
                     <h3 className="publisher-groups__name font-medium truncate">Literary Fiction Fans</h3>
@@ -1097,7 +954,7 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                 </div>
                 <div className="publisher-groups__item flex items-center gap-3 p-3 border rounded-lg">
                   <span className="publisher-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img alt="Classic Literature Society" className="aspect-square h-full w-full" src="/placeholder.svg?height=100&width=100" />
+                    <Avatar alt="Classic Literature Society" name="Classic Literature Society" size="md" id="6" />
                   </span>
                   <div className="publisher-groups__content flex-1 min-w-0">
                     <h3 className="publisher-groups__name font-medium truncate">Classic Literature Society</h3>
@@ -1124,7 +981,7 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
               <div className="p-6 pt-0 space-y-4">
                 <div className="flex items-center gap-3 p-3 border rounded-lg">
                   <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img alt="Brandon Sanderson" className="aspect-square h-full w-full" src="/placeholder.svg?height=100&width=100" />
+                    <Avatar alt="Brandon Sanderson" name="Brandon Sanderson" size="md" id="7" />
                   </span>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium truncate">Brandon Sanderson</h3>
@@ -1138,7 +995,7 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                 </div>
                 <div className="flex items-center gap-3 p-3 border rounded-lg">
                   <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img alt="Tor Books" className="aspect-square h-full w-full" src="/placeholder.svg?height=100&width=100" />
+                    <Avatar alt="Tor Books" name="Tor Books" size="md" id="8" />
                   </span>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium truncate">Tor Books</h3>
@@ -1152,7 +1009,7 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                 </div>
                 <div className="flex items-center gap-3 p-3 border rounded-lg">
                   <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img alt="Powell's Books" className="aspect-square h-full w-full" src="/placeholder.svg?height=100&width=100" />
+                    <Avatar alt="Powell's Books" name="Powell's Books" size="md" id="9" />
                   </span>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium truncate">Powell's Books</h3>
@@ -1166,7 +1023,7 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                 </div>
                 <div className="flex items-center gap-3 p-3 border rounded-lg">
                   <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img alt="Neil Gaiman" className="aspect-square h-full w-full" src="/placeholder.svg?height=100&width=100" />
+                    <Avatar alt="Neil Gaiman" name="Neil Gaiman" size="md" id="10" />
                   </span>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium truncate">Neil Gaiman</h3>
@@ -1180,7 +1037,7 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                 </div>
                 <div className="flex items-center gap-3 p-3 border rounded-lg">
                   <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img alt="Penguin Random House" className="aspect-square h-full w-full" src="/placeholder.svg?height=100&width=100" />
+                    <Avatar alt="Penguin Random House" name="Penguin Random House" size="md" id="11" />
                   </span>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium truncate">Penguin Random House</h3>
@@ -1194,7 +1051,7 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                 </div>
                 <div className="flex items-center gap-3 p-3 border rounded-lg">
                   <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img alt="Barnes & Noble" className="aspect-square h-full w-full" src="/placeholder.svg?height=100&width=100" />
+                    <Avatar alt="Barnes & Noble" name="Barnes & Noble" size="md" id="12" />
                   </span>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium truncate">Barnes & Noble</h3>

@@ -1,50 +1,83 @@
 "use client"
 
-import * as React from "react"
-import * as AvatarPrimitive from "@radix-ui/react-avatar"
+import Image from "next/image"
+import Link from "next/link"
+import { User } from "lucide-react"
 
-import { cn } from "@/lib/utils"
+interface AvatarProps {
+  id?: string
+  src?: string
+  alt?: string
+  name?: string
+  size?: "sm" | "md" | "lg" | "xl"
+  linkToProfile?: boolean
+  className?: string
+}
 
-const Avatar = React.forwardRef<
-  React.ElementRef<typeof AvatarPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Root
-    ref={ref}
-    className={cn(
-      "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full",
-      className
-    )}
-    {...props}
-  />
-))
-Avatar.displayName = AvatarPrimitive.Root.displayName
+const sizeMap = {
+  sm: {
+    container: "w-12 h-12",
+    icon: "h-6 w-6",
+    img: 48,
+  },
+  md: {
+    container: "w-24 h-24",
+    icon: "h-10 w-10",
+    img: 96,
+  },
+  lg: {
+    container: "w-32 h-32",
+    icon: "h-14 w-14",
+    img: 128,
+  },
+  xl: {
+    container: "w-40 h-40",
+    icon: "h-16 w-16",
+    img: 160,
+  },
+}
 
-const AvatarImage = React.forwardRef<
-  React.ElementRef<typeof AvatarPrimitive.Image>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Image
-    ref={ref}
-    className={cn("aspect-square h-full w-full", className)}
-    {...props}
-  />
-))
-AvatarImage.displayName = AvatarPrimitive.Image.displayName
+export function Avatar({
+  id,
+  src,
+  alt = "Avatar",
+  name = "",
+  size = "md",
+  linkToProfile = false,
+  className = "",
+}: AvatarProps) {
+  const avatarContent = (
+    <div
+      className={`avatar-container relative ${sizeMap[size].container} overflow-hidden rounded-full border-2 border-white shadow-md ${className}`}
+    >
+      {src ? (
+        <Image
+          src={src}
+          alt={alt || name || "Avatar"}
+          width={sizeMap[size].img}
+          height={sizeMap[size].img}
+          className="object-cover rounded-full"
+          style={{ aspectRatio: '1 / 1' }}
+        />
+      ) : (
+        <div className="avatar-placeholder w-full h-full bg-muted flex items-center justify-center rounded-full">
+          {name ? (
+            <span className="text-lg font-semibold text-muted-foreground">{name.charAt(0)}</span>
+          ) : (
+            <User className={`${sizeMap[size].icon} text-muted-foreground`} />
+          )}
+        </div>
+      )}
+    </div>
+  )
 
-const AvatarFallback = React.forwardRef<
-  React.ElementRef<typeof AvatarPrimitive.Fallback>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Fallback
-    ref={ref}
-    className={cn(
-      "flex h-full w-full items-center justify-center rounded-full bg-muted",
-      className
-    )}
-    {...props}
-  />
-))
-AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName
+  if (linkToProfile && id) {
+    return (
+      <Link href={`/authors/${id}`} className="avatar-link block hover:opacity-90 transition-opacity">
+        {avatarContent}
+      </Link>
+    )
+  }
 
-export { Avatar, AvatarImage, AvatarFallback }
+  return avatarContent
+}

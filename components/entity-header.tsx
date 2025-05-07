@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Camera, BookOpen, Users, MapPin, Globe, User, MoreHorizontal, MessageSquare, UserPlus } from "lucide-react"
 import Link from "next/link"
+import { Avatar } from "@/components/ui/avatar"
 
 export interface TabConfig {
   id: string
@@ -68,17 +69,7 @@ export function EntityHeader({
         <div className="entity-header__profile-section flex flex-col md:flex-row md:items-end -mt-10 relative z-10">
           {/* Profile Image */}
           <div className="entity-header__avatar-container relative">
-            <span className="entity-header__avatar relative flex shrink-0 overflow-hidden h-28 w-28 md:h-40 md:w-40 border-4 border-white rounded-full">
-              <Image
-                src={profileImageUrl || "/placeholder.svg?height=200&width=200"}
-                alt={name}
-                width={160}
-                height={160}
-                className="entity-header__avatar-image h-full w-full object-cover"
-                style={{ aspectRatio: '1 / 1', minWidth: 0, minHeight: 0 }}
-                priority
-              />
-            </span>
+            <Avatar src={profileImageUrl || "/placeholder.svg?height=200&width=200"} alt={name} name={name} size="lg" />
             <Button
               variant="outline"
               size="icon"

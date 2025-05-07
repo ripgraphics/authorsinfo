@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { BookOpen } from "lucide-react"
 import type { Author } from "@/types/book"
+import Image from "next/image"
 
 interface AuthorHoverCardProps {
   author: Author
@@ -22,7 +23,7 @@ export function AuthorHoverCard({ author, bookCount, children }: AuthorHoverCard
         <Link href={`/authors/${author.id}`} className="block no-underline">
           <div className="flex items-start space-x-4">
             <Avatar className="h-12 w-12">
-              <AvatarImage src={imageUrl || "/placeholder.svg"} alt={author.name} />
+              <Image src={imageUrl || "/placeholder.svg"} alt={author.name} width={48} height={48} className="object-cover rounded-full" />
               <AvatarFallback>{author.name.charAt(0)}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col">

@@ -90,9 +90,10 @@ async function getAuthorFollowers(authorId: string) {
   }
 }
 
-export default async function AuthorPage({ params }: { params: Promise<{ id: string }> }) {
-  // Wait for params to be properly resolved
-  const { id } = await params
+export default async function AuthorPage({ params }: AuthorPageProps) {
+  // In Next.js 15, params needs to be awaited
+  const resolvedParams = await params;
+  const id = resolvedParams.id
   
   // Get author data using the existing function
   const author = await getAuthor(id)

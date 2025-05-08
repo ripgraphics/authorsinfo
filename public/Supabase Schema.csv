@@ -1,4 +1,9 @@
 table_name,column_name,data_type
+accepted_friends,id,uuid
+accepted_friends,friend_user_id,uuid
+accepted_friends,status,text
+accepted_friends,requested_at,timestamp with time zone
+accepted_friends,responded_at,timestamp with time zone
 activities,id,uuid
 activities,user_id,uuid
 activities,activity_type,text
@@ -7,6 +12,13 @@ activities,review_id,uuid
 activities,list_id,uuid
 activities,data,jsonb
 activities,created_at,timestamp with time zone
+activity_log,id,uuid
+activity_log,user_id,uuid
+activity_log,action,text
+activity_log,target_type,text
+activity_log,target_id,uuid
+activity_log,data,jsonb
+activity_log,created_at,timestamp with time zone
 album_images,album_id,uuid
 album_images,image_id,integer
 album_images,display_order,integer
@@ -25,15 +37,22 @@ authors,facebook_handle,text
 authors,instagram_handle,text
 authors,goodreads_url,text
 authors,cover_image_id,integer
+authors,created_at,timestamp with time zone
+authors,updated_at,timestamp with time zone
 binding_types,id,integer
 binding_types,name,character varying
 binding_types,description,text
 binding_types,created_at,timestamp with time zone
 binding_types,updated_at,timestamp with time zone
+blocks,id,uuid
+blocks,user_id,uuid
+blocks,blocked_user_id,uuid
+blocks,created_at,timestamp with time zone
 book_authors,id,integer
 book_authors,book_id,integer
 book_authors,author_id,integer
 book_authors,created_at,timestamp with time zone
+book_authors,updated_at,timestamp with time zone
 book_club_books,id,uuid
 book_club_books,book_club_id,uuid
 book_club_books,book_id,integer
@@ -83,6 +102,7 @@ book_publishers,id,integer
 book_publishers,book_id,integer
 book_publishers,publisher_id,integer
 book_publishers,created_at,timestamp with time zone
+book_publishers,updated_at,timestamp with time zone
 book_recommendations,id,uuid
 book_recommendations,user_id,uuid
 book_recommendations,book_id,integer
@@ -107,12 +127,17 @@ book_similarity_scores,created_at,timestamp with time zone
 book_subjects,id,integer
 book_subjects,book_id,integer
 book_subjects,subject_id,integer
+book_subjects,created_at,timestamp with time zone
+book_subjects,updated_at,timestamp with time zone
 book_tag_mappings,id,integer
 book_tag_mappings,book_id,integer
 book_tag_mappings,tag_id,integer
+book_tag_mappings,created_at,timestamp with time zone
+book_tag_mappings,updated_at,timestamp with time zone
 book_tags,id,integer
 book_tags,name,text
 book_tags,created_at,timestamp with time zone
+book_tags,updated_at,timestamp with time zone
 book_views,id,uuid
 book_views,user_id,uuid
 book_views,book_id,bigint
@@ -151,6 +176,14 @@ carousel_images,image_url,text
 carousel_images,alt_text,character varying
 carousel_images,position,integer
 carousel_images,active,boolean
+comments,id,uuid
+comments,user_id,uuid
+comments,feed_entry_id,uuid
+comments,content,text
+comments,created_at,timestamp with time zone
+comments,updated_at,timestamp with time zone
+comments,is_hidden,boolean
+comments,is_deleted,boolean
 countries,id,integer
 countries,name,character varying
 countries,code,character varying
@@ -172,25 +205,53 @@ discussions,content,text
 discussions,is_pinned,boolean
 discussions,created_at,timestamp with time zone
 discussions,updated_at,timestamp with time zone
+feed_entries,id,uuid
+feed_entries,user_id,uuid
+feed_entries,group_id,uuid
+feed_entries,type,text
+feed_entries,content,jsonb
+feed_entries,created_at,timestamp with time zone
+feed_entries,updated_at,timestamp with time zone
+feed_entries,visibility,text
+feed_entries,allowed_user_ids,ARRAY
+feed_entries,is_hidden,boolean
+feed_entries,is_deleted,boolean
+feed_entry_tags,feed_entry_id,uuid
+feed_entry_tags,tag_id,integer
+feed_entry_tags,created_at,timestamp with time zone
+feed_entry_tags,updated_at,timestamp with time zone
+follow_target_types,id,integer
+follow_target_types,name,text
+follow_target_types,description,text
+follow_target_types,created_at,timestamp with time zone
+follow_target_types,updated_at,timestamp with time zone
 follows,id,uuid
 follows,follower_id,uuid
-follows,following_id,uuid
+follows,following_id,text
+follows,target_type_id,integer
 follows,created_at,timestamp with time zone
+follows,updated_at,timestamp with time zone
 format_types,id,integer
 format_types,name,character varying
 format_types,description,text
 format_types,created_at,timestamp with time zone
 format_types,updated_at,timestamp with time zone
+friends,id,uuid
+friends,user_id,uuid
+friends,friend_id,uuid
+friends,status,text
+friends,requested_at,timestamp with time zone
+friends,responded_at,timestamp with time zone
+friends,requested_by,uuid
+friends,created_at,timestamp with time zone
+friends,updated_at,timestamp with time zone
 group_members,id,uuid
 group_members,group_id,uuid
 group_members,user_id,uuid
 group_members,joined_at,timestamp with time zone
 group_members,role,character varying
-group_targets,id,uuid
-group_targets,group_id,uuid
-group_targets,target_type,text
-group_targets,target_id,uuid
-group_targets,created_at,timestamp with time zone
+group_members,created_at,timestamp with time zone
+group_members,updated_at,timestamp with time zone
 groups,id,uuid
 groups,name,character varying
 groups,description,text
@@ -203,14 +264,37 @@ groups,group_image_id,integer
 image_types,id,integer
 image_types,name,character varying
 image_types,description,text
+image_types,created_at,timestamp with time zone
+image_types,updated_at,timestamp with time zone
 images,id,integer
 images,url,text
 images,alt_text,character varying
 images,img_type_id,integer
+images,created_at,timestamp with time zone
+images,updated_at,timestamp with time zone
+likes,id,uuid
+likes,user_id,uuid
+likes,feed_entry_id,uuid
+likes,created_at,timestamp with time zone
+likes,updated_at,timestamp with time zone
 list_followers,id,uuid
 list_followers,user_id,uuid
 list_followers,list_id,uuid
 list_followers,created_at,timestamp with time zone
+list_followers,updated_at,timestamp with time zone
+media_attachments,id,uuid
+media_attachments,feed_entry_id,uuid
+media_attachments,url,text
+media_attachments,type,text
+media_attachments,alt_text,text
+media_attachments,created_at,timestamp with time zone
+media_attachments,updated_at,timestamp with time zone
+mentions,id,uuid
+mentions,feed_entry_id,uuid
+mentions,comment_id,uuid
+mentions,mentioned_user_id,uuid
+mentions,created_at,timestamp with time zone
+mentions,updated_at,timestamp with time zone
 notifications,id,uuid
 notifications,user_id,uuid
 notifications,type,text
@@ -220,6 +304,7 @@ notifications,link,text
 notifications,data,jsonb
 notifications,is_read,boolean
 notifications,created_at,timestamp with time zone
+notifications,updated_at,timestamp with time zone
 personalized_recommendations,id,uuid
 personalized_recommendations,user_id,uuid
 personalized_recommendations,book_id,bigint
@@ -251,6 +336,17 @@ photo_album,name,character varying
 photo_album,description,text
 photo_album,created_at,timestamp with time zone
 photo_album,updated_at,timestamp with time zone
+posts,id,uuid
+posts,user_id,uuid
+posts,content,text
+posts,image_url,text
+posts,link_url,text
+posts,created_at,timestamp with time zone
+posts,updated_at,timestamp with time zone
+posts,visibility,text
+posts,allowed_user_ids,ARRAY
+posts,is_hidden,boolean
+posts,is_deleted,boolean
 prices,id,integer
 prices,book_id,integer
 prices,condition,character varying
@@ -258,6 +354,8 @@ prices,merchant,character varying
 prices,price,numeric
 prices,total,numeric
 prices,link,text
+prices,created_at,timestamp with time zone
+prices,updated_at,timestamp with time zone
 profiles,id,integer
 profiles,user_id,uuid
 profiles,bio,text
@@ -287,6 +385,12 @@ publishers,publisher_image_id,integer
 publishers,publisher_gallery_id,integer
 publishers,founded_year,integer
 publishers,country_id,integer
+reactions,id,uuid
+reactions,user_id,uuid
+reactions,feed_entry_id,uuid
+reactions,type,text
+reactions,created_at,timestamp with time zone
+reactions,updated_at,timestamp with time zone
 reading_challenges,id,uuid
 reading_challenges,user_id,uuid
 reading_challenges,year,integer
@@ -356,21 +460,31 @@ review_likes,id,uuid
 review_likes,user_id,uuid
 review_likes,review_id,uuid
 review_likes,created_at,timestamp with time zone
+review_likes,updated_at,timestamp with time zone
 reviews,id,integer
 reviews,book_id,integer
 reviews,review,text
+reviews,created_at,timestamp with time zone
+reviews,updated_at,timestamp with time zone
 roles,id,integer
 roles,name,character varying
+roles,created_at,timestamp with time zone
+roles,updated_at,timestamp with time zone
 similar_books,id,integer
 similar_books,book_id,integer
 similar_books,similar_book_id,integer
 similar_books,similarity_score,double precision
 similar_books,created_at,timestamp with time zone
+similar_books,updated_at,timestamp with time zone
 statuses,id,integer
 statuses,name,character varying
+statuses,created_at,timestamp with time zone
+statuses,updated_at,timestamp with time zone
 subjects,id,integer
 subjects,name,character varying
 subjects,parent_id,integer
+subjects,created_at,timestamp with time zone
+subjects,updated_at,timestamp with time zone
 sync_state,id,uuid
 sync_state,type,text
 sync_state,last_synced_date,timestamp with time zone
@@ -381,12 +495,17 @@ sync_state,status,text
 sync_state,error,text
 sync_state,created_at,timestamp with time zone
 sync_state,updated_at,timestamp with time zone
+tags,id,integer
+tags,name,text
+tags,created_at,timestamp with time zone
+tags,updated_at,timestamp with time zone
 user_book_interactions,id,uuid
 user_book_interactions,user_id,uuid
 user_book_interactions,book_id,bigint
 user_book_interactions,interaction_type,text
 user_book_interactions,interaction_value,double precision
 user_book_interactions,created_at,timestamp with time zone
+user_book_interactions,updated_at,timestamp with time zone
 user_reading_preferences,id,uuid
 user_reading_preferences,user_id,uuid
 user_reading_preferences,favorite_genres,ARRAY

@@ -47,6 +47,7 @@ interface ClientAuthorPageProps {
   followersCount?: number
   books?: any[]
   booksCount?: number
+  activities?: any[]
 }
 
 // Add mockActivities array for the timeline
@@ -91,7 +92,8 @@ export function ClientAuthorPage({
   followers = [], 
   followersCount = 0, 
   books = [], 
-  booksCount = 0 
+  booksCount = 0,
+  activities = []
 }: ClientAuthorPageProps) {
   const [activeTab, setActiveTab] = useState("timeline")
   const [author, setAuthor] = useState(initialAuthor)
@@ -441,7 +443,7 @@ export function ClientAuthorPage({
 
               {/* Timeline Feed */}
               <Timeline
-                items={mockActivities.map((activity) => ({
+                items={(activities.length > 0 ? activities : mockActivities).map((activity) => ({
                   id: activity.id,
                   avatarUrl: authorImageUrl,
                   name: author?.name || "Author",
@@ -450,15 +452,15 @@ export function ClientAuthorPage({
                   content: (() => {
                     switch (activity.type) {
                       case "rating":
-                        return <span>Rated <Link href="#" className="text-primary hover:underline font-medium">{activity.bookTitle}</Link> by {activity.bookAuthor} {activity.rating} stars</span>;
+                        return <span>Rated <Link href={`/books/${activity.books?.id || '#'}`} className="text-primary hover:underline font-medium">{activity.bookTitle}</Link> by {activity.bookAuthor} {activity.rating} stars</span>;
                       case "finished":
-                        return <span>Finished reading <Link href="#" className="text-primary hover:underline font-medium">{activity.bookTitle}</Link> by {activity.bookAuthor}</span>;
+                        return <span>Finished reading <Link href={`/books/${activity.books?.id || '#'}`} className="text-primary hover:underline font-medium">{activity.bookTitle}</Link> by {activity.bookAuthor}</span>;
                       case "added":
-                        return <span>Added <Link href="#" className="text-primary hover:underline font-medium">{activity.bookTitle}</Link> by {activity.bookAuthor} to {activity.shelf}</span>;
+                        return <span>Added <Link href={`/books/${activity.books?.id || '#'}`} className="text-primary hover:underline font-medium">{activity.bookTitle}</Link> by {activity.bookAuthor} to {activity.shelf}</span>;
                       case "reviewed":
-                        return <span>Reviewed <Link href="#" className="text-primary hover:underline font-medium">{activity.bookTitle}</Link> by {activity.bookAuthor}</span>;
+                        return <span>Reviewed <Link href={`/books/${activity.books?.id || '#'}`} className="text-primary hover:underline font-medium">{activity.bookTitle}</Link> by {activity.bookAuthor}</span>;
                       default:
-                        return null;
+                        return <span>Activity with <Link href={`/books/${activity.books?.id || '#'}`} className="text-primary hover:underline font-medium">{activity.bookTitle}</Link> by {activity.bookAuthor}</span>;
                     }
                   })(),
                 }))}

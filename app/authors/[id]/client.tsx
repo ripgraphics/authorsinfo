@@ -243,201 +243,201 @@ export function ClientAuthorPage({
 
       {/* Content Section with Sidebar on Left + Main Content on Right */}
       {activeTab === "timeline" && (
-        <div className="author-page__content">
-          <div className="author-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* LEFT SIDEBAR - 1 Column */}
-            <div className="lg:col-span-1 space-y-6">
-              {/* About Section */}
-              <Card className="timeline-about-section">
-                <div className="timeline-about-section__header flex flex-col space-y-1.5 p-6">
-                  <div className="timeline-about-section__title-row flex justify-between items-center">
-                    <div className="timeline-about-section__title text-2xl font-semibold leading-none tracking-tight">About</div>
-                    <button className="timeline-about-section__view-more text-sm text-primary hover:underline">View More</button>
-                  </div>
+      <div className="author-page__content">
+        <div className="author-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* LEFT SIDEBAR - 1 Column */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* About Section */}
+            <Card className="timeline-about-section">
+              <div className="timeline-about-section__header flex flex-col space-y-1.5 p-6">
+                <div className="timeline-about-section__title-row flex justify-between items-center">
+                  <div className="timeline-about-section__title text-2xl font-semibold leading-none tracking-tight">About</div>
+                  <button className="timeline-about-section__view-more text-sm text-primary hover:underline">View More</button>
                 </div>
-                <CardContent className="timeline-about-section__content p-6 pt-0 space-y-4">
-                  <div className="timeline-about-section__about-wrapper relative">
-                    <p className="timeline-about-section__about-text line-clamp-10">
-                      {author?.bio || "No biography available for this author."}
-                    </p>
-                    <div className="timeline-about-section__gradient absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent"></div>
+              </div>
+              <CardContent className="timeline-about-section__content p-6 pt-0 space-y-4">
+                <div className="timeline-about-section__about-wrapper relative">
+                  <p className="timeline-about-section__about-text line-clamp-10">
+                    {author?.bio || "No biography available for this author."}
+                  </p>
+                  <div className="timeline-about-section__gradient absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent"></div>
+                </div>
+                <div className="timeline-about-section__details space-y-2">
+                  {author?.nationality && (
+                  <div className="timeline-about-section__location flex items-center">
+                    <MapPin className="timeline-about-section__location-icon h-4 w-4 mr-2 text-muted-foreground" />
+                    <span className="timeline-about-section__location-text">
+                      From {author.nationality}
+                    </span>
                   </div>
-                  <div className="timeline-about-section__details space-y-2">
-                    {author?.nationality && (
-                    <div className="timeline-about-section__location flex items-center">
-                      <MapPin className="timeline-about-section__location-icon h-4 w-4 mr-2 text-muted-foreground" />
-                      <span className="timeline-about-section__location-text">
-                        From {author.nationality}
-                      </span>
-                    </div>
-                    )}
-                    
-                    {author?.website && (
-                    <div className="timeline-about-section__website flex items-center">
-                      <Globe className="timeline-about-section__website-icon h-4 w-4 mr-2 text-muted-foreground" />
-                      <a 
-                        href={author.website.startsWith('http') ? author.website : `https://${author.website}`}
-                        className="timeline-about-section__website-link hover:underline"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {author.website.startsWith('http') ? author.website : `https://${author.website}`}
-                      </a>
-                    </div>
-                    )}
+                  )}
+                  
+                  {author?.website && (
+                  <div className="timeline-about-section__website flex items-center">
+                    <Globe className="timeline-about-section__website-icon h-4 w-4 mr-2 text-muted-foreground" />
+                    <a 
+                      href={author.website.startsWith('http') ? author.website : `https://${author.website}`}
+                      className="timeline-about-section__website-link hover:underline"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {author.website.startsWith('http') ? author.website : `https://${author.website}`}
+                    </a>
                   </div>
-                  <Button variant="outline" className="timeline-about-section__about-tab-button w-full">
-                    <Info className="h-4 w-4 mr-2" />
-                    View Full About
-                  </Button>
-                </CardContent>
-              </Card>
+                  )}
+                </div>
+                <Button variant="outline" className="timeline-about-section__about-tab-button w-full">
+                  <Info className="h-4 w-4 mr-2" />
+                  View Full About
+                </Button>
+              </CardContent>
+            </Card>
 
-              {/* Currently Reading Section */}
-              <Card>
-                <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
-                  <div className="text-2xl font-semibold leading-none tracking-tight">Currently Reading</div>
-                  <Link href="/my-books" className="text-sm text-primary hover:underline">See All</Link>
+            {/* Currently Reading Section */}
+            <Card>
+              <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
+                <div className="text-2xl font-semibold leading-none tracking-tight">Currently Reading</div>
+                <Link href="/my-books" className="text-sm text-primary hover:underline">See All</Link>
+              </div>
+              <CardContent className="p-6 pt-0 space-y-4">
+                <div className="flex gap-3">
+                  <div className="relative h-20 w-14 flex-shrink-0">
+                    <img 
+                      src="/placeholder.svg?height=240&width=160"
+                      alt="The Name of the Wind"
+                      className="object-cover rounded-md absolute inset-0 w-full h-full"
+                    />
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <h4 className="font-medium line-clamp-1">The Name of the Wind</h4>
+                    <p className="text-sm text-muted-foreground">by Patrick Rothfuss</p>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span>Progress</span>
+                        <span>65%</span>
+                      </div>
+                      <div className="relative w-full overflow-hidden rounded-full bg-secondary h-1.5">
+                        <div className="h-full w-full flex-1 bg-primary transition-all" style={{transform: 'translateX(-35%)'}}></div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <CardContent className="p-6 pt-0 space-y-4">
-                  <div className="flex gap-3">
-                    <div className="relative h-20 w-14 flex-shrink-0">
+                <div className="flex gap-3">
+                  <div className="relative h-20 w-14 flex-shrink-0">
+                    <img 
+                      src="/placeholder.svg?height=240&width=160"
+                      alt="Project Hail Mary"
+                      className="object-cover rounded-md absolute inset-0 w-full h-full"
+                    />
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <h4 className="font-medium line-clamp-1">Project Hail Mary</h4>
+                    <p className="text-sm text-muted-foreground">by Andy Weir</p>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span>Progress</span>
+                        <span>23%</span>
+                      </div>
+                      <div className="relative w-full overflow-hidden rounded-full bg-secondary h-1.5">
+                        <div className="h-full w-full flex-1 bg-primary transition-all" style={{transform: 'translateX(-77%)'}}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Photos Section */}
+            <Card>
+              <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
+                <div className="text-2xl font-semibold leading-none tracking-tight">Photos</div>
+                <Link href={`/authors/${params.id}/photos`} className="text-sm text-primary hover:underline">See All</Link>
+              </div>
+              <CardContent className="p-6 pt-0">
+                <div className="grid grid-cols-3 gap-2">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                    <div key={num} className="aspect-square relative rounded overflow-hidden">
                       <img 
-                        src="/placeholder.svg?height=240&width=160"
-                        alt="The Name of the Wind"
-                        className="object-cover rounded-md absolute inset-0 w-full h-full"
+                        src={`/placeholder.svg?height=300&width=300`}
+                        alt={`Photo ${num}`}
+                        className="object-cover hover:scale-105 transition-transform absolute inset-0 w-full h-full"
                       />
                     </div>
-                    <div className="flex-1 space-y-1">
-                      <h4 className="font-medium line-clamp-1">The Name of the Wind</h4>
-                      <p className="text-sm text-muted-foreground">by Patrick Rothfuss</p>
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-xs">
-                          <span>Progress</span>
-                          <span>65%</span>
-                        </div>
-                        <div className="relative w-full overflow-hidden rounded-full bg-secondary h-1.5">
-                          <div className="h-full w-full flex-1 bg-primary transition-all" style={{transform: 'translateX(-35%)'}}></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex gap-3">
-                    <div className="relative h-20 w-14 flex-shrink-0">
-                      <img 
-                        src="/placeholder.svg?height=240&width=160"
-                        alt="Project Hail Mary"
-                        className="object-cover rounded-md absolute inset-0 w-full h-full"
-                      />
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <h4 className="font-medium line-clamp-1">Project Hail Mary</h4>
-                      <p className="text-sm text-muted-foreground">by Andy Weir</p>
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-xs">
-                          <span>Progress</span>
-                          <span>23%</span>
-                        </div>
-                        <div className="relative w-full overflow-hidden rounded-full bg-secondary h-1.5">
-                          <div className="h-full w-full flex-1 bg-primary transition-all" style={{transform: 'translateX(-77%)'}}></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Photos Section */}
-              <Card>
-                <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
-                  <div className="text-2xl font-semibold leading-none tracking-tight">Photos</div>
-                  <Link href={`/authors/${params.id}/photos`} className="text-sm text-primary hover:underline">See All</Link>
+                  ))}
                 </div>
-                <CardContent className="p-6 pt-0">
-                  <div className="grid grid-cols-3 gap-2">
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-                      <div key={num} className="aspect-square relative rounded overflow-hidden">
-                        <img 
-                          src={`/placeholder.svg?height=300&width=300`}
-                          alt={`Photo ${num}`}
-                          className="object-cover hover:scale-105 transition-transform absolute inset-0 w-full h-full"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              </CardContent>
+            </Card>
 
-              {/* Friends/Followers Section */}
-              <Card>
-                <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
-                  <div className="text-2xl font-semibold leading-none tracking-tight">Followers</div>
-                  <Link href={`/authors/${params.id}/followers`} className="text-sm text-primary hover:underline">See All</Link>
-                </div>
-                <CardContent className="p-6 pt-0">
-                  <div className="grid grid-cols-3 gap-2">
-                    {followers.length > 0 ? (
-                      followers.slice(0, 9).map((follower, index) => (
-                        <Link key={index} className="flex flex-col items-center text-center" href={`/profile/${follower.id}`}>
-                          <span className="relative flex shrink-0 overflow-hidden rounded-full h-16 w-16 mb-1">
+            {/* Friends/Followers Section */}
+            <Card>
+              <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
+                <div className="text-2xl font-semibold leading-none tracking-tight">Followers</div>
+                <Link href={`/authors/${params.id}/followers`} className="text-sm text-primary hover:underline">See All</Link>
+              </div>
+              <CardContent className="p-6 pt-0">
+                <div className="grid grid-cols-3 gap-2">
+                  {followers.length > 0 ? (
+                    followers.slice(0, 9).map((follower, index) => (
+                      <Link key={index} className="flex flex-col items-center text-center" href={`/profile/${follower.id}`}>
+                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-16 w-16 mb-1">
                             <Avatar src={follower.avatar_url || "/placeholder.svg?height=100&width=100"} alt={follower.name || `Follower ${index + 1}`} name={follower.name} size="md" id={follower.id} className="followers-list__avatar" />
-                          </span>
-                          <span className="text-xs line-clamp-1">{follower.name || `User ${index + 1}`}</span>
-                        </Link>
-                      ))
-                    ) : (
-                      // Placeholder followers if none provided
-                      Array(9).fill(0).map((_, index) => (
-                        <Link key={index} className="flex flex-col items-center text-center" href={`/profile/${index + 1}`}>
-                          <span className="relative flex shrink-0 overflow-hidden rounded-full h-16 w-16 mb-1">
+                        </span>
+                        <span className="text-xs line-clamp-1">{follower.name || `User ${index + 1}`}</span>
+                      </Link>
+                    ))
+                  ) : (
+                    // Placeholder followers if none provided
+                    Array(9).fill(0).map((_, index) => (
+                      <Link key={index} className="flex flex-col items-center text-center" href={`/profile/${index + 1}`}>
+                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-16 w-16 mb-1">
                             <Avatar src="/placeholder.svg?height=100&width=100" alt={`Follower ${index + 1}`} name={`Follower ${index + 1}`} size="md" id={index + 1} className="followers-list__avatar" />
-                          </span>
-                          <span className="text-xs line-clamp-1">{[
-                            "Alex Thompson", "Maria Garcia", "James Wilson", 
-                            "Emma Davis", "Michael Brown", "Sophia Martinez",
-                            "Daniel Lee", "Olivia Johnson", "William Smith"
-                          ][index]}</span>
-                        </Link>
-                      ))
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* MAIN CONTENT - 2 Columns */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Post Form */}
-              <Card>
-                <div className="p-6 pt-6">
-                  <form>
-                    <div className="flex gap-3">
-                      <Avatar src={authorImageUrl || "/placeholder.svg?height=200&width=200"} alt={author?.name || "Author"} name={author?.name} size="sm" id={author?.id} />
-                      <Textarea 
-                        className="flex-1 resize-none"
-                        placeholder={`What are you reading, ${author?.name?.split(' ')[0] || "Author"}?`}
-                      />
-                    </div>
-                    <div className="flex justify-between mt-4">
-                      <div className="flex gap-2">
-                        <Button type="button" variant="ghost" className="h-9 rounded-md px-3">
-                          <ImageIcon className="h-4 w-4 mr-2" />
-                          Photo
-                        </Button>
-                        <Button type="button" variant="ghost" className="h-9 rounded-md px-3">
-                          <Book className="h-4 w-4 mr-2" />
-                          Book
-                        </Button>
-                        <Button type="button" variant="ghost" className="h-9 rounded-md px-3">
-                          <Star className="h-4 w-4 mr-2" />
-                          Review
-                        </Button>
-                      </div>
-                      <Button type="submit" disabled>Post</Button>
-                    </div>
-                  </form>
+                        </span>
+                        <span className="text-xs line-clamp-1">{[
+                          "Alex Thompson", "Maria Garcia", "James Wilson", 
+                          "Emma Davis", "Michael Brown", "Sophia Martinez",
+                          "Daniel Lee", "Olivia Johnson", "William Smith"
+                        ][index]}</span>
+                      </Link>
+                    ))
+                  )}
                 </div>
-              </Card>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* MAIN CONTENT - 2 Columns */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Post Form */}
+            <Card>
+              <div className="p-6 pt-6">
+                <form>
+                  <div className="flex gap-3">
+                      <Avatar src={authorImageUrl || "/placeholder.svg?height=200&width=200"} alt={author?.name || "Author"} name={author?.name} size="sm" id={author?.id} />
+                    <Textarea 
+                      className="flex-1 resize-none"
+                      placeholder={`What are you reading, ${author?.name?.split(' ')[0] || "Author"}?`}
+                    />
+                  </div>
+                  <div className="flex justify-between mt-4">
+                    <div className="flex gap-2">
+                      <Button type="button" variant="ghost" className="h-9 rounded-md px-3">
+                        <ImageIcon className="h-4 w-4 mr-2" />
+                        Photo
+                      </Button>
+                      <Button type="button" variant="ghost" className="h-9 rounded-md px-3">
+                        <Book className="h-4 w-4 mr-2" />
+                        Book
+                      </Button>
+                      <Button type="button" variant="ghost" className="h-9 rounded-md px-3">
+                        <Star className="h-4 w-4 mr-2" />
+                        Review
+                      </Button>
+                    </div>
+                    <Button type="submit" disabled>Post</Button>
+                  </div>
+                </form>
+              </div>
+            </Card>
 
               {/* Timeline Feed */}
               <Timeline
@@ -464,8 +464,8 @@ export function ClientAuthorPage({
                 }))}
               />
             </div>
-          </div>
-        </div>
+                      </div>
+                    </div>
       )}
 
       {activeTab === "about" && (
@@ -488,7 +488,7 @@ export function ClientAuthorPage({
                   <a href="#books" className="about-navigation__nav-link flex items-center px-3 py-2 rounded-md hover:bg-muted">Published Books</a>
                 </nav>
               </div>
-            </div>
+                </div>
             <div className="lg:col-span-2">
               <div className="rounded-lg border bg-card text-card-foreground shadow-sm overview-section mb-6" id="overview">
                 <div className="overview-section__header flex flex-col space-y-1.5 p-6 border-b">
@@ -804,18 +804,18 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                       <div key={follower.id} className="flex items-center gap-3 p-3 border rounded-lg">
                         <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14 bg-muted">
                           <Avatar src={follower.avatar_url || "/placeholder.svg?height=100&width=100"} alt={follower.name || 'User'} name={follower.name} size="md" id={follower.id} className="followers-list__avatar" />
-                        </span>
+                      </span>
                         <div className="flex-1 min-w-0">
                           <h3 className="font-medium truncate">{follower.name || 'Unknown User'}</h3>
                           <p className="text-xs text-muted-foreground">{follower.email || 'No email available'}</p>
                           <p className="text-xs text-muted-foreground">
                             Following since {follower.followSince ? new Date(follower.followSince).toLocaleDateString() : 'unknown date'}
                           </p>
-                        </div>
-                        <Button variant="ghost" size="icon">
-                          <Ellipsis className="h-4 w-4" />
-                        </Button>
-                      </div>
+                    </div>
+                    <Button variant="ghost" size="icon">
+                      <Ellipsis className="h-4 w-4" />
+                    </Button>
+                  </div>
                     ))
                   ) : (
                     <div className="col-span-3 text-center p-6">
@@ -868,7 +868,7 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                   <Button className="publisher-groups__create-button">
                     <Users className="h-4 w-4 mr-2" />
                     Create Group
-                  </Button>
+                    </Button>
                 </a>
               </div>
               <div className="publisher-groups__list p-6 pt-0 space-y-4">
@@ -971,7 +971,7 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                 <Button className="publisher-groups__find-more h-10 px-4 py-2 w-full">
                   <Users className="h-4 w-4 mr-2" />
                   Find More Groups
-                </Button>
+                    </Button>
               </div>
             </div>
             <div className="rounded-lg border bg-card text-card-foreground shadow-sm">

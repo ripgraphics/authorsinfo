@@ -215,16 +215,16 @@ export default async function BookPage({ params }: BookPageProps) {
         {/* Full width banner outside container constraints */}
         <div className="w-full">
           <PageBanner />
-        </div>
-        
+                </div>
+
         <PageContainer>
           <ClientBookPage
             book={book}
-            authors={authors}
+                    authors={authors} 
             publisher={publisher}
             reviews={reviews}
             publisherBooksCount={publisherBooksCount}
-            authorBookCounts={authorBookCounts}
+                    authorBookCounts={authorBookCounts}
             bindingType={bindingType}
             formatType={formatType}
             readingProgress={readingProgress}

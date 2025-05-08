@@ -1,0 +1,5 @@
+ce30693 2025-05-07 refactor: enhance AuthorsPage and ClientAuthorPage with improved data handling and layout
+eff0b2e 2025-05-04 refactor: streamline AuthorPage with server-side data fetching and improved structure
+bc3914d 2025-04-26 feat: enhance author and book pages with improved data handling and UI updates
+9672dd0 2025-04-19 fix: import missing Filter icon in client component
+a9f4960 2025-04-18 feat: add publisher logo/image upload and display

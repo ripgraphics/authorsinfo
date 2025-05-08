@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Bell, BookOpen, Menu, MessageSquare, Search, User, Users, LogOut } from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar } from "@/components/ui/avatar"
 import { Navigation } from "@/components/navigation"
 import { SearchModal } from "@/components/search-modal"
 
@@ -65,12 +65,7 @@ export function PageHeader({ title, description }: PageHeaderProps) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="page-header__avatar-btn rounded-full">
-                <Avatar>
-                  <AvatarImage src="/placeholder.svg" alt="User" />
-                  <AvatarFallback>
-                    <User className="h-5 w-5" />
-                  </AvatarFallback>
-                </Avatar>
+                <Avatar src="/placeholder.svg" alt="User" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 page-header__dropdown-content">

@@ -459,6 +459,12 @@ export function ClientAuthorPage({
                         return <span>Added <Link href={`/books/${activity.books?.id || '#'}`} className="text-primary hover:underline font-medium">{activity.bookTitle}</Link> by {activity.bookAuthor} to {activity.shelf}</span>;
                       case "reviewed":
                         return <span>Reviewed <Link href={`/books/${activity.books?.id || '#'}`} className="text-primary hover:underline font-medium">{activity.bookTitle}</Link> by {activity.bookAuthor}</span>;
+                      case "book_added":
+                        return <span>New book added: <Link href={`/books/${activity.books?.id || '#'}`} className="text-primary hover:underline font-medium">{activity.bookTitle}</Link> by {activity.bookAuthor}</span>;
+                      case "author_created":
+                        return <span>Author profile was created</span>;
+                      case "author_profile_updated":
+                        return <span>Author profile was updated</span>;
                       default:
                         return <span>Activity with <Link href={`/books/${activity.books?.id || '#'}`} className="text-primary hover:underline font-medium">{activity.bookTitle}</Link> by {activity.bookAuthor}</span>;
                     }

@@ -26,7 +26,7 @@ export async function GET(request: Request) {
     // Find books by this author
     const { data: books, error: booksError } = await supabaseAdmin
       .from('books')
-      .select('id, title, author')
+      .select('id, title, author, created_at')
       .eq('author_id', authorId)
       .limit(10)
 
@@ -41,6 +41,9 @@ export async function GET(request: Request) {
     }
 
     console.log(`Found ${books.length} books for author ${authorId}:`, books.map(b => b.title))
+    
+    // Use the author name from the first book
+    const authorName = books[0].author || 'Unknown Author'
 
     // Get real user IDs from the database to avoid foreign key constraint violations
     const { data: users, error: usersError } = await supabaseAdmin
@@ -61,16 +64,17 @@ export async function GET(request: Request) {
     const realUserIds = users.map(user => user.id)
     console.log(`Found ${realUserIds.length} real users to use for activities`)
 
-    // Create activities for those books
-    const activityTypes = ['rating', 'finished', 'added', 'reviewed']
+    // Create regular activities for those books
+    const bookActivityTypes = ['rating', 'finished', 'added', 'reviewed']
     const activities = []
     
+    // Add existing activities for books
     for (const book of books) {
-      // Create 2-3 activities per book
-      const numActivities = 2 + Math.floor(Math.random() * 2)
+      // Create 1-2 regular book activities per book
+      const numActivities = 1 + Math.floor(Math.random() * 2)
       
       for (let i = 0; i < numActivities; i++) {
-        const activityType = activityTypes[Math.floor(Math.random() * activityTypes.length)]
+        const activityType = bookActivityTypes[Math.floor(Math.random() * bookActivityTypes.length)]
         const randomUser = realUserIds[Math.floor(Math.random() * realUserIds.length)]
         const daysAgo = Math.floor(Math.random() * 30) // Random day in the last month
         const activityDate = new Date()
@@ -98,7 +102,51 @@ export async function GET(request: Request) {
           created_at: activityDate.toISOString()
         })
       }
+
+      // Add a "book_added" activity for each book
+      const adminUser = realUserIds[0] // Use first user as admin
+      const bookAddedDate = book.created_at || new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString() // 90 days ago if no date
+      
+      activities.push({
+        user_id: adminUser,
+        activity_type: 'book_added',
+        book_id: book.id,
+        data: {
+          book_title: book.title,
+          book_author: book.author || 'Unknown Author',
+          author_id: authorId,
+          author_name: authorName
+        },
+        created_at: bookAddedDate
+      })
     }
+    
+    // Add author account creation activity
+    const authorCreatedDate = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString() // 180 days ago
+    activities.push({
+      user_id: realUserIds[0], // Admin user
+      activity_type: 'author_created',
+      data: {
+        author_id: authorId,
+        author_name: authorName,
+        nationality: 'Unknown',
+        books_count: books.length
+      },
+      created_at: authorCreatedDate
+    })
+    
+    // Add author profile update activity
+    const profileUpdateDate = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString() // 45 days ago
+    activities.push({
+      user_id: realUserIds[0], // Admin user
+      activity_type: 'author_profile_updated',
+      data: {
+        author_id: authorId,
+        author_name: authorName,
+        updated_fields: ['bio', 'website', 'author_image']
+      },
+      created_at: profileUpdateDate
+    })
     
     console.log(`Created ${activities.length} activities to insert`)
     
@@ -121,7 +169,7 @@ export async function GET(request: Request) {
     
     return NextResponse.json({
       success: true,
-      message: `Added ${activities.length} activities for ${books.length} books`,
+      message: `Added ${activities.length} activities for ${books.length} books and author ${authorName}`,
       books,
       activities
     })

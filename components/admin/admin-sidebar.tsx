@@ -22,6 +22,8 @@ import {
   ImageIcon,
   BarChart3,
   Link2,
+  Activity,
+  Clock
 } from "lucide-react"
 
 export function AdminSidebar() {
@@ -32,6 +34,7 @@ export function AdminSidebar() {
     authors: false,
     publishers: false,
     settings: false,
+    tools: false,
   })
 
   const toggleExpand = (section: string) => {
@@ -256,6 +259,37 @@ export function AdminSidebar() {
               <ImageIcon className="h-5 w-5" />
               <span>Regenerate Covers</span>
             </Link>
+          </div>
+
+          <div className="pt-4">
+            <div className="px-3 py-2 text-xs font-semibold text-gray-400">Tools</div>
+
+            <div className="relative">
+              <button
+                className="flex items-center justify-between w-full gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
+                onClick={() => toggleExpand("tools")}
+              >
+                <div className="flex items-center gap-3">
+                  <Settings className="h-5 w-5" />
+                  <span className="opacity-100">System Tools</span>
+                </div>
+                {expanded.tools ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              </button>
+
+              {expanded.tools && (
+                <div className="pl-9 mt-1 space-y-1">
+                  <Link
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                      pathname === "/admin/activities" ? "bg-white/10 text-white font-medium" : "text-gray-400"
+                    }`}
+                    href="/admin/activities"
+                  >
+                    <Clock className="h-4 w-4" />
+                    Timeline Generator
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="pt-4">

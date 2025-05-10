@@ -81,3 +81,11 @@ export function Avatar({
 
   return avatarContent
 }
+
+export function AvatarImage(props: React.ImgHTMLAttributes<HTMLImageElement>) {
+  return <img {...props} />;
+}
+
+export function AvatarFallback({ children }: { children: React.ReactNode }) {
+  return <span>{children}</span>;
+}

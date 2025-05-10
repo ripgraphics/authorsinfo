@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getRecentBooks, getRecentAuthors, getRecentPublishers } from "./actions/data"
 import { BookOpen, User, Building } from "lucide-react"
 import { PageContainer } from "@/components/page-container"
+import FeaturedEvents from "@/components/featured-events"
 
 async function RecentBooks() {
   const books = await getRecentBooks(6)
@@ -190,6 +191,11 @@ export default function Home() {
             <RecentPublishers />
           </TabsContent>
         </Tabs>
+        
+        {/* Featured Events Section */}
+        <div className="-mx-4 -mb-8">
+          <FeaturedEvents />
+        </div>
       </div>
     </PageContainer>
   )

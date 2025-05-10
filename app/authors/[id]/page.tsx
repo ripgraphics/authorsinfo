@@ -8,6 +8,9 @@ import { PageContainer } from "@/components/page-container"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { getFollowers, getFollowersCount } from "@/lib/follows-server"
+import { getAuthorEvents } from '@/lib/events'
+import EventCard from '@/components/event-card'
+import type { Event } from '@/types/database'
 
 interface AuthorPageProps {
   params: {
@@ -271,6 +274,9 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
   // Get author activities for timeline
   const activities = await getAuthorActivities(id)
 
+  // Get author events
+  const authorEvents = await getAuthorEvents(parseInt(params.id));
+
   return (
     <PageContainer>
       <ClientAuthorPage
@@ -284,6 +290,24 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
         booksCount={totalBooksCount || 0}
         activities={activities}
       />
+      {authorEvents && authorEvents.length > 0 && (
+        <div className="mt-10">
+          <h2 className="text-2xl font-bold mb-6">Upcoming Events</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {authorEvents.map((event: Event) => (
+              <EventCard key={event.id} event={event} />
+            ))}
+          </div>
+          <div className="mt-6">
+            <Link 
+              href="/events" 
+              className="text-blue-600 hover:text-blue-800 font-medium flex items-center"
+            >
+              View all events →
+            </Link>
+          </div>
+        </div>
+      )}
     </PageContainer>
   )
 } 

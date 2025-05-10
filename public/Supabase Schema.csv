@@ -12,6 +12,9 @@ activities,review_id,uuid
 activities,list_id,uuid
 activities,data,jsonb
 activities,created_at,timestamp with time zone
+activities,user_profile_id,uuid
+activities,group_id,uuid
+activities,event_id,uuid
 activity_log,id,uuid
 activity_log,user_id,uuid
 activity_log,action,text
@@ -23,6 +26,19 @@ album_images,album_id,uuid
 album_images,image_id,integer
 album_images,display_order,integer
 album_images,created_at,timestamp with time zone
+author_event_dashboard,id,integer
+author_event_dashboard,name,character varying
+author_event_dashboard,upcoming_events,bigint
+author_event_dashboard,past_events,bigint
+author_event_dashboard,total_registrations,numeric
+author_event_dashboard,total_revenue,numeric
+author_event_metrics,author_id,integer
+author_event_metrics,author_name,character varying
+author_event_metrics,total_events,bigint
+author_event_metrics,total_registrations,numeric
+author_event_metrics,total_revenue,numeric
+author_event_metrics,avg_attendance_rate,numeric
+author_event_metrics,total_series,bigint
 authors,id,integer
 authors,name,character varying
 authors,bio,text
@@ -205,6 +221,363 @@ discussions,content,text
 discussions,is_pinned,boolean
 discussions,created_at,timestamp with time zone
 discussions,updated_at,timestamp with time zone
+discussions,group_id,uuid
+discussions,category_id,integer
+event_analytics,id,uuid
+event_analytics,event_id,uuid
+event_analytics,date,date
+event_analytics,views,integer
+event_analytics,unique_visitors,integer
+event_analytics,registrations,integer
+event_analytics,cancellations,integer
+event_analytics,shares,integer
+event_analytics,likes,integer
+event_analytics,comments,integer
+event_analytics,created_at,timestamp with time zone
+event_analytics,updated_at,timestamp with time zone
+event_approvals,id,uuid
+event_approvals,event_id,uuid
+event_approvals,submitted_by,uuid
+event_approvals,approval_status,text
+event_approvals,reviewer_id,uuid
+event_approvals,review_notes,text
+event_approvals,submitted_at,timestamp with time zone
+event_approvals,reviewed_at,timestamp with time zone
+event_approvals,updated_at,timestamp with time zone
+event_books,id,uuid
+event_books,event_id,uuid
+event_books,book_id,integer
+event_books,feature_type,text
+event_books,display_order,integer
+event_books,notes,text
+event_books,created_at,timestamp with time zone
+event_books,updated_at,timestamp with time zone
+event_calendar_exports,id,uuid
+event_calendar_exports,event_id,uuid
+event_calendar_exports,user_id,uuid
+event_calendar_exports,calendar_type,text
+event_calendar_exports,calendar_event_id,text
+event_calendar_exports,synced_at,timestamp with time zone
+event_calendar_exports,created_at,timestamp with time zone
+event_calendar_exports,updated_at,timestamp with time zone
+event_categories,id,uuid
+event_categories,name,text
+event_categories,description,text
+event_categories,parent_id,uuid
+event_categories,icon,text
+event_categories,color,text
+event_categories,created_at,timestamp with time zone
+event_categories,updated_at,timestamp with time zone
+event_chat_messages,id,uuid
+event_chat_messages,chat_room_id,uuid
+event_chat_messages,user_id,uuid
+event_chat_messages,message,text
+event_chat_messages,is_hidden,boolean
+event_chat_messages,hidden_by,uuid
+event_chat_messages,hidden_reason,text
+event_chat_messages,created_at,timestamp with time zone
+event_chat_rooms,id,uuid
+event_chat_rooms,event_id,uuid
+event_chat_rooms,name,text
+event_chat_rooms,description,text
+event_chat_rooms,is_active,boolean
+event_chat_rooms,is_moderated,boolean
+event_chat_rooms,moderator_ids,ARRAY
+event_chat_rooms,requires_ticket,boolean
+event_chat_rooms,created_at,timestamp with time zone
+event_chat_rooms,updated_at,timestamp with time zone
+event_comments,id,uuid
+event_comments,event_id,uuid
+event_comments,user_id,uuid
+event_comments,parent_id,uuid
+event_comments,content,text
+event_comments,is_pinned,boolean
+event_comments,is_hidden,boolean
+event_comments,created_at,timestamp with time zone
+event_comments,updated_at,timestamp with time zone
+event_creator_permissions,id,uuid
+event_creator_permissions,user_id,uuid
+event_creator_permissions,permission_level,text
+event_creator_permissions,can_create_paid_events,boolean
+event_creator_permissions,attendee_limit,integer
+event_creator_permissions,requires_approval,boolean
+event_creator_permissions,approved_categories,ARRAY
+event_creator_permissions,created_at,timestamp with time zone
+event_creator_permissions,updated_at,timestamp with time zone
+event_financials,id,uuid
+event_financials,event_id,uuid
+event_financials,total_revenue,numeric
+event_financials,total_fees,numeric
+event_financials,total_taxes,numeric
+event_financials,total_refunds,numeric
+event_financials,net_revenue,numeric
+event_financials,currency,text
+event_financials,ticket_sales_breakdown,jsonb
+event_financials,payout_status,text
+event_financials,payout_date,timestamp with time zone
+event_financials,payout_method,text
+event_financials,payout_reference,text
+event_financials,organizer_fees,numeric
+event_financials,created_at,timestamp with time zone
+event_financials,updated_at,timestamp with time zone
+event_interests,id,uuid
+event_interests,event_id,uuid
+event_interests,user_id,uuid
+event_interests,interest_level,text
+event_interests,created_at,timestamp with time zone
+event_interests,updated_at,timestamp with time zone
+event_likes,id,uuid
+event_likes,event_id,uuid
+event_likes,user_id,uuid
+event_likes,created_at,timestamp with time zone
+event_livestreams,id,uuid
+event_livestreams,event_id,uuid
+event_livestreams,provider,text
+event_livestreams,stream_key,text
+event_livestreams,stream_url,text
+event_livestreams,embed_code,text
+event_livestreams,is_active,boolean
+event_livestreams,start_time,timestamp with time zone
+event_livestreams,end_time,timestamp with time zone
+event_livestreams,recording_url,text
+event_livestreams,viewer_count,integer
+event_livestreams,max_concurrent_viewers,integer
+event_livestreams,requires_ticket,boolean
+event_livestreams,ticket_types,ARRAY
+event_livestreams,created_at,timestamp with time zone
+event_livestreams,updated_at,timestamp with time zone
+event_locations,id,uuid
+event_locations,event_id,uuid
+event_locations,name,text
+event_locations,address_line1,text
+event_locations,address_line2,text
+event_locations,city,text
+event_locations,state,text
+event_locations,postal_code,text
+event_locations,country,text
+event_locations,latitude,numeric
+event_locations,longitude,numeric
+event_locations,google_place_id,text
+event_locations,is_primary,boolean
+event_locations,venue_notes,text
+event_locations,accessibility_info,text
+event_locations,created_at,timestamp with time zone
+event_locations,updated_at,timestamp with time zone
+event_media,id,uuid
+event_media,event_id,uuid
+event_media,media_type,text
+event_media,url,text
+event_media,thumbnail_url,text
+event_media,title,text
+event_media,description,text
+event_media,file_size,integer
+event_media,file_type,text
+event_media,duration,integer
+event_media,width,integer
+event_media,height,integer
+event_media,display_order,integer
+event_media,created_at,timestamp with time zone
+event_media,updated_at,timestamp with time zone
+event_performance_metrics,id,uuid
+event_performance_metrics,title,text
+event_performance_metrics,start_date,timestamp with time zone
+event_performance_metrics,is_free,boolean
+event_performance_metrics,max_attendees,integer
+event_performance_metrics,registration_count,bigint
+event_performance_metrics,total_revenue,numeric
+event_performance_metrics,net_revenue,numeric
+event_performance_metrics,likes_count,bigint
+event_performance_metrics,comments_count,bigint
+event_performance_metrics,shares_count,bigint
+event_performance_metrics,views_count,bigint
+event_performance_metrics,attendance_count,bigint
+event_performance_metrics,capacity_percentage,numeric
+event_performance_metrics,attendance_rate,numeric
+event_performance_metrics,waitlist_count,bigint
+event_performance_metrics,avg_satisfaction,numeric
+event_permission_requests,id,uuid
+event_permission_requests,user_id,uuid
+event_permission_requests,request_reason,text
+event_permission_requests,requested_level,text
+event_permission_requests,status,text
+event_permission_requests,reviewed_by,uuid
+event_permission_requests,reviewed_at,timestamp with time zone
+event_permission_requests,admin_notes,text
+event_permission_requests,created_at,timestamp with time zone
+event_permission_requests,updated_at,timestamp with time zone
+event_questions,id,uuid
+event_questions,event_id,uuid
+event_questions,question,text
+event_questions,question_type,text
+event_questions,is_required,boolean
+event_questions,options,jsonb
+event_questions,display_order,integer
+event_questions,help_text,text
+event_questions,created_at,timestamp with time zone
+event_questions,updated_at,timestamp with time zone
+event_registrations,id,uuid
+event_registrations,event_id,uuid
+event_registrations,user_id,uuid
+event_registrations,registration_status,text
+event_registrations,registration_time,timestamp with time zone
+event_registrations,check_in_time,timestamp with time zone
+event_registrations,ticket_id,text
+event_registrations,registration_source,text
+event_registrations,additional_guests,integer
+event_registrations,guest_names,jsonb
+event_registrations,answers,jsonb
+event_registrations,notes,text
+event_registrations,created_at,timestamp with time zone
+event_registrations,updated_at,timestamp with time zone
+event_registrations,session_ids,ARRAY
+event_reminders,id,uuid
+event_reminders,event_id,uuid
+event_reminders,user_id,uuid
+event_reminders,reminder_time,timestamp with time zone
+event_reminders,notification_sent,boolean
+event_reminders,notification_time,timestamp with time zone
+event_reminders,reminder_type,text
+event_reminders,created_at,timestamp with time zone
+event_reminders,updated_at,timestamp with time zone
+event_sessions,id,uuid
+event_sessions,event_id,uuid
+event_sessions,title,text
+event_sessions,description,text
+event_sessions,speaker_ids,ARRAY
+event_sessions,start_time,timestamp with time zone
+event_sessions,end_time,timestamp with time zone
+event_sessions,location_id,uuid
+event_sessions,virtual_meeting_url,text
+event_sessions,max_attendees,integer
+event_sessions,requires_separate_registration,boolean
+event_sessions,session_materials,jsonb
+event_sessions,created_at,timestamp with time zone
+event_sessions,updated_at,timestamp with time zone
+event_shares,id,uuid
+event_shares,event_id,uuid
+event_shares,user_id,uuid
+event_shares,share_platform,text
+event_shares,created_at,timestamp with time zone
+event_speakers,id,uuid
+event_speakers,event_id,uuid
+event_speakers,user_id,uuid
+event_speakers,name,text
+event_speakers,bio,text
+event_speakers,headshot_url,text
+event_speakers,website,text
+event_speakers,social_links,jsonb
+event_speakers,presentation_title,text
+event_speakers,presentation_description,text
+event_speakers,speaker_order,integer
+event_speakers,author_id,integer
+event_speakers,created_at,timestamp with time zone
+event_speakers,updated_at,timestamp with time zone
+event_speakers,session_ids,ARRAY
+event_sponsors,id,uuid
+event_sponsors,event_id,uuid
+event_sponsors,name,text
+event_sponsors,description,text
+event_sponsors,website_url,text
+event_sponsors,logo_url,text
+event_sponsors,sponsor_level,text
+event_sponsors,display_order,integer
+event_sponsors,contribution_amount,numeric
+event_sponsors,currency,text
+event_sponsors,is_featured,boolean
+event_sponsors,benefits_description,text
+event_sponsors,contact_name,text
+event_sponsors,contact_email,text
+event_sponsors,created_at,timestamp with time zone
+event_sponsors,updated_at,timestamp with time zone
+event_staff,id,uuid
+event_staff,event_id,uuid
+event_staff,user_id,uuid
+event_staff,role,text
+event_staff,permissions,jsonb
+event_staff,created_at,timestamp with time zone
+event_staff,updated_at,timestamp with time zone
+event_surveys,id,uuid
+event_surveys,event_id,uuid
+event_surveys,title,text
+event_surveys,description,text
+event_surveys,is_active,boolean
+event_surveys,is_anonymous,boolean
+event_surveys,requires_ticket,boolean
+event_surveys,available_from,timestamp with time zone
+event_surveys,available_until,timestamp with time zone
+event_surveys,created_at,timestamp with time zone
+event_surveys,updated_at,timestamp with time zone
+event_tags,event_id,uuid
+event_tags,tag_id,integer
+event_tags,created_at,timestamp with time zone
+event_types,id,uuid
+event_types,name,text
+event_types,description,text
+event_types,icon,text
+event_types,created_at,timestamp with time zone
+event_types,updated_at,timestamp with time zone
+event_views,id,uuid
+event_views,event_id,uuid
+event_views,user_id,uuid
+event_views,ip_address,text
+event_views,viewed_at,timestamp with time zone
+event_views,user_agent,text
+event_views,referrer,text
+event_waitlists,id,uuid
+event_waitlists,event_id,uuid
+event_waitlists,ticket_type_id,uuid
+event_waitlists,user_id,uuid
+event_waitlists,position,integer
+event_waitlists,status,text
+event_waitlists,notification_sent_at,timestamp with time zone
+event_waitlists,expiration_time,timestamp with time zone
+event_waitlists,converted_to_registration_id,uuid
+event_waitlists,created_at,timestamp with time zone
+event_waitlists,updated_at,timestamp with time zone
+events,id,uuid
+events,title,text
+events,subtitle,text
+events,description,text
+events,summary,text
+events,category_id,uuid
+events,type_id,uuid
+events,format,text
+events,status,text
+events,visibility,text
+events,featured,boolean
+events,start_date,timestamp with time zone
+events,end_date,timestamp with time zone
+events,timezone,text
+events,all_day,boolean
+events,max_attendees,integer
+events,cover_image_id,integer
+events,event_image_id,integer
+events,is_recurring,boolean
+events,recurrence_pattern,jsonb
+events,parent_event_id,uuid
+events,created_by,uuid
+events,created_at,timestamp with time zone
+events,updated_at,timestamp with time zone
+events,published_at,timestamp with time zone
+events,requires_registration,boolean
+events,registration_opens_at,timestamp with time zone
+events,registration_closes_at,timestamp with time zone
+events,is_free,boolean
+events,price,numeric
+events,currency,text
+events,book_id,integer
+events,author_id,integer
+events,publisher_id,integer
+events,group_id,uuid
+events,virtual_meeting_url,text
+events,virtual_meeting_id,text
+events,virtual_meeting_password,text
+events,virtual_platform,text
+events,slug,text
+events,seo_title,text
+events,seo_description,text
+events,canonical_url,text
+events,content_blocks,jsonb
 feed_entries,id,uuid
 feed_entries,user_id,uuid
 feed_entries,group_id,uuid
@@ -245,6 +618,174 @@ friends,responded_at,timestamp with time zone
 friends,requested_by,uuid
 friends,created_at,timestamp with time zone
 friends,updated_at,timestamp with time zone
+group_achievements,id,integer
+group_achievements,group_id,uuid
+group_achievements,name,text
+group_achievements,description,text
+group_achievements,icon_url,text
+group_achievements,created_at,timestamp with time zone
+group_achievements,type,text
+group_achievements,criteria,jsonb
+group_analytics,id,integer
+group_analytics,group_id,uuid
+group_analytics,date,date
+group_analytics,metric,text
+group_analytics,value,numeric
+group_analytics,created_at,timestamp with time zone
+group_announcements,id,uuid
+group_announcements,group_id,uuid
+group_announcements,title,text
+group_announcements,content,text
+group_announcements,created_by,uuid
+group_announcements,created_at,timestamp with time zone
+group_announcements,is_pinned,boolean
+group_audit_log,id,uuid
+group_audit_log,group_id,uuid
+group_audit_log,action,text
+group_audit_log,performed_by,uuid
+group_audit_log,target_type,text
+group_audit_log,target_id,uuid
+group_audit_log,details,jsonb
+group_audit_log,created_at,timestamp with time zone
+group_author_events,id,uuid
+group_author_events,group_id,uuid
+group_author_events,author_id,integer
+group_author_events,event_id,uuid
+group_author_events,scheduled_at,timestamp with time zone
+group_book_list_items,id,uuid
+group_book_list_items,list_id,uuid
+group_book_list_items,book_id,integer
+group_book_list_items,added_by,uuid
+group_book_list_items,added_at,timestamp with time zone
+group_book_lists,id,uuid
+group_book_lists,group_id,uuid
+group_book_lists,title,text
+group_book_lists,description,text
+group_book_lists,created_by,uuid
+group_book_lists,created_at,timestamp with time zone
+group_book_reviews,id,uuid
+group_book_reviews,group_id,uuid
+group_book_reviews,book_id,integer
+group_book_reviews,user_id,uuid
+group_book_reviews,rating,integer
+group_book_reviews,review,text
+group_book_reviews,created_at,timestamp with time zone
+group_book_swaps,id,uuid
+group_book_swaps,group_id,uuid
+group_book_swaps,book_id,integer
+group_book_swaps,offered_by,uuid
+group_book_swaps,status,text
+group_book_swaps,accepted_by,uuid
+group_book_swaps,created_at,timestamp with time zone
+group_book_swaps,accepted_at,timestamp with time zone
+group_book_wishlist_items,id,uuid
+group_book_wishlist_items,wishlist_id,uuid
+group_book_wishlist_items,book_id,integer
+group_book_wishlist_items,added_by,uuid
+group_book_wishlist_items,added_at,timestamp with time zone
+group_book_wishlists,id,uuid
+group_book_wishlists,group_id,uuid
+group_book_wishlists,title,text
+group_book_wishlists,created_by,uuid
+group_book_wishlists,created_at,timestamp with time zone
+group_bots,id,uuid
+group_bots,group_id,uuid
+group_bots,name,text
+group_bots,description,text
+group_bots,config,jsonb
+group_bots,created_at,timestamp with time zone
+group_chat_channels,id,uuid
+group_chat_channels,group_id,uuid
+group_chat_channels,name,text
+group_chat_channels,description,text
+group_chat_channels,is_event_channel,boolean
+group_chat_channels,event_id,uuid
+group_chat_channels,created_at,timestamp with time zone
+group_chat_message_attachments,id,uuid
+group_chat_message_attachments,message_id,uuid
+group_chat_message_attachments,url,text
+group_chat_message_attachments,file_type,text
+group_chat_message_attachments,file_size,integer
+group_chat_message_attachments,created_at,timestamp with time zone
+group_chat_message_reactions,id,uuid
+group_chat_message_reactions,message_id,uuid
+group_chat_message_reactions,user_id,uuid
+group_chat_message_reactions,reaction,text
+group_chat_message_reactions,created_at,timestamp with time zone
+group_chat_messages,id,uuid
+group_chat_messages,channel_id,uuid
+group_chat_messages,user_id,uuid
+group_chat_messages,message,text
+group_chat_messages,is_hidden,boolean
+group_chat_messages,created_at,timestamp with time zone
+group_content_moderation_logs,id,uuid
+group_content_moderation_logs,group_id,uuid
+group_content_moderation_logs,content_type,text
+group_content_moderation_logs,content_id,uuid
+group_content_moderation_logs,action,text
+group_content_moderation_logs,reason,text
+group_content_moderation_logs,reviewed_by,uuid
+group_content_moderation_logs,created_at,timestamp with time zone
+group_custom_fields,id,uuid
+group_custom_fields,group_id,uuid
+group_custom_fields,field_name,text
+group_custom_fields,field_type,text
+group_custom_fields,field_options,jsonb
+group_custom_fields,created_at,timestamp with time zone
+group_discussion_categories,id,integer
+group_discussion_categories,group_id,uuid
+group_discussion_categories,name,text
+group_event_feedback,id,uuid
+group_event_feedback,event_id,uuid
+group_event_feedback,group_id,uuid
+group_event_feedback,user_id,uuid
+group_event_feedback,rating,integer
+group_event_feedback,feedback,text
+group_event_feedback,created_at,timestamp with time zone
+group_events,id,uuid
+group_events,group_id,uuid
+group_events,event_id,uuid
+group_events,is_recurring,boolean
+group_events,recurrence_pattern,jsonb
+group_events,created_at,timestamp with time zone
+group_events,chat_channel_id,uuid
+group_integrations,id,uuid
+group_integrations,group_id,uuid
+group_integrations,type,text
+group_integrations,config,jsonb
+group_integrations,created_at,timestamp with time zone
+group_invites,id,uuid
+group_invites,group_id,uuid
+group_invites,invited_user_id,uuid
+group_invites,email,text
+group_invites,invite_code,text
+group_invites,status,text
+group_invites,created_at,timestamp with time zone
+group_invites,accepted_at,timestamp with time zone
+group_invites,expires_at,timestamp with time zone
+group_leaderboards,id,uuid
+group_leaderboards,group_id,uuid
+group_leaderboards,leaderboard_type,text
+group_leaderboards,data,jsonb
+group_leaderboards,generated_at,timestamp with time zone
+group_member_achievements,id,integer
+group_member_achievements,achievement_id,integer
+group_member_achievements,user_id,uuid
+group_member_achievements,awarded_at,timestamp with time zone
+group_member_devices,id,uuid
+group_member_devices,group_id,uuid
+group_member_devices,user_id,uuid
+group_member_devices,device_token,text
+group_member_devices,device_type,text
+group_member_devices,created_at,timestamp with time zone
+group_member_streaks,id,uuid
+group_member_streaks,group_id,uuid
+group_member_streaks,user_id,uuid
+group_member_streaks,streak_type,text
+group_member_streaks,current_streak,integer
+group_member_streaks,longest_streak,integer
+group_member_streaks,last_active_date,date
+group_member_streaks,updated_at,timestamp with time zone
 group_members,id,uuid
 group_members,group_id,uuid
 group_members,user_id,uuid
@@ -252,6 +793,128 @@ group_members,joined_at,timestamp with time zone
 group_members,role,character varying
 group_members,created_at,timestamp with time zone
 group_members,updated_at,timestamp with time zone
+group_members,role_id,integer
+group_members,join_answers,jsonb
+group_members,is_event_organizer,boolean
+group_members,status,text
+group_members,notification_settings,jsonb
+group_membership_questions,id,integer
+group_membership_questions,group_id,uuid
+group_membership_questions,question,text
+group_membership_questions,is_required,boolean
+group_moderation_logs,id,uuid
+group_moderation_logs,group_id,uuid
+group_moderation_logs,action,text
+group_moderation_logs,target_type,text
+group_moderation_logs,target_id,uuid
+group_moderation_logs,performed_by,uuid
+group_moderation_logs,reason,text
+group_moderation_logs,created_at,timestamp with time zone
+group_onboarding_checklists,id,uuid
+group_onboarding_checklists,group_id,uuid
+group_onboarding_checklists,title,text
+group_onboarding_checklists,description,text
+group_onboarding_checklists,created_at,timestamp with time zone
+group_onboarding_progress,id,uuid
+group_onboarding_progress,checklist_id,uuid
+group_onboarding_progress,user_id,uuid
+group_onboarding_progress,task_id,uuid
+group_onboarding_progress,completed_at,timestamp with time zone
+group_onboarding_tasks,id,uuid
+group_onboarding_tasks,checklist_id,uuid
+group_onboarding_tasks,task,text
+group_onboarding_tasks,order_index,integer
+group_onboarding_tasks,created_at,timestamp with time zone
+group_poll_votes,id,uuid
+group_poll_votes,poll_id,uuid
+group_poll_votes,user_id,uuid
+group_poll_votes,option_index,integer
+group_poll_votes,created_at,timestamp with time zone
+group_polls,id,uuid
+group_polls,group_id,uuid
+group_polls,question,text
+group_polls,options,ARRAY
+group_polls,created_by,uuid
+group_polls,created_at,timestamp with time zone
+group_polls,expires_at,timestamp with time zone
+group_polls,is_anonymous,boolean
+group_polls,allow_multiple,boolean
+group_reading_challenge_progress,id,uuid
+group_reading_challenge_progress,challenge_id,uuid
+group_reading_challenge_progress,user_id,uuid
+group_reading_challenge_progress,books_read,integer
+group_reading_challenge_progress,progress_details,jsonb
+group_reading_challenge_progress,updated_at,timestamp with time zone
+group_reading_challenges,id,uuid
+group_reading_challenges,group_id,uuid
+group_reading_challenges,title,text
+group_reading_challenges,description,text
+group_reading_challenges,target_books,integer
+group_reading_challenges,start_date,date
+group_reading_challenges,end_date,date
+group_reading_challenges,created_by,uuid
+group_reading_challenges,created_at,timestamp with time zone
+group_reading_progress,id,uuid
+group_reading_progress,group_id,uuid
+group_reading_progress,user_id,uuid
+group_reading_progress,book_id,integer
+group_reading_progress,progress_percentage,integer
+group_reading_progress,started_at,timestamp with time zone
+group_reading_progress,finished_at,timestamp with time zone
+group_reading_progress,updated_at,timestamp with time zone
+group_reading_sessions,id,uuid
+group_reading_sessions,group_id,uuid
+group_reading_sessions,book_id,integer
+group_reading_sessions,session_title,text
+group_reading_sessions,session_description,text
+group_reading_sessions,start_time,timestamp with time zone
+group_reading_sessions,end_time,timestamp with time zone
+group_reading_sessions,created_by,uuid
+group_reading_sessions,created_at,timestamp with time zone
+group_reports,id,uuid
+group_reports,group_id,uuid
+group_reports,reported_by,uuid
+group_reports,target_type,text
+group_reports,target_id,uuid
+group_reports,reason,text
+group_reports,status,text
+group_reports,reviewed_by,uuid
+group_reports,reviewed_at,timestamp with time zone
+group_reports,created_at,timestamp with time zone
+group_roles,id,integer
+group_roles,group_id,uuid
+group_roles,name,text
+group_roles,description,text
+group_roles,permissions,jsonb
+group_roles,is_default,boolean
+group_shared_documents,id,uuid
+group_shared_documents,group_id,uuid
+group_shared_documents,title,text
+group_shared_documents,content,text
+group_shared_documents,created_by,uuid
+group_shared_documents,created_at,timestamp with time zone
+group_shared_documents,updated_at,timestamp with time zone
+group_tags,id,integer
+group_tags,group_id,uuid
+group_tags,tag,text
+group_webhook_logs,id,uuid
+group_webhook_logs,webhook_id,uuid
+group_webhook_logs,event_type,text
+group_webhook_logs,payload,jsonb
+group_webhook_logs,status,text
+group_webhook_logs,response_code,integer
+group_webhook_logs,created_at,timestamp with time zone
+group_webhooks,id,uuid
+group_webhooks,group_id,uuid
+group_webhooks,url,text
+group_webhooks,event_types,ARRAY
+group_webhooks,secret,text
+group_webhooks,created_at,timestamp with time zone
+group_welcome_messages,id,uuid
+group_welcome_messages,group_id,uuid
+group_welcome_messages,role_id,integer
+group_welcome_messages,message,text
+group_welcome_messages,created_at,timestamp with time zone
 groups,id,uuid
 groups,name,character varying
 groups,description,text
@@ -261,6 +924,20 @@ groups,created_at,timestamp with time zone
 groups,updated_at,timestamp with time zone
 groups,cover_image_id,integer
 groups,group_image_id,integer
+groups,banner_image_url,text
+groups,color_theme,text
+groups,bio,text
+groups,tags,ARRAY
+groups,is_discoverable,boolean
+groups,seo_title,text
+groups,seo_description,text
+groups,canonical_url,text
+groups,settings,jsonb
+groups,banner_gallery_id,integer
+groups,is_secret,boolean
+groups,og_image_url,text
+groups,theme_mode,text
+groups,custom_theme,jsonb
 image_types,id,integer
 image_types,name,character varying
 image_types,description,text
@@ -272,6 +949,22 @@ images,alt_text,character varying
 images,img_type_id,integer
 images,created_at,timestamp with time zone
 images,updated_at,timestamp with time zone
+invoices,id,uuid
+invoices,user_id,uuid
+invoices,event_id,uuid
+invoices,registration_id,uuid
+invoices,invoice_number,text
+invoices,amount,numeric
+invoices,currency,text
+invoices,status,text
+invoices,due_date,timestamp with time zone
+invoices,paid_date,timestamp with time zone
+invoices,billing_address,jsonb
+invoices,line_items,jsonb
+invoices,notes,text
+invoices,invoice_pdf_url,text
+invoices,created_at,timestamp with time zone
+invoices,updated_at,timestamp with time zone
 likes,id,uuid
 likes,user_id,uuid
 likes,feed_entry_id,uuid
@@ -305,6 +998,38 @@ notifications,data,jsonb
 notifications,is_read,boolean
 notifications,created_at,timestamp with time zone
 notifications,updated_at,timestamp with time zone
+payment_methods,id,uuid
+payment_methods,user_id,uuid
+payment_methods,payment_type,text
+payment_methods,provider_payment_id,text
+payment_methods,nickname,text
+payment_methods,last_four,text
+payment_methods,expiry_date,text
+payment_methods,is_default,boolean
+payment_methods,billing_address,jsonb
+payment_methods,metadata,jsonb
+payment_methods,created_at,timestamp with time zone
+payment_methods,updated_at,timestamp with time zone
+payment_transactions,id,uuid
+payment_transactions,event_id,uuid
+payment_transactions,registration_id,uuid
+payment_transactions,user_id,uuid
+payment_transactions,payment_method_id,uuid
+payment_transactions,transaction_type,text
+payment_transactions,amount,numeric
+payment_transactions,currency,text
+payment_transactions,fees,numeric
+payment_transactions,taxes,numeric
+payment_transactions,tax_details,jsonb
+payment_transactions,status,text
+payment_transactions,provider_transaction_id,text
+payment_transactions,payment_provider,text
+payment_transactions,error_message,text
+payment_transactions,metadata,jsonb
+payment_transactions,receipt_url,text
+payment_transactions,receipt_email_sent,boolean
+payment_transactions,created_at,timestamp with time zone
+payment_transactions,updated_at,timestamp with time zone
 personalized_recommendations,id,uuid
 personalized_recommendations,user_id,uuid
 personalized_recommendations,book_id,bigint
@@ -336,6 +1061,21 @@ photo_album,name,character varying
 photo_album,description,text
 photo_album,created_at,timestamp with time zone
 photo_album,updated_at,timestamp with time zone
+popular_events,id,uuid
+popular_events,title,text
+popular_events,start_date,timestamp with time zone
+popular_events,end_date,timestamp with time zone
+popular_events,format,text
+popular_events,status,text
+popular_events,visibility,text
+popular_events,author_id,integer
+popular_events,book_id,integer
+popular_events,publisher_id,integer
+popular_events,group_id,uuid
+popular_events,registration_count,bigint
+popular_events,like_count,bigint
+popular_events,comment_count,bigint
+popular_events,view_count,bigint
 posts,id,uuid
 posts,user_id,uuid
 posts,content,text
@@ -361,6 +1101,21 @@ profiles,user_id,uuid
 profiles,bio,text
 profiles,created_at,timestamp with time zone
 profiles,updated_at,timestamp with time zone
+promo_codes,id,uuid
+promo_codes,event_id,uuid
+promo_codes,code,text
+promo_codes,description,text
+promo_codes,discount_type,text
+promo_codes,discount_value,numeric
+promo_codes,applies_to_ticket_types,ARRAY
+promo_codes,max_uses,integer
+promo_codes,current_uses,integer
+promo_codes,start_date,timestamp with time zone
+promo_codes,end_date,timestamp with time zone
+promo_codes,is_active,boolean
+promo_codes,created_by,uuid
+promo_codes,created_at,timestamp with time zone
+promo_codes,updated_at,timestamp with time zone
 publisher_countries,publisher_id,integer
 publisher_countries,publisher_name,character varying
 publisher_countries,original_country,character varying
@@ -429,6 +1184,16 @@ reading_progress,start_date,timestamp with time zone
 reading_progress,finish_date,timestamp with time zone
 reading_progress,created_at,timestamp with time zone
 reading_progress,updated_at,timestamp with time zone
+reading_series,id,uuid
+reading_series,title,text
+reading_series,description,text
+reading_series,author_id,integer
+reading_series,publisher_id,integer
+reading_series,organizer_id,uuid
+reading_series,cover_image_id,integer
+reading_series,is_active,boolean
+reading_series,created_at,timestamp with time zone
+reading_series,updated_at,timestamp with time zone
 reading_sessions,id,uuid
 reading_sessions,user_id,uuid
 reading_sessions,book_id,integer
@@ -470,6 +1235,25 @@ roles,id,integer
 roles,name,character varying
 roles,created_at,timestamp with time zone
 roles,updated_at,timestamp with time zone
+series_events,series_id,uuid
+series_events,event_id,uuid
+series_events,event_number,integer
+series_events,created_at,timestamp with time zone
+series_performance_metrics,series_id,uuid
+series_performance_metrics,series_title,text
+series_performance_metrics,total_events,bigint
+series_performance_metrics,avg_registrations_per_event,numeric
+series_performance_metrics,total_series_revenue,numeric
+series_performance_metrics,total_attendance,numeric
+series_performance_metrics,avg_attendance_rate,numeric
+session_registrations,id,uuid
+session_registrations,session_id,uuid
+session_registrations,user_id,uuid
+session_registrations,registration_status,text
+session_registrations,registration_time,timestamp with time zone
+session_registrations,check_in_time,timestamp with time zone
+session_registrations,created_at,timestamp with time zone
+session_registrations,updated_at,timestamp with time zone
 similar_books,id,integer
 similar_books,book_id,integer
 similar_books,similar_book_id,integer
@@ -485,6 +1269,21 @@ subjects,name,character varying
 subjects,parent_id,integer
 subjects,created_at,timestamp with time zone
 subjects,updated_at,timestamp with time zone
+survey_questions,id,uuid
+survey_questions,survey_id,uuid
+survey_questions,question,text
+survey_questions,question_type,text
+survey_questions,options,jsonb
+survey_questions,is_required,boolean
+survey_questions,display_order,integer
+survey_questions,created_at,timestamp with time zone
+survey_questions,updated_at,timestamp with time zone
+survey_responses,id,uuid
+survey_responses,survey_id,uuid
+survey_responses,user_id,uuid
+survey_responses,registration_id,uuid
+survey_responses,response_data,jsonb
+survey_responses,created_at,timestamp with time zone
 sync_state,id,uuid
 sync_state,type,text
 sync_state,last_synced_date,timestamp with time zone
@@ -499,6 +1298,53 @@ tags,id,integer
 tags,name,text
 tags,created_at,timestamp with time zone
 tags,updated_at,timestamp with time zone
+ticket_benefits,id,uuid
+ticket_benefits,ticket_type_id,uuid
+ticket_benefits,name,text
+ticket_benefits,description,text
+ticket_benefits,icon,text
+ticket_benefits,display_order,integer
+ticket_benefits,created_at,timestamp with time zone
+ticket_benefits,updated_at,timestamp with time zone
+ticket_types,id,uuid
+ticket_types,event_id,uuid
+ticket_types,name,text
+ticket_types,description,text
+ticket_types,price,numeric
+ticket_types,currency,text
+ticket_types,quantity_total,integer
+ticket_types,quantity_sold,integer
+ticket_types,is_active,boolean
+ticket_types,sale_start_date,timestamp with time zone
+ticket_types,sale_end_date,timestamp with time zone
+ticket_types,min_per_order,integer
+ticket_types,max_per_order,integer
+ticket_types,has_waitlist,boolean
+ticket_types,includes_features,jsonb
+ticket_types,visibility,text
+ticket_types,access_code,text
+ticket_types,display_order,integer
+ticket_types,created_at,timestamp with time zone
+ticket_types,updated_at,timestamp with time zone
+tickets,id,uuid
+tickets,event_id,uuid
+tickets,ticket_type_id,uuid
+tickets,registration_id,uuid
+tickets,user_id,uuid
+tickets,ticket_number,text
+tickets,status,text
+tickets,purchase_price,numeric
+tickets,currency,text
+tickets,attendee_name,text
+tickets,attendee_email,text
+tickets,checked_in_at,timestamp with time zone
+tickets,checked_in_by,uuid
+tickets,qr_code,text
+tickets,barcode,text
+tickets,ticket_pdf_url,text
+tickets,access_code,text
+tickets,created_at,timestamp with time zone
+tickets,updated_at,timestamp with time zone
 user_book_interactions,id,uuid
 user_book_interactions,user_id,uuid
 user_book_interactions,book_id,bigint
@@ -516,6 +1362,12 @@ user_reading_preferences,preferred_complexity,text
 user_reading_preferences,preferred_publication_era,text
 user_reading_preferences,created_at,timestamp with time zone
 user_reading_preferences,updated_at,timestamp with time zone
+user_recommended_events,user_id,uuid
+user_recommended_events,event_id,uuid
+user_recommended_events,title,text
+user_recommended_events,start_date,timestamp with time zone
+user_recommended_events,category_id,uuid
+user_recommended_events,recommendation_reason,text
 users,id,uuid
 users,email,character varying
 users,name,character varying

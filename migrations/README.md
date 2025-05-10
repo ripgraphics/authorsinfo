@@ -8,6 +8,8 @@ This directory contains SQL migration files to set up the database schema and fu
 2. `table-info-function.sql` - Adds a utility function to query table schema information
 3. `add_entity_id_columns.sql` - Adds dedicated columns for user profiles, groups, and events to the activities table
 4. `event_system.sql` - Creates a comprehensive event management system
+5. `event_system_enhancement.sql` - Adds advanced ticketing, payment processing, and permission controls
+6. `event_system_advanced_features.sql` - Adds livestreaming, waitlists, feedback, and more enterprise features
 
 ## How to Apply Migrations
 
@@ -68,4 +70,88 @@ The `event_system.sql` migration creates a comprehensive event management system
 - Event view tracking
 - Daily analytics aggregation
 - Trending/popular events view
-- User interest-based recommendations 
+- User interest-based recommendations
+
+## Event System Enhancements
+
+The `event_system_enhancement.sql` migration adds enterprise-level features to the base event system:
+
+### Advanced Ticketing
+- Multiple ticket types/tiers with different price points
+- Ticket benefits and features per ticket type
+- Promo codes and discounts
+- QR codes and digital tickets
+- Ticket quantity management
+- Sales periods with start/end dates
+- Private/invite-only tickets with access codes
+
+### Payment Processing
+- Support for multiple payment methods (credit card, PayPal, etc.)
+- Complete transaction tracking
+- Refund management
+- Invoice generation
+- Tax handling
+- Receipt generation
+
+### Event Creator Controls
+- Permission-based event creation
+- Approval workflows for user-created events
+- Category-specific permissions
+- Staff/organizer role management
+- Paid event permissions
+
+### Financial Management
+- Complete financial reporting
+- Revenue tracking by ticket type
+- Fee calculations
+- Tax reporting
+- Payout tracking
+
+## Advanced Event Features
+
+The `event_system_advanced_features.sql` migration adds high-value additions for a complete enterprise platform:
+
+### Livestreaming Integration
+- Support for multiple streaming providers (YouTube, Vimeo, Twitch, etc.)
+- Stream key and URL management
+- Recording storage
+- Viewer metrics
+- Ticket-gated access control
+
+### Waitlist Management
+- Automatic waitlist position management
+- Waitlist notifications when tickets become available
+- Conversion tracking
+- Per-ticket-type waitlists
+
+### Event Feedback System
+- Customizable surveys with multiple question types
+- Anonymous feedback options
+- Required question enforcement
+- Response analytics and satisfaction tracking
+
+### Author Reading Series
+- Group related events into series
+- Series-level metrics and analytics
+- Automatic numbering of events within series
+- Author and publisher association
+
+### Event Sponsorship
+- Multi-tier sponsor management (platinum, gold, silver, etc.)
+- Sponsor benefits tracking
+- Financial contribution recording
+- Featured sponsor highlighting
+
+### Advanced Analytics
+- Performance metrics views
+- Series performance tracking
+- Author event metrics
+- Satisfaction and engagement analytics
+
+### Real-time Event Chat
+- Event-specific chat rooms
+- Moderation controls
+- Ticket-gated access
+- Message management
+
+This enhanced system provides enterprise-level event management capabilities similar to platforms like Eventbrite or Meetup, while integrating seamlessly with the book platform's existing features. 

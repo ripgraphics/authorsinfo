@@ -521,3 +521,192 @@ export interface Database {
     }
   }
 }
+
+export interface EventCategory {
+  id: string
+  name: string
+  description?: string
+  parent_id?: string
+  icon?: string
+  color?: string
+  created_at?: string
+  updated_at?: string
+}
+
+export interface EventType {
+  id: string
+  name: string
+  description?: string
+  icon?: string
+  created_at?: string
+  updated_at?: string
+}
+
+export interface Event {
+  id: string
+  title: string
+  subtitle?: string
+  description?: string
+  summary?: string
+  category_id?: string
+  type_id?: string
+  format: 'physical' | 'virtual' | 'hybrid'
+  status: 'draft' | 'published' | 'cancelled' | 'completed' | 'postponed'
+  visibility: 'public' | 'private' | 'invite_only' | 'group_only'
+  featured?: boolean
+  start_date: string
+  end_date: string
+  timezone?: string
+  all_day?: boolean
+  max_attendees?: number
+  cover_image_id?: number
+  event_image_id?: number
+  is_recurring?: boolean
+  recurrence_pattern?: any
+  parent_event_id?: string
+  created_by: string
+  created_at?: string
+  updated_at?: string
+  published_at?: string
+  requires_registration?: boolean
+  registration_opens_at?: string
+  registration_closes_at?: string
+  is_free?: boolean
+  price?: number
+  currency?: string
+  book_id?: number
+  author_id?: number
+  publisher_id?: number
+  group_id?: string
+  virtual_meeting_url?: string
+  virtual_meeting_id?: string
+  virtual_meeting_password?: string
+  virtual_platform?: string
+  slug?: string
+  seo_title?: string
+  seo_description?: string
+  canonical_url?: string
+  content_blocks?: any
+  
+  // Joined fields
+  category?: EventCategory
+  type?: EventType
+  cover_image?: {
+    id: number
+    url: string
+    alt_text?: string
+    img_type_id?: number
+  }
+  event_image?: {
+    id: number
+    url: string
+    alt_text?: string
+    img_type_id?: number
+  }
+  location?: EventLocation
+  author?: Author
+  book?: Book
+  publisher?: Publisher
+}
+
+export interface EventLocation {
+  id: string
+  event_id: string
+  name: string
+  address_line1?: string
+  address_line2?: string
+  city?: string
+  state?: string
+  postal_code?: string
+  country?: string
+  latitude?: number
+  longitude?: number
+  google_place_id?: string
+  is_primary?: boolean
+  venue_notes?: string
+  accessibility_info?: string
+  created_at?: string
+  updated_at?: string
+}
+
+export interface EventSession {
+  id: string
+  event_id: string
+  title: string
+  description?: string
+  speaker_ids?: string[]
+  start_time: string
+  end_time: string
+  location_id?: string
+  virtual_meeting_url?: string
+  max_attendees?: number
+  requires_separate_registration?: boolean
+  session_materials?: any
+  created_at?: string
+  updated_at?: string
+  
+  // Joined fields
+  location?: EventLocation
+  speakers?: EventSpeaker[]
+}
+
+export interface EventSpeaker {
+  id: string
+  event_id: string
+  user_id?: string
+  name: string
+  bio?: string
+  headshot_url?: string
+  website?: string
+  social_links?: any
+  presentation_title?: string
+  presentation_description?: string
+  speaker_order?: number
+  author_id?: number
+  created_at?: string
+  updated_at?: string
+  session_ids?: string[]
+  
+  // Joined fields
+  author?: Author
+}
+
+export interface EventRegistration {
+  id: string
+  event_id: string
+  user_id: string
+  registration_status: 'registered' | 'waitlisted' | 'cancelled' | 'attended' | 'no_show'
+  registration_time?: string
+  check_in_time?: string
+  ticket_id?: string
+  registration_source?: string
+  additional_guests?: number
+  guest_names?: any
+  answers?: any
+  payment_status?: 'pending' | 'completed' | 'refunded' | 'failed'
+  ticket_type_id?: string
+  ticket_price?: number
+  created_at?: string
+  updated_at?: string
+  
+  // Joined fields
+  event?: Event
+  user?: User
+  ticket_type?: EventTicketType
+}
+
+export interface EventTicketType {
+  id: string
+  event_id: string
+  name: string
+  description?: string
+  price: number
+  currency?: string
+  capacity?: number
+  available_from?: string
+  available_until?: string
+  is_early_bird?: boolean
+  benefits?: string[]
+  created_at?: string
+  updated_at?: string
+}

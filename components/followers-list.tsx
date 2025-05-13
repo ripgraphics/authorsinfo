@@ -47,11 +47,11 @@ export function FollowersList({
         </div>
         <div className="followers-list__content space-y-4">
           <div className="followers-list__grid grid grid-cols-3 gap-2">
-            {followers.map((follower) => (
+            {followers.slice(-9).map((follower) => (
               <Link
                 key={follower.id}
                 href={`/profile/${follower.id}`}
-                className="followers-list__item flex flex-col items-center text-center"
+                className="followers-list__item flex flex-col items-center text-center p-2 rounded-lg border border-border hover:bg-accent/50 transition-colors"
               >
                 <span className="followers-list__avatar-wrapper relative flex shrink-0 overflow-hidden rounded-full h-16 w-16 mb-1">
                   <div className="avatar-container relative w-24 h-24 overflow-hidden rounded-full border-2 border-white shadow-md followers-list__avatar">

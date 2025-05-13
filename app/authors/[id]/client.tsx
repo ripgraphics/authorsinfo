@@ -35,6 +35,8 @@ import { Avatar } from "@/components/ui/avatar"
 import { useToast } from "@/components/ui/use-toast"
 import type { Author } from "@/types/database"
 import { Timeline, TimelineItem } from "@/components/timeline"
+import { FollowersList } from "@/components/followers-list"
+import { FollowersListTab } from "@/components/followers-list-tab"
 
 interface ClientAuthorPageProps {
   author: Author
@@ -377,32 +379,13 @@ export function ClientAuthorPage({
                 <Link href={`/authors/${params.id}/followers`} className="text-sm text-primary hover:underline">See All</Link>
               </div>
               <CardContent className="p-6 pt-0">
-                <div className="grid grid-cols-3 gap-2">
-                  {followers.length > 0 ? (
-                    followers.slice(0, 9).map((follower, index) => (
-                      <Link key={index} className="flex flex-col items-center text-center" href={`/profile/${follower.id}`}>
-                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-16 w-16 mb-1">
-                            <Avatar src={follower.avatar_url || "/placeholder.svg?height=100&width=100"} alt={follower.name || `Follower ${index + 1}`} name={follower.name} size="md" id={follower.id} className="followers-list__avatar" />
-                        </span>
-                        <span className="text-xs line-clamp-1">{follower.name || `User ${index + 1}`}</span>
-                      </Link>
-                    ))
-                  ) : (
-                    // Placeholder followers if none provided
-                    Array(9).fill(0).map((_, index) => (
-                      <Link key={index} className="flex flex-col items-center text-center" href={`/profile/${index + 1}`}>
-                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-16 w-16 mb-1">
-                            <Avatar src="/placeholder.svg?height=100&width=100" alt={`Follower ${index + 1}`} name={`Follower ${index + 1}`} size="md" id={index + 1} className="followers-list__avatar" />
-                        </span>
-                        <span className="text-xs line-clamp-1">{[
-                          "Alex Thompson", "Maria Garcia", "James Wilson", 
-                          "Emma Davis", "Michael Brown", "Sophia Martinez",
-                          "Daniel Lee", "Olivia Johnson", "William Smith"
-                        ][index]}</span>
-                      </Link>
-                    ))
-                  )}
-                </div>
+                <FollowersList
+                  followers={followers}
+                  followersCount={followersCount}
+                  entityId={params.id}
+                  entityType="author"
+                  showCard={false}
+                />
               </CardContent>
             </Card>
           </div>
@@ -787,53 +770,13 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
       )}
 
       {activeTab === "followers" && (
-        <div className="author-page__content">
-          <div className="author-page__tab-content space-y-6">
-            <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-              <div className="flex flex-col space-y-1.5 p-6">
-                <div className="flex justify-between items-center">
-                  <div className="text-2xl font-semibold leading-none tracking-tight">Followers · {followersCount}</div>
-                  <div className="flex items-center gap-2">
-                    <Input 
-                      className="w-[200px]" 
-                      placeholder="Search followers..." 
-                      type="search"
-                    />
-                    <Button variant="outline" size="icon" className="h-10 w-10">
-                      <Filter className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-              <CardContent className="p-6 pt-0">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {followers && followers.length > 0 ? (
-                    followers.map((follower) => (
-                      <div key={follower.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14 bg-muted">
-                          <Avatar src={follower.avatar_url || "/placeholder.svg?height=100&width=100"} alt={follower.name || 'User'} name={follower.name} size="md" id={follower.id} className="followers-list__avatar" />
-                      </span>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium truncate">{follower.name || 'Unknown User'}</h3>
-                          <p className="text-xs text-muted-foreground">{follower.email || 'No email available'}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Following since {follower.followSince ? new Date(follower.followSince).toLocaleDateString() : 'unknown date'}
-                          </p>
-                    </div>
-                    <Button variant="ghost" size="icon">
-                      <Ellipsis className="h-4 w-4" />
-                    </Button>
-                  </div>
-                    ))
-                  ) : (
-                    <div className="col-span-3 text-center p-6">
-                      <p className="text-muted-foreground">No followers yet</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </div>
-          </div>
+        <div className="author-page__tab-content space-y-6">
+          <FollowersListTab
+            followers={followers}
+            followersCount={followersCount}
+            entityId={params.id}
+            entityType="author"
+          />
         </div>
       )}
 

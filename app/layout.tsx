@@ -4,6 +4,7 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { PageHeader } from "@/components/page-header"
+import { PageContainer } from "@/components/page-container"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -20,11 +21,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body suppressHydrationWarning className={`${inter.className} min-h-screen flex flex-col items-center`}>
+      <body suppressHydrationWarning className={`${inter.className} root-layout__body min-h-screen flex flex-col items-center`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <div className="w-full">
+          <div className="root-layout__content-wrapper w-full">
             <PageHeader />
-            {children}
+            <PageContainer>
+              {children}
+            </PageContainer>
           </div>
         </ThemeProvider>
       </body>

@@ -28,6 +28,7 @@ import {
   Filter,
   ChevronDown,
 } from "lucide-react"
+import { FollowersList } from "@/components/followers-list"
 
 interface ClientGroupPageProps {
   group: any
@@ -41,8 +42,14 @@ interface ClientGroupPageProps {
 export function ClientGroupPage({ group, avatarUrl, coverImageUrl, params }: ClientGroupPageProps) {
   const [activeTab, setActiveTab] = useState("timeline")
 
+  // Use real group data if available
+  const name = group?.name || "Unnamed Group"
+  const bio = group?.bio || ""
+  const tags = group?.tags || []
+  const colorTheme = group?.color_theme || undefined
+  const themeMode = group?.theme_mode || undefined
+
   // Mock data for the profile
-  const mockName = group?.name || "Unnamed Group"
   const mockUsername = group?.name ? group.name.split(" ").join("").toLowerCase() : "group"
   const mockBooksRead = 127
   const mockFriendsCount = 248
@@ -261,7 +268,7 @@ export function ClientGroupPage({ group, avatarUrl, coverImageUrl, params }: Cli
             <div className="publisher-page__profile-info mt-4 md:mt-0 md:ml-6 flex-1">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                 <div>
-                  <h1 className="text-[1.1rem] font-bold truncate">{mockName}</h1>
+                  <h1 className="text-[1.1rem] font-bold truncate">{name}</h1>
                   <p className="text-muted-foreground">@{mockUsername}</p>
                 </div>
 
@@ -360,39 +367,37 @@ export function ClientGroupPage({ group, avatarUrl, coverImageUrl, params }: Cli
                   {/* Left Sidebar */}
                   <div className="lg:col-span-1 space-y-6">
                     {/* About Section */}
-                    <Card>
-                      <div className="flex flex-col space-y-1.5 p-6">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">About</div>
-                      </div>
-                      <CardContent className="p-6 pt-0 space-y-4">
-                        <p>{mockAbout}</p>
-                        <div className="space-y-2">
-                          <div className="flex items-center">
-                            <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                            <span>Lives in {mockLocation}</span>
-                          </div>
-                          <div className="flex items-center">
-                            <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                            <span>Joined {mockJoinedDate}</span>
-                          </div>
-                          <div className="flex items-center">
-                            <Globe className="h-4 w-4 mr-2 text-muted-foreground" />
-                            <a
-                              href={`https://${mockWebsite}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="hover:underline"
-                            >
-                              {mockWebsite}
-                            </a>
-                          </div>
+                    <Card className="timeline-about-section">
+                      <div className="timeline-about-section__header flex flex-col space-y-1.5 p-6">
+                        <div className="timeline-about-section__title-row flex justify-between items-center">
+                          <div className="timeline-about-section__title text-2xl font-semibold leading-none tracking-tight">About</div>
+                          <button 
+                            className="timeline-about-section__view-more text-sm text-primary hover:underline"
+                            onClick={() => setActiveTab("about")}
+                          >
+                            View More
+                          </button>
                         </div>
-                        <Link href="/profile/edit" className="w-full">
-                          <Button variant="outline" className="w-full">
-                            <SquarePen className="h-4 w-4 mr-2" />
-                            Edit Details
-                          </Button>
-                        </Link>
+                      </div>
+                      <CardContent className="p-6 pt-0">
+                        <p className="line-clamp-4">{group?.description || "No description available."}</p>
+                      </CardContent>
+                    </Card>
+
+                    {/* Friends/Followers Section */}
+                    <Card>
+                      <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
+                        <div className="text-2xl font-semibold leading-none tracking-tight">Followers</div>
+                        <Link href={`/groups/${params.id}/followers`} className="text-sm text-primary hover:underline">See All</Link>
+                      </div>
+                      <CardContent className="p-6 pt-0">
+                        <FollowersList
+                          followers={group?.followers || []}
+                          followersCount={group?.followers?.length || 0}
+                          entityId={params.id}
+                          entityType="group"
+                          showCard={false}
+                        />
                       </CardContent>
                     </Card>
 
@@ -504,7 +509,7 @@ export function ClientGroupPage({ group, avatarUrl, coverImageUrl, params }: Cli
                               />
                             </span>
                             <Textarea
-                              placeholder={`Welcome to ${mockName}!`}
+                              placeholder={`Welcome to ${name}!`}
                               className="flex-1 resize-none"
                             />
                           </div>
@@ -546,7 +551,7 @@ export function ClientGroupPage({ group, avatarUrl, coverImageUrl, params }: Cli
                                   />
                                 </span>
                                 <div>
-                                  <div className="font-medium">{mockName}</div>
+                                  <div className="font-medium">{name}</div>
                                   <div className="text-xs text-muted-foreground">{activity.timeAgo}</div>
                                 </div>
                               </div>

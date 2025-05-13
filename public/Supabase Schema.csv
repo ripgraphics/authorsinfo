@@ -22,10 +22,32 @@ activity_log,target_type,text
 activity_log,target_id,uuid
 activity_log,data,jsonb
 activity_log,created_at,timestamp with time zone
+album_analytics,id,uuid
+album_analytics,album_id,uuid
+album_analytics,date,date
+album_analytics,views,integer
+album_analytics,unique_views,integer
+album_analytics,shares,integer
+album_analytics,likes,integer
+album_analytics,created_at,timestamp with time zone
+album_images,id,uuid
 album_images,album_id,uuid
 album_images,image_id,integer
 album_images,display_order,integer
+album_images,is_cover,boolean
+album_images,is_featured,boolean
+album_images,metadata,jsonb
 album_images,created_at,timestamp with time zone
+album_images,updated_at,timestamp with time zone
+album_shares,id,uuid
+album_shares,album_id,uuid
+album_shares,shared_by,uuid
+album_shares,shared_with,uuid
+album_shares,share_type,character varying
+album_shares,access_token,uuid
+album_shares,expires_at,timestamp with time zone
+album_shares,created_at,timestamp with time zone
+album_shares,updated_at,timestamp with time zone
 author_event_dashboard,id,integer
 author_event_dashboard,name,character varying
 author_event_dashboard,upcoming_events,bigint
@@ -135,6 +157,8 @@ book_reviews,review_text,text
 book_reviews,created_at,timestamp with time zone
 book_reviews,updated_at,timestamp with time zone
 book_reviews,contains_spoilers,boolean
+book_reviews,group_id,uuid
+book_reviews,visibility,text
 book_similarity_scores,id,bigint
 book_similarity_scores,book_id,bigint
 book_similarity_scores,similar_book_id,bigint
@@ -938,6 +962,14 @@ groups,is_secret,boolean
 groups,og_image_url,text
 groups,theme_mode,text
 groups,custom_theme,jsonb
+image_tag_mappings,image_id,integer
+image_tag_mappings,tag_id,uuid
+image_tag_mappings,created_at,timestamp with time zone
+image_tags,id,uuid
+image_tags,name,character varying
+image_tags,slug,character varying
+image_tags,created_at,timestamp with time zone
+image_tags,updated_at,timestamp with time zone
 image_types,id,integer
 image_types,name,character varying
 image_types,description,text
@@ -949,6 +981,22 @@ images,alt_text,character varying
 images,img_type_id,integer
 images,created_at,timestamp with time zone
 images,updated_at,timestamp with time zone
+images,thumbnail_url,text
+images,medium_url,text
+images,large_url,text
+images,original_filename,character varying
+images,file_size,integer
+images,width,integer
+images,height,integer
+images,format,character varying
+images,mime_type,character varying
+images,caption,text
+images,metadata,jsonb
+images,storage_path,text
+images,storage_provider,character varying
+images,is_processed,boolean
+images,processing_status,character varying
+images,deleted_at,timestamp with time zone
 invoices,id,uuid
 invoices,user_id,uuid
 invoices,event_id,uuid
@@ -1061,6 +1109,22 @@ photo_album,name,character varying
 photo_album,description,text
 photo_album,created_at,timestamp with time zone
 photo_album,updated_at,timestamp with time zone
+photo_albums,id,uuid
+photo_albums,name,character varying
+photo_albums,description,text
+photo_albums,cover_image_id,uuid
+photo_albums,owner_id,uuid
+photo_albums,is_public,boolean
+photo_albums,view_count,integer
+photo_albums,like_count,integer
+photo_albums,share_count,integer
+photo_albums,album_type,character varying
+photo_albums,entity_id,uuid
+photo_albums,entity_type,character varying
+photo_albums,metadata,jsonb
+photo_albums,created_at,timestamp with time zone
+photo_albums,updated_at,timestamp with time zone
+photo_albums,deleted_at,timestamp with time zone
 popular_events,id,uuid
 popular_events,title,text
 popular_events,start_date,timestamp with time zone

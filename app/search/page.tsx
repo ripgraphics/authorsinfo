@@ -15,7 +15,7 @@ interface SearchPageProps {
   }
 }
 
-export default async function SearchPage({ searchParams }: SearchPageProps) {
+export default function SearchPage({ searchParams }: SearchPageProps) {
   const query = searchParams.q || ""
   const type = searchParams.type || "books"
 

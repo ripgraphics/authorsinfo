@@ -1,0 +1,197 @@
+.photo-gallery {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  background: #f0f7fc;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.photo-gallery-grid {
+  position: relative;
+  width: 100%;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.photo-gallery-item {
+  position: absolute;
+  padding: 8px;
+  transition: transform 0.2s ease;
+}
+
+.photo-gallery-item:hover {
+  transform: scale(1.02);
+  z-index: 1;
+}
+
+.photo-gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(64, 163, 216, 0.1);
+}
+
+.photo-gallery-loading,
+.photo-gallery-error,
+.photo-gallery-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 400px;
+  padding: 24px;
+  text-align: center;
+}
+
+.photo-gallery-empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  color: #40A3D8;
+}
+
+.photo-gallery-empty-text {
+  font-size: 18px;
+  color: #2c7aa7;
+  margin-bottom: 24px;
+}
+
+.photo-gallery-upload-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  background: #40A3D8;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.photo-gallery-upload-button:hover {
+  background: #2c7aa7;
+}
+
+.photo-gallery-upload-progress {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  background: rgba(64, 163, 216, 0.9);
+  color: white;
+  border-radius: 4px;
+  font-size: 14px;
+  box-shadow: 0 2px 8px rgba(64, 163, 216, 0.3);
+}
+
+.photo-gallery-create-album {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 400px;
+  margin-top: 16px;
+}
+
+.photo-gallery-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #40A3D8;
+  border-radius: 4px;
+  font-size: 16px;
+  transition: border-color 0.2s ease;
+}
+
+.photo-gallery-input:focus {
+  outline: none;
+  border-color: #2c7aa7;
+  box-shadow: 0 0 0 2px rgba(64, 163, 216, 0.2);
+}
+
+.photo-gallery-button {
+  padding: 12px 24px;
+  background: #40A3D8;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.photo-gallery-button:hover {
+  background: #2c7aa7;
+}
+
+.photo-gallery-button:disabled {
+  background: #a8d1e8;
+  cursor: not-allowed;
+}
+
+.photo-gallery-button-secondary {
+  background: #a8d1e8;
+}
+
+.photo-gallery-button-secondary:hover {
+  background: #8bc1e0;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Accessibility styles */
+.photo-gallery-item:focus {
+  outline: 3px solid #40A3D8;
+  outline-offset: 2px;
+}
+
+.photo-gallery-item:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .photo-gallery-item img {
+    border: 2px solid #40A3D8;
+  }
+
+  .photo-gallery-upload-button {
+    border: 2px solid #fff;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .photo-gallery-item {
+    transition: none;
+  }
+
+  .photo-gallery-item:hover {
+    transform: none;
+  }
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .photo-gallery-grid {
+    padding: 8px;
+  }
+
+  .photo-gallery-item {
+    padding: 4px;
+  }
+
+  .photo-gallery-upload-button {
+    bottom: 16px;
+    right: 16px;
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+} 

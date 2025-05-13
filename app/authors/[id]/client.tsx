@@ -37,6 +37,7 @@ import type { Author } from "@/types/database"
 import { Timeline, TimelineItem } from "@/components/timeline"
 import { FollowersList } from "@/components/followers-list"
 import { FollowersListTab } from "@/components/followers-list-tab"
+import { PhotosList } from "@/components/photos-list"
 
 interface ClientAuthorPageProps {
   author: Author
@@ -50,6 +51,13 @@ interface ClientAuthorPageProps {
   books?: any[]
   booksCount?: number
   activities?: any[]
+  photos?: {
+    id: string
+    url: string
+    alt: string
+    uploadedAt?: string
+  }[]
+  photosCount?: number
 }
 
 // Add mockActivities array for the timeline
@@ -95,7 +103,9 @@ export function ClientAuthorPage({
   followersCount = 0, 
   books = [], 
   booksCount = 0,
-  activities = []
+  activities = [],
+  photos = [],
+  photosCount = 0
 }: ClientAuthorPageProps) {
   const [activeTab, setActiveTab] = useState("timeline")
   const [author, setAuthor] = useState(initialAuthor)
@@ -774,28 +784,12 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
       {activeTab === "photos" && (
         <div className="author-page__content">
           <div className="grid grid-cols-1 gap-6">
-            <Card>
-              <div className="space-y-1.5 p-6 flex items-center justify-between">
-                <h2 className="text-2xl font-semibold leading-none tracking-tight">Photos</h2>
-                <Button variant="outline">
-                  <Camera className="h-4 w-4 mr-2" />
-                  Add Photos
-                </Button>
-              </div>
-              <CardContent className="p-6 pt-0">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {Array(12).fill(0).map((_, index) => (
-                    <div key={index} className="aspect-square relative rounded-md overflow-hidden">
-                      <img 
-                        src={`/placeholder.svg?height=300&width=300&text=Photo+${index+1}`}
-                        alt={`Photo ${index + 1}`}
-                        className="object-cover hover:scale-105 transition-transform absolute inset-0 w-full h-full"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <PhotosList
+              photos={photos}
+              photosCount={photosCount}
+              entityId={params.id}
+              entityType="author"
+            />
           </div>
         </div>
       )}

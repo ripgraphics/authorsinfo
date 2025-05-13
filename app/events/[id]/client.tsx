@@ -28,7 +28,6 @@
                   followersCount={event?.followers?.length || 0}
                   entityId={params.id}
                   entityType="event"
-                  showCard={false}
                 />
               </CardContent>
             </Card> 

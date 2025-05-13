@@ -385,21 +385,12 @@ export function ClientGroupPage({ group, avatarUrl, coverImageUrl, params }: Cli
                     </Card>
 
                     {/* Friends/Followers Section */}
-                    <Card>
-                      <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">Followers</div>
-                        <Link href={`/groups/${params.id}/followers`} className="text-sm text-primary hover:underline">See All</Link>
-                      </div>
-                      <CardContent className="p-6 pt-0">
-                        <FollowersList
-                          followers={group?.followers || []}
-                          followersCount={group?.followers?.length || 0}
-                          entityId={params.id}
-                          entityType="group"
-                          showCard={false}
-                        />
-                      </CardContent>
-                    </Card>
+                    <FollowersList
+                      followers={group?.followers || []}
+                      followersCount={group?.followers?.length || 0}
+                      entityId={params.id}
+                      entityType="group"
+                    />
 
                     {/* Currently Reading Section */}
                     <Card>

@@ -373,21 +373,12 @@ export function ClientAuthorPage({
             </Card>
 
             {/* Friends/Followers Section */}
-            <Card>
-              <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
-                <div className="text-2xl font-semibold leading-none tracking-tight">Followers</div>
-                <Link href={`/authors/${params.id}/followers`} className="text-sm text-primary hover:underline">See All</Link>
-              </div>
-              <CardContent className="p-6 pt-0">
-                <FollowersList
-                  followers={followers}
-                  followersCount={followersCount}
-                  entityId={params.id}
-                  entityType="author"
-                  showCard={false}
-                />
-              </CardContent>
-            </Card>
+            <FollowersList
+              followers={followers}
+              followersCount={followersCount}
+              entityId={params.id}
+              entityType="author"
+            />
           </div>
 
           {/* MAIN CONTENT - 2 Columns */}

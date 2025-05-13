@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation"
-import { PageContainer } from "@/components/page-container"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
@@ -16,13 +15,13 @@ export default function ProfilePage() {
   
   // This won't render, but is needed for TypeScript
   return (
-    <PageContainer>
+    <div>
       <div className="py-8 space-y-4">
         <div>Redirecting to your profile...</div>
         <div>
           <p>To see all users, visit the <Link href="/profile/user-list" className="text-primary underline">user list page</Link>.</p>
         </div>
+      </div>
     </div>
-    </PageContainer>
   )
 }

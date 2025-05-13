@@ -5,7 +5,6 @@ import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getRecentBooks, getRecentAuthors, getRecentPublishers } from "./actions/data"
 import { BookOpen, User, Building } from "lucide-react"
-import { PageContainer } from "@/components/page-container"
 import FeaturedEvents from "@/components/featured-events"
 
 async function RecentBooks() {
@@ -146,57 +145,52 @@ async function RecentPublishers() {
 
 export default function Home() {
   return (
-    <PageContainer
-      title="Welcome to Author's Info"
-      description="Discover books, authors, and publishers in one place"
-    >
-      <div className="space-y-8">
-        <div className="flex justify-center gap-4">
-          <Button asChild size="lg">
-            <Link href="/books">
-              <BookOpen className="mr-2 h-5 w-5" />
-              All Books
-            </Link>
-          </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link href="/authors">
-              <User className="mr-2 h-5 w-5" />
-              All Authors
-            </Link>
-          </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link href="/publishers">
-              <Building className="mr-2 h-5 w-5" />
-              All Publishers
-            </Link>
-          </Button>
-        </div>
-
-        <Tabs defaultValue="books" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="books">Books</TabsTrigger>
-            <TabsTrigger value="authors">Authors</TabsTrigger>
-            <TabsTrigger value="publishers">Publishers</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="books" className="mt-6">
-            <RecentBooks />
-          </TabsContent>
-
-          <TabsContent value="authors" className="mt-6">
-            <RecentAuthors />
-          </TabsContent>
-
-          <TabsContent value="publishers" className="mt-6">
-            <RecentPublishers />
-          </TabsContent>
-        </Tabs>
-        
-        {/* Featured Events Section */}
-        <div className="-mx-4 -mb-8">
-          <FeaturedEvents />
-        </div>
+    <div className="space-y-8">
+      <div className="flex justify-center gap-4">
+        <Button asChild size="lg">
+          <Link href="/books">
+            <BookOpen className="mr-2 h-5 w-5" />
+            All Books
+          </Link>
+        </Button>
+        <Button asChild size="lg" variant="outline">
+          <Link href="/authors">
+            <User className="mr-2 h-5 w-5" />
+            All Authors
+          </Link>
+        </Button>
+        <Button asChild size="lg" variant="outline">
+          <Link href="/publishers">
+            <Building className="mr-2 h-5 w-5" />
+            All Publishers
+          </Link>
+        </Button>
       </div>
-    </PageContainer>
+
+      <Tabs defaultValue="books" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="books">Books</TabsTrigger>
+          <TabsTrigger value="authors">Authors</TabsTrigger>
+          <TabsTrigger value="publishers">Publishers</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="books" className="mt-6">
+          <RecentBooks />
+        </TabsContent>
+
+        <TabsContent value="authors" className="mt-6">
+          <RecentAuthors />
+        </TabsContent>
+
+        <TabsContent value="publishers" className="mt-6">
+          <RecentPublishers />
+        </TabsContent>
+      </Tabs>
+      
+      {/* Featured Events Section */}
+      <div className="-mx-4 -mb-8">
+        <FeaturedEvents />
+      </div>
+    </div>
   )
 }

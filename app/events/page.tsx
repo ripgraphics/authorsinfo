@@ -3,11 +3,10 @@ import Link from 'next/link';
 import { CalendarDaysIcon } from '@heroicons/react/24/outline';
 import { getPublicEvents, getEventCategories } from '@/lib/events';
 import EventCard from '@/components/event-card';
-import PageHeader from '@/components/page-header';
 
 export const metadata: Metadata = {
-  title: 'Events - Book Community',
-  description: 'Discover literary events, book signings, author talks, workshops, and more book-related gatherings.',
+  title: 'Events | Book Platform',
+  description: 'Discover and join book-related events, author meetups, and reading groups.',
 };
 
 export const revalidate = 3600; // Revalidate every hour
@@ -37,12 +36,12 @@ export default async function EventsPage({
   const totalPages = Math.ceil((count || 0) / limit);
   
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <PageHeader 
-        title="Literary Events" 
-        description="Discover book signings, author talks, literary workshops, and more book-related events."
-        icon={<CalendarDaysIcon className="h-8 w-8" />}
-      />
+    <div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {events.map((event) => (
+          <EventCard key={event.id} event={event} />
+        ))}
+      </div>
       
       <div className="flex flex-col md:flex-row gap-8 mt-8">
         {/* Filter sidebar */}
@@ -127,21 +126,17 @@ export default async function EventsPage({
                   <div className="inline-flex items-center justify-center space-x-2">
                     {page > 1 && (
                       <Link
-                        href={`/events?page=${page - 1}${category ? `&category=${category}` : ''}${search ? `&search=${search}` : ''}`}
-                        className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                        href={`/events?page=${page - 1}${category ? `&category=${category}` : ''}`}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-l-md text-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                       >
                         Previous
                       </Link>
                     )}
-                    
-                    <span className="text-gray-600 text-sm">
-                      Page {page} of {totalPages}
-                    </span>
-                    
+                    {page}
                     {page < totalPages && (
                       <Link
-                        href={`/events?page=${page + 1}${category ? `&category=${category}` : ''}${search ? `&search=${search}` : ''}`}
-                        className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                        href={`/events?page=${page + 1}${category ? `&category=${category}` : ''}`}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-r-md text-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                       >
                         Next
                       </Link>
@@ -155,4 +150,4 @@ export default async function EventsPage({
       </div>
     </div>
   );
-} 
+}

@@ -39,7 +39,7 @@ export function PageHeader({ title, description }: PageHeaderProps) {
           </Link>
 
           {/* Navigation moved next to logo */}
-          <div className="page-header__nav hidden md:flex">
+          <div className="page-header__nav flex">
             <Navigation />
           </div>
         </div>
@@ -64,8 +64,20 @@ export function PageHeader({ title, description }: PageHeaderProps) {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="page-header__avatar-btn rounded-full">
-                <Avatar src="/placeholder.svg" alt="User" />
+              <Button variant="ghost" size="icon" className="user-avatar-button rounded-full hover:bg-accent hover:text-accent-foreground">
+                <div className="user-avatar-container relative w-10 h-10 overflow-hidden rounded-full border-2 border-white shadow-md">
+                  <img 
+                    alt="User" 
+                    loading="lazy" 
+                    width="40" 
+                    height="40" 
+                    decoding="async" 
+                    data-nimg="1" 
+                    className="user-avatar-image object-cover rounded-full" 
+                    style={{ color: 'transparent', aspectRatio: '1 / 1' }} 
+                    src="/placeholder.svg" 
+                  />
+                </div>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 page-header__dropdown-content">

@@ -247,35 +247,28 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
   
   // Get author data using the existing function
   const author = await getAuthor(id)
-
   if (!author) {
     notFound()
   }
 
+  const [books, { followers, count: followersCount }, activities, events] = await Promise.all([
+    getAuthorBooks(id),
+    getAuthorFollowers(id),
+    getAuthorActivities(id),
+    getAuthorEvents(parseInt(id))
+  ])
+
   // Get author image URL (you can modify this based on your schema)
-  const authorImageUrl =
-    author.author_image?.url || author.photo_url || "/placeholder.svg?height=200&width=200"
+  const authorImageUrl = author.author_image?.url || "/placeholder.svg?height=400&width=400"
 
   // Get cover image URL (you can modify this based on your schema)
   const coverImageUrl = author.cover_image?.url || "/placeholder.svg?height=400&width=1200"
 
-  // Get author followers
-  const { followers, count: followersCount } = await getAuthorFollowers(id)
-  
-  // Get author books
-  const books = await getAuthorBooks(id)
-  
   // Get total book count for this author
   const { count: totalBooksCount } = await supabaseAdmin
     .from("books")
     .select("*", { count: 'exact', head: true })
     .eq("author_id", id)
-    
-  // Get author activities for timeline
-  const activities = await getAuthorActivities(id)
-
-  // Get author events
-  const authorEvents = await getAuthorEvents(parseInt(params.id));
 
   return (
     <PageContainer>
@@ -288,13 +281,13 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
         followersCount={followersCount}
         books={books}
         booksCount={totalBooksCount || 0}
-        activities={activities}
+        activities={activities || []}
       />
-      {authorEvents && authorEvents.length > 0 && (
+      {events && events.length > 0 && (
         <div className="mt-10">
           <h2 className="text-2xl font-bold mb-6">Upcoming Events</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {authorEvents.map((event: Event) => (
+            {events.map((event: Event) => (
               <EventCard key={event.id} event={event} />
             ))}
           </div>

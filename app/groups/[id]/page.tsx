@@ -1,8 +1,5 @@
-import { supabaseAdmin } from "@/lib/supabase"
 import { notFound } from "next/navigation"
-// Removed User import since passing only name
 import { ClientGroupPage } from "./client"
-import { PageContainer } from "@/components/page-container"
 
 export const dynamic = "force-dynamic"
 
@@ -11,34 +8,28 @@ interface GroupPageProps {
 }
 
 export default async function GroupPage({ params }: GroupPageProps) {
-  const { id } = await params
+  const { id } = params
 
-  // Fetch only the user's name
-  const { data: row, error } = await supabaseAdmin
-    .from('groups')
-    .select('name')
-    .eq('id', id)
-    .single()
+  // Fetch all group fields from the new API endpoint
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/groups/${id}`, { cache: 'no-store' })
+  const group = await res.json()
 
-  if (error || !row?.name) {
+  if (!group || group.error || !group.name) {
     notFound()
   }
 
-  // Use placeholders for avatar/cover since rest is mocked
-  const avatarUrl = "/placeholder.svg?height=200&width=200"
-  const coverImageUrl = "/placeholder.svg?height=400&width=1200"
-
-  // Pass minimal user object containing only name
-  const group = { name: row.name }
+  // Use group-provided images if available, else fallback to placeholder
+  const avatarUrl = group.avatar_url || "/placeholder.svg?height=200&width=200"
+  const coverImageUrl = group.banner_image_url || "/placeholder.svg?height=400&width=1200"
 
   return (
-    <PageContainer>
+    <div>
       <ClientGroupPage
         group={group}
         avatarUrl={avatarUrl}
         coverImageUrl={coverImageUrl}
         params={{ id }}
       />
-    </PageContainer>
+    </div>
   )
 }

@@ -41,6 +41,8 @@ import {
   BooksSection 
 } from "./components/AboutSections"
 import { useToast } from "@/components/ui/use-toast"
+import { FollowersList } from "@/components/followers-list"
+import { FollowersListTab } from "@/components/followers-list-tab"
 
 interface ClientPublisherPageProps {
   publisher: any
@@ -315,64 +317,81 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
                   {/* Left Sidebar */}
                   <div className="lg:col-span-1 space-y-6">
                     {/* About Section */}
-              <Card className="timeline-about-section">
-                <div className="timeline-about-section__header flex flex-col space-y-1.5 p-6">
-                  <div className="timeline-about-section__title-row flex justify-between items-center">
-                    <div className="timeline-about-section__title text-2xl font-semibold leading-none tracking-tight">About</div>
-                    <button 
-                      className="timeline-about-section__view-more text-sm text-primary hover:underline"
-                      onClick={() => setActiveTab("about")}
-                    >
-                      View More
-                    </button>
-                      </div>
-                          </div>
-                <CardContent className="timeline-about-section__content p-6 pt-0 space-y-4">
-                  {publisher?.about ? (
-                    <div className="timeline-about-section__about-wrapper relative">
-                      <p className="timeline-about-section__about-text line-clamp-10">
-                        {publisher.about}
-                      </p>
-                      <div className="timeline-about-section__gradient absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent"></div>
-                          </div>
-                  ) : (
-                    <p className="timeline-about-section__empty-message">No information available about this publisher.</p>
-                  )}
-                  <div className="timeline-about-section__details space-y-2">
-                    {(publisher?.state || publisher?.country || (publisher?.country_details && publisher?.country_details.code)) && (
-                    <div className="timeline-about-section__location flex items-center">
-                      <MapPin className="timeline-about-section__location-icon h-4 w-4 mr-2 text-muted-foreground" />
-                        <span className="timeline-about-section__location-text">
-                          Located in {publisher?.state && publisher?.country_details?.code 
-                            ? `${publisher.state}, ${publisher.country_details.code}`
-                            : publisher?.state || publisher?.country || (publisher?.country_details ? publisher.country_details.name : '')}
-                        </span>
-                    </div>
-                    )}
-                    {publisher?.website && (
-                    <div className="timeline-about-section__website flex items-center">
-                      <Globe className="timeline-about-section__website-icon h-4 w-4 mr-2 text-muted-foreground" />
-                      <a
-                        href={publisher.website.startsWith('http') ? publisher.website : `https://${publisher.website}`}
-                        className="timeline-about-section__website-link hover:underline"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                        Website
-                            </a>
-                          </div>
-                    )}
+                    <Card className="timeline-about-section">
+                      <div className="timeline-about-section__header flex flex-col space-y-1.5 p-6">
+                        <div className="timeline-about-section__title-row flex justify-between items-center">
+                          <div className="timeline-about-section__title text-2xl font-semibold leading-none tracking-tight">About</div>
+                          <button 
+                            className="timeline-about-section__view-more text-sm text-primary hover:underline"
+                            onClick={() => setActiveTab("about")}
+                          >
+                            View More
+                          </button>
                         </div>
-                  {publisher?.about && publisher.about.split('\n').length > 10 && (
-                    <Button 
-                      variant="outline" 
-                      className="timeline-about-section__about-tab-button w-full"
-                      onClick={() => setActiveTab("about")}
-                    >
-                      <Info className="h-4 w-4 mr-2" />
-                      Show More
+                      </div>
+                      <CardContent className="timeline-about-section__content p-6 pt-0 space-y-4">
+                        {publisher?.about ? (
+                          <div className="timeline-about-section__about-wrapper relative">
+                            <p className="timeline-about-section__about-text line-clamp-10">
+                              {publisher.about}
+                            </p>
+                            <div className="timeline-about-section__gradient absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent"></div>
+                          </div>
+                        ) : (
+                          <p className="timeline-about-section__empty-message">No information available about this publisher.</p>
+                        )}
+                        <div className="timeline-about-section__details space-y-2">
+                          {(publisher?.state || publisher?.country || (publisher?.country_details && publisher?.country_details.code)) && (
+                            <div className="timeline-about-section__location flex items-center">
+                              <MapPin className="timeline-about-section__location-icon h-4 w-4 mr-2 text-muted-foreground" />
+                              <span className="timeline-about-section__location-text">
+                                Located in {publisher?.state && publisher?.country_details?.code 
+                                  ? `${publisher.state}, ${publisher.country_details.code}`
+                                  : publisher?.state || publisher?.country || (publisher?.country_details ? publisher.country_details.name : '')}
+                              </span>
+                            </div>
+                          )}
+                          {publisher?.website && (
+                            <div className="timeline-about-section__website flex items-center">
+                              <Globe className="timeline-about-section__website-icon h-4 w-4 mr-2 text-muted-foreground" />
+                              <a
+                                href={publisher.website.startsWith('http') ? publisher.website : `https://${publisher.website}`}
+                                className="timeline-about-section__website-link hover:underline"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                Website
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                        {publisher?.about && publisher.about.split('\n').length > 10 && (
+                          <Button 
+                            variant="outline" 
+                            className="timeline-about-section__about-tab-button w-full"
+                            onClick={() => setActiveTab("about")}
+                          >
+                            <Info className="h-4 w-4 mr-2" />
+                            Show More
                           </Button>
-                  )}
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* Friends/Followers Section */}
+                    <Card>
+                      <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
+                        <div className="text-2xl font-semibold leading-none tracking-tight">Followers</div>
+                        <Link href={`/publishers/${params.id}/followers`} className="text-sm text-primary hover:underline">See All</Link>
+                      </div>
+                      <CardContent className="p-6 pt-0">
+                        <FollowersList
+                          followers={followers}
+                          followersCount={followersCount}
+                          entityId={params.id}
+                          entityType="publisher"
+                          showCard={false}
+                        />
                       </CardContent>
                     </Card>
 
@@ -433,36 +452,6 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
                                 className="object-cover hover:scale-105 transition-transform absolute inset-0 w-full h-full"
                               />
                             </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Friends Section */}
-                    <Card>
-                      <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">Friends</div>
-                        <Link href="/profile/janereader/friends" className="text-sm text-primary hover:underline">
-                          See All
-                        </Link>
-                      </div>
-                      <CardContent className="p-6 pt-0">
-                        <div className="grid grid-cols-3 gap-2">
-                          {mockFriends.map((friend) => (
-                            <Link
-                              key={friend.id}
-                              href={`/profile/${friend.id}`}
-                              className="flex flex-col items-center text-center"
-                            >
-                              <span className="relative flex shrink-0 overflow-hidden rounded-full h-16 w-16 mb-1">
-                                <img
-                                  src={friend.avatar || "/placeholder.svg"}
-                                  alt={friend.name}
-                                  className="aspect-square h-full w-full"
-                                />
-                              </span>
-                              <span className="text-xs line-clamp-1">{friend.name}</span>
-                            </Link>
                           ))}
                         </div>
                       </CardContent>
@@ -652,53 +641,13 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
 
       {activeTab === "followers" && (
         <div className="publisher-page__tab-content space-y-6">
-                  <Card className="rounded-lg border bg-card text-card-foreground shadow-sm">
-                    <div className="flex flex-col space-y-1.5 p-6">
-                      <div className="flex justify-between items-center">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">
-                  Followers · {followersCount}
-                        </div>
-                        <div className="flex items-center gap-2">
-                  <Input className="w-[200px]" placeholder="Search followers..." type="search" />
-                          <Button variant="outline" size="icon">
-                            <Filter className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                    <CardContent className="p-6 pt-0">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {followers.length > 0 ? (
-                  followers.map((follower) => (
-                    <div key={follower.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                      <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14 bg-muted">
-                        <img
-                          src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(follower.name || 'User')}`}
-                          alt={follower.name || 'User'}
-                                className="aspect-square h-full w-full"
-                              />
-                            </span>
-                            <div className="flex-1 min-w-0">
-                        <h3 className="font-medium truncate">{follower.name || 'Unknown User'}</h3>
-                        <p className="text-xs text-muted-foreground">{follower.email || 'No email available'}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Following since {follower.followSince ? new Date(follower.followSince).toLocaleDateString() : 'unknown date'}
-                        </p>
-                            </div>
-                            <Button variant="ghost" size="icon">
-                              <Ellipsis className="h-4 w-4" />
-                            </Button>
-                          </div>
-                  ))
-                ) : (
-                  <div className="col-span-3 text-center p-6">
-                    <p className="text-muted-foreground">No followers yet</p>
-                      </div>
-                )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
+          <FollowersListTab
+            followers={followers}
+            followersCount={followersCount}
+            entityId={params.id}
+            entityType="publisher"
+          />
+        </div>
       )}
 
       {activeTab === "photos" && (

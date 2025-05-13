@@ -14,7 +14,7 @@ import { AuthorHoverCard } from "@/components/author-hover-card"
 import { PublisherHoverCard } from "@/components/publisher-hover-card"
 import { EntityHeader, TabConfig } from "@/components/entity-header"
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import type { Book, Author, Review, BindingType, FormatType } from '@/types/book'
+import type { Book as BookType, Author, Review, BindingType, FormatType } from '@/types/book'
 import {
   BookOpen,
   Calendar,
@@ -42,6 +42,8 @@ import {
   Book
 } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
+import { FollowersList } from "@/components/followers-list"
+import { FollowersListTab } from "@/components/followers-list-tab"
 
 // Helper function to format date as MM-DD-YYYY
 function formatDate(dateString?: string): string {
@@ -60,8 +62,15 @@ function formatDate(dateString?: string): string {
   }
 }
 
+interface Follower {
+  id: string
+  name: string
+  avatar_url?: string | null
+  username?: string
+}
+
 interface ClientBookPageProps {
-  book: Book
+  book: BookType & { website?: string | null }
   authors: Author[]
   publisher: any | null
   reviews: Review[]
@@ -70,7 +79,7 @@ interface ClientBookPageProps {
   bindingType: BindingType | null
   formatType: FormatType | null
   readingProgress: any | null
-  followers?: any[]
+  followers?: Follower[]
   followersCount: number
   params: { id: string }
 }
@@ -86,6 +95,7 @@ export function ClientBookPage({
   formatType,
   readingProgress,
   followers = [],
+  followersCount = 0,
   params
 }: ClientBookPageProps) {
   // Default reading status for display purposes when no user is logged in
@@ -208,6 +218,10 @@ export function ClientBookPage({
   // Get main author
   const mainAuthor = authors && authors.length > 0 ? authors[0] : undefined
 
+  const bookLink = book.website || undefined
+  const publishDate = book.publish_date || book.publication_date || undefined
+  const language = book.language || undefined
+
   return (
     <div className="book-page">
       <div className="py-6">
@@ -218,8 +232,8 @@ export function ClientBookPage({
           coverImageUrl={book.cover_image_url || book.original_image_url || "/placeholder.svg?height=400&width=1200"}
           profileImageUrl={mainAuthor?.photo_url || mainAuthor?.author_image?.url || "/placeholder.svg?height=200&width=200"}
           stats={bookStats}
-          location={book.language}
-          website={book.link}
+          location={language}
+          website={bookLink}
           tabs={tabs}
           activeTab={activeTab}
           onTabChange={setActiveTab}
@@ -264,11 +278,11 @@ export function ClientBookPage({
                           </span>
                         </div>
                       )}
-                      {(book.publish_date || book.publication_date) && (
+                      {publishDate && (
                         <div className="timeline-about-section__publish-date flex items-center">
                           <Calendar className="timeline-about-section__publish-date-icon h-4 w-4 mr-2 text-muted-foreground" />
                           <span className="timeline-about-section__publish-date-text">
-                            Published: {formatDate(book.publish_date || book.publication_date)}
+                            Published: {formatDate(publishDate)}
                           </span>
                         </div>
                       )}
@@ -281,6 +295,23 @@ export function ClientBookPage({
                       <Info className="h-4 w-4 mr-2" />
                       View Full Details
                     </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Friends/Followers Section */}
+                <Card>
+                  <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
+                    <div className="text-2xl font-semibold leading-none tracking-tight">Followers</div>
+                    <Link href={`/books/${params.id}/followers`} className="text-sm text-primary hover:underline">See All</Link>
+                  </div>
+                  <CardContent className="p-6 pt-0">
+                    <FollowersList
+                      followers={followers}
+                      followersCount={followersCount}
+                      entityId={params.id}
+                      entityType="book"
+                      showCard={false}
+                    />
                   </CardContent>
                 </Card>
 
@@ -350,37 +381,9 @@ export function ClientBookPage({
                 </Card>
 
                 {/* Friends Section */}
-                <Card>
-                  <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
-                    <div className="text-2xl font-semibold leading-none tracking-tight">Friends</div>
-                    <button
-                      className="text-sm text-primary hover:underline"
-                      onClick={() => setActiveTab("followers")}
-                    >
-                      See All
-                    </button>
-                  </div>
-                  <CardContent className="p-6 pt-0">
-                    <div className="grid grid-cols-3 gap-2">
-                      {mockFriends.map((friend) => (
-                        <Link
-                          key={friend.id}
-                          href={`/profile/${friend.id}`}
-                          className="flex flex-col items-center text-center"
-                        >
-                          <span className="relative flex shrink-0 overflow-hidden rounded-full h-16 w-16 mb-1">
-                            <img
-                              src={friend.avatar || "/placeholder.svg"}
-                              alt={friend.name}
-                              className="aspect-square h-full w-full"
-                            />
-                          </span>
-                          <span className="text-xs line-clamp-1">{friend.name}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                <CardContent className="p-0">
+                  {/* Remove duplicate FollowersList */}
+                </CardContent>
               </div>
 
               {/* Main Content Area */}
@@ -860,12 +863,12 @@ export function ClientBookPage({
               {/* Add Review Form */}
               <div className="review-form space-y-4">
                 <div className="flex items-center gap-2">
-                  <Avatar>
-                    <AvatarImage src="/placeholder.svg" alt="User" />
-                    <AvatarFallback>
-                      <User className="h-5 w-5" />
-                    </AvatarFallback>
-                  </Avatar>
+                  <Avatar
+                    src="/placeholder.svg"
+                    alt="User"
+                    name="User"
+                    size="sm"
+                  />
                   <div className="flex-1">
                     <Input placeholder="Write a review..." />
                   </div>
@@ -891,12 +894,12 @@ export function ClientBookPage({
                   {reviews.map((review) => (
                     <div key={review.id} className="review-item space-y-2">
                       <div className="flex items-start gap-3">
-                        <Avatar>
-                          <AvatarImage src="/placeholder.svg" alt="User" />
-                          <AvatarFallback>
-                            <User className="h-5 w-5" />
-                          </AvatarFallback>
-                        </Avatar>
+                        <Avatar
+                          src="/placeholder.svg"
+                          alt="User"
+                          name="User"
+                          size="sm"
+                        />
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
                             <div>
@@ -995,52 +998,12 @@ export function ClientBookPage({
         
         {activeTab === "followers" && (
           <div className="book-page__tab-content space-y-6">
-            <Card className="rounded-lg border bg-card text-card-foreground shadow-sm">
-              <div className="flex flex-col space-y-1.5 p-6">
-                <div className="flex justify-between items-center">
-                  <div className="text-2xl font-semibold leading-none tracking-tight">
-                    Followers · {followers.length}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Input className="w-[200px]" placeholder="Search followers..." type="search" />
-                    <Button variant="outline" size="icon">
-                      <Filter className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-              <CardContent className="p-6 pt-0">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {followers.length > 0 ? (
-                    followers.map((follower) => (
-                      <div key={follower.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14 bg-muted">
-                          <img
-                            src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(follower.name || 'User')}`}
-                            alt={follower.name || 'User'}
-                            className="aspect-square h-full w-full"
-                          />
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium truncate">{follower.name || 'Unknown User'}</h3>
-                          <p className="text-xs text-muted-foreground">{follower.email || 'No email available'}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Following since {follower.followSince ? new Date(follower.followSince).toLocaleDateString() : 'unknown date'}
-                          </p>
-                        </div>
-                        <Button variant="ghost" size="icon">
-                          <Ellipsis className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="col-span-3 text-center p-6">
-                      <p className="text-muted-foreground">No followers yet</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <FollowersListTab
+              followers={followers}
+              followersCount={followers.length}
+              entityId={params.id}
+              entityType="book"
+            />
           </div>
         )}
         

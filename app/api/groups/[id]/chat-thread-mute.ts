@@ -1,0 +1,45 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase-server';
+
+// GET: List all muted threads for a user in a group
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+  const supabase = createClient();
+  const userId = req.nextUrl.searchParams.get('user_id');
+  if (!userId) return NextResponse.json({ error: 'Missing user_id' }, { status: 400 });
+  const { data, error } = await supabase
+    .from('group_chat_thread_mute')
+    .select('*')
+    .eq('group_id', params.id)
+    .eq('user_id', userId);
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  return NextResponse.json(data);
+}
+
+// POST: Mute a thread for a user
+export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+  const supabase = createClient();
+  const body = await req.json();
+  if (!body.thread_id || !body.user_id) return NextResponse.json({ error: 'Missing thread_id or user_id' }, { status: 400 });
+  const { data, error } = await supabase
+    .from('group_chat_thread_mute')
+    .insert([{ ...body, group_id: params.id }])
+    .select()
+    .single();
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  return NextResponse.json(data);
+}
+
+// DELETE: Unmute a thread for a user
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+  const supabase = createClient();
+  const threadId = req.nextUrl.searchParams.get('thread_id');
+  const userId = req.nextUrl.searchParams.get('user_id');
+  if (!threadId || !userId) return NextResponse.json({ error: 'Missing thread_id or user_id' }, { status: 400 });
+  const { error } = await supabase
+    .from('group_chat_thread_mute')
+    .delete()
+    .eq('thread_id', threadId)
+    .eq('user_id', userId);
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  return NextResponse.json({ success: true });
+} 

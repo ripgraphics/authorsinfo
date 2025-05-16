@@ -45,6 +45,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { FollowersList } from "@/components/followers-list"
 import { FollowersListTab } from "@/components/followers-list-tab"
 import { ExpandableSection } from "@/components/ui/expandable-section"
+import { ViewFullDetailsButton } from "@/components/ui/ViewFullDetailsButton"
 
 // Helper function to format date as MM-DD-YYYY
 function formatDate(dateString?: string): string {
@@ -267,32 +268,23 @@ export function ClientBookPage({
                     >
                       {book.synopsis || book.overview || "No information available about this book."}
                     </ExpandableSection>
-                    <div className="timeline-about-section__details space-y-2">
-                      {book.language && (
-                        <div className="timeline-about-section__language flex items-center">
-                          <Globe className="timeline-about-section__language-icon h-4 w-4 mr-2 text-muted-foreground" />
-                          <span className="timeline-about-section__language-text">
-                            Language: {book.language}
-                          </span>
-                        </div>
-                      )}
-                      {publishDate && (
-                        <div className="timeline-about-section__publish-date flex items-center">
-                          <Calendar className="timeline-about-section__publish-date-icon h-4 w-4 mr-2 text-muted-foreground" />
-                          <span className="timeline-about-section__publish-date-text">
-                            Published: {formatDate(publishDate)}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <Button 
-                      variant="outline" 
-                      className="timeline-about-section__about-tab-button w-full"
-                      onClick={() => setActiveTab("details")}
-                    >
-                      <Info className="h-4 w-4 mr-2" />
-                      View Full Details
-                    </Button>
+                    {book.language && (
+                      <div className="timeline-about-section__language flex items-center">
+                        <Globe className="timeline-about-section__language-icon h-4 w-4 mr-2 text-muted-foreground" />
+                        <span className="timeline-about-section__language-text">
+                          Language: {book.language}
+                        </span>
+                      </div>
+                    )}
+                    {publishDate && (
+                      <div className="timeline-about-section__publish-date flex items-center">
+                        <Calendar className="timeline-about-section__publish-date-icon h-4 w-4 mr-2 text-muted-foreground" />
+                        <span className="timeline-about-section__publish-date-text">
+                          Published: {formatDate(publishDate)}
+                        </span>
+                      </div>
+                    )}
+                    <ViewFullDetailsButton onClick={() => setActiveTab("details")} />
                   </CardContent>
                 </Card>
 

@@ -33,18 +33,15 @@ export const ExpandableSection: React.FC<ExpandableSectionProps> = ({
   viewLessText = "View Less",
   fadeGradientClassName = "overview-section__fade-gradient absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent",
   contentClassName = "overview-section__about-text whitespace-pre-wrap text-base",
-  hideToggle,
+  hideToggle = false,
   clipLines = 10,
   title,
   headerButton,
   sidePanelStyle = false,
 }) => {
   const [internalExpanded, setInternalExpanded] = React.useState(false)
-  const expanded = controlledExpanded !== undefined ? controlledExpanded : internalExpanded
-  const onToggle = controlledOnToggle !== undefined ? controlledOnToggle : () => setInternalExpanded((v) => !v)
-
-  const showHeaderButton = !!headerButton
-  const showToggleBelow = !showHeaderButton && !hideToggle
+  const expanded = controlledExpanded ?? internalExpanded
+  const onToggle = controlledOnToggle ?? (() => setInternalExpanded((v) => !v))
 
   return (
     <div className={`relative ${className}`}>
@@ -64,8 +61,8 @@ export const ExpandableSection: React.FC<ExpandableSectionProps> = ({
           expanded
             ? { overflow: "visible" }
             : maxHeight
-              ? { maxHeight, overflow: "hidden" }
-              : { overflow: "hidden" }
+            ? { maxHeight, overflow: "hidden" }
+            : { overflow: "hidden" }
         }
         aria-expanded={expanded}
       >
@@ -74,14 +71,17 @@ export const ExpandableSection: React.FC<ExpandableSectionProps> = ({
           <div className={fadeGradientClassName} />
         )}
       </div>
-      {showToggleBelow && (
-        <Button
-          variant="outline"
-          className="overview-section__toggle-button text-xs mt-2 h-9 rounded-md px-3"
-          onClick={onToggle}
-        >
-          {expanded ? viewLessText : viewMoreText}
-        </Button>
+      {/* Toggle button below content, unless headerButton is present or hideToggle is true */}
+      {!headerButton && !hideToggle && (
+        <div className="flex justify-end mt-2">
+          <button
+            type="button"
+            onClick={onToggle}
+            className="followers-list__see-all-button inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-9 rounded-md px-3 text-sm text-primary hover:bg-primary/10 hover:text-primary"
+          >
+            {expanded ? viewLessText : viewMoreText}
+          </button>
+        </div>
       )}
     </div>
   )

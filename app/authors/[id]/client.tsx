@@ -45,6 +45,7 @@ import { useRouter } from "next/navigation"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { ExpandableSection } from "@/components/ui/expandable-section"
+import { ViewFullDetailsButton } from "@/components/ui/ViewFullDetailsButton"
 
 interface ClientAuthorPageProps {
   author: Author
@@ -466,34 +467,28 @@ export function ClientAuthorPage({
                 >
                   {author?.bio || "No biography available for this author."}
                 </ExpandableSection>
-                <div className="timeline-about-section__details space-y-2">
-                  {author?.nationality && (
-                    <div className="timeline-about-section__location flex items-center">
-                      <MapPin className="timeline-about-section__location-icon h-4 w-4 mr-2 text-muted-foreground" />
-                      <span className="timeline-about-section__location-text">
-                        From {author.nationality}
-                      </span>
-                    </div>
-                  )}
-                  
-                  {author?.website && (
-                    <div className="timeline-about-section__website flex items-center">
-                      <Globe className="timeline-about-section__website-icon h-4 w-4 mr-2 text-muted-foreground" />
-                      <a 
-                        href={author.website.startsWith('http') ? author.website : `https://${author.website}`}
-                        className="timeline-about-section__website-link hover:underline"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {author.website.startsWith('http') ? author.website : `https://${author.website}`}
-                      </a>
-                    </div>
-                  )}
-                </div>
-                <Button variant="outline" className="timeline-about-section__about-tab-button w-full">
-                  <Info className="h-4 w-4 mr-2" />
-                  View Full About
-                </Button>
+                {author?.nationality && (
+                  <div className="timeline-about-section__location flex items-center">
+                    <MapPin className="timeline-about-section__location-icon h-4 w-4 mr-2 text-muted-foreground" />
+                    <span className="timeline-about-section__location-text">
+                      From {author.nationality}
+                    </span>
+                  </div>
+                )}
+                {author?.website && (
+                  <div className="timeline-about-section__website flex items-start">
+                    <Globe className="timeline-about-section__website-icon h-4 w-4 mr-2 text-muted-foreground flex-shrink-0 mt-1" />
+                    <a 
+                      href={author.website.startsWith('http') ? author.website : `https://${author.website}`}
+                      className="timeline-about-section__website-link text-primary hover:underline break-words"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {author.website}
+                    </a>
+                  </div>
+                )}
+                <ViewFullDetailsButton onClick={() => setActiveTab("about")} />
               </CardContent>
             </Card>
 

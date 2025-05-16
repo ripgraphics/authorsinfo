@@ -44,6 +44,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { FollowersList } from "@/components/followers-list"
 import { FollowersListTab } from "@/components/followers-list-tab"
 import { ExpandableSection } from "@/components/ui/expandable-section"
+import { ViewFullDetailsButton } from "@/components/ui/ViewFullDetailsButton"
 
 interface ClientPublisherPageProps {
   publisher: any
@@ -359,6 +360,7 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
                             </a>
                           </div>
                         )}
+                        <ViewFullDetailsButton onClick={() => setActiveTab("about")} />
                       </CardContent>
                     </Card>
 

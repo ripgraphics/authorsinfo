@@ -38,6 +38,13 @@ import { Timeline, TimelineItem } from "@/components/timeline"
 import { FollowersList } from "@/components/followers-list"
 import { FollowersListTab } from "@/components/followers-list-tab"
 import { PhotosList } from "@/components/photos-list"
+import { PhotoAlbumManager } from "@/components/photo-album-manager"
+import { PhotoAlbumsList } from "@/components/photo-albums-list"
+import { CreateAlbumDialog } from '@/components/create-album-dialog'
+import { useRouter } from "next/navigation"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { ExpandableSection } from "@/components/ui/expandable-section"
 
 interface ClientAuthorPageProps {
   author: Author
@@ -58,6 +65,22 @@ interface ClientAuthorPageProps {
     uploadedAt?: string
   }[]
   photosCount?: number
+  albums?: {
+    id: string
+    name: string
+    description?: string
+    cover_image_url?: string
+    photo_count: number
+    created_at: string
+  }[]
+}
+
+interface BookCardProps {
+  book: {
+    id: string
+    title: string
+    cover_image_url?: string
+  }
 }
 
 // Add mockActivities array for the timeline
@@ -105,12 +128,73 @@ export function ClientAuthorPage({
   booksCount = 0,
   activities = [],
   photos = [],
-  photosCount = 0
+  photosCount = 0,
+  albums = []
 }: ClientAuthorPageProps) {
   const [activeTab, setActiveTab] = useState("timeline")
   const [author, setAuthor] = useState(initialAuthor)
   const [refreshing, setRefreshing] = useState(false)
+  const [bioDialogOpen, setBioDialogOpen] = useState(false)
+  const [contactDialogOpen, setContactDialogOpen] = useState(false)
+  const [editedBio, setEditedBio] = useState(initialAuthor?.bio || "")
+  const [showFullBio, setShowFullBio] = useState(false)
+  const [editedContact, setEditedContact] = useState({
+    website: initialAuthor?.website || "",
+    twitter_handle: initialAuthor?.twitter_handle || "",
+    facebook_handle: initialAuthor?.facebook_handle || "",
+    instagram_handle: initialAuthor?.instagram_handle || "",
+    goodreads_url: initialAuthor?.goodreads_url || ""
+  })
+  const [saving, setSaving] = useState(false)
   const { toast } = useToast()
+  const router = useRouter()
+
+  // Check initial data on mount
+  useEffect(() => {
+    console.log("Component mounted with initial author:", {
+      id: initialAuthor?.id,
+      name: initialAuthor?.name,
+      hasBio: !!initialAuthor?.bio,
+      bioLength: initialAuthor?.bio?.length || 0
+    });
+    
+    // If we don't have author data or bio data, fetch it
+    if (!initialAuthor?.bio && initialAuthor?.id) {
+      refreshAuthorData();
+    }
+  }, []);
+
+  // Debug: Log state changes
+  useEffect(() => {
+    console.log("Author state updated:", {
+      authorId: author?.id,
+      authorName: author?.name,
+      hasBio: !!author?.bio,
+      bioLength: author?.bio?.length || 0,
+      bioPreview: author?.bio?.substring(0, 50)
+    });
+  }, [author]);
+
+  useEffect(() => {
+    console.log("EditedBio state updated:", {
+      length: editedBio?.length || 0,
+      preview: editedBio?.substring(0, 50)
+    });
+  }, [editedBio]);
+
+  // Update edited states when author data changes
+  useEffect(() => {
+    if (author) {
+      setEditedBio(author.bio || "")
+      setEditedContact({
+        website: author.website || "",
+        twitter_handle: author.twitter_handle || "",
+        facebook_handle: author.facebook_handle || "",
+        instagram_handle: author.instagram_handle || "",
+        goodreads_url: author.goodreads_url || ""
+      })
+    }
+  }, [author])
 
   // Function to refresh author data
   const refreshAuthorData = async () => {
@@ -132,6 +216,108 @@ export function ClientAuthorPage({
     } finally {
       setRefreshing(false)
     }
+  }
+
+  const handlePhotoUploadComplete = () => {
+    refreshAuthorData()
+  }
+
+  const handleAlbumCreated = () => {
+    setRefreshing(true)
+    router.refresh()
+  }
+
+  const openBioDialog = () => {
+    console.log("Opening bio dialog with author bio:", author?.bio);
+    // Force set the bio directly from the current author state
+    setEditedBio(author?.bio || "");
+    setBioDialogOpen(true);
+  }
+
+  const openContactDialog = () => {
+    setEditedContact({
+      website: author?.website || "",
+      twitter_handle: author?.twitter_handle || "",
+      facebook_handle: author?.facebook_handle || "",
+      instagram_handle: author?.instagram_handle || "",
+      goodreads_url: author?.goodreads_url || ""
+    })
+    setContactDialogOpen(true)
+  }
+
+  const saveBio = async () => {
+    setSaving(true)
+    try {
+      const response = await fetch(`/api/authors/${params.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ bio: editedBio }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update author bio')
+      }
+
+      // Update local state
+      setAuthor(prev => prev ? { ...prev, bio: editedBio } : null)
+      setBioDialogOpen(false)
+      
+      toast({
+        title: "Success",
+        description: "Author bio updated successfully",
+      })
+    } catch (error) {
+      console.error('Error updating author bio:', error)
+      toast({
+        title: "Error",
+        description: "Failed to update author bio",
+        variant: "destructive",
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const saveContact = async () => {
+    setSaving(true)
+    try {
+      const response = await fetch(`/api/authors/${params.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editedContact),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update contact information')
+      }
+
+      // Update local state
+      setAuthor(prev => prev ? { ...prev, ...editedContact } : null)
+      setContactDialogOpen(false)
+      
+      toast({
+        title: "Success",
+        description: "Contact information updated successfully",
+      })
+    } catch (error) {
+      console.error('Error updating contact information:', error)
+      toast({
+        title: "Error",
+        description: "Failed to update contact information",
+        variant: "destructive",
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // Toggle bio display
+  const toggleBioDisplay = () => {
+    setShowFullBio(prev => !prev);
   }
 
   return (
@@ -263,41 +449,45 @@ export function ClientAuthorPage({
           <div className="lg:col-span-1 space-y-6">
             {/* About Section */}
             <Card className="timeline-about-section">
-              <div className="timeline-about-section__header flex flex-col space-y-1.5 p-6">
-                <div className="timeline-about-section__title-row flex justify-between items-center">
-                  <div className="timeline-about-section__title text-2xl font-semibold leading-none tracking-tight">About</div>
-                  <button className="timeline-about-section__view-more text-sm text-primary hover:underline">View More</button>
-                </div>
-              </div>
               <CardContent className="timeline-about-section__content p-6 pt-0 space-y-4">
-                <div className="timeline-about-section__about-wrapper relative">
-                  <p className="timeline-about-section__about-text line-clamp-10">
-                    {author?.bio || "No biography available for this author."}
-                  </p>
-                  <div className="timeline-about-section__gradient absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent"></div>
-                </div>
+                <ExpandableSection
+                  title="About"
+                  headerButton={
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("about")}
+                      className="followers-list__see-all-button inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-9 rounded-md px-3 text-sm text-primary hover:bg-primary/10 hover:text-primary"
+                    >
+                      View More
+                    </button>
+                  }
+                  hideToggle
+                  sidePanelStyle
+                >
+                  {author?.bio || "No biography available for this author."}
+                </ExpandableSection>
                 <div className="timeline-about-section__details space-y-2">
                   {author?.nationality && (
-                  <div className="timeline-about-section__location flex items-center">
-                    <MapPin className="timeline-about-section__location-icon h-4 w-4 mr-2 text-muted-foreground" />
-                    <span className="timeline-about-section__location-text">
-                      From {author.nationality}
-                    </span>
-                  </div>
+                    <div className="timeline-about-section__location flex items-center">
+                      <MapPin className="timeline-about-section__location-icon h-4 w-4 mr-2 text-muted-foreground" />
+                      <span className="timeline-about-section__location-text">
+                        From {author.nationality}
+                      </span>
+                    </div>
                   )}
                   
                   {author?.website && (
-                  <div className="timeline-about-section__website flex items-center">
-                    <Globe className="timeline-about-section__website-icon h-4 w-4 mr-2 text-muted-foreground" />
-                    <a 
-                      href={author.website.startsWith('http') ? author.website : `https://${author.website}`}
-                      className="timeline-about-section__website-link hover:underline"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {author.website.startsWith('http') ? author.website : `https://${author.website}`}
-                    </a>
-                  </div>
+                    <div className="timeline-about-section__website flex items-center">
+                      <Globe className="timeline-about-section__website-icon h-4 w-4 mr-2 text-muted-foreground" />
+                      <a 
+                        href={author.website.startsWith('http') ? author.website : `https://${author.website}`}
+                        className="timeline-about-section__website-link hover:underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {author.website.startsWith('http') ? author.website : `https://${author.website}`}
+                      </a>
+                    </div>
                   )}
                 </div>
                 <Button variant="outline" className="timeline-about-section__about-tab-button w-full">
@@ -486,7 +676,11 @@ export function ClientAuthorPage({
                 <div className="overview-section__header flex flex-col space-y-1.5 p-6 border-b">
                   <div className="overview-section__title-row flex justify-between items-center">
                     <h3 className="overview-section__title text-xl font-semibold">Overview</h3>
-                    <Button variant="ghost" className="overview-section__edit-button h-8 gap-1 rounded-md px-3">
+                    <Button 
+                      variant="ghost" 
+                      className="overview-section__edit-button h-8 gap-1 rounded-md px-3"
+                      onClick={openBioDialog}
+                    >
                       <SquarePen className="overview-section__edit-icon h-4 w-4" />
                       <span>Edit</span>
                     </Button>
@@ -494,9 +688,14 @@ export function ClientAuthorPage({
                 </div>
                 <div className="overview-section__content p-6 space-y-4">
                   <div className="overview-section__about space-y-2">
-                    <div className="overview-section__about-wrapper relative">
-                      <div className="overview-section__about-text whitespace-pre-wrap text-base line-clamp-20 overflow-hidden" style={{ maxHeight: '500px', overflow: 'hidden' }}>
-                        {author?.bio || `About ${author?.name || "the Author"}
+                    <ExpandableSection
+                      expanded={showFullBio}
+                      onToggle={() => setShowFullBio((v) => !v)}
+                      maxHeight={500}
+                      className="overview-section__about-wrapper relative"
+                      contentClassName="overview-section__about-text whitespace-pre-wrap text-base"
+                    >
+                      {author?.bio || `About ${author?.name || "the Author"}
                         
 ${author?.name || "The author"} is a renowned writer known for captivating storytelling and compelling characters. With a distinctive voice that resonates with readers across generations, ${author?.name?.split(' ')[0] || "they"} has established ${author?.name?.includes(' ') ? 'themselves' : 'themself'} as a significant figure in contemporary literature.
 
@@ -509,10 +708,7 @@ ${author?.name || "The author"} has received numerous accolades for ${author?.na
 When not writing, ${author?.name?.split(' ')[0] || "the author"} enjoys reading widely across genres, traveling to gather inspiration for new stories, and engaging with readers through book tours and literary festivals. ${author?.name?.includes(' ') ? 'Their' : 'Their'} dedication to the craft and genuine connection with audiences have established ${author?.name || "the author"} as a beloved figure in the literary world.
 
 ${author?.name || "The author"} continues to push boundaries with each new work, exploring fresh narrative approaches while maintaining the distinctive voice that has captivated readers worldwide. With each publication, ${author?.name?.split(' ')[0] || "they"} reaffirms ${author?.name?.includes(' ') ? 'their' : 'their'} place as one of the most significant literary voices of our time.`}
-                      </div>
-                      <div className="overview-section__fade-gradient absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent"></div>
-                    </div>
-                    <Button variant="outline" className="overview-section__toggle-button text-xs mt-2 h-9 rounded-md px-3">View More</Button>
+                    </ExpandableSection>
                   </div>
                   {author?.birth_date && (
                     <div className="overview-section__founded flex items-center">
@@ -540,7 +736,11 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                 <div className="contact-section__header flex flex-col space-y-1.5 p-6 border-b">
                   <div className="contact-section__title-row flex justify-between items-center">
                     <h3 className="contact-section__title text-xl font-semibold">Contact Information</h3>
-                    <Button variant="ghost" className="contact-section__edit-button h-8 gap-1 rounded-md px-3">
+                    <Button 
+                      variant="ghost" 
+                      className="contact-section__edit-button h-8 gap-1 rounded-md px-3"
+                      onClick={openContactDialog}
+                    >
                       <SquarePen className="contact-section__edit-icon h-4 w-4" />
                       <span>Edit</span>
                     </Button>
@@ -553,7 +753,7 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                         {author?.email && (
                           <div className="contact-section__email flex flex-col">
                             <span className="contact-section__label text-sm text-muted-foreground">Email</span>
-                            <a href={`mailto:${author.email}`} className="contact-section__email-link text-primary hover:underline">
+                            <a href={`mailto:${author.email}`} className="text-primary hover:underline">
                               {author.email}
                             </a>
                           </div>
@@ -561,12 +761,7 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                         {author?.twitter_handle && (
                           <div className="contact-section__twitter flex flex-col">
                             <span className="contact-section__label text-sm text-muted-foreground">Twitter</span>
-                            <a 
-                              href={`https://twitter.com/${author.twitter_handle}`} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="contact-section__twitter-link text-primary hover:underline"
-                            >
+                            <a href={`https://twitter.com/${author.twitter_handle}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                               @{author.twitter_handle}
                             </a>
                           </div>
@@ -574,12 +769,7 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                         {author?.facebook_handle && (
                           <div className="contact-section__facebook flex flex-col">
                             <span className="contact-section__label text-sm text-muted-foreground">Facebook</span>
-                            <a 
-                              href={`https://facebook.com/${author.facebook_handle}`} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="contact-section__facebook-link text-primary hover:underline"
-                            >
+                            <a href={`https://facebook.com/${author.facebook_handle}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                               {author.facebook_handle}
                             </a>
                           </div>
@@ -587,427 +777,169 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                         {author?.instagram_handle && (
                           <div className="contact-section__instagram flex flex-col">
                             <span className="contact-section__label text-sm text-muted-foreground">Instagram</span>
-                            <a 
-                              href={`https://instagram.com/${author.instagram_handle}`} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="contact-section__instagram-link text-primary hover:underline"
-                            >
+                            <a href={`https://instagram.com/${author.instagram_handle}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                               @{author.instagram_handle}
                             </a>
                           </div>
                         )}
                       </>
                     ) : (
-                      <div className="contact-section__email flex flex-col">
-                        <span className="contact-section__label text-sm text-muted-foreground">Email</span>
-                        <a href="mailto:contact@author.com" className="contact-section__email-link text-primary hover:underline">
-                          contact@author.com
-                        </a>
+                      <div className="col-span-2 text-center text-muted-foreground py-4">
+                        No contact information available
                       </div>
                     )}
                   </div>
                 </div>
               </div>
-              
-              <div className="rounded-lg border bg-card text-card-foreground shadow-sm location-section mb-6" id="location">
-                <div className="location-section__header flex flex-col space-y-1.5 p-6 border-b">
-                  <div className="location-section__title-row flex justify-between items-center">
-                    <h3 className="location-section__title text-xl font-semibold">Location</h3>
-                    <Button variant="ghost" className="location-section__edit-button h-8 gap-1 rounded-md px-3">
-                      <SquarePen className="location-section__edit-icon h-4 w-4" />
-                      <span>Edit</span>
-                    </Button>
-                  </div>
-                </div>
-                <div className="location-section__content p-6">
-                  <div className="location-section__info space-y-2">
-                    <div className="location-section__address flex items-start">
-                      <MapPin className="location-section__map-icon h-4 w-4 mr-2 mt-1 text-muted-foreground" />
-                      <div className="location-section__address-details flex flex-col">
-                        <span className="location-section__address-line">Author Residence</span>
-                        <span className="location-section__country">{author?.nationality || "United States"}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="rounded-lg border bg-card text-card-foreground shadow-sm books-section mb-6" id="books">
-                <div className="books-section__header flex flex-col space-y-1.5 p-6 border-b">
-                  <h3 className="books-section__title text-xl font-semibold">Published Books</h3>
-                </div>
-                <div className="books-section__content p-6">
-                  <div className="books-section__with-content">
-                    <p className="books-section__count mb-4">This author has published {books?.length || 3} books.</p>
-                    <div className="books-section__grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                      {books && books.length > 0 ? (
-                        books.slice(0, 3).map((book, index) => (
-                          <a key={book.id || index} className="block" href={`/books/${book.id}`}>
-                            <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden h-full transition-transform hover:scale-105">
-                              <div className="relative w-full" style={{ aspectRatio: '2 / 3' }}>
-                                <img 
-                                  alt={book.title || `Book ${index + 1}`}
-                                  loading="lazy"
-                                  decoding="async"
-                                  data-nimg="fill"
-                                  className="object-cover"
-                                  src={book.cover_image_url || `/placeholder.svg?height=300&width=200&text=Book+${index+1}`}
-                                  style={{ position: 'absolute', height: '100%', width: '100%', inset: 0, color: 'transparent' }}
-                                />
-                              </div>
-                              <div className="p-3 text-center">
-                                <h3 className="font-medium text-sm line-clamp-1">{book.title || `Book Title ${index + 1}`}</h3>
-                              </div>
-                            </div>
-                          </a>
-                        ))
-                      ) : (
-                        // Placeholder books if none provided
-                        Array(3).fill(0).map((_, index) => {
-                          const titles = [
-                            "Come As You Are: Revised and Updated: The Surprising New Science That Will Transform Your Sex Life",
-                            "Days You Were Mine",
-                            "Life Force: How New Breakthroughs in Precision Medicine Can Transform the Quality of Your Life & Those You Love"
-                          ];
-                          return (
-                            <a key={index} className="block" href={`/books/${100 + index}`}>
-                              <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden h-full transition-transform hover:scale-105">
-                                <div className="relative w-full" style={{ aspectRatio: '2 / 3' }}>
-                                  <img 
-                                    alt={titles[index]}
-                                    loading="lazy"
-                                    decoding="async"
-                                    data-nimg="fill"
-                                    className="object-cover"
-                                    src={`/placeholder.svg?height=300&width=200&text=Book+${index+1}`}
-                                    style={{ position: 'absolute', height: '100%', width: '100%', inset: 0, color: 'transparent' }}
-                                  />
-                                </div>
-                                <div className="p-3 text-center">
-                                  <h3 className="font-medium text-sm line-clamp-1">{titles[index]}</h3>
-                                </div>
-                              </div>
-                            </a>
-                          );
-                        })
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
+          
+          {/* Bio Edit Dialog */}
+          <Dialog open={bioDialogOpen} onOpenChange={(open) => {
+            if (open) {
+              // When opening, ensure we have the latest bio
+              setEditedBio(author?.bio || "");
+              console.log("Dialog opening, setting bio to:", author?.bio);
+            }
+            setBioDialogOpen(open);
+          }}>
+            <DialogContent className="w-[95vw] max-w-[800px] h-auto max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Edit Author Biography</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="bio">Biography</Label>
+                  <Textarea
+                    id="bio"
+                    value={editedBio}
+                    onChange={(e) => setEditedBio(e.target.value)}
+                    rows={12}
+                    className="w-full min-h-[200px]"
+                    placeholder="Enter author biography here..."
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row justify-end gap-2 mt-2">
+                <Button variant="outline" onClick={() => setBioDialogOpen(false)} className="w-full sm:w-auto order-2 sm:order-1">Cancel</Button>
+                <Button onClick={saveBio} disabled={saving} className="w-full sm:w-auto order-1 sm:order-2 mb-2 sm:mb-0">
+                  {saving ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+          
+          {/* Contact Edit Dialog */}
+          <Dialog open={contactDialogOpen} onOpenChange={setContactDialogOpen}>
+            <DialogContent className="w-[95vw] max-w-[600px] h-auto max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Edit Contact Information</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="website">Website</Label>
+                  <Input
+                    id="website"
+                    value={editedContact.website}
+                    onChange={(e) => setEditedContact({...editedContact, website: e.target.value})}
+                    placeholder="https://example.com"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="twitter">Twitter</Label>
+                  <Input
+                    id="twitter"
+                    value={editedContact.twitter_handle}
+                    onChange={(e) => setEditedContact({...editedContact, twitter_handle: e.target.value})}
+                    placeholder="username (without @)"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="facebook">Facebook</Label>
+                  <Input
+                    id="facebook"
+                    value={editedContact.facebook_handle}
+                    onChange={(e) => setEditedContact({...editedContact, facebook_handle: e.target.value})}
+                    placeholder="username or page name"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="instagram">Instagram</Label>
+                  <Input
+                    id="instagram"
+                    value={editedContact.instagram_handle}
+                    onChange={(e) => setEditedContact({...editedContact, instagram_handle: e.target.value})}
+                    placeholder="username (without @)"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="goodreads">Goodreads URL</Label>
+                  <Input
+                    id="goodreads"
+                    value={editedContact.goodreads_url}
+                    onChange={(e) => setEditedContact({...editedContact, goodreads_url: e.target.value})}
+                    placeholder="https://www.goodreads.com/author/..."
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row justify-end gap-2 mt-2">
+                <Button variant="outline" onClick={() => setContactDialogOpen(false)} className="w-full sm:w-auto order-2 sm:order-1">Cancel</Button>
+                <Button onClick={saveContact} disabled={saving} className="w-full sm:w-auto order-1 sm:order-2 mb-2 sm:mb-0">
+                  {saving ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       )}
 
       {activeTab === "books" && (
-        <div className="publisher-page__content">
-          <div className="publisher-page__tab-content">
-            <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-              <div className="flex flex-col space-y-1.5 p-6">
-                <div className="flex justify-between items-center">
-                  <div className="text-2xl font-semibold leading-none tracking-tight">Published Books · {books?.length || 3}</div>
-                </div>
-              </div>
-              <div className="p-6 pt-0">
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-                  {books && books.length > 0 ? (
-                    books.map((book, index) => (
-                      <a key={book.id || index} className="block" href={`/books/${book.id}`}>
-                        <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden h-full transition-transform hover:scale-105">
-                          <div className="relative w-full" style={{ aspectRatio: '2 / 3' }}>
-                            <img 
-                              alt={book.title || `Book ${index + 1}`}
-                              loading="lazy"
-                              decoding="async"
-                              data-nimg="fill"
-                              className="object-cover"
-                              src={book.cover_image_url || `/placeholder.svg?height=300&width=200&text=Book+${index+1}`}
-                              style={{ position: 'absolute', height: '100%', width: '100%', inset: 0, color: 'transparent' }}
-                            />
-                          </div>
-                          <div className="p-3 text-center">
-                            <h3 className="font-medium text-sm line-clamp-1">{book.title || `Book Title ${index + 1}`}</h3>
-                          </div>
-                        </div>
-                      </a>
-                    ))
-                  ) : (
-                    // Placeholder books if none provided
-                    Array(3).fill(0).map((_, index) => {
-                      const titles = [
-                        "Come As You Are: Revised and Updated: The Surprising New Science That Will Transform Your Sex Life",
-                        "Days You Were Mine",
-                        "Life Force: How New Breakthroughs in Precision Medicine Can Transform the Quality of Your Life & Those You Love"
-                      ];
-                      return (
-                        <a key={index} className="block" href={`/books/${100 + index}`}>
-                          <div className="rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden h-full transition-transform hover:scale-105">
-                            <div className="relative w-full" style={{ aspectRatio: '2 / 3' }}>
-                              <img 
-                                alt={titles[index]}
-                                loading="lazy"
-                                decoding="async"
-                                data-nimg="fill"
-                                className="object-cover"
-                                src={`/placeholder.svg?height=300&width=200&text=Book+${index+1}`}
-                                style={{ position: 'absolute', height: '100%', width: '100%', inset: 0, color: 'transparent' }}
-                              />
-                            </div>
-                            <div className="p-3 text-center">
-                              <h3 className="font-medium text-sm line-clamp-1">{titles[index]}</h3>
-                            </div>
-                          </div>
-                        </a>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-            </div>
+        <div className="books-section">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {books.map((book) => (
+              <BookCard
+                key={book.id}
+                id={book.id}
+                title={book.title}
+                coverImageUrl={book.cover_image_url}
+              />
+            ))}
           </div>
         </div>
       )}
 
       {activeTab === "followers" && (
-        <div className="author-page__tab-content space-y-6">
-          <FollowersListTab
-            followers={followers}
-            followersCount={followersCount}
-            entityId={params.id}
-            entityType="author"
+        <FollowersListTab
+          followers={followers}
+          followersCount={followersCount}
+          entityId={params.id}
+          entityType="author"
+        />
+      )}
+
+      {activeTab === "photos" && (
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold">Photo Albums</h2>
+            <CreateAlbumDialog
+              entityId={params.id}
+              entityType="author"
+              onAlbumCreated={handleAlbumCreated}
+            />
+          </div>
+          <PhotoAlbumsList
+            albums={albums}
+            onAlbumUpdated={handleAlbumCreated}
           />
         </div>
       )}
 
-      {activeTab === "photos" && (
-        <div className="author-page__content">
-          <div className="grid grid-cols-1 gap-6">
-            <PhotosList
-              photos={photos}
-              photosCount={photosCount}
-              entityId={params.id}
-              entityType="author"
-            />
-          </div>
-        </div>
-      )}
-
       {activeTab === "more" && (
-        <div className="author-page__content">
-          <div className="author-page__tab-content grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="publisher-groups__card rounded-lg border bg-card text-card-foreground shadow-sm">
-              <div className="publisher-groups__header flex items-center justify-between p-6">
-                <h2 className="publisher-groups__title text-2xl font-semibold leading-none tracking-tight">Groups</h2>
-                <a href={`/groups/add?target_type=author&target_id=${params.id}`}>
-                  <Button className="publisher-groups__create-button">
-                    <Users className="h-4 w-4 mr-2" />
-                    Create Group
-                    </Button>
-                </a>
-              </div>
-              <div className="publisher-groups__list p-6 pt-0 space-y-4">
-                <div className="publisher-groups__item flex items-center gap-3 p-3 border rounded-lg">
-                  <span className="publisher-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <Avatar alt="Fantasy Book Club" name="Fantasy Book Club" size="md" id="1" />
-                  </span>
-                  <div className="publisher-groups__content flex-1 min-w-0">
-                    <h3 className="publisher-groups__name font-medium truncate">Fantasy Book Club</h3>
-                    <div className="publisher-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className="publisher-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">Moderator</div>
-                      <span>·</span>
-                      <span>1243 members</span>
-                      <span>·</span>
-                      <span>Joined January 2021</span>
-                    </div>
-                  </div>
-                  <Button variant="outline" className="publisher-groups__view-button h-9 rounded-md px-3">View</Button>
-                </div>
-                <div className="publisher-groups__item flex items-center gap-3 p-3 border rounded-lg">
-                  <span className="publisher-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <Avatar alt="Science Fiction Readers" name="Science Fiction Readers" size="md" id="2" />
-                  </span>
-                  <div className="publisher-groups__content flex-1 min-w-0">
-                    <h3 className="publisher-groups__name font-medium truncate">Science Fiction Readers</h3>
-                    <div className="publisher-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className="publisher-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">Member</div>
-                      <span>·</span>
-                      <span>3567 members</span>
-                      <span>·</span>
-                      <span>Joined March 2021</span>
-                    </div>
-                  </div>
-                  <Button variant="outline" className="publisher-groups__view-button h-9 rounded-md px-3">View</Button>
-                </div>
-                <div className="publisher-groups__item flex items-center gap-3 p-3 border rounded-lg">
-                  <span className="publisher-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <Avatar alt="Portland Book Lovers" name="Portland Book Lovers" size="md" id="3" />
-                  </span>
-                  <div className="publisher-groups__content flex-1 min-w-0">
-                    <h3 className="publisher-groups__name font-medium truncate">Portland Book Lovers</h3>
-                    <div className="publisher-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className="publisher-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">Member</div>
-                      <span>·</span>
-                      <span>567 members</span>
-                      <span>·</span>
-                      <span>Joined April 2020</span>
-                    </div>
-                  </div>
-                  <Button variant="outline" className="publisher-groups__view-button h-9 rounded-md px-3">View</Button>
-                </div>
-                <div className="publisher-groups__item flex items-center gap-3 p-3 border rounded-lg">
-                  <span className="publisher-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <Avatar alt="Women Writers Book Club" name="Women Writers Book Club" size="md" id="4" />
-                  </span>
-                  <div className="publisher-groups__content flex-1 min-w-0">
-                    <h3 className="publisher-groups__name font-medium truncate">Women Writers Book Club</h3>
-                    <div className="publisher-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className="publisher-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">Member</div>
-                      <span>·</span>
-                      <span>892 members</span>
-                      <span>·</span>
-                      <span>Joined September 2022</span>
-                    </div>
-                  </div>
-                  <Button variant="outline" className="publisher-groups__view-button h-9 rounded-md px-3">View</Button>
-                </div>
-                <div className="publisher-groups__item flex items-center gap-3 p-3 border rounded-lg">
-                  <span className="publisher-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <Avatar alt="Literary Fiction Fans" name="Literary Fiction Fans" size="md" id="5" />
-                  </span>
-                  <div className="publisher-groups__content flex-1 min-w-0">
-                    <h3 className="publisher-groups__name font-medium truncate">Literary Fiction Fans</h3>
-                    <div className="publisher-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className="publisher-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">Member</div>
-                      <span>·</span>
-                      <span>1456 members</span>
-                      <span>·</span>
-                      <span>Joined July 2021</span>
-                    </div>
-                  </div>
-                  <Button variant="outline" className="publisher-groups__view-button h-9 rounded-md px-3">View</Button>
-                </div>
-                <div className="publisher-groups__item flex items-center gap-3 p-3 border rounded-lg">
-                  <span className="publisher-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <Avatar alt="Classic Literature Society" name="Classic Literature Society" size="md" id="6" />
-                  </span>
-                  <div className="publisher-groups__content flex-1 min-w-0">
-                    <h3 className="publisher-groups__name font-medium truncate">Classic Literature Society</h3>
-                    <div className="publisher-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className="publisher-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">Member</div>
-                      <span>·</span>
-                      <span>789 members</span>
-                      <span>·</span>
-                      <span>Joined February 2022</span>
-                    </div>
-                  </div>
-                  <Button variant="outline" className="publisher-groups__view-button h-9 rounded-md px-3">View</Button>
-                </div>
-                <Button className="publisher-groups__find-more h-10 px-4 py-2 w-full">
-                  <Users className="h-4 w-4 mr-2" />
-                  Find More Groups
-                    </Button>
-              </div>
-            </div>
-            <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-              <div className="flex flex-col space-y-1.5 p-6">
-                <div className="text-2xl font-semibold leading-none tracking-tight">Pages</div>
-              </div>
-              <div className="p-6 pt-0 space-y-4">
-                <div className="flex items-center gap-3 p-3 border rounded-lg">
-                  <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <Avatar alt="Brandon Sanderson" name="Brandon Sanderson" size="md" id="7" />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium truncate">Brandon Sanderson</h3>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">Author</div>
-                      <span>·</span>
-                      <span>Following Since 2020</span>
-                    </div>
-                  </div>
-                  <Button variant="outline" className="h-9 rounded-md px-3">View</Button>
-                </div>
-                <div className="flex items-center gap-3 p-3 border rounded-lg">
-                  <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <Avatar alt="Tor Books" name="Tor Books" size="md" id="8" />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium truncate">Tor Books</h3>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">Publisher</div>
-                      <span>·</span>
-                      <span>Following Since 2021</span>
-                    </div>
-                  </div>
-                  <Button variant="outline" className="h-9 rounded-md px-3">View</Button>
-                </div>
-                <div className="flex items-center gap-3 p-3 border rounded-lg">
-                  <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <Avatar alt="Powell's Books" name="Powell's Books" size="md" id="9" />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium truncate">Powell's Books</h3>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">Bookstore</div>
-                      <span>·</span>
-                      <span>Following Since 2019</span>
-                    </div>
-                  </div>
-                  <Button variant="outline" className="h-9 rounded-md px-3">View</Button>
-                </div>
-                <div className="flex items-center gap-3 p-3 border rounded-lg">
-                  <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <Avatar alt="Neil Gaiman" name="Neil Gaiman" size="md" id="10" />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium truncate">Neil Gaiman</h3>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">Author</div>
-                      <span>·</span>
-                      <span>Following Since 2020</span>
-                    </div>
-                  </div>
-                  <Button variant="outline" className="h-9 rounded-md px-3">View</Button>
-                </div>
-                <div className="flex items-center gap-3 p-3 border rounded-lg">
-                  <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <Avatar alt="Penguin Random House" name="Penguin Random House" size="md" id="11" />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium truncate">Penguin Random House</h3>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">Publisher</div>
-                      <span>·</span>
-                      <span>Following Since 2022</span>
-                    </div>
-                  </div>
-                  <Button variant="outline" className="h-9 rounded-md px-3">View</Button>
-                </div>
-                <div className="flex items-center gap-3 p-3 border rounded-lg">
-                  <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <Avatar alt="Barnes & Noble" name="Barnes & Noble" size="md" id="12" />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium truncate">Barnes & Noble</h3>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">Bookstore</div>
-                      <span>·</span>
-                      <span>Following Since 2021</span>
-                    </div>
-                  </div>
-                  <Button variant="outline" className="h-9 rounded-md px-3">View</Button>
-                </div>
-                <Button className="h-10 px-4 py-2 w-full">
-                  <Book className="h-4 w-4 mr-2" />
-                  Discover More Pages
-                </Button>
-              </div>
-            </div>
-          </div>
+        <div className="more-section">
+          <h2 className="text-2xl font-semibold mb-4">More</h2>
+          {/* Add more content here */}
         </div>
       )}
     </div>
   )
-} 
+}

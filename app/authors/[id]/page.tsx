@@ -11,11 +11,27 @@ import { getFollowers, getFollowersCount } from "@/lib/follows-server"
 import { getAuthorEvents } from '@/lib/events'
 import EventCard from '@/components/event-card'
 import type { Event } from '@/types/database'
+import { createClient } from '@/lib/supabase-server'
 
 interface AuthorPageProps {
   params: {
     id: string
   }
+}
+
+interface AlbumImage {
+  image: {
+    url: string;
+  }[];
+}
+
+interface AlbumData {
+  id: string;
+  name: string;
+  description: string | null;
+  is_public: boolean;
+  created_at: string;
+  album_images: AlbumImage[];
 }
 
 async function getAuthor(id: string) {
@@ -202,6 +218,49 @@ async function getAuthorActivities(authorId: string) {
   }
 }
 
+async function getAuthorAlbums(authorId: string) {
+  try {
+    const supabase = createClient()
+    // Convert integer author ID to UUID format
+    const uuidEntityId = `00000000-0000-0000-0000-${authorId.padStart(12, '0')}`
+    
+    const { data: albums, error } = await supabase
+      .from('photo_albums')
+      .select(`
+        id,
+        name,
+        description,
+        is_public,
+        created_at,
+        album_images!inner(
+          image:images!inner(
+            url
+          )
+        )
+      `)
+      .eq('entity_type', 'author')
+      .eq('entity_id', uuidEntityId)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching author albums:', error)
+      return []
+    }
+
+    return (albums as unknown as AlbumData[]).map(album => ({
+      id: album.id,
+      name: album.name,
+      description: album.description || undefined,
+      cover_image_url: album.album_images[0]?.image[0]?.url || undefined,
+      photo_count: album.album_images.length,
+      created_at: album.created_at
+    }))
+  } catch (error) {
+    console.error('Error fetching author albums:', error)
+    return []
+  }
+}
+
 // Helper function to convert timestamp to "time ago" format
 function getTimeAgo(date: Date): string {
   const now = new Date()
@@ -241,66 +300,42 @@ function getTimeAgo(date: Date): string {
 }
 
 export default async function AuthorPage({ params }: AuthorPageProps) {
-  // In Next.js 15, params needs to be awaited
-  const resolvedParams = await params;
-  const id = resolvedParams.id
-  
-  // Get author data using the existing function
-  const author = await getAuthor(id)
+  // Await params before accessing its properties
+  const resolvedParams = await Promise.resolve(params)
+  const authorId = resolvedParams.id
+
+  if (!authorId) {
+    notFound()
+  }
+
+  const author = await getAuthor(authorId)
   if (!author) {
     notFound()
   }
 
-  const [books, { followers, count: followersCount }, activities, events] = await Promise.all([
-    getAuthorBooks(id),
-    getAuthorFollowers(id),
-    getAuthorActivities(id),
-    getAuthorEvents(parseInt(id))
+  const [books, followers, activities, albums] = await Promise.all([
+    getAuthorBooks(authorId),
+    getAuthorFollowers(authorId),
+    getAuthorActivities(authorId),
+    getAuthorAlbums(authorId)
   ])
-
-  // Get author image URL (you can modify this based on your schema)
-  const authorImageUrl = author.author_image?.url || "/placeholder.svg?height=400&width=400"
-
-  // Get cover image URL (you can modify this based on your schema)
-  const coverImageUrl = author.cover_image?.url || "/placeholder.svg?height=400&width=1200"
-
-  // Get total book count for this author
-  const { count: totalBooksCount } = await supabaseAdmin
-    .from("books")
-    .select("*", { count: 'exact', head: true })
-    .eq("author_id", id)
 
   return (
     <PageContainer>
       <ClientAuthorPage
         author={author}
-        authorImageUrl={authorImageUrl}
-        coverImageUrl={coverImageUrl}
-        params={{ id }}
-        followers={followers}
-        followersCount={followersCount}
+        authorImageUrl={author.author_image?.url || ""}
+        coverImageUrl={author.cover_image?.url || ""}
+        params={resolvedParams}
+        followers={followers.followers}
+        followersCount={followers.count}
         books={books}
-        booksCount={totalBooksCount || 0}
-        activities={activities || []}
+        booksCount={books.length}
+        activities={activities}
+        photos={[]} // TODO: Implement photo fetching
+        photosCount={0} // TODO: Implement photo count
+        albums={albums}
       />
-      {events && events.length > 0 && (
-        <div className="mt-10">
-          <h2 className="text-2xl font-bold mb-6">Upcoming Events</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {events.map((event: Event) => (
-              <EventCard key={event.id} event={event} />
-            ))}
-          </div>
-          <div className="mt-6">
-            <Link 
-              href="/events" 
-              className="text-blue-600 hover:text-blue-800 font-medium flex items-center"
-            >
-              View all events →
-            </Link>
-          </div>
-        </div>
-      )}
     </PageContainer>
   )
 } 

@@ -5,6 +5,8 @@ import { CalendarDaysIcon, CheckCircleIcon, XCircleIcon, EyeIcon } from '@heroic
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { UserHoverCard } from '@/components/user-hover-card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
 
 export default async function AdminEventsPage({ searchParams }: { searchParams?: { status?: string, search?: string, creator?: string, page?: string } }) {
   // Pagination
@@ -52,7 +54,6 @@ export default async function AdminEventsPage({ searchParams }: { searchParams?:
 
 'use client';
 import { useState, useRef } from 'react';
-import { Dialog } from '@headlessui/react';
 
 function AdminEventsBulkUI({ events, creators, status, search, creator, page, limit, totalCount, userMap }: any) {
   const [selected, setSelected] = useState<string[]>([]);
@@ -197,24 +198,35 @@ function AdminEventsBulkUI({ events, creators, status, search, creator, page, li
         ))}
       </div>
       {/* Confirmation Dialog */}
-      <Dialog open={showDialog} onClose={() => setShowDialog(false)} className="fixed z-50 inset-0 flex items-center justify-center">
-        <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
-        <div className="relative bg-white rounded-lg shadow-lg p-6 max-w-sm mx-auto z-10">
-          <Dialog.Title className="text-lg font-semibold mb-2">Confirm Bulk {bulkAction.charAt(0).toUpperCase() + bulkAction.slice(1)}</Dialog.Title>
-          <p className="mb-2 text-sm">Are you sure you want to set {selected.length} event(s) to <b>{bulkAction}</b>?</p>
-          <textarea
-            className="w-full border border-gray-300 rounded p-2 text-sm mb-2"
-            rows={2}
-            placeholder="Add a note (optional) for this action..."
-            value={note}
-            onChange={e => setNote(e.target.value)}
-            disabled={loading}
-          />
-          <div className="flex gap-2 justify-end mt-2">
-            <Button type="button" variant="outline" onClick={() => setShowDialog(false)} disabled={loading}>Cancel</Button>
-            <Button type="button" variant={bulkAction === 'published' ? 'success' : bulkAction === 'cancelled' ? 'destructive' : 'outline'} onClick={handleBulkAction} disabled={loading}>{loading ? 'Processing...' : 'Confirm'}</Button>
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Bulk {bulkAction.charAt(0).toUpperCase() + bulkAction.slice(1)}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm">Are you sure you want to set {selected.length} event(s) to <b>{bulkAction}</b>?</p>
+            <Textarea
+              placeholder="Add a note (optional) for this action..."
+              value={note}
+              onChange={e => setNote(e.target.value)}
+              disabled={loading}
+              rows={2}
+            />
+            <div className="flex gap-2 justify-end">
+              <Button type="button" variant="outline" onClick={() => setShowDialog(false)} disabled={loading}>
+                Cancel
+              </Button>
+              <Button 
+                type="button" 
+                variant={bulkAction === 'published' ? 'default' : bulkAction === 'cancelled' ? 'destructive' : 'outline'} 
+                onClick={handleBulkAction} 
+                disabled={loading}
+              >
+                {loading ? 'Processing...' : 'Confirm'}
+              </Button>
+            </div>
           </div>
-        </div>
+        </DialogContent>
       </Dialog>
     </div>
   );

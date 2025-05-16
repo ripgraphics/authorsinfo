@@ -5,6 +5,8 @@ import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { PageHeader } from "@/components/page-header"
 import { PageContainer } from "@/components/page-container"
+import { Toaster } from "@/components/ui/toaster"
+import { ClientLayout } from "@/components/client-layout"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -24,11 +26,11 @@ export default function RootLayout({
       <body suppressHydrationWarning className={`${inter.className} root-layout__body min-h-screen flex flex-col items-center`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <div className="root-layout__content-wrapper w-full">
-            <PageHeader />
-            <PageContainer>
+            <ClientLayout>
               {children}
-            </PageContainer>
+            </ClientLayout>
           </div>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

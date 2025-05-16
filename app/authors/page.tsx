@@ -27,7 +27,6 @@ import {
 } from "@/components/ui/sheet"
 import { Label } from "@/components/ui/label"
 import { AuthorsFilters } from "./components/AuthorsFilters"
-import { useRouter, useSearchParams } from "next/navigation"
 
 interface AuthorsPageProps {
   searchParams: {
@@ -38,7 +37,20 @@ interface AuthorsPageProps {
   }
 }
 
-async function getUniqueNationalities() {
+interface Author {
+  id: number
+  name: string
+  nationality?: string
+  birth_date?: string
+  photo_url?: string
+  author_image?: {
+    id: number
+    url: string
+    alt_text: string
+  }
+}
+
+async function getUniqueNationalities(): Promise<string[]> {
   const nationalities = await db.query(
     "authors",
     { nationality: { not: "is", value: null } },
@@ -46,10 +58,10 @@ async function getUniqueNationalities() {
       ttl: 3600, // Cache for 1 hour
       cacheKey: "unique_nationalities"
     }
-  )
+  ) as Author[]
 
-  // Extract unique nationalities
-  return Array.from(new Set(nationalities.map((item) => item.nationality).filter(Boolean)))
+  // Extract unique nationalities and ensure they are strings
+  return Array.from(new Set(nationalities.map((item: Author) => item.nationality).filter(Boolean))) as string[]
 }
 
 async function AuthorsList({
@@ -72,11 +84,11 @@ async function AuthorsList({
     ...(nationality && { nationality }),
   }
 
-  const orderBy = sort === "name_asc" ? { name: "asc" } :
-                 sort === "name_desc" ? { name: "desc" } :
-                 sort === "birth_date_asc" ? { birth_date: "asc" } :
-                 sort === "birth_date_desc" ? { birth_date: "desc" } :
-                 { name: "asc" }
+  const orderBy = sort === "name_asc" ? { name: "asc" as const, birth_date: "asc" as const } :
+                 sort === "name_desc" ? { name: "desc" as const, birth_date: "asc" as const } :
+                 sort === "birth_date_asc" ? { birth_date: "asc" as const, name: "asc" as const } :
+                 sort === "birth_date_desc" ? { birth_date: "desc" as const, name: "asc" as const } :
+                 { name: "asc" as const, birth_date: "asc" as const }
 
   // Execute the query with caching
   const authors = await db.query(
@@ -93,23 +105,13 @@ async function AuthorsList({
         author_image:author_image_id(id, url, alt_text)
       `
     }
-  )
+  ) as Author[]
 
   // Process authors to include image URL
-  const processedAuthors = authors.map((author) => {
-    console.log("Author data:", JSON.stringify(author, null, 2))
-    console.log("Author image URLs:", {
-      id: author.id,
-      name: author.name,
-      author_image_url: author.author_image?.url,
-      photo_url: author.photo_url,
-      final_url: author.author_image?.url || author.photo_url || null
-    });
-    return {
-      ...author,
-      photo_url: author.author_image?.url || author.photo_url || null,
-    }
-  })
+  const processedAuthors = authors.map((author) => ({
+    ...author,
+    photo_url: author.author_image?.url || author.photo_url || null,
+  }))
 
   // Get total count for pagination
   const totalAuthorsResult = await db.query(
@@ -128,9 +130,6 @@ async function AuthorsList({
     : 0
 
   const totalPages = Math.ceil(totalAuthors / pageSize)
-
-  // Get unique nationalities for the filter
-  const nationalities = await getUniqueNationalities()
 
   return (
     <div className="space-y-6">
@@ -224,14 +223,17 @@ export default async function AuthorsPage({ searchParams }: AuthorsPageProps) {
   const nationalities = await getUniqueNationalities()
 
   return (
-    <div className="container py-6 space-y-6">
+    <div className="space-y-6">
+      <div className="py-6">
+        <h1 className="text-3xl font-bold tracking-tight">Authors</h1>
+        <p className="text-muted-foreground mt-2">Browse and discover authors from our collection.</p>
+      </div>
       <AuthorsFilters
         search={search}
         nationality={nationality}
         sort={sort}
         nationalities={nationalities}
       />
-      
       <Suspense fallback={<div>Loading authors...</div>}>
         <AuthorsList
           page={page}

@@ -298,27 +298,25 @@ export default async function PublishersPage({ searchParams }: PublishersPagePro
   const sort = params?.sort
 
   return (
-    <PageContainer>
-      <div className="space-y-6">
-        <div className="py-6">
-          <h1 className="text-3xl font-bold tracking-tight">Publishers</h1>
-          <p className="text-muted-foreground mt-2">Browse and discover publishers from our collection.</p>
-        </div>
-        <InteractiveControls
-          locations={locationsList}
+    <div className="space-y-6">
+      <div className="py-6">
+        <h1 className="text-3xl font-bold tracking-tight">Publishers</h1>
+        <p className="text-muted-foreground mt-2">Browse and discover publishers from our collection.</p>
+      </div>
+      <InteractiveControls
+        locations={locationsList}
+        search={search}
+        location={location}
+        sort={sort}
+      />
+      <Suspense fallback={<div>Loading...</div>}>
+        <PublishersList
+          page={page}
           search={search}
           location={location}
           sort={sort}
         />
-        <Suspense fallback={<div>Loading...</div>}>
-          <PublishersList
-            page={page}
-            search={search}
-            location={location}
-            sort={sort}
-          />
-        </Suspense>
-      </div>
-    </PageContainer>
+      </Suspense>
+    </div>
   )
 }

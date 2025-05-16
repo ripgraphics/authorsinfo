@@ -57,33 +57,23 @@ export interface Author {
   id: string
   name: string
   bio?: string
-  featured?: string | boolean
-  birth_date?: string
   nationality?: string
   website?: string
-  author_image_id?: number
-  cover_image_id?: number
-  author_gallery_id?: number
+  birth_date?: string
+  email?: string
   twitter_handle?: string
   facebook_handle?: string
   instagram_handle?: string
-  goodreads_url?: string
-  created_at?: string
-  updated_at?: string
-  // Joined fields
   author_image?: {
-    id: number
+    id: string
     url: string
     alt_text?: string
-    img_type_id?: number
   }
   cover_image?: {
-    id: number
+    id: string
     url: string
     alt_text?: string
-    img_type_id?: number
   }
-  photo_url?: string // Legacy field
 }
 
 export interface Publisher {

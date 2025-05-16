@@ -5,6 +5,7 @@ import { BookCard } from "@/components/book-card"
 import { useState, useRef, useEffect } from "react"
 import { EditSectionModal } from "./EditSectionModal"
 import Link from "next/link"
+import { ExpandableSection } from "@/components/ui/expandable-section"
 
 interface PublisherData {
   id?: string | number
@@ -71,27 +72,9 @@ export function OverviewSection({ publisher, onRefresh }: { publisher: Publisher
       <CardContent className="overview-section__content p-6 space-y-4">
         {publisher.about ? (
           <div className="overview-section__about space-y-2">
-            <div className="overview-section__about-wrapper relative">
-              <div 
-                className={`overview-section__about-text whitespace-pre-wrap text-base ${!expanded && hasLongContent ? "line-clamp-20 overflow-hidden" : ""}`}
-                style={{ maxHeight: !expanded && hasLongContent ? '500px' : 'none', overflow: !expanded && hasLongContent ? 'hidden' : 'visible' }}
-              >
-                {publisher.about}
-              </div>
-              {!expanded && hasLongContent && (
-                <div className="overview-section__fade-gradient absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent"></div>
-              )}
-            </div>
-            {hasLongContent && (
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="overview-section__toggle-button text-xs mt-2"
-                onClick={() => setExpanded(!expanded)}
-              >
-                {expanded ? "View Less" : "View More"}
-              </Button>
-            )}
+            <ExpandableSection title={null}>
+              {publisher.about}
+            </ExpandableSection>
           </div>
         ) : (
           <p className="overview-section__empty-message text-muted-foreground italic">No overview information available.</p>

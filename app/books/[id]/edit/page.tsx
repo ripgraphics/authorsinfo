@@ -17,6 +17,7 @@ import { supabaseClient } from "@/lib/supabase/client"
 import { uploadImage } from "@/app/actions/upload"
 import type { Book, Author, Publisher } from "@/types/database"
 import { PageContainer } from "@/components/page-container"
+import { useToast } from "@/hooks/use-toast"
 
 interface EditBookPageProps {
   params: {
@@ -49,6 +50,12 @@ export default function EditBookPage({ params }: EditBookPageProps) {
   const [formatOptions, setFormatOptions] = useState<{ value: string; label: string }[]>([])
   const [selectedBindings, setSelectedBindings] = useState<string[]>([])
   const [selectedFormats, setSelectedFormats] = useState<string[]>([])
+  const { toast } = useToast()
+
+  // Debug toast function
+  useEffect(() => {
+    console.log("Toast function available:", !!toast);
+  }, [toast]);
 
   // Set up cleanup when component unmounts
   useEffect(() => {
@@ -199,6 +206,11 @@ export default function EditBookPage({ params }: EditBookPageProps) {
     setSaving(true)
     setError(null)
     setSuccessMessage(null)
+    
+    toast({
+      title: "Saving Book",
+      description: "Processing your changes...",
+    });
 
     try {
       const formData = new FormData(e.currentTarget)
@@ -271,6 +283,11 @@ export default function EditBookPage({ params }: EditBookPageProps) {
         } catch (uploadError) {
           console.error("Upload error:", uploadError)
           setError("Failed to upload cover image. Please try again.")
+          toast({
+            title: "Upload Failed",
+            description: "Failed to upload cover image. Please try again.",
+            variant: "destructive",
+          });
           setSaving(false)
           return
         }
@@ -281,7 +298,7 @@ export default function EditBookPage({ params }: EditBookPageProps) {
       const formatTypeId = selectedFormats.length > 0 ? Number.parseInt(selectedFormats[0], 10) : null
 
       // Prepare the update data
-      const updateData = {
+      let updateData = {
         title: formData.get("title") as string,
         isbn10: formData.get("isbn10") as string,
         isbn13: formData.get("isbn13") as string,
@@ -328,17 +345,160 @@ export default function EditBookPage({ params }: EditBookPageProps) {
 
       console.log("Updating book with data:", updateData)
 
-      // Update the book
-      const { error: updateError } = await supabaseClient.from("books").update(updateData).eq("id", bookId)
+      // Clean up the updateData by removing undefined values
+      Object.keys(updateData).forEach(
+        (key) => updateData[key] === undefined && delete updateData[key]
+      )
 
-      if (updateError) {
-        console.error("Error updating book:", updateError)
-        setError(`Error updating book: ${updateError.message}`)
+      // Ensure proper types for known fields
+      const ensureProperTypes = (data: any) => {
+        // Create a new object to avoid modifying the original
+        const newData = { ...data };
+        
+        // Handle empty strings for numeric fields by converting them to null
+        const convertNumeric = (value: any) => {
+          // If empty string, return null
+          if (value === "") return null;
+          // If already null or undefined, return as is
+          if (value === null || value === undefined) return value;
+          // Try to convert to number
+          const num = Number(value);
+          // Return the number if valid, otherwise null
+          return isNaN(num) ? null : num;
+        };
+        
+        // Make sure numeric fields are numbers, not strings
+        if (newData.pages !== undefined) {
+          newData.pages = convertNumeric(newData.pages);
+        }
+        
+        if (newData.list_price !== undefined) {
+          newData.list_price = convertNumeric(newData.list_price);
+        }
+        
+        // Make sure IDs are numbers if they should be
+        if (newData.author_id !== undefined) {
+          newData.author_id = convertNumeric(newData.author_id);
+        }
+        
+        if (newData.publisher_id !== undefined) {
+          newData.publisher_id = convertNumeric(newData.publisher_id);
+        }
+        
+        if (newData.cover_image_id !== undefined) {
+          newData.cover_image_id = convertNumeric(newData.cover_image_id);
+        }
+        
+        if (newData.binding_type_id !== undefined) {
+          newData.binding_type_id = convertNumeric(newData.binding_type_id);
+        }
+        
+        if (newData.format_type_id !== undefined) {
+          newData.format_type_id = convertNumeric(newData.format_type_id);
+        }
+        
+        if (newData.weight !== undefined) {
+          newData.weight = convertNumeric(newData.weight);
+        }
+        
+        // Ensure array fields are arrays
+        if (newData.book_gallery_img !== undefined && !Array.isArray(newData.book_gallery_img)) {
+          if (newData.book_gallery_img === null || newData.book_gallery_img === "") {
+            newData.book_gallery_img = null; // or [] depending on schema
+          } else if (typeof newData.book_gallery_img === 'string') {
+            newData.book_gallery_img = [newData.book_gallery_img];
+          }
+        }
+        
+        return newData;
+      };
+
+      // Apply type conversions
+      updateData = ensureProperTypes(updateData);
+
+      // Log the cleaned data
+      console.log("Cleaned update data:", updateData)
+      console.log("Book ID being updated:", bookId)
+
+      // Update the book
+      try {
+        // First try to select the book to make sure it exists
+        const { data: existingBook, error: selectError } = await supabaseClient
+          .from("books")
+          .select("id")
+          .eq("id", bookId)
+          .single();
+
+        if (selectError) {
+          console.error("Error finding book:", selectError);
+          setError(`Error finding book with ID ${bookId}: ${selectError.message || JSON.stringify(selectError)}`);
+          toast({
+            title: "Error Finding Book",
+            description: `Error finding book with ID ${bookId}: ${selectError.message || "Unknown error"}`,
+            variant: "destructive",
+          });
+          setSaving(false);
+          return;
+        }
+
+        if (!existingBook) {
+          console.error("Book not found:", bookId);
+          setError(`Book with ID ${bookId} not found`);
+          toast({
+            title: "Book Not Found",
+            description: `Could not find book with ID ${bookId}`,
+            variant: "destructive",
+          });
+          setSaving(false);
+          return;
+        }
+
+        console.log("Found book:", existingBook);
+
+        // Perform the update with select() to get the full response
+        const { data: updatedBook, error: updateError } = await supabaseClient
+          .from("books")
+          .update(updateData)
+          .eq("id", bookId)
+          .select()
+          .single();
+
+        console.log("Update response:", { data: updatedBook, error: updateError });
+
+        if (updateError) {
+          console.error("Error updating book:", updateError)
+          setError(`Error updating book: ${updateError.message || JSON.stringify(updateError) || 'Unknown error'}`)
+          toast({
+            title: "Update Failed",
+            description: `Failed to update book: ${updateError.message || "Unknown error"}`,
+            variant: "destructive",
+          });
+          setSaving(false)
+          return
+        }
+      } catch (err) {
+        console.error("Exception during book update:", err)
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        setError(`Exception during update: ${errorMessage}`)
+        toast({
+          title: "Update Error",
+          description: `An unexpected error occurred: ${errorMessage}`,
+          variant: "destructive",
+        });
         setSaving(false)
         return
+      } finally {
+        setSaving(false)
       }
 
       setSuccessMessage("Book updated successfully!")
+      console.log("Showing success toast");
+      toast({
+        title: "Success",
+        description: "Book updated successfully!",
+        variant: "default",
+      });
+      console.log("Success toast called");
 
       // Redirect back to the book page after a short delay
       setTimeout(() => {
@@ -347,8 +507,6 @@ export default function EditBookPage({ params }: EditBookPageProps) {
     } catch (error: any) {
       console.error("Error in handleSubmit:", error)
       setError(`An unexpected error occurred while saving: ${error.message}`)
-    } finally {
-      setSaving(false)
     }
   }
 
@@ -458,6 +616,11 @@ export default function EditBookPage({ params }: EditBookPageProps) {
         console.error("Error in fetchBookData:", error)
         if (isMounted.current) {
           setError("An unexpected error occurred. Please try again.")
+          toast({
+            title: "Error Loading Book",
+            description: "Failed to load book data. Please try again.",
+            variant: "destructive",
+          });
         }
       } finally {
         if (isMounted.current) {

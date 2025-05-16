@@ -14,10 +14,10 @@ export function Toaster() {
   const { toasts } = useToast()
 
   return (
-    <ToastProvider>
+    <ToastProvider swipeDirection="down">
       {toasts.map(function ({ id, title, description, action, ...props }) {
         return (
-          <Toast key={id} {...props}>
+          <Toast key={id} {...props} className="bg-background shadow-xl border">
             <div className="grid gap-1">
               {title && <ToastTitle>{title}</ToastTitle>}
               {description && (
@@ -29,7 +29,8 @@ export function Toaster() {
           </Toast>
         )
       })}
-      <ToastViewport />
+      {/* Use fixed position with inset-0 and flex centering for reliable centering */}
+      <ToastViewport className="fixed inset-0 flex items-center justify-center pointer-events-none" />
     </ToastProvider>
   )
 }

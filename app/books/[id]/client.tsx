@@ -44,6 +44,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { FollowersList } from "@/components/followers-list"
 import { FollowersListTab } from "@/components/followers-list-tab"
+import { ExpandableSection } from "@/components/ui/expandable-section"
 
 // Helper function to format date as MM-DD-YYYY
 function formatDate(dateString?: string): string {
@@ -222,6 +223,8 @@ export function ClientBookPage({
   const publishDate = book.publish_date || book.publication_date || undefined
   const language = book.language || undefined
 
+  const [showFullAbout, setShowFullAbout] = useState(false)
+
   return (
     <div className="book-page">
       <div className="py-6">
@@ -247,28 +250,23 @@ export function ClientBookPage({
               <div className="lg:col-span-1 space-y-6">
                 {/* About Section */}
                 <Card className="timeline-about-section">
-                  <div className="timeline-about-section__header flex flex-col space-y-1.5 p-6">
-                    <div className="timeline-about-section__title-row flex justify-between items-center">
-                      <div className="timeline-about-section__title text-2xl font-semibold leading-none tracking-tight">About</div>
-                      <button 
-                        className="timeline-about-section__view-more text-sm text-primary hover:underline"
-                        onClick={() => setActiveTab("details")}
-                      >
-                        View More
-                      </button>
-                    </div>
-                  </div>
                   <CardContent className="timeline-about-section__content p-6 pt-0 space-y-4">
-                    {book.synopsis || book.overview ? (
-                      <div className="timeline-about-section__about-wrapper relative">
-                        <p className="timeline-about-section__about-text line-clamp-10">
-                          {book.synopsis || book.overview}
-                        </p>
-                        <div className="timeline-about-section__gradient absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent"></div>
-                      </div>
-                    ) : (
-                      <p className="timeline-about-section__empty-message">No information available about this book.</p>
-                    )}
+                    <ExpandableSection
+                      title="About"
+                      headerButton={
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab("details")}
+                          className="followers-list__see-all-button inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-9 rounded-md px-3 text-sm text-primary hover:bg-primary/10 hover:text-primary"
+                        >
+                          View More
+                        </button>
+                      }
+                      hideToggle
+                      sidePanelStyle
+                    >
+                      {book.synopsis || book.overview || "No information available about this book."}
+                    </ExpandableSection>
                     <div className="timeline-about-section__details space-y-2">
                       {book.language && (
                         <div className="timeline-about-section__language flex items-center">
@@ -773,7 +771,12 @@ export function ClientBookPage({
                     {book.synopsis && (
                       <div className="book-detail-item col-span-full">
                         <h3 className="font-medium">Synopsis</h3>
-                        <p className="text-muted-foreground">{book.synopsis}</p>
+                        <ExpandableSection
+                          expanded={showFullAbout}
+                          onToggle={() => setShowFullAbout((v) => !v)}
+                        >
+                          {book.synopsis}
+                        </ExpandableSection>
                       </div>
                     )}
 

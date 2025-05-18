@@ -46,6 +46,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label"
 import { ExpandableSection } from "@/components/ui/expandable-section"
 import { ViewFullDetailsButton } from "@/components/ui/ViewFullDetailsButton"
+import { TimelineAboutSection } from "@/components/author/TimelineAboutSection"
 
 interface ClientAuthorPageProps {
   author: Author
@@ -449,48 +450,13 @@ export function ClientAuthorPage({
           {/* LEFT SIDEBAR - 1 Column */}
           <div className="lg:col-span-1 space-y-6">
             {/* About Section */}
-            <Card className="timeline-about-section">
-              <CardContent className="timeline-about-section__content p-6 pt-0 space-y-4">
-                <ExpandableSection
-                  title="About"
-                  headerButton={
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab("about")}
-                      className="followers-list__see-all-button inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-9 rounded-md px-3 text-sm text-primary hover:bg-primary/10 hover:text-primary"
-                    >
-                      View More
-                    </button>
-                  }
-                  hideToggle
-                  sidePanelStyle
-                >
-                  {author?.bio || "No biography available for this author."}
-                </ExpandableSection>
-                {author?.nationality && (
-                  <div className="timeline-about-section__location flex items-center">
-                    <MapPin className="timeline-about-section__location-icon h-4 w-4 mr-2 text-muted-foreground" />
-                    <span className="timeline-about-section__location-text">
-                      From {author.nationality}
-                    </span>
-                  </div>
-                )}
-                {author?.website && (
-                  <div className="timeline-about-section__website flex items-start">
-                    <Globe className="timeline-about-section__website-icon h-4 w-4 mr-2 text-muted-foreground flex-shrink-0 mt-1" />
-                    <a 
-                      href={author.website.startsWith('http') ? author.website : `https://${author.website}`}
-                      className="timeline-about-section__website-link text-primary hover:underline break-words"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {author.website}
-                    </a>
-                  </div>
-                )}
-                <ViewFullDetailsButton onClick={() => setActiveTab("about")} />
-              </CardContent>
-            </Card>
+            <TimelineAboutSection
+              bio={author?.bio}
+              nationality={author?.nationality}
+              website={author?.website}
+              onViewMore={() => setActiveTab("about")}
+              onViewFullDetails={() => setActiveTab("about")}
+            />
 
             {/* Currently Reading Section */}
             <Card>

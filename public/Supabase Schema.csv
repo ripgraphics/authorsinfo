@@ -921,6 +921,9 @@ group_shared_documents,updated_at,timestamp with time zone
 group_tags,id,integer
 group_tags,group_id,uuid
 group_tags,tag,text
+group_types,id,integer
+group_types,slug,text
+group_types,display_name,text
 group_webhook_logs,id,uuid
 group_webhook_logs,webhook_id,uuid
 group_webhook_logs,event_type,text

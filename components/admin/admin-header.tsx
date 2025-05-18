@@ -1,15 +1,36 @@
 "use client"
 
-import { useState } from "react"
-import { Bell, Menu, Search, Settings, Sun, Moon } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Bell, Menu, Search, Settings, Sun, Moon, User as UserIcon, LogOut, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { SearchModal } from "@/components/admin/search-modal"
 import { useTheme } from "next-themes"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import Link from "next/link"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export function AdminHeader() {
   const [searchOpen, setSearchOpen] = useState(false)
   const { theme, setTheme } = useTheme()
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const supabase = createClientComponentClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
+      setLoading(false)
+    }
+    fetchUser()
+  }, [])
 
   return (
     <>
@@ -55,13 +76,49 @@ export function AdminHeader() {
             <span className="sr-only">Notifications</span>
           </Button>
 
-          <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-            <span className="relative flex shrink-0 overflow-hidden rounded-full h-8 w-8">
-              <span className="flex h-full w-full items-center justify-center rounded-full bg-gray-700 text-white">
-                AI
+          {/* User avatar dropdown, only if logged in */}
+          {!loading && user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
+                  {user.user_metadata?.avatar_url ? (
+                    <img
+                      src={user.user_metadata.avatar_url}
+                      alt={user.user_metadata.full_name || user.email || "User"}
+                      className="object-cover rounded-full w-8 h-8"
+                    />
+                  ) : (
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-700 text-white text-sm font-bold">
+                      {user.user_metadata?.full_name?.[0] || user.email?.[0] || <UserIcon className="h-5 w-5" />}
+                    </span>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <Link href={`/profile/${user.id}`}>
+                  <DropdownMenuItem>
+                    <UserIcon className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </DropdownMenuItem>
+                </Link>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={async () => {
+                  const supabase = createClientComponentClient()
+                  await supabase.auth.signOut()
+                  window.location.reload()
+                }}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : !loading && (
+            <Button variant="ghost" size="icon" className="user-avatar-button rounded-full hover:bg-accent hover:text-accent-foreground p-0" onClick={() => window.location.href = "/login"}>
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-700 text-white">
+                <Lock className="h-5 w-5" />
               </span>
-            </span>
-          </Button>
+            </Button>
+          )}
         </div>
       </header>
 

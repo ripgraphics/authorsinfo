@@ -21,24 +21,30 @@ export default function LoginPage() {
   const { toast } = useToast()
   const supabase = createClientComponentClient()
 
-  // Fetch all users from the users table
+  // Listen for auth state change to handle redirect after login
+  useEffect(() => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN") {
+        router.refresh();
+        router.push("/");
+      }
+    });
+    return () => {
+      listener?.subscription.unsubscribe();
+    };
+  }, [router, supabase]);
+
+  // Fetch all users from the Supabase Auth users API
   useEffect(() => {
     async function fetchUsers() {
       try {
-        const { data, error } = await supabase
-          .from('users')
-          .select('id, email, name')
-          .order('name', { ascending: true })
-        
-        if (error) {
-          console.error('Error fetching users:', error)
-          setFetchError('Failed to fetch users. Please check your database permissions.')
+        const res = await fetch('/api/auth-users')
+        if (!res.ok) {
+          setFetchError('Failed to fetch users from Auth. Please check your API route and permissions.')
           return
         }
-
-        if (data) {
-          setUsers(data)
-        }
+        const data = await res.json()
+        setUsers(data)
       } catch (error) {
         console.error('Error in fetchUsers:', error)
         setFetchError('An unexpected error occurred while fetching users.')
@@ -47,35 +53,38 @@ export default function LoginPage() {
     fetchUsers()
   }, [])
 
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+  const handleSignIn = async (e: React.FormEvent | null, emailArg?: string, passwordArg?: string) => {
+    if (e) e.preventDefault();
+    setIsLoading(true);
+    const loginEmail = emailArg ?? email;
+    const loginPassword = passwordArg ?? password;
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-      if (error) throw error
-      toast({ title: "Success", description: "You have been signed in successfully" })
-      router.refresh()
-      router.push('/')
+      console.log("Attempting sign in with:", { email: loginEmail, password: loginPassword });
+      const { error, data } = await supabase.auth.signInWithPassword({
+        email: loginEmail,
+        password: loginPassword,
+      });
+      console.log("Supabase signInWithPassword result:", { error, data });
+      if (error) throw error;
+      toast({ title: "Success", description: "You have been signed in successfully" });
+      // No redirect here; handled by onAuthStateChange
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Error", description: error.message || "Failed to sign in" })
+      console.error("Sign in error:", error);
+      toast({ variant: "destructive", title: "Error", description: error?.message || JSON.stringify(error) || "Failed to sign in" });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   // Autofill and login as user
   const loginAsUser = (userEmail: string) => {
-    setEmail(userEmail)
-    setPassword('password123') // Default password for all test users
+    setEmail(userEmail);
+    setPassword('password123');
     setTimeout(() => {
-      // Simulate form submit after state update
-      const fakeEvent = { preventDefault: () => {} } as React.FormEvent
-      handleSignIn(fakeEvent)
-    }, 100)
-  }
+      console.log("loginAsUser triggered for:", userEmail);
+      handleSignIn(null, userEmail, 'password123');
+    }, 100);
+  };
 
   return (
     <div className="flex flex-col items-center space-y-8">

@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React from "react"
+import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { supabaseClient } from "@/lib/supabase/client"
 import { uploadImage } from "@/app/actions/upload"
@@ -28,7 +29,7 @@ export default function AddGroupPage() {
   const [targets, setTargets] = useState<{ id: string; name: string }[]>([])
   const [targetsLoading, setTargetsLoading] = useState<boolean>(false)
   const [targetsError, setTargetsError] = useState<string | null>(null)
-  const [selectedTarget, setSelectedTarget] = useState<string>("")
+  const [selectedTarget, setSelectedTarget] = useState<{ id: string, name: string } | null>(null)
 
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
@@ -39,8 +40,13 @@ export default function AddGroupPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const [targetSearch, setTargetSearch] = useState("")
+  const [searching, setSearching] = useState(false)
+  const searchTimeout = useRef<NodeJS.Timeout | null>(null)
+  const [inputFocused, setInputFocused] = useState(false)
+
   // Load all group types
-  useEffect(() => {
+  React.useEffect(() => {
     async function loadGroupTypes() {
       setGroupTypesLoading(true)
       try {
@@ -59,8 +65,8 @@ export default function AddGroupPage() {
     loadGroupTypes()
   }, [])
 
-  // Load targets whenever a type is selected
-  useEffect(() => {
+  // Load targets whenever a type is selected or search changes
+  React.useEffect(() => {
     async function loadTargets() {
       setTargetsLoading(true)
       setTargetsError(null)
@@ -75,7 +81,7 @@ export default function AddGroupPage() {
         switch (type.slug) {
           case 'author':
             table = 'authors'
-            label = 'display_name'
+            label = 'name'
             break
           case 'publisher':
             table = 'publishers'
@@ -88,18 +94,29 @@ export default function AddGroupPage() {
           default:
             return
         }
-        const { data, error } = await supabaseClient.from(table).select(`id, ${label}`)
+        let query = supabaseClient.from(table).select(`id, ${label}`)
+        if (targetSearch) {
+          query = query.ilike(label, `%${targetSearch}%`)
+        }
+        const { data, error } = await query.limit(10)
         if (error) throw error
         setTargets((data || []).map((row: any) => ({ id: row.id, name: row[label] })))
       } catch (err: any) {
-        console.error(err)
-        setTargetsError(err.message)
+        console.error('loadTargets error:', err, JSON.stringify(err))
+        setTargetsError(err.message || JSON.stringify(err) || 'Unknown error')
       } finally {
         setTargetsLoading(false)
       }
     }
-    if (selectedType !== null) loadTargets()
-  }, [selectedType, groupTypes])
+    if (selectedType !== null) {
+      if (searchTimeout.current) clearTimeout(searchTimeout.current)
+      setSearching(true)
+      searchTimeout.current = setTimeout(() => {
+        loadTargets().then(() => setSearching(false))
+      }, 300)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedType, targetSearch, groupTypes])
 
   const fileToBase64 = (file: File) =>
     new Promise<string>((resolve, reject) => {
@@ -150,7 +167,9 @@ export default function AddGroupPage() {
       }
 
       const { data: { user } } = await supabaseClient.auth.getUser()
-      // Insert group
+      if (!user?.id) throw new Error('User not authenticated')
+
+      // 1. Create the group
       const { data: newGroup, error: groupError } = await supabaseClient
         .from('groups')
         .insert({
@@ -158,25 +177,50 @@ export default function AddGroupPage() {
           description,
           cover_image_id: coverImageId,
           group_image_id: groupImageId,
-          created_by: user?.id,
+          created_by: user.id,
         })
+        .select()
         .single()
       if (groupError || !newGroup) throw groupError
 
-      // Attach to target using numeric group_type_id and selected target
+      // 2. Attach to target
       await supabaseClient
         .from('group_target_type')
-        .insert({ group_id: newGroup.id, target_type_id: selectedType!, target_id: selectedTarget })
+        .insert({ group_id: newGroup.id, target_type_id: selectedType!, target_id: selectedTarget?.id })
 
-      // Add creator as member
+      // 3. Insert default roles
+      const defaultRoles = [
+        { group_id: newGroup.id, name: 'Owner', description: 'Group creator and ultimate authority', is_default: false, permissions: { can_delete_group: true, can_manage_roles: true, can_edit_settings: true } },
+        { group_id: newGroup.id, name: 'Administrator', description: 'Can manage group settings and members', is_default: false, permissions: { can_manage_roles: true, can_edit_settings: true } },
+        { group_id: newGroup.id, name: 'Moderator', description: 'Can moderate content and manage members', is_default: false, permissions: { can_moderate: true } },
+        { group_id: newGroup.id, name: 'Member', description: 'Regular group member', is_default: true, permissions: {} },
+      ]
+      const { data: roles, error: rolesError } = await supabaseClient
+        .from('group_roles')
+        .insert(defaultRoles)
+        .select()
+      if (rolesError || !roles) throw rolesError
+
+      // 4. Find the Owner role id
+      const ownerRole = roles.find((r: any) => r.name === 'Owner')
+      if (!ownerRole) throw new Error('Failed to create Owner role')
+
+      // 5. Add creator as member with Owner role_id
       await supabaseClient
         .from('group_members')
-        .insert({ group_id: newGroup.id, user_id: user?.id, role: 'admin' })
+        .insert({ group_id: newGroup.id, user_id: user.id, role_id: ownerRole.id })
 
       router.push(`/groups/${newGroup.id}`)
     } catch (err: any) {
-      console.error(err)
-      setError(err.message || 'Failed to create group')
+      let errorMsg = 'Failed to create group'
+      if (err) {
+        if (typeof err === 'string') errorMsg = err
+        else if (err.message) errorMsg = err.message
+        else if (err.details) errorMsg = err.details
+        else errorMsg = JSON.stringify(err)
+      }
+      console.error('handleSubmit error:', err, JSON.stringify(err))
+      setError(errorMsg)
     } finally {
       setSaving(false)
     }
@@ -221,21 +265,45 @@ export default function AddGroupPage() {
                 <div>
                   <Label htmlFor="targetItem">Select {type.display_name}</Label>
                   {targetsError && <p className="text-red-600 mb-4">{targetsError}</p>}
-                  {targetsLoading ? (
-                    <p>Loading {type.display_name}s…</p>
-                  ) : (
-                    <Select id="targetItem" value={selectedTarget} onValueChange={setSelectedTarget}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={`Select ${type.display_name}`} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {targets.map((t) => (
-                          <SelectItem key={t.id} value={t.id}>
-                            {t.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="relative">
+                    <Input
+                      id="targetItem"
+                      value={selectedTarget ? selectedTarget.name : targetSearch}
+                      onChange={e => {
+                        setTargetSearch(e.target.value)
+                        setSelectedTarget(null)
+                      }}
+                      placeholder={`Search and select ${type.display_name}`}
+                      autoComplete="off"
+                      onFocus={() => setInputFocused(true)}
+                      onBlur={() => setTimeout(() => setInputFocused(false), 150)}
+                    />
+                    {((inputFocused && !selectedTarget) || (targetSearch && !selectedTarget)) && !searching && !targetsLoading && (
+                      <div className="absolute z-10 bg-white border rounded w-full mt-1 max-h-48 overflow-y-auto shadow">
+                        {targets.length === 0 ? (
+                          <div className="p-2 text-sm text-muted-foreground">No results</div>
+                        ) : (
+                          targets.map(t => (
+                            <div
+                              key={t.id}
+                              className={`p-2 cursor-pointer hover:bg-accent ${selectedTarget && selectedTarget.id === t.id ? 'bg-accent' : ''}`}
+                              onMouseDown={e => {
+                                e.preventDefault();
+                                setSelectedTarget(t);
+                                setTargetSearch("");
+                                setInputFocused(false);
+                              }}
+                            >
+                              {t.name}
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {targetsLoading || searching ? <p className="text-sm text-muted-foreground mt-2">Loading…</p> : null}
+                  {selectedTarget && (
+                    <div className="mt-2 text-green-700 text-sm">Selected: {selectedTarget.name}</div>
                   )}
                 </div>
               )

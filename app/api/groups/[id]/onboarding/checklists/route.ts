@@ -30,12 +30,12 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   // Verify user is an admin
   const { data: member, error: memberError } = await supabase
     .from('group_members')
-    .select('role')
+    .select('role_id, group_roles(name)')
     .eq('group_id', params.id)
     .eq('user_id', body.user_id)
     .single();
 
-  if (memberError || !member || member.role !== 'admin') {
+  if (memberError || !member || member.group_roles?.name !== 'Owner') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
   }
 
@@ -78,12 +78,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   // Verify user is an admin
   const { data: member, error: memberError } = await supabase
     .from('group_members')
-    .select('role')
+    .select('role_id, group_roles(name)')
     .eq('group_id', params.id)
     .eq('user_id', body.user_id)
     .single();
 
-  if (memberError || !member || member.role !== 'admin') {
+  if (memberError || !member || member.group_roles?.name !== 'Owner') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
   }
 
@@ -120,12 +120,12 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
   const { data: member, error: memberError } = await supabase
     .from('group_members')
-    .select('role')
+    .select('role_id, group_roles(name)')
     .eq('group_id', params.id)
     .eq('user_id', userId)
     .single();
 
-  if (memberError || !member || member.role !== 'admin') {
+  if (memberError || !member || member.group_roles?.name !== 'Owner') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
   }
 

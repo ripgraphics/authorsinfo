@@ -30,14 +30,14 @@ export function useGroupUser(groupId: string) {
       // Fetch group membership
       const { data: member, error: memberError } = await supabase
         .from("group_members")
-        .select("role")
+        .select("role_id, group_roles(name)")
         .eq("group_id", groupId)
         .eq("user_id", user.id)
         .single();
       if (memberError) {
         setGroupRole(null);
       } else {
-        setGroupRole(member?.role || null);
+        setGroupRole(member?.group_roles?.name || null);
       }
       setLoading(false);
     }

@@ -11,15 +11,8 @@ export const metadata: Metadata = {
 
 export const revalidate = 3600; // Revalidate every hour
 
-export default async function EventsPage({
-  searchParams,
-}: {
-  searchParams?: {
-    page?: string;
-    category?: string;
-    search?: string;
-  };
-}) {
+export default async function EventsPage({ searchParams: searchParamsPromise }: { searchParams?: any }) {
+  const searchParams = await searchParamsPromise;
   const page = Number(searchParams?.page) || 1;
   const limit = 12;
   const category = searchParams?.category || '';

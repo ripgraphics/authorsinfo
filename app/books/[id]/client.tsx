@@ -46,6 +46,7 @@ import { FollowersList } from "@/components/followers-list"
 import { FollowersListTab } from "@/components/followers-list-tab"
 import { ExpandableSection } from "@/components/ui/expandable-section"
 import { ViewFullDetailsButton } from "@/components/ui/ViewFullDetailsButton"
+import { TimelineAboutSection } from "@/components/author/TimelineAboutSection"
 
 // Helper function to format date as MM-DD-YYYY
 function formatDate(dateString?: string): string {
@@ -250,43 +251,13 @@ export function ClientBookPage({
               {/* Left Sidebar */}
               <div className="lg:col-span-1 space-y-6">
                 {/* About Section */}
-                <Card className="timeline-about-section">
-                  <CardContent className="timeline-about-section__content p-6 pt-0 space-y-4">
-                    <ExpandableSection
-                      title="About"
-                      headerButton={
-                        <button
-                          type="button"
-                          onClick={() => setActiveTab("details")}
-                          className="followers-list__see-all-button inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-9 rounded-md px-3 text-sm text-primary hover:bg-primary/10 hover:text-primary"
-                        >
-                          View More
-                        </button>
-                      }
-                      hideToggle
-                      sidePanelStyle
-                    >
-                      {book.synopsis || book.overview || "No information available about this book."}
-                    </ExpandableSection>
-                    {book.language && (
-                      <div className="timeline-about-section__language flex items-center">
-                        <Globe className="timeline-about-section__language-icon h-4 w-4 mr-2 text-muted-foreground" />
-                        <span className="timeline-about-section__language-text">
-                          Language: {book.language}
-                        </span>
-                      </div>
-                    )}
-                    {publishDate && (
-                      <div className="timeline-about-section__publish-date flex items-center">
-                        <Calendar className="timeline-about-section__publish-date-icon h-4 w-4 mr-2 text-muted-foreground" />
-                        <span className="timeline-about-section__publish-date-text">
-                          Published: {formatDate(publishDate)}
-                        </span>
-                      </div>
-                    )}
-                    <ViewFullDetailsButton onClick={() => setActiveTab("details")} />
-                  </CardContent>
-                </Card>
+                <TimelineAboutSection
+                  bio={book.synopsis || book.overview || undefined}
+                  nationality={book.language || undefined}
+                  website={book.website || undefined}
+                  onViewMore={() => setActiveTab("details")}
+                  onViewFullDetails={() => setActiveTab("details")}
+                />
 
                 {/* Friends/Followers Section */}
                 <FollowersList

@@ -23,7 +23,8 @@ import {
   BarChart3,
   Link2,
   Activity,
-  Clock
+  Clock,
+  Key
 } from "lucide-react"
 
 export function AdminSidebar() {
@@ -286,6 +287,15 @@ export function AdminSidebar() {
                   >
                     <Clock className="h-4 w-4" />
                     Timeline Generator
+                  </Link>
+                  <Link
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                      pathname === "/admin/reset-passwords" ? "bg-white/10 text-white font-medium" : "text-gray-400"
+                    }`}
+                    href="/admin/reset-passwords"
+                  >
+                    <Key className="h-4 w-4" />
+                    Reset Password
                   </Link>
                 </div>
               )}

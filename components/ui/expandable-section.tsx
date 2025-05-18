@@ -46,7 +46,7 @@ export const ExpandableSection: React.FC<ExpandableSectionProps> = ({
   return (
     <div className={`relative ${className}`}>
       {(title || headerButton) && (
-        <div className={`flex justify-between items-center mb-2${sidePanelStyle ? ' pb-2 pt-6' : ''}`}>
+        <div className={`flex justify-between items-center mb-2${sidePanelStyle ? ' pb-2' : ''}`}>
           <div className="text-2xl font-semibold leading-none tracking-tight">{title}</div>
           {headerButton && <div>{headerButton}</div>}
         </div>
@@ -54,7 +54,7 @@ export const ExpandableSection: React.FC<ExpandableSectionProps> = ({
       <div
         className={
           contentClassName +
-          (sidePanelStyle ? " pt-6" : "") +
+          (sidePanelStyle ? " pt-0" : "") +
           (expanded ? "" : ` line-clamp-${clipLines} overflow-hidden relative`)
         }
         style={

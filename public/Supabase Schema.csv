@@ -814,7 +814,6 @@ group_members,id,uuid
 group_members,group_id,uuid
 group_members,user_id,uuid
 group_members,joined_at,timestamp with time zone
-group_members,role,character varying
 group_members,created_at,timestamp with time zone
 group_members,updated_at,timestamp with time zone
 group_members,role_id,integer
@@ -965,6 +964,7 @@ groups,is_secret,boolean
 groups,og_image_url,text
 groups,theme_mode,text
 groups,custom_theme,jsonb
+groups,member_count,integer
 image_tag_mappings,image_id,integer
 image_tag_mappings,tag_id,uuid
 image_tag_mappings,created_at,timestamp with time zone

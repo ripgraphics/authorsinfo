@@ -1,63 +1,145 @@
-import { supabaseAdmin } from "@/lib/supabase"
-import { notFound } from "next/navigation"
-import Link from "next/link"
+"use client"
+
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { supabaseClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { PageContainer } from "@/components/page-container"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Skeleton } from "@/components/ui/skeleton"
 
-export const dynamic = "force-dynamic"
+interface Group {
+  id: string
+  name: string
+  description: string | null
+  member_count: number
+  created_at: string
+  cover_image_url: string | null
+}
 
-export default async function GroupsPage() {
-  const { data: groups, error } = await supabaseAdmin
-    .from("groups")
-    .select(`
-      id,
-      name,
-      cover_image:cover_image_id(id, url, alt_text),
-      group_image:group_image_id(id, url, alt_text)
-    `)
+export default function GroupsPage() {
+  const router = useRouter()
+  const [groups, setGroups] = useState<Group[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [error, setError] = useState<string | null>(null)
 
-  if (error) {
-    notFound()
-  }
+  useEffect(() => {
+    async function loadGroups() {
+      try {
+        setLoading(true)
+        setError(null)
+        
+        const { data: { user } } = await supabaseClient.auth.getUser()
+        if (!user) {
+          router.push('/auth/signin?redirect=/groups')
+          return
+        }
 
-  if (!groups || groups.length === 0) {
-    return (
-      <PageContainer title="Groups">
-        <div className="flex justify-end mb-4">
-          <Link href="/groups/add">
-            <Button>Add New Group</Button>
-          </Link>
-        </div>
-        <p className="text-center text-muted-foreground py-12">No groups found. Create one to get started!</p>
-      </PageContainer>
-    )
-  }
+        let query = supabaseClient
+          .from('groups')
+          .select('*')
+          .order('created_at', { ascending: false })
+
+        if (searchQuery) {
+          query = query.ilike('name', `%${searchQuery}%`)
+        }
+
+        const { data, error: groupsError } = await query
+
+        if (groupsError) throw groupsError
+        setGroups(data || [])
+      } catch (err: any) {
+        console.error('Error loading groups:', err)
+        setError(err.message || 'Failed to load groups')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadGroups()
+  }, [router, searchQuery])
 
   return (
-    <PageContainer title="Groups">
-      <div className="flex justify-end mb-4">
-        <Link href="/groups/add">
-          <Button>Add New Group</Button>
-        </Link>
+    <>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Groups</h1>
+        <Button onClick={() => router.push('/groups/create')}>
+          Create Group
+        </Button>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {groups.map((group) => {
-          const coverUrl = group.cover_image?.[0]?.url || "/placeholder.svg?height=400&width=1200"
-          return (
-            <Link href={`/groups/${group.id}`} key={group.id} className="block">
-              <Card className="overflow-hidden h-full transition-transform hover:scale-105">
-                <div className="relative w-full aspect-[7/4]">
-                  <img src={coverUrl} alt={group.name} className="object-cover w-full h-full" />
+
+      <div className="mb-6">
+        <Input
+          type="search"
+          placeholder="Search groups..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="max-w-md"
+        />
+      </div>
+
+      {error && (
+        <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6">
+          {error}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {loading ? (
+          // Loading skeletons
+          Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i} className="overflow-hidden">
+              <Skeleton className="h-48 w-full" />
+              <CardHeader>
+                <Skeleton className="h-6 w-3/4" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-2/3" />
+              </CardContent>
+              <CardFooter>
+                <Skeleton className="h-4 w-1/3" />
+              </CardFooter>
+            </Card>
+          ))
+        ) : groups.length === 0 ? (
+          <div className="col-span-full text-center py-12 text-gray-500">
+            {searchQuery ? 'No groups found matching your search' : 'No groups available'}
+          </div>
+        ) : (
+          groups.map((group) => (
+            <Card 
+              key={group.id} 
+              className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => router.push(`/groups/${group.id}`)}
+            >
+              {group.cover_image_url && (
+                <div className="h-48 w-full">
+                  <img 
+                    src={group.cover_image_url} 
+                    alt={group.name}
+                    className="h-full w-full object-cover"
+                  />
                 </div>
-                <CardContent className="p-3">
-                  <h3 className="font-medium text-sm line-clamp-1">{group.name}</h3>
-                </CardContent>
-              </Card>
-            </Link>
-          )
-        })}
+              )}
+              <CardHeader>
+                <CardTitle>{group.name}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-600 line-clamp-2">
+                  {group.description || 'No description available'}
+                </p>
+              </CardContent>
+              <CardFooter>
+                <p className="text-sm text-gray-500">
+                  {group.member_count} {group.member_count === 1 ? 'member' : 'members'}
+                </p>
+              </CardFooter>
+            </Card>
+          ))
+        )}
       </div>
-    </PageContainer>
+    </>
   )
-}
+} 

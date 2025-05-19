@@ -77,12 +77,12 @@ export function PageHeader({ title, description }: PageHeaderProps) {
 
           {/* User avatar dropdown, only if logged in */}
           {!loading && user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="user-avatar-button rounded-full hover:bg-accent hover:text-accent-foreground p-0">
-                  <div className="user-avatar-container relative w-10 h-10 overflow-hidden rounded-full border-2 border-white shadow-md">
+                <div className="user-avatar-container relative w-10 h-10 overflow-hidden rounded-full border-2 border-white shadow-md">
                     {user.user_metadata?.avatar_url ? (
-                      <img
+                  <img 
                         alt={user.user_metadata.full_name || user.email || "User"}
                         src={user.user_metadata.avatar_url}
                         className="user-avatar-image object-cover rounded-full w-10 h-10"
@@ -92,39 +92,39 @@ export function PageHeader({ title, description }: PageHeaderProps) {
                         {user.user_metadata?.full_name?.[0] || user.email?.[0] || <User className="h-5 w-5" />}
                       </span>
                     )}
-                  </div>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 page-header__dropdown-content">
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 page-header__dropdown-content">
                 <Link href={`/profile/${user.id}`}>
-                  <DropdownMenuItem className="page-header__dropdown-item">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
-                  </DropdownMenuItem>
-                </Link>
-                <Link href="/users">
-                  <DropdownMenuItem className="page-header__dropdown-item">
-                    <Users className="mr-2 h-4 w-4" />
-                    <span>Users</span>
-                  </DropdownMenuItem>
-                </Link>
-                <Link href="/bookshelves">
-                  <DropdownMenuItem className="page-header__dropdown-item">
-                    <BookOpen className="mr-2 h-4 w-4" />
-                    <span>My Books</span>
-                  </DropdownMenuItem>
-                </Link>
-                <DropdownMenuSeparator className="page-header__dropdown-separator" />
+                <DropdownMenuItem className="page-header__dropdown-item">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/users">
+                <DropdownMenuItem className="page-header__dropdown-item">
+                  <Users className="mr-2 h-4 w-4" />
+                  <span>Users</span>
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/bookshelves">
+                <DropdownMenuItem className="page-header__dropdown-item">
+                  <BookOpen className="mr-2 h-4 w-4" />
+                  <span>My Books</span>
+                </DropdownMenuItem>
+              </Link>
+              <DropdownMenuSeparator className="page-header__dropdown-separator" />
                 <DropdownMenuItem className="page-header__dropdown-item" onClick={async () => {
                   const supabase = createClientComponentClient()
                   await supabase.auth.signOut()
                   window.location.reload()
                 }}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           ) : !loading && (
             <Button variant="ghost" size="icon" className="user-avatar-button rounded-full hover:bg-accent hover:text-accent-foreground p-0" onClick={() => router.push("/login")}> 
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-700 text-white">

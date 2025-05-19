@@ -8,10 +8,15 @@ interface GroupPageProps {
 }
 
 export default async function GroupPage({ params }: GroupPageProps) {
-  const { id } = params
+  const { id } = await params
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (!baseUrl) {
+    throw new Error("NEXT_PUBLIC_APP_URL is not set. Please set it in your .env.local file.");
+  }
 
   // Fetch all group fields from the new API endpoint
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/groups/${id}`, { cache: 'no-store' })
+  const res = await fetch(`${baseUrl}/api/groups/${id}`, { cache: 'no-store' })
   const group = await res.json()
 
   if (!group || group.error || !group.name) {

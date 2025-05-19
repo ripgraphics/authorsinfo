@@ -122,17 +122,15 @@ export default async function PublisherPage({ params }: { params: Promise<{ id: 
     .eq("publisher_id", id)
 
   return (
-    <PageContainer>
-      <ClientPublisherPage
-        publisher={publisher}
-        publisherImageUrl={publisherImageUrl}
-        coverImageUrl={coverImageUrl}
-        params={{ id }}
-        followers={followers}
-        followersCount={followersCount}
-        books={books}
-        booksCount={totalBooksCount || 0}
-      />
-    </PageContainer>
+    <ClientPublisherPage
+      publisher={publisher}
+      publisherImageUrl={publisherImageUrl}
+      coverImageUrl={coverImageUrl}
+      params={{ id }}
+      followers={followers}
+      followersCount={followersCount}
+      books={books}
+      booksCount={totalBooksCount || 0}
+    />
   )
 }

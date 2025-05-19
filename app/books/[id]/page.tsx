@@ -1,11 +1,13 @@
+import { Metadata } from "next"
 import { notFound, redirect } from "next/navigation"
 import { getBookById, getAuthorsByBookId, getPublisherById, getReviewsByBookId, getBooksByPublisherId, getBooksByAuthorId } from "@/app/actions/data"
 import { supabaseAdmin } from "@/lib/supabase"
 import type { Book, Author, Review, BindingType, FormatType } from '@/types/book'
-import { PageContainer } from "@/components/page-container"
 import { PageBanner } from "@/components/page-banner"
 import { ClientBookPage } from "./client"
 import { getFollowers, getFollowersCount } from "@/lib/follows-server"
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
+import { cookies } from "next/headers"
 
 interface BookPageProps {
   params: {
@@ -103,9 +105,9 @@ async function getUserReadingProgress(userId: string | null, bookId: string) {
   }
 }
 
-export default async function BookPage({ params }: BookPageProps) {
-  // Next.js App Router requires awaiting params before using
-  const { id } = await params;
+export default async function BookPageServer({ params }: { params: { id: string } }) {
+  const { id } = params
+  const supabase = createServerComponentClient({ cookies })
 
   // Special case: if id is "add", redirect to the add page
   if (id === "add") {
@@ -215,24 +217,22 @@ export default async function BookPage({ params }: BookPageProps) {
         {/* Full width banner outside container constraints */}
         <div className="w-full">
           <PageBanner />
-                </div>
+        </div>
 
-        <PageContainer>
-          <ClientBookPage
-            book={book}
-                    authors={authors} 
-            publisher={publisher}
-            reviews={reviews}
-            publisherBooksCount={publisherBooksCount}
-                    authorBookCounts={authorBookCounts}
-            bindingType={bindingType}
-            formatType={formatType}
-            readingProgress={readingProgress}
-            followers={followers}
-            followersCount={followersCount}
-            params={{ id }}
-          />
-        </PageContainer>
+        <ClientBookPage
+          book={book}
+          authors={authors}
+          publisher={publisher}
+          publisherBooksCount={publisherBooksCount}
+          authorBookCounts={authorBookCounts}
+          reviews={reviews}
+          bindingType={bindingType}
+          formatType={formatType}
+          readingProgress={readingProgress}
+          followers={followers}
+          followersCount={followersCount}
+          params={{ id }}
+        />
       </>
     )
   } catch (error) {

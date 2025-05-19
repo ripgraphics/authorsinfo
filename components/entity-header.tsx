@@ -7,34 +7,51 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Camera, BookOpen, Users, MapPin, Globe, User, MoreHorizontal, MessageSquare, UserPlus } from "lucide-react"
 import Link from "next/link"
 import { Avatar } from "@/components/ui/avatar"
+import { cn } from "@/lib/utils"
+
+export type EntityType = 'author' | 'publisher' | 'book' | 'group' | 'photo'
+
+export interface Stat {
+  icon: React.ReactNode
+  text: string
+  href?: string
+}
 
 export interface TabConfig {
   id: string
   label: string
+  disabled?: boolean
 }
 
-interface EntityHeaderProps {
-  entityType: 'author' | 'publisher' | 'book' | 'group' | 'photo'
+export interface EntityHeaderProps {
+  entityType: EntityType
   name: string
   username?: string
+  description?: string
   coverImageUrl: string
   profileImageUrl: string
-  stats?: Array<{
-    icon: React.ReactNode
-    text: string
-  }>
+  stats?: Stat[]
   location?: string
   website?: string
   tabs: TabConfig[]
   activeTab: string
   onTabChange: (tabId: string) => void
   children?: React.ReactNode
+  className?: string
+  onCoverImageChange?: () => void
+  onProfileImageChange?: () => void
+  onMessage?: () => void
+  onFollow?: () => void
+  isFollowing?: boolean
+  isMessageable?: boolean
+  isEditable?: boolean
 }
 
 export function EntityHeader({
   entityType,
   name,
   username,
+  description,
   coverImageUrl,
   profileImageUrl,
   stats = [],
@@ -43,25 +60,36 @@ export function EntityHeader({
   tabs,
   activeTab,
   onTabChange,
-  children
+  children,
+  className,
+  onCoverImageChange,
+  onProfileImageChange,
+  onMessage,
+  onFollow,
+  isFollowing = false,
+  isMessageable = true,
+  isEditable = false,
 }: EntityHeaderProps) {
   return (
-    <div className="entity-header bg-white rounded-lg shadow overflow-hidden mb-6">
+    <div className={cn("entity-header bg-white rounded-lg shadow overflow-hidden mb-6", className)}>
       {/* Cover Image */}
       <div className="entity-header__cover-image relative h-auto aspect-[1344/500]">
         <img
           src={coverImageUrl || "/placeholder.svg?height=400&width=1200"}
-          alt={`${entityType} cover`}
+          alt={`${name} cover`}
           className="entity-header__cover-image-content object-cover absolute inset-0 w-full h-full"
         />
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="entity-header__cover-image-button absolute bottom-4 right-4 bg-white/80 hover:bg-white"
-        >
-          <Camera className="h-4 w-4 mr-2" />
-          Change Cover
-        </Button>
+        {isEditable && onCoverImageChange && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="entity-header__cover-image-button absolute bottom-4 right-4 bg-white/80 hover:bg-white"
+            onClick={onCoverImageChange}
+          >
+            <Camera className="h-4 w-4 mr-2" />
+            Change Cover
+          </Button>
+        )}
       </div>
 
       {/* Header Content */}
@@ -70,13 +98,16 @@ export function EntityHeader({
           {/* Profile Image */}
           <div className="entity-header__avatar-container relative">
             <Avatar src={profileImageUrl || "/placeholder.svg?height=200&width=200"} alt={name} name={name} size="lg" />
-            <Button
-              variant="outline"
-              size="icon"
-              className="entity-header__avatar-button absolute bottom-2 right-2 rounded-full h-8 w-8 bg-white/80 hover:bg-white"
-            >
-              <Camera className="h-4 w-4" />
-            </Button>
+            {isEditable && onProfileImageChange && (
+              <Button
+                variant="outline"
+                size="icon"
+                className="entity-header__avatar-button absolute bottom-2 right-2 rounded-full h-8 w-8 bg-white/80 hover:bg-white"
+                onClick={onProfileImageChange}
+              >
+                <Camera className="h-4 w-4" />
+              </Button>
+            )}
           </div>
 
           {/* Entity Info */}
@@ -89,17 +120,33 @@ export function EntityHeader({
                     {username.startsWith('@') || username.startsWith('by ') ? username : `@${username}`}
                   </p>
                 )}
+                {description && (
+                  <p className="text-muted-foreground mt-1 line-clamp-2">{description}</p>
+                )}
               </div>
 
               <div className="entity-header__actions flex flex-wrap gap-2 mt-2 md:mt-0 shrink-0 md:flex-nowrap">
-                <Button className="flex items-center">
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">Message</span>
-                </Button>
-                <Button variant="outline" className="flex items-center">
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">{entityType === 'book' ? 'Add to Shelf' : 'Follow'}</span>
-                </Button>
+                {isMessageable && onMessage && (
+                  <Button className="flex items-center" onClick={onMessage}>
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    <span className="hidden sm:inline">Message</span>
+                  </Button>
+                )}
+                {onFollow && (
+                  <Button 
+                    variant={isFollowing ? "outline" : "default"} 
+                    className="flex items-center"
+                    onClick={onFollow}
+                  >
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    <span className="hidden sm:inline">
+                      {entityType === 'book' 
+                        ? (isFollowing ? 'Remove from Shelf' : 'Add to Shelf')
+                        : (isFollowing ? 'Unfollow' : 'Follow')
+                      }
+                    </span>
+                  </Button>
+                )}
                 <Button variant="outline" size="icon">
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
@@ -110,30 +157,39 @@ export function EntityHeader({
             <div className="flex flex-wrap gap-x-6 gap-y-2 mt-4">
               {stats.map((stat, index) => (
                 <div key={index} className="flex items-center text-muted-foreground">
-                  {stat.icon}
-                  <span>{stat.text}</span>
+                  {stat.href ? (
+                    <Link href={stat.href} className="flex items-center hover:text-primary">
+                      {stat.icon}
+                      <span>{stat.text}</span>
+                    </Link>
+                  ) : (
+                    <>
+                      {stat.icon}
+                      <span>{stat.text}</span>
+                    </>
+                  )}
                 </div>
               ))}
               
               {location && (
-              <div className="flex items-center text-muted-foreground">
-                <MapPin className="h-4 w-4 mr-1" />
-                <span>{location}</span>
-              </div>
+                <div className="flex items-center text-muted-foreground">
+                  <MapPin className="h-4 w-4 mr-1" />
+                  <span>{location}</span>
+                </div>
               )}
               
               {website && (
-              <div className="flex items-center text-muted-foreground">
-                <a
-                  href={website.startsWith('http') ? website : `https://${website}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center hover:text-primary hover:underline"
-                >
-                  <Globe className="h-4 w-4 mr-1" />
-                  <span>Website</span>
-                </a>
-              </div>
+                <div className="flex items-center text-muted-foreground">
+                  <a
+                    href={website.startsWith('http') ? website : `https://${website}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center hover:text-primary hover:underline"
+                  >
+                    <Globe className="h-4 w-4 mr-1" />
+                    <span>Website</span>
+                  </a>
+                </div>
               )}
             </div>
           </div>
@@ -147,10 +203,15 @@ export function EntityHeader({
             {tabs.map((tab) => (
               <button
                 key={tab.id}
-                className={`entity-header__tab inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 ${
-                  activeTab === tab.id ? "border-b-2 border-primary" : ""
-                }`}
-                onClick={() => onTabChange(tab.id)}
+                className={cn(
+                  "entity-header__tab inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12",
+                  activeTab === tab.id && "border-b-2 border-primary",
+                  tab.disabled && "opacity-50 cursor-not-allowed"
+                )}
+                onClick={() => !tab.disabled && onTabChange(tab.id)}
+                disabled={tab.disabled}
+                aria-selected={activeTab === tab.id}
+                role="tab"
               >
                 {tab.label}
               </button>

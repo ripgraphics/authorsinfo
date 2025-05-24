@@ -106,8 +106,9 @@ async function getUserReadingProgress(userId: string | null, bookId: string) {
 }
 
 export default async function BookPageServer({ params }: { params: { id: string } }) {
-  const { id } = params
-  const supabase = createServerComponentClient({ cookies })
+  const id = await params.id
+  const cookieStore = await cookies()
+  const supabase = createServerComponentClient({ cookies: () => cookieStore })
 
   // Special case: if id is "add", redirect to the add page
   if (id === "add") {

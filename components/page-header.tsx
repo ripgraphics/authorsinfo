@@ -80,20 +80,12 @@ export function PageHeader({ title, description }: PageHeaderProps) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="user-avatar-button rounded-full hover:bg-accent hover:text-accent-foreground p-0">
-                <div className="user-avatar-container relative w-10 h-10 overflow-hidden rounded-full border-2 border-white shadow-md">
-                    {user.user_metadata?.avatar_url ? (
-                  <img 
-                        alt={user.user_metadata.full_name || user.email || "User"}
-                        src={user.user_metadata.avatar_url}
-                        className="user-avatar-image object-cover rounded-full w-10 h-10"
-                      />
-                    ) : (
-                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-700 text-white text-lg font-bold">
-                        {user.user_metadata?.full_name?.[0] || user.email?.[0] || <User className="h-5 w-5" />}
-                      </span>
-                    )}
-                </div>
-              </Button>
+                  <Avatar
+                    src={user.user_metadata?.avatar_url}
+                    alt={user.user_metadata?.full_name || user.email || "User"}
+                    name={user.user_metadata?.full_name || user.email || ""}
+                  />
+                </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 page-header__dropdown-content">
                 <Link href={`/profile/${user.id}`}>
@@ -127,9 +119,9 @@ export function PageHeader({ title, description }: PageHeaderProps) {
           </DropdownMenu>
           ) : !loading && (
             <Button variant="ghost" size="icon" className="user-avatar-button rounded-full hover:bg-accent hover:text-accent-foreground p-0" onClick={() => router.push("/login")}> 
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-700 text-white">
-                <Lock className="h-5 w-5" />
-              </span>
+              <Avatar
+                name=""
+              />
             </Button>
           )}
 

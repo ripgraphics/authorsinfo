@@ -1,8 +1,23 @@
 "use client"
 
 import { Input } from "@/components/ui/input"
+import { format } from 'date-fns'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
 
-import { useState } from "react"
+// Helper function to format date
+function formatDate(dateString?: string): string {
+  if (!dateString) return "Not specified"
+  return format(new Date(dateString), 'MMMM d, yyyy')
+}
+
+import { useState, useEffect, ReactElement } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -27,9 +42,53 @@ import {
   Ellipsis,
   Filter,
   ChevronDown,
+  PlusIcon,
+  PinIcon,
+  MessageSquareIcon,
+  ClockIcon,
+  Search,
+  BookmarkIcon,
+  FlagIcon,
+  ThumbsUp,
+  Eye,
+  UserMinus,
+  Trash2,
+  Pencil,
+
 } from "lucide-react"
 import { FollowersList } from "@/components/followers-list"
 import { EntityHeader, TabConfig } from "@/components/entity-header"
+import { UserHoverCard } from "@/components/user-hover-card"
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
+import { useGroup, GroupProvider } from "@/contexts/GroupContext"
+import { useRouter } from "next/navigation"
+import { Label } from "@/components/ui/label"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { uploadImage, deleteImage, getPublicIdFromUrl } from "@/app/actions/upload"
+import { useToast } from "@/components/ui/use-toast"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  CheckCircle2,
+} from "lucide-react"
+import { FeedItemFooter } from "@/components/feed/FeedItemFooter"
+import { getGroupInfo } from '@/utils/groupInfo';
 
 interface ClientGroupPageProps {
   group: any
@@ -41,14 +100,443 @@ interface ClientGroupPageProps {
 }
 
 export function ClientGroupPage({ group, avatarUrl, coverImageUrl, params }: ClientGroupPageProps) {
+  return (
+    <GroupProvider groupId={params.id}>
+      <ClientGroupPageContent 
+        group={group} 
+        avatarUrl={avatarUrl} 
+        coverImageUrl={coverImageUrl} 
+        params={params} 
+      />
+    </GroupProvider>
+  )
+}
+
+interface GroupRule {
+  id?: string;  // Optional for new rules
+  title: string;
+  description?: string;
+  order_index: number;
+  group_id: string;
+}
+
+interface NewGroupRule {
+  title: string;
+  description?: string;
+  group_id: string;
+}
+
+interface GroupCustomField {
+  id: string;
+  group_id: string;
+  field_name: string;
+  field_type: string;
+  field_options: {
+    value: string;
+  };
+  created_at: string;
+}
+
+interface Group {
+  id: string;
+  name: string;
+  description?: string;
+  is_private: boolean;
+  created_by: string;
+  created_at: string;
+  cover_image_url?: string;
+  member_count?: number;
+  group_image_id?: number;
+  cover_image_id?: number;
+  is_public: boolean;
+  is_discoverable: boolean;
+  tags?: string[];
+  updated_at: string;
+  creatorName?: string;
+  creatorEmail?: string;
+  creatorCreatedAt?: string;
+  contact_info?: ContactInfo;
+  followers?: any[];
+  creator?: {
+    name: string;
+  };
+}
+
+interface ContactInfo {
+  id: string;
+  entity_type: string;
+  entity_id: string;
+  email?: string;
+  phone?: string;
+  website?: string;
+  address_line1?: string;
+  address_line2?: string;
+  city?: string;
+  state?: string;
+  postal_code?: string;
+  country?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export function ClientGroupPageContent({ group: initialGroup, avatarUrl, coverImageUrl, params }: ClientGroupPageProps): ReactElement {
   const [activeTab, setActiveTab] = useState("timeline")
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false)
+  const [isCoverModalOpen, setIsCoverModalOpen] = useState(false)
+  const [isRulesModalOpen, setIsRulesModalOpen] = useState(false)
+  const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null)
+  const [selectedCoverFile, setSelectedCoverFile] = useState<File | null>(null)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [coverPreview, setCoverPreview] = useState<string | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const router = useRouter()
+  const { permissions } = useGroup()
+  const { toast } = useToast()
+  const supabase = createClientComponentClient()
+  const [groupRules, setGroupRules] = useState<GroupRule[]>([])
+  const [editingRule, setEditingRule] = useState<GroupRule | NewGroupRule | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+
+  // Add these state variables near the other state declarations
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [editedDescription, setEditedDescription] = useState('');
+
+  // Update the component to include group state
+  const [group, setGroup] = useState<Group>(initialGroup);
+
+  // Add state for custom fields
+  const [customFields, setCustomFields] = useState<GroupCustomField[]>([]);
+
+
+
+  // Fetch group rules
+  useEffect(() => {
+    const fetchRules = async () => {
+      try {
+        const response = await fetch(`/api/groups/${params.id}/rules`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch rules');
+        }
+        const result = await response.json();
+        if (result.error) {
+          throw new Error(result.error);
+        }
+        setGroupRules(result.data || []);
+      } catch (error) {
+        console.error('Error fetching rules:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load group rules",
+          variant: "destructive"
+        });
+      }
+    };
+    fetchRules();
+  }, [params.id, toast]);
+
+  // Handle cover image change
+  const handleCoverImageChange = () => {
+    setIsCoverModalOpen(true)
+  }
+
+  // Handle profile image change
+  const handleProfileImageChange = () => {
+    setIsAvatarModalOpen(true)
+  }
+
+  // Handle avatar file selection
+  const handleAvatarFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      setSelectedAvatarFile(file)
+      const previewUrl = URL.createObjectURL(file)
+      setAvatarPreview(previewUrl)
+    }
+  }
+
+  // Handle cover file selection
+  const handleCoverFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      setSelectedCoverFile(file)
+      const previewUrl = URL.createObjectURL(file)
+      setCoverPreview(previewUrl)
+    }
+  }
+
+  // Handle avatar upload
+  const handleAvatarUpload = async () => {
+    if (!selectedAvatarFile) return
+
+    setIsUploading(true)
+    try {
+      // Get the old image URL and delete it from Cloudinary if it exists
+      if (group.group_image_id) {
+        const { data: oldImage } = await supabase
+          .from('images')
+          .select('url')
+          .eq('id', group.group_image_id)
+          .single()
+
+        if (oldImage?.url) {
+          const publicId = await getPublicIdFromUrl(oldImage.url)
+          if (publicId) {
+            try {
+              await deleteImage(publicId)
+              console.log("Old avatar deleted from Cloudinary")
+            } catch (deleteError) {
+              console.error("Failed to delete old avatar from Cloudinary:", deleteError)
+            }
+          }
+        }
+      }
+
+      // Convert file to base64
+      const reader = new FileReader()
+      const base64Promise = new Promise<string>((resolve, reject) => {
+        reader.onloadend = () => {
+          const base64 = reader.result as string
+          resolve(base64)
+        }
+        reader.onerror = () => {
+          reject(new Error("Failed to read file"))
+        }
+        reader.readAsDataURL(selectedAvatarFile)
+      })
+
+      const base64Image = await base64Promise
+      console.log("Base64 image prepared, uploading avatar to Cloudinary...")
+
+      // Upload the new image to Cloudinary
+      const uploadResult = await uploadImage(
+        base64Image,
+        "authorsinfo/group_avatar",
+        `Avatar for ${group.name}`,
+        400, // maxWidth for avatar
+        400  // maxHeight for avatar
+      )
+
+      if (uploadResult) {
+        console.log("Avatar uploaded successfully:", uploadResult.url)
+        
+        // Get the old image ID before updating
+        const oldImageId = group.group_image_id
+
+        // Insert into images table
+        const { data: imageData, error: imageError } = await supabase
+          .from('images')
+          .insert({
+            url: uploadResult.url,
+            alt_text: `Avatar for ${group.name}`,
+            img_type_id: 29, // group_avatar
+            storage_provider: 'cloudinary',
+            storage_path: 'authorsinfo/group_avatar',
+            original_filename: selectedAvatarFile.name,
+            file_size: selectedAvatarFile.size,
+            mime_type: selectedAvatarFile.type,
+            is_processed: true,
+            processing_status: 'completed'
+          })
+          .select()
+          .single()
+
+        if (imageError) {
+          throw new Error(`Failed to insert image record: ${imageError.message}`)
+        }
+
+        if (imageData) {
+          // Update the group with the new image ID
+          const { error: updateError } = await supabase
+            .from('groups')
+            .update({ group_image_id: imageData.id })
+            .eq('id', params.id)
+
+          if (updateError) {
+            throw new Error(`Failed to update group: ${updateError.message}`)
+          }
+
+          // Mark the old image as deleted if it exists
+          if (oldImageId) {
+            const { error: deleteError } = await supabase
+              .from('images')
+              .update({ deleted_at: new Date().toISOString() })
+              .eq('id', oldImageId)
+
+            if (deleteError) {
+              console.error('Failed to mark old image as deleted:', deleteError)
+            }
+          }
+
+          toast({
+            title: "Success",
+            description: "Group avatar updated successfully"
+          })
+          
+          // Close modal and refresh page
+          setIsAvatarModalOpen(false)
+          setSelectedAvatarFile(null)
+          setAvatarPreview(null)
+          router.refresh()
+        }
+      } else {
+        throw new Error("Failed to upload image - no URL returned")
+      }
+    } catch (error) {
+      console.error("Upload error details:", error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to upload avatar",
+        variant: "destructive"
+      })
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  // Handle cover upload
+  const handleCoverUpload = async () => {
+    if (!selectedCoverFile) return
+
+    setIsUploading(true)
+    try {
+      // Get the old image URL and delete it from Cloudinary if it exists
+      if (group.cover_image_id) {
+        const { data: oldImage } = await supabase
+          .from('images')
+          .select('url')
+          .eq('id', group.cover_image_id)
+          .single()
+
+        if (oldImage?.url) {
+          const publicId = await getPublicIdFromUrl(oldImage.url)
+          if (publicId) {
+            try {
+              await deleteImage(publicId)
+              console.log("Old cover deleted from Cloudinary")
+            } catch (deleteError) {
+              console.error("Failed to delete old cover from Cloudinary:", deleteError)
+            }
+          }
+        }
+      }
+
+      // Convert file to base64
+      const reader = new FileReader()
+      const base64Promise = new Promise<string>((resolve, reject) => {
+        reader.onloadend = () => {
+          const base64 = reader.result as string
+          resolve(base64)
+        }
+        reader.onerror = () => {
+          reject(new Error("Failed to read file"))
+        }
+        reader.readAsDataURL(selectedCoverFile)
+      })
+
+      const base64Image = await base64Promise
+      console.log("Base64 image prepared, uploading cover to Cloudinary...")
+
+      // Upload the new image to Cloudinary
+      const uploadResult = await uploadImage(
+        base64Image,
+        "authorsinfo/group_cover",
+        `Cover for ${group.name}`,
+        1200, // maxWidth for cover
+        400   // maxHeight for cover
+      )
+
+      if (uploadResult) {
+        console.log("Cover uploaded successfully:", uploadResult.url)
+        
+        // Get the old image ID before updating
+        const oldImageId = group.cover_image_id
+
+        // Insert into images table
+        const { data: imageData, error: imageError } = await supabase
+          .from('images')
+          .insert({
+            url: uploadResult.url,
+            alt_text: `Cover for ${group.name}`,
+            img_type_id: 31, // group_cover
+            storage_provider: 'cloudinary',
+            storage_path: 'authorsinfo/group_cover',
+            original_filename: selectedCoverFile.name,
+            file_size: selectedCoverFile.size,
+            mime_type: selectedCoverFile.type,
+            is_processed: true,
+            processing_status: 'completed'
+          })
+          .select()
+          .single()
+
+        if (imageError) {
+          throw new Error(`Failed to insert image record: ${imageError.message}`)
+        }
+
+        if (imageData) {
+          // Update the group with the new image ID
+          const { error: updateError } = await supabase
+            .from('groups')
+            .update({ cover_image_id: imageData.id })
+            .eq('id', params.id)
+
+          if (updateError) {
+            throw new Error(`Failed to update group: ${updateError.message}`)
+          }
+
+          // Mark the old image as deleted if it exists
+          if (oldImageId) {
+            const { error: deleteError } = await supabase
+              .from('images')
+              .update({ deleted_at: new Date().toISOString() })
+              .eq('id', oldImageId)
+
+            if (deleteError) {
+              console.error('Failed to mark old image as deleted:', deleteError)
+            }
+          }
+
+          toast({
+            title: "Success",
+            description: "Group cover updated successfully"
+          })
+          
+          // Close modal and refresh page
+          setIsCoverModalOpen(false)
+          setSelectedCoverFile(null)
+          setCoverPreview(null)
+          router.refresh()
+        }
+      } else {
+        throw new Error("Failed to upload image - no URL returned")
+      }
+    } catch (error) {
+      console.error("Upload error details:", error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to upload cover",
+        variant: "destructive"
+      })
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  console.log('Group data:', {
+    id: group?.id,
+    name: group?.name,
+    created_by: group?.created_by,
+    creatorName: group?.creatorName,
+    isEditable: permissions.isOwner() || permissions.isAdmin()
+  })
 
   // Use real group data if available
   const name = group?.name || "Unnamed Group"
-  const bio = group?.bio || ""
+  const description = group?.description || ""
   const tags = group?.tags || []
-  const colorTheme = group?.color_theme || undefined
-  const themeMode = group?.theme_mode || undefined
+  const isPublic = group?.is_public ?? true
+  const isDiscoverable = group?.is_discoverable ?? true
+  const memberCount = group?.member_count || 0
 
   // Configure tabs for the EntityHeader
   const tabs: TabConfig[] = [
@@ -64,7 +552,15 @@ export function ClientGroupPage({ group, avatarUrl, coverImageUrl, params }: Cli
   const groupStats = [
     { 
       icon: <Users className="h-4 w-4 mr-1" />, 
-      text: `${group.member_count || 0} members` 
+      text: `${memberCount} members` 
+    },
+    {
+      icon: <Globe className="h-4 w-4 mr-1" />,
+      text: isPublic ? "Public" : "Private"
+    },
+    {
+      icon: <Star className="h-4 w-4 mr-1" />,
+      text: isDiscoverable ? "Discoverable" : "Hidden"
     }
   ]
 
@@ -125,33 +621,45 @@ export function ClientGroupPage({ group, avatarUrl, coverImageUrl, params }: Cli
     {
       id: "1",
       type: "rating",
-      bookTitle: "Dune",
-      bookAuthor: "Frank Herbert",
+      bookTitle: "The Midnight Library",
+      bookAuthor: "Matt Haig",
       rating: 5,
-      timeAgo: "2 days ago",
+      timeAgo: "2 hours ago",
+      views: 64,
+      likes: 42,
+      replies: 2
     },
     {
       id: "2",
       type: "finished",
-      bookTitle: "The Hobbit",
-      bookAuthor: "J.R.R. Tolkien",
-      timeAgo: "1 week ago",
+      bookTitle: "Project Hail Mary",
+      bookAuthor: "Andy Weir",
+      timeAgo: "1 day ago",
+      views: 128,
+      likes: 89,
+      replies: 5
     },
     {
       id: "3",
       type: "added",
-      bookTitle: "The Way of Kings",
-      bookAuthor: "Brandon Sanderson",
+      bookTitle: "Klara and the Sun",
+      bookAuthor: "Kazuo Ishiguro",
       shelf: "Want to Read",
-      timeAgo: "2 weeks ago",
+      timeAgo: "3 days ago",
+      views: 256,
+      likes: 156,
+      replies: 12
     },
     {
       id: "4",
       type: "reviewed",
-      bookTitle: "Circe",
-      bookAuthor: "Madeline Miller",
-      timeAgo: "3 weeks ago",
-    },
+      bookTitle: "The Invisible Life of Addie LaRue",
+      bookAuthor: "V.E. Schwab",
+      timeAgo: "1 week ago",
+      views: 512,
+      likes: 324,
+      replies: 28
+    }
   ]
 
   // Mock data for friends tab
@@ -258,7 +766,10 @@ export function ClientGroupPage({ group, avatarUrl, coverImageUrl, params }: Cli
       authorAvatar: "/placeholder.svg?height=100&width=100",
       replies: 24,
       lastReply: "2 hours ago",
-      isPinned: true
+      isPinned: true,
+      content: "I'm currently reading 'Dune' by Frank Herbert. It's a fascinating book about a desert planet and its native inhabitants. What are you all reading?",
+      views: 1200,
+      likes: 100,
     },
     {
       id: "2",
@@ -267,7 +778,10 @@ export function ClientGroupPage({ group, avatarUrl, coverImageUrl, params }: Cli
       authorAvatar: "/placeholder.svg?height=100&width=100",
       replies: 15,
       lastReply: "1 day ago",
-      isPinned: false
+      isPinned: false,
+      content: "I'm looking for some great fantasy books to read next. Any suggestions?",
+      views: 800,
+      likes: 75,
     },
     {
       id: "3",
@@ -276,7 +790,10 @@ export function ClientGroupPage({ group, avatarUrl, coverImageUrl, params }: Cli
       authorAvatar: "/placeholder.svg?height=100&width=100",
       replies: 42,
       lastReply: "3 days ago",
-      isPinned: true
+      isPinned: true,
+      content: "I've just finished 'The Midnight Library' by Matt Haig. It's a thought-provoking book about choices and consequences. What did you think?",
+      views: 1500,
+      likes: 120,
     },
     {
       id: "4",
@@ -285,199 +802,419 @@ export function ClientGroupPage({ group, avatarUrl, coverImageUrl, params }: Cli
       authorAvatar: "/placeholder.svg?height=100&width=100",
       replies: 18,
       lastReply: "4 days ago",
-      isPinned: false
-    }
+      isPinned: false,
+      content: "I've been collecting some of my favorite quotes from books. Here's one: 'The only way to do great work is to love what you do.' - Steve Jobs",
+      views: 900,
+      likes: 80,
+    },
   ]
 
+  // Handle rule operations
+  const handleSaveRule = async (rule: GroupRule | NewGroupRule | null): Promise<void> => {
+    if (!rule) return;
+    
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/groups/${params.id}/rules`, {
+        method: 'id' in rule ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...rule,
+          group_id: params.id,
+          order_index: 'order_index' in rule ? rule.order_index : 0
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save rule');
+      }
+
+      const { data } = await response.json();
+      
+      if (data) {
+        setGroupRules(prevRules => {
+          if (!prevRules) return [data];
+          const index = prevRules.findIndex(r => r.id === data.id);
+          if (index === -1) return [...prevRules, data];
+          const newRules = [...prevRules];
+          newRules[index] = data;
+          return newRules;
+        });
+        setIsRulesModalOpen(false);
+        toast({
+          title: "Success",
+          description: "Rule saved successfully"
+        });
+      }
+    } catch (error) {
+      console.error('Error saving rule:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to save rule",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteRule = async (ruleId?: string) => {
+    if (!ruleId) {
+      toast({
+        title: "Error",
+        description: "Invalid rule ID",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!confirm('Are you sure you want to delete this rule?')) return;
+    
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/groups/${params.id}/rules?ruleId=${ruleId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete rule');
+      }
+      
+      setGroupRules(rules => rules.filter(r => r.id !== ruleId));
+      toast({
+        title: "Rule deleted",
+        description: "The group rule has been deleted successfully.",
+      });
+    } catch (error) {
+      console.error('Error deleting rule:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete the rule. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Update the handleUpdateDescription function
+  const handleUpdateDescription = async () => {
+    try {
+      const response = await fetch(`/api/groups/${params.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: editedDescription })
+      });
+      
+      if (!response.ok) throw new Error('Failed to update description');
+      
+      const result = await response.json();
+      if (result.error) throw new Error(result.error);
+      
+      setGroup((prev: Group) => ({ ...prev, description: editedDescription }));
+      setIsEditingDescription(false);
+      toast({
+        title: "Success",
+        description: "Description updated successfully",
+      });
+    } catch (error) {
+      console.error('Error updating description:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update description",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Update the useEffect to initialize the description
+  useEffect(() => {
+    if (group) {
+      setEditedDescription(group.description || '');
+    }
+  }, [group]);
+
+  // Update the permissions check
+  const canEdit = permissions.isOwner() || permissions.isAdmin();
+
+  // Add useEffect to fetch contact info
+  useEffect(() => {
+    const fetchGroupData = async () => {
+      try {
+        const groupId = params.id;
+        if (!groupId) {
+          throw new Error('Group ID is required');
+        }
+
+        console.log('Fetching group data for ID:', groupId);
+        const groupData = await getGroupInfo(groupId);
+        console.log('Group data received:', groupData);
+        console.log('Contact info in group data:', groupData?.contact_info);
+        setGroup(groupData);
+      } catch (error) {
+        console.error('Error fetching group data:', error);
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to load group information",
+          variant: "destructive",
+        });
+      }
+    };
+    fetchGroupData();
+  }, [params.id, toast]);
+
+
+
   return (
-    <div className="group-page">
-      <div className="py-6">
-        <EntityHeader
-          entityType="group"
-          name={name}
-          description={bio}
-          coverImageUrl={coverImageUrl}
-          profileImageUrl={avatarUrl}
-          stats={groupStats}
-          tabs={tabs}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-        />
-        
-        {/* Timeline Tab */}
-        {activeTab === "timeline" && (
-          <div className="group-page__content">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Left Sidebar */}
-              <div className="lg:col-span-1 space-y-6">
-                {/* About Section */}
-                <Card className="timeline-about-section">
-                  <div className="timeline-about-section__header flex flex-col space-y-1.5 p-6">
-                    <div className="timeline-about-section__title-row flex justify-between items-center">
-                      <div className="timeline-about-section__title text-2xl font-semibold leading-none tracking-tight">About</div>
-                      <button 
-                        className="timeline-about-section__view-more text-sm text-primary hover:underline"
-                        onClick={() => setActiveTab("about")}
-                      >
-                        View More
-                      </button>
-                    </div>
-                  </div>
-                  <CardContent className="p-6 pt-0">
-                    <p className="line-clamp-4">{group?.description || "No description available."}</p>
-                  </CardContent>
-                </Card>
+    <div className="max-w-7xl mx-auto">
+      <EntityHeader
+        entityType="group"
+        name={name}
+        coverImageUrl={coverImageUrl}
+        profileImageUrl={avatarUrl}
+        stats={groupStats}
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        creatorName={group?.creatorName}
+        creator={{
+          id: group?.created_by || '',
+          name: group?.creatorName || '',
+          email: group?.creatorEmail || '',
+          created_at: group?.creatorCreatedAt || ''
+        }}
+        group={group}
+        isEditable={permissions.isOwner() || permissions.isAdmin()}
+        onCoverImageChange={handleCoverImageChange}
+        onProfileImageChange={handleProfileImageChange}
+      />
+      
+      {/* Avatar Upload Modal */}
+      <Dialog open={isAvatarModalOpen} onOpenChange={setIsAvatarModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Change Group Avatar</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center space-y-6 py-4">
+            <div className="relative w-32 h-32 rounded-full overflow-hidden border-2 border-border">
+              <img
+                src={avatarPreview || avatarUrl || "/placeholder.svg"}
+                alt="Group avatar"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="w-full space-y-2">
+              <Label htmlFor="avatar">Upload new avatar</Label>
+              <Input
+                id="avatar"
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarFileChange}
+                disabled={isUploading}
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+              onClick={() => {
+                setIsAvatarModalOpen(false)
+                setSelectedAvatarFile(null)
+                setAvatarPreview(null)
+              }}
+              disabled={isUploading}
+            >
+              Cancel
+              </Button>
+            <Button
+              onClick={handleAvatarUpload}
+              disabled={!selectedAvatarFile || isUploading}
+            >
+              {isUploading ? "Uploading..." : "Upload"}
+                  </Button>
+                </div>
+        </DialogContent>
+      </Dialog>
 
-                {/* Friends/Followers Section */}
-                <FollowersList
-                  followers={group?.followers || []}
-                  followersCount={group?.followers?.length || 0}
-                  entityId={params.id}
-                  entityType="group"
+      {/* Cover Image Upload Modal */}
+      <Dialog open={isCoverModalOpen} onOpenChange={setIsCoverModalOpen}>
+        <DialogContent className="cover-upload-modal">
+          <DialogHeader>
+            <DialogTitle>Change Group Cover</DialogTitle>
+          </DialogHeader>
+          <div className="cover-upload-content">
+            <div className="cover-upload-preview-container">
+              <div className="cover-preview-wrapper">
+                <img
+                  src={coverPreview || coverImageUrl || "/placeholder.svg"}
+                  alt="Group cover"
+                  className="cover-preview-image"
                 />
-
-                {/* Currently Reading Section */}
-                <Card>
-                  <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
-                    <div className="text-2xl font-semibold leading-none tracking-tight">Currently Reading</div>
-                    <Link href="/my-books" className="text-sm text-primary hover:underline">
-                      See All
-                    </Link>
-                  </div>
-                  <CardContent className="p-6 pt-0 space-y-4">
-                    {mockCurrentlyReading.map((book, index) => (
-                      <div key={index} className="flex gap-3">
-                        <div className="relative h-20 w-14 flex-shrink-0">
-                          <img
-                            src={book.coverUrl || "/placeholder.svg"}
-                            alt={book.title}
-                            className="object-cover rounded-md absolute inset-0 w-full h-full"
-                          />
+                </div>
+              <div className="cover-upload-input-container">
+                <Label htmlFor="cover">Upload new cover</Label>
+                <Input
+                  id="cover"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleCoverFileChange}
+                  disabled={isUploading}
+                />
+                </div>
+                </div>
+                </div>
+          <div className="cover-upload-actions">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsCoverModalOpen(false)
+                setSelectedCoverFile(null)
+                setCoverPreview(null)
+              }}
+              disabled={isUploading}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCoverUpload}
+              disabled={!selectedCoverFile || isUploading}
+            >
+              {isUploading ? "Uploading..." : "Upload"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Timeline Tab */}
+      {activeTab === "timeline" && (
+        <div className="mt-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Left Sidebar */}
+            <div className="space-y-6">
+                    {/* About Section */}
+              <Card>
+                <div className="about-section-header">
+                  <div className="about-section-title-row">
+                    <div className="about-section-title">About</div>
+                          <button 
+                      className="about-section-view-more"
+                            onClick={() => setActiveTab("about")}
+                          >
+                            View More
+                          </button>
                         </div>
-                        <div className="flex-1 space-y-1">
-                          <h4 className="font-medium line-clamp-1">{book.title}</h4>
-                          <p className="text-sm text-muted-foreground">by {book.author}</p>
-                          <div className="space-y-1">
-                            <div className="flex justify-between text-xs">
-                              <span>Progress</span>
-                              <span>{book.progress}%</span>
+                      </div>
+                <CardContent className="about-section-content">
+                  <p className="about-section-description">{group?.description || "No description available."}</p>
+                      </CardContent>
+                    </Card>
+
+                    {/* Friends/Followers Section */}
+                    <FollowersList
+                      followers={group?.followers || []}
+                      followersCount={group?.followers?.length || 0}
+                      entityId={params.id}
+                      entityType="group"
+                    />
+
+                    {/* Currently Reading Section */}
+                    <Card>
+                <div className="currently-reading-header">
+                  <div className="currently-reading-title">Currently Reading</div>
+                  <Link href="/my-books" className="currently-reading-view-all">
+                          See All
+                        </Link>
+                      </div>
+                <CardContent className="currently-reading-content">
+                        {mockCurrentlyReading.map((book, index) => (
+                    <div key={index} className="currently-reading-book">
+                      <div className="currently-reading-book-cover">
+                              <img
+                          src={book.coverUrl}
+                                alt={book.title}
+                          className="currently-reading-book-image"
+                              />
                             </div>
-                            <div className="relative w-full overflow-hidden rounded-full bg-secondary h-1.5">
-                              <div
-                                className="h-full w-full flex-1 bg-primary transition-all"
-                                style={{ transform: `translateX(-${100 - book.progress}%)` }}
-                              ></div>
+                      <div className="currently-reading-book-info">
+                        <div className="currently-reading-book-title">{book.title}</div>
+                        <div className="currently-reading-book-author">{book.author}</div>
+                        <div className="currently-reading-book-progress">
+                          <div className="currently-reading-progress-bar">
+                            <div 
+                              className="currently-reading-progress-fill"
+                              style={{ width: `${book.progress}%` }}
+                            />
+                                </div>
+                          <span className="currently-reading-progress-text">{book.progress}%</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
+                        ))}
+                      </CardContent>
+                    </Card>
 
-                {/* Photos Section */}
-                <Card>
-                  <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
-                    <div className="text-2xl font-semibold leading-none tracking-tight">Photos</div>
-                    <Link href="/profile/janereader/photos" className="text-sm text-primary hover:underline">
-                      See All
-                    </Link>
-                  </div>
-                  <CardContent className="p-6 pt-0">
-                    <div className="grid grid-cols-3 gap-2">
-                      {mockPhotos.map((photoUrl, index) => (
-                        <div key={index} className="aspect-square relative rounded overflow-hidden">
-                          <img
-                            src={photoUrl || "/placeholder.svg"}
-                            alt={`Photo ${index + 1}`}
-                            className="object-cover hover:scale-105 transition-transform absolute inset-0 w-full h-full"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Friends Section */}
-                <Card>
-                  <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
-                    <div className="text-2xl font-semibold leading-none tracking-tight">Friends</div>
-                    <Link href="/profile/janereader/friends" className="text-sm text-primary hover:underline">
-                      See All
-                    </Link>
-                  </div>
-                  <CardContent className="p-6 pt-0">
-                    <div className="grid grid-cols-3 gap-2">
-                      {mockFriends.map((friend) => (
-                        <Link
-                          key={friend.id}
-                          href={`/profile/${friend.id}`}
-                          className="flex flex-col items-center text-center"
-                        >
-                          <span className="relative flex shrink-0 overflow-hidden rounded-full h-16 w-16 mb-1">
-                            <img
-                              src={friend.avatar || "/placeholder.svg"}
-                              alt={friend.name}
-                              className="aspect-square h-full w-full"
-                            />
-                          </span>
-                          <span className="text-xs line-clamp-1">{friend.name}</span>
+                    {/* Photos Section */}
+                    <Card>
+                      <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
+                        <div className="text-2xl font-semibold leading-none tracking-tight">Photos</div>
+                        <Link href="/profile/janereader/photos" className="text-sm text-primary hover:underline">
+                          See All
                         </Link>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Main Content Area */}
-              <div className="lg:col-span-2 space-y-6">
-                {/* Post Creation Form */}
-                <Card>
-                  <CardContent className="p-6 pt-6">
-                    <form>
-                      <div className="flex gap-3">
-                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-10 w-10">
-                          <img
-                            src={avatarUrl || "/placeholder.svg?height=200&width=200"}
-                            alt={group.name}
-                            className="aspect-square h-full w-full"
-                          />
-                        </span>
-                        <Textarea
-                          placeholder={`Welcome to ${name}!`}
-                          className="flex-1 resize-none"
-                        />
                       </div>
-                      <div className="flex justify-between mt-4">
-                        <div className="flex gap-2">
-                          <Button type="button" variant="ghost" size="sm">
-                            <ImageIcon className="h-4 w-4 mr-2" />
-                            Photo
-                          </Button>
-                          <Button type="button" variant="ghost" size="sm">
-                            <Book className="h-4 w-4 mr-2" />
-                            Book
-                          </Button>
-                          <Button type="button" variant="ghost" size="sm">
-                            <Star className="h-4 w-4 mr-2" />
-                            Review
-                          </Button>
+                      <CardContent className="p-6 pt-0">
+                        <div className="grid grid-cols-3 gap-2">
+                          {mockPhotos.map((photoUrl, index) => (
+                            <div key={index} className="aspect-square relative rounded overflow-hidden">
+                              <img
+                                src={photoUrl || "/placeholder.svg"}
+                                alt={`Photo ${index + 1}`}
+                                className="object-cover hover:scale-105 transition-transform absolute inset-0 w-full h-full"
+                              />
+                            </div>
+                          ))}
                         </div>
-                        <Button type="submit" disabled>
-                          Post
-                        </Button>
-                      </div>
-                    </form>
-                  </CardContent>
-                </Card>
+                      </CardContent>
+                    </Card>
 
-                {/* Activity Feed */}
-                <div className="space-y-6">
-                  {mockActivities.map((activity) => (
-                    <Card key={activity.id}>
-                      <div className="flex flex-col space-y-1.5 p-6 pb-3">
-                        <div className="flex justify-between">
-                          <div className="flex items-center gap-3">
+                    {/* Friends Section */}
+                    <Card>
+                      <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
+                        <div className="text-2xl font-semibold leading-none tracking-tight">Friends</div>
+                        <Link href="/profile/janereader/friends" className="text-sm text-primary hover:underline">
+                          See All
+                        </Link>
+                      </div>
+                      <CardContent className="p-6 pt-0">
+                        <div className="grid grid-cols-3 gap-2">
+                          {mockFriends.map((friend) => (
+                            <Link
+                              key={friend.id}
+                              href={`/profile/${friend.id}`}
+                              className="flex flex-col items-center text-center"
+                            >
+                              <span className="relative flex shrink-0 overflow-hidden rounded-full h-16 w-16 mb-1">
+                                <img
+                                  src={friend.avatar || "/placeholder.svg"}
+                                  alt={friend.name}
+                                  className="aspect-square h-full w-full"
+                                />
+                              </span>
+                              <span className="text-xs line-clamp-1">{friend.name}</span>
+                            </Link>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Main Content Area */}
+                  <div className="lg:col-span-2 space-y-6">
+                    {/* Post Creation Form */}
+                    <Card>
+                      <CardContent className="p-6 pt-6">
+                        <form>
+                          <div className="flex gap-3">
                             <span className="relative flex shrink-0 overflow-hidden rounded-full h-10 w-10">
                               <img
                                 src={avatarUrl || "/placeholder.svg?height=200&width=200"}
@@ -485,478 +1222,1142 @@ export function ClientGroupPage({ group, avatarUrl, coverImageUrl, params }: Cli
                                 className="aspect-square h-full w-full"
                               />
                             </span>
-                            <div>
-                              <div className="font-medium">{name}</div>
-                              <div className="text-xs text-muted-foreground">{activity.timeAgo}</div>
+                            <Textarea
+                              placeholder={`Welcome to ${name}!`}
+                              className="flex-1 resize-none"
+                            />
+                          </div>
+                          <div className="flex justify-between mt-4">
+                            <div className="flex gap-2">
+                              <Button type="button" variant="ghost" size="sm">
+                                <ImageIcon className="h-4 w-4 mr-2" />
+                                Photo
+                              </Button>
+                              <Button type="button" variant="ghost" size="sm">
+                                <Book className="h-4 w-4 mr-2" />
+                                Book
+                              </Button>
+                              <Button type="button" variant="ghost" size="sm">
+                                <Star className="h-4 w-4 mr-2" />
+                                Review
+                              </Button>
+                            </div>
+                            <Button type="submit" disabled>
+                              Post
+                            </Button>
+                          </div>
+                        </form>
+                      </CardContent>
+                    </Card>
+
+                    {/* Activity Feed */}
+                    <div className="space-y-6">
+                      {mockActivities.map((activity) => (
+                  <Card key={activity.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                          <div className="flex flex-col space-y-1.5 p-6 pb-3">
+                            <div className="flex justify-between">
+                              <div className="flex items-center gap-3">
+                                <span className="relative flex shrink-0 overflow-hidden rounded-full h-10 w-10">
+                                  <img
+                                    src={avatarUrl || "/placeholder.svg?height=200&width=200"}
+                                    alt={group.name}
+                                    className="aspect-square h-full w-full"
+                                  />
+                                </span>
+                                <div>
+                                  <div className="font-medium">{name}</div>
+                                  <div className="text-xs text-muted-foreground">{activity.timeAgo}</div>
+                                </div>
+                              </div>
+                              <Button variant="ghost" size="icon">
+                                <Ellipsis className="h-4 w-4" />
+                              </Button>
                             </div>
                           </div>
-                          <Button variant="ghost" size="icon">
-                            <Ellipsis className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="p-6 pt-0 pb-3">
-                        {activity.type === "rating" && (
-                          <p>
-                            Rated{" "}
-                            <Link href="#" className="text-primary hover:underline font-medium">
-                              {activity.bookTitle}
-                            </Link>{" "}
-                            by {activity.bookAuthor} {activity.rating} stars
-                          </p>
-                        )}
-                        {activity.type === "finished" && (
-                          <p>
-                            Finished reading{" "}
-                            <Link href="#" className="text-primary hover:underline font-medium">
-                              {activity.bookTitle}
-                            </Link>{" "}
-                            by {activity.bookAuthor}
-                          </p>
-                        )}
-                        {activity.type === "added" && (
-                          <p>
-                            Added{" "}
-                            <Link href="#" className="text-primary hover:underline font-medium">
-                              {activity.bookTitle}
-                            </Link>{" "}
-                            by {activity.bookAuthor} to {activity.shelf}
-                          </p>
-                        )}
-                        {activity.type === "reviewed" && (
-                          <p>
-                            Reviewed{" "}
-                            <Link href="#" className="text-primary hover:underline font-medium">
-                              {activity.bookTitle}
-                            </Link>{" "}
-                            by {activity.bookAuthor}
-                          </p>
-                        )}
-                      </div>
-                      <div className="p-6 flex items-center justify-between py-3">
-                        <div className="flex items-center gap-6">
-                          <Button variant="ghost" size="sm" className="gap-1">
-                            <Heart className="h-4 w-4" />
-                            <span>Like</span>
-                          </Button>
-                          <Button variant="ghost" size="sm" className="gap-1">
-                            <MessageSquare className="h-4 w-4" />
-                            <span>Comment</span>
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Share2 className="h-4 w-4" />
-                            <span className="ml-1">Share</span>
-                          </Button>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
+                          <div className="p-6 pt-0 pb-3">
+                            {activity.type === "rating" && (
+                              <p>
+                                Rated{" "}
+                                <Link href="#" className="text-primary hover:underline font-medium">
+                                  {activity.bookTitle}
+                                </Link>{" "}
+                                by {activity.bookAuthor} {activity.rating} stars
+                              </p>
+                            )}
+                            {activity.type === "finished" && (
+                              <p>
+                                Finished reading{" "}
+                                <Link href="#" className="text-primary hover:underline font-medium">
+                                  {activity.bookTitle}
+                                </Link>{" "}
+                                by {activity.bookAuthor}
+                              </p>
+                            )}
+                            {activity.type === "added" && (
+                              <p>
+                                Added{" "}
+                                <Link href="#" className="text-primary hover:underline font-medium">
+                                  {activity.bookTitle}
+                                </Link>{" "}
+                                by {activity.bookAuthor} to {activity.shelf}
+                              </p>
+                            )}
+                            {activity.type === "reviewed" && (
+                              <p>
+                                Reviewed{" "}
+                                <Link href="#" className="text-primary hover:underline font-medium">
+                                  {activity.bookTitle}
+                                </Link>{" "}
+                                by {activity.bookAuthor}
+                              </p>
+                            )}
+                          </div>
+                    <FeedItemFooter
+                      views={activity.views}
+                      likeCount={activity.likes}
+                      replyCount={activity.replies}
+                      onLike={() => console.log('Like clicked')}
+                      onReply={() => console.log('Reply clicked')}
+                      onShare={() => console.log('Share clicked')}
+                    />
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        )}
+        </div>
+      )}
 
-        {/* About Tab */}
-        {activeTab === "about" && (
-          <div className="group-page__content">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-1">
-                <div className="bg-white rounded-lg shadow overflow-hidden sticky top-20">
-                  <div className="p-4 border-b">
-                    <h2 className="text-lg font-medium">About</h2>
-                  </div>
-                  <nav className="p-2">
-                    <a
-                      href="#overview"
-                      className="flex items-center px-3 py-2 rounded-md hover:bg-muted text-primary"
-                    >
-                      Overview
-                    </a>
-                    <a href="#work-education" className="flex items-center px-3 py-2 rounded-md hover:bg-muted">
-                      Work and Education
-                    </a>
-                    <a href="#contact-info" className="flex items-center px-3 py-2 rounded-md hover:bg-muted">
-                      Contact Information
-                    </a>
-                    <a href="#interests" className="flex items-center px-3 py-2 rounded-md hover:bg-muted">
-                      Interests
-                    </a>
-                    <a href="#favorite-quotes" className="flex items-center px-3 py-2 rounded-md hover:bg-muted">
-                      Favorite Quotes
-                    </a>
-                  </nav>
-                </div>
-              </div>
-              <div className="lg:col-span-2 space-y-6">
-                <div className="rounded-lg border bg-card text-card-foreground shadow-sm" id="overview">
-                  <div className="flex flex-col space-y-1.5 p-6">
-                    <div className="text-2xl font-semibold leading-none tracking-tight">Overview</div>
-                  </div>
-                  <div className="p-6 pt-0 space-y-4">
-                    <p className="text-muted-foreground">
-                      Book lover, coffee addict, and aspiring writer. I read mostly fantasy, sci-fi, and literary
-                      fiction.
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="flex items-start gap-3">
-                        <Globe className="h-5 w-5 text-muted-foreground mt-0.5" />
-                        <div>
-                          <h3 className="font-medium">Website</h3>
-                          <a
-                            href="https://janereader.com"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary hover:underline"
-                          >
-                            janereader.com
-                          </a>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
-                        <div>
-                          <h3 className="font-medium">Joined</h3>
-                          <p className="text-muted-foreground">March 2020</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="rounded-lg border bg-card text-card-foreground shadow-sm" id="work-education">
-                  <div className="flex flex-col space-y-1.5 p-6">
-                    <div className="text-2xl font-semibold leading-none tracking-tight">Work and Education</div>
-                  </div>
-                  <div className="p-6 pt-0 space-y-6">
-                    <div>
-                      <h3 className="font-medium text-lg mb-3 flex items-center">
-                        <Globe className="h-5 w-5 mr-2 text-muted-foreground" />
-                        Work
-                      </h3>
-                      <div className="space-y-4">
-                        <div className="flex items-start gap-3">
-                          <div className="bg-muted h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0">
-                            <Globe className="h-5 w-5 text-muted-foreground" />
-                          </div>
-                          <div>
-                            <h4 className="font-medium">Book Specialist</h4>
-                            <p className="text-muted-foreground">Powell&apos;s Books</p>
-                            <p className="text-sm text-muted-foreground">2018-Present</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-3">
-                          <div className="bg-muted h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0">
-                            <Globe className="h-5 w-5 text-muted-foreground" />
-                          </div>
-                          <div>
-                            <h4 className="font-medium">Assistant Librarian</h4>
-                            <p className="text-muted-foreground">Portland Library</p>
-                            <p className="text-sm text-muted-foreground">2016-2018</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-lg mb-3 flex items-center">
-                        <Globe className="h-5 w-5 mr-2 text-muted-foreground" />
-                        Education
-                      </h3>
-                      <div className="space-y-4">
-                        <div className="flex items-start gap-3">
-                          <div className="bg-muted h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0">
-                            <Globe className="h-5 w-5 text-muted-foreground" />
-                          </div>
-                          <div>
-                            <h4 className="font-medium">University of Oregon</h4>
-                            <p className="text-muted-foreground">Bachelor of Arts in English Literature</p>
-                            <p className="text-sm text-muted-foreground">2012-2016</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-3">
-                          <div className="bg-muted h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0">
-                            <Globe className="h-5 w-5 text-muted-foreground" />
-                          </div>
-                          <div>
-                            <h4 className="font-medium">Portland Community College</h4>
-                            <p className="text-muted-foreground">Associate&apos;s Degree in Creative Writing</p>
-                            <p className="text-sm text-muted-foreground">2010-2012</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="rounded-lg border bg-card text-card-foreground shadow-sm" id="contact-info">
-                  <div className="flex flex-col space-y-1.5 p-6">
-                    <div className="text-2xl font-semibold leading-none tracking-tight">Contact Information</div>
-                  </div>
-                  <div className="p-6 pt-0">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="flex items-start gap-3">
-                        <Globe className="h-5 w-5 text-muted-foreground mt-0.5" />
-                        <div>
-                          <h3 className="font-medium">Email</h3>
-                          <a href="mailto:jane.reader@example.com" className="text-primary hover:underline">
-                            jane.reader@example.com
-                          </a>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <Globe className="h-5 w-5 text-muted-foreground mt-0.5" />
-                        <div>
-                          <h3 className="font-medium">Phone</h3>
-                          <p className="text-muted-foreground">(503) 555-1234</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <Globe className="h-5 w-5 text-muted-foreground mt-0.5" />
-                        <div>
-                          <h3 className="font-medium">Website</h3>
-                          <a
-                            href="https://janereader.com"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary hover:underline"
-                          >
-                            janereader.com
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="rounded-lg border bg-card text-card-foreground shadow-sm" id="interests">
-                  <div className="flex flex-col space-y-1.5 p-6">
-                    <div className="text-2xl font-semibold leading-none tracking-tight">Interests</div>
-                  </div>
-                  <div className="p-6 pt-0">
-                    <div className="flex flex-wrap gap-2">
-                      <div className="inline-flex items-center rounded-full border font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 px-3 py-1 text-sm">
-                        Fantasy Fiction
-                      </div>
-                      <div className="inline-flex items-center rounded-full border font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 px-3 py-1 text-sm">
-                        Science Fiction
-                      </div>
-                      <div className="inline-flex items-center rounded-full border font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 px-3 py-1 text-sm">
-                        Literary Criticism
-                      </div>
-                      <div className="inline-flex items-center rounded-full border font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 px-3 py-1 text-sm">
-                        Book Clubs
-                      </div>
-                      <div className="inline-flex items-center rounded-full border font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 px-3 py-1 text-sm">
-                        Writing
-                      </div>
-                      <div className="inline-flex items-center rounded-full border font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 px-3 py-1 text-sm">
-                        Coffee
-                      </div>
-                      <div className="inline-flex items-center rounded-full border font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 px-3 py-1 text-sm">
-                        Hiking
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="rounded-lg border bg-card text-card-foreground shadow-sm" id="favorite-quotes">
-                  <div className="flex flex-col space-y-1.5 p-6">
-                    <div className="text-2xl font-semibold leading-none tracking-tight">Favorite Quotes</div>
-                  </div>
-                  <div className="p-6 pt-0">
-                    <div className="space-y-4">
-                      <div className="border-l-4 border-muted pl-4 italic">
-                        <p className="text-muted-foreground">
-                          A reader lives a thousand lives before he dies. The man who never reads lives only one. -
-                          George R.R. Martin
-                        </p>
-                      </div>
-                      <div className="border-l-4 border-muted pl-4 italic">
-                        <p className="text-muted-foreground">Books are a uniquely portable magic. - Stephen King</p>
-                      </div>
-                      <div className="border-l-4 border-muted pl-4 italic">
-                        <p className="text-muted-foreground">I cannot live without books. - Thomas Jefferson</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Members Tab */}
-        {activeTab === "members" && (
-          <div className="group-page__content">
+      {/* About Tab */}
+      {activeTab === "about" && (
+        <div className="mt-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Sidebar */}
             <div className="space-y-6">
-              <Card className="rounded-lg border bg-card text-card-foreground shadow-sm">
-                <div className="flex flex-col space-y-1.5 p-6">
-                  <div className="flex justify-between items-center">
-                    <div className="text-2xl font-semibold leading-none tracking-tight">
-                      Members · {group?.member_count || 0}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Input className="w-[200px]" placeholder="Search members..." type="search" />
-                      <Button variant="outline" size="icon">
-                        <Filter className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-                <CardContent className="p-6 pt-0">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {mockFriendsTabData.map((friend) => (
-                      <div key={friend.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                          <img
-                            src={friend.avatar || "/placeholder.svg"}
-                            alt={friend.name}
-                            className="aspect-square h-full w-full"
-                          />
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium truncate">{friend.name}</h3>
-                          <p className="text-xs text-muted-foreground">{friend.location}</p>
-                          <p className="text-xs text-muted-foreground">{friend.mutualFriends} mutual friends</p>
-                        </div>
-                        <Button variant="ghost" size="icon">
-                          <Ellipsis className="h-4 w-4" />
-                        </Button>
+              {/* Group Stats Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Group Stats</CardTitle>
+                </CardHeader>
+                <CardContent>
+                          <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Total Members</span>
+                      <span className="font-medium">{group?.member_count || 0}</span>
                       </div>
-                    ))}
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Active Discussions</span>
+                      <span className="font-medium">24</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Books Discussed</span>
+                      <span className="font-medium">156</span>
                   </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Reading Challenges</span>
+                      <span className="font-medium">3</span>
+                      </div>
+                            </div>
                 </CardContent>
               </Card>
 
-              <Card className="rounded-lg border bg-card text-card-foreground shadow-sm">
-                <div className="flex flex-col space-y-1.5 p-6">
-                  <div className="text-2xl font-semibold leading-none tracking-tight">Member Suggestions</div>
-                </div>
-                <CardContent className="p-6 pt-0">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {mockFriendSuggestions.map((friend) => (
-                      <div key={friend.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                          <img
-                            src={friend.avatar || "/placeholder.svg"}
-                            alt={friend.name}
-                            className="aspect-square h-full w-full"
-                          />
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium truncate">{friend.name}</h3>
-                          <p className="text-xs text-muted-foreground">{friend.mutualFriends} mutual friends</p>
-                          <Button className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3 mt-2">
-                            Add Friend
-                          </Button>
-                        </div>
-                      </div>
+              {/* Recent Activity Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Activity</CardTitle>
+                </CardHeader>
+                <CardContent>
+                          <div className="space-y-4">
+                    {mockActivities.slice(0, 3).map((activity, index) => (
+                      <div key={index} className="flex items-start gap-3">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                          {activity.type === "rating" ? (
+                            <Star className="h-4 w-4 text-primary" />
+                          ) : activity.type === "finished" ? (
+                            <Book className="h-4 w-4 text-primary" />
+                          ) : (
+                            <MessageSquare className="h-4 w-4 text-primary" />
+                          )}
+                              </div>
+                              <div>
+                          <p className="text-sm">
+                            {activity.type === "rating" ? (
+                              <>Rated <span className="font-medium">{activity.bookTitle}</span> {activity.rating} stars</>
+                            ) : activity.type === "finished" ? (
+                              <>Finished reading <span className="font-medium">{activity.bookTitle}</span></>
+                            ) : (
+                              <>Added <span className="font-medium">{activity.bookTitle}</span> to {activity.shelf}</>
+                            )}
+                          </p>
+                          <p className="text-xs text-muted-foreground">{activity.timeAgo}</p>
+                              </div>
+                            </div>
                     ))}
-                  </div>
+                              </div>
                 </CardContent>
               </Card>
-            </div>
-          </div>
-        )}
 
-        {/* Discussions Tab */}
-        {activeTab === "discussions" && (
-          <div className="group-page__content">
-            <div className="space-y-6">
-              {/* Create Discussion Button */}
-              <div className="flex justify-end">
-                <Button className="flex items-center gap-2">
-                  <SquarePen className="h-4 w-4" />
-                  Create Discussion
-                </Button>
-              </div>
+              {/* Group Tags Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Group Tags</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {group.tags && group.tags.length > 0 ? (
+                      group.tags.map((tag, index) => (
+                        <Badge key={index} variant="secondary">
+                          {tag}
+                        </Badge>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No tags available</p>
+                    )}
+                              </div>
+                </CardContent>
+              </Card>
+                            </div>
+            {/* Main Content Area */}
+            <div className="lg:col-span-2 space-y-8 py-4">
+              {/* Core Group Data Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Group Information</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {/* Group Name and Creator */}
+                    <div className="space-y-3">
+                      <Label className="text-sm font-medium text-muted-foreground">Name</Label>
+                      <div className="text-base">{group.name}</div>
+                      <div className="text-muted-foreground text-sm">
+                        Created by{" "}
+                        <UserHoverCard user={{
+                          id: group.created_by,
+                          name: group.creatorName || 'Unknown',
+                          email: group.creatorEmail,
+                          created_at: group.creatorCreatedAt
+                        }}>
+                          <span className="cursor-pointer">{group.creatorName || 'Unknown'}</span>
+                        </UserHoverCard>
+                      </div>
+                    </div>
+
+                    {/* Privacy Settings */}
+                    <div className="space-y-3">
+                      <Label className="text-sm font-medium text-muted-foreground">Privacy Settings</Label>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-1">
+                          <Label className="text-sm font-medium">Is Private</Label>
+                          <div className="text-base">{group.is_private ? 'Yes' : 'No'}</div>
+                              </div>
+                        <div className="space-y-1">
+                          <Label className="text-sm font-medium">Is Public</Label>
+                          <div className="text-base">{group.is_public ? 'Yes' : 'No'}</div>
+                              </div>
+                        <div className="space-y-1">
+                          <Label className="text-sm font-medium">Is Discoverable</Label>
+                          <div className="text-base">{group.is_discoverable ? 'Yes' : 'No'}</div>
+                            </div>
+                              </div>
+                              </div>
+
+                    {/* Stats */}
+                    <div className="space-y-3">
+                      <Label className="text-sm font-medium text-muted-foreground">Stats</Label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <Label className="text-sm font-medium">Member Count</Label>
+                          <div className="text-base">{group.member_count || 0}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                </CardContent>
+              </Card>
+
+              {/* Description Section */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle>Description</CardTitle>
+                  {canEdit && (
+                    <Button variant="ghost" size="sm" onClick={() => setIsEditingDescription(true)}>
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Edit
+                    </Button>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  {isEditingDescription ? (
+                        <div className="space-y-4">
+                      <Textarea
+                        value={editedDescription}
+                        onChange={(e) => setEditedDescription(e.target.value)}
+                        placeholder="Enter group description"
+                        className="min-h-[100px]"
+                      />
+                      <div className="flex justify-end space-x-2">
+                        <Button variant="outline" onClick={() => {
+                          setIsEditingDescription(false);
+                          setEditedDescription(group.description || '');
+                        }}>
+                          Cancel
+                              </Button>
+                        <Button onClick={handleUpdateDescription}>
+                          Save Changes
+                              </Button>
+                    </div>
+                      </div>
+                  ) : (
+                    <p className="text-gray-600">{group.description || "No description provided."}</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Contact Information Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Contact Information</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {(() => {
+                    console.log('Rendering contact info. Group:', group);
+                    console.log('Group contact_info:', group?.contact_info);
+                    return group?.contact_info ? (
+                    <div className="space-y-6">
+                      {/* Basic Contact Info */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {group.contact_info.email && (
+                          <div className="space-y-1">
+                            <Label className="text-sm font-medium text-muted-foreground">Email</Label>
+                            <div className="flex items-center space-x-2">
+                              <span>{group.contact_info.email}</span>
+                            </div>
+                          </div>
+                        )}
+                        {group.contact_info.phone && (
+                          <div className="space-y-1">
+                            <Label className="text-sm font-medium text-muted-foreground">Phone</Label>
+                            <div className="flex items-center space-x-2">
+                              <span>{group.contact_info.phone}</span>
+                            </div>
+                          </div>
+                        )}
+                        {group.contact_info.website && (
+                          <div className="space-y-1">
+                            <Label className="text-sm font-medium text-muted-foreground">Website</Label>
+                            <div className="flex items-center space-x-2">
+                              <a 
+                                href={group.contact_info.website.startsWith('http') ? group.contact_info.website : `https://${group.contact_info.website}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline"
+                              >
+                                {group.contact_info.website}
+                              </a>
+                            </div>
+                          </div>
+                        )}
+                        </div>
+
+                      {/* Address Information */}
+                      {(group.contact_info.address_line1 || group.contact_info.address_line2 || 
+                        group.contact_info.city || group.contact_info.state || 
+                        group.contact_info.postal_code || group.contact_info.country) && (
+                        <div className="space-y-3">
+                          <Label className="text-sm font-medium text-muted-foreground">Address</Label>
+                          <div className="space-y-1">
+                            {group.contact_info.address_line1 && (
+                              <div className="text-sm">{group.contact_info.address_line1}</div>
+                            )}
+                            {group.contact_info.address_line2 && (
+                              <div className="text-sm">{group.contact_info.address_line2}</div>
+                            )}
+                            <div className="text-sm">
+                              {[
+                                group.contact_info.city,
+                                group.contact_info.state,
+                                group.contact_info.postal_code
+                              ].filter(Boolean).join(', ')}
+                            </div>
+                            {group.contact_info.country && (
+                              <div className="text-sm">{group.contact_info.country}</div>
+                            )}
+                            </div>
+                          </div>
+                      )}
+
+                      {/* Metadata */}
+                      <div className="pt-4 border-t">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-muted-foreground">
+                          <div className="space-y-1">
+                            <Label className="text-xs font-medium">Created</Label>
+                            <div>{formatDate(group.contact_info.created_at)}</div>
+                            </div>
+                            <div className="space-y-1">
+                            <Label className="text-xs font-medium">Updated</Label>
+                            <div>{formatDate(group.contact_info.updated_at)}</div>
+                              </div>
+                              </div>
+                            </div>
+                            </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">No contact information available for this group.</p>
+                          </div>
+                  );
+                  })()}
+                </CardContent>
+              </Card>
+
+              {/* Group Rules Section */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle>Group Rules</CardTitle>
+                  {canEdit && (
+                    <Button variant="outline" size="sm" onClick={() => {
+                      setEditingRule({
+                        title: '',
+                        description: '',
+                        group_id: params.id
+                      });
+                      setIsRulesModalOpen(true);
+                    }}>
+                      Add Rule
+                    </Button>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {groupRules.length === 0 ? (
+                      <p className="text-gray-500 italic">No rules have been set for this group.</p>
+                    ) : (
+                      groupRules.map((rule) => (
+                        <div key={rule.id} className="flex items-start justify-between">
+                            <div>
+                            <h4 className="font-medium">{rule.title}</h4>
+                            {rule.description && (
+                              <p className="text-sm text-muted-foreground mt-1">{rule.description}</p>
+                            )}
+                            </div>
+                          {canEdit && (
+                            <div className="flex gap-2">
+                              <Button variant="ghost" size="icon" onClick={() => {
+                                setEditingRule(rule);
+                                setIsRulesModalOpen(true);
+                              }}>
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" onClick={() => handleDeleteRule(rule.id)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
+                          </div>
+                      ))
+                    )}
+                        </div>
+                </CardContent>
+              </Card>
+                      </div>
+                    </div>
+                      </div>
+      )}
+
+      {/* Discussions Tab */}
+      {activeTab === "discussions" && (
+        <div className="mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Sidebar */}
+                        <div className="space-y-6">
+              {/* Popular Topics */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Popular Topics</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {['Book Recommendations', 'Reading Challenges', 'Author Events', 'Book Reviews', 'Reading Tips'].map((topic, index) => (
+                      <div key={index} className="flex items-center justify-between">
+                        <span className="text-sm">{topic}</span>
+                        <Badge variant="secondary">{Math.floor(Math.random() * 100)}</Badge>
+                            </div>
+                    ))}
+                              </div>
+                </CardContent>
+              </Card>
+
+              {/* Active Members */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Active Members</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {mockFriends.slice(0, 5).map((friend) => (
+                      <div key={friend.id} className="flex items-center gap-3">
+                        <img
+                          src={friend.avatar}
+                          alt={friend.name}
+                          className="h-8 w-8 rounded-full"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{friend.name}</p>
+                          <p className="text-xs text-muted-foreground">Active now</p>
+                            </div>
+                              </div>
+                    ))}
+                            </div>
+                </CardContent>
+              </Card>
+
+              {/* Discussion Guidelines */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Guidelines</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 mt-0.5 text-primary" />
+                      <span>Be respectful and kind to others</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 mt-0.5 text-primary" />
+                      <span>Stay on topic and relevant to books</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 mt-0.5 text-primary" />
+                      <span>No spoilers without warning</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 mt-0.5 text-primary" />
+                      <span>Share your thoughts and experiences</span>
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+                          </div>
+
+            {/* Main Content Area */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Header Section */}
+              <div className="flex flex-col space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <h2 className="text-2xl font-semibold tracking-tight">Discussions</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Join the conversation with {group?.member_count || 0} members
+                              </p>
+                            </div>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm">
+                      <Filter className="h-4 w-4 mr-2" />
+                      Filter
+                    </Button>
+                    <Button>
+                      <PlusIcon className="h-4 w-4 mr-2" />
+                      New Discussion
+                    </Button>
+                          </div>
+                        </div>
+                
+                {/* Search and Filter Bar */}
+                <div className="flex items-center gap-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input placeholder="Search discussions..." className="pl-8" />
+                      </div>
+                  <Select defaultValue="recent">
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Sort by" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="recent">Most Recent</SelectItem>
+                      <SelectItem value="popular">Most Popular</SelectItem>
+                      <SelectItem value="comments">Most Comments</SelectItem>
+                      <SelectItem value="views">Most Views</SelectItem>
+                    </SelectContent>
+                  </Select>
+                    </div>
+                      </div>
+
+              {/* Categories Tabs */}
+              <div className="border-b">
+                <Tabs defaultValue="all" className="w-full">
+                  <TabsList>
+                    <TabsTrigger value="all">All</TabsTrigger>
+                    <TabsTrigger value="pinned">Pinned</TabsTrigger>
+                    <TabsTrigger value="announcements">Announcements</TabsTrigger>
+                    <TabsTrigger value="questions">Questions</TabsTrigger>
+                    <TabsTrigger value="events">Events</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="all">
+                    {/* Content for "all" tab */}
+                  </TabsContent>
+                  <TabsContent value="pinned">
+                    {/* Content for "pinned" tab */}
+                  </TabsContent>
+                  <TabsContent value="announcements">
+                    {/* Content for "announcements" tab */}
+                  </TabsContent>
+                  <TabsContent value="questions">
+                    {/* Content for "questions" tab */}
+                  </TabsContent>
+                  <TabsContent value="events">
+                    {/* Content for "events" tab */}
+                  </TabsContent>
+                </Tabs>
+                            </div>
 
               {/* Discussions List */}
-              <Card>
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    {mockDiscussions.map((discussion) => (
-                      <div key={discussion.id} className="flex items-start gap-4 p-4 rounded-lg hover:bg-accent/50 transition-colors">
-                        <div className="flex-shrink-0">
-                          <span className="relative flex shrink-0 overflow-hidden rounded-full h-10 w-10">
-                            <img
-                              src={discussion.authorAvatar}
-                              alt={discussion.author}
-                              className="aspect-square h-full w-full"
-                            />
-                          </span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            {discussion.isPinned && (
-                              <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">
-                                Pinned
-                              </span>
-                            )}
-                            <h3 className="text-base font-medium leading-none">
-                              <Link href={`/discussions/${discussion.id}`} className="hover:underline">
+              <div className="space-y-4">
+                {mockDiscussions.map((discussion, index) => (
+                  <Card key={index} className="overflow-hidden hover:shadow-md transition-shadow">
+                    <CardContent className="p-0">
+                      <div className="p-6">
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-lg font-medium hover:text-primary cursor-pointer">
                                 {discussion.title}
-                              </Link>
-                            </h3>
-                          </div>
-                          <div className="mt-1 flex items-center gap-4 text-sm text-muted-foreground">
-                            <span>Posted by {discussion.author}</span>
-                            <span>•</span>
-                            <span>{discussion.replies} replies</span>
-                            <span>•</span>
-                            <span>Last reply {discussion.lastReply}</span>
+                              </h3>
+                              {discussion.isPinned && (
+                                <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-primary/10 text-primary">
+                                  <PinIcon className="h-3 w-3 mr-1" />
+                                  Pinned
+                              </div>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <div className="flex items-center gap-1">
+                                <img
+                                  src={discussion.authorAvatar}
+                                  alt={discussion.author}
+                                  className="h-5 w-5 rounded-full"
+                                />
+                                <span className="font-medium text-foreground">{discussion.author}</span>
+                            </div>
+                              <span>•</span>
+                              <div className="flex items-center gap-1">
+                                <MessageSquareIcon className="h-4 w-4" />
+                                <span>{discussion.replies} replies</span>
+                              </div>
+                              <span>•</span>
+                              <div className="flex items-center gap-1">
+                                <ClockIcon className="h-4 w-4" />
+                                <span>Last reply {discussion.lastReply}</span>
+                            </div>
                           </div>
                         </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <Ellipsis className="h-4 w-4" />
+                            </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem>
+                                <BookmarkIcon className="h-4 w-4 mr-2" />
+                                Save
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <Share2 className="h-4 w-4 mr-2" />
+                                Share
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <FlagIcon className="h-4 w-4 mr-2" />
+                                Report
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          </div>
+                        <div className="mt-4 text-sm text-muted-foreground">
+                          {discussion.content}
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        )}
-
-        {/* Photos Tab */}
-        {activeTab === "photos" && (
-          <div className="group-page__content">
-            <div className="space-y-6">
-              <Card className="rounded-lg border bg-card text-card-foreground shadow-sm">
-                <div className="flex flex-col space-y-1.5 p-6">
-                  <div className="flex justify-between items-center">
-                    <div className="text-2xl font-semibold leading-none tracking-tight">Photos</div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        role="combobox"
-                        aria-controls="radix-:rk:"
-                        aria-expanded="false"
-                        aria-autocomplete="none"
-                        dir="ltr"
-                        data-state="closed"
-                        className="flex h-10 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-[180px]"
-                      >
-                        <span style={{ pointerEvents: "none" }}>All Photos</span>
-                        <ChevronDown className="h-4 w-4 opacity-50" aria-hidden="true" />
-                      </Button>
-                      <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
-                        <ImageIcon className="h-4 w-4 mr-2" />
-                        Add Photos
-                      </Button>
+                      </div>
+                      <FeedItemFooter
+                        views={discussion.views}
+                        likeCount={discussion.likes}
+                        replyCount={discussion.replies}
+                        onLike={() => console.log('Like clicked')}
+                        onReply={() => console.log('Reply clicked')}
+                        onShare={() => console.log('Share clicked')}
+                      />
+                    </CardContent>
+                  </Card>
+                ))}
                     </div>
-                  </div>
+
+              {/* Pagination */}
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">
+                  Showing 1-10 of 24 discussions
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" disabled>
+                    Previous
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    Next
+                              </Button>
+                            </div>
+                          </div>
+                      </div>
                 </div>
-                <CardContent className="p-6 pt-0">
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {mockPhotosTabData.map((photo) => (
-                      <div key={photo.id} className="group relative">
-                        <div className="aspect-square relative rounded-lg overflow-hidden">
+        </div>
+      )}
+
+      {/* Photos Tab */}
+      {activeTab === "photos" && (
+        <div className="mt-6">
+                <div className="space-y-6">
+                  <Card className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                    <div className="flex flex-col space-y-1.5 p-6">
+                      <div className="flex justify-between items-center">
+                        <div className="text-2xl font-semibold leading-none tracking-tight">Photos</div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            role="combobox"
+                            aria-controls="radix-:rk:"
+                            aria-expanded="false"
+                            aria-autocomplete="none"
+                            dir="ltr"
+                            data-state="closed"
+                            className="flex h-10 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-[180px]"
+                          >
+                            <span style={{ pointerEvents: "none" }}>All Photos</span>
+                            <ChevronDown className="h-4 w-4 opacity-50" aria-hidden="true" />
+                          </Button>
+                          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+                            <ImageIcon className="h-4 w-4 mr-2" />
+                            Add Photos
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                    <CardContent className="p-6 pt-0">
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {mockPhotosTabData.map((photo) => (
+                          <div key={photo.id} className="group relative">
+                            <div className="aspect-square relative rounded-lg overflow-hidden">
+                              <img
+                                alt={photo.title}
+                                src={photo.url || "/placeholder.svg"}
+                                className="object-cover group-hover:scale-105 transition-transform absolute inset-0 w-full h-full"
+                              />
+                            </div>
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-end">
+                              <div className="p-3 text-white w-full">
+                                <p className="text-sm truncate">{photo.title}</p>
+                                <p className="text-xs opacity-80">{photo.date}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+        </div>
+      )}
+
+      {/* More Tab */}
+      {activeTab === "more" && (
+        <div className="mt-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                    <div className="flex flex-col space-y-1.5 p-6">
+                      <div className="text-2xl font-semibold leading-none tracking-tight">Groups</div>
+                    </div>
+                    <div className="p-6 pt-0 space-y-4">
+                      <div className="flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
                           <img
-                            alt={photo.title}
-                            src={photo.url || "/placeholder.svg"}
-                            className="object-cover group-hover:scale-105 transition-transform absolute inset-0 w-full h-full"
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Fantasy Book Club"
+                            className="aspect-square h-full w-full"
                           />
-                        </div>
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-end">
-                          <div className="p-3 text-white w-full">
-                            <p className="text-sm truncate">{photo.title}</p>
-                            <p className="text-xs opacity-80">{photo.date}</p>
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">Fantasy Book Club</h3>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                              Moderator
+                            </div>
+                            <span>·</span>
+                            <span>1243 members</span>
+                            <span>·</span>
+                            <span>Joined January 2021</span>
                           </div>
+                        </div>
+                        <Button variant="outline" className="h-9 rounded-md px-3">
+                          View
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Science Fiction Readers"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">Science Fiction Readers</h3>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                              Member
+                            </div>
+                            <span>·</span>
+                            <span>3567 members</span>
+                            <span>·</span>
+                            <span>Joined March 2021</span>
+                          </div>
+                        </div>
+                        <Button variant="outline" className="h-9 rounded-md px-3">
+                          View
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Portland Book Lovers"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">Portland Book Lovers</h3>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                              Member
+                            </div>
+                            <span>·</span>
+                            <span>567 members</span>
+                            <span>·</span>
+                            <span>Joined April 2020</span>
+                          </div>
+                        </div>
+                        <Button variant="outline" className="h-9 rounded-md px-3">
+                          View
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Women Writers Book Club"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">Women Writers Book Club</h3>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                              Member
+                            </div>
+                            <span>·</span>
+                            <span>892 members</span>
+                            <span>·</span>
+                            <span>Joined September 2022</span>
+                          </div>
+                        </div>
+                        <Button variant="outline" className="h-9 rounded-md px-3">
+                          View
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Literary Fiction Fans"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">Literary Fiction Fans</h3>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                              Member
+                            </div>
+                            <span>·</span>
+                            <span>1456 members</span>
+                            <span>·</span>
+                            <span>Joined July 2021</span>
+                          </div>
+                        </div>
+                        <Button variant="outline" className="h-9 rounded-md px-3">
+                          View
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Classic Literature Society"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">Classic Literature Society</h3>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                              Member
+                            </div>
+                            <span>·</span>
+                            <span>789 members</span>
+                            <span>·</span>
+                            <span>Joined February 2022</span>
+                          </div>
+                        </div>
+                        <Button variant="outline" className="h-9 rounded-md px-3">
+                          View
+                        </Button>
+                      </div>
+                      <Button className="h-10 px-4 py-2 w-full">
+                        <Users className="h-4 w-4 mr-2" />
+                        Find More Groups
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                    <div className="flex flex-col space-y-1.5 p-6">
+                      <div className="text-2xl font-semibold leading-none tracking-tight">Pages</div>
+                    </div>
+                    <div className="p-6 pt-0 space-y-4">
+                      <div className="flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Brandon Sanderson"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">Brandon Sanderson</h3>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                              Author
+                            </div>
+                            <span>·</span>
+                            <span>Following Since 2020</span>
+                          </div>
+                        </div>
+                        <Button variant="outline" className="h-9 rounded-md px-3">
+                          View
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Tor Books"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">Tor Books</h3>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                              Publisher
+                            </div>
+                            <span>·</span>
+                            <span>Following Since 2021</span>
+                          </div>
+                        </div>
+                        <Button variant="outline" className="h-9 rounded-md px-3">
+                          View
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Powell's Books"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">Powell&apos;s Books</h3>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                              Bookstore
+                            </div>
+                            <span>·</span>
+                            <span>Following Since 2019</span>
+                          </div>
+                        </div>
+                        <Button variant="outline" className="h-9 rounded-md px-3">
+                          View
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Neil Gaiman"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">Neil Gaiman</h3>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                              Author
+                            </div>
+                            <span>·</span>
+                            <span>Following Since 2020</span>
+                          </div>
+                        </div>
+                        <Button variant="outline" className="h-9 rounded-md px-3">
+                          View
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Penguin Random House"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">Penguin Random House</h3>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                              Publisher
+                            </div>
+                            <span>·</span>
+                            <span>Following Since 2022</span>
+                          </div>
+                        </div>
+                        <Button variant="outline" className="h-9 rounded-md px-3">
+                          View
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 border rounded-lg">
+                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                          <img
+                            src="/placeholder.svg?height=100&width=100"
+                            alt="Barnes & Noble"
+                            className="aspect-square h-full w-full"
+                          />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">Barnes & Noble</h3>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                              Bookstore
+                            </div>
+                            <span>·</span>
+                            <span>Following Since 2021</span>
+                          </div>
+                        </div>
+                        <Button variant="outline" className="h-9 rounded-md px-3">
+                          View
+                        </Button>
+                      </div>
+                      <Button className="h-10 px-4 py-2 w-full">
+                        <Book className="h-4 w-4 mr-2" />
+                        Discover More Pages
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+        </div>
+      )}
+
+      {/* Members Tab */}
+      {activeTab === "members" && (
+        <div className="mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Sidebar */}
+            <div className="space-y-6">
+              {/* Member Stats Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Member Stats</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Total Members</span>
+                      <span className="font-medium">{group?.member_count || 0}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">New This Week</span>
+                      <span className="font-medium">12</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Active Now</span>
+                      <span className="font-medium">8</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Moderators</span>
+                      <span className="font-medium">3</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Member Roles Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Member Roles</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="h-3 w-3 rounded-full bg-primary"></div>
+                        <span className="text-sm">Owners</span>
+                      </div>
+                      <span className="text-sm font-medium">1</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="h-3 w-3 rounded-full bg-blue-500"></div>
+                        <span className="text-sm">Admins</span>
+                      </div>
+                      <span className="text-sm font-medium">2</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="h-3 w-3 rounded-full bg-green-500"></div>
+                        <span className="text-sm">Moderators</span>
+                      </div>
+                      <span className="text-sm font-medium">3</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="h-3 w-3 rounded-full bg-gray-500"></div>
+                        <span className="text-sm">Members</span>
+                      </div>
+                      <span className="text-sm font-medium">{group?.member_count ? group.member_count - 6 : 0}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Member Activity Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Activity</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {mockFriends.slice(0, 5).map((friend) => (
+                      <div key={friend.id} className="flex items-center gap-3">
+                        <img
+                          src={friend.avatar}
+                          alt={friend.name}
+                          className="h-8 w-8 rounded-full"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{friend.name}</p>
+                          <p className="text-xs text-muted-foreground">Active now</p>
                         </div>
                       </div>
                     ))}
@@ -964,315 +2365,194 @@ export function ClientGroupPage({ group, avatarUrl, coverImageUrl, params }: Cli
                 </CardContent>
               </Card>
             </div>
-          </div>
-        )}
 
-        {/* More Tab */}
-        {activeTab === "more" && (
-          <div className="group-page__content">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-                <div className="flex flex-col space-y-1.5 p-6">
-                  <div className="text-2xl font-semibold leading-none tracking-tight">Groups</div>
+            {/* Main Content Area */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Header Section */}
+              <div className="flex flex-col space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <h2 className="text-2xl font-semibold tracking-tight">Members</h2>
+                    <p className="text-sm text-muted-foreground">
+                      {group?.member_count || 0} members in this group
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm">
+                      <Filter className="h-4 w-4 mr-2" />
+                      Filter
+                    </Button>
+                    {permissions.isOwner() || permissions.isAdmin() ? (
+                      <Button>
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        Invite Members
+                      </Button>
+                    ) : null}
+                  </div>
                 </div>
-                <div className="p-6 pt-0 space-y-4">
-                  <div className="flex items-center gap-3 p-3 border rounded-lg">
-                    <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                      <img
-                        src="/placeholder.svg?height=100&width=100"
-                        alt="Fantasy Book Club"
-                        className="aspect-square h-full w-full"
-                      />
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate">Fantasy Book Club</h3>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                          Moderator
-                        </div>
-                        <span>·</span>
-                        <span>1243 members</span>
-                        <span>·</span>
-                        <span>Joined January 2021</span>
-                      </div>
-                    </div>
-                    <Button variant="outline" className="h-9 rounded-md px-3">
-                      View
-                    </Button>
+                
+                {/* Search and Filter Bar */}
+                <div className="flex items-center gap-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input placeholder="Search members..." className="pl-8" />
                   </div>
-                  <div className="flex items-center gap-3 p-3 border rounded-lg">
-                    <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                      <img
-                        src="/placeholder.svg?height=100&width=100"
-                        alt="Science Fiction Readers"
-                        className="aspect-square h-full w-full"
-                      />
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate">Science Fiction Readers</h3>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                          Member
-                        </div>
-                        <span>·</span>
-                        <span>3567 members</span>
-                        <span>·</span>
-                        <span>Joined March 2021</span>
-                      </div>
-                    </div>
-                    <Button variant="outline" className="h-9 rounded-md px-3">
-                      View
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 border rounded-lg">
-                    <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                      <img
-                        src="/placeholder.svg?height=100&width=100"
-                        alt="Portland Book Lovers"
-                        className="aspect-square h-full w-full"
-                      />
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate">Portland Book Lovers</h3>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                          Member
-                        </div>
-                        <span>·</span>
-                        <span>567 members</span>
-                        <span>·</span>
-                        <span>Joined April 2020</span>
-                      </div>
-                    </div>
-                    <Button variant="outline" className="h-9 rounded-md px-3">
-                      View
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 border rounded-lg">
-                    <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                      <img
-                        src="/placeholder.svg?height=100&width=100"
-                        alt="Women Writers Book Club"
-                        className="aspect-square h-full w-full"
-                      />
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate">Women Writers Book Club</h3>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                          Member
-                        </div>
-                        <span>·</span>
-                        <span>892 members</span>
-                        <span>·</span>
-                        <span>Joined September 2022</span>
-                      </div>
-                    </div>
-                    <Button variant="outline" className="h-9 rounded-md px-3">
-                      View
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 border rounded-lg">
-                    <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                      <img
-                        src="/placeholder.svg?height=100&width=100"
-                        alt="Literary Fiction Fans"
-                        className="aspect-square h-full w-full"
-                      />
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate">Literary Fiction Fans</h3>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                          Member
-                        </div>
-                        <span>·</span>
-                        <span>1456 members</span>
-                        <span>·</span>
-                        <span>Joined July 2021</span>
-                      </div>
-                    </div>
-                    <Button variant="outline" className="h-9 rounded-md px-3">
-                      View
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 border rounded-lg">
-                    <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                      <img
-                        src="/placeholder.svg?height=100&width=100"
-                        alt="Classic Literature Society"
-                        className="aspect-square h-full w-full"
-                      />
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate">Classic Literature Society</h3>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                          Member
-                        </div>
-                        <span>·</span>
-                        <span>789 members</span>
-                        <span>·</span>
-                        <span>Joined February 2022</span>
-                      </div>
-                    </div>
-                    <Button variant="outline" className="h-9 rounded-md px-3">
-                      View
-                    </Button>
-                  </div>
-                  <Button className="h-10 px-4 py-2 w-full">
-                    <Users className="h-4 w-4 mr-2" />
-                    Find More Groups
-                  </Button>
+                  <Select defaultValue="recent">
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Sort by" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="recent">Recently Joined</SelectItem>
+                      <SelectItem value="active">Most Active</SelectItem>
+                      <SelectItem value="name">Name</SelectItem>
+                      <SelectItem value="role">Role</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-              <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-                <div className="flex flex-col space-y-1.5 p-6">
-                  <div className="text-2xl font-semibold leading-none tracking-tight">Pages</div>
-                </div>
-                <div className="p-6 pt-0 space-y-4">
-                  <div className="flex items-center gap-3 p-3 border rounded-lg">
-                    <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                      <img
-                        src="/placeholder.svg?height=100&width=100"
-                        alt="Brandon Sanderson"
-                        className="aspect-square h-full w-full"
-                      />
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate">Brandon Sanderson</h3>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                          Author
+
+              {/* Role Tabs */}
+              <div className="border-b">
+                <Tabs defaultValue="all" className="w-full">
+                  <TabsList>
+                    <TabsTrigger value="all">All Members</TabsTrigger>
+                    <TabsTrigger value="admins">Admins</TabsTrigger>
+                    <TabsTrigger value="moderators">Moderators</TabsTrigger>
+                    <TabsTrigger value="members">Members</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="all">
+                    {/* Content for "all" tab */}
+                  </TabsContent>
+                  <TabsContent value="admins">
+                    {/* Content for "admins" tab */}
+                  </TabsContent>
+                  <TabsContent value="moderators">
+                    {/* Content for "moderators" tab */}
+                  </TabsContent>
+                  <TabsContent value="members">
+                    {/* Content for "members" tab */}
+              </TabsContent>
+            </Tabs>
+          </div>
+
+              {/* Members List */}
+              <div className="space-y-4">
+                {mockFriends.map((member) => (
+                  <Card key={member.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <img
+                            src={member.avatar}
+                            alt={member.name}
+                            className="h-12 w-12 rounded-full"
+                          />
+                          <div>
+                            <h3 className="font-medium">{member.name}</h3>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span>Member since Jan 2023</span>
+                              <span>•</span>
+                              <span>Active now</span>
+        </div>
+      </div>
                         </div>
-                        <span>·</span>
-                        <span>Following Since 2020</span>
-                      </div>
-                    </div>
-                    <Button variant="outline" className="h-9 rounded-md px-3">
-                      View
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 border rounded-lg">
-                    <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                      <img
-                        src="/placeholder.svg?height=100&width=100"
-                        alt="Tor Books"
-                        className="aspect-square h-full w-full"
-                      />
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate">Tor Books</h3>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                          Publisher
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="sm">
+                            <MessageSquare className="h-4 w-4 mr-2" />
+                            Message
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <Ellipsis className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem>
+                                <UserPlus className="h-4 w-4 mr-2" />
+                                Add Friend
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <FlagIcon className="h-4 w-4 mr-2" />
+                                Report
+                              </DropdownMenuItem>
+                              {(permissions.isOwner() || permissions.isAdmin()) && (
+                                <>
+                                  <DropdownMenuItem>
+                                    <UserPlus className="h-4 w-4 mr-2" />
+                                    Make Moderator
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem className="text-destructive">
+                                    <UserMinus className="h-4 w-4 mr-2" />
+                                    Remove Member
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
-                        <span>·</span>
-                        <span>Following Since 2021</span>
                       </div>
-                    </div>
-                    <Button variant="outline" className="h-9 rounded-md px-3">
-                      View
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 border rounded-lg">
-                    <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                      <img
-                        src="/placeholder.svg?height=100&width=100"
-                        alt="Powell's Books"
-                        className="aspect-square h-full w-full"
-                      />
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate">Powell&apos;s Books</h3>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                          Bookstore
-                        </div>
-                        <span>·</span>
-                        <span>Following Since 2019</span>
-                      </div>
-                    </div>
-                    <Button variant="outline" className="h-9 rounded-md px-3">
-                      View
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 border rounded-lg">
-                    <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                      <img
-                        src="/placeholder.svg?height=100&width=100"
-                        alt="Neil Gaiman"
-                        className="aspect-square h-full w-full"
-                      />
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate">Neil Gaiman</h3>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                          Author
-                        </div>
-                        <span>·</span>
-                        <span>Following Since 2020</span>
-                      </div>
-                    </div>
-                    <Button variant="outline" className="h-9 rounded-md px-3">
-                      View
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 border rounded-lg">
-                    <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                      <img
-                        src="/placeholder.svg?height=100&width=100"
-                        alt="Penguin Random House"
-                        className="aspect-square h-full w-full"
-                      />
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate">Penguin Random House</h3>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                          Publisher
-                        </div>
-                        <span>·</span>
-                        <span>Following Since 2022</span>
-                      </div>
-                    </div>
-                    <Button variant="outline" className="h-9 rounded-md px-3">
-                      View
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 border rounded-lg">
-                    <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                      <img
-                        src="/placeholder.svg?height=100&width=100"
-                        alt="Barnes & Noble"
-                        className="aspect-square h-full w-full"
-                      />
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate">Barnes & Noble</h3>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                          Bookstore
-                        </div>
-                        <span>·</span>
-                        <span>Following Since 2021</span>
-                      </div>
-                    </div>
-                    <Button variant="outline" className="h-9 rounded-md px-3">
-                      View
-                    </Button>
-                  </div>
-                  <Button className="h-10 px-4 py-2 w-full">
-                    <Book className="h-4 w-4 mr-2" />
-                    Discover More Pages
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Pagination */}
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">
+                  Showing 1-10 of {group?.member_count || 0} members
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" disabled>
+                    Previous
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    Next
                   </Button>
                 </div>
               </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* Rules Edit Modal */}
+      <Dialog open={isRulesModalOpen} onOpenChange={setIsRulesModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingRule ? 'Edit Rule' : 'Add Rule'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                value={editingRule?.title || ''}
+                onChange={(e) => setEditingRule(prev => prev ? { ...prev, title: e.target.value } : { title: e.target.value, group_id: params.id })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description (Optional)</Label>
+              <Textarea
+                id="description"
+                value={editingRule?.description || ''}
+                onChange={(e) => setEditingRule(prev => prev ? { ...prev, description: e.target.value } : { title: '', description: e.target.value, group_id: params.id })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsRulesModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => handleSaveRule(editingRule)}
+              disabled={isLoading || !editingRule?.title}
+            >
+              {isLoading ? 'Saving...' : 'Save'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

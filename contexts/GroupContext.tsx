@@ -46,9 +46,42 @@ export function GroupProvider({
 
   // Get current user
   useEffect(() => {
-    supabaseClient.auth.getUser().then(({ data: { user } }) => {
-      setUserId(user?.id)
-    })
+    const initializeUser = async () => {
+      try {
+        console.log('Initializing user session...')
+        const { data: { session }, error } = await supabaseClient.auth.getSession()
+        if (error) {
+          console.error('Error getting session:', error)
+          throw error
+        }
+        
+        console.log('Session data:', session)
+        if (session?.user) {
+          console.log('Current user:', session.user)
+          setUserId(session.user.id)
+        } else {
+          console.log('No user in session')
+        }
+
+        // Set up auth state change listener
+        const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
+          console.log('Auth state changed:', event, session?.user)
+          if (session?.user) {
+            setUserId(session.user.id)
+          } else {
+            setUserId(undefined)
+          }
+        })
+
+        return () => {
+          subscription.unsubscribe()
+        }
+      } catch (err) {
+        console.error('Error initializing user:', err)
+      }
+    }
+
+    initializeUser()
   }, [])
 
   // Get group permissions
@@ -60,6 +93,21 @@ export function GroupProvider({
     isAdmin,
     isMember
   } = useGroupPermissions(groupId, userId)
+
+  console.log('Group context state:', {
+    userId,
+    groupId,
+    loading: permissionsLoading,
+    error: permissionsError,
+    isOwner: isOwner(),
+    isAdmin: isAdmin(),
+    isMember,
+    group: group ? {
+      id: group.id,
+      name: group.name,
+      created_by: group.created_by
+    } : null
+  })
 
   const loadGroup = async () => {
     try {

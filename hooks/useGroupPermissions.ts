@@ -36,15 +36,40 @@ export function useGroupPermissions(groupId: string, userId?: string) {
   const [permissions, setPermissions] = useState<GroupPermission[]>([])
   const [isMember, setIsMember] = useState(false)
   const [membership, setMembership] = useState<GroupMember | null>(null)
+  const [isCreator, setIsCreator] = useState(false)
 
   useEffect(() => {
     async function loadPermissions() {
       if (!userId) {
-        setLoading(false)
+        console.log('Waiting for userId to be available...')
+        setLoading(true)
         return
       }
 
       try {
+        console.log('Loading permissions for user:', userId, 'in group:', groupId)
+        
+        // First check if user is the group creator
+        const { data: groupData, error: groupError } = await supabaseClient
+          .from('groups')
+          .select('created_by')
+          .eq('id', groupId)
+          .single()
+
+        if (groupError) throw groupError
+
+        const isGroupCreator = groupData.created_by === userId
+        console.log('Is group creator:', isGroupCreator)
+        setIsCreator(isGroupCreator)
+
+        // If user is creator, they automatically have all permissions
+        if (isGroupCreator) {
+          setIsMember(true)
+          setPermissions(['manage_group', 'manage_members', 'manage_content', 'view_content', 'create_content', 'delete_content', 'manage_roles', 'invite_members', 'remove_members', 'create_events', 'manage_events'])
+          setLoading(false)
+          return
+        }
+
         // Get user's membership in the group
         const { data: memberData, error: memberError } = await supabaseClient
           .from('group_members')
@@ -55,6 +80,7 @@ export function useGroupPermissions(groupId: string, userId?: string) {
 
         if (memberError) {
           if (memberError.code === 'PGRST116') { // Record not found
+            console.log('User is not a member of the group')
             setIsMember(false)
             setMembership(null)
             setRole(null)
@@ -65,6 +91,7 @@ export function useGroupPermissions(groupId: string, userId?: string) {
           throw memberError
         }
 
+        console.log('User membership data:', memberData)
         setIsMember(true)
         setMembership(memberData)
 
@@ -77,6 +104,7 @@ export function useGroupPermissions(groupId: string, userId?: string) {
 
         if (roleError) throw roleError
 
+        console.log('User role data:', roleData)
         setRole(roleData)
         setPermissions(roleData.permissions)
       } catch (err: any) {
@@ -95,11 +123,23 @@ export function useGroupPermissions(groupId: string, userId?: string) {
   }
 
   const isOwner = () => {
-    return role?.name === 'Owner'
+    // If we're still loading, return false
+    if (loading) return false
+    // If user is creator, they are automatically the owner
+    if (isCreator) return true
+    // If we have a role, check if it's Owner
+    if (role) return role.name === 'Owner'
+    return false
   }
 
   const isAdmin = () => {
-    return role?.name === 'Owner' || role?.name === 'Admin'
+    // If we're still loading, return false
+    if (loading) return false
+    // If user is creator, they are automatically an admin
+    if (isCreator) return true
+    // If we have a role, check if it's Owner or Admin
+    if (role) return role.name === 'Owner' || role.name === 'Admin'
+    return false
   }
 
   return {
@@ -109,6 +149,7 @@ export function useGroupPermissions(groupId: string, userId?: string) {
     permissions,
     isMember,
     membership,
+    isCreator,
     hasPermission,
     isOwner,
     isAdmin

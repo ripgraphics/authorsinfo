@@ -810,17 +810,11 @@ group_member_streaks,current_streak,integer
 group_member_streaks,longest_streak,integer
 group_member_streaks,last_active_date,date
 group_member_streaks,updated_at,timestamp with time zone
-group_members,id,uuid
 group_members,group_id,uuid
 group_members,user_id,uuid
-group_members,joined_at,timestamp with time zone
-group_members,created_at,timestamp with time zone
-group_members,updated_at,timestamp with time zone
 group_members,role_id,integer
-group_members,join_answers,jsonb
-group_members,is_event_organizer,boolean
-group_members,status,text
-group_members,notification_settings,jsonb
+group_members,status,character varying
+group_members,joined_at,timestamp with time zone
 group_membership_questions,id,integer
 group_membership_questions,group_id,uuid
 group_membership_questions,question,text
@@ -906,10 +900,18 @@ group_reports,reviewed_at,timestamp with time zone
 group_reports,created_at,timestamp with time zone
 group_roles,id,integer
 group_roles,group_id,uuid
-group_roles,name,text
+group_roles,name,character varying
 group_roles,description,text
-group_roles,permissions,jsonb
+group_roles,permissions,ARRAY
 group_roles,is_default,boolean
+group_roles,created_at,timestamp with time zone
+group_rules,id,integer
+group_rules,group_id,uuid
+group_rules,title,character varying
+group_rules,description,text
+group_rules,order_index,integer
+group_rules,created_at,timestamp with time zone
+group_rules,updated_at,timestamp with time zone
 group_shared_documents,id,uuid
 group_shared_documents,group_id,uuid
 group_shared_documents,title,text
@@ -944,27 +946,17 @@ group_welcome_messages,created_at,timestamp with time zone
 groups,id,uuid
 groups,name,character varying
 groups,description,text
-groups,is_public,boolean
+groups,is_private,boolean
 groups,created_by,uuid
 groups,created_at,timestamp with time zone
-groups,updated_at,timestamp with time zone
-groups,cover_image_id,integer
-groups,group_image_id,integer
-groups,banner_image_url,text
-groups,color_theme,text
-groups,bio,text
-groups,tags,ARRAY
-groups,is_discoverable,boolean
-groups,seo_title,text
-groups,seo_description,text
-groups,canonical_url,text
-groups,settings,jsonb
-groups,banner_gallery_id,integer
-groups,is_secret,boolean
-groups,og_image_url,text
-groups,theme_mode,text
-groups,custom_theme,jsonb
+groups,cover_image_url,text
 groups,member_count,integer
+groups,group_image_id,integer
+groups,cover_image_id,integer
+groups,is_public,boolean
+groups,is_discoverable,boolean
+groups,tags,ARRAY
+groups,updated_at,timestamp with time zone
 image_tag_mappings,image_id,integer
 image_tag_mappings,tag_id,uuid
 image_tag_mappings,created_at,timestamp with time zone
@@ -1429,12 +1421,50 @@ user_reading_preferences,preferred_complexity,text
 user_reading_preferences,preferred_publication_era,text
 user_reading_preferences,created_at,timestamp with time zone
 user_reading_preferences,updated_at,timestamp with time zone
-user_recommended_events,user_id,uuid
-user_recommended_events,event_id,uuid
+user_recommended_events,id,uuid
 user_recommended_events,title,text
-user_recommended_events,start_date,timestamp with time zone
+user_recommended_events,subtitle,text
+user_recommended_events,description,text
+user_recommended_events,summary,text
 user_recommended_events,category_id,uuid
-user_recommended_events,recommendation_reason,text
+user_recommended_events,type_id,uuid
+user_recommended_events,format,text
+user_recommended_events,status,text
+user_recommended_events,visibility,text
+user_recommended_events,featured,boolean
+user_recommended_events,start_date,timestamp with time zone
+user_recommended_events,end_date,timestamp with time zone
+user_recommended_events,timezone,text
+user_recommended_events,all_day,boolean
+user_recommended_events,max_attendees,integer
+user_recommended_events,cover_image_id,integer
+user_recommended_events,event_image_id,integer
+user_recommended_events,is_recurring,boolean
+user_recommended_events,recurrence_pattern,jsonb
+user_recommended_events,parent_event_id,uuid
+user_recommended_events,created_by,uuid
+user_recommended_events,created_at,timestamp with time zone
+user_recommended_events,updated_at,timestamp with time zone
+user_recommended_events,published_at,timestamp with time zone
+user_recommended_events,requires_registration,boolean
+user_recommended_events,registration_opens_at,timestamp with time zone
+user_recommended_events,registration_closes_at,timestamp with time zone
+user_recommended_events,is_free,boolean
+user_recommended_events,price,numeric
+user_recommended_events,currency,text
+user_recommended_events,book_id,integer
+user_recommended_events,author_id,integer
+user_recommended_events,publisher_id,integer
+user_recommended_events,group_id,uuid
+user_recommended_events,virtual_meeting_url,text
+user_recommended_events,virtual_meeting_id,text
+user_recommended_events,virtual_meeting_password,text
+user_recommended_events,virtual_platform,text
+user_recommended_events,slug,text
+user_recommended_events,seo_title,text
+user_recommended_events,seo_description,text
+user_recommended_events,canonical_url,text
+user_recommended_events,content_blocks,jsonb
 users,id,uuid
 users,email,character varying
 users,name,character varying

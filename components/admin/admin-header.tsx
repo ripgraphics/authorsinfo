@@ -15,6 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Avatar } from "@/components/ui/avatar"
 
 export function AdminHeader() {
   const [searchOpen, setSearchOpen] = useState(false)
@@ -80,18 +81,12 @@ export function AdminHeader() {
           {!loading && user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
-                  {user.user_metadata?.avatar_url ? (
-                    <img
-                      src={user.user_metadata.avatar_url}
-                      alt={user.user_metadata.full_name || user.email || "User"}
-                      className="object-cover rounded-full w-8 h-8"
-                    />
-                  ) : (
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-700 text-white text-sm font-bold">
-                      {user.user_metadata?.full_name?.[0] || user.email?.[0] || <UserIcon className="h-5 w-5" />}
-                    </span>
-                  )}
+                <Button variant="ghost" className="relative rounded-full p-0">
+                  <Avatar
+                    src={user.user_metadata?.avatar_url}
+                    alt={user.user_metadata?.full_name || user.email || "User"}
+                    name={user.user_metadata?.full_name || user.email || ""}
+                  />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -114,9 +109,9 @@ export function AdminHeader() {
             </DropdownMenu>
           ) : !loading && (
             <Button variant="ghost" size="icon" className="user-avatar-button rounded-full hover:bg-accent hover:text-accent-foreground p-0" onClick={() => window.location.href = "/login"}>
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-700 text-white">
-                <Lock className="h-5 w-5" />
-              </span>
+              <Avatar
+                name=""
+              />
             </Button>
           )}
         </div>

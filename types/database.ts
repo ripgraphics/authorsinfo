@@ -508,6 +508,56 @@ export interface Database {
           is_public?: boolean
         }
       }
+      contact_info: {
+        Row: {
+          id: string
+          entity_type: string
+          entity_id: string
+          email: string | null
+          phone: string | null
+          website: string | null
+          address_line1: string | null
+          address_line2: string | null
+          city: string | null
+          state: string | null
+          postal_code: string | null
+          country: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          entity_type: string
+          entity_id: string
+          email?: string | null
+          phone?: string | null
+          website?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          state?: string | null
+          postal_code?: string | null
+          country?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          entity_type?: string
+          entity_id?: string
+          email?: string | null
+          phone?: string | null
+          website?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          state?: string | null
+          postal_code?: string | null
+          country?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
   }
 }

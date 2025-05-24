@@ -1,4 +1,47 @@
-NEXT_PUBLIC_SUPABASE_URL="https://nmrohtlcfqujtfgcyqhw.supabase.co"
-NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tcm9odGxjZnF1anRmZ2N5cWh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzMTQ1ODIsImV4cCI6MjA1Nzg5MDU4Mn0.kpkM45hzALxly1EP86tEP4QfWJS8cOEys4zkSmZVIyU"
-SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tcm9odGxjZnF1anRmZ2N5cWh3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjMxNDU4MiwiZXhwIjoyMDU3ODkwNTgyfQ.A6yFi6IQWp_PFRkBpWz7-eDpDSnBsmrxn_WaQYJzTQk"
-SUPABASE_PASSWORD="fRK.P_F8.xyftpc"
+Based on the database schema, here's what additional data you can show about groups:
+Core Group Data (from groups table):
+Basic Info: name, description, tags (array)
+Privacy Settings: is_private, is_public, is_discoverable
+Images: group_image_id, cover_image_id, cover_image_url
+Stats: member_count
+Metadata: id, created_by, created_at, updated_at
+
+
+Related Group Data Available:
+
+Group Members (group_members)
+Member details: user_id, role_id, status, joined_at
+
+Group Rules (group_rules)
+Rules: id, title, description, order_index
+
+
+Group Analytics (group_analytics)
+Metrics: date, metric, value (numerical analytics data)
+Group Announcements (group_announcements)
+Announcements: title, content, created_by, is_pinned
+
+Group Book Lists (group_book_lists)
+Reading lists: title, description, created_by
+List items: book_id, added_by, added_at
+
+Group Book Reviews (group_book_reviews)
+Reviews: book_id, user_id, rating, review text
+
+Group Book Swaps (group_book_swaps)
+Book exchanges: book_id, offered_by, status, accepted_by
+
+Group Chat (group_chat_channels, group_chat_messages)
+Chat channels: name, description, is_event_channel
+Messages: user_id, message, created_at
+
+Group Events (group_author_events)
+Author events: author_id, event_id, scheduled_at
+
+Group Achievements (group_achievements)
+Achievements: name, description, type, criteria (jsonb)
+
+Group Activity Tracking
+Audit Log (group_audit_log): actions, performed_by, details
+Reports (group_reports): reported content, reasons, status
+The richest data would come from members, announcements, book lists, and chat activity. Would you like me to show any of these specific areas for the group?

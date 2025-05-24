@@ -16,9 +16,9 @@ interface AvatarProps {
 
 const sizeMap = {
   sm: {
-    container: "w-12 h-12",
-    icon: "h-6 w-6",
-    img: 48,
+    container: "w-10 h-10",
+    icon: "h-5 w-5",
+    img: 40,
   },
   md: {
     container: "w-24 h-24",
@@ -42,7 +42,7 @@ export function Avatar({
   src,
   alt = "Avatar",
   name = "",
-  size = "md",
+  size = "sm",
   linkToProfile = false,
   className = "",
 }: AvatarProps) {

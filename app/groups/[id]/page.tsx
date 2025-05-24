@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation"
 import { ClientGroupPage } from "./client"
+import { supabaseClient } from "@/lib/supabase/client"
 
 export const dynamic = "force-dynamic"
 
@@ -23,9 +24,16 @@ export default async function GroupPage({ params }: GroupPageProps) {
     notFound()
   }
 
-  // Use group-provided images if available, else fallback to placeholder
-  const avatarUrl = group.avatar_url || "/placeholder.svg?height=200&width=200"
-  const coverImageUrl = group.banner_image_url || "/placeholder.svg?height=400&width=1200"
+  console.log('Group data:', {
+    id: group.id,
+    name: group.name,
+    cover_image_url: group.cover_image_url,
+    group_image_url: group.group_image_url
+  })
+
+  // Use the image URLs directly from the API response
+  const avatarUrl = group.group_image_url || "/placeholder.svg?height=200&width=200"
+  const coverImageUrl = group.cover_image_url || "/placeholder.svg?height=400&width=1200"
 
   return (
     <div>

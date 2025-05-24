@@ -1,23 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+import { createClient } from '@/lib/supabase-server';
 
 // GET: List all rules for a group
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const groupId = params.id;
+    const { id: groupId } = await context.params;
     if (!groupId) {
       return NextResponse.json({ error: 'Group ID is required' }, { status: 400 });
     }
-    
-    const { data, error } = await supabase
+
+    const supabase = createClient();
+
+    // Fetch group rules
+    const { data: rules, error } = await supabase
       .from('group_rules')
       .select('*')
       .eq('group_id', groupId)
@@ -28,10 +26,10 @@ export async function GET(
       return NextResponse.json({ error: 'Failed to fetch group rules' }, { status: 500 });
     }
 
-    return NextResponse.json({ data });
+    return NextResponse.json({ data: rules || [] });
   } catch (error) {
-    console.error('Error in group rules API:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Error in group rules route:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 

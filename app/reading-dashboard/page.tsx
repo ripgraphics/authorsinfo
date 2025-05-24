@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description: "Track your reading progress and see what your friends are reading",
 }
 
-export default function ReadingDashboardPage() {
+export default async function ReadingDashboardPage() {
   // Get some recent books to recommend
   const recentBooks = await getRecentBooks(6)
 

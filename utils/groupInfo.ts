@@ -88,6 +88,22 @@ export async function getGroupInfo(groupId: string) {
             });
         }
 
+        // Fetch creator's membership information
+        const { data: creatorMembership, error: membershipError } = await supabase
+            .from('group_members')
+            .select('joined_at')
+            .eq('group_id', groupId)
+            .eq('user_id', groupData.created_by)
+            .single();
+
+        if (membershipError) {
+            console.error('Error fetching creator membership:', {
+                error: membershipError,
+                groupId,
+                message: membershipError.message
+            });
+        }
+
         // Fetch contact information separately
         console.log('Fetching contact info for group ID:', groupId);
         const { data: contactData, error: contactError } = await supabase
@@ -116,7 +132,8 @@ export async function getGroupInfo(groupId: string) {
             creatorEmail: creatorData?.email,
             creatorRoleId: creatorData?.role_id,
             creatorCreatedAt: creatorData?.created_at,
-            creatorUpdatedAt: creatorData?.updated_at
+            creatorUpdatedAt: creatorData?.updated_at,
+            creatorJoinedAt: creatorMembership?.joined_at
         };
 
         console.log('Final result with contact info:', result);

@@ -169,7 +169,7 @@ export function EntityHeader({
               id: group.id,
               name: group.name,
               group_image: group.group_image,
-              member_count: group.member_count
+              joined_at: creator?.created_at
             }}
           >
             <span className="text-muted-foreground">{group.name}</span>
@@ -245,9 +245,19 @@ export function EntityHeader({
                   <div className="text-muted-foreground truncate text-sm">
                     Created by{" "}
                     {creator ? (
-                      <UserHoverCard user={creator}>
+                      <EntityHoverCard
+                        type="group"
+                        entity={{
+                          id: creator.id,
+                          name: creator.name,
+                          group_image: {
+                            url: `/api/avatar/${creator.id}`
+                          },
+                          joined_at: creator.created_at
+                        }}
+                      >
                         <span className="cursor-pointer">{creatorName}</span>
-                      </UserHoverCard>
+                      </EntityHoverCard>
                     ) : (
                       creatorName
                     )}

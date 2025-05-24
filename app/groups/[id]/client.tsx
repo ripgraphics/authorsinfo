@@ -89,6 +89,7 @@ import {
 } from "lucide-react"
 import { FeedItemFooter } from "@/components/feed/FeedItemFooter"
 import { getGroupInfo } from '@/utils/groupInfo';
+import { EntityHoverCard } from "@/components/entity-hover-cards"
 
 interface ClientGroupPageProps {
   group: any
@@ -155,6 +156,7 @@ interface Group {
   creatorName?: string;
   creatorEmail?: string;
   creatorCreatedAt?: string;
+  creatorJoinedAt?: string;
   contact_info?: ContactInfo;
   followers?: any[];
   creator?: {
@@ -1430,16 +1432,21 @@ export function ClientGroupPageContent({ group: initialGroup, avatarUrl, coverIm
                     <div className="space-y-3">
                       <Label className="text-sm font-medium text-muted-foreground">Name</Label>
                       <div className="text-base">{group.name}</div>
-                      <div className="text-muted-foreground text-sm">
+                      <div className="text-muted-foreground truncate text-sm">
                         Created by{" "}
-                        <UserHoverCard user={{
-                          id: group.created_by,
-                          name: group.creatorName || 'Unknown',
-                          email: group.creatorEmail,
-                          created_at: group.creatorCreatedAt
-                        }}>
+                        <EntityHoverCard
+                          type="group"
+                          entity={{
+                            id: group.created_by || '',
+                            name: group.creatorName || 'Unknown',
+                            group_image: {
+                              url: `/api/avatar/${group.created_by}`
+                            },
+                            joined_at: group.creatorJoinedAt
+                          }}
+                        >
                           <span className="cursor-pointer">{group.creatorName || 'Unknown'}</span>
-                        </UserHoverCard>
+                        </EntityHoverCard>
                       </div>
                     </div>
 

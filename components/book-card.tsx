@@ -4,7 +4,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { BookOpen } from "lucide-react"
 import { Card } from "@/components/ui/card"
-import { AuthorHoverCard } from "@/components/entity-hover-cards"
+import { EntityHoverCard } from "@/components/entity-hover-cards"
 
 interface BookCardProps {
   id: string
@@ -52,9 +52,17 @@ export function BookCard({
           {author && (
             <p className="text-xs text-muted-foreground mt-1">
               by{" "}
-              <AuthorHoverCard author={author} bookCount={authorBookCount}>
+              <EntityHoverCard
+                type="author"
+                entity={{
+                  id: author.id,
+                  name: author.name,
+                  author_image: author.author_image,
+                  bookCount: authorBookCount
+                }}
+              >
                 <span className="hover:underline cursor-pointer">{author.name}</span>
-              </AuthorHoverCard>
+              </EntityHoverCard>
             </p>
           )}
         </div>

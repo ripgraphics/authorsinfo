@@ -3,7 +3,7 @@ import type { Author } from "@/types/book"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AuthorAvatar } from "@/components/author-avatar"
-import { AuthorHoverCard } from "@/components/author-hover-card"
+import { EntityHoverCard } from "@/components/entity-hover-cards"
 import { Pencil } from "lucide-react"
 
 interface AboutAuthorProps {
@@ -76,12 +76,17 @@ export function AboutAuthor({
               </div>
 
               {/* Author Name with HoverCard */}
-              <AuthorHoverCard 
-                author={author} 
-                bookCount={authorBookCounts[author.id] || books.length || 0}
+              <EntityHoverCard
+                type="author"
+                entity={{
+                  id: author.id,
+                  name: author.name,
+                  author_image: author.author_image,
+                  bookCount: authorBookCounts[author.id] || books.length || 0
+                }}
               >
-                <span className="author-name font-medium text-lg hover:underline">{author.name}</span>
-              </AuthorHoverCard>
+                <span className="text-muted-foreground">{author.name}</span>
+              </EntityHoverCard>
 
               {/* Author Bio - Truncated */}
               {author.bio && (

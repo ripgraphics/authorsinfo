@@ -47,6 +47,7 @@ import { FollowersListTab } from "@/components/followers-list-tab"
 import { ExpandableSection } from "@/components/ui/expandable-section"
 import { ViewFullDetailsButton } from "@/components/ui/ViewFullDetailsButton"
 import { TimelineAboutSection } from "@/components/author/TimelineAboutSection"
+import { EntityHoverCard } from "@/components/entity-hover-cards"
 
 // Helper function to format date as MM-DD-YYYY
 function formatDate(dateString?: string): string {
@@ -233,7 +234,19 @@ export function ClientBookPage({
         <EntityHeader
           entityType="book"
           name={book.title}
-          username={mainAuthor?.name ? `by ${mainAuthor.name}` : undefined}
+          username={mainAuthor?.name ? (
+            <EntityHoverCard
+              type="author"
+              entity={{
+                id: Number(mainAuthor.id),
+                name: mainAuthor.name,
+                author_image: mainAuthor.author_image,
+                bookCount: authorBookCounts[mainAuthor.id] || 0
+              }}
+            >
+              <span className="text-muted-foreground">{mainAuthor.name}</span>
+            </EntityHoverCard>
+          ) : undefined}
           coverImageUrl={book.cover_image_url || book.original_image_url || "/placeholder.svg?height=400&width=1200"}
           profileImageUrl={mainAuthor?.photo_url || mainAuthor?.author_image?.url || "/placeholder.svg?height=200&width=200"}
           stats={bookStats}
@@ -242,6 +255,19 @@ export function ClientBookPage({
           tabs={tabs}
           activeTab={activeTab}
           onTabChange={setActiveTab}
+          author={mainAuthor ? {
+            id: Number(mainAuthor.id),
+            name: mainAuthor.name,
+            author_image: mainAuthor.author_image
+          } : undefined}
+          authorBookCount={mainAuthor ? authorBookCounts[mainAuthor.id] : 0}
+          publisher={publisher ? {
+            id: Number(publisher.id),
+            name: publisher.name,
+            publisher_image: publisher.publisher_image,
+            logo_url: publisher.logo_url
+          } : undefined}
+          publisherBookCount={publisherBooksCount}
         />
         
         {/* Timeline Tab */}
@@ -562,9 +588,17 @@ export function ClientBookPage({
                         <h3 className="font-medium">Author</h3>
                         <div className="text-muted-foreground">
                           {authors && authors.length > 0 ? (
-                            <AuthorHoverCard author={authors[0]} bookCount={authorBookCounts[authors[0].id] || 0}>
-                              <span className="hover:underline cursor-pointer">{authors[0].name}</span>
-                            </AuthorHoverCard>
+                            <EntityHoverCard
+                              type="author"
+                              entity={{
+                                id: authors[0].id,
+                                name: authors[0].name,
+                                author_image: authors[0].author_image,
+                                bookCount: authorBookCounts[authors[0].id] || 0
+                              }}
+                            >
+                              <span className="text-muted-foreground">{authors[0].name}</span>
+                            </EntityHoverCard>
                           ) : (
                             book.author_id
                           )}
@@ -577,9 +611,18 @@ export function ClientBookPage({
                         <h3 className="font-medium">Publisher</h3>
                         <div className="text-muted-foreground">
                           {publisher ? (
-                            <PublisherHoverCard publisher={publisher} bookCount={publisherBooksCount}>
-                              <span className="hover:underline cursor-pointer">{publisher.name}</span>
-                            </PublisherHoverCard>
+                            <EntityHoverCard
+                              type="publisher"
+                              entity={{
+                                id: publisher.id,
+                                name: publisher.name,
+                                publisher_image: publisher.publisher_image,
+                                logo_url: publisher.logo_url,
+                                bookCount: publisherBooksCount
+                              }}
+                            >
+                              <span className="text-muted-foreground">{publisher.name}</span>
+                            </EntityHoverCard>
                           ) : (
                             book.publisher_id
                           )}

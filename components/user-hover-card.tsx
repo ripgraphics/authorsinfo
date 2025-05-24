@@ -1,5 +1,5 @@
 import React from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
@@ -9,25 +9,41 @@ interface UserHoverCardProps {
 }
 
 export function UserHoverCard({ user, children }: UserHoverCardProps) {
+  const router = useRouter();
+
+  const handleClick = () => {
+    router.push(`/profile/${user.id}`);
+  };
+
   return (
-    <HoverCard>
+    <HoverCard openOnClick>
       <HoverCardTrigger asChild>
-        <Link href={`/profile/${user.id}`} className="hover:underline font-medium text-blue-700">{children}</Link>
+        <span 
+          className="hover:underline cursor-pointer text-muted-foreground"
+          onClick={handleClick}
+        >
+          {children}
+        </span>
       </HoverCardTrigger>
-      <HoverCardContent className="w-80 p-4">
-        <Link href={`/profile/${user.id}`} className="block no-underline">
-          <div className="flex items-start space-x-4">
-            <Avatar className="h-12 w-12">
-              <AvatarImage src={user.name ? `/placeholder.svg?text=${user.name[0]}` : undefined} alt={user.name || "User"} />
-              <AvatarFallback>{user.name?.[0] || "U"}</AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col">
-              <h4 className="text-base font-semibold">{user.name || "Unnamed User"}</h4>
-              {user.email && <div className="text-xs text-muted-foreground mt-1">{user.email}</div>}
-              {user.created_at && <div className="text-xs text-muted-foreground mt-1">Joined {new Date(user.created_at).toLocaleDateString()}</div>}
-            </div>
+      <HoverCardContent className="w-80">
+        <div className="flex items-start space-x-3">
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={`/api/avatar/${user.id}`} alt={user.name} />
+            <AvatarFallback>{user.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+          </Avatar>
+          <div className="space-y-1">
+            <h4 className="text-sm font-semibold">{user.name}</h4>
+            {user.created_at && (
+              <p className="text-sm text-muted-foreground">
+                Joined {new Date(user.created_at).toLocaleDateString('en-US', { 
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </p>
+            )}
           </div>
-        </Link>
+        </div>
       </HoverCardContent>
     </HoverCard>
   );

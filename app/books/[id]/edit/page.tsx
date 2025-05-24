@@ -465,16 +465,16 @@ export default function EditBookPage({ params }: EditBookPageProps) {
 
         console.log("Update response:", { data: updatedBook, error: updateError });
 
-        if (updateError) {
-          console.error("Error updating book:", updateError)
+      if (updateError) {
+        console.error("Error updating book:", updateError)
           setError(`Error updating book: ${updateError.message || JSON.stringify(updateError) || 'Unknown error'}`)
           toast({
             title: "Update Failed",
             description: `Failed to update book: ${updateError.message || "Unknown error"}`,
             variant: "destructive",
           });
-          setSaving(false)
-          return
+        setSaving(false)
+        return
         }
       } catch (err) {
         console.error("Exception during book update:", err)

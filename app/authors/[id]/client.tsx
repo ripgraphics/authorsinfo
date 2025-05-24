@@ -42,11 +42,14 @@ import { PhotoAlbumManager } from "@/components/photo-album-manager"
 import { PhotoAlbumsList } from "@/components/photo-albums-list"
 import { CreateAlbumDialog } from '@/components/create-album-dialog'
 import { useRouter } from "next/navigation"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { ExpandableSection } from "@/components/ui/expandable-section"
 import { ViewFullDetailsButton } from "@/components/ui/ViewFullDetailsButton"
 import { TimelineAboutSection } from "@/components/author/TimelineAboutSection"
+import { EntityHoverCard } from "@/components/entity-hover-cards"
+import { ContactInfo, ContactInfoInput } from '@/types/contact'
+import { getContactInfo, upsertContactInfo } from '@/utils/contactInfo'
 
 interface ClientAuthorPageProps {
   author: Author
@@ -140,13 +143,8 @@ export function ClientAuthorPage({
   const [contactDialogOpen, setContactDialogOpen] = useState(false)
   const [editedBio, setEditedBio] = useState(initialAuthor?.bio || "")
   const [showFullBio, setShowFullBio] = useState(false)
-  const [editedContact, setEditedContact] = useState({
-    website: initialAuthor?.website || "",
-    twitter_handle: initialAuthor?.twitter_handle || "",
-    facebook_handle: initialAuthor?.facebook_handle || "",
-    instagram_handle: initialAuthor?.instagram_handle || "",
-    goodreads_url: initialAuthor?.goodreads_url || ""
-  })
+  const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null)
+  const [editedContact, setEditedContact] = useState<ContactInfoInput>({})
   const [saving, setSaving] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
@@ -188,15 +186,30 @@ export function ClientAuthorPage({
   useEffect(() => {
     if (author) {
       setEditedBio(author.bio || "")
-      setEditedContact({
-        website: author.website || "",
-        twitter_handle: author.twitter_handle || "",
-        facebook_handle: author.facebook_handle || "",
-        instagram_handle: author.instagram_handle || "",
-        goodreads_url: author.goodreads_url || ""
-      })
     }
   }, [author])
+
+  // Add useEffect to fetch contact info
+  useEffect(() => {
+    const fetchContactInfo = async () => {
+      const info = await getContactInfo('author', params.id);
+      if (info) {
+        setContactInfo(info);
+        setEditedContact({
+          email: info.email,
+          phone: info.phone,
+          website: info.website,
+          address_line1: info.address_line1,
+          address_line2: info.address_line2,
+          city: info.city,
+          state: info.state,
+          postal_code: info.postal_code,
+          country: info.country
+        });
+      }
+    };
+    fetchContactInfo();
+  }, [params.id]);
 
   // Function to refresh author data
   const refreshAuthorData = async () => {
@@ -237,13 +250,6 @@ export function ClientAuthorPage({
   }
 
   const openContactDialog = () => {
-    setEditedContact({
-      website: author?.website || "",
-      twitter_handle: author?.twitter_handle || "",
-      facebook_handle: author?.facebook_handle || "",
-      instagram_handle: author?.instagram_handle || "",
-      goodreads_url: author?.goodreads_url || ""
-    })
     setContactDialogOpen(true)
   }
 
@@ -282,40 +288,38 @@ export function ClientAuthorPage({
     }
   }
 
-  const saveContact = async () => {
-    setSaving(true)
+  // Add handleUpdateContact function
+  const handleUpdateContact = async () => {
     try {
-      const response = await fetch(`/api/authors/${params.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(editedContact),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to update contact information')
-      }
-
-      // Update local state
-      setAuthor(prev => prev ? { ...prev, ...editedContact } : null)
-      setContactDialogOpen(false)
+      const updatedContact = await upsertContactInfo('author', params.id, {
+        email: editedContact.email || undefined,
+        phone: editedContact.phone || undefined,
+        website: editedContact.website || undefined,
+        address_line1: editedContact.address_line1 || undefined,
+        address_line2: editedContact.address_line2 || undefined,
+        city: editedContact.city || undefined,
+        state: editedContact.state || undefined,
+        postal_code: editedContact.postal_code || undefined,
+        country: editedContact.country || undefined
+      });
       
-      toast({
-        title: "Success",
-        description: "Contact information updated successfully",
-      })
+      if (updatedContact) {
+        setContactInfo(updatedContact);
+        setContactDialogOpen(false);
+        toast({
+          title: "Success",
+          description: "Contact information updated successfully"
+        });
+      }
     } catch (error) {
-      console.error('Error updating contact information:', error)
+      console.error('Error updating contact info:', error);
       toast({
         title: "Error",
         description: "Failed to update contact information",
-        variant: "destructive",
-      })
-    } finally {
-      setSaving(false)
+        variant: "destructive"
+      });
     }
-  }
+  };
 
   // Toggle bio display
   const toggleBioDisplay = () => {
@@ -350,7 +354,17 @@ export function ClientAuthorPage({
             <div className="author-page__profile-info mt-4 md:mt-0 md:ml-6 flex-1">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                 <div>
-                  <h1 className="text-[1.1rem] font-bold truncate">{author?.name}</h1>
+                  <EntityHoverCard
+                    type="author"
+                    entity={{
+                      id: author.id,
+                      name: author.name,
+                      author_image: author.author_image,
+                      bookCount: booksCount
+                    }}
+                  >
+                    <h1 className="text-[1.1rem] font-bold truncate">{author?.name}</h1>
+                  </EntityHoverCard>
                   <p className="text-muted-foreground">@{author?.name?.toLowerCase().replace(/\s+/g, '') || "author"}</p>
                 </div>
                 <div className="author-page__actions flex space-x-2 mt-4 md:mt-0">
@@ -656,7 +670,7 @@ export function ClientAuthorPage({
                       className="overview-section__about-wrapper relative"
                       contentClassName="overview-section__about-text whitespace-pre-wrap text-base"
                     >
-                      {author?.bio || `About ${author?.name || "the Author"}
+                        {author?.bio || `About ${author?.name || "the Author"}
                         
 ${author?.name || "The author"} is a renowned writer known for captivating storytelling and compelling characters. With a distinctive voice that resonates with readers across generations, ${author?.name?.split(' ')[0] || "they"} has established ${author?.name?.includes(' ') ? 'themselves' : 'themself'} as a significant figure in contemporary literature.
 
@@ -693,6 +707,7 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                 </div>
               </div>
               
+              {/* Contact Information Section */}
               <div className="rounded-lg border bg-card text-card-foreground shadow-sm contact-section mb-6" id="contact-info">
                 <div className="contact-section__header flex flex-col space-y-1.5 p-6 border-b">
                   <div className="contact-section__title-row flex justify-between items-center">
@@ -700,7 +715,7 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                     <Button 
                       variant="ghost" 
                       className="contact-section__edit-button h-8 gap-1 rounded-md px-3"
-                      onClick={openContactDialog}
+                      onClick={() => setContactDialogOpen(true)}
                     >
                       <SquarePen className="contact-section__edit-icon h-4 w-4" />
                       <span>Edit</span>
@@ -709,42 +724,55 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                 </div>
                 <div className="contact-section__content p-6">
                   <div className="contact-section__grid grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {(author?.email || author?.twitter_handle || author?.facebook_handle || author?.instagram_handle) ? (
-                      <>
-                        {author?.email && (
-                          <div className="contact-section__email flex flex-col">
-                            <span className="contact-section__label text-sm text-muted-foreground">Email</span>
-                            <a href={`mailto:${author.email}`} className="text-primary hover:underline">
-                              {author.email}
-                            </a>
-                          </div>
-                        )}
-                        {author?.twitter_handle && (
-                          <div className="contact-section__twitter flex flex-col">
-                            <span className="contact-section__label text-sm text-muted-foreground">Twitter</span>
-                            <a href={`https://twitter.com/${author.twitter_handle}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                              @{author.twitter_handle}
-                            </a>
-                          </div>
-                        )}
-                        {author?.facebook_handle && (
-                          <div className="contact-section__facebook flex flex-col">
-                            <span className="contact-section__label text-sm text-muted-foreground">Facebook</span>
-                            <a href={`https://facebook.com/${author.facebook_handle}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                              {author.facebook_handle}
-                            </a>
-                          </div>
-                        )}
-                        {author?.instagram_handle && (
-                          <div className="contact-section__instagram flex flex-col">
-                            <span className="contact-section__label text-sm text-muted-foreground">Instagram</span>
-                            <a href={`https://instagram.com/${author.instagram_handle}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                              @{author.instagram_handle}
-                            </a>
-                          </div>
-                        )}
-                      </>
-                    ) : (
+                    {contactInfo?.email && (
+                      <div className="contact-section__email flex flex-col">
+                        <span className="contact-section__label text-sm text-muted-foreground">Email</span>
+                        <a href={`mailto:${contactInfo.email}`} className="text-primary hover:underline">
+                          {contactInfo.email}
+                        </a>
+                      </div>
+                    )}
+                    {contactInfo?.phone && (
+                      <div className="contact-section__phone flex flex-col">
+                        <span className="contact-section__label text-sm text-muted-foreground">Phone</span>
+                        <a href={`tel:${contactInfo.phone}`} className="text-primary hover:underline">
+                          {contactInfo.phone}
+                        </a>
+                      </div>
+                    )}
+                    {contactInfo?.website && (
+                      <div className="contact-section__website flex flex-col">
+                        <span className="contact-section__label text-sm text-muted-foreground">Website</span>
+                        <a 
+                          href={contactInfo.website.startsWith('http') ? contactInfo.website : `https://${contactInfo.website}`}
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-primary hover:underline"
+                        >
+                          {contactInfo.website}
+                        </a>
+                      </div>
+                    )}
+                    {(contactInfo?.address_line1 || contactInfo?.address_line2 || contactInfo?.city || contactInfo?.state || contactInfo?.postal_code || contactInfo?.country) && (
+                      <div className="contact-section__address flex flex-col">
+                        <span className="contact-section__label text-sm text-muted-foreground">Address</span>
+                        <div className="flex flex-col">
+                          {contactInfo.address_line1 && <span>{contactInfo.address_line1}</span>}
+                          {contactInfo.address_line2 && <span>{contactInfo.address_line2}</span>}
+                          <span>
+                            {[
+                              contactInfo.city,
+                              contactInfo.state,
+                              contactInfo.postal_code
+                            ].filter(Boolean).join(', ')}
+                          </span>
+                          {contactInfo.country && <span>{contactInfo.country}</span>}
+                        </div>
+                      </div>
+                    )}
+                    {!contactInfo?.email && !contactInfo?.phone && !contactInfo?.website && 
+                     !contactInfo?.address_line1 && !contactInfo?.address_line2 && !contactInfo?.city && 
+                     !contactInfo?.state && !contactInfo?.postal_code && !contactInfo?.country && (
                       <div className="col-span-2 text-center text-muted-foreground py-4">
                         No contact information available
                       </div>
@@ -798,57 +826,99 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    value={editedContact.email || ''}
+                    onChange={(e) => setEditedContact(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="Enter email address"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="phone">Phone</Label>
+                  <Input
+                    id="phone"
+                    value={editedContact.phone || ''}
+                    onChange={(e) => setEditedContact(prev => ({ ...prev, phone: e.target.value }))}
+                    placeholder="Enter phone number"
+                  />
+                </div>
+                <div className="grid gap-2">
                   <Label htmlFor="website">Website</Label>
                   <Input
                     id="website"
-                    value={editedContact.website}
-                    onChange={(e) => setEditedContact({...editedContact, website: e.target.value})}
-                    placeholder="https://example.com"
+                    value={editedContact.website || ''}
+                    onChange={(e) => setEditedContact(prev => ({ ...prev, website: e.target.value }))}
+                    placeholder="Enter website URL"
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="twitter">Twitter</Label>
+                  <Label htmlFor="address_line1">Address Line 1</Label>
                   <Input
-                    id="twitter"
-                    value={editedContact.twitter_handle}
-                    onChange={(e) => setEditedContact({...editedContact, twitter_handle: e.target.value})}
-                    placeholder="username (without @)"
+                    id="address_line1"
+                    value={editedContact.address_line1 || ''}
+                    onChange={(e) => setEditedContact(prev => ({ ...prev, address_line1: e.target.value }))}
+                    placeholder="Enter address line 1"
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="facebook">Facebook</Label>
+                  <Label htmlFor="address_line2">Address Line 2</Label>
                   <Input
-                    id="facebook"
-                    value={editedContact.facebook_handle}
-                    onChange={(e) => setEditedContact({...editedContact, facebook_handle: e.target.value})}
-                    placeholder="username or page name"
+                    id="address_line2"
+                    value={editedContact.address_line2 || ''}
+                    onChange={(e) => setEditedContact(prev => ({ ...prev, address_line2: e.target.value }))}
+                    placeholder="Enter address line 2"
                   />
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="instagram">Instagram</Label>
-                  <Input
-                    id="instagram"
-                    value={editedContact.instagram_handle}
-                    onChange={(e) => setEditedContact({...editedContact, instagram_handle: e.target.value})}
-                    placeholder="username (without @)"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="city">City</Label>
+                    <Input
+                      id="city"
+                      value={editedContact.city || ''}
+                      onChange={(e) => setEditedContact(prev => ({ ...prev, city: e.target.value }))}
+                      placeholder="Enter city"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="state">State</Label>
+                    <Input
+                      id="state"
+                      value={editedContact.state || ''}
+                      onChange={(e) => setEditedContact(prev => ({ ...prev, state: e.target.value }))}
+                      placeholder="Enter state"
+                    />
+                  </div>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="goodreads">Goodreads URL</Label>
-                  <Input
-                    id="goodreads"
-                    value={editedContact.goodreads_url}
-                    onChange={(e) => setEditedContact({...editedContact, goodreads_url: e.target.value})}
-                    placeholder="https://www.goodreads.com/author/..."
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="postal_code">Postal Code</Label>
+                    <Input
+                      id="postal_code"
+                      value={editedContact.postal_code || ''}
+                      onChange={(e) => setEditedContact(prev => ({ ...prev, postal_code: e.target.value }))}
+                      placeholder="Enter postal code"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="country">Country</Label>
+                    <Input
+                      id="country"
+                      value={editedContact.country || ''}
+                      onChange={(e) => setEditedContact(prev => ({ ...prev, country: e.target.value }))}
+                      placeholder="Enter country"
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="flex flex-col sm:flex-row justify-end gap-2 mt-2">
-                <Button variant="outline" onClick={() => setContactDialogOpen(false)} className="w-full sm:w-auto order-2 sm:order-1">Cancel</Button>
-                <Button onClick={saveContact} disabled={saving} className="w-full sm:w-auto order-1 sm:order-2 mb-2 sm:mb-0">
-                  {saving ? "Saving..." : "Save Changes"}
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setContactDialogOpen(false)}>
+                  Cancel
                 </Button>
-              </div>
+                <Button onClick={handleUpdateContact}>
+                  Save Changes
+                </Button>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>
@@ -856,13 +926,15 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
 
       {activeTab === "books" && (
         <div className="books-section">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {books.map((book) => (
               <BookCard
                 key={book.id}
                 id={book.id}
                 title={book.title}
                 coverImageUrl={book.cover_image_url}
+                author={author}
+                authorBookCount={booksCount}
               />
             ))}
           </div>

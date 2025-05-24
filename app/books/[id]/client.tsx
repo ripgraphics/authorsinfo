@@ -39,7 +39,8 @@ import {
   Users,
   ImageIcon,
   Info,
-  Book
+  Book,
+  MapPin
 } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { FollowersList } from "@/components/followers-list"
@@ -48,6 +49,7 @@ import { ExpandableSection } from "@/components/ui/expandable-section"
 import { ViewFullDetailsButton } from "@/components/ui/ViewFullDetailsButton"
 import { TimelineAboutSection } from "@/components/author/TimelineAboutSection"
 import { EntityHoverCard } from "@/components/entity-hover-cards"
+import { SidebarSection } from "@/components/ui/sidebar-section"
 
 // Helper function to format date as MM-DD-YYYY
 function formatDate(dateString?: string): string {
@@ -277,31 +279,59 @@ export function ClientBookPage({
               {/* Left Sidebar */}
               <div className="lg:col-span-1 space-y-6">
                 {/* About Section */}
-                <TimelineAboutSection
-                  bio={book.synopsis || book.overview || undefined}
-                  nationality={book.language || undefined}
-                  website={book.website || undefined}
+                <SidebarSection
+                  title="About"
                   onViewMore={() => setActiveTab("details")}
-                  onViewFullDetails={() => setActiveTab("details")}
-                />
+                  isExpandable
+                  defaultExpanded={false}
+                >
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      {book.synopsis || book.overview || "No description available."}
+                    </p>
+                    {book.language && (
+                      <div className="flex items-center">
+                        <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                        <span>Language: {book.language}</span>
+                      </div>
+                    )}
+                    {book.website && (
+                      <div className="flex items-center">
+                        <Globe className="h-4 w-4 mr-2 text-muted-foreground" />
+                        <a
+                          href={book.website.startsWith('http') ? book.website : `https://${book.website}`}
+                          className="hover:underline"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Website
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </SidebarSection>
 
                 {/* Friends/Followers Section */}
-                <FollowersList
-                  followers={followers}
-                  followersCount={followersCount}
-                  entityId={params.id}
-                  entityType="book"
-                />
+                <SidebarSection
+                  title="Followers"
+                  viewMoreLink={`/books/${params.id}/followers`}
+                  viewMoreText="See All"
+                >
+                  <FollowersList
+                    followers={followers}
+                    followersCount={followersCount}
+                    entityId={params.id}
+                    entityType="book"
+                  />
+                </SidebarSection>
 
                 {/* Currently Reading Section */}
-                <Card>
-                  <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
-                    <div className="text-2xl font-semibold leading-none tracking-tight">Currently Reading</div>
-                    <Link href="/my-books" className="text-sm text-primary hover:underline">
-                      See All
-                    </Link>
-                  </div>
-                  <CardContent className="p-6 pt-0 space-y-4">
+                <SidebarSection
+                  title="Currently Reading"
+                  viewMoreLink="/my-books"
+                  viewMoreText="See All"
+                >
+                  <div className="space-y-4">
                     {mockCurrentlyReading.map((book, index) => (
                       <div key={index} className="flex gap-3">
                         <div className="relative h-20 w-14 flex-shrink-0">
@@ -329,34 +359,26 @@ export function ClientBookPage({
                         </div>
                       </div>
                     ))}
-                  </CardContent>
-                </Card>
+                  </div>
+                </SidebarSection>
 
                 {/* Photos Section */}
-                <Card>
-                  <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
-                    <div className="text-2xl font-semibold leading-none tracking-tight">Photos</div>
-                    <button
-                      className="text-sm text-primary hover:underline"
-                      onClick={() => setActiveTab("photos")}
-                    >
-                      See All
-                    </button>
+                <SidebarSection
+                  title="Photos"
+                  onViewMore={() => setActiveTab("photos")}
+                >
+                  <div className="grid grid-cols-3 gap-2">
+                    {mockPhotos.map((photoUrl, index) => (
+                      <div key={index} className="aspect-square relative rounded overflow-hidden">
+                        <img
+                          src={photoUrl || "/placeholder.svg"}
+                          alt={`Photo ${index + 1}`}
+                          className="object-cover hover:scale-105 transition-transform absolute inset-0 w-full h-full"
+                        />
+                      </div>
+                    ))}
                   </div>
-                  <CardContent className="p-6 pt-0">
-                    <div className="grid grid-cols-3 gap-2">
-                      {mockPhotos.map((photoUrl, index) => (
-                        <div key={index} className="aspect-square relative rounded overflow-hidden">
-                          <img
-                            src={photoUrl || "/placeholder.svg"}
-                            alt={`Photo ${index + 1}`}
-                            className="object-cover hover:scale-105 transition-transform absolute inset-0 w-full h-full"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                </SidebarSection>
               </div>
 
               {/* Main Content Area */}

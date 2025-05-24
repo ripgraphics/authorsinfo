@@ -97,11 +97,15 @@ export async function getGroupInfo(groupId: string) {
             .single();
 
         if (membershipError) {
-            console.error('Error fetching creator membership:', {
-                error: membershipError,
-                groupId,
-                message: membershipError.message
-            });
+            // Only log the error if it's not a "no rows returned" error
+            if (membershipError.code !== 'PGRST116') {
+                console.error('Error fetching creator membership:', {
+                    error: membershipError,
+                    groupId,
+                    message: membershipError.message
+                });
+            }
+            // Don't throw error, just continue with null membership
         }
 
         // Fetch contact information separately

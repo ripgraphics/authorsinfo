@@ -90,6 +90,8 @@ import {
 import { FeedItemFooter } from "@/components/feed/FeedItemFooter"
 import { getGroupInfo } from '@/utils/groupInfo';
 import { EntityHoverCard } from "@/components/entity-hover-cards"
+import { SidebarSection } from "@/components/ui/sidebar-section"
+import { ViewFullDetailsButton } from "@/components/ui/ViewFullDetailsButton"
 
 interface ClientGroupPageProps {
   group: any
@@ -1091,37 +1093,56 @@ export function ClientGroupPageContent({ group: initialGroup, avatarUrl, coverIm
       {/* Timeline Tab */}
       {activeTab === "timeline" && (
         <div className="mt-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* Left Sidebar */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Sidebar */}
             <div className="space-y-6">
-                    {/* About Section */}
+              {/* About Section */}
+              <SidebarSection
+                title="About"
+                onViewMore={() => setActiveTab("about")}
+                isExpandable
+                defaultExpanded={false}
+                hideToggle
+                footer={
+                  <ViewFullDetailsButton onClick={() => setActiveTab("about")} />
+                }
+              >
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    {group?.description || "No description available."}
+                  </p>
+                  {group?.contact_info?.website && (
+                    <div className="flex items-center">
+                      <Globe className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <a
+                        href={group.contact_info.website.startsWith('http') ? group.contact_info.website : `https://${group.contact_info.website}`}
+                        className="hover:underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Website
+                      </a>
+                    </div>
+                  )}
+                  {group?.contact_info?.city && group?.contact_info?.country && (
+                    <div className="flex items-center">
+                      <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <span>{group.contact_info.city}, {group.contact_info.country}</span>
+                    </div>
+                  )}
+                </div>
+              </SidebarSection>
+
+              {/* Friends/Followers Section */}
+              <FollowersList
+                followers={group?.followers || []}
+                followersCount={group?.followers?.length || 0}
+                entityId={params.id}
+                entityType="group"
+              />
+
+              {/* Currently Reading Section */}
               <Card>
-                <div className="about-section-header">
-                  <div className="about-section-title-row">
-                    <div className="about-section-title">About</div>
-                          <button 
-                      className="about-section-view-more"
-                            onClick={() => setActiveTab("about")}
-                          >
-                            View More
-                          </button>
-                        </div>
-                      </div>
-                <CardContent className="about-section-content">
-                  <p className="about-section-description">{group?.description || "No description available."}</p>
-                      </CardContent>
-                    </Card>
-
-                    {/* Friends/Followers Section */}
-                    <FollowersList
-                      followers={group?.followers || []}
-                      followersCount={group?.followers?.length || 0}
-                      entityId={params.id}
-                      entityType="group"
-                    />
-
-                    {/* Currently Reading Section */}
-                    <Card>
                 <div className="currently-reading-header">
                   <div className="currently-reading-title">Currently Reading</div>
                   <Link href="/my-books" className="currently-reading-view-all">

@@ -3,17 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { supabaseClient } from '@/lib/supabase/client'
 import { useGroupPermissions, GroupPermission } from '@/hooks/useGroupPermissions'
-
-interface Group {
-  id: string
-  name: string
-  description: string | null
-  is_private: boolean
-  created_by: string
-  created_at: string
-  cover_image_url: string | null
-  member_count: number
-}
+import type { Group } from '@/types/group'
 
 interface GroupContextValue {
   group: Group | null

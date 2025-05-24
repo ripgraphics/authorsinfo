@@ -32,6 +32,7 @@ type GroupEntity = {
     url: string
   }
   member_count?: number
+  joined_at?: string
 }
 
 type EventCreatorEntity = {
@@ -69,9 +70,11 @@ export function EntityHoverCard({ type, entity, children }: EntityHoverCardProps
       case 'group':
         return {
           icon: <Users className="mr-1 h-3 w-3" />,
-          countText: `${(entity as GroupEntity).member_count || 0} members`,
-          href: `/groups/${entity.id}`,
-          imageUrl: (entity as GroupEntity).group_image?.url
+          countText: entity.joined_at 
+            ? `Joined ${new Date(entity.joined_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`
+            : `${(entity as GroupEntity).member_count || 0} members`,
+          href: `/profile/${entity.id}`,
+          imageUrl: (entity as GroupEntity).group_image?.url || `/api/avatar/${entity.id}`
         }
       case 'event':
         return {
@@ -87,10 +90,10 @@ export function EntityHoverCard({ type, entity, children }: EntityHoverCardProps
   const imageUrl = info.imageUrl || "/placeholder.svg"
 
   return (
-    <Link href={info.href} className="no-underline">
-      <HoverCard>
-        <HoverCardTrigger asChild>{children}</HoverCardTrigger>
-        <HoverCardContent className="w-80">
+    <HoverCard>
+      <HoverCardTrigger asChild>{children}</HoverCardTrigger>
+      <HoverCardContent className="w-80">
+        <Link href={info.href} className="no-underline">
           <div className="flex items-start space-x-4">
             <Avatar 
               src={imageUrl}
@@ -107,9 +110,9 @@ export function EntityHoverCard({ type, entity, children }: EntityHoverCardProps
               </div>
             </div>
           </div>
-        </HoverCardContent>
-      </HoverCard>
-    </Link>
+        </Link>
+      </HoverCardContent>
+    </HoverCard>
   )
 }
 

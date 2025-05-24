@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Camera, BookOpen, Users, MapPin, Globe, User } from "lucide-react"
 import Link from "next/link"
 import { Database } from "@/types/database"
-import { AuthorHoverCard } from "@/components/author-hover-card"
+import { EntityHoverCard } from "@/components/entity-hover-cards"
 
 type Book = Database['public']['Tables']['books']['Row']
 type Author = Database['public']['Tables']['authors']['Row']
@@ -100,9 +100,17 @@ export function BookHeader({ book, mainAuthor, bookCount = 0 }: BookHeaderProps)
                 {author ? (
                   <p className="book-header-author text-muted-foreground">
                     by{" "}
-                    <AuthorHoverCard author={author} bookCount={bookCount}>
+                    <EntityHoverCard
+                      type="author"
+                      entity={{
+                        id: author.id,
+                        name: author.name,
+                        author_image: author.author_image,
+                        bookCount: bookCount
+                      }}
+                    >
                       <span className="hover:underline cursor-pointer">{author.name}</span>
-                    </AuthorHoverCard>
+                    </EntityHoverCard>
                   </p>
                 ) : (
                   <p className="book-header-author-unknown text-muted-foreground">

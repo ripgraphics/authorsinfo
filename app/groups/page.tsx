@@ -77,7 +77,7 @@ export default function GroupsPage() {
           onChange={(e) => setSearchQuery(e.target.value)}
           className="max-w-md"
         />
-      </div>
+                  </div>
 
       {error && (
         <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6">
@@ -142,4 +142,4 @@ export default function GroupsPage() {
       </div>
     </>
   )
-} 
+}

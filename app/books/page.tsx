@@ -13,7 +13,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import { supabaseAdmin } from "@/lib/supabase"
+import { supabaseAdmin } from "@/lib/supabase/server"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
@@ -140,7 +140,7 @@ async function BooksList({
   // Build the query
   let query = supabaseAdmin.from("books").select(`
       *,
-      cover_image:cover_image_id(id, url, alt_text)
+      cover_image:images!cover_image_id(id, url, alt_text)
     `)
 
   // Apply search filter if provided
@@ -263,7 +263,7 @@ async function BooksList({
           processedBooks.map((book) => (
             <BookCard
               key={book.id}
-              id={book.id.toString()}
+              id={book.id}
               title={book.title}
               coverImageUrl={book.cover_image_url}
             />

@@ -1,21 +1,21 @@
 import { Database } from './database'
 
 export type Author = {
-  id: string;
+  id: string; // UUID
   name: string;
   bio: string | undefined;
   created_at: string;
   updated_at: string;
   photo_url: string | undefined;
   author_image: {
-    id: number;
+    id: string; // UUID
     url: string;
     alt_text?: string;
     img_type_id?: number;
   } | null;
-  cover_image_id: number | undefined;
+  cover_image_id: string | undefined; // UUID
   cover_image?: {
-    id: number;
+    id: string; // UUID
     url: string;
     alt_text?: string;
     img_type_id?: number;
@@ -40,7 +40,7 @@ export type Book = {
   isbn: string | null;
   title: string;
   title_long: string | null;
-  publisher_id: number | null;
+  publisher_id: string | null;
   publication_date: string | null;
   publish_date: string | null;
   binding: string | null;
@@ -65,7 +65,7 @@ export type Book = {
   } | null;
   author: string | null;
   featured: boolean | null;
-  author_id: number | null;
+  author_id: string | null;
   book_gallery_img: string[] | null;
   average_rating: number | null;
   review_count: number | null;

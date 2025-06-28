@@ -221,8 +221,10 @@ async function getAuthorActivities(authorId: string) {
 async function getAuthorAlbums(authorId: string) {
   try {
     const supabase = createClient()
-    // Convert integer author ID to UUID format
-    const uuidEntityId = `00000000-0000-0000-0000-${authorId.padStart(12, '0')}`
+    
+    // Check if authorId is already a UUID (contains hyphens)
+    const isUuid = authorId.includes('-')
+    const entityId = isUuid ? authorId : `00000000-0000-0000-0000-${authorId.padStart(12, '0')}`
     
     const { data: albums, error } = await supabase
       .from('photo_albums')
@@ -239,7 +241,7 @@ async function getAuthorAlbums(authorId: string) {
         )
       `)
       .eq('entity_type', 'author')
-      .eq('entity_id', uuidEntityId)
+      .eq('entity_id', entityId)
       .order('created_at', { ascending: false })
 
     if (error) {

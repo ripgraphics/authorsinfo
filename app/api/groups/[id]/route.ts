@@ -31,6 +31,14 @@ export async function GET(
       .eq('id', group.created_by)
       .single();
 
+    // Fetch creator's membership information
+    const { data: creatorMembership, error: membershipError } = await supabase
+      .from('group_members')
+      .select('joined_at')
+      .eq('group_id', id)
+      .eq('user_id', group.created_by)
+      .single();
+
     // Merge and return
     return NextResponse.json({
       ...group,
@@ -40,7 +48,8 @@ export async function GET(
       creatorEmail: creator?.email || '',
       creatorRoleId: creator?.role_id || '',
       creatorCreatedAt: creator?.created_at || '',
-      creatorUpdatedAt: creator?.updated_at || ''
+      creatorUpdatedAt: creator?.updated_at || '',
+      creatorJoinedAt: creatorMembership?.joined_at || ''
     });
   } catch (error) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

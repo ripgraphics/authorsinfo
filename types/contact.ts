@@ -1,6 +1,6 @@
 export interface ContactInfo {
-    id: string;
-    entity_type: string;
+    id?: string;
+    entity_type: EntityType;
     entity_id: string;
     email?: string;
     phone?: string;
@@ -11,13 +11,15 @@ export interface ContactInfo {
     state?: string;
     postal_code?: string;
     country?: string;
-    created_at: string;
-    updated_at: string;
+    created_at?: string;
+    updated_at?: string;
 }
 
-export type EntityType = 'group' | 'publisher' | 'author' | 'event';
+export type EntityType = 'author' | 'publisher' | 'book' | 'group' | 'user' | 'event' | 'photo';
 
 export interface ContactInfoInput {
+    entity_type: EntityType;
+    entity_id: string;
     email?: string;
     phone?: string;
     website?: string;

@@ -79,7 +79,7 @@ export function OverviewSection({ publisher, onRefresh }: { publisher: Publisher
         {publisher.about ? (
           <div className="overview-section__about space-y-2">
             <ExpandableSection title={null}>
-              {publisher.about}
+                {publisher.about}
             </ExpandableSection>
           </div>
         ) : (
@@ -166,8 +166,8 @@ export function ContactSection({ publisher, onRefresh }: { publisher: PublisherD
       if (updatedContact) {
         setContactInfo(updatedContact);
         setIsEditModalOpen(false);
-        setRefreshKey(prev => prev + 1);
-        if (onRefresh) onRefresh();
+    setRefreshKey(prev => prev + 1);
+    if (onRefresh) onRefresh();
         toast({
           title: "Success",
           description: "Contact information updated successfully"

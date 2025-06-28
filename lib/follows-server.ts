@@ -1,7 +1,7 @@
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { Database } from '@/types/database'
 
-export type FollowTargetType = 'user' | 'book' | 'author' | 'publisher'
+export type FollowTargetType = 'user' | 'book' | 'author' | 'publisher' | 'group'
 
 interface FollowTargetTypeData {
   id: number

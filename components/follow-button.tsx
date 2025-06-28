@@ -8,7 +8,7 @@ import { Loader2 } from 'lucide-react'
 
 interface FollowButtonProps {
   entityId: string | number
-  targetType: 'user' | 'book' | 'author' | 'publisher'
+  targetType: 'user' | 'book' | 'author' | 'publisher' | 'group'
   entityName?: string
   variant?: 'default' | 'outline'
   className?: string

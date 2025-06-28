@@ -988,6 +988,7 @@ export function ClientGroupPageContent({ group: initialGroup, avatarUrl, coverIm
           email: group?.creatorEmail || '',
           created_at: group?.creatorCreatedAt || ''
         }}
+        creatorJoinedAt={group?.creatorJoinedAt}
         group={group}
         isEditable={permissions.isOwner() || permissions.isAdmin()}
         onCoverImageChange={handleCoverImageChange}
@@ -1093,10 +1094,10 @@ export function ClientGroupPageContent({ group: initialGroup, avatarUrl, coverIm
       {/* Timeline Tab */}
       {activeTab === "timeline" && (
         <div className="mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Sidebar */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Left Sidebar */}
             <div className="space-y-6">
-              {/* About Section */}
+                    {/* About Section */}
               <SidebarSection
                 title="About"
                 onViewMore={() => setActiveTab("about")}
@@ -1122,27 +1123,35 @@ export function ClientGroupPageContent({ group: initialGroup, avatarUrl, coverIm
                       >
                         Website
                       </a>
-                    </div>
+                        </div>
                   )}
                   {group?.contact_info?.city && group?.contact_info?.country && (
                     <div className="flex items-center">
                       <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
                       <span>{group.contact_info.city}, {group.contact_info.country}</span>
-                    </div>
+                      </div>
                   )}
                 </div>
               </SidebarSection>
 
-              {/* Friends/Followers Section */}
-              <FollowersList
-                followers={group?.followers || []}
-                followersCount={group?.followers?.length || 0}
-                entityId={params.id}
-                entityType="group"
-              />
+                    {/* Friends/Followers Section */}
+              <SidebarSection
+                title="Followers"
+                viewMoreLink={`/groups/${params.id}/followers`}
+                viewMoreText="See All"
+              >
+                    <FollowersList
+                      followers={group?.followers || []}
+                      followersCount={group?.followers?.length || 0}
+                      entityId={params.id}
+                      entityType="group"
+                  hideHeader
+                  hideContainer
+                    />
+              </SidebarSection>
 
-              {/* Currently Reading Section */}
-              <Card>
+                    {/* Currently Reading Section */}
+                    <Card>
                 <div className="currently-reading-header">
                   <div className="currently-reading-title">Currently Reading</div>
                   <Link href="/my-books" className="currently-reading-view-all">
@@ -1401,8 +1410,8 @@ export function ClientGroupPageContent({ group: initialGroup, avatarUrl, coverIm
                           ) : (
                             <MessageSquare className="h-4 w-4 text-primary" />
                           )}
-                              </div>
-                              <div>
+                          </div>
+                            <div>
                           <p className="text-sm">
                             {activity.type === "rating" ? (
                               <>Rated <span className="font-medium">{activity.bookTitle}</span> {activity.rating} stars</>
@@ -1413,10 +1422,10 @@ export function ClientGroupPageContent({ group: initialGroup, avatarUrl, coverIm
                             )}
                           </p>
                           <p className="text-xs text-muted-foreground">{activity.timeAgo}</p>
-                              </div>
                             </div>
+                          </div>
                     ))}
-                              </div>
+                        </div>
                 </CardContent>
               </Card>
 
@@ -1436,10 +1445,10 @@ export function ClientGroupPageContent({ group: initialGroup, avatarUrl, coverIm
                     ) : (
                       <p className="text-sm text-muted-foreground">No tags available</p>
                     )}
-                              </div>
+                      </div>
                 </CardContent>
               </Card>
-                            </div>
+                    </div>
             {/* Main Content Area */}
             <div className="lg:col-span-2 space-y-8 py-4">
               {/* Core Group Data Section */}
@@ -1469,7 +1478,7 @@ export function ClientGroupPageContent({ group: initialGroup, avatarUrl, coverIm
                           <span className="cursor-pointer">{group.creatorName || 'Unknown'}</span>
                         </EntityHoverCard>
                       </div>
-                    </div>
+                              </div>
 
                     {/* Privacy Settings */}
                     <div className="space-y-3">
@@ -1482,13 +1491,13 @@ export function ClientGroupPageContent({ group: initialGroup, avatarUrl, coverIm
                         <div className="space-y-1">
                           <Label className="text-sm font-medium">Is Public</Label>
                           <div className="text-base">{group.is_public ? 'Yes' : 'No'}</div>
-                              </div>
+                            </div>
                         <div className="space-y-1">
                           <Label className="text-sm font-medium">Is Discoverable</Label>
                           <div className="text-base">{group.is_discoverable ? 'Yes' : 'No'}</div>
+                              </div>
+                              </div>
                             </div>
-                              </div>
-                              </div>
 
                     {/* Stats */}
                     <div className="space-y-3">
@@ -1497,10 +1506,22 @@ export function ClientGroupPageContent({ group: initialGroup, avatarUrl, coverIm
                         <div className="space-y-1">
                           <Label className="text-sm font-medium">Member Count</Label>
                           <div className="text-base">{group.member_count || 0}</div>
-                            </div>
                           </div>
+                        <div className="space-y-1">
+                          <Label className="text-sm font-medium">Created At</Label>
+                          <div className="text-base">{new Date(group.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
                         </div>
-                      </div>
+                        <div className="space-y-1">
+                          <Label className="text-sm font-medium">Last Updated</Label>
+                          <div className="text-base">{new Date(group.updated_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                              </div>
+                        <div className="space-y-1">
+                          <Label className="text-sm font-medium">Creator Joined</Label>
+                          <div className="text-base">{group.creatorJoinedAt ? new Date(group.creatorJoinedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'}</div>
+                              </div>
+                            </div>
+                              </div>
+                              </div>
                 </CardContent>
               </Card>
 
@@ -1534,8 +1555,8 @@ export function ClientGroupPageContent({ group: initialGroup, avatarUrl, coverIm
                         <Button onClick={handleUpdateDescription}>
                           Save Changes
                               </Button>
-                    </div>
-                      </div>
+                            </div>
+                          </div>
                   ) : (
                     <p className="text-gray-600">{group.description || "No description provided."}</p>
                   )}

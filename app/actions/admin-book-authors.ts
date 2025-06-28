@@ -14,9 +14,9 @@ interface BookAuthorConnection {
 
 interface BookWithAuthor {
   id: number;
-  author_id: number | null;
+  author_id: string | null; // UUID
   author: {
-    id: number;
+    id: string; // UUID
     name: string;
   }[];
 }

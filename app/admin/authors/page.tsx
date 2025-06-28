@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, use } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -15,148 +15,29 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import { supabaseAdmin } from "@/lib/supabase/server"
 import { Plus, Search, Edit } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 
 interface AdminAuthorsPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string
     search?: string
     nationality?: string
     sort?: string
-  }
+  }>
 }
 
 interface Author {
-  id: string
+  id: string // UUID
   name: string
   nationality?: string
   birth_date?: string
   author_image?: {
-    id: number
+    id: string // UUID
     url: string
     alt_text?: string
   }
   book_count?: number
-}
-
-// Server component to fetch authors
-async function getAuthors({
-  page = 1,
-  search = "",
-  nationality = "",
-  sort = "name_asc",
-}: {
-  page: number
-  search?: string
-  nationality?: string
-  sort?: string
-}) {
-  const pageSize = 10
-  const offset = (page - 1) * pageSize
-
-  // Build the query - avoid using relationships that might not be defined
-  let query = supabaseAdmin.from("authors").select("*", { count: "exact" })
-
-  // Apply search filter if provided
-  if (search) {
-    query = query.ilike("name", `%${search}%`)
-  }
-
-  // Apply nationality filter if provided
-  if (nationality) {
-    query = query.eq("nationality", nationality)
-  }
-
-  // Apply sorting
-  if (sort === "name_asc") {
-    query = query.order("name", { ascending: true })
-  } else if (sort === "name_desc") {
-    query = query.order("name", { ascending: false })
-  } else if (sort === "birth_date_asc") {
-    query = query.order("birth_date", { ascending: true })
-  } else if (sort === "birth_date_desc") {
-    query = query.order("birth_date", { ascending: false })
-  } else {
-    // Default sorting
-    query = query.order("name", { ascending: true })
-  }
-
-  // Apply pagination
-  query = query.range(offset, offset + pageSize - 1)
-
-  // Execute the query
-  const { data: authors, error, count } = await query
-
-  if (error) {
-    console.error("Error fetching authors:", error)
-    throw new Error(`Error fetching authors: ${error.message}`)
-  }
-
-  // Now get book counts for each author separately
-  const authorsWithBookCounts: Author[] = await Promise.all(
-    (authors || []).map(async (author) => {
-      // Try to get book count from book_authors table first
-      try {
-        const { count: bookCount, error: bookCountError } = await supabaseAdmin
-          .from("book_authors")
-          .select("*", { count: "exact" })
-          .eq("author_id", author.id)
-
-        if (!bookCountError) {
-          return { ...author, book_count: bookCount || 0 }
-        }
-      } catch (e) {
-        console.warn(`Could not get book count from book_authors for author ${author.id}:`, e)
-      }
-
-      // Fallback: try to get books with author_id field
-      try {
-        const { count: bookCount, error: bookCountError } = await supabaseAdmin
-          .from("books")
-          .select("*", { count: "exact" })
-          .eq("author_id", author.id)
-
-        if (!bookCountError) {
-          return { ...author, book_count: bookCount || 0 }
-        }
-      } catch (e) {
-        console.warn(`Could not get book count from books for author ${author.id}:`, e)
-      }
-
-      // If both methods fail, return 0 books
-      return { ...author, book_count: 0 }
-    }),
-  )
-
-  return {
-    authors: authorsWithBookCounts,
-    totalAuthors: count || 0,
-  }
-}
-
-// Server component to fetch unique nationalities
-async function getNationalities() {
-  try {
-    const { data, error } = await supabaseAdmin
-      .from("authors")
-      .select("nationality")
-      .not("nationality", "is", null)
-      .order("nationality")
-
-    if (error) {
-      console.error("Error fetching nationalities:", error)
-      return []
-    }
-
-    // Extract unique nationalities
-    const uniqueNationalities = Array.from(new Set(data.map((item) => item.nationality).filter(Boolean)))
-    return uniqueNationalities
-  } catch (error) {
-    console.error("Error fetching nationalities:", error)
-    return []
-  }
 }
 
 // Client component for the authors table
@@ -171,7 +52,7 @@ function AuthorsTable({
   nationality?: string
   sort?: string
 }) {
-  const [data, setData] = useState<{ authors: Author[]; totalAuthors: number } | null>(null)
+  const [data, setData] = useState<{ authors: Author[]; totalAuthors: number; totalPages: number } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [nationalities, setNationalities] = useState<string[]>([])
@@ -181,13 +62,28 @@ function AuthorsTable({
     async function fetchData() {
       setLoading(true)
       try {
+        // Build query parameters
+        const params = new URLSearchParams({
+          page: page.toString(),
+          ...(search && { search }),
+          ...(nationality && { nationality }),
+          sort: sort || 'name_asc'
+        })
+
         // Fetch authors data
-        const authorsData = await getAuthors({ page, search, nationality, sort })
+        const authorsResponse = await fetch(`/api/admin/authors?${params}`)
+        if (!authorsResponse.ok) {
+          throw new Error(`Failed to fetch authors: ${authorsResponse.statusText}`)
+        }
+        const authorsData = await authorsResponse.json()
         setData(authorsData)
 
         // Fetch nationalities for filter
-        const nationalitiesData = await getNationalities()
-        setNationalities(nationalitiesData)
+        const nationalitiesResponse = await fetch('/api/admin/authors/nationalities')
+        if (nationalitiesResponse.ok) {
+          const nationalitiesData = await nationalitiesResponse.json()
+          setNationalities(nationalitiesData.nationalities || [])
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred while fetching data")
       } finally {
@@ -200,62 +96,76 @@ function AuthorsTable({
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Nationality</TableHead>
-                <TableHead>Birth Date</TableHead>
-                <TableHead>Books</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Array.from({ length: 5 }).map((_, i) => (
-                <TableRow key={i}>
-                  <TableCell>
-                    <Skeleton className="h-4 w-16" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-32" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-24" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-24" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-8" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-8 w-20" />
-                  </TableCell>
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle>Authors</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Nationality</TableHead>
+                  <TableHead>Birth Date</TableHead>
+                  <TableHead>Books</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
+              </TableHeader>
+              <TableBody>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     )
   }
 
   if (error) {
-    return <div className="p-4 text-red-500">Error: {error}</div>
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle>Authors</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-6 text-red-600">
+            Error: {error}
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   if (!data) {
-    return <div className="p-4">No data available</div>
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle>Authors</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-6 text-muted-foreground">
+            No data available
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
-  const { authors, totalAuthors } = data
-  const totalPages = Math.ceil(totalAuthors / pageSize)
+  const { authors, totalAuthors, totalPages } = data
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <Card>
         <CardHeader className="pb-3">
           <CardTitle>Authors</CardTitle>
@@ -358,18 +268,24 @@ function AuthorsTable({
 }
 
 export default function AdminAuthorsPage({ searchParams }: AdminAuthorsPageProps) {
-  const page = Number(searchParams.page) || 1
-  const search = searchParams.search || ""
-  const nationality = searchParams.nationality || ""
-  const sort = searchParams.sort || "name_asc"
+  // Use React.use() to unwrap the searchParams promise
+  const params = use(searchParams)
+  
+  const page = Number(params.page) || 1
+  const search = params.search || ""
+  const nationality = params.nationality || ""
+  const sort = params.sort || "name_asc"
   const [availableNationalities, setAvailableNationalities] = useState<string[]>([])
 
   useEffect(() => {
     // Fetch nationalities for the filter dropdown
     async function fetchNationalities() {
       try {
-        const data = await getNationalities()
-        setAvailableNationalities(data)
+        const response = await fetch('/api/admin/authors/nationalities')
+        if (response.ok) {
+          const data = await response.json()
+          setAvailableNationalities(data.nationalities || [])
+        }
       } catch (error) {
         console.error("Error fetching nationalities:", error)
       }

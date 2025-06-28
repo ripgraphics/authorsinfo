@@ -61,11 +61,16 @@ export async function getFollowTargetType(name: FollowTargetType): Promise<Follo
 
 // Follow an entity
 export async function followEntity(followingId: string | number, targetType: FollowTargetType) {
+  const targetTypeData = await getFollowTargetType(targetType)
+  if (!targetTypeData) {
+    throw new Error(`Invalid target type: ${targetType}`)
+  }
+
   const { data, error } = await supabaseClient
     .from('follows')
     .insert({
       following_id: followingId,
-      target_type_id: targetType
+      target_type_id: targetTypeData.id
     })
     .select()
     .single()

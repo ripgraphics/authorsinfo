@@ -192,24 +192,57 @@ export function ClientAuthorPage({
   // Add useEffect to fetch contact info
   useEffect(() => {
     const fetchContactInfo = async () => {
-      const info = await getContactInfo('author', params.id);
-      if (info) {
-        setContactInfo(info);
-        setEditedContact({
-          email: info.email,
-          phone: info.phone,
-          website: info.website,
-          address_line1: info.address_line1,
-          address_line2: info.address_line2,
-          city: info.city,
-          state: info.state,
-          postal_code: info.postal_code,
-          country: info.country
+      try {
+        console.log('Fetching contact info for author:', {
+          authorId: params.id,
+          authorName: author?.name
+        });
+        
+        const info = await getContactInfo('author', params.id);
+        
+        console.log('Contact info fetch result:', {
+          success: !!info,
+          hasEmail: !!info?.email,
+          hasPhone: !!info?.phone,
+          hasWebsite: !!info?.website
+        });
+
+        if (info) {
+          setContactInfo(info);
+          setEditedContact({
+            email: info.email,
+            phone: info.phone,
+            website: info.website,
+            address_line1: info.address_line1,
+            address_line2: info.address_line2,
+            city: info.city,
+            state: info.state,
+            postal_code: info.postal_code,
+            country: info.country
+          });
+        } else {
+          // Initialize with empty values if no contact info exists
+          setContactInfo(null);
+          setEditedContact({});
+        }
+      } catch (error) {
+        console.error('Error in fetchContactInfo:', {
+          error,
+          authorId: params.id,
+          authorName: author?.name,
+          stack: error instanceof Error ? error.stack : undefined
+        });
+        
+        // Show error toast to user
+        toast({
+          title: "Error",
+          description: "Failed to load contact information. Please try again later.",
+          variant: "destructive",
         });
       }
     };
     fetchContactInfo();
-  }, [params.id]);
+  }, [params.id, author?.name, toast]);
 
   // Function to refresh author data
   const refreshAuthorData = async () => {
@@ -291,7 +324,9 @@ export function ClientAuthorPage({
   // Add handleUpdateContact function
   const handleUpdateContact = async () => {
     try {
-      const updatedContact = await upsertContactInfo('author', params.id, {
+      const updatedContact = await upsertContactInfo({
+        entity_type: 'author',
+        entity_id: params.id,
         email: editedContact.email || undefined,
         phone: editedContact.phone || undefined,
         website: editedContact.website || undefined,
@@ -363,7 +398,7 @@ export function ClientAuthorPage({
                       bookCount: booksCount
                     }}
                   >
-                    <h1 className="text-[1.1rem] font-bold truncate">{author?.name}</h1>
+                  <h1 className="text-[1.1rem] font-bold truncate">{author?.name}</h1>
                   </EntityHoverCard>
                   <p className="text-muted-foreground">@{author?.name?.toLowerCase().replace(/\s+/g, '') || "author"}</p>
                 </div>
@@ -725,21 +760,21 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                 <div className="contact-section__content p-6">
                   <div className="contact-section__grid grid grid-cols-1 md:grid-cols-2 gap-4">
                     {contactInfo?.email && (
-                      <div className="contact-section__email flex flex-col">
-                        <span className="contact-section__label text-sm text-muted-foreground">Email</span>
+                          <div className="contact-section__email flex flex-col">
+                            <span className="contact-section__label text-sm text-muted-foreground">Email</span>
                         <a href={`mailto:${contactInfo.email}`} className="text-primary hover:underline">
                           {contactInfo.email}
-                        </a>
-                      </div>
-                    )}
+                            </a>
+                          </div>
+                        )}
                     {contactInfo?.phone && (
                       <div className="contact-section__phone flex flex-col">
                         <span className="contact-section__label text-sm text-muted-foreground">Phone</span>
                         <a href={`tel:${contactInfo.phone}`} className="text-primary hover:underline">
                           {contactInfo.phone}
-                        </a>
-                      </div>
-                    )}
+                            </a>
+                          </div>
+                        )}
                     {contactInfo?.website && (
                       <div className="contact-section__website flex flex-col">
                         <span className="contact-section__label text-sm text-muted-foreground">Website</span>
@@ -750,9 +785,9 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                           className="text-primary hover:underline"
                         >
                           {contactInfo.website}
-                        </a>
-                      </div>
-                    )}
+                            </a>
+                          </div>
+                        )}
                     {(contactInfo?.address_line1 || contactInfo?.address_line2 || contactInfo?.city || contactInfo?.state || contactInfo?.postal_code || contactInfo?.country) && (
                       <div className="contact-section__address flex flex-col">
                         <span className="contact-section__label text-sm text-muted-foreground">Address</span>
@@ -768,8 +803,8 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                           </span>
                           {contactInfo.country && <span>{contactInfo.country}</span>}
                         </div>
-                      </div>
-                    )}
+                          </div>
+                        )}
                     {!contactInfo?.email && !contactInfo?.phone && !contactInfo?.website && 
                      !contactInfo?.address_line1 && !contactInfo?.address_line2 && !contactInfo?.city && 
                      !contactInfo?.state && !contactInfo?.postal_code && !contactInfo?.country && (

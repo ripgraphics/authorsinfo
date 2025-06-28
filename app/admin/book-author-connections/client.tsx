@@ -66,14 +66,14 @@ interface Book {
 }
 
 interface Author {
-  id: string
+  id: string // UUID
   name: string
   bio?: string
 }
 
 interface BookAuthorConnection {
-  id: string | number
-  authorId: string | number | null
+  id: string // UUID
+  authorId: string | null // UUID
   authorName: string
 }
 

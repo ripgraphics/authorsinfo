@@ -67,15 +67,17 @@ export function EntityHoverCard({ type, entity, children }: EntityHoverCardProps
           href: `/publishers/${entity.id}`,
           imageUrl: (entity as PublisherEntity).publisher_image?.url || (entity as PublisherEntity).logo_url
         }
-      case 'group':
+      case 'group': {
+        const groupEntity = entity as GroupEntity
         return {
           icon: <Users className="mr-1 h-3 w-3" />,
-          countText: entity.joined_at 
-            ? `Joined ${new Date(entity.joined_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`
-            : `${(entity as GroupEntity).member_count || 0} members`,
+          countText: groupEntity.joined_at 
+            ? `Joined ${new Date(groupEntity.joined_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`
+            : `${groupEntity.member_count || 0} members`,
           href: `/profile/${entity.id}`,
-          imageUrl: (entity as GroupEntity).group_image?.url || `/api/avatar/${entity.id}`
+          imageUrl: groupEntity.group_image?.url || `/api/avatar/${entity.id}`
         }
+      }
       case 'event':
         return {
           icon: <Calendar className="mr-1 h-3 w-3" />,

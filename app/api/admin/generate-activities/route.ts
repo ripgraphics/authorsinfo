@@ -16,9 +16,21 @@ import {
 
 export async function POST(request: Request) {
   try {
-    // Use a consistent admin user ID for all activity generation
-    // This is a temporary bypass of authentication
-    const adminUserId = '00000000-0000-0000-0000-000000000000'
+    // Get a real user ID from the database for activity generation
+    const { data: users, error: usersError } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .limit(1)
+    
+    if (usersError || !users || users.length === 0) {
+      return NextResponse.json(
+        { error: 'No users found in database. Please ensure users exist before generating activities.' },
+        { status: 400 }
+      )
+    }
+    
+    const adminUserId = users[0].id
+    console.log(`Using user ID for activity generation: ${adminUserId}`)
     
     // Get request body to determine what to generate
     const body = await request.json()

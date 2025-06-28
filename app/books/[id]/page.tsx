@@ -18,39 +18,59 @@ interface BookPageProps {
 // Function to get binding and format types
 async function getBookFormatAndBinding(bookId: string) {
   try {
-    const { data, error } = await supabaseAdmin
+    // First, get the book to get the binding_type_id and format_type_id
+    const { data: book, error: bookError } = await supabaseAdmin
       .from("books")
-      .select(`
-        binding_types!binding_type_id(id, name, description),
-        format_types!format_type_id(id, name, description)
-      `)
+      .select("binding_type_id, format_type_id")
       .eq("id", bookId)
       .single()
 
-    if (error) {
-      console.error("Error fetching book format and binding:", error)
+    if (bookError) {
+      console.error("Error fetching book binding and format IDs:", bookError)
       return { bindingType: null, formatType: null }
     }
 
-    const bindingType = data.binding_types?.[0]
-    const formatType = data.format_types?.[0]
+    // Get binding type if it exists
+    let bindingType = null
+    if (book.binding_type_id) {
+      const { data: bindingData, error: bindingError } = await supabaseAdmin
+        .from("binding_types")
+        .select("id, name, description")
+        .eq("id", book.binding_type_id)
+        .single()
 
-    return {
-      bindingType: bindingType ? {
-        id: bindingType.id,
-        name: bindingType.name,
-        description: bindingType.description,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      } as BindingType : null,
-      formatType: formatType ? {
-        id: formatType.id,
-        name: formatType.name,
-        description: formatType.description,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      } as FormatType : null
+      if (!bindingError && bindingData) {
+        bindingType = {
+          id: bindingData.id,
+          name: bindingData.name,
+          description: bindingData.description,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        } as BindingType
+      }
     }
+
+    // Get format type if it exists
+    let formatType = null
+    if (book.format_type_id) {
+      const { data: formatData, error: formatError } = await supabaseAdmin
+        .from("format_types")
+        .select("id, name, description")
+        .eq("id", book.format_type_id)
+        .single()
+
+      if (!formatError && formatData) {
+        formatType = {
+          id: formatData.id,
+          name: formatData.name,
+          description: formatData.description,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        } as FormatType
+      }
+    }
+
+    return { bindingType, formatType }
   } catch (error) {
     console.error("Error in getBookFormatAndBinding:", error)
     return { bindingType: null, formatType: null }
@@ -105,8 +125,9 @@ async function getUserReadingProgress(userId: string | null, bookId: string) {
   }
 }
 
-export default async function BookPageServer({ params }: { params: { id: string } }) {
-  const id = await params.id
+export default async function BookPageServer({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params
+  const id = resolvedParams.id
   const cookieStore = await cookies()
   const supabase = createServerComponentClient({ cookies: () => cookieStore })
 
@@ -145,10 +166,14 @@ export default async function BookPageServer({ params }: { params: { id: string 
     let publisher = null
     try {
       if (book.publisher_id != null) {
+        console.log(`Book ${id} has publisher_id: ${book.publisher_id} (type: ${typeof book.publisher_id})`)
         publisher = await getPublisherById(book.publisher_id.toString())
+        console.log(`Publisher fetch result:`, publisher ? `Found: ${publisher.name}` : 'Not found')
+      } else {
+        console.log(`Book ${id} has no publisher_id`)
       }
     } catch (error) {
-      console.error("Error fetching publisher:", error)
+      console.error("Error fetching publisher for book:", id, "publisher_id:", book.publisher_id, "error:", error)
       // Continue with null publisher
     }
 

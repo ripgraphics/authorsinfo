@@ -15,26 +15,33 @@ interface FollowersListProps {
   followersCount: number
   entityId: string
   entityType: string
+  hideHeader?: boolean
+  hideContainer?: boolean
 }
 
 export function FollowersList({ 
   followers, 
   followersCount, 
   entityId, 
-  entityType
+  entityType,
+  hideHeader = false,
+  hideContainer = false
 }: FollowersListProps) {
-  return (
-    <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-      <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
-        <div className="text-2xl font-semibold leading-none tracking-tight">Followers</div>
-        <Link 
-          href={`/${entityType}s/${entityId}/followers`}
-          className="followers-list__see-all-button inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-9 rounded-md px-3 text-sm text-primary hover:bg-primary/10 hover:text-primary"
-        >
-          See All
-        </Link>
-      </div>
-      <div className="p-6 pt-0">
+  const content = (
+    <>
+      {!hideHeader && (
+        <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
+          <div className="text-2xl font-semibold leading-none tracking-tight">Followers</div>
+          <Link 
+            href={`/${entityType}s/${entityId}/followers`}
+            className="followers-list__see-all-button inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-9 rounded-md px-3 text-sm text-primary hover:bg-primary/10 hover:text-primary"
+          >
+            See All
+          </Link>
+        </div>
+      )}
+      
+      <div className={hideContainer ? "" : hideHeader ? "p-6" : "p-6 pt-0"}>
         <div className="followers-list__header flex flex-row items-center justify-between space-y-0 pb-2">
           <div className="followers-list__title-wrapper space-y-1">
             <div className="tracking-tight followers-list__title text-sm font-medium">
@@ -74,6 +81,16 @@ export function FollowersList({
           </div>
         </div>
       </div>
+    </>
+  )
+
+  if (hideContainer) {
+    return content
+  }
+
+  return (
+    <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+      {content}
     </div>
   )
 } 

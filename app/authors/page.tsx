@@ -38,13 +38,13 @@ interface AuthorsPageProps {
 }
 
 interface Author {
-  id: number
+  id: string // UUID
   name: string
   nationality?: string
   birth_date?: string
   photo_url?: string
   author_image?: {
-    id: number
+    id: string // UUID
     url: string
     alt_text: string
   }
@@ -213,11 +213,12 @@ async function AuthorsList({
 }
 
 export default async function AuthorsPage({ searchParams }: AuthorsPageProps) {
-  // Access searchParams without await
-  const page = searchParams.page ? parseInt(searchParams.page) : 1
-  const search = searchParams.search
-  const nationality = searchParams.nationality
-  const sort = searchParams.sort
+  // Await searchParams before accessing its properties
+  const resolvedParams = await Promise.resolve(searchParams)
+  const page = resolvedParams.page ? parseInt(resolvedParams.page) : 1
+  const search = resolvedParams.search
+  const nationality = resolvedParams.nationality
+  const sort = resolvedParams.sort
   
   // Get unique nationalities for the filter
   const nationalities = await getUniqueNationalities()

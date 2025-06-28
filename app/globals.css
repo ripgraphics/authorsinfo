@@ -10,6 +10,24 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+  
+  /* Fallback line-clamp for better browser support */
+  .line-clamp-fallback {
+    position: relative;
+    max-height: 10em; /* Adjust based on line height */
+    overflow: hidden;
+  }
+  
+  .line-clamp-fallback::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2em;
+    background: linear-gradient(transparent, white);
+    pointer-events: none;
+  }
 }
 
 @layer base {

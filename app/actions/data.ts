@@ -391,24 +391,83 @@ export async function getRecentPublishers(limit = 10, offset = 0): Promise<Publi
 
 export async function getPublisherById(id: string): Promise<Publisher | null> {
   try {
-    // Join with the images table to get the publisher image and cover image
-    const { data, error } = await supabaseAdmin
+    console.log(`Fetching publisher with ID: ${id}`)
+    
+    // Fetch basic publisher data first
+    const { data: publisherData, error: publisherError } = await supabaseAdmin
       .from("publishers")
-      .select(`
-        *,
-        publisher_image:publisher_image_id(id, url, alt_text, img_type_id),
-        cover_image:cover_image_id(id, url, alt_text, img_type_id),
-        publisher_gallery:publisher_gallery_id(id, url, alt_text, img_type_id)
-      `)
+      .select("*")
       .eq("id", id)
-      .single()
+      .maybeSingle()
 
-    if (error) {
-      console.error("Error fetching publisher:", error)
+    if (publisherError) {
+      console.error("Error fetching publisher:", publisherError)
       return null
     }
 
-    return data as Publisher
+    if (!publisherData) {
+      console.log(`Publisher with ID ${id} not found`)
+      return null
+    }
+
+    console.log(`Found publisher: ${publisherData.name}`)
+
+    // Try to fetch associated images if they exist
+    let publisher_image = null
+    let cover_image = null
+    let publisher_gallery = null
+
+    // Fetch publisher image if ID exists
+    if (publisherData.publisher_image_id) {
+      try {
+        const { data: imgData } = await supabaseAdmin
+          .from("images")
+          .select("id, url, alt_text, img_type_id")
+          .eq("id", publisherData.publisher_image_id)
+          .maybeSingle()
+        publisher_image = imgData
+      } catch (imgError) {
+        console.log("Could not fetch publisher image:", imgError)
+      }
+    }
+
+    // Fetch cover image if ID exists
+    if (publisherData.cover_image_id) {
+      try {
+        const { data: imgData } = await supabaseAdmin
+          .from("images")
+          .select("id, url, alt_text, img_type_id")
+          .eq("id", publisherData.cover_image_id)
+          .maybeSingle()
+        cover_image = imgData
+      } catch (imgError) {
+        console.log("Could not fetch cover image:", imgError)
+      }
+    }
+
+    // Fetch gallery image if ID exists
+    if (publisherData.publisher_gallery_id) {
+      try {
+        const { data: imgData } = await supabaseAdmin
+          .from("images")
+          .select("id, url, alt_text, img_type_id")
+          .eq("id", publisherData.publisher_gallery_id)
+          .maybeSingle()
+        publisher_gallery = imgData
+      } catch (imgError) {
+        console.log("Could not fetch gallery image:", imgError)
+      }
+    }
+
+    // Combine the data
+    const result = {
+      ...publisherData,
+      publisher_image,
+      cover_image,
+      publisher_gallery
+    } as Publisher
+
+    return result
   } catch (error) {
     console.error("Error fetching publisher:", error)
     return null

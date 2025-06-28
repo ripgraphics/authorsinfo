@@ -32,7 +32,7 @@ export const ExpandableSection: React.FC<ExpandableSectionProps> = ({
   viewMoreText = "View More",
   viewLessText = "View Less",
   fadeGradientClassName = "overview-section__fade-gradient absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent",
-  contentClassName = "overview-section__about-text whitespace-pre-wrap text-base",
+  contentClassName = "overview-section__about-text text-base",
   hideToggle = false,
   clipLines = 10,
   title,
@@ -55,18 +55,13 @@ export const ExpandableSection: React.FC<ExpandableSectionProps> = ({
         className={
           contentClassName +
           (sidePanelStyle ? " pt-0" : "") +
-          (expanded ? "" : ` line-clamp-${clipLines} overflow-hidden relative`)
-        }
-        style={
-          expanded
-            ? { overflow: "visible" }
-            : maxHeight
-            ? { maxHeight, overflow: "hidden" }
-            : { overflow: "hidden" }
+          (expanded ? "" : ` line-clamp-${clipLines}`)
         }
         aria-expanded={expanded}
       >
-        {children}
+        <div className={expanded ? "whitespace-pre-wrap" : ""}>
+          {children}
+        </div>
         {!expanded && (
           <div className={fadeGradientClassName} />
         )}

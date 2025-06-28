@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Camera, BookOpen, Users, MapPin, Globe, User, MoreHorizontal, MessageSquare, UserPlus, Settings } from "lucide-react"
@@ -18,8 +18,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { EntityHoverCard } from "@/components/entity-hover-cards"
+import { GroupActions } from '@/components/group/GroupActions'
+import { useGroupPermissions } from '@/hooks/useGroupPermissions'
+import { useAuth } from '@/hooks/useAuth'
+import { EntityImageUpload } from '@/components/entity/EntityImageUpload'
 
-export type EntityType = 'author' | 'publisher' | 'book' | 'group' | 'photo'
+export type EntityType = 'author' | 'publisher' | 'book' | 'group' | 'user' | 'event' | 'photo'
 
 export interface Stat {
   icon: React.ReactNode
@@ -86,6 +90,7 @@ export interface EntityHeaderProps {
       url: string
     }
     member_count?: number
+    is_private: boolean
   }
   eventCreator?: {
     id: string
@@ -93,6 +98,8 @@ export interface EntityHeaderProps {
     avatar_url?: string
     event_count?: number
   }
+  creatorJoinedAt?: string
+  isMember?: boolean
 }
 
 export function EntityHeader({
@@ -125,7 +132,38 @@ export function EntityHeader({
   publisherBookCount = 0,
   group,
   eventCreator,
+  creatorJoinedAt,
+  isMember = false,
 }: EntityHeaderProps) {
+  const { user } = useAuth()
+  const { isMember: isGroupMember, isAdmin } = useGroupPermissions(group?.id || '', user?.id)
+  const [groupMemberData, setGroupMemberData] = useState<any>(null);
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false)
+  const [isCoverModalOpen, setIsCoverModalOpen] = useState(false)
+  const [coverImage, setCoverImage] = useState<string | undefined>(coverImageUrl)
+  const [avatarImage, setAvatarImage] = useState<string | undefined>(profileImageUrl)
+
+  useEffect(() => {
+    const fetchGroupMemberData = async () => {
+      if (!creator || !group?.id) return;
+      
+      try {
+        const response = await fetch(`/api/group-members?group_id=${group.id}&user_id=${creator.id}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log('Group member data:', data);
+        setGroupMemberData(data[0] || null); // Get first record if exists
+      } catch (error) {
+        console.error('Error fetching group member data:', error);
+        setGroupMemberData(null);
+      }
+    };
+
+    fetchGroupMemberData();
+  }, [creator, group?.id]);
+
   const renderEntityName = () => {
     const nameElement = (
       <h1 className="text-base sm:text-[1.1rem] font-bold truncate">{name}</h1>
@@ -162,19 +200,7 @@ export function EntityHeader({
           </EntityHoverCard>
         ) : nameElement
       case 'group':
-        return group ? (
-          <EntityHoverCard
-            type="group"
-            entity={{
-              id: group.id,
-              name: group.name,
-              group_image: group.group_image,
-              joined_at: creator?.created_at
-            }}
-          >
-            <span className="text-muted-foreground">{group.name}</span>
-          </EntityHoverCard>
-        ) : nameElement
+        return nameElement
       case 'event':
         return eventCreator ? (
           <EntityHoverCard
@@ -194,46 +220,166 @@ export function EntityHeader({
     }
   }
 
-  return (
-    <div className={cn("entity-header bg-white rounded-lg shadow overflow-hidden mb-6", className)}>
-      {/* Cover Image */}
-      <div className="entity-header__cover-image relative h-auto aspect-[1344/500]">
-        <Image
-          src={coverImageUrl || "/placeholder.svg?height=400&width=1200"}
-          alt={`${name} cover`}
-          fill
-          className="entity-header__cover-image-content object-cover"
-          priority
-        />
-        {isEditable && onCoverImageChange && (
+  const renderCreatorInfo = () => {
+    if (!creator) return creatorName;
+    
+    return (
+      <EntityHoverCard
+        type="group"
+        entity={{
+          id: creator.id,
+          name: creator.name,
+          group_image: {
+            url: `/api/avatar/${creator.id}`
+          },
+          joined_at: groupMemberData?.joined_at || creatorJoinedAt
+        }}
+      >
+        <span className="cursor-pointer">{creatorName}</span>
+      </EntityHoverCard>
+    );
+  };
+
+  const renderActions = () => {
+    if (entityType === 'group' && group) {
+      return (
+        <div className="flex items-center gap-2">
+          <GroupActions
+            groupId={group.id}
+            groupName={group.name}
+            isPrivate={group.is_private}
+            isMember={isGroupMember}
+            onJoinChange={() => {
+              // Refresh the page or update the UI as needed
+              window.location.reload()
+            }}
+          />
+          {(isAdmin() || isEditable) && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link href={`/groups/${group.id}/edit`} className="flex items-center">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Edit Group
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
+      )
+    }
+
+    return (
+      <>
+        {isMessageable && onMessage && (
+          <Button className="flex items-center" onClick={onMessage}>
+            <MessageSquare className="h-4 w-4 mr-2" />
+            <span className="hidden sm:inline">Message</span>
+          </Button>
+        )}
+        {onFollow && (
           <Button 
-            variant="outline" 
-            size="sm" 
+            variant={isFollowing ? "outline" : "default"} 
+            className="flex items-center"
+            onClick={onFollow}
+          >
+            <UserPlus className="h-4 w-4 mr-2" />
+            <span className="hidden sm:inline">
+              {entityType === 'book' 
+                ? (isFollowing ? 'Remove from Shelf' : 'Add to Shelf')
+                : (isFollowing ? 'Unfollow' : 'Follow')
+              }
+            </span>
+          </Button>
+        )}
+        {!isEditable && (
+          <Button variant="outline" size="icon">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        )}
+      </>
+    )
+  }
+
+  const renderCoverImage = () => {
+    if (!coverImage && !isEditable) return null
+
+    return (
+      <div className="relative w-full aspect-[3/1] bg-muted">
+        {coverImage && (
+          <Image
+            src={coverImage}
+            alt={`${name} cover`}
+            fill
+            className="object-cover"
+            priority
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+        )}
+        {isEditable && (
+          <Button
+            variant="outline"
+            size="sm"
             className="absolute bottom-4 right-4 bg-white/80 hover:bg-white z-20"
-            onClick={onCoverImageChange}
+            onClick={() => setIsCoverModalOpen(true)}
           >
             <Camera className="h-4 w-4 mr-2" />
             Change Cover
           </Button>
         )}
       </div>
+    )
+  }
+
+  const renderAvatar = () => {
+    return (
+      <div className="relative">
+        <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-background bg-muted">
+          {avatarImage ? (
+            <Image
+              src={avatarImage}
+              alt={`${name} avatar`}
+              fill
+              className="object-cover"
+              priority
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-muted">
+              <User className="w-12 h-12 text-muted-foreground" />
+            </div>
+          )}
+        </div>
+        {isEditable && (
+          <Button
+            variant="outline"
+            size="icon"
+            className="absolute -bottom-2 -right-2 rounded-full h-8 w-8 bg-white/80 hover:bg-white shadow-sm"
+            onClick={() => setIsAvatarModalOpen(true)}
+          >
+            <Camera className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className={cn("entity-header bg-white rounded-lg shadow overflow-hidden mb-6", className)}>
+      {/* Cover Image */}
+      {renderCoverImage()}
 
       {/* Header Content */}
       <div className="entity-header__content px-3 sm:px-6 pb-6">
         <div className="entity-header__profile-section flex flex-col md:flex-row md:items-end -mt-10 relative z-10">
           {/* Profile Image */}
           <div className="entity-header__avatar-container relative">
-            <Avatar src={profileImageUrl || "/placeholder.svg?height=200&width=200"} alt={name} name={name} size="lg" />
-            {isEditable && onProfileImageChange && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="absolute -bottom-2 -right-2 rounded-full h-8 w-8 bg-white/80 hover:bg-white shadow-sm"
-                onClick={onProfileImageChange}
-              >
-                <Camera className="h-4 w-4" />
-              </Button>
-            )}
+            {renderAvatar()}
           </div>
 
           {/* Entity Info */}
@@ -244,23 +390,7 @@ export function EntityHeader({
                 {entityType === 'group' && creatorName && (
                   <div className="text-muted-foreground truncate text-sm">
                     Created by{" "}
-                    {creator ? (
-                      <EntityHoverCard
-                        type="group"
-                        entity={{
-                          id: creator.id,
-                          name: creator.name,
-                          group_image: {
-                            url: `/api/avatar/${creator.id}`
-                          },
-                          joined_at: creator.created_at
-                        }}
-                      >
-                        <span className="cursor-pointer">{creatorName}</span>
-                      </EntityHoverCard>
-                    ) : (
-                      creatorName
-                    )}
+                    {renderCreatorInfo()}
                   </div>
                 )}
                 {username && (
@@ -277,49 +407,7 @@ export function EntityHeader({
               </div>
 
               <div className="entity-header__actions flex flex-wrap gap-2 mt-2 md:mt-0 shrink-0 md:flex-nowrap">
-                {isMessageable && onMessage && (
-                  <Button className="flex items-center" onClick={onMessage}>
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">Message</span>
-                  </Button>
-                )}
-                {onFollow && (
-                  <Button 
-                    variant={isFollowing ? "outline" : "default"} 
-                    className="flex items-center"
-                    onClick={onFollow}
-                  >
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">
-                      {entityType === 'book' 
-                        ? (isFollowing ? 'Remove from Shelf' : 'Add to Shelf')
-                        : (isFollowing ? 'Unfollow' : 'Follow')
-                      }
-                    </span>
-                  </Button>
-                )}
-                {entityType === 'group' && isEditable && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem asChild>
-                        <Link href={`/groups/${group?.id}/edit`} className="flex items-center">
-                          <Settings className="h-4 w-4 mr-2" />
-                          Edit Group
-                        </Link>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-                {!isEditable && (
-                  <Button variant="outline" size="icon">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                )}
+                {renderActions()}
               </div>
             </div>
 
@@ -389,6 +477,30 @@ export function EntityHeader({
           </div>
         </div>
       </div>
+
+      {/* Image Upload Modals */}
+      {isEditable && (
+        <>
+          <EntityImageUpload
+            entityId={entityType === 'group' ? group?.id || '' : name}
+            entityType={entityType}
+            currentImageUrl={coverImage}
+            onImageChange={setCoverImage}
+            type="cover"
+            isOpen={isCoverModalOpen}
+            onOpenChange={setIsCoverModalOpen}
+          />
+          <EntityImageUpload
+            entityId={entityType === 'group' ? group?.id || '' : name}
+            entityType={entityType}
+            currentImageUrl={avatarImage}
+            onImageChange={setAvatarImage}
+            type="avatar"
+            isOpen={isAvatarModalOpen}
+            onOpenChange={setIsAvatarModalOpen}
+          />
+        </>
+      )}
 
       {children}
     </div>

@@ -48,57 +48,78 @@ album_shares,access_token,uuid
 album_shares,expires_at,timestamp with time zone
 album_shares,created_at,timestamp with time zone
 album_shares,updated_at,timestamp with time zone
-author_event_dashboard,id,integer
-author_event_dashboard,name,character varying
-author_event_dashboard,upcoming_events,bigint
-author_event_dashboard,past_events,bigint
-author_event_dashboard,total_registrations,numeric
-author_event_dashboard,total_revenue,numeric
-author_event_metrics,author_id,integer
-author_event_metrics,author_name,character varying
-author_event_metrics,total_events,bigint
-author_event_metrics,total_registrations,numeric
-author_event_metrics,total_revenue,numeric
-author_event_metrics,avg_attendance_rate,numeric
-author_event_metrics,total_series,bigint
-authors,id,integer
-authors,name,character varying
+authors,id,uuid
+authors,name,text
 authors,bio,text
 authors,featured,boolean
 authors,birth_date,date
-authors,nationality,character varying
+authors,nationality,text
 authors,website,text
-authors,author_image_id,integer
-authors,author_gallery_id,integer
+authors,author_image_id,uuid
+authors,author_gallery_id,uuid
 authors,twitter_handle,text
 authors,facebook_handle,text
 authors,instagram_handle,text
 authors,goodreads_url,text
-authors,cover_image_id,integer
+authors,cover_image_id,uuid
 authors,created_at,timestamp with time zone
 authors,updated_at,timestamp with time zone
-binding_types,id,integer
+authors_old,id,uuid
+authors_old,name,text
+authors_old,bio,text
+authors_old,featured,boolean
+authors_old,birth_date,date
+authors_old,nationality,text
+authors_old,website,text
+authors_old,author_image_id,integer
+authors_old,author_gallery_id,integer
+authors_old,twitter_handle,text
+authors_old,facebook_handle,text
+authors_old,instagram_handle,text
+authors_old,goodreads_url,text
+authors_old,cover_image_id,integer
+authors_old,created_at,timestamp with time zone
+authors_old,updated_at,timestamp with time zone
+binding_types,id,uuid
 binding_types,name,character varying
 binding_types,description,text
 binding_types,created_at,timestamp with time zone
 binding_types,updated_at,timestamp with time zone
+binding_types_old,id,integer
+binding_types_old,name,character varying
+binding_types_old,description,text
+binding_types_old,created_at,timestamp with time zone
+binding_types_old,updated_at,timestamp with time zone
 blocks,id,uuid
 blocks,user_id,uuid
 blocks,blocked_user_id,uuid
 blocks,created_at,timestamp with time zone
-book_authors,id,integer
-book_authors,book_id,integer
-book_authors,author_id,integer
+book_authors,id,uuid
+book_authors,book_id,uuid
+book_authors,author_id,uuid
 book_authors,created_at,timestamp with time zone
 book_authors,updated_at,timestamp with time zone
+book_authors_old,id,integer
+book_authors_old,book_id,integer
+book_authors_old,created_at,timestamp with time zone
+book_authors_old,updated_at,timestamp with time zone
+book_authors_old,author_id,uuid
 book_club_books,id,uuid
 book_club_books,book_club_id,uuid
-book_club_books,book_id,integer
+book_club_books,book_id,uuid
 book_club_books,status,character varying
 book_club_books,start_date,date
 book_club_books,end_date,date
 book_club_books,created_at,timestamp with time zone
 book_club_books,created_by,uuid
+book_club_books_old,id,uuid
+book_club_books_old,book_club_id,uuid
+book_club_books_old,book_id,integer
+book_club_books_old,status,character varying
+book_club_books_old,start_date,date
+book_club_books_old,end_date,date
+book_club_books_old,created_at,timestamp with time zone
+book_club_books_old,created_by,uuid
 book_club_discussion_comments,id,uuid
 book_club_discussion_comments,discussion_id,uuid
 book_club_discussion_comments,content,text
@@ -129,18 +150,26 @@ book_clubs,updated_at,timestamp with time zone
 book_clubs,is_private,boolean
 book_clubs,current_book_id,integer
 book_clubs,member_count,integer
-book_genre_mappings,id,integer
-book_genre_mappings,book_id,integer
-book_genre_mappings,genre_id,integer
-book_genres,id,integer
+book_genre_mappings,id,uuid
+book_genre_mappings,book_id,uuid
+book_genre_mappings,genre_id,uuid
+book_genre_mappings_old,id,integer
+book_genre_mappings_old,book_id,integer
+book_genre_mappings_old,genre_id,integer
+book_genres,id,uuid
 book_genres,name,text
 book_genres,description,text
 book_genres,created_at,timestamp with time zone
-book_publishers,id,integer
-book_publishers,book_id,integer
-book_publishers,publisher_id,integer
+book_publishers,id,uuid
+book_publishers,book_id,uuid
+book_publishers,publisher_id,uuid
 book_publishers,created_at,timestamp with time zone
 book_publishers,updated_at,timestamp with time zone
+book_publishers_old,id,integer
+book_publishers_old,book_id,integer
+book_publishers_old,publisher_id,integer
+book_publishers_old,created_at,timestamp with time zone
+book_publishers_old,updated_at,timestamp with time zone
 book_recommendations,id,uuid
 book_recommendations,user_id,uuid
 book_recommendations,book_id,integer
@@ -159,35 +188,54 @@ book_reviews,updated_at,timestamp with time zone
 book_reviews,contains_spoilers,boolean
 book_reviews,group_id,uuid
 book_reviews,visibility,text
-book_similarity_scores,id,bigint
-book_similarity_scores,book_id,bigint
-book_similarity_scores,similar_book_id,bigint
+book_similarity_scores,id,uuid
+book_similarity_scores,book_id,uuid
+book_similarity_scores,similar_book_id,uuid
 book_similarity_scores,similarity_score,double precision
 book_similarity_scores,created_at,timestamp with time zone
-book_subjects,id,integer
-book_subjects,book_id,integer
-book_subjects,subject_id,integer
+book_similarity_scores_old,id,bigint
+book_similarity_scores_old,book_id,bigint
+book_similarity_scores_old,similar_book_id,bigint
+book_similarity_scores_old,similarity_score,double precision
+book_similarity_scores_old,created_at,timestamp with time zone
+book_subjects,id,uuid
+book_subjects,book_id,uuid
+book_subjects,subject_id,uuid
 book_subjects,created_at,timestamp with time zone
 book_subjects,updated_at,timestamp with time zone
-book_tag_mappings,id,integer
-book_tag_mappings,book_id,integer
-book_tag_mappings,tag_id,integer
+book_subjects_old,id,integer
+book_subjects_old,book_id,integer
+book_subjects_old,subject_id,integer
+book_subjects_old,created_at,timestamp with time zone
+book_subjects_old,updated_at,timestamp with time zone
+book_tag_mappings,id,uuid
+book_tag_mappings,book_id,uuid
+book_tag_mappings,tag_id,uuid
 book_tag_mappings,created_at,timestamp with time zone
 book_tag_mappings,updated_at,timestamp with time zone
-book_tags,id,integer
+book_tag_mappings_old,id,integer
+book_tag_mappings_old,book_id,integer
+book_tag_mappings_old,tag_id,integer
+book_tag_mappings_old,created_at,timestamp with time zone
+book_tag_mappings_old,updated_at,timestamp with time zone
+book_tags,id,uuid
 book_tags,name,text
 book_tags,created_at,timestamp with time zone
 book_tags,updated_at,timestamp with time zone
 book_views,id,uuid
 book_views,user_id,uuid
-book_views,book_id,bigint
+book_views,book_id,uuid
 book_views,viewed_at,timestamp with time zone
-books,id,integer
+book_views_old,id,uuid
+book_views_old,user_id,uuid
+book_views_old,book_id,bigint
+book_views_old,viewed_at,timestamp with time zone
+books,id,uuid
 books,isbn10,character varying
 books,isbn13,character varying
 books,title,character varying
 books,title_long,text
-books,publisher_id,integer
+books,publisher_id,uuid
 books,publication_date,date
 books,binding,character varying
 books,pages,integer
@@ -198,24 +246,58 @@ books,synopsis,text
 books,overview,text
 books,dimensions,character varying
 books,weight,numeric
-books,cover_image_id,integer
+books,cover_image_id,uuid
 books,original_image_url,text
 books,author,character varying
 books,featured,boolean
-books,author_id,integer
 books,book_gallery_img,ARRAY
 books,average_rating,numeric
 books,review_count,integer
-books,binding_type_id,integer
-books,format_type_id,integer
 books,created_at,timestamp with time zone
-books,status_id,integer
-carousel_images,id,integer
+books,author_id,uuid
+books,binding_type_id,uuid
+books,format_type_id,uuid
+books,status_id,uuid
+books_old,id,integer
+books_old,isbn10,character varying
+books_old,isbn13,character varying
+books_old,title,character varying
+books_old,title_long,text
+books_old,publisher_id,integer
+books_old,publication_date,date
+books_old,binding,character varying
+books_old,pages,integer
+books_old,list_price,numeric
+books_old,language,character varying
+books_old,edition,character varying
+books_old,synopsis,text
+books_old,overview,text
+books_old,dimensions,character varying
+books_old,weight,numeric
+books_old,cover_image_id,integer
+books_old,original_image_url,text
+books_old,author,character varying
+books_old,featured,boolean
+books_old,book_gallery_img,ARRAY
+books_old,average_rating,numeric
+books_old,review_count,integer
+books_old,binding_type_id,integer
+books_old,format_type_id,integer
+books_old,created_at,timestamp with time zone
+books_old,status_id,integer
+books_old,author_id,uuid
+carousel_images,id,uuid
 carousel_images,carousel_name,character varying
 carousel_images,image_url,text
 carousel_images,alt_text,character varying
 carousel_images,position,integer
 carousel_images,active,boolean
+carousel_images_old,id,integer
+carousel_images_old,carousel_name,character varying
+carousel_images_old,image_url,text
+carousel_images_old,alt_text,character varying
+carousel_images_old,position,integer
+carousel_images_old,active,boolean
 comments,id,uuid
 comments,user_id,uuid
 comments,feed_entry_id,uuid
@@ -224,11 +306,25 @@ comments,created_at,timestamp with time zone
 comments,updated_at,timestamp with time zone
 comments,is_hidden,boolean
 comments,is_deleted,boolean
-countries,id,integer
-countries,name,character varying
-countries,code,character varying
-countries,phone_code,character varying
-countries,continent,character varying
+contact_info,id,uuid
+contact_info,entity_type,text
+contact_info,entity_id,text
+contact_info,email,text
+contact_info,phone,text
+contact_info,website,text
+contact_info,address_line1,text
+contact_info,address_line2,text
+contact_info,city,text
+contact_info,state,text
+contact_info,postal_code,text
+contact_info,country,text
+contact_info,created_at,timestamp with time zone
+contact_info,updated_at,timestamp with time zone
+countries,id,uuid
+countries,name,text
+countries,code,text
+countries,phone_code,text
+countries,continent,text
 countries,created_at,timestamp with time zone
 countries,updated_at,timestamp with time zone
 discussion_comments,id,uuid
@@ -402,23 +498,6 @@ event_media,height,integer
 event_media,display_order,integer
 event_media,created_at,timestamp with time zone
 event_media,updated_at,timestamp with time zone
-event_performance_metrics,id,uuid
-event_performance_metrics,title,text
-event_performance_metrics,start_date,timestamp with time zone
-event_performance_metrics,is_free,boolean
-event_performance_metrics,max_attendees,integer
-event_performance_metrics,registration_count,bigint
-event_performance_metrics,total_revenue,numeric
-event_performance_metrics,net_revenue,numeric
-event_performance_metrics,likes_count,bigint
-event_performance_metrics,comments_count,bigint
-event_performance_metrics,shares_count,bigint
-event_performance_metrics,views_count,bigint
-event_performance_metrics,attendance_count,bigint
-event_performance_metrics,capacity_percentage,numeric
-event_performance_metrics,attendance_rate,numeric
-event_performance_metrics,waitlist_count,bigint
-event_performance_metrics,avg_satisfaction,numeric
 event_permission_requests,id,uuid
 event_permission_requests,user_id,uuid
 event_permission_requests,request_reason,text
@@ -493,10 +572,10 @@ event_speakers,social_links,jsonb
 event_speakers,presentation_title,text
 event_speakers,presentation_description,text
 event_speakers,speaker_order,integer
-event_speakers,author_id,integer
 event_speakers,created_at,timestamp with time zone
 event_speakers,updated_at,timestamp with time zone
 event_speakers,session_ids,ARRAY
+event_speakers,author_id,uuid
 event_sponsors,id,uuid
 event_sponsors,event_id,uuid
 event_sponsors,name,text
@@ -590,7 +669,6 @@ events,is_free,boolean
 events,price,numeric
 events,currency,text
 events,book_id,integer
-events,author_id,integer
 events,publisher_id,integer
 events,group_id,uuid
 events,virtual_meeting_url,text
@@ -602,6 +680,7 @@ events,seo_title,text
 events,seo_description,text
 events,canonical_url,text
 events,content_blocks,jsonb
+events,author_id,uuid
 feed_entries,id,uuid
 feed_entries,user_id,uuid
 feed_entries,group_id,uuid
@@ -628,11 +707,16 @@ follows,following_id,text
 follows,target_type_id,integer
 follows,created_at,timestamp with time zone
 follows,updated_at,timestamp with time zone
-format_types,id,integer
+format_types,id,uuid
 format_types,name,character varying
 format_types,description,text
 format_types,created_at,timestamp with time zone
 format_types,updated_at,timestamp with time zone
+format_types_old,id,integer
+format_types_old,name,character varying
+format_types_old,description,text
+format_types_old,created_at,timestamp with time zone
+format_types_old,updated_at,timestamp with time zone
 friends,id,uuid
 friends,user_id,uuid
 friends,friend_id,uuid
@@ -673,9 +757,9 @@ group_audit_log,details,jsonb
 group_audit_log,created_at,timestamp with time zone
 group_author_events,id,uuid
 group_author_events,group_id,uuid
-group_author_events,author_id,integer
 group_author_events,event_id,uuid
 group_author_events,scheduled_at,timestamp with time zone
+group_author_events,author_id,uuid
 group_book_list_items,id,uuid
 group_book_list_items,list_id,uuid
 group_book_list_items,book_id,integer
@@ -965,15 +1049,15 @@ image_tags,name,character varying
 image_tags,slug,character varying
 image_tags,created_at,timestamp with time zone
 image_tags,updated_at,timestamp with time zone
-image_types,id,integer
-image_types,name,character varying
+image_types,id,uuid
+image_types,name,text
 image_types,description,text
 image_types,created_at,timestamp with time zone
 image_types,updated_at,timestamp with time zone
-images,id,integer
+images,id,uuid
 images,url,text
 images,alt_text,character varying
-images,img_type_id,integer
+images,img_type_id,uuid
 images,created_at,timestamp with time zone
 images,updated_at,timestamp with time zone
 images,thumbnail_url,text
@@ -992,6 +1076,28 @@ images,storage_provider,character varying
 images,is_processed,boolean
 images,processing_status,character varying
 images,deleted_at,timestamp with time zone
+images_old,id,integer
+images_old,url,text
+images_old,alt_text,character varying
+images_old,created_at,timestamp with time zone
+images_old,updated_at,timestamp with time zone
+images_old,thumbnail_url,text
+images_old,medium_url,text
+images_old,large_url,text
+images_old,original_filename,character varying
+images_old,file_size,integer
+images_old,width,integer
+images_old,height,integer
+images_old,format,character varying
+images_old,mime_type,character varying
+images_old,caption,text
+images_old,metadata,jsonb
+images_old,storage_path,text
+images_old,storage_provider,character varying
+images_old,is_processed,boolean
+images_old,processing_status,character varying
+images_old,deleted_at,timestamp with time zone
+images_old,img_type_id,uuid
 invoices,id,uuid
 invoices,user_id,uuid
 invoices,event_id,uuid
@@ -1093,7 +1199,7 @@ personalized_recommendations_with_details,created_at,timestamp with time zone
 personalized_recommendations_with_details,updated_at,timestamp with time zone
 personalized_recommendations_with_details,title,character varying
 personalized_recommendations_with_details,author,character varying
-personalized_recommendations_with_details,cover_image_id,integer
+personalized_recommendations_with_details,cover_image_id,uuid
 personalized_recommendations_with_details,average_rating,numeric
 personalized_recommendations_with_details,review_count,integer
 photo_album,id,uuid
@@ -1120,21 +1226,6 @@ photo_albums,metadata,jsonb
 photo_albums,created_at,timestamp with time zone
 photo_albums,updated_at,timestamp with time zone
 photo_albums,deleted_at,timestamp with time zone
-popular_events,id,uuid
-popular_events,title,text
-popular_events,start_date,timestamp with time zone
-popular_events,end_date,timestamp with time zone
-popular_events,format,text
-popular_events,status,text
-popular_events,visibility,text
-popular_events,author_id,integer
-popular_events,book_id,integer
-popular_events,publisher_id,integer
-popular_events,group_id,uuid
-popular_events,registration_count,bigint
-popular_events,like_count,bigint
-popular_events,comment_count,bigint
-popular_events,view_count,bigint
 posts,id,uuid
 posts,user_id,uuid
 posts,content,text
@@ -1175,13 +1266,7 @@ promo_codes,is_active,boolean
 promo_codes,created_by,uuid
 promo_codes,created_at,timestamp with time zone
 promo_codes,updated_at,timestamp with time zone
-publisher_countries,publisher_id,integer
-publisher_countries,publisher_name,character varying
-publisher_countries,original_country,character varying
-publisher_countries,country_id,integer
-publisher_countries,country_name,character varying
-publisher_countries,country_code,character varying
-publishers,id,integer
+publishers,id,uuid
 publishers,name,character varying
 publishers,featured,boolean
 publishers,website,character varying
@@ -1194,11 +1279,29 @@ publishers,state,character varying
 publishers,postal_code,character varying
 publishers,country,character varying
 publishers,about,text
-publishers,cover_image_id,integer
-publishers,publisher_image_id,integer
-publishers,publisher_gallery_id,integer
+publishers,cover_image_id,uuid
+publishers,publisher_image_id,uuid
+publishers,publisher_gallery_id,uuid
 publishers,founded_year,integer
-publishers,country_id,integer
+publishers,country_id,uuid
+publishers_old,id,integer
+publishers_old,name,character varying
+publishers_old,featured,boolean
+publishers_old,website,character varying
+publishers_old,email,character varying
+publishers_old,phone,character varying
+publishers_old,address_line1,character varying
+publishers_old,address_line2,character varying
+publishers_old,city,character varying
+publishers_old,state,character varying
+publishers_old,postal_code,character varying
+publishers_old,country,character varying
+publishers_old,about,text
+publishers_old,cover_image_id,integer
+publishers_old,publisher_image_id,integer
+publishers_old,publisher_gallery_id,integer
+publishers_old,founded_year,integer
+publishers_old,country_id,integer
 reactions,id,uuid
 reactions,user_id,uuid
 reactions,feed_entry_id,uuid
@@ -1246,13 +1349,13 @@ reading_progress,updated_at,timestamp with time zone
 reading_series,id,uuid
 reading_series,title,text
 reading_series,description,text
-reading_series,author_id,integer
 reading_series,publisher_id,integer
 reading_series,organizer_id,uuid
 reading_series,cover_image_id,integer
 reading_series,is_active,boolean
 reading_series,created_at,timestamp with time zone
 reading_series,updated_at,timestamp with time zone
+reading_series,author_id,uuid
 reading_sessions,id,uuid
 reading_sessions,user_id,uuid
 reading_sessions,book_id,integer
@@ -1290,21 +1393,18 @@ reviews,book_id,integer
 reviews,review,text
 reviews,created_at,timestamp with time zone
 reviews,updated_at,timestamp with time zone
-roles,id,integer
+roles,id,uuid
 roles,name,character varying
 roles,created_at,timestamp with time zone
 roles,updated_at,timestamp with time zone
+roles_old,id,integer
+roles_old,name,character varying
+roles_old,created_at,timestamp with time zone
+roles_old,updated_at,timestamp with time zone
 series_events,series_id,uuid
 series_events,event_id,uuid
 series_events,event_number,integer
 series_events,created_at,timestamp with time zone
-series_performance_metrics,series_id,uuid
-series_performance_metrics,series_title,text
-series_performance_metrics,total_events,bigint
-series_performance_metrics,avg_registrations_per_event,numeric
-series_performance_metrics,total_series_revenue,numeric
-series_performance_metrics,total_attendance,numeric
-series_performance_metrics,avg_attendance_rate,numeric
 session_registrations,id,uuid
 session_registrations,session_id,uuid
 session_registrations,user_id,uuid
@@ -1319,13 +1419,13 @@ similar_books,similar_book_id,integer
 similar_books,similarity_score,double precision
 similar_books,created_at,timestamp with time zone
 similar_books,updated_at,timestamp with time zone
-statuses,id,integer
+statuses,id,uuid
 statuses,name,character varying
 statuses,created_at,timestamp with time zone
 statuses,updated_at,timestamp with time zone
-subjects,id,integer
-subjects,name,character varying
-subjects,parent_id,integer
+subjects,id,uuid
+subjects,name,text
+subjects,parent_id,uuid
 subjects,created_at,timestamp with time zone
 subjects,updated_at,timestamp with time zone
 survey_questions,id,uuid
@@ -1353,10 +1453,48 @@ sync_state,status,text
 sync_state,error,text
 sync_state,created_at,timestamp with time zone
 sync_state,updated_at,timestamp with time zone
-tags,id,integer
+tags,id,uuid
 tags,name,text
 tags,created_at,timestamp with time zone
 tags,updated_at,timestamp with time zone
+temp_book_genre_names,old_id,bigint
+temp_book_genre_names,new_uuid_id,uuid
+temp_book_genre_names,genre_name,text
+temp_book_genre_relationships,mapping_id,integer
+temp_book_genre_relationships,book_id,integer
+temp_book_genre_relationships,old_genre_id,integer
+temp_book_subject_relationships,mapping_id,integer
+temp_book_subject_relationships,book_id,integer
+temp_book_subject_relationships,old_subject_id,integer
+temp_book_tag_names,old_id,bigint
+temp_book_tag_names,new_uuid_id,uuid
+temp_book_tag_names,tag_name,text
+temp_book_tag_relationships,mapping_id,integer
+temp_book_tag_relationships,book_id,integer
+temp_book_tag_relationships,old_tag_id,integer
+temp_country_names,old_id,bigint
+temp_country_names,new_uuid_id,uuid
+temp_country_names,country_name,text
+temp_country_names,country_code,text
+temp_event_tag_relationships,event_id,uuid
+temp_event_tag_relationships,old_tag_id,integer
+temp_feed_entry_tag_relationships,feed_entry_id,uuid
+temp_feed_entry_tag_relationships,old_tag_id,integer
+temp_image_id_mappings,old_id,integer
+temp_image_id_mappings,new_id,uuid
+temp_image_type_names,old_id,bigint
+temp_image_type_names,new_uuid_id,uuid
+temp_image_type_names,image_type_name,text
+temp_image_type_relationships,image_id,integer
+temp_image_type_relationships,old_img_type_id,integer
+temp_publisher_country_relationships,publisher_id,integer
+temp_publisher_country_relationships,old_country_id,integer
+temp_subject_names,old_id,bigint
+temp_subject_names,new_uuid_id,uuid
+temp_subject_names,subject_name,text
+temp_tag_names,old_id,bigint
+temp_tag_names,new_uuid_id,uuid
+temp_tag_names,tag_name,text
 ticket_benefits,id,uuid
 ticket_benefits,ticket_type_id,uuid
 ticket_benefits,name,text
@@ -1421,53 +1559,9 @@ user_reading_preferences,preferred_complexity,text
 user_reading_preferences,preferred_publication_era,text
 user_reading_preferences,created_at,timestamp with time zone
 user_reading_preferences,updated_at,timestamp with time zone
-user_recommended_events,id,uuid
-user_recommended_events,title,text
-user_recommended_events,subtitle,text
-user_recommended_events,description,text
-user_recommended_events,summary,text
-user_recommended_events,category_id,uuid
-user_recommended_events,type_id,uuid
-user_recommended_events,format,text
-user_recommended_events,status,text
-user_recommended_events,visibility,text
-user_recommended_events,featured,boolean
-user_recommended_events,start_date,timestamp with time zone
-user_recommended_events,end_date,timestamp with time zone
-user_recommended_events,timezone,text
-user_recommended_events,all_day,boolean
-user_recommended_events,max_attendees,integer
-user_recommended_events,cover_image_id,integer
-user_recommended_events,event_image_id,integer
-user_recommended_events,is_recurring,boolean
-user_recommended_events,recurrence_pattern,jsonb
-user_recommended_events,parent_event_id,uuid
-user_recommended_events,created_by,uuid
-user_recommended_events,created_at,timestamp with time zone
-user_recommended_events,updated_at,timestamp with time zone
-user_recommended_events,published_at,timestamp with time zone
-user_recommended_events,requires_registration,boolean
-user_recommended_events,registration_opens_at,timestamp with time zone
-user_recommended_events,registration_closes_at,timestamp with time zone
-user_recommended_events,is_free,boolean
-user_recommended_events,price,numeric
-user_recommended_events,currency,text
-user_recommended_events,book_id,integer
-user_recommended_events,author_id,integer
-user_recommended_events,publisher_id,integer
-user_recommended_events,group_id,uuid
-user_recommended_events,virtual_meeting_url,text
-user_recommended_events,virtual_meeting_id,text
-user_recommended_events,virtual_meeting_password,text
-user_recommended_events,virtual_platform,text
-user_recommended_events,slug,text
-user_recommended_events,seo_title,text
-user_recommended_events,seo_description,text
-user_recommended_events,canonical_url,text
-user_recommended_events,content_blocks,jsonb
 users,id,uuid
 users,email,character varying
 users,name,character varying
-users,role_id,integer
 users,created_at,timestamp with time zone
 users,updated_at,timestamp with time zone
+users,role_id,uuid

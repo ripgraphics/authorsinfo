@@ -48,17 +48,17 @@ export function SidebarSection({
   }
 
   return (
-    <Card className={cn("sidebar-section rounded-lg border bg-card text-card-foreground shadow-sm", className)}>
+    <Card className={cn("sidebar-section__container rounded-lg border bg-card text-card-foreground shadow-sm", className)}>
       {/* Header Section */}
-      <div className={cn("sidebar-section__header p-6 pb-2 border-b", headerClassName)}>
-        <div className="flex items-center justify-between">
-          <h3 className="text-2xl font-semibold leading-none tracking-tight">{title}</h3>
+      <div className={cn("sidebar-section__header-container p-6 pb-2 border-b", headerClassName)}>
+        <div className="sidebar-section__header-content flex items-center justify-between">
+          <h3 className="sidebar-section__title text-2xl font-semibold leading-none tracking-tight">{title}</h3>
           {headerRight ?? (
             (onViewMore || viewMoreLink) && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 text-sm text-primary hover:bg-primary/10 hover:text-primary"
+                className="sidebar-section__view-more-button h-8 text-sm text-primary hover:bg-primary/10 hover:text-primary"
                 onClick={onViewMore}
                 asChild={!!viewMoreLink}
               >
@@ -74,16 +74,16 @@ export function SidebarSection({
       </div>
 
       {/* Main Content Section */}
-      <CardContent className={cn("p-6 pt-0", contentClassName)}>
+      <CardContent className={cn("sidebar-section__content-container p-6 pt-4", contentClassName)}>
         {isExpandable ? (
           <ExpandableSection
             expanded={expanded}
             onToggle={handleExpand}
             hideToggle={hideToggle}
-            contentClassName="space-y-4"
+            contentClassName="sidebar-section__expandable-content space-y-4"
             viewMoreText="Show More"
             viewLessText="Show Less"
-            fadeGradientClassName="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent"
+            fadeGradientClassName="sidebar-section__fade-gradient absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent"
           >
             {children}
           </ExpandableSection>
@@ -94,7 +94,7 @@ export function SidebarSection({
 
       {/* Footer Section */}
       {footer && (
-        <div className={cn("sidebar-section__footer p-6 pt-0", footerClassName)}>
+        <div className={cn("sidebar-section__footer-container p-6 pt-0", footerClassName)}>
           {footer}
         </div>
       )}

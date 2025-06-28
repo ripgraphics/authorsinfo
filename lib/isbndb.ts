@@ -5,17 +5,28 @@ const BASE_URL = "https://api2.isbndb.com"
 
 export interface Book {
   title: string
+  title_long?: string
   isbn: string
   isbn13: string
   authors: string[]
   publisher: string
   publish_date: string
+  date_published?: string
   image?: string
   synopsis?: string
+  overview?: string
   language?: string
   pages?: number
   msrp?: number
   binding?: string
+  edition?: string
+  dimensions?: string
+  dimensions_structured?: {
+    weight?: { value: number; unit: string }
+    length?: { value: number; unit: string }
+    width?: { value: number; unit: string }
+    height?: { value: number; unit: string }
+  }
   subjects?: string[]
 }
 
@@ -118,14 +129,14 @@ export async function getBookByISBN(isbn: string, retries = 3, delay = 1000): Pr
 export async function getBulkBooks(isbns: string[]): Promise<Book[]> {
   if (!isbns.length) return [];
 
-  const batchSize = 100;
+  const batchSize = 100; // Use the documented limit for Basic plan
   const books: Book[] = [];
 
   for (let i = 0; i < isbns.length; i += batchSize) {
     const batch = isbns.slice(i, i + batchSize);
     console.debug('Sending bulk batch to ISBNdb:', batch);
     try {
-      // Use JSON bulk endpoint as defined in Swagger: `{ isbns: [...] }`
+      // Use the documented bulk endpoint: POST /books with { isbns: [...] }
       const res = await fetch(`${BASE_URL}/books`, {
         method: 'POST',
         headers: {
@@ -135,30 +146,41 @@ export async function getBulkBooks(isbns: string[]): Promise<Book[]> {
         },
         body: JSON.stringify({ isbns: batch }),
       });
+      
       const raw = await res.text();
       console.debug('Raw bulk response:', raw);
+      
       if (!res.ok) {
         console.error(`ISBNdb bulk error ${res.status}:`, raw);
+        continue;
+      }
+      
+      let data: any;
+      try {
+        data = JSON.parse(raw);
+      } catch (err) {
+        console.error('Failed to parse bulk JSON:', err);
+        continue;
+      }
+      
+      // According to the API docs, the response should have: { total, requested, data: [Book objects] }
+      if (data.data && Array.isArray(data.data)) {
+        books.push(...data.data);
+        console.debug(`Received ${data.data.length} books from batch (total: ${data.total}, requested: ${data.requested})`);
       } else {
-        let data: any;
-        try {
-          data = JSON.parse(raw);
-        } catch (err) {
-          console.error('Failed to parse bulk JSON:', err);
-          continue;
-        }
-        if (Array.isArray(data.books)) {
-          books.push(...data.books);
-        } else {
-          console.warn('Unexpected bulk response shape:', data);
-        }
+        console.warn('Unexpected bulk response shape:', data);
       }
     } catch (err) {
       console.error('Bulk request failed:', err);
     }
+    
     // Rate limit: 1 request per second on Basic plan
-    await new Promise((resolve) => setTimeout(resolve, 1100));
+    if (i + batchSize < isbns.length) {
+      await new Promise((resolve) => setTimeout(resolve, 1100));
+    }
   }
+  
+  console.debug(`Successfully fetched ${books.length} books out of ${isbns.length} ISBNs`);
   return books;
 }
 

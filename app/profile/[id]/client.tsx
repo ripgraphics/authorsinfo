@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -35,6 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useAuth } from '@/hooks/useAuth'
 
 interface ClientProfilePageProps {
   user: any
@@ -46,6 +47,7 @@ interface ClientProfilePageProps {
 }
 
 export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: ClientProfilePageProps) {
+  const { user: authUser } = useAuth()
   const [activeTab, setActiveTab] = useState("timeline")
 
   // Mock data for the profile
@@ -230,6 +232,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={setActiveTab}
+        isEditable={authUser && authUser.role === 'admin'}
       />
       
       {/* Timeline Tab Content */}

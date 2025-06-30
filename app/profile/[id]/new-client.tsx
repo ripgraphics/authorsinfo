@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
 import { EntityHeader, TabConfig } from "@/components/entity-header"
 import { BookOpen, Users } from "lucide-react"
+import { useAuth } from '@/hooks/useAuth'
 
 interface ClientProfilePageProps {
   user: any
@@ -14,6 +15,7 @@ interface ClientProfilePageProps {
 }
 
 export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: ClientProfilePageProps) {
+  const { user: authUser } = useAuth()
   const [activeTab, setActiveTab] = useState("timeline")
 
   // Mock data for the profile
@@ -60,6 +62,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={setActiveTab}
+        isEditable={authUser && authUser.role === 'admin'}
       />
       
       {/* Tab Content */}

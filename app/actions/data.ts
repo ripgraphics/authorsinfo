@@ -372,8 +372,7 @@ export async function getRecentPublishers(limit = 10, offset = 0): Promise<Publi
       .select(`
         *,
         publisher_image:publisher_image_id(id, url, alt_text, img_type_id),
-        cover_image:cover_image_id(id, url, alt_text, img_type_id),
-        publisher_gallery:publisher_gallery_id(id, url, alt_text, img_type_id)
+        cover_image:cover_image_id(id, url, alt_text, img_type_id)
       `)
       .range(offset, offset + limit - 1)
 
@@ -382,7 +381,32 @@ export async function getRecentPublishers(limit = 10, offset = 0): Promise<Publi
       return []
     }
 
-    return data as Publisher[]
+    // Fetch publisher_gallery images separately for each publisher
+    const publishersWithGallery = await Promise.all(
+      data.map(async (publisher) => {
+        let publisher_gallery = null
+        
+        if (publisher.publisher_gallery_id) {
+          try {
+            const { data: imgData } = await supabaseAdmin
+              .from("images")
+              .select("id, url, alt_text, img_type_id")
+              .eq("id", publisher.publisher_gallery_id)
+              .maybeSingle()
+            publisher_gallery = imgData
+          } catch (imgError) {
+            console.log("Could not fetch gallery image:", imgError)
+          }
+        }
+
+        return {
+          ...publisher,
+          publisher_gallery
+        } as Publisher
+      })
+    )
+
+    return publishersWithGallery
   } catch (error) {
     console.error("Error fetching publishers:", error)
     return []

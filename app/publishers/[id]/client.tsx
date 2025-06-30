@@ -46,6 +46,7 @@ import { FollowersListTab } from "@/components/followers-list-tab"
 import { ExpandableSection } from "@/components/ui/expandable-section"
 import { ViewFullDetailsButton } from "@/components/ui/ViewFullDetailsButton"
 import { TimelineAboutSection } from "@/components/author/TimelineAboutSection"
+import { useAuth } from '@/hooks/useAuth'
 
 interface ClientPublisherPageProps {
   publisher: any
@@ -65,6 +66,7 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
   const [publisher, setPublisher] = useState(initialPublisher)
   const [refreshing, setRefreshing] = useState(false)
   const { toast } = useToast()
+  const { user } = useAuth()
 
   // Function to refresh publisher data
   const refreshPublisherData = async () => {
@@ -311,6 +313,7 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={setActiveTab}
+        isEditable={user && user.role === "admin"}
       />
       
       {/* Conditionally render content based on active tab */}

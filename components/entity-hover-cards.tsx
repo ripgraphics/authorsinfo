@@ -7,7 +7,7 @@ import { BookOpen, Users, Calendar } from "lucide-react"
 type EntityType = 'author' | 'publisher' | 'group' | 'event'
 
 type AuthorEntity = {
-  id: number
+  id: string
   name: string
   author_image?: {
     url: string
@@ -16,7 +16,7 @@ type AuthorEntity = {
 }
 
 type PublisherEntity = {
-  id: number
+  id: string
   name: string
   publisher_image?: {
     url: string
@@ -121,7 +121,7 @@ export function EntityHoverCard({ type, entity, children }: EntityHoverCardProps
 // Author Hover Card
 interface AuthorHoverCardProps {
   author: {
-    id: number
+    id: string
     name: string
     author_image?: {
       url: string
@@ -150,7 +150,7 @@ export function AuthorHoverCard({ author, bookCount, children }: AuthorHoverCard
 // Publisher Hover Card
 interface PublisherHoverCardProps {
   publisher: {
-    id: number
+    id: string
     name: string
     publisher_image?: {
       url: string

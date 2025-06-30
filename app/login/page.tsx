@@ -9,68 +9,125 @@ import { Label } from '@/components/ui/label'
 import { useToast } from '@/components/ui/use-toast'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, Eye, EyeOff, Calendar, User } from 'lucide-react'
+import type { Database } from '@/types/database'
+
+interface User {
+  id: string
+  email: string
+  name: string
+  created_at?: string
+  last_sign_in_at?: string
+  user_metadata?: any
+  app_metadata?: any
+  role?: string
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [users, setUsers] = useState<any[]>([])
+  const [users, setUsers] = useState<User[]>([])
   const [fetchError, setFetchError] = useState<string | null>(null)
   const router = useRouter()
   const { toast } = useToast()
-  const supabase = createClientComponentClient()
+  
+  // Use the correct Supabase client with Database type
+  const supabase = createClientComponentClient<Database>()
 
-  // Listen for auth state change to handle redirect after login
-  useEffect(() => {
-    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN") {
-        router.refresh();
-        router.push("/");
-      }
-    });
-    return () => {
-      listener?.subscription.unsubscribe();
-    };
-  }, [router, supabase]);
-
-  // Fetch all users from the Supabase Auth users API
   useEffect(() => {
     async function fetchUsers() {
       try {
         const res = await fetch('/api/auth-users')
         if (!res.ok) {
-          setFetchError('Failed to fetch users from Auth. Please check your API route and permissions.')
+          setFetchError('Failed to fetch users from Auth.')
           return
         }
         const data = await res.json()
         setUsers(data)
       } catch (error) {
-        console.error('Error in fetchUsers:', error)
         setFetchError('An unexpected error occurred while fetching users.')
       }
     }
     fetchUsers()
   }, [])
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword)
+  }
+
   const handleSignIn = async (e: React.FormEvent | null, emailArg?: string, passwordArg?: string) => {
     if (e) e.preventDefault();
     setIsLoading(true);
     const loginEmail = emailArg ?? email;
     const loginPassword = passwordArg ?? password;
+    
+    console.log("=== LOGIN ATTEMPT DEBUG ===");
+    console.log("Email:", loginEmail);
+    console.log("Password:", loginPassword);
+    console.log("Password length:", loginPassword.length);
+    console.log("Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
+    
     try {
+      // First test the Supabase connection
+      const testRes = await fetch('/api/test-supabase');
+      const testData = await testRes.json();
+      console.log("Supabase connection test:", testData);
+      
+      if (!testRes.ok) {
+        throw new Error(`Supabase connection failed: ${testData.details || testData.error}`);
+      }
+      
       console.log("Attempting sign in with:", { email: loginEmail, password: loginPassword });
       const { error, data } = await supabase.auth.signInWithPassword({
         email: loginEmail,
         password: loginPassword,
       });
       console.log("Supabase signInWithPassword result:", { error, data });
-      if (error) throw error;
+      
+      if (error) {
+        console.error("Supabase auth error:", error);
+        console.error("Error code:", error.status);
+        console.error("Error message:", error.message);
+        console.error("Error name:", error.name);
+        throw error;
+      }
+      
       toast({ title: "Success", description: "You have been signed in successfully" });
-      // No redirect here; handled by onAuthStateChange
+      
+      // Simple redirect after successful login
+      setTimeout(() => {
+        router.push("/");
+      }, 1000);
     } catch (error: any) {
       console.error("Sign in error:", error);
-      toast({ variant: "destructive", title: "Error", description: error?.message || JSON.stringify(error) || "Failed to sign in" });
+      console.error("Error type:", typeof error);
+      console.error("Error keys:", Object.keys(error || {}));
+      
+      let errorMessage = "Failed to sign in";
+      if (error?.message) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error?.error_description) {
+        errorMessage = error.error_description;
+      }
+      
+      // Handle specific error codes
+      if (error?.status === 400) {
+        errorMessage = "Invalid email or password. Please check your credentials.";
+      } else if (error?.status === 401) {
+        errorMessage = "Authentication failed. Please try again.";
+      } else if (error?.status === 422) {
+        errorMessage = "Invalid email format.";
+      }
+      
+      toast({ 
+        variant: "destructive", 
+        title: "Login Failed", 
+        description: errorMessage 
+      });
     } finally {
       setIsLoading(false);
     }
@@ -79,11 +136,16 @@ export default function LoginPage() {
   // Autofill and login as user
   const loginAsUser = (userEmail: string) => {
     setEmail(userEmail);
-    setPassword('password123');
+    setPassword('password123456');
     setTimeout(() => {
       console.log("loginAsUser triggered for:", userEmail);
-      handleSignIn(null, userEmail, 'password123');
+      handleSignIn(null, userEmail, 'password123456');
     }, 100);
+  };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'Never';
+    return new Date(dateString).toLocaleDateString();
   };
 
   return (
@@ -101,7 +163,29 @@ export default function LoginPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+              <div className="relative">
+                <Input 
+                  id="password" 
+                  type={showPassword ? "text" : "password"} 
+                  placeholder="Enter your password" 
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)} 
+                  required 
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={togglePasswordVisibility}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </Button>
+              </div>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
@@ -117,8 +201,12 @@ export default function LoginPage() {
       {/* User List for Testing */}
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Test Users</CardTitle>
-          <CardDescription>Click a user to log in as them (password: <b>password123</b>)</CardDescription>
+          <CardTitle>Database Users ({users.length})</CardTitle>
+          <CardDescription>
+            <strong>Test Password for all users: password123456</strong>
+            <br />
+            Click a user to log in as them
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {fetchError ? (
@@ -136,17 +224,64 @@ export default function LoginPage() {
               </AlertDescription>
             </Alert>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="space-y-4">
+              <div className="text-sm text-muted-foreground">
+                Found {users.length} users in the database
+              </div>
+              
+              {/* Test Login Button */}
+              <div className="p-4 border rounded-lg bg-muted/50">
+                <h3 className="font-medium mb-2">Quick Test Login</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Test login with the first user in the database:
+                </p>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-sm font-mono bg-green-100 px-2 py-1 rounded">
+                    {users[0] ? users[0].email : 'No user'}
+                  </span>
+                  <span className="text-sm">→</span>
+                  <span className="text-sm font-mono bg-green-100 px-2 py-1 rounded">
+                    password123456
+                  </span>
+                </div>
+                <Button 
+                  onClick={() => users[0] && handleSignIn(null, users[0].email, 'password123456')}
+                  disabled={isLoading || !users[0]}
+                  size="sm"
+                  variant="outline"
+                >
+                  {isLoading ? "Testing..." : "Test Login"}
+                </Button>
+              </div>
+              
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {users.map((user) => (
-                <div key={user.id} className="flex flex-col border rounded p-3 bg-muted">
-                  <span className="font-medium">{user.name || user.email.split('@')[0]}</span>
-                  <span className="text-xs text-muted-foreground">{user.email}</span>
-                  <span className="text-xs">Password: <b>password123</b></span>
-                  <Button size="sm" className="mt-2" onClick={() => loginAsUser(user.email)}>
-                    Login as this user
+                  <div key={user.id} className="flex flex-col border rounded-lg p-4 bg-muted/50 hover:bg-muted transition-colors">
+                    <div className="flex items-center gap-2 mb-2">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium text-sm">{user.name}</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground mb-1">{user.email}</span>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+                      <Calendar className="h-3 w-3" />
+                      <span>Created: {formatDate(user.created_at)}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                        Role: {user.role || 'user'}
+                      </span>
+                    </div>
+                    <div className="bg-green-100 dark:bg-green-900/20 rounded px-2 py-1 mb-3">
+                      <span className="text-xs font-mono text-green-800 dark:text-green-200">
+                        Password: password123456
+                      </span>
+                    </div>
+                    <Button size="sm" className="w-full" onClick={() => loginAsUser(user.email)}>
+                      Login as {user.name}
                   </Button>
                 </div>
               ))}
+              </div>
             </div>
           )}
         </CardContent>

@@ -60,13 +60,40 @@ export function MultiCombobox({
     }
   }, [onScrollEnd])
 
-  // Handle search input
-  const handleSearchChange = (value: string) => {
+  // Use a ref to store the timeout ID for proper cleanup
+  const searchTimeoutRef = React.useRef<NodeJS.Timeout>()
+
+  // Handle search input with proper debouncing
+  const handleSearchChange = React.useCallback((value: string) => {
     setSearchValue(value)
     if (onSearch) {
-      onSearch(value)
+      // Clear any existing timeout
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current)
+      }
+      
+      // Set a new timeout
+      searchTimeoutRef.current = setTimeout(() => {
+        onSearch(value)
+      }, 300) // 300ms debounce
     }
-  }
+  }, [onSearch])
+
+  // Clean up timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  // Reset search when popover closes
+  React.useEffect(() => {
+    if (!open) {
+      setSearchValue("")
+    }
+  }, [open])
 
   // Get selected item labels
   const selectedLabels = selected.map((value) => {
@@ -104,9 +131,15 @@ export function MultiCombobox({
         </PopoverTrigger>
         <PopoverContent className="w-full p-0" align="start">
           <Command ref={commandRef} className="w-full">
-            <CommandInput placeholder="Search..." value={searchValue} onValueChange={handleSearchChange} />
+            <CommandInput 
+              placeholder="Search..." 
+              value={searchValue} 
+              onValueChange={handleSearchChange}
+            />
             <CommandList className="max-h-60 overflow-auto">
-              <CommandEmpty>{loading ? "Loading..." : emptyMessage}</CommandEmpty>
+              <CommandEmpty>
+                {loading ? "Loading..." : emptyMessage}
+              </CommandEmpty>
               <CommandGroup>
                 {options.map((option) => (
                   <CommandItem
@@ -118,6 +151,10 @@ export function MultiCombobox({
                           ? selected.filter((item) => item !== option.value)
                           : [...selected, option.value],
                       )
+                      // Close the popover after selection if only one item is allowed
+                      if (selected.length === 0) {
+                        setOpen(false)
+                      }
                     }}
                   >
                     <Check
@@ -127,7 +164,9 @@ export function MultiCombobox({
                   </CommandItem>
                 ))}
                 {loading && (
-                  <div className="py-2 px-4 text-sm text-center text-muted-foreground">Loading more options...</div>
+                  <div className="py-2 px-4 text-sm text-center text-muted-foreground">
+                    Loading more options...
+                  </div>
                 )}
               </CommandGroup>
             </CommandList>

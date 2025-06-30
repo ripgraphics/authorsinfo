@@ -50,6 +50,7 @@ import { TimelineAboutSection } from "@/components/author/TimelineAboutSection"
 import { EntityHoverCard } from "@/components/entity-hover-cards"
 import { ContactInfo, ContactInfoInput } from '@/types/contact'
 import { getContactInfo, upsertContactInfo } from '@/utils/contactInfo'
+import { useAuth } from '@/hooks/useAuth'
 
 interface ClientAuthorPageProps {
   author: Author
@@ -136,6 +137,7 @@ export function ClientAuthorPage({
   photosCount = 0,
   albums = []
 }: ClientAuthorPageProps) {
+  const { user } = useAuth()
   const [activeTab, setActiveTab] = useState("timeline")
   const [author, setAuthor] = useState(initialAuthor)
   const [refreshing, setRefreshing] = useState(false)
@@ -371,19 +373,23 @@ export function ClientAuthorPage({
             alt="Cover"
             className="author-page__cover-image-content object-cover absolute inset-0 w-full h-full"
           />
-          <Button variant="outline" size="sm" className="author-page__cover-image-button absolute bottom-4 right-4 bg-white/80 hover:bg-white">
-            <Camera className="h-4 w-4 mr-2" />
-            Change Cover
-          </Button>
+          {user && user.role === 'admin' && (
+            <Button variant="outline" size="sm" className="author-page__cover-image-button absolute bottom-4 right-4 bg-white/80 hover:bg-white">
+              <Camera className="h-4 w-4 mr-2" />
+              Change Cover
+            </Button>
+          )}
         </div>
 
         <div className="author-page__header-content px-6 pb-6">
           <div className="author-page__profile-section flex flex-col md:flex-row md:items-end -mt-10 relative z-10">
             <div className="author-page__avatar-container relative">
               <Avatar src={authorImageUrl || "/placeholder.svg?height=200&width=200"} alt={author?.name || "Author"} name={author?.name} size="lg" id={author?.id} />
-              <Button variant="outline" size="icon" className="author-page__avatar-button absolute bottom-2 right-2 rounded-full h-8 w-8 bg-white/80 hover:bg-white">
-                <Camera className="h-4 w-4" />
-              </Button>
+              {user && user.role === 'admin' && (
+                <Button variant="outline" size="icon" className="author-page__avatar-button absolute bottom-2 right-2 rounded-full h-8 w-8 bg-white/80 hover:bg-white">
+                  <Camera className="h-4 w-4" />
+                </Button>
+              )}
             </div>
 
             <div className="author-page__profile-info mt-4 md:mt-0 md:ml-6 flex-1">
@@ -668,9 +674,11 @@ export function ClientAuthorPage({
                 <div className="about-navigation__header p-4 border-b flex justify-between items-center">
                   <h2 className="about-navigation__title text-lg font-medium">About</h2>
                   <div className="about-navigation__settings-wrapper relative">
-                    <Button variant="ghost" size="icon" className="about-navigation__settings-button h-8 w-8 rounded-full">
-                      <Settings className="about-navigation__settings-icon h-4 w-4" />
-                    </Button>
+                    {user && user.role === 'admin' && (
+                      <Button variant="ghost" size="icon" className="about-navigation__settings-button h-8 w-8 rounded-full">
+                        <Settings className="about-navigation__settings-icon h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
                 <nav className="about-navigation__nav p-2">
@@ -686,14 +694,16 @@ export function ClientAuthorPage({
                 <div className="overview-section__header flex flex-col space-y-1.5 p-6 border-b">
                   <div className="overview-section__title-row flex justify-between items-center">
                     <h3 className="overview-section__title text-xl font-semibold">Overview</h3>
-                    <Button 
-                      variant="ghost" 
-                      className="overview-section__edit-button h-8 gap-1 rounded-md px-3"
-                      onClick={openBioDialog}
-                    >
-                      <SquarePen className="overview-section__edit-icon h-4 w-4" />
-                      <span>Edit</span>
-                    </Button>
+                    {user && user.role === 'admin' && (
+                      <Button 
+                        variant="ghost" 
+                        className="overview-section__edit-button h-8 gap-1 rounded-md px-3"
+                        onClick={openBioDialog}
+                      >
+                        <SquarePen className="overview-section__edit-icon h-4 w-4" />
+                        <span>Edit</span>
+                      </Button>
+                    )}
                   </div>
                 </div>
                 <div className="overview-section__content p-6 space-y-4">
@@ -747,14 +757,16 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                 <div className="contact-section__header flex flex-col space-y-1.5 p-6 border-b">
                   <div className="contact-section__title-row flex justify-between items-center">
                     <h3 className="contact-section__title text-xl font-semibold">Contact Information</h3>
-                    <Button 
-                      variant="ghost" 
-                      className="contact-section__edit-button h-8 gap-1 rounded-md px-3"
-                      onClick={() => setContactDialogOpen(true)}
-                    >
-                      <SquarePen className="contact-section__edit-icon h-4 w-4" />
-                      <span>Edit</span>
-                    </Button>
+                    {user && user.role === 'admin' && (
+                      <Button 
+                        variant="ghost" 
+                        className="contact-section__edit-button h-8 gap-1 rounded-md px-3"
+                        onClick={() => setContactDialogOpen(true)}
+                      >
+                        <SquarePen className="contact-section__edit-icon h-4 w-4" />
+                        <span>Edit</span>
+                      </Button>
+                    )}
                   </div>
                 </div>
                 <div className="contact-section__content p-6">

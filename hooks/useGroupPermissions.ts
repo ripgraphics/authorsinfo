@@ -29,7 +29,7 @@ interface GroupMember {
   joined_at: string
 }
 
-export function useGroupPermissions(groupId: string, userId?: string) {
+export function useGroupPermissions(groupId: string | null, userId?: string) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [role, setRole] = useState<GroupRole | null>(null)
@@ -40,6 +40,17 @@ export function useGroupPermissions(groupId: string, userId?: string) {
 
   useEffect(() => {
     async function loadPermissions() {
+      // If no group ID, return early with default values
+      if (!groupId) {
+        setLoading(false)
+        setIsMember(false)
+        setMembership(null)
+        setRole(null)
+        setPermissions([])
+        setIsCreator(false)
+        return
+      }
+
       if (!userId) {
         console.log('Waiting for userId to be available...')
         setLoading(true)

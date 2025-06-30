@@ -50,7 +50,7 @@ export function BookCard({
         <div className="p-3 text-center">
           <h3 className="font-medium text-sm line-clamp-1">{title}</h3>
           {author && (
-            <p className="text-xs text-muted-foreground mt-1">
+            <div className="text-xs text-muted-foreground mt-1">
               by{" "}
               <EntityHoverCard
                 type="author"
@@ -63,7 +63,7 @@ export function BookCard({
               >
                 <span className="hover:underline cursor-pointer">{author.name}</span>
               </EntityHoverCard>
-            </p>
+            </div>
           )}
         </div>
       </Card>

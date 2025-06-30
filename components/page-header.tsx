@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -16,6 +16,7 @@ import { Avatar } from "@/components/ui/avatar"
 import { Navigation } from "@/components/navigation"
 import { SearchModal } from "@/components/search-modal"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { useAuth } from "@/hooks/useAuth"
 
 interface PageHeaderProps {
   title?: string
@@ -25,18 +26,7 @@ interface PageHeaderProps {
 export function PageHeader({ title, description }: PageHeaderProps) {
   const router = useRouter()
   const [searchOpen, setSearchOpen] = useState(false)
-  const [user, setUser] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const supabase = createClientComponentClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
-      setLoading(false)
-    }
-    fetchUser()
-  }, [])
+  const { user, loading } = useAuth()
 
   return (
     <header className="page-header sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">

@@ -31,7 +31,7 @@ export const ExpandableSection: React.FC<ExpandableSectionProps> = ({
   children,
   viewMoreText = "View More",
   viewLessText = "View Less",
-  fadeGradientClassName = "overview-section__fade-gradient absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent",
+  fadeGradientClassName = "overview-section__fade-gradient absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent",
   contentClassName = "overview-section__about-text text-base",
   hideToggle = false,
   clipLines = 10,
@@ -52,23 +52,23 @@ export const ExpandableSection: React.FC<ExpandableSectionProps> = ({
         </div>
       )}
       <div
-        className={
-          contentClassName +
-          (sidePanelStyle ? " pt-0" : "") +
-          (expanded ? "" : ` line-clamp-${clipLines}`)
-        }
+        className={[
+          contentClassName,
+          sidePanelStyle ? "pt-0" : "",
+          !expanded ? `line-clamp-${clipLines}` : ""
+        ].filter(Boolean).join(" ")}
         aria-expanded={expanded}
       >
         <div className={expanded ? "whitespace-pre-wrap" : ""}>
           {children}
         </div>
         {!expanded && (
-          <div className={fadeGradientClassName} />
+          <div className={fadeGradientClassName} style={{ zIndex: 2, pointerEvents: "none" }} />
         )}
       </div>
       {/* Toggle button below content, unless headerButton is present or hideToggle is true */}
       {!headerButton && !hideToggle && (
-        <div className="flex justify-end mt-2">
+        <div className="flex justify-end mt-2 relative" style={{ zIndex: 10 }}>
           <button
             type="button"
             onClick={onToggle}

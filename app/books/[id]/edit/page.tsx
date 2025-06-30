@@ -50,6 +50,7 @@ export default function EditBookPage({ params }: EditBookPageProps) {
   const [formatOptions, setFormatOptions] = useState<{ value: string; label: string }[]>([])
   const [selectedBindings, setSelectedBindings] = useState<string[]>([])
   const [selectedFormats, setSelectedFormats] = useState<string[]>([])
+  const [featured, setFeatured] = useState(false)
   const { toast } = useToast()
 
   // Debug toast function
@@ -70,6 +71,7 @@ export default function EditBookPage({ params }: EditBookPageProps) {
     
     try {
       setLoadingMoreAuthors(true)
+      console.log("Loading authors with search term:", searchTerm, "startIndex:", startIndex)
 
       let query = supabaseClient
         .from("authors")
@@ -87,6 +89,8 @@ export default function EditBookPage({ params }: EditBookPageProps) {
         console.error("Error loading authors:", error)
         return
       }
+
+      console.log("Authors loaded:", data?.length, "results")
 
       if (isMounted.current) {
         if (startIndex === 0) {
@@ -117,6 +121,7 @@ export default function EditBookPage({ params }: EditBookPageProps) {
     
     try {
       setLoadingMorePublishers(true)
+      console.log("Loading publishers with search term:", searchTerm, "startIndex:", startIndex)
 
       let query = supabaseClient
         .from("publishers")
@@ -134,6 +139,8 @@ export default function EditBookPage({ params }: EditBookPageProps) {
         console.error("Error loading publishers:", error)
         return
       }
+
+      console.log("Publishers loaded:", data?.length, "results")
 
       if (isMounted.current) {
         if (startIndex === 0) {
@@ -161,6 +168,7 @@ export default function EditBookPage({ params }: EditBookPageProps) {
   // Handle author search
   const handleAuthorSearch = useCallback(
     (search: string) => {
+      console.log("Author search triggered with:", search)
       setAuthorSearchTerm(search)
       loadAuthors(search, 0)
     },
@@ -170,6 +178,7 @@ export default function EditBookPage({ params }: EditBookPageProps) {
   // Handle publisher search
   const handlePublisherSearch = useCallback(
     (search: string) => {
+      console.log("Publisher search triggered with:", search)
       setPublisherSearchTerm(search)
       loadPublishers(search, 0)
     },
@@ -315,7 +324,16 @@ export default function EditBookPage({ params }: EditBookPageProps) {
         weight: formData.get("weight") as string,
         cover_image_url: newCoverImageUrl,
         cover_image_id: newCoverImageId,
+        featured: featured,
       } as Partial<Book>
+
+      // Debug logging for author and publisher IDs
+      console.log("Selected author IDs:", selectedAuthorIds);
+      console.log("Selected publisher IDs:", selectedPublisherIds);
+      console.log("Author ID being set:", updateData.author_id);
+      console.log("Publisher ID being set:", updateData.publisher_id);
+      console.log("Featured state:", featured);
+      console.log("Featured in update data:", updateData.featured);
 
       // Handle numeric fields properly to avoid type errors
       const pages = parseNumericField(formData.get("pages"));
@@ -366,6 +384,12 @@ export default function EditBookPage({ params }: EditBookPageProps) {
           // Return the number if valid, otherwise null
           return isNaN(num) ? null : num;
         };
+
+        // Handle UUID fields - keep them as strings, only convert empty strings to null
+        const handleUuidField = (value: any) => {
+          if (value === "" || value === null || value === undefined) return null;
+          return value; // Keep as string for UUIDs
+        };
         
         // Make sure numeric fields are numbers, not strings
         if (newData.pages !== undefined) {
@@ -376,29 +400,30 @@ export default function EditBookPage({ params }: EditBookPageProps) {
           newData.list_price = convertNumeric(newData.list_price);
         }
         
-        // Make sure IDs are numbers if they should be
+        if (newData.weight !== undefined) {
+          newData.weight = convertNumeric(newData.weight);
+        }
+        
+        // Handle UUID fields properly - keep as strings
         if (newData.author_id !== undefined) {
-          newData.author_id = convertNumeric(newData.author_id);
+          newData.author_id = handleUuidField(newData.author_id);
         }
         
         if (newData.publisher_id !== undefined) {
-          newData.publisher_id = convertNumeric(newData.publisher_id);
+          newData.publisher_id = handleUuidField(newData.publisher_id);
         }
         
         if (newData.cover_image_id !== undefined) {
-          newData.cover_image_id = convertNumeric(newData.cover_image_id);
+          newData.cover_image_id = handleUuidField(newData.cover_image_id);
         }
         
+        // Handle binding_type_id and format_type_id - these might be UUIDs or numbers
         if (newData.binding_type_id !== undefined) {
-          newData.binding_type_id = convertNumeric(newData.binding_type_id);
+          newData.binding_type_id = handleUuidField(newData.binding_type_id);
         }
         
         if (newData.format_type_id !== undefined) {
-          newData.format_type_id = convertNumeric(newData.format_type_id);
-        }
-        
-        if (newData.weight !== undefined) {
-          newData.weight = convertNumeric(newData.weight);
+          newData.format_type_id = handleUuidField(newData.format_type_id);
         }
         
         // Ensure array fields are arrays
@@ -455,27 +480,44 @@ export default function EditBookPage({ params }: EditBookPageProps) {
 
         console.log("Found book:", existingBook);
 
-        // Perform the update with select() to get the full response
-        const { data: updatedBook, error: updateError } = await supabaseClient
-          .from("books")
-          .update(updateData)
-          .eq("id", bookId)
-          .select()
-          .single();
+        // Use API endpoint instead of client-side Supabase to avoid schema cache issues
+        const response = await fetch(`/api/books/${bookId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updateData),
+        });
 
-        console.log("Update response:", { data: updatedBook, error: updateError });
+        const result = await response.json();
 
-      if (updateError) {
-        console.error("Error updating book:", updateError)
-          setError(`Error updating book: ${updateError.message || JSON.stringify(updateError) || 'Unknown error'}`)
+        if (!result.success) {
+          console.error("Error updating book:", result.error);
+          setError(`Error updating book: ${result.error || 'Unknown error'}`);
           toast({
             title: "Update Failed",
-            description: `Failed to update book: ${updateError.message || "Unknown error"}`,
+            description: `Failed to update book: ${result.error || "Unknown error"}`,
             variant: "destructive",
           });
-        setSaving(false)
-        return
+          setSaving(false);
+          return;
         }
+
+        console.log("Update successful:", result.data);
+
+        setSuccessMessage("Book updated successfully!")
+        console.log("Showing success toast");
+        toast({
+          title: "Success",
+          description: "Book updated successfully!",
+          variant: "default",
+        });
+        console.log("Success toast called");
+
+        // Redirect back to the book page after a short delay
+        setTimeout(() => {
+          router.push(`/books/${bookId}`)
+        }, 2000) // 2 second delay to show success message
       } catch (err) {
         console.error("Exception during book update:", err)
         const errorMessage = err instanceof Error ? err.message : String(err);
@@ -490,20 +532,6 @@ export default function EditBookPage({ params }: EditBookPageProps) {
       } finally {
         setSaving(false)
       }
-
-      setSuccessMessage("Book updated successfully!")
-      console.log("Showing success toast");
-      toast({
-        title: "Success",
-        description: "Book updated successfully!",
-        variant: "default",
-      });
-      console.log("Success toast called");
-
-      // Redirect back to the book page after a short delay
-      setTimeout(() => {
-        router.push(`/books/${bookId}`)
-      }, 2000) // 2 second delay to show success message
     } catch (error: any) {
       console.error("Error in handleSubmit:", error)
       setError(`An unexpected error occurred while saving: ${error.message}`)
@@ -513,36 +541,22 @@ export default function EditBookPage({ params }: EditBookPageProps) {
   // Fetch book data
   useEffect(() => {
     async function fetchBookData() {
-      if (!supabaseClient) {
-        setError("Supabase client is not available")
-        setLoading(false)
-        return
-      }
-      
       try {
         setError(null)
 
-        // Fetch book
-        const { data: bookData, error: bookError } = await supabaseClient
-          .from("books")
-          .select(
-            `
-              *,
-              cover_image:images(id, url, alt_text, img_type_id),
-              binding_type:binding_types(id, name),
-              format_type:format_types(id, name)
-            `
-          )
-          .eq("id", bookId)
-          .single()
+        // Use API endpoint instead of client-side Supabase to avoid schema cache issues
+        const response = await fetch(`/api/books/${bookId}`);
+        const result = await response.json();
 
-        if (bookError) {
-          console.error("Error fetching book:", bookError)
-          setError(`Error fetching book: ${bookError.message}`)
-          return
+        if (!result.success) {
+          console.error("Error fetching book:", result.error);
+          setError(`Error fetching book: ${result.error}`);
+          return;
         }
 
-        if (!isMounted.current) return
+        if (!isMounted.current) return;
+
+        const bookData = result.data;
 
         // Process the book data
         const processedBook = {
@@ -612,6 +626,11 @@ export default function EditBookPage({ params }: EditBookPageProps) {
         if (bookData.format_type_id) {
           setSelectedFormats([bookData.format_type_id.toString()])
         }
+
+        // Set initial featured state
+        setFeatured(bookData.featured === true || bookData.featured === "true")
+        console.log("Initial featured value from book data:", bookData.featured);
+        console.log("Setting featured state to:", bookData.featured === true || bookData.featured === "true");
       } catch (error) {
         console.error("Error in fetchBookData:", error)
         if (isMounted.current) {
@@ -956,7 +975,8 @@ export default function EditBookPage({ params }: EditBookPageProps) {
                         <Checkbox
                           id="featured"
                           name="featured"
-                          defaultChecked={(book as any).featured === "true" || (book as any).featured === true}
+                          checked={featured}
+                          onCheckedChange={(checked) => setFeatured(checked as boolean)}
                         />
                         <Label htmlFor="featured">Featured Book</Label>
                       </div>

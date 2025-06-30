@@ -4,6 +4,7 @@ import { Camera, BookOpen, Users, MapPin, Globe, User } from "lucide-react"
 import Link from "next/link"
 import { Database } from "@/types/database"
 import { EntityHoverCard } from "@/components/entity-hover-cards"
+import { formatDate } from "@/utils/dateUtils"
 
 type Book = Database['public']['Tables']['books']['Row']
 type Author = Database['public']['Tables']['authors']['Row']
@@ -142,7 +143,7 @@ export function BookHeader({ book, mainAuthor, bookCount = 0 }: BookHeaderProps)
               {book.publication_date && (
                 <div className="book-header-publication-date flex items-center text-muted-foreground">
                   <MapPin className="h-4 w-4 mr-1" />
-                  <span>Published {new Date(book.publication_date).toLocaleDateString()}</span>
+                  <span>Published {formatDate(book.publication_date)}</span>
                 </div>
               )}
               {book.language && (

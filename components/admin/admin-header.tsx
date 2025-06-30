@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Bell, Menu, Search, Settings, Sun, Moon, User as UserIcon, LogOut, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,22 +16,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar } from "@/components/ui/avatar"
+import { useAuth } from "@/hooks/useAuth"
 
 export function AdminHeader() {
   const [searchOpen, setSearchOpen] = useState(false)
   const { theme, setTheme } = useTheme()
-  const [user, setUser] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const supabase = createClientComponentClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
-      setLoading(false)
-    }
-    fetchUser()
-  }, [])
+  const { user, loading } = useAuth()
 
   return (
     <>

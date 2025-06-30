@@ -1,0 +1,4 @@
+npm run schema:download
+
+id,user_id,bio,created_at,updated_at,role
+fa00c53d-626b-4cdc-9a71-bcd3064e449a,ae702730-066d-402e-9a84-9f8bb75ddc7e,I am a web developer,2025-03-31 06:37:05+00,2025-03-31 06:37:13+00,admin

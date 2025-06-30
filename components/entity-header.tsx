@@ -4,7 +4,7 @@ import Image from "next/image"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Camera, BookOpen, Users, MapPin, Globe, User, MoreHorizontal, MessageSquare, UserPlus, Settings } from "lucide-react"
+import { Camera, BookOpen, Users, MapPin, Globe, User, MoreHorizontal, MessageSquare, UserPlus, Settings, Crop } from "lucide-react"
 import Link from "next/link"
 import { Avatar } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
@@ -22,6 +22,13 @@ import { GroupActions } from '@/components/group/GroupActions'
 import { useGroupPermissions } from '@/hooks/useGroupPermissions'
 import { useAuth } from '@/hooks/useAuth'
 import { EntityImageUpload } from '@/components/entity/EntityImageUpload'
+import { ImageCropper } from '@/components/ui/image-cropper'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 export type EntityType = 'author' | 'publisher' | 'book' | 'group' | 'user' | 'event' | 'photo'
 
@@ -67,7 +74,7 @@ export interface EntityHeaderProps {
     created_at?: string
   }
   author?: {
-    id: number
+    id: string
     name: string
     author_image?: {
       url: string
@@ -75,7 +82,7 @@ export interface EntityHeaderProps {
   }
   authorBookCount?: number
   publisher?: {
-    id: number
+    id: string
     name: string
     publisher_image?: {
       url: string
@@ -136,10 +143,12 @@ export function EntityHeader({
   isMember = false,
 }: EntityHeaderProps) {
   const { user } = useAuth()
-  const { isMember: isGroupMember, isAdmin } = useGroupPermissions(group?.id || '', user?.id)
+  const groupPermissions = useGroupPermissions(group?.id || null, user?.id)
+  const { isMember: isGroupMember, isAdmin } = groupPermissions
   const [groupMemberData, setGroupMemberData] = useState<any>(null);
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false)
   const [isCoverModalOpen, setIsCoverModalOpen] = useState(false)
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false)
   const [coverImage, setCoverImage] = useState<string | undefined>(coverImageUrl)
   const [avatarImage, setAvatarImage] = useState<string | undefined>(profileImageUrl)
 
@@ -164,9 +173,19 @@ export function EntityHeader({
     fetchGroupMemberData();
   }, [creator, group?.id]);
 
+  const handleCropCover = (croppedImageBlob: Blob) => {
+    const croppedImageUrl = URL.createObjectURL(croppedImageBlob)
+    setCoverImage(croppedImageUrl)
+    setIsCropModalOpen(false)
+  }
+
+  const handleCropCancel = () => {
+    setIsCropModalOpen(false)
+  }
+
   const renderEntityName = () => {
     const nameElement = (
-      <h1 className="text-base sm:text-[1.1rem] font-bold truncate">{name}</h1>
+      <h1 className="entity-header__title text-base sm:text-[1.1rem] font-bold truncate">{name}</h1>
     )
 
     switch (entityType) {
@@ -181,7 +200,7 @@ export function EntityHeader({
               bookCount: authorBookCount
             }}
           >
-            <span className="text-muted-foreground">{author.name}</span>
+            <span className="entity-header__author-name text-muted-foreground">{author.name}</span>
           </EntityHoverCard>
         ) : nameElement
       case 'publisher':
@@ -196,7 +215,7 @@ export function EntityHeader({
               bookCount: publisherBookCount
             }}
           >
-            <span className="text-muted-foreground">{publisher.name}</span>
+            <span className="entity-header__publisher-name text-muted-foreground">{publisher.name}</span>
           </EntityHoverCard>
         ) : nameElement
       case 'group':
@@ -212,7 +231,7 @@ export function EntityHeader({
               event_count: eventCreator.event_count
             }}
           >
-            <span className="text-muted-foreground">{eventCreator.name}</span>
+            <span className="entity-header__event-creator-name text-muted-foreground">{eventCreator.name}</span>
           </EntityHoverCard>
         ) : nameElement
       default:
@@ -235,7 +254,7 @@ export function EntityHeader({
           joined_at: groupMemberData?.joined_at || creatorJoinedAt
         }}
       >
-        <span className="cursor-pointer">{creatorName}</span>
+        <span className="entity-header__creator-link cursor-pointer">{creatorName}</span>
       </EntityHoverCard>
     );
   };
@@ -243,7 +262,7 @@ export function EntityHeader({
   const renderActions = () => {
     if (entityType === 'group' && group) {
       return (
-        <div className="flex items-center gap-2">
+        <div className="entity-header__group-actions flex items-center gap-2">
           <GroupActions
             groupId={group.id}
             groupName={group.name}
@@ -263,7 +282,7 @@ export function EntityHeader({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
-                  <Link href={`/groups/${group.id}/edit`} className="flex items-center">
+                  <Link href={`/groups/${group.id}/edit`} className="entity-header__edit-group-link flex items-center">
                     <Settings className="h-4 w-4 mr-2" />
                     Edit Group
                   </Link>
@@ -278,19 +297,19 @@ export function EntityHeader({
     return (
       <>
         {isMessageable && onMessage && (
-          <Button className="flex items-center" onClick={onMessage}>
+          <Button className="entity-header__message-button flex items-center" onClick={onMessage}>
             <MessageSquare className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Message</span>
+            <span className="entity-header__message-text hidden sm:inline">Message</span>
           </Button>
         )}
         {onFollow && (
           <Button 
             variant={isFollowing ? "outline" : "default"} 
-            className="flex items-center"
+            className="entity-header__follow-button flex items-center"
             onClick={onFollow}
           >
             <UserPlus className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">
+            <span className="entity-header__follow-text hidden sm:inline">
               {entityType === 'book' 
                 ? (isFollowing ? 'Remove from Shelf' : 'Add to Shelf')
                 : (isFollowing ? 'Unfollow' : 'Follow')
@@ -311,27 +330,37 @@ export function EntityHeader({
     if (!coverImage && !isEditable) return null
 
     return (
-      <div className="relative w-full aspect-[3/1] bg-muted">
+      <div className="entity-header__cover-container relative w-full aspect-[1344/500] bg-muted">
         {coverImage && (
           <Image
             src={coverImage}
             alt={`${name} cover`}
             fill
-            className="object-cover"
+            className="entity-header__cover-image object-cover"
             priority
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            quality={95}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
           />
         )}
         {isEditable && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="absolute bottom-4 right-4 bg-white/80 hover:bg-white z-20"
-            onClick={() => setIsCoverModalOpen(true)}
-          >
-            <Camera className="h-4 w-4 mr-2" />
-            Change Cover
-          </Button>
+          <div className="absolute bottom-4 right-4 flex gap-2">
+            {coverImage && (
+              <button
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input hover:text-accent-foreground h-9 rounded-md px-3 entity-header__crop-cover-button bg-white/80 hover:bg-white"
+                onClick={() => setIsCropModalOpen(true)}
+              >
+                <Crop className="h-4 w-4 mr-2" />
+                Crop
+              </button>
+            )}
+            <button
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input hover:text-accent-foreground h-9 rounded-md px-3 entity-header__cover-image-button bg-white/80 hover:bg-white"
+              onClick={() => setIsCoverModalOpen(true)}
+            >
+              <Camera className="h-4 w-4 mr-2" />
+              Change Cover
+            </button>
+          </div>
         )}
       </div>
     )
@@ -339,31 +368,35 @@ export function EntityHeader({
 
   const renderAvatar = () => {
     return (
-      <div className="relative">
-        <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-background bg-muted">
+      <div className="entity-header__avatar-container relative">
+        <div className="avatar-container relative w-32 h-32 overflow-hidden rounded-full border-2 border-white shadow-md">
           {avatarImage ? (
             <Image
               src={avatarImage}
               alt={`${name} avatar`}
-              fill
-              className="object-cover"
+              width={128}
+              height={128}
+              className="object-cover rounded-full"
               priority
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-muted">
-              <User className="w-12 h-12 text-muted-foreground" />
-            </div>
+            <Image
+              src="/placeholder.svg?height=200&width=200"
+              alt={`${name} avatar`}
+              width={128}
+              height={128}
+              className="object-cover rounded-full"
+              priority
+            />
           )}
         </div>
         {isEditable && (
-          <Button
-            variant="outline"
-            size="icon"
-            className="absolute -bottom-2 -right-2 rounded-full h-8 w-8 bg-white/80 hover:bg-white shadow-sm"
+          <button
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input hover:text-accent-foreground entity-header__avatar-button absolute bottom-2 right-2 rounded-full h-8 w-8 bg-white/80 hover:bg-white"
             onClick={() => setIsAvatarModalOpen(true)}
           >
             <Camera className="h-4 w-4" />
-          </Button>
+          </button>
         )}
       </div>
     )
@@ -375,26 +408,26 @@ export function EntityHeader({
       {renderCoverImage()}
 
       {/* Header Content */}
-      <div className="entity-header__content px-3 sm:px-6 pb-6">
-        <div className="entity-header__profile-section flex flex-col md:flex-row md:items-end -mt-10 relative z-10">
-          {/* Profile Image */}
-          <div className="entity-header__avatar-container relative">
+      <div className="entity-header__content px-6 pb-6">
+        <div className="entity-header__profile-section flex flex-col md:flex-row md:items-end relative z-10">
+          {/* Profile Image - Only this should go outside the container */}
+          <div className="entity-header__avatar-container relative" style={{ transform: 'translateY(-40px)' }}>
             {renderAvatar()}
           </div>
 
-          {/* Entity Info */}
-          <div className="entity-header__info mt-4 md:mt-0 md:ml-6 flex-1 min-w-0">
-            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-              <div className="max-w-full md:max-w-[calc(100%-240px)] min-w-0">
+          {/* Entity Info - This should stay within the container */}
+          <div className="entity-header__info mt-6 md:ml-6 flex-1">
+            <div className="entity-header__info-layout flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+              <div className="entity-header__info-content max-w-full md:max-w-[calc(100%-240px)] min-w-0">
                 {renderEntityName()}
                 {entityType === 'group' && creatorName && (
-                  <div className="text-muted-foreground truncate text-sm">
+                  <div className="entity-header__creator-info text-muted-foreground truncate text-sm">
                     Created by{" "}
                     {renderCreatorInfo()}
                   </div>
                 )}
                 {username && (
-                  <div className="text-muted-foreground truncate text-sm">
+                  <div className="entity-header__username text-muted-foreground truncate text-sm">
                     {typeof username === 'string' 
                       ? (username.startsWith('@') || username.startsWith('by ') ? username : `@${username}`)
                       : username
@@ -402,53 +435,55 @@ export function EntityHeader({
                   </div>
                 )}
                 {description && (
-                  <p className="text-muted-foreground mt-1 line-clamp-2">{description}</p>
+                  <p className="entity-header__description text-muted-foreground mt-1 line-clamp-2">{description}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Stats and Info */}
+            <div className="entity-header__stats-container flex flex-wrap justify-between items-baseline gap-x-6 gap-y-2 mt-4">
+              <div className="entity-header__stats-group flex flex-wrap gap-x-6 gap-y-2">
+                {stats.map((stat, index) => (
+                  <div key={index} className="entity-header__stat-item flex items-center text-muted-foreground">
+                    {stat.href ? (
+                      <Link href={stat.href} className="entity-header__stat-link flex items-center hover:text-primary">
+                        {stat.icon}
+                        <span>{stat.text}</span>
+                      </Link>
+                    ) : (
+                      <>
+                        {stat.icon}
+                        <span>{stat.text}</span>
+                      </>
+                    )}
+                  </div>
+                ))}
+                
+                {location && (
+                  <div className="entity-header__location-item flex items-center text-muted-foreground">
+                    <MapPin className="h-4 w-4 mr-1" />
+                    <span>{location}</span>
+                  </div>
+                )}
+                
+                {website && (
+                  <div className="entity-header__website-item flex items-center text-muted-foreground">
+                    <a
+                      href={website.startsWith('http') ? website : `https://${website}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="entity-header__website-link flex items-center hover:text-primary hover:underline"
+                    >
+                      <Globe className="h-4 w-4 mr-1" />
+                      <span>Website</span>
+                    </a>
+                  </div>
                 )}
               </div>
 
               <div className="entity-header__actions flex flex-wrap gap-2 mt-2 md:mt-0 shrink-0 md:flex-nowrap">
                 {renderActions()}
               </div>
-            </div>
-
-            {/* Stats and Info */}
-            <div className="flex flex-wrap gap-x-6 gap-y-2 mt-4">
-              {stats.map((stat, index) => (
-                <div key={index} className="flex items-center text-muted-foreground">
-                  {stat.href ? (
-                    <Link href={stat.href} className="flex items-center hover:text-primary">
-                      {stat.icon}
-                      <span>{stat.text}</span>
-                    </Link>
-                  ) : (
-                    <>
-                      {stat.icon}
-                      <span>{stat.text}</span>
-                    </>
-                  )}
-                </div>
-              ))}
-              
-              {location && (
-                <div className="flex items-center text-muted-foreground">
-                  <MapPin className="h-4 w-4 mr-1" />
-                  <span>{location}</span>
-                </div>
-              )}
-              
-              {website && (
-                <div className="flex items-center text-muted-foreground">
-                  <a
-                    href={website.startsWith('http') ? website : `https://${website}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center hover:text-primary hover:underline"
-                  >
-                    <Globe className="h-4 w-4 mr-1" />
-                    <span>Website</span>
-                  </a>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -500,6 +535,23 @@ export function EntityHeader({
             onOpenChange={setIsAvatarModalOpen}
           />
         </>
+      )}
+
+      {/* Crop Cover Image Modal */}
+      {isEditable && coverImage && (
+        <Dialog open={isCropModalOpen} onOpenChange={setIsCropModalOpen}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>Crop Cover Image</DialogTitle>
+            </DialogHeader>
+            <ImageCropper
+              imageUrl={coverImage}
+              aspectRatio={1344 / 500}
+              onCropComplete={handleCropCover}
+              onCancel={handleCropCancel}
+            />
+          </DialogContent>
+        </Dialog>
       )}
 
       {children}

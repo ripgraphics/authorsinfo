@@ -15,6 +15,7 @@ import { PublisherHoverCard } from "@/components/publisher-hover-card"
 import { EntityHeader, TabConfig } from "@/components/entity-header"
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import type { Book as BookType, Author, Review, BindingType, FormatType } from '@/types/book'
+import { useAuth } from '@/hooks/useAuth'
 import {
   BookOpen,
   Calendar,
@@ -40,7 +41,9 @@ import {
   ImageIcon,
   Info,
   Book,
-  MapPin
+  MapPin,
+  Camera,
+  UserPlus
 } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { FollowersList } from "@/components/followers-list"
@@ -49,24 +52,8 @@ import { ExpandableSection } from "@/components/ui/expandable-section"
 import { ViewFullDetailsButton } from "@/components/ui/ViewFullDetailsButton"
 import { TimelineAboutSection } from "@/components/author/TimelineAboutSection"
 import { EntityHoverCard } from "@/components/entity-hover-cards"
-import { SidebarSection } from "@/components/ui/sidebar-section"
-
-// Helper function to format date as MM-DD-YYYY
-function formatDate(dateString?: string): string {
-  if (!dateString) return ""
-
-  try {
-    const date = new Date(dateString)
-    const month = (date.getMonth() + 1).toString().padStart(2, "0")
-    const day = date.getDate().toString().padStart(2, "0")
-    const year = date.getFullYear()
-
-    return `${month}-${day}-${year}`
-  } catch (error) {
-    console.error("Error formatting date:", error)
-    return dateString // Return original string if parsing fails
-  }
-}
+import { ContentSection } from "@/components/ui/content-section"
+import { formatDate } from "@/utils/dateUtils"
 
 interface Follower {
   id: string
@@ -104,11 +91,14 @@ export function ClientBookPage({
   followersCount = 0,
   params
 }: ClientBookPageProps) {
+  const { user } = useAuth()
+  
   // Default reading status for display purposes when no user is logged in
   const defaultStatus = "want_to_read"
   
   // Update tab state
   const [activeTab, setActiveTab] = useState("timeline")
+  const [showFullAbout, setShowFullAbout] = useState(false)
   
   // Mock photos for the Photos tab
   const mockPhotosTabData = [
@@ -228,62 +218,74 @@ export function ClientBookPage({
   const publishDate = book.publish_date || book.publication_date || undefined
   const language = book.language || undefined
 
-  const [showFullAbout, setShowFullAbout] = useState(false)
-
   return (
     <div className="book-page">
-      <div className="py-6">
         <EntityHeader
           entityType="book"
           name={book.title}
-          username={mainAuthor?.name ? (
+        username={authors && authors.length > 0 ? (
             <EntityHoverCard
               type="author"
               entity={{
-                id: Number(mainAuthor.id),
-                name: mainAuthor.name,
-                author_image: mainAuthor.author_image,
-                bookCount: authorBookCounts[mainAuthor.id] || 0
+              id: authors[0].id,
+              name: authors[0].name,
+              author_image: authors[0].author_image,
+              bookCount: authorBookCounts[authors[0].id] || 0
               }}
             >
-              <span className="text-muted-foreground">{mainAuthor.name}</span>
+            <span className="text-muted-foreground">{authors[0].name}</span>
             </EntityHoverCard>
           ) : undefined}
           coverImageUrl={book.cover_image_url || book.original_image_url || "/placeholder.svg?height=400&width=1200"}
-          profileImageUrl={mainAuthor?.photo_url || mainAuthor?.author_image?.url || "/placeholder.svg?height=200&width=200"}
-          stats={bookStats}
-          location={language}
-          website={bookLink}
+        profileImageUrl={book.cover_image_url || book.original_image_url || "/placeholder.svg?height=200&width=200"}
+        stats={[
+          { 
+            icon: <BookOpen className="h-4 w-4 mr-1" />, 
+            text: `${book.pages || book.page_count || 0} pages` 
+          },
+          { 
+            icon: <Users className="h-4 w-4 mr-1" />, 
+            text: `${followersCount} followers` 
+          }
+        ]}
+        location={book.language}
+        website={book.website}
           tabs={tabs}
           activeTab={activeTab}
           onTabChange={setActiveTab}
-          author={mainAuthor ? {
-            id: Number(mainAuthor.id),
-            name: mainAuthor.name,
-            author_image: mainAuthor.author_image
+        author={authors && authors.length > 0 ? {
+          id: authors[0].id,
+          name: authors[0].name,
+          author_image: authors[0].author_image
           } : undefined}
-          authorBookCount={mainAuthor ? authorBookCounts[mainAuthor.id] : 0}
+        authorBookCount={authors && authors.length > 0 ? authorBookCounts[authors[0].id] : 0}
           publisher={publisher ? {
-            id: Number(publisher.id),
+          id: publisher.id,
             name: publisher.name,
             publisher_image: publisher.publisher_image,
             logo_url: publisher.logo_url
           } : undefined}
           publisherBookCount={publisherBooksCount}
+        isMessageable={true}
+        isEditable={user && user.role === 'admin'}
+        isFollowing={false}
+        onMessage={() => {}}
+        onFollow={() => {}}
         />
-        
-        {/* Timeline Tab */}
+
+      <div className="book-page__content">
         {activeTab === "timeline" && (
-          <div className="book-page__content">
+          <div className="book-page__timeline-tab">
             <div className="book-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Left Sidebar */}
-              <div className="lg:col-span-1 space-y-6">
+              <div className="book-page__sidebar lg:col-span-1 space-y-6">
                 {/* About Section */}
-                <SidebarSection
+                <ContentSection
                   title="About"
                   onViewMore={() => setActiveTab("details")}
                   isExpandable
                   defaultExpanded={false}
+                  className="book-page__about-section"
                 >
                   <div className="space-y-4">
                     <p className="text-sm text-muted-foreground">
@@ -309,13 +311,14 @@ export function ClientBookPage({
                       </div>
                     )}
                   </div>
-                </SidebarSection>
+                </ContentSection>
 
                 {/* Friends/Followers Section */}
-                <SidebarSection
+                <ContentSection
                   title="Followers"
                   viewMoreLink={`/books/${params.id}/followers`}
                   viewMoreText="See All"
+                  className="book-page__followers-section"
                 >
                   <FollowersList
                     followers={followers}
@@ -323,13 +326,14 @@ export function ClientBookPage({
                     entityId={params.id}
                     entityType="book"
                   />
-                </SidebarSection>
+                </ContentSection>
 
                 {/* Currently Reading Section */}
-                <SidebarSection
+                <ContentSection
                   title="Currently Reading"
                   viewMoreLink="/my-books"
                   viewMoreText="See All"
+                  className="book-page__currently-reading-section"
                 >
                   <div className="space-y-4">
                     {mockCurrentlyReading.map((book, index) => (
@@ -360,12 +364,13 @@ export function ClientBookPage({
                       </div>
                     ))}
                   </div>
-                </SidebarSection>
+                </ContentSection>
 
                 {/* Photos Section */}
-                <SidebarSection
+                <ContentSection
                   title="Photos"
                   onViewMore={() => setActiveTab("photos")}
+                  className="book-page__photos-section"
                 >
                   <div className="grid grid-cols-3 gap-2">
                     {mockPhotos.map((photoUrl, index) => (
@@ -378,25 +383,26 @@ export function ClientBookPage({
                       </div>
                     ))}
                   </div>
-                </SidebarSection>
+                </ContentSection>
               </div>
 
               {/* Main Content Area */}
-              <div className="lg:col-span-2 space-y-6">
+              <div className="book-page__main-content lg:col-span-2 space-y-6">
                 {/* Post Creation Form */}
+                <div className="book-page__post-form">
                 <Card>
                   <CardContent className="p-6 pt-6">
                     <form>
                       <div className="flex gap-3">
                         <span className="relative flex shrink-0 overflow-hidden rounded-full h-10 w-10">
                           <img
-                            src={book.cover_image_url || book.original_image_url || "/placeholder.svg?height=200&width=200"}
-                            alt={book.title}
+                              src="/placeholder.svg?height=200&width=200"
+                              alt="User"
                             className="aspect-square h-full w-full"
                           />
                         </span>
                         <Textarea
-                          placeholder={`What are your thoughts on ${book.title}?`}
+                            placeholder={`What are you reading, there?`}
                           className="flex-1 resize-none"
                         />
                       </div>
@@ -422,23 +428,24 @@ export function ClientBookPage({
                     </form>
                   </CardContent>
                 </Card>
+                </div>
 
                 {/* Activity Feed */}
-                <div className="space-y-6">
+                <div className="book-page__activity-feed space-y-6">
                   {mockActivities.map((activity) => (
-                    <Card key={activity.id}>
+                    <Card key={activity.id} className="overflow-hidden hover:shadow-md transition-shadow">
                       <div className="flex flex-col space-y-1.5 p-6 pb-3">
                         <div className="flex justify-between">
                           <div className="flex items-center gap-3">
                             <span className="relative flex shrink-0 overflow-hidden rounded-full h-10 w-10">
                               <img
-                                src={book.cover_image_url || book.original_image_url || "/placeholder.svg?height=200&width=200"}
-                                alt={book.title}
+                                src="/placeholder.svg?height=200&width=200"
+                                alt="User"
                                 className="aspect-square h-full w-full"
                               />
                             </span>
                             <div>
-                              <div className="font-medium">{book.title}</div>
+                              <div className="font-medium">User</div>
                               <div className="text-xs text-muted-foreground">{activity.timeAgo}</div>
                             </div>
                           </div>
@@ -510,13 +517,14 @@ export function ClientBookPage({
         )}
         
         {activeTab === "details" && (
-          <div className="book-detail-layout grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Left Column - Book Cover (1/4 width) */}
-            <div className="book-sidebar lg:col-span-1">
+          <div className="book-page__details-tab">
+            <div className="book-detail-layout grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left Column - Book Cover (1/3 width) */}
+              <div className="book-page__details-sidebar lg:col-span-1">
               {/* Book Cover (full width) */}
-              <Card className="book-cover-card overflow-hidden">
+                <Card className="book-page__cover-card overflow-hidden">
                 {(book.cover_image_url || book.original_image_url) ? (
-                  <div className="book-cover w-full h-full">
+                    <div className="book-page__cover-image w-full h-full">
                     <Image
                       src={book.cover_image_url ?? book.original_image_url ?? "/placeholder.svg"}
                       alt={book.title}
@@ -526,17 +534,17 @@ export function ClientBookPage({
                     />
                   </div>
                 ) : (
-                  <div className="book-cover-placeholder w-full aspect-[2/3] bg-muted flex items-center justify-center">
+                    <div className="book-page__cover-placeholder w-full aspect-[2/3] bg-muted flex items-center justify-center">
                     <BookOpen className="h-16 w-16 text-muted-foreground" />
                   </div>
                 )}
               </Card>
 
               {/* Add to Shelf Section */}
-              <div className="book-page shelf-section space-y-4 w-full mt-6">
+                <div className="book-page__shelf-section space-y-4 w-full mt-6">
                 <Dialog>
                   <DialogTrigger asChild>
-                    <button className="shelf-button inline-flex items-center justify-center gap-2 w-full rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-10 px-4 py-2">
+                      <button className="book-page__shelf-button inline-flex items-center justify-center gap-2 w-full rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-10 px-4 py-2">
                       <BookMarked className="mr-2 h-4 w-4" />
                       Add to Shelf
                     </button>
@@ -563,76 +571,62 @@ export function ClientBookPage({
               </div>
             </div>
 
-            {/* Right Column - Book Details (3/4 width) */}
-            <div className="book-content lg:col-span-3 space-y-6">
+              {/* Right Column - Book Details (2/3 width) */}
+              <div className="book-page__details-content lg:col-span-2 space-y-6">
               {/* Book Details at the top */}
-              <Card className="book-details-card">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle>Book Details</CardTitle>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" asChild>
-                    <Link href={`/books/${book.id}/edit`}>
-                      <Pencil className="h-4 w-4" />
-                      <span className="sr-only">Edit Book</span>
-                    </Link>
-                  </Button>
-                </CardHeader>
-                <CardContent>
-                  <div className="book-details-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    {/* Display book data based on the actual schema, excluding specified fields */}
-                    <div className="book-detail-item">
-                      <h3 className="font-medium">Title</h3>
-                      <p className="text-muted-foreground">{book.title}</p>
+                <ContentSection
+                  title="Book Details"
+                  headerRight={
+                    user && user.role === 'admin' ? (
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0" asChild>
+                        <Link href={`/books/${book.id}/edit`}>
+                          <Pencil className="h-4 w-4" />
+                          <span className="sr-only">Edit Book</span>
+                        </Link>
+                      </Button>
+                    ) : null
+                  }
+                  className="book-page__book-details-section"
+                >
+                  <div className="book-details-layout space-y-6">
+                    {/* Title - Full Width */}
+                    <div className="book-details__title-section">
+                      <h3 className="font-medium text-lg">Title</h3>
+                      <p className="text-muted-foreground text-xl font-semibold">{book.title}</p>
                     </div>
 
-                    {book.isbn && (
-                      <div className="book-detail-item">
-                        <h3 className="font-medium">ISBN</h3>
-                        <p className="text-muted-foreground">{book.isbn}</p>
-                      </div>
-                    )}
-
-                    {book.isbn10 && (
-                      <div className="book-detail-item">
-                        <h3 className="font-medium">ISBN-10</h3>
-                        <p className="text-muted-foreground">{book.isbn10}</p>
-                      </div>
-                    )}
-
-                    {book.isbn13 && (
-                      <div className="book-detail-item">
-                        <h3 className="font-medium">ISBN-13</h3>
-                        <p className="text-muted-foreground">{book.isbn13}</p>
-                      </div>
-                    )}
-
-                    {book.author_id && (
-                      <div className="book-detail-item">
-                        <h3 className="font-medium">Author</h3>
+                    {/* Author(s) - Full Width */}
+                    {authors && authors.length > 0 && (
+                      <div className="book-details__authors-section">
+                        <h3 className="font-medium text-lg">Author(s)</h3>
                         <div className="text-muted-foreground">
-                          {authors && authors.length > 0 ? (
+                          {authors.map((author, index) => (
+                            <span key={author.id}>
                             <EntityHoverCard
                               type="author"
                               entity={{
-                                id: authors[0].id,
-                                name: authors[0].name,
-                                author_image: authors[0].author_image,
-                                bookCount: authorBookCounts[authors[0].id] || 0
+                                  id: author.id,
+                                  name: author.name,
+                                  author_image: author.author_image,
+                                  bookCount: authorBookCounts[author.id] || 0
                               }}
                             >
-                              <span className="text-muted-foreground">{authors[0].name}</span>
+                                <span className="text-muted-foreground hover:text-primary transition-colors">
+                                  {author.name}
+                                </span>
                             </EntityHoverCard>
-                          ) : (
-                            book.author_id
-                          )}
+                              {index < authors.length - 1 && <span className="mx-2">•</span>}
+                            </span>
+                          ))}
                         </div>
                       </div>
                     )}
 
-                    {book.publisher_id && (
-                      <div className="book-detail-item">
-                        <h3 className="font-medium">Publisher</h3>
+                    {/* Publisher(s) - Full Width */}
+                    {publisher && (
+                      <div className="book-details__publishers-section">
+                        <h3 className="font-medium text-lg">Publisher(s)</h3>
                         <div className="text-muted-foreground">
-                          {publisher ? (
                             <EntityHoverCard
                               type="publisher"
                               entity={{
@@ -643,18 +637,43 @@ export function ClientBookPage({
                                 bookCount: publisherBooksCount
                               }}
                             >
-                              <span className="text-muted-foreground">{publisher.name}</span>
+                            <span className="text-muted-foreground hover:text-primary transition-colors">
+                              {publisher.name}
+                            </span>
                             </EntityHoverCard>
-                          ) : (
-                            book.publisher_id
-                          )}
                         </div>
+                      </div>
+                    )}
+
+                    {/* Other Details - 3 Column Grid */}
+                    <div className="book-details__other-details">
+                      <h3 className="font-medium text-lg mb-4">Other Details</h3>
+                      <div className="book-details-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        {/* Display book data based on the actual schema, excluding specified fields */}
+                        {book.isbn && (
+                          <div className="book-detail-item">
+                            <h4 className="font-medium">ISBN</h4>
+                            <p className="text-muted-foreground">{book.isbn}</p>
+                        </div>
+                        )}
+
+                        {book.isbn10 && (
+                          <div className="book-detail-item">
+                            <h4 className="font-medium">ISBN-10</h4>
+                            <p className="text-muted-foreground">{book.isbn10}</p>
+                          </div>
+                        )}
+
+                        {book.isbn13 && (
+                          <div className="book-detail-item">
+                            <h4 className="font-medium">ISBN-13</h4>
+                            <p className="text-muted-foreground">{book.isbn13}</p>
                       </div>
                     )}
 
                     {book.publish_date && (
                       <div className="book-detail-item">
-                        <h3 className="font-medium">Publish Date</h3>
+                            <h4 className="font-medium">Publish Date</h4>
                         <p className="text-muted-foreground flex items-center">
                           <Calendar className="h-4 w-4 mr-2" />
                           {formatDate(book.publish_date)}
@@ -664,7 +683,7 @@ export function ClientBookPage({
 
                     {book.publication_date && (
                       <div className="book-detail-item">
-                        <h3 className="font-medium">Publication Date</h3>
+                            <h4 className="font-medium">Publication Date</h4>
                         <p className="text-muted-foreground flex items-center">
                           <Calendar className="h-4 w-4 mr-2" />
                           {formatDate(book.publication_date)}
@@ -674,7 +693,7 @@ export function ClientBookPage({
 
                     {(bindingType || book.binding) && (
                       <div className="book-detail-item">
-                        <h3 className="font-medium">Binding</h3>
+                            <h4 className="font-medium">Binding</h4>
                         <p className="text-muted-foreground flex items-center">
                           <BookText className="h-4 w-4 mr-2" />
                           {bindingType?.name || book.binding}
@@ -685,7 +704,7 @@ export function ClientBookPage({
                     {/* Only show page_count if it's a valid number */}
                     {book.page_count !== undefined && book.page_count !== null && !isNaN(Number(book.page_count)) && (
                       <div className="book-detail-item">
-                        <h3 className="font-medium">Page Count</h3>
+                            <h4 className="font-medium">Page Count</h4>
                         <p className="text-muted-foreground flex items-center">
                           <FileText className="h-4 w-4 mr-2" />
                           {book.page_count}
@@ -696,7 +715,7 @@ export function ClientBookPage({
                     {/* Only show pages if it's a valid number */}
                     {book.pages !== undefined && book.pages !== null && !isNaN(Number(book.pages)) && (
                       <div className="book-detail-item">
-                        <h3 className="font-medium">Pages</h3>
+                            <h4 className="font-medium">Pages</h4>
                         <p className="text-muted-foreground flex items-center">
                           <FileText className="h-4 w-4 mr-2" />
                           {book.pages}
@@ -706,7 +725,7 @@ export function ClientBookPage({
 
                     {book.dimensions && (
                       <div className="book-detail-item">
-                        <h3 className="font-medium">Dimensions</h3>
+                            <h4 className="font-medium">Dimensions</h4>
                         <p className="text-muted-foreground flex items-center">
                           <Ruler className="h-4 w-4 mr-2" />
                           {book.dimensions}
@@ -715,17 +734,17 @@ export function ClientBookPage({
                     )}
 
                     {book.weight !== null && book.weight !== undefined && (
-                      <div className="flex items-center space-x-2">
-                        <span className="text-gray-600">Weight:</span>
-                        <span className="font-medium">
+                          <div className="book-detail-item">
+                            <h4 className="font-medium">Weight</h4>
+                            <p className="text-muted-foreground">
                           {typeof book.weight === 'number' ? Number(book.weight).toFixed(2) : book.weight} kg
-                        </span>
+                            </p>
                       </div>
                     )}
 
                     {book.genre && (
                       <div className="book-detail-item">
-                        <h3 className="font-medium">Genre</h3>
+                            <h4 className="font-medium">Genre</h4>
                         <p className="text-muted-foreground flex items-center">
                           <Tag className="h-4 w-4 mr-2" />
                           {book.genre}
@@ -735,7 +754,7 @@ export function ClientBookPage({
 
                     {book.language && (
                       <div className="book-detail-item">
-                        <h3 className="font-medium">Language</h3>
+                            <h4 className="font-medium">Language</h4>
                         <p className="text-muted-foreground flex items-center">
                           <Globe className="h-4 w-4 mr-2" />
                           {book.language}
@@ -747,7 +766,7 @@ export function ClientBookPage({
                       book.average_rating !== null &&
                       !isNaN(Number(book.average_rating)) && (
                         <div className="book-detail-item">
-                          <h3 className="font-medium">Average Rating</h3>
+                              <h4 className="font-medium">Average Rating</h4>
                           <p className="text-muted-foreground flex items-center">
                             <Star className="h-4 w-4 mr-2 fill-yellow-400 text-yellow-400" />
                             {Number(book.average_rating).toFixed(1)} / 5
@@ -757,74 +776,97 @@ export function ClientBookPage({
 
                     {(formatType || book.format) && (
                       <div className="book-detail-item">
-                        <h3 className="font-medium">Format</h3>
+                            <h4 className="font-medium">Format</h4>
                         <p className="text-muted-foreground">{formatType?.name || book.format}</p>
                       </div>
                     )}
 
                     {book.edition && (
                       <div className="book-detail-item">
-                        <h3 className="font-medium">Edition</h3>
+                            <h4 className="font-medium">Edition</h4>
                         <p className="text-muted-foreground">{book.edition}</p>
                       </div>
                     )}
 
                     {book.series && (
                       <div className="book-detail-item">
-                        <h3 className="font-medium">Series</h3>
+                            <h4 className="font-medium">Series</h4>
                         <p className="text-muted-foreground">{book.series}</p>
                       </div>
                     )}
 
+                        {book.website && (
+                          <div className="book-detail-item">
+                            <h4 className="font-medium">Website</h4>
+                            <p className="text-muted-foreground flex items-center">
+                              <Globe className="h-4 w-4 mr-2" />
+                              <a
+                                href={book.website.startsWith('http') ? book.website : `https://${book.website}`}
+                                className="hover:underline text-primary"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                Visit Website
+                              </a>
+                            </p>
+                          </div>
+                        )}
+
                     {book.created_at && (
                       <div className="book-detail-item">
-                        <h3 className="font-medium">Created At</h3>
+                            <h4 className="font-medium">Created At</h4>
                         <p className="text-muted-foreground">
-                          {new Date(book.created_at).toLocaleDateString()}{" "}
-                          {new Date(book.created_at).toLocaleTimeString()}
+                          {formatDate(book.created_at)}
                         </p>
                       </div>
                     )}
 
                     {book.updated_at && (
                       <div className="book-detail-item">
-                        <h3 className="font-medium">Updated At</h3>
+                            <h4 className="font-medium">Updated At</h4>
                         <p className="text-muted-foreground">
-                          {new Date(book.updated_at).toLocaleDateString()}{" "}
-                          {new Date(book.updated_at).toLocaleTimeString()}
+                          {formatDate(book.updated_at)}
                         </p>
                       </div>
                     )}
+                      </div>
+                    </div>
 
+                    {/* Synopsis and Overview - Full Width */}
                     {book.synopsis && (
-                      <div className="book-detail-item col-span-full">
-                        <h3 className="font-medium">Synopsis</h3>
+                      <div className="book-details__synopsis-section">
+                        <h3 className="font-medium text-lg">Synopsis</h3>
                         <ExpandableSection
                           expanded={showFullAbout}
                           onToggle={() => setShowFullAbout((v) => !v)}
                         >
-                          {book.synopsis}
+                          <p className="text-muted-foreground">{book.synopsis}</p>
                         </ExpandableSection>
                       </div>
                     )}
 
                     {book.overview && (
-                      <div className="book-detail-item col-span-full">
-                        <h3 className="font-medium">Overview</h3>
+                      <div className="book-details__overview-section">
+                        <h3 className="font-medium text-lg">Overview</h3>
                         <p className="text-muted-foreground">{book.overview}</p>
                       </div>
                     )}
                   </div>
-                </CardContent>
-              </Card>
+                </ContentSection>
 
               {/* More Books By Author Section */}
               {authors && authors.length > 0 && (
-                <Card className="more-books-by-author-card">
-                  <CardHeader>
-                    <CardTitle>More Books By {authors[0].name}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
+                  <ContentSection
+                    title={`More Books By ${authors[0].name}`}
+                    footer={
+                      <div className="mt-4 text-center">
+                        <Button variant="outline" asChild>
+                          <Link href={`/authors/${authors[0].id}`}>View All Books</Link>
+                        </Button>
+                      </div>
+                    }
+                    className="book-page__more-books-section"
+                  >
                     {authorBookCounts[authors[0].id] && authorBookCounts[authors[0].id] > 1 ? (
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                         {/* This is a placeholder for book cards. In a real implementation, 
@@ -847,36 +889,30 @@ export function ClientBookPage({
                         <p className="text-muted-foreground">No other books found by this author</p>
                       </div>
                     )}
-                    <div className="mt-4 text-center">
-                      <Button variant="outline" asChild>
-                        <Link href={`/authors/${authors[0].id}`}>View All Books</Link>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                  </ContentSection>
               )}
 
               {/* Similar Books */}
-              <Card className="similar-books-card">
-                <CardHeader>
-                  <CardTitle>Similar Books</CardTitle>
-                </CardHeader>
-                <CardContent>
+                <ContentSection 
+                  title="Similar Books"
+                  className="book-page__similar-books-section"
+                >
                   <div className="text-center py-4">
                     <p className="text-muted-foreground">Recommendations coming soon</p>
                   </div>
-                </CardContent>
-              </Card>
+                </ContentSection>
+              </div>
             </div>
           </div>
         )}
         
         {activeTab === "reviews" && (
-          <Card className="reviews-card">
-            <CardHeader>
-              <CardTitle>Reviews</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
+          <div className="book-page__reviews-tab">
+            <ContentSection 
+              title="Reviews"
+              className="book-page__reviews-section"
+            >
+              <div className="space-y-6">
               {/* Add Review Form */}
               <div className="review-form space-y-4">
                 <div className="flex items-center gap-2">
@@ -933,7 +969,7 @@ export function ClientBookPage({
                                 {/* Only show date if created_at exists */}
                                 {review.created_at && (
                                   <span className="ml-2 text-sm text-muted-foreground">
-                                    {new Date(review.created_at).toLocaleDateString()}
+                                    {formatDate(review.created_at)}
                                   </span>
                                 )}
                               </div>
@@ -960,16 +996,17 @@ export function ClientBookPage({
                   <p className="text-muted-foreground">No reviews yet. Be the first to review this book!</p>
                 </div>
               )}
-            </CardContent>
-          </Card>
+              </div>
+            </ContentSection>
+          </div>
         )}
         
         {activeTab === "photos" && (
+          <div className="book-page__photos-tab">
           <div className="book-page__tab-content space-y-6">
-            <Card className="rounded-lg border bg-card text-card-foreground shadow-sm">
-              <div className="flex flex-col space-y-1.5 p-6">
-                <div className="flex justify-between items-center">
-                  <div className="text-2xl font-semibold leading-none tracking-tight">Photos</div>
+              <ContentSection
+                title="Photos"
+                headerRight={
                   <div className="flex items-center gap-2">
                     <Button
                       type="button"
@@ -986,9 +1023,9 @@ export function ClientBookPage({
                       Add Photos
                     </Button>
                   </div>
-                </div>
-              </div>
-              <CardContent className="p-6 pt-0">
+                }
+                className="book-page__photos-section"
+              >
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {mockPhotosTabData.map((photo) => (
                     <div key={photo.id} className="group relative">
@@ -1008,12 +1045,13 @@ export function ClientBookPage({
                     </div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
+              </ContentSection>
+            </div>
           </div>
         )}
         
         {activeTab === "followers" && (
+          <div className="book-page__followers-tab">
           <div className="book-page__tab-content space-y-6">
             <FollowersListTab
               followers={followers}
@@ -1021,22 +1059,26 @@ export function ClientBookPage({
               entityId={params.id}
               entityType="book"
             />
+            </div>
           </div>
         )}
         
         {activeTab === "more" && (
+          <div className="book-page__more-tab">
           <div className="book-page__tab-content grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="book-groups__card rounded-lg border bg-card text-card-foreground shadow-sm">
-              <div className="book-groups__header flex items-center justify-between p-6">
-                <h2 className="book-groups__title text-2xl font-semibold leading-none tracking-tight">Groups</h2>
+              <ContentSection
+                title="Groups"
+                headerRight={
                 <Link href={`/groups/add?target_type=book&target_id=${params.id}`}>
                   <Button className="book-groups__create-button">
                     <Users className="h-4 w-4 mr-2" />
                     Create Group
                   </Button>
                 </Link>
-              </div>
-              <div className="book-groups__list p-6 pt-0 space-y-4">
+                }
+                className="book-page__groups-section"
+              >
+                <div className="book-groups__list space-y-4">
                 <div className="book-groups__item flex items-center gap-3 p-3 border rounded-lg">
                   <span className="book-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
                     <img
@@ -1061,7 +1103,6 @@ export function ClientBookPage({
                     View
                   </Button>
                 </div>
-                
                 <div className="book-groups__item flex items-center gap-3 p-3 border rounded-lg">
                   <span className="book-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
                     <img
@@ -1086,19 +1127,38 @@ export function ClientBookPage({
                     View
                   </Button>
                 </div>
-                
-                <Button className="book-groups__find-more h-10 px-4 py-2 w-full">
-                  <Users className="h-4 w-4 mr-2" />
-                  Find More Groups
+                  <div className="book-groups__item flex items-center gap-3 p-3 border rounded-lg">
+                    <span className="book-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                      <img
+                        src="/placeholder.svg?height=100&width=100"
+                        alt="Portland Book Lovers"
+                        className="aspect-square h-full w-full"
+                      />
+                    </span>
+                    <div className="book-groups__content flex-1 min-w-0">
+                      <h3 className="book-groups__name font-medium truncate">Portland Book Lovers</h3>
+                      <div className="book-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
+                        <div className="book-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                          Member
+                        </div>
+                        <span>·</span>
+                        <span>892 members</span>
+                        <span>·</span>
+                        <span>Joined May 2021</span>
+                      </div>
+                    </div>
+                    <Button variant="outline" className="book-groups__view-button h-9 rounded-md px-3">
+                      View
                 </Button>
               </div>
             </div>
-            
-            <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-              <div className="flex flex-col space-y-1.5 p-6">
-                <div className="text-2xl font-semibold leading-none tracking-tight">Pages</div>
-              </div>
-              <div className="p-6 pt-0 space-y-4">
+              </ContentSection>
+              
+              <ContentSection 
+                title="Pages"
+                className="book-page__pages-section"
+              >
+                <div className="space-y-4">
                 <div className="flex items-center gap-3 p-3 border rounded-lg">
                   <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
                     <img
@@ -1145,6 +1205,7 @@ export function ClientBookPage({
                   </Button>
                 </div>
               </div>
+              </ContentSection>
             </div>
           </div>
         )}

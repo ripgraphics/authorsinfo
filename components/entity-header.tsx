@@ -4,7 +4,7 @@ import Image from "next/image"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Camera, BookOpen, Users, MapPin, Globe, User, MoreHorizontal, MessageSquare, UserPlus, Settings, Crop } from "lucide-react"
+import { Camera, BookOpen, Users, MapPin, Globe, User, MoreHorizontal, MessageSquare, UserPlus, Settings, Crop, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { Avatar } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
@@ -29,6 +29,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { useToast } from "@/hooks/use-toast"
 
 export type EntityType = 'author' | 'publisher' | 'book' | 'group' | 'user' | 'event' | 'photo'
 
@@ -107,6 +108,7 @@ export interface EntityHeaderProps {
   }
   creatorJoinedAt?: string
   isMember?: boolean
+  bookId?: string
 }
 
 export function EntityHeader({
@@ -141,6 +143,7 @@ export function EntityHeader({
   eventCreator,
   creatorJoinedAt,
   isMember = false,
+  bookId,
 }: EntityHeaderProps) {
   const { user } = useAuth()
   const groupPermissions = useGroupPermissions(group?.id || null, user?.id)
@@ -151,6 +154,9 @@ export function EntityHeader({
   const [isCropModalOpen, setIsCropModalOpen] = useState(false)
   const [coverImage, setCoverImage] = useState<string | undefined>(coverImageUrl)
   const [avatarImage, setAvatarImage] = useState<string | undefined>(profileImageUrl)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [imageVersion, setImageVersion] = useState(0)
+  const { toast } = useToast()
 
   useEffect(() => {
     const fetchGroupMemberData = async () => {
@@ -173,10 +179,129 @@ export function EntityHeader({
     fetchGroupMemberData();
   }, [creator, group?.id]);
 
-  const handleCropCover = (croppedImageBlob: Blob) => {
-    const croppedImageUrl = URL.createObjectURL(croppedImageBlob)
-    setCoverImage(croppedImageUrl)
-    setIsCropModalOpen(false)
+  const handleCropCover = async (croppedImageBlob: Blob) => {
+    setIsProcessing(true)
+    try {
+      console.log('handleCropCover called with blob:', croppedImageBlob)
+      console.log('Blob size:', croppedImageBlob.size)
+      console.log('Blob type:', croppedImageBlob.type)
+      
+      // Convert blob to file
+      const file = new File([croppedImageBlob], 'cropped-cover.jpg', { type: 'image/jpeg' })
+      console.log('Created file:', file)
+      console.log('File size:', file.size)
+      console.log('File type:', file.type)
+      
+      // Get Cloudinary signature for signed upload
+      const signatureResponse = await fetch('/api/cloudinary/signature', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          folder: `${entityType}_entity_header_cover`
+        })
+      })
+
+      if (!signatureResponse.ok) {
+        throw new Error('Failed to get Cloudinary signature')
+      }
+
+      const signatureData = await signatureResponse.json()
+      console.log('Signature data:', signatureData)
+
+      // Create FormData for signed upload to Cloudinary
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('api_key', signatureData.apiKey)
+      formData.append('timestamp', signatureData.timestamp.toString())
+      formData.append('signature', signatureData.signature)
+      formData.append('folder', signatureData.folder)
+      formData.append('cloud_name', signatureData.cloudName)
+      formData.append('quality', '95')
+      formData.append('fetch_format', 'auto')
+
+      console.log('FormData created, entries:')
+      for (let [key, value] of formData.entries()) {
+        console.log(key, value)
+      }
+
+      const uploadUrl = `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/image/upload`
+      console.log('Upload URL:', uploadUrl)
+
+      const uploadResponse = await fetch(uploadUrl, {
+        method: 'POST',
+        body: formData
+      })
+
+      console.log('Upload response status:', uploadResponse.status)
+      console.log('Upload response ok:', uploadResponse.ok)
+      console.log('Upload response headers:', Object.fromEntries(uploadResponse.headers.entries()))
+
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text()
+        console.error('Cloudinary upload error response:', errorText)
+        throw new Error(`Failed to upload to Cloudinary: ${uploadResponse.status} ${uploadResponse.statusText} - ${errorText}`)
+      }
+
+      const uploadResult = await uploadResponse.json()
+      console.log('Upload result:', uploadResult)
+
+      if (!uploadResult.secure_url) {
+        throw new Error('No secure URL returned from Cloudinary')
+      }
+
+      // Insert into images table using server action
+      const imageInsertResponse = await fetch('/api/insert-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          url: uploadResult.secure_url,
+          alt_text: `Entity header cover for ${entityType} ${name}`,
+          storage_provider: 'cloudinary',
+          storage_path: `authorsinfo/${entityType}_entity_header_cover`,
+          original_filename: file.name,
+          file_size: file.size,
+          mime_type: file.type
+        })
+      })
+
+      if (!imageInsertResponse.ok) {
+        const errorText = await imageInsertResponse.text()
+        throw new Error(`Failed to insert image record: ${errorText}`)
+      }
+
+      const imageInsertResult = await imageInsertResponse.json()
+      const imageData = imageInsertResult.data
+
+      // Update local state with the new image URL
+      setCoverImage(uploadResult.secure_url)
+      setImageVersion(prev => prev + 1)
+      setIsCropModalOpen(false)
+
+      // Call the onCoverImageChange callback if provided
+      if (onCoverImageChange) {
+        onCoverImageChange()
+      }
+
+      // Show success message
+      toast({
+        title: "Success",
+        description: `${entityType} entity header cover has been updated successfully.`
+      })
+
+    } catch (error: any) {
+      console.error('Error uploading cropped image:', error)
+      toast({
+        title: "Error",
+        description: error.message || "Failed to upload cropped image. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   const handleCropCancel = () => {
@@ -309,11 +434,8 @@ export function EntityHeader({
             onClick={onFollow}
           >
             <UserPlus className="h-4 w-4 mr-2" />
-            <span className="entity-header__follow-text hidden sm:inline">
-              {entityType === 'book' 
-                ? (isFollowing ? 'Remove from Shelf' : 'Add to Shelf')
-                : (isFollowing ? 'Unfollow' : 'Follow')
-              }
+            <span className="entity-header__follow-text">
+              {isFollowing ? 'Unfollow' : 'Follow'}
             </span>
           </Button>
         )}
@@ -329,11 +451,14 @@ export function EntityHeader({
   const renderCoverImage = () => {
     if (!coverImage && !isEditable) return null
 
+    // Add cache-busting parameter to force image reload
+    const imageUrl = coverImage ? `${coverImage}?t=${imageVersion}` : ''
+
     return (
       <div className="entity-header__cover-container relative w-full aspect-[1344/500] bg-muted">
         {coverImage && (
           <Image
-            src={coverImage}
+            src={imageUrl}
             alt={`${name} cover`}
             fill
             className="entity-header__cover-image object-cover"
@@ -348,9 +473,19 @@ export function EntityHeader({
               <button
                 className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input hover:text-accent-foreground h-9 rounded-md px-3 entity-header__crop-cover-button bg-white/80 hover:bg-white"
                 onClick={() => setIsCropModalOpen(true)}
+                disabled={isProcessing}
               >
-                <Crop className="h-4 w-4 mr-2" />
-                Crop
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Crop className="h-4 w-4 mr-2" />
+                    Crop
+                  </>
+                )}
               </button>
             )}
             <button
@@ -542,13 +677,14 @@ export function EntityHeader({
         <Dialog open={isCropModalOpen} onOpenChange={setIsCropModalOpen}>
           <DialogContent className="max-w-4xl">
             <DialogHeader>
-              <DialogTitle>Crop Cover Image</DialogTitle>
+              <DialogTitle>Crop Entity Header Cover</DialogTitle>
             </DialogHeader>
             <ImageCropper
               imageUrl={coverImage}
               aspectRatio={1344 / 500}
               onCropComplete={handleCropCover}
               onCancel={handleCropCancel}
+              isProcessing={isProcessing}
             />
           </DialogContent>
         </Dialog>
@@ -557,4 +693,4 @@ export function EntityHeader({
       {children}
     </div>
   )
-} 
+}

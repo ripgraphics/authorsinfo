@@ -1,14 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { PageContainer } from "@/components/page-container"
 
 export default function ProfileEditPage() {
   return (
-    <PageContainer>
-      <div className="max-w-3xl mx-auto py-8">
-        <h1 className="text-3xl font-bold mb-6">Edit Publisher Data</h1>
-        
+    <div className="space-y-6">
+      <div className="py-6">
+        <h1 className="text-3xl font-bold tracking-tight">Edit Publisher Data</h1>
+        <p className="text-muted-foreground mt-2">Select a publisher to edit from the options below</p>
+      </div>
+      
+      <div className="max-w-3xl mx-auto">
         <Card>
           <CardHeader>
             <CardTitle>Publisher Select</CardTitle>
@@ -62,6 +64,6 @@ export default function ProfileEditPage() {
           </CardContent>
         </Card>
       </div>
-    </PageContainer>
+    </div>
   )
 } 

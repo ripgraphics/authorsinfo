@@ -4,7 +4,6 @@ import { notFound } from "next/navigation"
 import { supabaseAdmin } from "@/lib/supabase"
 import type { Author } from "@/types/database"
 import { ClientAuthorPage } from "./client"
-import { PageContainer } from "@/components/page-container"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { getFollowers, getFollowersCount } from "@/lib/follows-server"
@@ -323,21 +322,19 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
   ])
 
   return (
-    <PageContainer>
-      <ClientAuthorPage
-        author={author}
-        authorImageUrl={author.author_image?.url || ""}
-        coverImageUrl={author.cover_image?.url || ""}
-        params={resolvedParams}
-        followers={followers.followers}
-        followersCount={followers.count}
-        books={books}
-        booksCount={books.length}
-        activities={activities}
-        photos={[]} // TODO: Implement photo fetching
-        photosCount={0} // TODO: Implement photo count
-        albums={albums}
-      />
-    </PageContainer>
+    <ClientAuthorPage
+      author={author}
+      authorImageUrl={author.author_image?.url || ""}
+      coverImageUrl={author.cover_image?.url || ""}
+      params={resolvedParams}
+      followers={followers.followers}
+      followersCount={followers.count}
+      books={books}
+      booksCount={books.length}
+      activities={activities}
+      photos={[]} // TODO: Implement photo fetching
+      photosCount={0} // TODO: Implement photo count
+      albums={albums}
+    />
   )
 } 

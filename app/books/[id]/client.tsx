@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { PageHeader } from "@/components/page-header"
@@ -99,6 +99,8 @@ export function ClientBookPage({
   // Update tab state
   const [activeTab, setActiveTab] = useState("timeline")
   const [showFullAbout, setShowFullAbout] = useState(false)
+  const [isFollowing, setIsFollowing] = useState(false)
+  const [isLoadingFollow, setIsLoadingFollow] = useState(false)
   
   // Mock photos for the Photos tab
   const mockPhotosTabData = [
@@ -189,6 +191,85 @@ export function ClientBookPage({
     },
   ]
 
+  // Follow/unfollow handlers
+  const handleFollow = async () => {
+    console.log('handleFollow called, user:', user, 'isFollowing:', isFollowing)
+    
+    if (!user) {
+      // Show a simple alert for now - in a real app you'd redirect to login
+      alert('Please log in to follow books')
+      return
+    }
+
+    setIsLoadingFollow(true)
+    try {
+      const method = isFollowing ? 'DELETE' : 'POST'
+      console.log('Making request:', method, 'to /api/follow')
+      const response = await fetch('/api/follow', {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          entityId: params.id,
+          targetType: 'book'
+        })
+      })
+
+      if (response.ok) {
+        setIsFollowing(!isFollowing)
+        // Optionally refresh the page or update followers count
+        window.location.reload()
+      } else {
+        let errorMessage = 'Failed to follow/unfollow. Please try again.'
+        try {
+          const error = await response.json()
+          console.error('Follow error:', error)
+          if (error.error) {
+            errorMessage = error.error
+          }
+        } catch (parseError) {
+          console.error('Follow error (could not parse response):', response.status, response.statusText)
+          if (response.status === 401) {
+            errorMessage = 'Please log in to follow books'
+          }
+        }
+        alert(errorMessage)
+      }
+    } catch (error) {
+      console.error('Error following/unfollowing:', error)
+      alert('An error occurred. Please try again.')
+    } finally {
+      setIsLoadingFollow(false)
+    }
+  }
+
+  // Check follow status on component mount
+  useEffect(() => {
+    const checkFollowStatus = async () => {
+      if (!user) {
+        setIsFollowing(false)
+        return
+      }
+
+      try {
+        const response = await fetch(`/api/follow?entityId=${params.id}&targetType=book`)
+        if (response.ok) {
+          const data = await response.json()
+          setIsFollowing(data.isFollowing)
+        } else if (response.status === 401) {
+          // User not authenticated, set to false
+          setIsFollowing(false)
+        }
+      } catch (error) {
+        console.error('Error checking follow status:', error)
+        setIsFollowing(false)
+      }
+    }
+
+    checkFollowStatus()
+  }, [user, params.id])
+
   // Configure tabs for the EntityHeader
   const tabs: TabConfig[] = [
     { id: "timeline", label: "Timeline" },
@@ -223,7 +304,8 @@ export function ClientBookPage({
         <EntityHeader
           entityType="book"
           name={book.title}
-        username={authors && authors.length > 0 ? (
+          bookId={params.id}
+          username={authors && authors.length > 0 ? (
             <EntityHoverCard
               type="author"
               entity={{
@@ -266,11 +348,10 @@ export function ClientBookPage({
             logo_url: publisher.logo_url
           } : undefined}
           publisherBookCount={publisherBooksCount}
-        isMessageable={true}
+        isMessageable={false}
         isEditable={user && user.role === 'admin'}
-        isFollowing={false}
-        onMessage={() => {}}
-        onFollow={() => {}}
+        isFollowing={isFollowing}
+        onFollow={handleFollow}
         />
 
       <div className="book-page__content">
@@ -325,6 +406,7 @@ export function ClientBookPage({
                     followersCount={followersCount}
                     entityId={params.id}
                     entityType="book"
+                    hideContainer={true}
                   />
                 </ContentSection>
 

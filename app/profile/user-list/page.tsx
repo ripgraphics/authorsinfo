@@ -1,7 +1,6 @@
 import { supabaseAdmin } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { PageContainer } from "@/components/page-container"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -55,48 +54,44 @@ export default async function UserListPage() {
   const users = await getUsers()
   
   return (
-    <PageContainer>
-      <div className="space-y-6 py-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">User Profiles</h1>
-            <p className="text-muted-foreground mt-2">Browse users and view their public profiles</p>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {users.length > 0 ? (
-            users.map((user) => (
-              <Card key={user.id} className="overflow-hidden">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={`/placeholder.svg?text=${user.name?.[0] || 'U'}`} alt={user.name || "User"} />
-                      <AvatarFallback>{user.name?.[0] || "U"}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <CardTitle className="text-xl">{user.name || "Unnamed User"}</CardTitle>
-                      <p className="text-sm text-muted-foreground">Joined {new Date(user.created_at).toLocaleDateString()}</p>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex justify-end">
-                    <Link href={`/profile/${user.id}`}>
-                      <Button>View Profile</Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          ) : (
-            <div className="col-span-full text-center py-12">
-              <h3 className="text-lg font-medium">No users found</h3>
-              <p className="text-muted-foreground mt-1">Try again later or check your database connection.</p>
-            </div>
-          )}
-        </div>
+    <div className="space-y-6">
+      <div className="py-6">
+        <h1 className="text-3xl font-bold tracking-tight">User Profiles</h1>
+        <p className="text-muted-foreground mt-2">Browse users and view their public profiles</p>
       </div>
-    </PageContainer>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {users.length > 0 ? (
+          users.map((user) => (
+            <Card key={user.id} className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={`/placeholder.svg?text=${user.name?.[0] || 'U'}`} alt={user.name || "User"} />
+                    <AvatarFallback>{user.name?.[0] || "U"}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <CardTitle className="text-xl">{user.name || "Unnamed User"}</CardTitle>
+                    <p className="text-sm text-muted-foreground">Joined {new Date(user.created_at).toLocaleDateString()}</p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="flex justify-end">
+                  <Link href={`/profile/${user.id}`}>
+                    <Button>View Profile</Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <div className="col-span-full text-center py-12">
+            <h3 className="text-lg font-medium">No users found</h3>
+            <p className="text-muted-foreground mt-1">Try again later or check your database connection.</p>
+          </div>
+        )}
+      </div>
+    </div>
   )
 } 

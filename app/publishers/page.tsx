@@ -1,7 +1,6 @@
 import { Suspense } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Building, Search, Filter } from "lucide-react"
@@ -28,7 +27,6 @@ import {
 } from "@/components/ui/sheet"
 import { Label } from "@/components/ui/label"
 import { InteractiveControls } from "./components/InteractiveControls"
-import { PageContainer } from "@/components/page-container"
 
 interface Publisher {
   id: number

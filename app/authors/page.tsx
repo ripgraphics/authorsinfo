@@ -140,13 +140,12 @@ async function AuthorsList({
               <Card className="overflow-hidden h-full transition-transform hover:scale-105">
                 <div className="relative w-full" style={{ aspectRatio: "1/1" }}>
                   {author.photo_url ? (
-                    <div className="h-full w-full overflow-hidden">
-                      <img 
-                        src={author.photo_url} 
-                        alt={author.name}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                    </div>
+                    <Image
+                      src={author.photo_url}
+                      alt={author.name}
+                      fill
+                      className="object-cover"
+                    />
                   ) : (
                     <div className="w-full h-full bg-muted flex items-center justify-center">
                       <User className="h-12 w-12 text-muted-foreground" />

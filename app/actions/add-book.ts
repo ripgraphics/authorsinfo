@@ -2,6 +2,7 @@
 
 import { supabaseAdmin } from "@/lib/supabase/server"
 import type { Book } from "@/types/database"
+import { cleanSynopsis } from "@/utils/textUtils"
 
 export async function addBookFromISBNDB(bookData: {
   title: string
@@ -20,7 +21,8 @@ export async function addBookFromISBNDB(bookData: {
     // Check if the book already exists by ISBN
     let existingBook = null
     if (bookData.isbn) {
-      const { data, error } = await supabaseAdmin.from("books").select("id").eq("isbn", bookData.isbn).single()
+      // Try to find by ISBN-10 first
+      const { data, error } = await supabaseAdmin.from("books").select("id").eq("isbn10", bookData.isbn).single()
       if (!error && data) {
         existingBook = data
       }
@@ -35,14 +37,18 @@ export async function addBookFromISBNDB(bookData: {
       return { success: true, bookId: existingBook.id }
     }
 
+    // Clean the synopsis text
+    const cleanedSynopsis = bookData.synopsis ? cleanSynopsis(bookData.synopsis) : null
+
     // Prepare the book data
     const newBook: Partial<Book> = {
       title: bookData.title,
-      isbn: bookData.isbn,
+      isbn10: bookData.isbn, // Use isbn10 for the isbn field
       isbn13: bookData.isbn13,
-      publish_date: bookData.publish_date,
+      publication_date: bookData.publish_date, // Use publication_date instead of publish_date
       original_image_url: bookData.image,
-      synopsis: bookData.synopsis,
+      synopsis: cleanedSynopsis,
+      author: bookData.authors && bookData.authors.length > 0 ? bookData.authors[0] : 'Unknown Author', // Set primary author
     }
 
     // Insert the book

@@ -235,7 +235,8 @@ export default async function BookPageServer({ params }: { params: Promise<{ id:
       followersCount = followersData.count
     } catch (error) {
       console.error("Error fetching book followers:", error)
-      // Continue with empty followers array
+      // Continue with empty followers array and default count
+      followersCount = 0
     }
 
     return (

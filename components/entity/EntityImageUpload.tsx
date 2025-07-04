@@ -143,7 +143,7 @@ export function EntityImageUpload({
         formData.append('upload_preset', 'authorsinfo')
         formData.append('cloud_name', process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || '')
         formData.append('quality', '95')
-        formData.append('fetch_format', 'auto')
+        formData.append('transformation', 'f_webp')
 
         const uploadResponse = await fetch(
           `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
@@ -241,6 +241,7 @@ export function EntityImageUpload({
             maxFileSize: 5000000, // 5MB
             clientAllowedFormats: ['image'],
             showAdvancedOptions: false,
+            transformation: [{ format: 'webp' }],
             styles: {
               palette: {
                 window: '#FFFFFF',

@@ -15,12 +15,7 @@ export async function getPublicEvents(
   
   let query = supabase
     .from('events')
-    .select(`
-      *,
-      category:event_categories(*),
-      type:event_types(*),
-      location:event_locations(*)
-    `)
+    .select('*')
     .eq('status', 'published')
     .eq('visibility', 'public');
   
@@ -59,11 +54,7 @@ export async function getEventById(eventId: string, includeDetails = true) {
   
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(eventId);
   
-  let query = supabase.from('events').select(`
-    *,
-    category:event_categories(*),
-    type:event_types(*)
-  `);
+  let query = supabase.from('events').select('*');
   
   if (isUuid) {
     query = query.eq('id', eventId);
@@ -147,11 +138,7 @@ export async function getFeaturedEvents(limit = 4) {
   
   const { data, error } = await supabase
     .from('events')
-    .select(`
-      *,
-      category:event_categories(*),
-      location:event_locations(*)
-    `)
+    .select('*')
     .eq('status', 'published')
     .eq('visibility', 'public')
     .eq('featured', true)
@@ -174,11 +161,7 @@ export async function getAuthorEvents(authorId: number, limit = 5) {
   
   const { data, error } = await supabase
     .from('events')
-    .select(`
-      *,
-      category:event_categories(*),
-      location:event_locations(*)
-    `)
+    .select('*')
     .eq('status', 'published')
     .eq('visibility', 'public')
     .eq('author_id', authorId)
@@ -201,11 +184,7 @@ export async function getBookEvents(bookId: number, limit = 5) {
   
   const { data, error } = await supabase
     .from('events')
-    .select(`
-      *,
-      category:event_categories(*),
-      location:event_locations(*)
-    `)
+    .select('*')
     .eq('status', 'published')
     .eq('visibility', 'public')
     .eq('book_id', bookId)

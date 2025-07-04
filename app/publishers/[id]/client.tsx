@@ -336,6 +336,7 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
                       followersCount={followersCount}
                       entityId={params.id}
                       entityType="publisher"
+                      hideContainer={true}
                     />
 
                     {/* Currently Reading Section */}

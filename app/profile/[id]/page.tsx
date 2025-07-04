@@ -1,7 +1,6 @@
 import { supabaseAdmin } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import { ClientProfilePage } from "./client"
-import { PageContainer } from "@/components/page-container"
 
 export const dynamic = "force-dynamic"
 
@@ -16,14 +15,12 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   if (id === "current-user") {
     // Return a dummy user for the mock current user
     return (
-      <PageContainer>
-        <ClientProfilePage
-          user={{ name: "Current User" }}
-          avatarUrl="/placeholder.svg?height=200&width=200"
-          coverImageUrl="/placeholder.svg?height=400&width=1200"
-          params={{ id }}
-        />
-      </PageContainer>
+      <ClientProfilePage
+        user={{ name: "Current User" }}
+        avatarUrl="/placeholder.svg?height=200&width=200"
+        coverImageUrl="/placeholder.svg?height=400&width=1200"
+        params={{ id }}
+      />
     )
   }
 
@@ -44,14 +41,12 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     const coverImageUrl = "/placeholder.svg?height=400&width=1200"
 
     return (
-      <PageContainer>
-        <ClientProfilePage
-          user={user}
-          avatarUrl={avatarUrl}
-          coverImageUrl={coverImageUrl}
-          params={{ id }}
-        />
-      </PageContainer>
+      <ClientProfilePage
+        user={user}
+        avatarUrl={avatarUrl}
+        coverImageUrl={coverImageUrl}
+        params={{ id }}
+      />
     )
   } catch (error) {
     console.error("Error loading user profile:", error)

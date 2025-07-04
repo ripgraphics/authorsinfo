@@ -70,35 +70,70 @@ export async function getFollowers(followingId: string | number, targetType: Fol
   
   const start = (page - 1) * limit
 
-  const { data, error, count } = await supabaseAdmin
+  // First get the follows data
+  const { data: followsData, error: followsError, count } = await supabaseAdmin
     .from('follows')
-    .select(`
-      id,
-      follower_id,
-      created_at,
-      users:follower_id (
-        id,
-        name,
-        email
-      )
-    `, { count: 'exact' })
+    .select('follower_id, created_at', { count: 'exact' })
     .eq('following_id', followingId)
     .eq('target_type_id', targetTypeData.id)
     .order('created_at', { ascending: false })
     .range(start, start + limit - 1)
 
-  if (error) {
-    console.error('Error getting followers:', error)
-    throw error
+  if (followsError) {
+    console.error('Error getting follows:', followsError)
+    throw followsError
   }
 
+  if (!followsData || followsData.length === 0) {
+    return {
+      followers: [],
+      count: count || 0
+    }
+  }
+
+  // Get user IDs from follows
+  const followerIds = followsData.map(follow => follow.follower_id)
+
+  // Fetch user details from auth using admin API
+  const { data: authUsers, error: usersError } = await supabaseAdmin.auth.admin.listUsers()
+
+  if (usersError) {
+    console.error('Error getting user details:', usersError)
+    // Return follows data with fallback names if user fetch fails
+    return {
+      followers: followsData.map(follow => ({
+        id: follow.follower_id,
+        name: 'Unknown User',
+        email: 'unknown@email.com',
+        followSince: follow.created_at
+      })),
+      count: count || 0
+    }
+  }
+
+  // Create a map of user data for quick lookup
+  const userMap = new Map()
+  authUsers?.users?.forEach(user => {
+    const name = user.user_metadata?.name || user.user_metadata?.full_name || 'Unknown User'
+    userMap.set(user.id, {
+      id: user.id,
+      name: name,
+      email: user.email || 'unknown@email.com'
+    })
+  })
+
   return {
-    followers: data?.map(follow => ({
-      id: follow.users?.id || follow.follower_id,
-      name: follow.users?.name || 'Unknown User',
-      email: follow.users?.email || 'unknown@email.com',
-      followSince: follow.created_at
-    })) || [],
+    followers: followsData.map(follow => {
+      const userData = userMap.get(follow.follower_id) || {
+        id: follow.follower_id,
+        name: 'Unknown User',
+        email: 'unknown@email.com'
+      }
+      return {
+        ...userData,
+        followSince: follow.created_at
+      }
+    }),
     count: count || 0
   }
 } 

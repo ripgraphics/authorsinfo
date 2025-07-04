@@ -1,4 +1,1 @@
-npm run schema:download
-
-id,user_id,bio,created_at,updated_at,role
-fa00c53d-626b-4cdc-9a71-bcd3064e449a,ae702730-066d-402e-9a84-9f8bb75ddc7e,I am a web developer,2025-03-31 06:37:05+00,2025-03-31 06:37:13+00,admin
+<a class="flex items-center gap-3 p-3 border rounded-lg hover:bg-accent transition-colors" href="/profile/e06cdf85-b449-4dcb-b943-068aaad8cfa3"><span class="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14 bg-muted"><img alt="Unknown User" class="aspect-square h-full w-full" src="https://api.dicebear.com/7.x/initials/svg?seed=Unknown%20User"></span><div class="flex-1 min-w-0"><h3 class="font-medium truncate">Unknown User</h3><p class="text-xs text-muted-foreground">unknown@email.com</p><p class="text-xs text-muted-foreground">Following since 7/4/2025</p></div></a>

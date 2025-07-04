@@ -29,14 +29,13 @@ export default async function EventsPage({ searchParams: searchParamsPromise }: 
   const totalPages = Math.ceil((count || 0) / limit);
   
   return (
-    <div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {events.map((event) => (
-          <EventCard key={event.id} event={event} />
-        ))}
+    <div className="space-y-6">
+      <div className="py-6">
+        <h1 className="text-3xl font-bold tracking-tight">Events</h1>
+        <p className="text-muted-foreground mt-2">Discover and join book-related events, author meetups, and reading groups.</p>
       </div>
       
-      <div className="flex flex-col md:flex-row gap-8 mt-8">
+      <div className="flex flex-col md:flex-row gap-8">
         {/* Filter sidebar */}
         <div className="w-full md:w-64 shrink-0">
           <div className="bg-white shadow-md rounded-lg p-4">

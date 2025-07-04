@@ -136,10 +136,10 @@ export default function LoginPage() {
   // Autofill and login as user
   const loginAsUser = (userEmail: string) => {
     setEmail(userEmail);
-    setPassword('password123456');
+    setPassword('password123');
     setTimeout(() => {
       console.log("loginAsUser triggered for:", userEmail);
-      handleSignIn(null, userEmail, 'password123456');
+      handleSignIn(null, userEmail, 'password123');
     }, 100);
   };
 
@@ -203,7 +203,7 @@ export default function LoginPage() {
         <CardHeader>
           <CardTitle>Database Users ({users.length})</CardTitle>
           <CardDescription>
-            <strong>Test Password for all users: password123456</strong>
+            <strong>Test Password for all users: password123</strong>
             <br />
             Click a user to log in as them
           </CardDescription>
@@ -241,11 +241,11 @@ export default function LoginPage() {
                   </span>
                   <span className="text-sm">→</span>
                   <span className="text-sm font-mono bg-green-100 px-2 py-1 rounded">
-                    password123456
+                    password123
                   </span>
                 </div>
                 <Button 
-                  onClick={() => users[0] && handleSignIn(null, users[0].email, 'password123456')}
+                  onClick={() => users[0] && handleSignIn(null, users[0].email, 'password123')}
                   disabled={isLoading || !users[0]}
                   size="sm"
                   variant="outline"
@@ -273,7 +273,7 @@ export default function LoginPage() {
                     </div>
                     <div className="bg-green-100 dark:bg-green-900/20 rounded px-2 py-1 mb-3">
                       <span className="text-xs font-mono text-green-800 dark:text-green-200">
-                        Password: password123456
+                        Password: password123
                       </span>
                     </div>
                     <Button size="sm" className="w-full" onClick={() => loginAsUser(user.email)}>

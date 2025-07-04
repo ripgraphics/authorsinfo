@@ -1,0 +1,465 @@
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+export interface ISBNdbBookData {
+  title: string;
+  title_long?: string;
+  isbn: string;
+  isbn13: string;
+  dewey_decimal?: string[];
+  binding?: string;
+  publisher?: string;
+  language?: string;
+  date_published?: string;
+  edition?: string;
+  pages?: number;
+  dimensions?: string;
+  dimensions_structured?: {
+    length?: { unit: string; value: number };
+    width?: { unit: string; value: number };
+    height?: { unit: string; value: number };
+    weight?: { unit: string; value: number };
+  };
+  overview?: string;
+  image?: string;
+  image_original?: string;
+  msrp?: number;
+  excerpt?: string;
+  synopsis?: string;
+  authors?: string[];
+  subjects?: string[];
+  reviews?: string[];
+  prices?: any[];
+  related?: {
+    type: string;
+  };
+  other_isbns?: Array<{
+    isbn: string;
+    binding: string;
+  }>;
+}
+
+export interface DataCollectionStats {
+  totalProcessed: number;
+  totalStored: number;
+  totalUpdated: number;
+  totalSkipped: number;
+  errors: string[];
+  processingTime: number;
+}
+
+export class ISBNdbDataCollector {
+  private apiKey: string;
+  private baseUrl: string;
+
+  constructor(apiKey: string) {
+    this.apiKey = apiKey;
+    this.baseUrl = 'https://api2.isbndb.com';
+  }
+
+  /**
+   * Fetch detailed book information from ISBNdb
+   */
+  async fetchBookDetails(isbn: string): Promise<ISBNdbBookData | null> {
+    try {
+      const response = await fetch(`${this.baseUrl}/book/${isbn}`, {
+        headers: {
+          'Authorization': this.apiKey,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        console.warn(`Failed to fetch book ${isbn}: ${response.status}`);
+        return null;
+      }
+
+      const data = await response.json();
+      return data.book || null;
+    } catch (error) {
+      console.error(`Error fetching book ${isbn}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Search books with comprehensive data collection
+   */
+  async searchBooks(query: string, options: {
+    page?: number;
+    pageSize?: number;
+    column?: string;
+    year?: number;
+    language?: string;
+    shouldMatchAll?: boolean;
+  } = {}): Promise<{ total: number; books: ISBNdbBookData[] }> {
+    try {
+      const params = new URLSearchParams({
+        page: String(options.page || 1),
+        pageSize: String(options.pageSize || 20),
+        ...(options.column && { column: options.column }),
+        ...(options.year && { year: String(options.year) }),
+        ...(options.language && { language: options.language }),
+        ...(options.shouldMatchAll !== undefined && { shouldMatchAll: String(options.shouldMatchAll ? 1 : 0) }),
+      });
+
+      const response = await fetch(`${this.baseUrl}/books/${encodeURIComponent(query)}?${params}`, {
+        headers: {
+          'Authorization': this.apiKey,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`ISBNdb API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Fetch detailed information for each book
+      const detailedBooks = await Promise.all(
+        (data.books || []).map(async (book: any) => {
+          const detailed = await this.fetchBookDetails(book.isbn13 || book.isbn);
+          return detailed || book;
+        })
+      );
+
+      return {
+        total: data.total || detailedBooks.length,
+        books: detailedBooks,
+      };
+    } catch (error) {
+      console.error('Error searching books:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Fetch books by year with comprehensive data
+   */
+  async fetchBooksByYear(year: number, options: {
+    page?: number;
+    pageSize?: number;
+    searchType?: 'recent' | 'year';
+  } = {}): Promise<{ total: number; books: ISBNdbBookData[] }> {
+    try {
+      const params = new URLSearchParams({
+        page: String(options.page || 1),
+        pageSize: String(options.pageSize || 20),
+      });
+
+      let apiUrl: string;
+      if (options.searchType === 'recent') {
+        apiUrl = `${this.baseUrl}/books/recent?${params}&year=${year}`;
+      } else {
+        apiUrl = `${this.baseUrl}/books/${year}?${params}&column=date_published`;
+      }
+
+      const response = await fetch(apiUrl, {
+        headers: {
+          'Authorization': this.apiKey,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`ISBNdb API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Fetch detailed information for each book
+      const detailedBooks = await Promise.all(
+        (data.books || []).map(async (book: any) => {
+          const detailed = await this.fetchBookDetails(book.isbn13 || book.isbn);
+          return detailed || book;
+        })
+      );
+
+      return {
+        total: data.total || detailedBooks.length,
+        books: detailedBooks,
+      };
+    } catch (error) {
+      console.error('Error fetching books by year:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Store book with complete data collection
+   */
+  async storeBookWithCompleteData(bookData: ISBNdbBookData): Promise<any> {
+    try {
+      // Check if book already exists
+      const { data: existingBook } = await supabase
+        .from('books')
+        .select('id, isbn13, isbn')
+        .or(`isbn13.eq.${bookData.isbn13},isbn.eq.${bookData.isbn}`)
+        .single();
+
+      if (existingBook) {
+        // Update existing book
+        const { data: updatedBook, error: updateError } = await supabase
+          .from('books')
+          .update({
+            title: bookData.title || existingBook.title,
+            title_long: bookData.title_long,
+            publisher: bookData.publisher,
+            language: bookData.language,
+            date_published: bookData.date_published,
+            edition: bookData.edition,
+            pages: bookData.pages,
+            dimensions: bookData.dimensions,
+            overview: bookData.overview,
+            synopsis: bookData.synopsis,
+            msrp: bookData.msrp,
+            excerpt: bookData.excerpt,
+            dewey_decimal: bookData.dewey_decimal,
+            related_data: bookData.related,
+            other_isbns: bookData.other_isbns,
+            isbndb_last_updated: new Date().toISOString(),
+            isbndb_data_version: '2.6.0',
+            raw_isbndb_data: bookData,
+          })
+          .eq('id', existingBook.id)
+          .select()
+          .single();
+
+        if (updateError) {
+          throw updateError;
+        }
+
+        // Process additional data
+        await this.processAdditionalData(existingBook.id, bookData);
+
+        return { book: updatedBook, action: 'updated' };
+      } else {
+        // Create new book
+        const { data: newBook, error: insertError } = await supabase
+          .from('books')
+          .insert({
+            title: bookData.title,
+            title_long: bookData.title_long,
+            isbn: bookData.isbn,
+            isbn13: bookData.isbn13,
+            publisher: bookData.publisher,
+            language: bookData.language,
+            date_published: bookData.date_published,
+            edition: bookData.edition,
+            pages: bookData.pages,
+            dimensions: bookData.dimensions,
+            overview: bookData.overview,
+            synopsis: bookData.synopsis,
+            msrp: bookData.msrp,
+            excerpt: bookData.excerpt,
+            dewey_decimal: bookData.dewey_decimal,
+            related_data: bookData.related,
+            other_isbns: bookData.other_isbns,
+            isbndb_last_updated: new Date().toISOString(),
+            isbndb_data_version: '2.6.0',
+            raw_isbndb_data: bookData,
+          })
+          .select()
+          .single();
+
+        if (insertError) {
+          throw insertError;
+        }
+
+        // Process additional data
+        await this.processAdditionalData(newBook.id, bookData);
+
+        // Handle authors and subjects
+        await this.processAuthorsAndSubjects(newBook.id, bookData);
+
+        return { book: newBook, action: 'created' };
+      }
+    } catch (error) {
+      console.error('Error storing book:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Process additional data using database functions
+   */
+  private async processAdditionalData(bookId: string, bookData: ISBNdbBookData) {
+    try {
+      await supabase.rpc('process_complete_isbndb_book_data', {
+        book_uuid: bookId,
+        isbndb_data: bookData
+      });
+    } catch (error) {
+      console.warn('Error processing additional data:', error);
+    }
+  }
+
+  /**
+   * Process authors and subjects for a book
+   */
+  private async processAuthorsAndSubjects(bookId: string, bookData: ISBNdbBookData) {
+    // Handle authors
+    if (bookData.authors && Array.isArray(bookData.authors)) {
+      await Promise.all(
+        bookData.authors.map(async (authorName: string) => {
+          try {
+            // Check if author exists
+            let { data: author } = await supabase
+              .from('authors')
+              .select('id')
+              .eq('name', authorName)
+              .single();
+
+            if (!author) {
+              // Create author
+              const { data: newAuthor } = await supabase
+                .from('authors')
+                .insert({ name: authorName })
+                .select()
+                .single();
+              author = newAuthor;
+            }
+
+            if (author) {
+              // Link author to book
+              await supabase
+                .from('book_authors')
+                .insert({
+                  book_id: bookId,
+                  author_id: author.id,
+                })
+                .onConflict('book_id,author_id')
+                .ignore();
+            }
+          } catch (error) {
+            console.warn(`Error processing author ${authorName}:`, error);
+          }
+        })
+      );
+    }
+
+    // Handle subjects
+    if (bookData.subjects && Array.isArray(bookData.subjects)) {
+      await Promise.all(
+        bookData.subjects.map(async (subjectName: string) => {
+          try {
+            // Check if subject exists
+            let { data: subject } = await supabase
+              .from('subjects')
+              .select('id')
+              .eq('name', subjectName)
+              .single();
+
+            if (!subject) {
+              // Create subject
+              const { data: newSubject } = await supabase
+                .from('subjects')
+                .insert({ name: subjectName })
+                .select()
+                .single();
+              subject = newSubject;
+            }
+
+            if (subject) {
+              // Link subject to book
+              await supabase
+                .from('book_subjects')
+                .insert({
+                  book_id: bookId,
+                  subject_id: subject.id,
+                })
+                .onConflict('book_id,subject_id')
+                .ignore();
+            }
+          } catch (error) {
+            console.warn(`Error processing subject ${subjectName}:`, error);
+          }
+        })
+      );
+    }
+  }
+
+  /**
+   * Bulk import books with comprehensive data collection
+   */
+  async bulkImportBooks(books: ISBNdbBookData[]): Promise<DataCollectionStats> {
+    const startTime = Date.now();
+    const stats: DataCollectionStats = {
+      totalProcessed: 0,
+      totalStored: 0,
+      totalUpdated: 0,
+      totalSkipped: 0,
+      errors: [],
+      processingTime: 0,
+    };
+
+    for (const book of books) {
+      try {
+        stats.totalProcessed++;
+        const result = await this.storeBookWithCompleteData(book);
+        
+        if (result.action === 'created') {
+          stats.totalStored++;
+        } else if (result.action === 'updated') {
+          stats.totalUpdated++;
+        }
+      } catch (error) {
+        stats.totalSkipped++;
+        stats.errors.push(`Error processing book ${book.isbn}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
+
+    stats.processingTime = Date.now() - startTime;
+    return stats;
+  }
+
+  /**
+   * Get comprehensive book data from database
+   */
+  async getCompleteBookData(bookId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('books_complete')
+        .select('*')
+        .eq('id', bookId)
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching complete book data:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Log sync activity
+   */
+  async logSyncActivity(bookId: string, syncType: string, syncStatus: string, details: any = {}) {
+    try {
+      await supabase
+        .from('isbndb_sync_log')
+        .insert({
+          book_id: bookId,
+          sync_type: syncType,
+          sync_status: syncStatus,
+          records_processed: details.recordsProcessed || 0,
+          records_added: details.recordsAdded || 0,
+          records_updated: details.recordsUpdated || 0,
+          records_skipped: details.recordsSkipped || 0,
+          error_message: details.errorMessage,
+          sync_completed_at: new Date().toISOString(),
+        });
+    } catch (error) {
+      console.warn('Error logging sync activity:', error);
+    }
+  }
+} 

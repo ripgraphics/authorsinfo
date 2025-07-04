@@ -1,218 +1,631 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { BookOpen, Check, Calendar, User, Building, Hash, FileText, Star, Link as LucideLink, Download, RefreshCw, Info, AlertCircle } from 'lucide-react';
+import Image from "next/image";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
+import { toast } from '@/hooks/use-toast';
 
-interface PreviewBook {
+interface Book {
+  id?: string;
   title: string;
   title_long?: string;
+  isbn: string;
+  isbn13: string;
+  publisher?: string;
+  date_published?: string;
+  authors?: string[];
+  subjects?: string[];
+  overview?: string;
+  synopsis?: string;
+  excerpt?: string;
+  pages?: number;
+  language?: string;
+  binding?: string;
+  dimensions?: string;
+  msrp?: number;
+  dewey_decimal?: string[];
+  reviews?: string[];
+  other_isbns?: Array<{ isbn: string; binding: string }>;
+  related?: { type: string };
   image?: string;
   image_original?: string;
-  authors: string[];
-  date_published: string;
-  publisher: string;
-  pages: number;
-  dimensions?: string;
-  edition?: string;
-  msrp?: number;
-  dimensions_structured?: { weight?: { value: number; unit: string } };
-  isbn10?: string;
-  isbn?: string;
+  isbndb_last_updated?: string;
+  isbndb_data_version?: string;
+  raw_isbndb_data?: any;
 }
 
-interface ImportResult {
-  added: number;
-  duplicates: number;
-  errors: number;
-  errorDetails?: string[];
-  logs?: string[];
+interface SearchResponse {
+  total: number;
+  books: Book[];
+  searchType: string;
+  year: string;
+  page: number;
+  pageSize: number;
+}
+
+interface ImportResponse {
+  total: number;
+  stored: number;
+  books: Book[];
 }
 
 export default function NewBooksPage() {
-  const [previewBooks, setPreviewBooks] = useState<PreviewBook[]>([]);
-  const [newIsbns, setNewIsbns] = useState<string[]>([]);
-  const [fetchingPreview, setFetchingPreview] = useState(false);
-  const [previewError, setPreviewError] = useState<string | null>(null);
-  const [previewMessage, setPreviewMessage] = useState<string | null>(null);
-
+  const [year, setYear] = useState(new Date().getFullYear().toString());
+  const [searchType, setSearchType] = useState<'recent' | 'year'>('recent');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [books, setBooks] = useState<Book[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
   const [importing, setImporting] = useState(false);
-  const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  const [selectedBooks, setSelectedBooks] = useState<Set<string>>(new Set());
+  const [importProgress, setImportProgress] = useState(0);
+  const [importStats, setImportStats] = useState<any>(null);
+  const [sortBy, setSortBy] = useState<'date' | 'title' | 'author'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  const fetchPreview = async () => {
-    setFetchingPreview(true);
-    setPreviewError(null);
-    setPreviewMessage(null);
-    setPreviewBooks([]);
-    setNewIsbns([]);
-    
+  const fetchBooks = async () => {
+    setLoading(true);
     try {
-      console.log('Fetching preview from /api/isbn/preview-new...');
-      const res = await fetch('/api/isbn/preview-new');
-      console.log('Response status:', res.status);
-      
-      if (!res.ok) throw new Error(`Error: ${res.status} ${res.statusText}`);
-      
-      const data = await res.json();
-      console.log('Preview data:', data);
-      
-      setPreviewBooks(data.books || []);
-      setNewIsbns(data.newIsbns || []);
-      
-      if (data.message) {
-        setPreviewMessage(data.message);
+      const params = new URLSearchParams({
+        year,
+        page: page.toString(),
+        pageSize: pageSize.toString(),
+        searchType,
+      });
+
+      const response = await fetch(`/api/isbn/fetch-by-year?${params}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch books');
       }
+
+      const data: SearchResponse = await response.json();
+      setBooks(data.books || []);
+      setTotal(data.total || 0);
       
-      if (!data.books || data.books.length === 0) {
-        setPreviewMessage('No preview books available. The new_books.json file is not present or empty.');
-      }
-    } catch (err) {
-      console.error('Error fetching preview:', err);
-      setPreviewError(err instanceof Error ? err.message : 'Unknown error');
+      toast({
+        title: "Books fetched successfully",
+        description: `Found ${data.total} books for ${data.searchType === 'recent' ? 'recent publications in' : ''} ${data.year}`,
+      });
+    } catch (error) {
+      console.error('Error fetching books:', error);
+      toast({
+        title: "Error fetching books",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
+      });
     } finally {
-      setFetchingPreview(false);
+      setLoading(false);
     }
   };
 
-  const importNewBooks = async () => {
+  const importSelectedBooks = async () => {
+    if (selectedBooks.size === 0) {
+      toast({
+        title: "No books selected",
+        description: "Please select at least one book to import",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setImporting(true);
-    setImportResult(null);
+    setImportProgress(0);
+    setImportStats(null);
+
     try {
-      const res = await fetch('/api/isbn/import-all');
-      if (!res.ok) throw new Error(`Error: ${res.status} ${res.statusText}`);
-      const data: ImportResult = await res.json();
-      setImportResult(data);
-    } catch (err) {
-      setImportResult({ added: 0, duplicates: 0, errors: 1, errorDetails: [err instanceof Error ? err.message : 'Unknown error'], logs: [] });
+      const selectedBookList = books.filter(book => 
+        selectedBooks.has(book.isbn13 || book.isbn)
+      );
+
+      const response = await fetch('/api/isbn/fetch-by-year', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          isbns: selectedBookList.map(book => book.isbn13 || book.isbn),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to import books');
+      }
+
+      const data: ImportResponse = await response.json();
+      setImportProgress(100);
+      setImportStats({
+        total: data.total,
+        stored: data.stored,
+        success: true,
+      });
+
+      toast({
+        title: "Import completed",
+        description: `Successfully imported ${data.stored} out of ${data.total} books`,
+      });
+
+      // Clear selection
+      setSelectedBooks(new Set());
+      
+      // Refresh the book list to show updated status
+      await fetchBooks();
+    } catch (error) {
+      console.error('Error importing books:', error);
+      setImportStats({
+        error: error instanceof Error ? error.message : "Unknown error occurred",
+        success: false,
+      });
+      toast({
+        title: "Import failed",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
+      });
     } finally {
       setImporting(false);
     }
   };
 
+  const toggleBookSelection = (isbn: string) => {
+    const newSelection = new Set(selectedBooks);
+    if (newSelection.has(isbn)) {
+      newSelection.delete(isbn);
+    } else {
+      newSelection.add(isbn);
+    }
+    setSelectedBooks(newSelection);
+  };
+
+  const selectAllBooks = () => {
+    const allIsbns = books.map(book => book.isbn13 || book.isbn);
+    setSelectedBooks(new Set(allIsbns));
+  };
+
+  const clearSelection = () => {
+    setSelectedBooks(new Set());
+  };
+
+  const sortedBooks = [...books].sort((a, b) => {
+    let aValue: any, bValue: any;
+
+    switch (sortBy) {
+      case 'date':
+        aValue = a.date_published || '';
+        bValue = b.date_published || '';
+        break;
+      case 'title':
+        aValue = a.title || '';
+        bValue = b.title || '';
+        break;
+      case 'author':
+        aValue = a.authors?.[0] || '';
+        bValue = b.authors?.[0] || '';
+        break;
+      default:
+        return 0;
+    }
+
+    if (sortOrder === 'asc') {
+      return aValue.localeCompare(bValue);
+    } else {
+      return bValue.localeCompare(aValue);
+    }
+  });
+
+  useEffect(() => {
+    fetchBooks();
+  }, [year, searchType, page, pageSize]);
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'Unknown';
+    try {
+      return new Date(dateString).toLocaleDateString();
+    } catch {
+      return dateString;
+    }
+  };
+
+  const truncateText = (text?: string, maxLength: number = 150) => {
+    if (!text) return '';
+    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+  };
+
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">New Books Preview</h1>
-      <p className="text-gray-600 mb-4">
-        Preview and import new books from the static book list. This feature requires a new_books.json file to be present.
-      </p>
-      
-      <button
-        onClick={fetchPreview}
-        disabled={fetchingPreview}
-        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-      >
-        {fetchingPreview ? 'Fetching Preview...' : 'Preview New Books'}
-      </button>
-      
-      {previewError && (
-        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded">
-          <p className="text-red-600 font-semibold">Error:</p>
-          <p className="text-red-600">{previewError}</p>
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Latest Books from ISBNdb</h1>
+          <p className="text-muted-foreground">
+            Discover and import the newest books with comprehensive data collection
+          </p>
         </div>
-      )}
-      
-      {previewMessage && (
-        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded">
-          <p className="text-blue-600">{previewMessage}</p>
+        <div className="flex items-center space-x-2">
+          <Button
+            onClick={fetchBooks}
+            disabled={loading}
+            variant="outline"
+            size="sm"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
         </div>
+      </div>
+
+      {/* Search Controls */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Search Configuration</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="year">Year</Label>
+              <Input
+                id="year"
+                type="number"
+                value={year}
+                onChange={(e) => setYear(e.target.value)}
+                min="1900"
+                max={new Date().getFullYear()}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="searchType">Search Type</Label>
+              <Select value={searchType} onValueChange={(value: 'recent' | 'year') => setSearchType(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="recent">Recent Publications</SelectItem>
+                  <SelectItem value="year">Specific Year</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="pageSize">Page Size</Label>
+              <Select value={pageSize.toString()} onValueChange={(value) => setPageSize(parseInt(value))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="sortBy">Sort By</Label>
+              <Select value={sortBy} onValueChange={(value: 'date' | 'title' | 'author') => setSortBy(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="date">Publication Date</SelectItem>
+                  <SelectItem value="title">Title</SelectItem>
+                  <SelectItem value="author">Author</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex items-center space-x-4">
+            <Button
+              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              variant="outline"
+              size="sm"
+            >
+              {sortOrder === 'asc' ? '↑ Ascending' : '↓ Descending'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Import Progress */}
+      {importing && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Download className="h-5 w-5 mr-2" />
+              Importing Books
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Progress value={importProgress} className="mb-4" />
+            <p className="text-sm text-muted-foreground">
+              Processing {selectedBooks.size} selected books...
+            </p>
+          </CardContent>
+        </Card>
       )}
 
-      {previewBooks.length > 0 && (
-        <>
-          <div className="mt-6">
-            <h2 className="text-xl font-semibold mb-4">
-              Preview Books ({previewBooks.length} books, {newIsbns.length} new)
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {previewBooks.map((book, idx) => (
-                <div key={idx} className={`border rounded shadow p-4 ${newIsbns.includes(book.isbn10 || book.isbn || '') ? 'bg-green-100' : 'bg-gray-50'}`}>
-                  {(book.image || book.image_original) && (
-                    <img
-                      src={book.image_original || book.image}
-                      alt={book.title}
-                      className="w-full h-48 object-cover rounded mb-4"
-                    />
-                  )}
-                  <h3 className="text-lg font-semibold">{book.title}</h3>
-                  {book.title_long && (
-                    <p className="text-gray-600 italic">{book.title_long}</p>
-                  )}
-                  <p className="text-gray-600">{book.authors.join(', ')}</p>
-                  <p className="text-sm text-gray-500">
-                    {new Date(book.date_published).toLocaleDateString()}
-                  </p>
-                  <p className="text-sm text-gray-500">Publisher: {book.publisher}</p>
-                  <p className="text-sm text-gray-500">{book.pages} pages</p>
-                  {book.dimensions && (
-                    <p className="text-sm text-gray-500">Dimensions: {book.dimensions}</p>
-                  )}
-                  {book.dimensions_structured?.weight && (
-                    <p className="text-sm text-gray-500">
-                      Weight: {book.dimensions_structured.weight.value} {book.dimensions_structured.weight.unit}
+      {/* Import Results */}
+      {importStats && (
+        <Alert className={importStats.success ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}>
+          {importStats.success ? (
+            <Check className="h-4 w-4 text-green-600" />
+          ) : (
+            <AlertCircle className="h-4 w-4 text-red-600" />
+          )}
+          <AlertDescription className={importStats.success ? "text-green-800" : "text-red-800"}>
+            {importStats.success ? (
+              `Successfully imported ${importStats.stored} out of ${importStats.total} books`
+            ) : (
+              `Import failed: ${importStats.error}`
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Results Summary */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <p className="text-sm text-muted-foreground">
+            Found {total} books for {searchType === 'recent' ? 'recent publications in' : ''} {year}
+          </p>
+          <Badge variant="secondary">
+            Page {page} of {Math.ceil(total / pageSize)}
+          </Badge>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            onClick={selectAllBooks}
+            variant="outline"
+            size="sm"
+            disabled={books.length === 0}
+          >
+            Select All
+          </Button>
+          <Button
+            onClick={clearSelection}
+            variant="outline"
+            size="sm"
+            disabled={selectedBooks.size === 0}
+          >
+            Clear Selection
+          </Button>
+          <Button
+            onClick={importSelectedBooks}
+            disabled={selectedBooks.size === 0 || importing}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Import Selected ({selectedBooks.size})
+          </Button>
+        </div>
+      </div>
+
+      {/* Books Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {sortedBooks.map((book) => {
+          const isSelected = selectedBooks.has(book.isbn13 || book.isbn);
+          const hasEnhancedData = book.excerpt || book.reviews || book.other_isbns || book.dewey_decimal;
+          
+          return (
+            <Card key={book.isbn13 || book.isbn} className={`relative ${isSelected ? 'ring-2 ring-blue-500' : ''}`}>
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-lg leading-tight mb-2">
+                      {book.title}
+                    </CardTitle>
+                    {book.title_long && book.title_long !== book.title && (
+                      <p className="text-sm text-muted-foreground mb-2">
+                        {truncateText(book.title_long, 100)}
+                      </p>
+                    )}
+                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                      <Calendar className="h-3 w-3" />
+                      <span>{formatDate(book.date_published)}</span>
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => toggleBookSelection(book.isbn13 || book.isbn)}
+                    className="ml-2 h-4 w-4"
+                  />
+                </div>
+              </CardHeader>
+              
+              <CardContent className="space-y-3">
+                {/* Authors */}
+                {book.authors && book.authors.length > 0 && (
+                  <div className="flex items-start space-x-2">
+                    <User className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                    <div className="flex flex-wrap gap-1">
+                      {book.authors.map((author, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {author}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Publisher */}
+                {book.publisher && (
+                  <div className="flex items-center space-x-2">
+                    <Building className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">{book.publisher}</span>
+                  </div>
+                )}
+
+                {/* ISBNs */}
+                <div className="flex items-center space-x-2">
+                  <Hash className="h-4 w-4 text-muted-foreground" />
+                  <div className="text-sm space-y-1">
+                    {book.isbn13 && <div>ISBN-13: {book.isbn13}</div>}
+                    {book.isbn && <div>ISBN-10: {book.isbn}</div>}
+                  </div>
+                </div>
+
+                {/* Enhanced Data Indicators */}
+                {hasEnhancedData && (
+                  <div className="flex items-center space-x-2">
+                    <Info className="h-4 w-4 text-blue-500" />
+                    <div className="flex flex-wrap gap-1">
+                      {book.excerpt && <Badge variant="secondary" className="text-xs">Excerpt</Badge>}
+                      {book.reviews && book.reviews.length > 0 && <Badge variant="secondary" className="text-xs">Reviews</Badge>}
+                      {book.other_isbns && book.other_isbns.length > 0 && <Badge variant="secondary" className="text-xs">Variants</Badge>}
+                      {book.dewey_decimal && book.dewey_decimal.length > 0 && <Badge variant="secondary" className="text-xs">Dewey</Badge>}
+                    </div>
+                  </div>
+                )}
+
+                {/* Overview/Synopsis */}
+                {(book.overview || book.synopsis) && (
+                  <div className="space-y-1">
+                    <div className="flex items-center space-x-2">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Description</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {truncateText(book.overview || book.synopsis, 120)}
                     </p>
+                  </div>
+                )}
+
+                {/* Excerpt */}
+                {book.excerpt && (
+                  <div className="space-y-1">
+                    <div className="flex items-center space-x-2">
+                      <BookOpen className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Excerpt</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {truncateText(book.excerpt, 100)}
+                    </p>
+                  </div>
+                )}
+
+                {/* Reviews */}
+                {book.reviews && book.reviews.length > 0 && (
+                  <div className="space-y-1">
+                    <div className="flex items-center space-x-2">
+                      <Star className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Reviews ({book.reviews.length})</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {truncateText(book.reviews[0], 80)}
+                    </p>
+                  </div>
+                )}
+
+                {/* Additional Details */}
+                <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                  {book.pages && (
+                    <div>Pages: {book.pages}</div>
                   )}
-                  {book.edition && (
-                    <p className="text-sm text-gray-500">Edition: {book.edition}</p>
+                  {book.language && (
+                    <div>Language: {book.language}</div>
                   )}
-                  {book.msrp !== undefined && (
-                    <p className="text-sm text-gray-500">MSRP: ${book.msrp}</p>
+                  {book.binding && (
+                    <div>Binding: {book.binding}</div>
                   )}
-                  {newIsbns.includes(book.isbn10 || book.isbn || '') && (
-                    <span className="inline-block mt-2 px-2 py-1 bg-green-200 text-green-800 text-xs rounded">
-                      New Book
-                    </span>
+                  {book.msrp && (
+                    <div>MSRP: ${book.msrp}</div>
                   )}
                 </div>
-              ))}
-            </div>
 
-            <button
-              onClick={importNewBooks}
-              disabled={importing || newIsbns.length === 0}
-              className="mt-6 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
-            >
-              {importing ? 'Importing...' : `Import ${newIsbns.length} New Books`}
-            </button>
-          </div>
-        </>
+                {/* Subjects */}
+                {book.subjects && book.subjects.length > 0 && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-medium">Subjects:</span>
+                    <div className="flex flex-wrap gap-1">
+                      {book.subjects.slice(0, 3).map((subject, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {subject}
+                        </Badge>
+                      ))}
+                      {book.subjects.length > 3 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{book.subjects.length - 3} more
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Dewey Decimal */}
+                {book.dewey_decimal && book.dewey_decimal.length > 0 && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-medium">Dewey Decimal:</span>
+                    <div className="flex flex-wrap gap-1">
+                      {book.dewey_decimal.slice(0, 2).map((dewey, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {dewey}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Other ISBNs */}
+                {book.other_isbns && book.other_isbns.length > 0 && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-medium">Other Formats:</span>
+                    <div className="flex flex-wrap gap-1">
+                      {book.other_isbns.slice(0, 2).map((variant, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {variant.binding} ({variant.isbn})
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* Pagination */}
+      {total > pageSize && (
+        <div className="flex items-center justify-center space-x-2">
+          <Button
+            onClick={() => setPage(Math.max(1, page - 1))}
+            disabled={page === 1}
+            variant="outline"
+            size="sm"
+          >
+            Previous
+          </Button>
+          <span className="text-sm">
+            Page {page} of {Math.ceil(total / pageSize)}
+          </span>
+          <Button
+            onClick={() => setPage(page + 1)}
+            disabled={page >= Math.ceil(total / pageSize)}
+            variant="outline"
+            size="sm"
+          >
+            Next
+          </Button>
+        </div>
       )}
 
-      {importResult && (
-        <div className="mt-6 p-4 bg-gray-50 border rounded">
-          <h2 className="text-xl font-semibold mb-2">Import Result</h2>
-          <div className="grid grid-cols-3 gap-4 mb-4">
+      {books.length === 0 && !loading && (
+        <Card>
+          <CardContent className="flex items-center justify-center py-12">
             <div className="text-center">
-              <p className="text-2xl font-bold text-green-600">{importResult.added}</p>
-              <p className="text-sm text-gray-600">Added</p>
+              <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">No books found for the selected criteria</p>
             </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-yellow-600">{importResult.duplicates}</p>
-              <p className="text-sm text-gray-600">Duplicates</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-red-600">{importResult.errors}</p>
-              <p className="text-sm text-gray-600">Errors</p>
-            </div>
-          </div>
-          
-          {importResult.errorDetails && importResult.errorDetails.length > 0 && (
-            <div className="mb-4">
-              <h3 className="font-semibold text-red-600">Error Details:</h3>
-              <ul className="list-disc list-inside text-sm">
-                {importResult.errorDetails.map((err, i) => (
-                  <li key={i}>{err}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-          
-          {importResult.logs && importResult.logs.length > 0 && (
-            <div>
-              <h3 className="font-semibold mb-2">Logs:</h3>
-              <pre className="bg-white p-4 overflow-auto max-h-64 whitespace-pre-wrap text-sm border rounded">
-                {importResult.logs.join('\n')}
-              </pre>
-            </div>
-          )}
-        </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

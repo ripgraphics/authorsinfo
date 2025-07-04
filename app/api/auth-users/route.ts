@@ -1,11 +1,14 @@
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { supabaseAdmin } from '@/lib/supabase-admin'
 
 export async function GET(request: Request) {
   try {
     const cookieStore = await cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    // Use admin client for fetching all users
+    const adminSupabase = supabaseAdmin
     
     // Check if we're looking for a specific user
     const { searchParams } = new URL(request.url)
@@ -58,8 +61,9 @@ export async function GET(request: Request) {
       return NextResponse.json({ user: transformedUser })
     }
     
-    // Get all users from the public.users table
-    const { data: users, error: usersError } = await supabase
+    // Get all users from the public.users table using admin client
+    console.log('🔍 Fetching users from public.users table...')
+    const { data: users, error: usersError } = await adminSupabase
       .from('users')
       .select(`
         id,
@@ -71,13 +75,15 @@ export async function GET(request: Request) {
       `)
       .order('created_at', { ascending: false })
     
+    console.log('📊 Users query result:', { usersCount: users?.length || 0, error: usersError?.message || null })
+    
     if (usersError) {
       console.error('Error fetching users:', usersError)
       return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 })
     }
     
-    // Get all profiles
-    const { data: profiles, error: profilesError } = await supabase
+    // Get all profiles using admin client
+    const { data: profiles, error: profilesError } = await adminSupabase
       .from('profiles')
       .select(`
         id,

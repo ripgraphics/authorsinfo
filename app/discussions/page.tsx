@@ -1,10 +1,9 @@
 import { Suspense } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Building, Search, Filter } from "lucide-react"
+import { MessageSquare, Search, Filter } from "lucide-react"
 import {
   Pagination,
   PaginationContent,
@@ -28,181 +27,145 @@ import {
 } from "@/components/ui/sheet"
 import { Label } from "@/components/ui/label"
 
-interface PublishersPageProps {
+interface DiscussionsPageProps {
   searchParams: {
     page?: string
     search?: string
-    location?: string
+    category?: string
     sort?: string
   }
 }
 
-// Function to detect the location field in the publishers table
-async function detectLocationField() {
+// Function to get unique discussion categories
+async function getUniqueCategories() {
   try {
-    // Get a sample publisher to examine its structure
-    const { data: samplePublisher, error } = await supabaseAdmin.from("publishers").select("*").limit(1).single()
-
-    if (error || !samplePublisher) {
-      console.error("Error fetching sample publisher:", error)
-      return null
-    }
-
-    // Check for various possible location field names
-    const possibleLocationFields = ["location", "headquarters", "hq", "address", "city", "country", "region", "state"]
-
-    // Find the first field that exists in the publisher object
-    const locationField = possibleLocationFields.find(
-      (field) => field in samplePublisher && samplePublisher[field] !== null,
-    )
-
-    console.log("Detected location field:", locationField)
-    return locationField || null
-  } catch (error) {
-    console.error("Error detecting location field:", error)
-    return null
-  }
-}
-
-async function getUniqueLocations() {
-  try {
-    // Detect the location field
-    const locationField = await detectLocationField()
-
-    if (!locationField) {
-      console.log("No location field found in publishers table")
-      return []
-    }
-
-    // Use the detected field to fetch unique locations
     const { data, error } = await supabaseAdmin
-      .from("publishers")
-      .select(locationField)
-      .not(locationField, "is", null)
-      .order(locationField)
+      .from("discussions")
+      .select("category")
+      .not("category", "is", null)
+      .order("category")
 
     if (error) {
-      console.error(`Error fetching ${locationField}:`, error)
+      console.error("Error fetching discussion categories:", error)
       return []
     }
 
-    // Extract unique locations
-    const uniqueLocations = Array.from(new Set(data.map((item) => item[locationField]).filter(Boolean)))
+    // Extract unique categories
+    const uniqueCategories = Array.from(new Set(data.map((item) => item.category).filter(Boolean)))
 
-    return uniqueLocations
+    return uniqueCategories
   } catch (error) {
-    console.error("Error fetching locations:", error)
+    console.error("Error fetching categories:", error)
     return []
   }
 }
 
-async function PublishersList({
+async function DiscussionsList({
   page,
   search,
-  location,
+  category,
   sort,
 }: {
   page: number
   search?: string
-  location?: string
+  category?: string
   sort?: string
 }) {
   const pageSize = 24
   const offset = (page - 1) * pageSize
 
-  // Detect the location field
-  const locationField = await detectLocationField()
-
   // Build the query
-  let query = supabaseAdmin.from("publishers").select("*")
+  let query = supabaseAdmin.from("discussions").select("*")
 
   // Apply search filter if provided
   if (search) {
-    query = query.ilike("name", `%${search}%`)
+    query = query.ilike("title", `%${search}%`)
   }
 
-  // Apply location filter if provided and location field exists
-  if (location && location !== "all" && locationField) {
-    query = query.eq(locationField, location)
+  // Apply category filter if provided
+  if (category && category !== "all") {
+    query = query.eq("category", category)
   }
 
   // Apply sorting
-  if (sort === "name_asc") {
-    query = query.order("name", { ascending: true })
-  } else if (sort === "name_desc") {
-    query = query.order("name", { ascending: false })
-  } else if (sort === "founded_year_asc") {
-    query = query.order("founded_year", { ascending: true })
-  } else if (sort === "founded_year_desc") {
-    query = query.order("founded_year", { ascending: false })
+  if (sort === "title_asc") {
+    query = query.order("title", { ascending: true })
+  } else if (sort === "title_desc") {
+    query = query.order("title", { ascending: false })
+  } else if (sort === "created_at_asc") {
+    query = query.order("created_at", { ascending: true })
+  } else if (sort === "created_at_desc") {
+    query = query.order("created_at", { ascending: false })
   } else {
     // Default sorting
-    query = query.order("name", { ascending: true })
+    query = query.order("created_at", { ascending: false })
   }
 
   // Apply pagination
   query = query.range(offset, offset + pageSize - 1)
 
   // Execute the query
-  const { data: publishers, error } = await query
+  const { data: discussions, error } = await query
 
   if (error) {
-    console.error("Error fetching publishers:", error)
-    return <div>Error loading publishers</div>
+    console.error("Error fetching discussions:", error)
+    return <div>Error loading discussions</div>
   }
 
   // Get total count for pagination
-  let countQuery = supabaseAdmin.from("publishers").select("*", { count: "exact", head: true })
+  let countQuery = supabaseAdmin.from("discussions").select("*", { count: "exact", head: true })
 
   if (search) {
-    countQuery = countQuery.ilike("name", `%${search}%`)
+    countQuery = countQuery.ilike("title", `%${search}%`)
   }
 
-  if (location && location !== "all" && locationField) {
-    countQuery = countQuery.eq(locationField, location)
+  if (category && category !== "all") {
+    countQuery = countQuery.eq("category", category)
   }
 
   const { count, error: countError } = await countQuery
 
   if (countError) {
-    console.error("Error counting publishers:", countError)
-    return <div>Error loading publishers</div>
+    console.error("Error counting discussions:", countError)
+    return <div>Error loading discussions</div>
   }
 
-  const totalPublishers = count || 0
-  const totalPages = Math.ceil(totalPublishers / pageSize)
+  const totalDiscussions = count || 0
+  const totalPages = Math.ceil(totalDiscussions / pageSize)
 
-  // Get unique locations for the filter
-  const locationsList = await getUniqueLocations()
+  // Get unique categories for the filter
+  const categoriesList = await getUniqueCategories()
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
-        {publishers.length > 0 ? (
-          publishers.map((publisher) => (
-            <Link href={`/publishers/${publisher.id}`} key={publisher.id} className="block">
+        {discussions.length > 0 ? (
+          discussions.map((discussion) => (
+            <Link href={`/discussions/${discussion.id}`} key={discussion.id} className="block">
               <Card className="overflow-hidden h-full transition-transform hover:scale-105">
-                <div className="relative w-full" style={{ aspectRatio: "7/4" }}>
-                  {publisher.logo_url ? (
+                <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
+                  {discussion.cover_image_url ? (
                     <Image
-                      src={publisher.logo_url || "/placeholder.svg"}
-                      alt={publisher.name}
+                      src={discussion.cover_image_url || "/placeholder.svg"}
+                      alt={discussion.title || "Discussion"}
                       fill
-                      className="object-contain p-4"
+                      className="object-cover"
                     />
                   ) : (
                     <div className="w-full h-full bg-muted flex items-center justify-center">
-                      <Building className="h-12 w-12 text-muted-foreground" />
+                      <MessageSquare className="h-12 w-12 text-muted-foreground" />
                     </div>
                   )}
                 </div>
                 <CardContent className="p-3">
-                  <h3 className="font-medium text-sm line-clamp-1">{publisher.name}</h3>
-                  {locationField && publisher[locationField] && (
-                    <p className="text-sm text-muted-foreground line-clamp-1">{publisher[locationField]}</p>
+                  <h3 className="font-medium text-sm line-clamp-1">{discussion.title || "Untitled"}</h3>
+                  {discussion.category && (
+                    <p className="text-sm text-muted-foreground line-clamp-1">{discussion.category}</p>
                   )}
-                  {publisher.founded_year && (
-                    <p className="text-xs text-muted-foreground mt-1">Est. {publisher.founded_year}</p>
+                  {discussion.created_at && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {new Date(discussion.created_at).toLocaleDateString()}
+                    </p>
                   )}
                 </CardContent>
               </Card>
@@ -210,7 +173,7 @@ async function PublishersList({
           ))
         ) : (
           <div className="col-span-full text-center py-12">
-            <p className="text-muted-foreground">No publishers found. Try adjusting your search or filters.</p>
+            <p className="text-muted-foreground">No discussions found. Try adjusting your search or filters.</p>
           </div>
         )}
       </div>
@@ -221,8 +184,8 @@ async function PublishersList({
             {page > 1 && (
               <PaginationItem>
                 <PaginationPrevious
-                  href={`/publishers?page=${page - 1}${search ? `&search=${search}` : ""}${
-                    location ? `&location=${location}` : ""
+                  href={`/discussions?page=${page - 1}${search ? `&search=${search}` : ""}${
+                    category ? `&category=${category}` : ""
                   }${sort ? `&sort=${sort}` : ""}`}
                 />
               </PaginationItem>
@@ -236,8 +199,8 @@ async function PublishersList({
               return (
                 <PaginationItem key={pageNumber}>
                   <PaginationLink
-                    href={`/publishers?page=${pageNumber}${search ? `&search=${search}` : ""}${
-                      location ? `&location=${location}` : ""
+                    href={`/discussions?page=${pageNumber}${search ? `&search=${search}` : ""}${
+                      category ? `&category=${category}` : ""
                     }${sort ? `&sort=${sort}` : ""}`}
                     isActive={pageNumber === page}
                   >
@@ -250,8 +213,8 @@ async function PublishersList({
             {page < totalPages && (
               <PaginationItem>
                 <PaginationNext
-                  href={`/publishers?page=${page + 1}${search ? `&search=${search}` : ""}${
-                    location ? `&location=${location}` : ""
+                  href={`/discussions?page=${page + 1}${search ? `&search=${search}` : ""}${
+                    category ? `&category=${category}` : ""
                   }${sort ? `&sort=${sort}` : ""}`}
                 />
               </PaginationItem>
@@ -263,103 +226,32 @@ async function PublishersList({
   )
 }
 
-export default function PublishersPage({ searchParams }: PublishersPageProps) {
-  const page = Number(searchParams.page) || 1
-  const search = searchParams.search || ""
-  const location = searchParams.location || ""
-  const sort = searchParams.sort || "name_asc"
+export default async function DiscussionsPage({ searchParams }: DiscussionsPageProps) {
+  // Get all required data first
+  const [categoriesList, params] = await Promise.all([
+    getUniqueCategories(),
+    Promise.resolve(searchParams)
+  ])
+
+  const page = params?.page ? parseInt(params.page) : 1
+  const search = params?.search
+  const category = params?.category
+  const sort = params?.sort
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <PageHeader />
-      <main className="flex-1 container py-8">
-        <div className="space-y-6">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <h1 className="text-3xl font-bold">Publishers</h1>
-
-            <div className="flex flex-col sm:flex-row w-full md:w-auto gap-4">
-              <div className="relative flex-1 sm:max-w-md">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <form>
-                  <Input
-                    type="search"
-                    name="search"
-                    placeholder="Search publishers..."
-                    className="pl-8"
-                    defaultValue={search}
-                  />
-                </form>
-              </div>
-
-              <div className="flex gap-2">
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <Button variant="outline" className="flex items-center gap-2">
-                      <Filter className="h-4 w-4" />
-                      <span>Filters</span>
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent>
-                    <SheetHeader>
-                      <SheetTitle>Filter Publishers</SheetTitle>
-                      <SheetDescription>Apply filters to narrow down the list of publishers.</SheetDescription>
-                    </SheetHeader>
-                    <form action="/publishers" className="py-4 space-y-6">
-                      {/* Hidden fields to preserve other params */}
-                      <input type="hidden" name="page" value="1" />
-                      {search && <input type="hidden" name="search" value={search} />}
-
-                      <div className="space-y-4">
-                        <Label htmlFor="location">Location</Label>
-                        <Select name="location" defaultValue={location}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="All locations" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All locations</SelectItem>
-                            <Suspense fallback={<SelectItem value="loading">Loading...</SelectItem>}>
-                              {/* This will be populated server-side */}
-                            </Suspense>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-4">
-                        <Label htmlFor="sort">Sort By</Label>
-                        <Select name="sort" defaultValue={sort}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Name (A-Z)" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="name_asc">Name (A-Z)</SelectItem>
-                            <SelectItem value="name_desc">Name (Z-A)</SelectItem>
-                            <SelectItem value="founded_year_asc">Founded Year (Oldest first)</SelectItem>
-                            <SelectItem value="founded_year_desc">Founded Year (Newest first)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <SheetFooter>
-                        <SheetClose asChild>
-                          <Button type="submit">Apply Filters</Button>
-                        </SheetClose>
-                      </SheetFooter>
-                    </form>
-                  </SheetContent>
-                </Sheet>
-
-                <Link href="/publishers/add">
-                  <Button>Add New Publisher</Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          <Suspense fallback={<div>Loading publishers...</div>}>
-            <PublishersList page={page} search={search} location={location} sort={sort} />
-          </Suspense>
-        </div>
-      </main>
+    <div className="space-y-6">
+      <div className="py-6">
+        <h1 className="text-3xl font-bold tracking-tight">Discussions</h1>
+        <p className="text-muted-foreground mt-2">Browse and discover discussions from our community.</p>
+      </div>
+      <Suspense fallback={<div>Loading...</div>}>
+        <DiscussionsList
+          page={page}
+          search={search}
+          category={category}
+          sort={sort}
+        />
+      </Suspense>
     </div>
   )
 }

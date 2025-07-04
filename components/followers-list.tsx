@@ -29,7 +29,7 @@ export function FollowersList({
 }: FollowersListProps) {
   const content = (
     <>
-      {!hideHeader && (
+      {!hideHeader && !hideContainer && (
         <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
           <div className="text-2xl font-semibold leading-none tracking-tight">Followers</div>
           <Link 
@@ -70,7 +70,7 @@ export function FollowersList({
                       decoding="async"
                       data-nimg="1"
                       className="object-cover rounded-full"
-                      src={follower.avatar_url || "/placeholder.svg?height=100&width=100"}
+                      src={follower.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(follower.name || 'User')}`}
                       style={{ color: "transparent", aspectRatio: "1 / 1" }}
                     />
                   </div>

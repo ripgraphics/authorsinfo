@@ -61,12 +61,17 @@ export default function GroupsPage() {
   }, [router, searchQuery])
 
   return (
-    <>
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Groups</h1>
-        <Button onClick={() => router.push('/groups/create')}>
-          Create Group
-        </Button>
+    <div className="space-y-6">
+      <div className="py-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Groups</h1>
+            <p className="text-muted-foreground mt-2">Join and participate in book-related communities.</p>
+          </div>
+          <Button onClick={() => router.push('/groups/create')}>
+            Create Group
+          </Button>
+        </div>
       </div>
 
       <div className="mb-6">
@@ -77,7 +82,7 @@ export default function GroupsPage() {
           onChange={(e) => setSearchQuery(e.target.value)}
           className="max-w-md"
         />
-                  </div>
+      </div>
 
       {error && (
         <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6">
@@ -140,6 +145,6 @@ export default function GroupsPage() {
           ))
         )}
       </div>
-    </>
+    </div>
   )
 }

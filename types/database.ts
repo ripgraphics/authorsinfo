@@ -52,29 +52,7 @@ export type Database = {
           user_id?: string
           user_profile_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "activities_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "activities_list_id_fkey"
-            columns: ["list_id"]
-            isOneToOne: false
-            referencedRelation: "reading_lists"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "activities_review_id_fkey"
-            columns: ["review_id"]
-            isOneToOne: false
-            referencedRelation: "book_reviews"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       activity_log: {
         Row: {
@@ -104,22 +82,7 @@ export type Database = {
           target_type?: string | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "activity_log_target_id_fkey"
-            columns: ["target_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "activity_log_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       album_analytics: {
         Row: {
@@ -152,15 +115,7 @@ export type Database = {
           unique_views?: number | null
           views?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "album_analytics_album_id_fkey"
-            columns: ["album_id"]
-            isOneToOne: false
-            referencedRelation: "photo_albums"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       album_images: {
         Row: {
@@ -196,22 +151,7 @@ export type Database = {
           metadata?: Json | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "album_images_album_id_fkey"
-            columns: ["album_id"]
-            isOneToOne: false
-            referencedRelation: "photo_albums"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "album_images_image_id_fkey"
-            columns: ["image_id"]
-            isOneToOne: false
-            referencedRelation: "images"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       album_shares: {
         Row: {
@@ -247,15 +187,7 @@ export type Database = {
           shared_with?: string | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "album_shares_album_id_fkey"
-            columns: ["album_id"]
-            isOneToOne: false
-            referencedRelation: "photo_albums"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       authors: {
         Row: {
@@ -312,22 +244,7 @@ export type Database = {
           updated_at?: string | null
           website?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "authors_author_image_id_fkey"
-            columns: ["author_image_id"]
-            isOneToOne: false
-            referencedRelation: "images"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "authors_cover_image_id_fkey"
-            columns: ["cover_image_id"]
-            isOneToOne: false
-            referencedRelation: "images"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       binding_types: {
         Row: {
@@ -372,22 +289,7 @@ export type Database = {
           id?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "blocks_blocked_user_id_fkey"
-            columns: ["blocked_user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "blocks_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       book_authors: {
         Row: {
@@ -411,15 +313,7 @@ export type Database = {
           id?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "book_authors_new_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       book_club_books: {
         Row: {
@@ -452,15 +346,7 @@ export type Database = {
           start_date?: string | null
           status?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "book_club_books_new_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       book_club_discussion_comments: {
         Row: {
@@ -487,15 +373,7 @@ export type Database = {
           id?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "book_club_discussion_comments_discussion_id_fkey"
-            columns: ["discussion_id"]
-            isOneToOne: false
-            referencedRelation: "book_club_discussions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       book_club_discussions: {
         Row: {
@@ -531,22 +409,7 @@ export type Database = {
           title?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "book_club_discussions_book_club_id_fkey"
-            columns: ["book_club_id"]
-            isOneToOne: false
-            referencedRelation: "book_clubs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "book_club_discussions_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       book_club_members: {
         Row: {
@@ -570,15 +433,7 @@ export type Database = {
           role?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "book_club_members_book_club_id_fkey"
-            columns: ["book_club_id"]
-            isOneToOne: false
-            referencedRelation: "book_clubs"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       book_clubs: {
         Row: {
@@ -617,15 +472,7 @@ export type Database = {
           name?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "book_clubs_current_book_id_fkey"
-            columns: ["current_book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       book_genre_mappings: {
         Row: {
@@ -643,22 +490,7 @@ export type Database = {
           genre_id?: string | null
           id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "book_genre_mappings_new_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "book_genre_mappings_new_genre_id_fkey"
-            columns: ["genre_id"]
-            isOneToOne: false
-            referencedRelation: "book_genres"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       book_genres: {
         Row: {
@@ -721,29 +553,7 @@ export type Database = {
           publisher_id?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "book_publishers_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "book_publishers_new_publisher_id_fkey"
-            columns: ["publisher_id"]
-            isOneToOne: false
-            referencedRelation: "publishers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "book_publishers_publisher_id_fkey"
-            columns: ["publisher_id"]
-            isOneToOne: false
-            referencedRelation: "publishers"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       book_recommendations: {
         Row: {
@@ -776,22 +586,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "book_recommendations_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "book_recommendations_source_book_id_fkey"
-            columns: ["source_book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       book_reviews: {
         Row: {
@@ -830,22 +625,7 @@ export type Database = {
           user_id?: string
           visibility?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "book_reviews_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_book_reviews_user"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       book_similarity_scores: {
         Row: {
@@ -869,22 +649,7 @@ export type Database = {
           similar_book_id?: string | null
           similarity_score?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "book_similarity_scores_new_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "book_similarity_scores_new_similar_book_id_fkey"
-            columns: ["similar_book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       book_subjects: {
         Row: {
@@ -908,22 +673,7 @@ export type Database = {
           subject_id?: string | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "book_subjects_new_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "book_subjects_new_subject_id_fkey"
-            columns: ["subject_id"]
-            isOneToOne: false
-            referencedRelation: "subjects"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       book_tag_mappings: {
         Row: {
@@ -947,22 +697,7 @@ export type Database = {
           tag_id?: string | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "book_tag_mappings_new_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "book_tag_mappings_new_tag_id_fkey"
-            columns: ["tag_id"]
-            isOneToOne: false
-            referencedRelation: "book_tags"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       book_tags: {
         Row: {
@@ -1004,22 +739,7 @@ export type Database = {
           user_id?: string | null
           viewed_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "book_views_new_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "book_views_new_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       books: {
         Row: {
@@ -1115,43 +835,7 @@ export type Database = {
           updated_at?: string | null
           weight?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "books_author_id_fkey"
-            columns: ["author_id"]
-            isOneToOne: false
-            referencedRelation: "authors"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "books_binding_type_id_fkey"
-            columns: ["binding_type_id"]
-            isOneToOne: false
-            referencedRelation: "binding_types"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "books_cover_image_id_fkey"
-            columns: ["cover_image_id"]
-            isOneToOne: false
-            referencedRelation: "images"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "books_format_type_id_fkey"
-            columns: ["format_type_id"]
-            isOneToOne: false
-            referencedRelation: "format_types"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "books_publisher_id_fkey"
-            columns: ["publisher_id"]
-            isOneToOne: false
-            referencedRelation: "publishers"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       carousel_images: {
         Row: {
@@ -1211,22 +895,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "comments_feed_entry_id_fkey"
-            columns: ["feed_entry_id"]
-            isOneToOne: false
-            referencedRelation: "feed_entries"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "comments_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       contact_info: {
         Row: {
@@ -1309,6 +978,44 @@ export type Database = {
         }
         Relationships: []
       }
+      dewey_decimal_classifications: {
+        Row: {
+          code: string
+          created_at: string | null
+          description: string
+          id: string
+          level: number
+          parent_code: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          description: string
+          id?: string
+          level?: number
+          parent_code?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          description?: string
+          id?: string
+          level?: number
+          parent_code?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dewey_decimal_classifications_parent_code_fkey"
+            columns: ["parent_code"]
+            isOneToOne: false
+            referencedRelation: "dewey_decimal_classifications"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       discussion_comments: {
         Row: {
           content: string
@@ -1334,15 +1041,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "discussion_comments_discussion_id_fkey"
-            columns: ["discussion_id"]
-            isOneToOne: false
-            referencedRelation: "discussions"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       discussions: {
         Row: {
@@ -1381,22 +1080,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "discussions_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "discussions_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_analytics: {
         Row: {
@@ -1441,15 +1125,7 @@ export type Database = {
           updated_at?: string | null
           views?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_analytics_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_approvals: {
         Row: {
@@ -1485,29 +1161,7 @@ export type Database = {
           submitted_by?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_approvals_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_approvals_reviewer_id_fkey"
-            columns: ["reviewer_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_approvals_submitted_by_fkey"
-            columns: ["submitted_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_books: {
         Row: {
@@ -1540,22 +1194,7 @@ export type Database = {
           notes?: string | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_books_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_books_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_calendar_exports: {
         Row: {
@@ -1588,22 +1227,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_calendar_exports_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_calendar_exports_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_categories: {
         Row: {
@@ -1636,15 +1260,7 @@ export type Database = {
           parent_id?: string | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_categories_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
-            referencedRelation: "event_categories"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_chat_messages: {
         Row: {
@@ -1677,29 +1293,7 @@ export type Database = {
           message?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_chat_messages_chat_room_id_fkey"
-            columns: ["chat_room_id"]
-            isOneToOne: false
-            referencedRelation: "event_chat_rooms"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_chat_messages_hidden_by_fkey"
-            columns: ["hidden_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_chat_messages_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_chat_rooms: {
         Row: {
@@ -1738,15 +1332,7 @@ export type Database = {
           requires_ticket?: boolean | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_chat_rooms_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_comments: {
         Row: {
@@ -1782,29 +1368,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_comments_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_comments_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
-            referencedRelation: "event_comments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_comments_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_creator_permissions: {
         Row: {
@@ -1840,15 +1404,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_creator_permissions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_financials: {
         Row: {
@@ -1905,15 +1461,7 @@ export type Database = {
           total_taxes?: number | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_financials_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_interests: {
         Row: {
@@ -1940,22 +1488,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_interests_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_interests_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_likes: {
         Row: {
@@ -1976,22 +1509,7 @@ export type Database = {
           id?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_likes_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_likes_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_livestreams: {
         Row: {
@@ -2048,15 +1566,7 @@ export type Database = {
           updated_at?: string | null
           viewer_count?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_livestreams_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_locations: {
         Row: {
@@ -2116,15 +1626,7 @@ export type Database = {
           updated_at?: string | null
           venue_notes?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_locations_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_media: {
         Row: {
@@ -2178,15 +1680,7 @@ export type Database = {
           url?: string
           width?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_media_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_permission_requests: {
         Row: {
@@ -2225,22 +1719,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_permission_requests_reviewed_by_fkey"
-            columns: ["reviewed_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_permission_requests_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_questions: {
         Row: {
@@ -2279,15 +1758,7 @@ export type Database = {
           question_type?: string | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_questions_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_registrations: {
         Row: {
@@ -2341,22 +1812,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_registrations_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_registrations_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_reminders: {
         Row: {
@@ -2392,22 +1848,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_reminders_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_reminders_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_sessions: {
         Row: {
@@ -2458,22 +1899,7 @@ export type Database = {
           updated_at?: string | null
           virtual_meeting_url?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_sessions_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_sessions_location_id_fkey"
-            columns: ["location_id"]
-            isOneToOne: false
-            referencedRelation: "event_locations"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_shares: {
         Row: {
@@ -2497,22 +1923,7 @@ export type Database = {
           share_platform?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_shares_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_shares_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_speakers: {
         Row: {
@@ -2566,29 +1977,7 @@ export type Database = {
           user_id?: string | null
           website?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_speakers_author_id_fkey"
-            columns: ["author_id"]
-            isOneToOne: false
-            referencedRelation: "authors"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_speakers_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_speakers_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_sponsors: {
         Row: {
@@ -2645,15 +2034,7 @@ export type Database = {
           updated_at?: string | null
           website_url?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_sponsors_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_staff: {
         Row: {
@@ -2683,22 +2064,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_staff_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_staff_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_surveys: {
         Row: {
@@ -2740,15 +2106,7 @@ export type Database = {
           title?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_surveys_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_tags: {
         Row: {
@@ -2766,15 +2124,7 @@ export type Database = {
           event_id?: string
           tag_id?: number
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_tags_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_types: {
         Row: {
@@ -2831,22 +2181,7 @@ export type Database = {
           user_id?: string | null
           viewed_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_views_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_views_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       event_waitlists: {
         Row: {
@@ -2888,36 +2223,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "event_waitlists_converted_to_registration_id_fkey"
-            columns: ["converted_to_registration_id"]
-            isOneToOne: false
-            referencedRelation: "event_registrations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_waitlists_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_waitlists_ticket_type_id_fkey"
-            columns: ["ticket_type_id"]
-            isOneToOne: false
-            referencedRelation: "ticket_types"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_waitlists_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       events: {
         Row: {
@@ -3058,78 +2364,7 @@ export type Database = {
           virtual_platform?: string | null
           visibility?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "events_author_id_fkey"
-            columns: ["author_id"]
-            isOneToOne: false
-            referencedRelation: "authors"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "events_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "events_cover_image_id_fkey"
-            columns: ["cover_image_id"]
-            isOneToOne: false
-            referencedRelation: "images"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "events_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "events_event_category_id_fkey"
-            columns: ["event_category_id"]
-            isOneToOne: false
-            referencedRelation: "event_categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "events_event_image_id_fkey"
-            columns: ["event_image_id"]
-            isOneToOne: false
-            referencedRelation: "images"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "events_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "events_parent_event_id_fkey"
-            columns: ["parent_event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "events_publisher_id_fkey"
-            columns: ["publisher_id"]
-            isOneToOne: false
-            referencedRelation: "publishers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "events_type_id_fkey"
-            columns: ["type_id"]
-            isOneToOne: false
-            referencedRelation: "event_types"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       feed_entries: {
         Row: {
@@ -3171,15 +2406,7 @@ export type Database = {
           user_id?: string | null
           visibility?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "feed_entries_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       feed_entry_tags: {
         Row: {
@@ -3200,15 +2427,7 @@ export type Database = {
           tag_id?: number
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "feed_entry_tags_feed_entry_id_fkey"
-            columns: ["feed_entry_id"]
-            isOneToOne: false
-            referencedRelation: "feed_entries"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       follow_target_types: {
         Row: {
@@ -3262,22 +2481,7 @@ export type Database = {
           target_type_id_uuid_temp?: string | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "follows_follower_id_fkey"
-            columns: ["follower_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "follows_target_type_id_fkey"
-            columns: ["target_type_id"]
-            isOneToOne: false
-            referencedRelation: "follow_target_types"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       format_types: {
         Row: {
@@ -3328,29 +2532,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "friends_friend_id_fkey"
-            columns: ["friend_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "friends_requested_by_fkey"
-            columns: ["requested_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "friends_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_achievements: {
         Row: {
@@ -3389,15 +2571,7 @@ export type Database = {
           type?: string | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_achievements_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_analytics: {
         Row: {
@@ -3424,15 +2598,7 @@ export type Database = {
           metric_value?: number | null
           recorded_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_analytics_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_announcements: {
         Row: {
@@ -3462,15 +2628,7 @@ export type Database = {
           is_pinned?: boolean | null
           title?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_announcements_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_audit_log: {
         Row: {
@@ -3503,15 +2661,7 @@ export type Database = {
           target_id?: string | null
           target_type?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_audit_log_performed_by_fkey"
-            columns: ["performed_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_author_events: {
         Row: {
@@ -3535,22 +2685,7 @@ export type Database = {
           id?: string
           scheduled_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_author_events_author_id_fkey"
-            columns: ["author_id"]
-            isOneToOne: false
-            referencedRelation: "authors"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_author_events_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_book_list_items: {
         Row: {
@@ -3574,29 +2709,7 @@ export type Database = {
           id?: string
           list_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_book_list_items_added_by_fkey"
-            columns: ["added_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_book_list_items_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_book_list_items_list_id_fkey"
-            columns: ["list_id"]
-            isOneToOne: false
-            referencedRelation: "group_book_lists"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_book_lists: {
         Row: {
@@ -3623,15 +2736,7 @@ export type Database = {
           id?: string
           title?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_book_lists_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_book_reviews: {
         Row: {
@@ -3661,29 +2766,7 @@ export type Database = {
           review?: string | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_book_reviews_new_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_book_reviews_new_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_book_reviews_new_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_book_swaps: {
         Row: {
@@ -3716,36 +2799,7 @@ export type Database = {
           offered_by?: string | null
           status?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_book_swaps_accepted_by_fkey"
-            columns: ["accepted_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_book_swaps_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_book_swaps_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_book_swaps_offered_by_fkey"
-            columns: ["offered_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_book_wishlist_items: {
         Row: {
@@ -3769,29 +2823,7 @@ export type Database = {
           id?: string
           wishlist_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_book_wishlist_items_added_by_fkey"
-            columns: ["added_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_book_wishlist_items_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_book_wishlist_items_wishlist_id_fkey"
-            columns: ["wishlist_id"]
-            isOneToOne: false
-            referencedRelation: "group_book_wishlists"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_book_wishlists: {
         Row: {
@@ -3815,15 +2847,7 @@ export type Database = {
           id?: string
           title?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_book_wishlists_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_bots: {
         Row: {
@@ -3880,15 +2904,7 @@ export type Database = {
           is_event_channel?: boolean | null
           name?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_chat_channels_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_chat_message_attachments: {
         Row: {
@@ -3915,15 +2931,7 @@ export type Database = {
           message_id?: string | null
           url?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_chat_message_attachments_message_id_fkey"
-            columns: ["message_id"]
-            isOneToOne: false
-            referencedRelation: "group_chat_messages"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_chat_message_reactions: {
         Row: {
@@ -3947,22 +2955,7 @@ export type Database = {
           reaction?: string | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_chat_message_reactions_message_id_fkey"
-            columns: ["message_id"]
-            isOneToOne: false
-            referencedRelation: "group_chat_messages"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_chat_message_reactions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_chat_messages: {
         Row: {
@@ -3989,22 +2982,7 @@ export type Database = {
           message?: string | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_chat_messages_channel_id_fkey"
-            columns: ["channel_id"]
-            isOneToOne: false
-            referencedRelation: "group_chat_channels"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_chat_messages_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_content_moderation_logs: {
         Row: {
@@ -4037,15 +3015,7 @@ export type Database = {
           reason?: string | null
           reviewed_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_content_moderation_logs_reviewed_by_fkey"
-            columns: ["reviewed_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_custom_fields: {
         Row: {
@@ -4099,15 +3069,7 @@ export type Database = {
           name?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_discussion_categories_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_event_feedback: {
         Row: {
@@ -4137,22 +3099,7 @@ export type Database = {
           rating?: number | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_event_feedback_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_event_feedback_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_events: {
         Row: {
@@ -4182,29 +3129,7 @@ export type Database = {
           is_recurring?: boolean | null
           recurrence_pattern?: Json | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_events_chat_channel_id_fkey"
-            columns: ["chat_channel_id"]
-            isOneToOne: false
-            referencedRelation: "group_chat_channels"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_events_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_events_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_integrations: {
         Row: {
@@ -4264,15 +3189,7 @@ export type Database = {
           invited_user_id?: string | null
           status?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_invites_invited_user_id_fkey"
-            columns: ["invited_user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_leaderboards: {
         Row: {
@@ -4323,29 +3240,7 @@ export type Database = {
           id?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_member_achievements_achievement_id_fkey"
-            columns: ["achievement_id"]
-            isOneToOne: false
-            referencedRelation: "group_achievements"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_member_achievements_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_member_achievements_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_member_devices: {
         Row: {
@@ -4372,15 +3267,7 @@ export type Database = {
           id?: string
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_member_devices_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_member_streaks: {
         Row: {
@@ -4413,15 +3300,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_member_streaks_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_members: {
         Row: {
@@ -4445,15 +3324,7 @@ export type Database = {
           status?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_members_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_membership_questions: {
         Row: {
@@ -4480,15 +3351,7 @@ export type Database = {
           question?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_membership_questions_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_moderation_logs: {
         Row: {
@@ -4521,15 +3384,7 @@ export type Database = {
           target_id?: string | null
           target_type?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_moderation_logs_performed_by_fkey"
-            columns: ["performed_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_onboarding_checklists: {
         Row: {
@@ -4577,29 +3432,7 @@ export type Database = {
           task_id?: string | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_onboarding_progress_checklist_id_fkey"
-            columns: ["checklist_id"]
-            isOneToOne: false
-            referencedRelation: "group_onboarding_checklists"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_onboarding_progress_task_id_fkey"
-            columns: ["task_id"]
-            isOneToOne: false
-            referencedRelation: "group_onboarding_tasks"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_onboarding_progress_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_onboarding_tasks: {
         Row: {
@@ -4623,15 +3456,7 @@ export type Database = {
           order_index?: number | null
           task?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_onboarding_tasks_checklist_id_fkey"
-            columns: ["checklist_id"]
-            isOneToOne: false
-            referencedRelation: "group_onboarding_checklists"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_poll_votes: {
         Row: {
@@ -4655,22 +3480,7 @@ export type Database = {
           poll_id?: string | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_poll_votes_poll_id_fkey"
-            columns: ["poll_id"]
-            isOneToOne: false
-            referencedRelation: "group_polls"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_poll_votes_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_polls: {
         Row: {
@@ -4706,15 +3516,7 @@ export type Database = {
           options?: string[] | null
           question?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_polls_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_reading_challenge_progress: {
         Row: {
@@ -4741,22 +3543,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_reading_challenge_progress_challenge_id_fkey"
-            columns: ["challenge_id"]
-            isOneToOne: false
-            referencedRelation: "group_reading_challenges"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_reading_challenge_progress_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_reading_challenges: {
         Row: {
@@ -4792,15 +3579,7 @@ export type Database = {
           target_books?: number | null
           title?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_reading_challenges_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_reading_progress: {
         Row: {
@@ -4833,29 +3612,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_reading_progress_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_reading_progress_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_reading_progress_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_reading_sessions: {
         Row: {
@@ -4891,29 +3648,7 @@ export type Database = {
           session_title?: string | null
           start_time?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_reading_sessions_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_reading_sessions_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_reading_sessions_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_reports: {
         Row: {
@@ -4952,22 +3687,7 @@ export type Database = {
           target_id?: string | null
           target_type?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_reports_reported_by_fkey"
-            columns: ["reported_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_reports_reviewed_by_fkey"
-            columns: ["reviewed_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_roles: {
         Row: {
@@ -5030,15 +3750,7 @@ export type Database = {
           title?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_rules_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_shared_documents: {
         Row: {
@@ -5068,15 +3780,7 @@ export type Database = {
           title?: string | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_shared_documents_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_tags: {
         Row: {
@@ -5103,15 +3807,7 @@ export type Database = {
           name?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_tags_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_types: {
         Row: {
@@ -5159,15 +3855,7 @@ export type Database = {
           status?: string | null
           webhook_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "group_webhook_logs_webhook_id_fkey"
-            columns: ["webhook_id"]
-            isOneToOne: false
-            referencedRelation: "group_webhooks"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_webhooks: {
         Row: {
@@ -5287,22 +3975,7 @@ export type Database = {
           image_id?: string
           tag_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "image_tag_mappings_image_id_fkey"
-            columns: ["image_id"]
-            isOneToOne: false
-            referencedRelation: "images"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "image_tag_mappings_tag_id_fkey"
-            columns: ["tag_id"]
-            isOneToOne: false
-            referencedRelation: "image_tags"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       image_tags: {
         Row: {
@@ -5425,15 +4098,7 @@ export type Database = {
           url?: string
           width?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "images_img_type_id_fkey"
-            columns: ["img_type_id"]
-            isOneToOne: false
-            referencedRelation: "image_types"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       invoices: {
         Row: {
@@ -5490,29 +4155,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "invoices_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "invoices_registration_id_fkey"
-            columns: ["registration_id"]
-            isOneToOne: false
-            referencedRelation: "event_registrations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "invoices_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       likes: {
         Row: {
@@ -5536,22 +4179,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "likes_feed_entry_id_fkey"
-            columns: ["feed_entry_id"]
-            isOneToOne: false
-            referencedRelation: "feed_entries"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "likes_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       list_followers: {
         Row: {
@@ -5575,15 +4203,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "list_followers_list_id_fkey"
-            columns: ["list_id"]
-            isOneToOne: false
-            referencedRelation: "reading_lists"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       media_attachments: {
         Row: {
@@ -5613,15 +4233,7 @@ export type Database = {
           updated_at?: string | null
           url?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "media_attachments_feed_entry_id_fkey"
-            columns: ["feed_entry_id"]
-            isOneToOne: false
-            referencedRelation: "feed_entries"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       mentions: {
         Row: {
@@ -5648,29 +4260,7 @@ export type Database = {
           mentioned_user_id?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "mentions_comment_id_fkey"
-            columns: ["comment_id"]
-            isOneToOne: false
-            referencedRelation: "comments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "mentions_feed_entry_id_fkey"
-            columns: ["feed_entry_id"]
-            isOneToOne: false
-            referencedRelation: "feed_entries"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "mentions_mentioned_user_id_fkey"
-            columns: ["mentioned_user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -5754,15 +4344,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "payment_methods_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       payment_transactions: {
         Row: {
@@ -5831,36 +4413,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "payment_transactions_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "payment_transactions_payment_method_id_fkey"
-            columns: ["payment_method_id"]
-            isOneToOne: false
-            referencedRelation: "payment_methods"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "payment_transactions_registration_id_fkey"
-            columns: ["registration_id"]
-            isOneToOne: false
-            referencedRelation: "event_registrations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "payment_transactions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       personalized_recommendations: {
         Row: {
@@ -5986,15 +4539,7 @@ export type Database = {
           updated_at?: string | null
           view_count?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "photo_albums_cover_image_id_fkey"
-            columns: ["cover_image_id"]
-            isOneToOne: false
-            referencedRelation: "images"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       posts: {
         Row: {
@@ -6036,15 +4581,7 @@ export type Database = {
           user_id?: string
           visibility?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "posts_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       prices: {
         Row: {
@@ -6055,7 +4592,7 @@ export type Database = {
           id: string
           link: string | null
           merchant: string | null
-          price: number
+          price: number | null
           total: number | null
           updated_at: string | null
         }
@@ -6067,7 +4604,7 @@ export type Database = {
           id?: string
           link?: string | null
           merchant?: string | null
-          price: number
+          price?: number | null
           total?: number | null
           updated_at?: string | null
         }
@@ -6079,19 +4616,11 @@ export type Database = {
           id?: string
           link?: string | null
           merchant?: string | null
-          price?: number
+          price?: number | null
           total?: number | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "prices_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -6172,22 +4701,7 @@ export type Database = {
           start_date?: string | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "promo_codes_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "promo_codes_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       publishers: {
         Row: {
@@ -6256,29 +4770,7 @@ export type Database = {
           updated_at?: string | null
           website?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "publishers_country_id_fkey"
-            columns: ["country_id"]
-            isOneToOne: false
-            referencedRelation: "countries"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "publishers_cover_image_id_fkey"
-            columns: ["cover_image_id"]
-            isOneToOne: false
-            referencedRelation: "images"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "publishers_publisher_image_id_fkey"
-            columns: ["publisher_image_id"]
-            isOneToOne: false
-            referencedRelation: "images"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       reactions: {
         Row: {
@@ -6305,22 +4797,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "reactions_feed_entry_id_fkey"
-            columns: ["feed_entry_id"]
-            isOneToOne: false
-            referencedRelation: "feed_entries"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reactions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       reading_challenges: {
         Row: {
@@ -6413,22 +4890,7 @@ export type Database = {
           list_id?: string
           notes?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "reading_list_items_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reading_list_items_list_id_fkey"
-            columns: ["list_id"]
-            isOneToOne: false
-            referencedRelation: "reading_lists"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       reading_lists: {
         Row: {
@@ -6494,15 +4956,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "reading_progress_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       reading_series: {
         Row: {
@@ -6541,22 +4995,7 @@ export type Database = {
           title?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "reading_series_author_id_fkey"
-            columns: ["author_id"]
-            isOneToOne: false
-            referencedRelation: "authors"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reading_series_organizer_id_fkey"
-            columns: ["organizer_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       reading_sessions: {
         Row: {
@@ -6592,15 +5031,7 @@ export type Database = {
           start_time?: string | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "reading_sessions_new_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       reading_stats_daily: {
         Row: {
@@ -6696,15 +5127,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "review_likes_review_id_fkey"
-            columns: ["review_id"]
-            isOneToOne: false
-            referencedRelation: "book_reviews"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       reviews: {
         Row: {
@@ -6734,15 +5157,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "reviews_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       roles: {
         Row: {
@@ -6784,22 +5199,7 @@ export type Database = {
           event_number?: number | null
           series_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "series_events_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "series_events_series_id_fkey"
-            columns: ["series_id"]
-            isOneToOne: false
-            referencedRelation: "reading_series"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       session_registrations: {
         Row: {
@@ -6832,22 +5232,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "session_registrations_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "event_sessions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "session_registrations_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       similar_books: {
         Row: {
@@ -6871,22 +5256,7 @@ export type Database = {
           similar_book_id?: string
           similarity_score?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "similar_books_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "similar_books_similar_book_id_fkey"
-            columns: ["similar_book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       statuses: {
         Row: {
@@ -6967,15 +5337,7 @@ export type Database = {
           survey_id?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "survey_questions_survey_id_fkey"
-            columns: ["survey_id"]
-            isOneToOne: false
-            referencedRelation: "event_surveys"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       survey_responses: {
         Row: {
@@ -7002,29 +5364,7 @@ export type Database = {
           survey_id?: string
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "survey_responses_registration_id_fkey"
-            columns: ["registration_id"]
-            isOneToOne: false
-            referencedRelation: "event_registrations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "survey_responses_survey_id_fkey"
-            columns: ["survey_id"]
-            isOneToOne: false
-            referencedRelation: "event_surveys"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "survey_responses_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       sync_state: {
         Row: {
@@ -7117,15 +5457,7 @@ export type Database = {
           ticket_type_id?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "ticket_benefits_ticket_type_id_fkey"
-            columns: ["ticket_type_id"]
-            isOneToOne: false
-            referencedRelation: "ticket_types"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       ticket_types: {
         Row: {
@@ -7194,15 +5526,7 @@ export type Database = {
           updated_at?: string | null
           visibility?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "ticket_types_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       tickets: {
         Row: {
@@ -7268,43 +5592,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "tickets_checked_in_by_fkey"
-            columns: ["checked_in_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tickets_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tickets_registration_id_fkey"
-            columns: ["registration_id"]
-            isOneToOne: false
-            referencedRelation: "event_registrations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tickets_ticket_type_id_fkey"
-            columns: ["ticket_type_id"]
-            isOneToOne: false
-            referencedRelation: "ticket_types"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tickets_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       user_book_interactions: {
         Row: {
@@ -7334,15 +5622,43 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_book_interactions_book_id_fkey"
-            columns: ["book_id"]
-            isOneToOne: false
-            referencedRelation: "books"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
+      }
+      user_friends: {
+        Row: {
+          created_at: string | null
+          friend_id: string
+          id: string
+          requested_at: string | null
+          requested_by: string
+          responded_at: string | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          friend_id: string
+          id?: string
+          requested_at?: string | null
+          requested_by: string
+          responded_at?: string | null
+          status: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          friend_id?: string
+          id?: string
+          requested_at?: string | null
+          requested_by?: string
+          responded_at?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       user_reading_preferences: {
         Row: {
@@ -7408,296 +5724,54 @@ export type Database = {
           role_id?: string | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "users_role_id_fkey"
-            columns: ["role_id"]
-            isOneToOne: false
-            referencedRelation: "roles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
-      accepted_friends: {
-        Row: {
-          friend_user_id: string | null
-          id: string | null
-          requested_at: string | null
-          responded_at: string | null
-          status: string | null
-        }
-        Relationships: []
-      }
-      personalized_recommendations_with_details: {
-        Row: {
-          authors: string | null
-          average_rating: number | null
-          book_id: number | null
-          cover_image_id: string | null
-          created_at: string | null
-          id: string | null
-          isbn13: string | null
-          pages: number | null
-          publication_date: string | null
-          publishers: string | null
-          review_count: number | null
-          score: number | null
-          synopsis: string | null
-          title: string | null
-          user_id: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "books_cover_image_id_fkey"
-            columns: ["cover_image_id"]
-            isOneToOne: false
-            referencedRelation: "images"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
-      compute_similar_books: {
-        Args: Record<PropertyKey, never>
+      extract_book_dimensions: {
+        Args: { book_uuid: string; dimensions_json: Json }
         Returns: undefined
       }
-      count_authors_per_book: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          book_id: string
-          author_count: number
-        }[]
-      }
-      count_books_with_multiple_authors: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          book_count: number
-        }[]
-      }
-      count_publishers_per_book: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          book_id: number
-          publisher_count: number
-        }[]
-      }
-      create_book_club_event: {
-        Args: {
-          book_club_id: string
-          discussion_id: string
-          title: string
-          description: string
-          start_time: string
-          duration_minutes: number
-          is_virtual: boolean
-          created_by: string
-        }
-        Returns: string
-      }
-      create_get_user_reading_stats_function: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      create_group_with_roles: {
-        Args: {
-          p_name: string
-          p_description: string
-          p_cover_image_id: number
-          p_group_image_id: number
-          p_created_by: string
-          p_target_type_id: number
-          p_target_id: string
-        }
-        Returns: Json
-      }
-      create_new_user: {
-        Args: { user_id: string; user_email: string; created_timestamp: string }
-        Returns: undefined
-      }
-      create_or_update_user: {
-        Args: { p_user_id: string; p_email: string; p_created_at?: string }
-        Returns: boolean
-      }
-      export_schema_definitions: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          definition: string
-        }[]
-      }
-      generate_personalized_recommendations: {
-        Args: { user_uuid: string }
-        Returns: {
-          book_id: number
-          created_at: string | null
-          explanation: string | null
-          id: string
-          is_dismissed: boolean | null
-          recommendation_type: string
-          score: number
-          updated_at: string | null
-          user_id: string
-        }[]
-      }
-      generate_recommendations: {
-        Args: { user_id_param: string }
-        Returns: undefined
-      }
-      get_column_names: {
-        Args: { table_name: string }
-        Returns: string[]
-      }
-      get_search_suggestions: {
-        Args: { search_query: string; max_results?: number }
-        Returns: {
-          suggestion: string
-          entity_type: string
-        }[]
-      }
-      get_table_columns: {
-        Args: { table_name_param: string }
-        Returns: {
-          column_name: string
-          data_type: string
-          is_nullable: string
-        }[]
-      }
-      get_user_reading_stats: {
-        Args: { user_id_param: string }
-        Returns: {
-          books_read: number
-          books_reading: number
-          books_want_to_read: number
-          avg_rating: number
-          review_count: number
-        }[]
-      }
-      gtrgm_compress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_decompress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_in: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_options: {
-        Args: { "": unknown }
-        Returns: undefined
-      }
-      gtrgm_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      increment_album_view_count: {
-        Args: { album_id: string }
-        Returns: undefined
-      }
-      integer_to_uuid: {
-        Args:
-          | { integer_id: number }
-          | { table_name_param: string; integer_id_param: number }
-        Returns: string
-      }
-      is_admin: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
-      is_admin_safe: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_group_owner: {
-        Args: { group_id: string; user_id: string }
-        Returns: boolean
-      }
-      is_super_admin: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
-      mark_all_notifications_read: {
-        Args: { user_id_param: string }
-        Returns: undefined
-      }
-      record_book_view: {
-        Args: { book_id_param: number }
-        Returns: undefined
-      }
-      search_all: {
-        Args: { search_query: string; max_results?: number }
-        Returns: {
-          entity_type: string
-          id: string
-          title: string
-          subtitle: string
-          image_id: number
-          similarity: number
-        }[]
-      }
-      search_books: {
-        Args: {
-          search_query: string
-          genre_filter?: string
-          min_rating?: number
-          max_results?: number
-        }
-        Returns: {
-          id: string
-          title: string
-          author: string
-          description: string
-          cover_image_id: string
-          pages: number
-          published_date: string
-          isbn: string
-          review_count: number
-          average_rating: number
-          similarity: number
-        }[]
-      }
-      search_reading_lists: {
-        Args: { search_query: string; max_results?: number }
+      get_user_feed_activities: {
+        Args: { p_user_id: string; p_limit?: number; p_offset?: number }
         Returns: {
           id: string
           user_id: string
-          name: string
-          description: string
+          activity_type: string
+          entity_type: string
+          entity_id: string
           is_public: boolean
-          book_count: number
+          metadata: Json
           created_at: string
-          updated_at: string
-          similarity: number
+          user_name: string
+          user_avatar_url: string
+          like_count: number
+          comment_count: number
+          is_liked: boolean
         }[]
       }
-      search_users: {
-        Args: { search_query: string; max_results?: number }
-        Returns: {
-          id: string
-          name: string
-          email: string
-          bio: string
-          avatar_url: string
-          follower_count: number
-          following_count: number
-          similarity: number
-        }[]
-      }
-      set_limit: {
-        Args: { "": number }
-        Returns: number
-      }
-      show_limit: {
+      populate_dewey_decimal_classifications: {
         Args: Record<PropertyKey, never>
-        Returns: number
+        Returns: undefined
       }
-      show_trgm: {
-        Args: { "": string }
-        Returns: string[]
+      process_complete_isbndb_book_data: {
+        Args: { book_uuid: string; isbndb_data: Json }
+        Returns: undefined
+      }
+      process_dewey_decimal_classifications: {
+        Args: { book_uuid: string; dewey_array: string[] }
+        Returns: undefined
+      }
+      process_other_isbns: {
+        Args: { book_uuid: string; other_isbns_json: Json }
+        Returns: undefined
+      }
+      process_related_books: {
+        Args: { book_uuid: string; related_json: Json }
+        Returns: undefined
       }
     }
     Enums: {

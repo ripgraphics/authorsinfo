@@ -36,6 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useAuth } from '@/hooks/useAuth'
+import { UserPhotoAlbums } from '@/components/user-photo-albums'
 
 interface ClientProfilePageProps {
   user: any
@@ -624,26 +625,10 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
       {/* Photos Tab Content */}
       {activeTab === "photos" && (
         <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">Photos</h2>
-            <Button>Upload Photo</Button>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {mockPhotos.map((photo, i) => (
-              <div key={i} className="aspect-square overflow-hidden rounded-md">
-                <img 
-                  src={photo}
-                  alt={`Photo ${i+1}`}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
-                />
-              </div>
-            ))}
-          </div>
-          
-          <div className="mt-8 text-center">
-            <Button>Load More Photos</Button>
-          </div>
+          <UserPhotoAlbums 
+            userId={params.id} 
+            isOwnProfile={authUser?.id === params.id} 
+          />
         </div>
       )}
       

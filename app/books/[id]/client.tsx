@@ -97,7 +97,7 @@ export function ClientBookPage({
   const defaultStatus = "want_to_read"
   
   // Update tab state
-  const [activeTab, setActiveTab] = useState("timeline")
+  const [activeTab, setActiveTab] = useState("details")
   const [showFullAbout, setShowFullAbout] = useState(false)
   const [isFollowing, setIsFollowing] = useState(false)
   const [isLoadingFollow, setIsLoadingFollow] = useState(false)
@@ -272,8 +272,8 @@ export function ClientBookPage({
 
   // Configure tabs for the EntityHeader
   const tabs: TabConfig[] = [
-    { id: "timeline", label: "Timeline" },
     { id: "details", label: "Details" },
+    { id: "timeline", label: "Timeline" },
     { id: "reviews", label: "Reviews" },
     { id: "photos", label: "Photos" },
     { id: "followers", label: "Followers" },

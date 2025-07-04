@@ -169,14 +169,12 @@ body {
   
   /* Double spacing for paragraphs */
   p {
-    line-height: 2; /* Double spacing */
-    margin-bottom: 1rem; /* Add space between paragraphs */
+    line-height: 1.3; /* Double spacing */
   }
   
   /* Ensure paragraphs within prose content also get double spacing */
   .prose p {
-    line-height: 2;
-    margin-bottom: 1rem;
+    line-height: 1.3;
   }
 }
 

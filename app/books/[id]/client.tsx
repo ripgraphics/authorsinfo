@@ -369,9 +369,18 @@ export function ClientBookPage({
                   className="book-page__about-section"
                 >
                   <div className="space-y-4">
-                    <p className="text-sm text-muted-foreground">
-                      {book.synopsis || book.overview || "No description available."}
-                    </p>
+                    {(book.synopsis || book.overview) ? (
+                      <div 
+                        className="text-sm text-muted-foreground prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{ 
+                          __html: book.synopsis || book.overview || "" 
+                        }}
+                      />
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        No description available.
+                      </p>
+                    )}
                     {book.language && (
                       <div className="flex items-center">
                         <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
@@ -922,7 +931,10 @@ export function ClientBookPage({
                           expanded={showFullAbout}
                           onToggle={() => setShowFullAbout((v) => !v)}
                         >
-                          <p className="text-muted-foreground">{book.synopsis}</p>
+                          <div 
+                            className="text-muted-foreground prose prose-sm max-w-none"
+                            dangerouslySetInnerHTML={{ __html: book.synopsis }}
+                          />
                         </ExpandableSection>
                       </div>
                     )}
@@ -930,7 +942,10 @@ export function ClientBookPage({
                     {book.overview && (
                       <div className="book-details__overview-section">
                         <h3 className="font-medium text-lg">Overview</h3>
-                        <p className="text-muted-foreground">{book.overview}</p>
+                        <div 
+                          className="text-muted-foreground prose prose-sm max-w-none"
+                          dangerouslySetInnerHTML={{ __html: book.overview }}
+                        />
                       </div>
                     )}
                   </div>

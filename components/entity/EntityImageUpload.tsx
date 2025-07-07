@@ -140,7 +140,7 @@ export function EntityImageUpload({
         // Create FormData for direct upload
         const formData = new FormData()
         formData.append('file', fileToUpload)
-        formData.append('upload_preset', 'authorsinfo')
+        formData.append('upload_preset', 'authorsinfo_webp')
         formData.append('cloud_name', process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || '')
         formData.append('quality', '95')
         formData.append('transformation', 'f_webp')
@@ -234,7 +234,7 @@ export function EntityImageUpload({
         const widget = window.cloudinary.createUploadWidget(
           {
             cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-            uploadPreset: 'authorsinfo',
+            uploadPreset: 'authorsinfo_webp',
             sources: ['local'],
             resourceType: 'image',
             maxFiles: 1,

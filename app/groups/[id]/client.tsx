@@ -92,6 +92,8 @@ import { getGroupInfo } from '@/utils/groupInfo';
 import { EntityHoverCard } from "@/components/entity-hover-cards"
 import { SidebarSection } from "@/components/ui/sidebar-section"
 import { ViewFullDetailsButton } from "@/components/ui/ViewFullDetailsButton"
+import { useAuth } from '@/hooks/useAuth'
+import { canUserEditEntity } from '@/lib/auth-utils'
 
 interface ClientGroupPageProps {
   group: any
@@ -200,6 +202,27 @@ export function ClientGroupPageContent({ group: initialGroup, avatarUrl, coverIm
   const [groupRules, setGroupRules] = useState<GroupRule[]>([])
   const [editingRule, setEditingRule] = useState<GroupRule | NewGroupRule | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [canEdit, setCanEdit] = useState(false)
+
+  // Check edit permissions
+  useEffect(() => {
+    const checkEditPermissions = async () => {
+      if (!group?.id) {
+        setCanEdit(false)
+        return
+      }
+
+      // Use the new ownership function for groups
+      const canEditEntity = await canUserEditEntity(
+        group.created_by, 
+        'group', 
+        group.id
+      )
+      setCanEdit(canEditEntity)
+    }
+
+    checkEditPermissions()
+  }, [group])
 
   // Add these state variables near the other state declarations
   const [isEditingDescription, setIsEditingDescription] = useState(false);
@@ -531,7 +554,7 @@ export function ClientGroupPageContent({ group: initialGroup, avatarUrl, coverIm
     name: group?.name,
     created_by: group?.created_by,
     creatorName: group?.creatorName,
-    isEditable: permissions.isOwner() || permissions.isAdmin()
+    isEditable: canEdit || permissions.isOwner() || permissions.isAdmin()
   })
 
   // Use real group data if available
@@ -939,8 +962,8 @@ export function ClientGroupPageContent({ group: initialGroup, avatarUrl, coverIm
     }
   }, [group]);
 
-  // Update the permissions check
-  const canEdit = permissions.isOwner() || permissions.isAdmin();
+  // Update the permissions check to use both systems
+  const canEditGroup = canEdit || permissions.isOwner() || permissions.isAdmin();
 
   // Add useEffect to fetch contact info
   useEffect(() => {
@@ -990,7 +1013,7 @@ export function ClientGroupPageContent({ group: initialGroup, avatarUrl, coverIm
         }}
         creatorJoinedAt={group?.creatorJoinedAt}
         group={group}
-        isEditable={permissions.isOwner() || permissions.isAdmin()}
+        isEditable={canEditGroup}
         onCoverImageChange={handleCoverImageChange}
         onProfileImageChange={handleProfileImageChange}
       />
@@ -1529,7 +1552,7 @@ export function ClientGroupPageContent({ group: initialGroup, avatarUrl, coverIm
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>Description</CardTitle>
-                  {canEdit && (
+                  {canEditGroup && (
                     <Button variant="ghost" size="sm" onClick={() => setIsEditingDescription(true)}>
                       <Pencil className="h-4 w-4 mr-2" />
                       Edit
@@ -1663,7 +1686,7 @@ export function ClientGroupPageContent({ group: initialGroup, avatarUrl, coverIm
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>Group Rules</CardTitle>
-                  {canEdit && (
+                  {canEditGroup && (
                     <Button variant="outline" size="sm" onClick={() => {
                       setEditingRule({
                         title: '',
@@ -1689,7 +1712,7 @@ export function ClientGroupPageContent({ group: initialGroup, avatarUrl, coverIm
                               <p className="text-sm text-muted-foreground mt-1">{rule.description}</p>
                             )}
                             </div>
-                          {canEdit && (
+                          {canEditGroup && (
                             <div className="flex gap-2">
                               <Button variant="ghost" size="icon" onClick={() => {
                                 setEditingRule(rule);
@@ -2431,12 +2454,12 @@ export function ClientGroupPageContent({ group: initialGroup, avatarUrl, coverIm
                       <Filter className="h-4 w-4 mr-2" />
                       Filter
                     </Button>
-                    {permissions.isOwner() || permissions.isAdmin() ? (
+                    {canEditGroup && (
                       <Button>
                         <UserPlus className="h-4 w-4 mr-2" />
                         Invite Members
                       </Button>
-                    ) : null}
+                    )}
                   </div>
                 </div>
                 
@@ -2525,7 +2548,7 @@ export function ClientGroupPageContent({ group: initialGroup, avatarUrl, coverIm
                                 <FlagIcon className="h-4 w-4 mr-2" />
                                 Report
                               </DropdownMenuItem>
-                              {(permissions.isOwner() || permissions.isAdmin()) && (
+                              {canEditGroup && (
                                 <>
                                   <DropdownMenuItem>
                                     <UserPlus className="h-4 w-4 mr-2" />

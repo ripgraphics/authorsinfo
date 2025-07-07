@@ -39,7 +39,7 @@ export async function getBookCoverRegenerationCandidates(
           // Handle empty curly braces in images table
           const { data } = await supabaseAdmin
             .from("books")
-            .select("id, images:cover_image_id!inner(url)")
+            .select("id, images:cover_image_id(url)")
             .not("original_image_url", "is", null)
             .eq("images.url", "{}")
 
@@ -50,7 +50,7 @@ export async function getBookCoverRegenerationCandidates(
           // Handle NULL url in images table
           const { data } = await supabaseAdmin
             .from("books")
-            .select("id, images:cover_image_id!inner(url)")
+            .select("id, images:cover_image_id(url)")
             .not("original_image_url", "is", null)
             .is("images.url", null)
 
@@ -61,7 +61,7 @@ export async function getBookCoverRegenerationCandidates(
           // Handle broken Cloudinary URLs with fetch: in them
           const { data } = await supabaseAdmin
             .from("books")
-            .select("id, images:cover_image_id!inner(url)")
+            .select("id, images:cover_image_id(url)")
             .not("original_image_url", "is", null)
             .ilike("images.url", "%fetch:%")
 
@@ -413,7 +413,7 @@ export async function getTotalBooksWithProblematicCoversAlt(): Promise<number> {
       // Count books with empty braces {} in images table
       const { count: emptyBraces } = await supabaseAdmin
         .from("books")
-        .select("id, images:cover_image_id!inner(url)", { count: "exact", head: true })
+        .select("id, images:cover_image_id(url)", { count: "exact", head: true })
         .not("original_image_url", "is", null)
         .eq("images.url", "{}")
 
@@ -426,7 +426,7 @@ export async function getTotalBooksWithProblematicCoversAlt(): Promise<number> {
       // Count books with NULL url in images table
       const { count: nullUrl } = await supabaseAdmin
         .from("books")
-        .select("id, images:cover_image_id!inner(url)", { count: "exact", head: true })
+        .select("id, images:cover_image_id(url)", { count: "exact", head: true })
         .not("original_image_url", "is", null)
         .is("images.url", null)
 
@@ -439,7 +439,7 @@ export async function getTotalBooksWithProblematicCoversAlt(): Promise<number> {
       // Count books with broken URLs in images table
       const { count: brokenUrl } = await supabaseAdmin
         .from("books")
-        .select("id, images:cover_image_id!inner(url)", { count: "exact", head: true })
+        .select("id, images:cover_image_id(url)", { count: "exact", head: true })
         .not("original_image_url", "is", null)
         .ilike("images.url", "%fetch:%")
 
@@ -490,7 +490,7 @@ export async function getProblematicCoverStats(): Promise<{
     try {
       const { count, error } = await supabaseAdmin
         .from("books")
-        .select("id, images:cover_image_id!inner(url)", { count: "exact", head: true })
+        .select("id, images:cover_image_id(url)", { count: "exact", head: true })
         .eq("images.url", "{}")
 
       if (!error) {
@@ -506,7 +506,7 @@ export async function getProblematicCoverStats(): Promise<{
     try {
       const { count, error } = await supabaseAdmin
         .from("books")
-        .select("id, images:cover_image_id!inner(url)", { count: "exact", head: true })
+        .select("id, images:cover_image_id(url)", { count: "exact", head: true })
         .is("images.url", null)
 
       if (!error) {
@@ -522,7 +522,7 @@ export async function getProblematicCoverStats(): Promise<{
     try {
       const { count, error } = await supabaseAdmin
         .from("books")
-        .select("id, images:cover_image_id!inner(url)", { count: "exact", head: true })
+        .select("id, images:cover_image_id(url)", { count: "exact", head: true })
         .ilike("images.url", "%fetch:%")
 
       if (!error) {

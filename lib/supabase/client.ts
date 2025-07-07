@@ -13,3 +13,6 @@ export function getSupabaseClient() {
 
 // Export the singleton instance
 export const supabaseClient = getSupabaseClient()
+
+// Also export as 'supabase' for backward compatibility
+export const supabase = supabaseClient

@@ -322,13 +322,13 @@ export function PhotoAlbumFeedItem({
             </div>
             <div className="flex-1 overflow-hidden">
               <PhotoGallery
-                albumId={albumData.id}
-                entityType="user"
                 entityId={activity.user_id}
+                entityType="user"
+                initialAlbumId={albumData.id}
                 isEditable={false}
-                showHeader={false}
+                showStats={false}
+                showShare={false}
                 maxImages={50}
-                gridCols={4}
               />
             </div>
           </div>

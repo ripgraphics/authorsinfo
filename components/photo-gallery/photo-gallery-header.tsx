@@ -22,12 +22,22 @@ export function PhotoGalleryHeader({
   const [shareLink, setShareLink] = useState('');
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('File input changed')
     const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
+    console.log('Selected files:', files.length)
+    
+    if (files.length === 0) {
+      console.log('No files selected')
+      return;
+    }
 
     try {
+      console.log('Starting upload...')
       setIsUploading(true);
       await onUpload(files);
+      console.log('Upload completed successfully')
+    } catch (error) {
+      console.error('Upload error in header:', error)
     } finally {
       setIsUploading(false);
       // Reset the input
@@ -88,6 +98,10 @@ export function PhotoGalleryHeader({
                 size="sm"
                 className="photo-gallery__upload-button"
                 disabled={isUploading}
+                onClick={() => {
+                  console.log('Upload button clicked')
+                  document.getElementById('photo-upload')?.click()
+                }}
               >
                 <Upload className="h-4 w-4 mr-2" />
                 {isUploading ? 'Uploading...' : 'Upload Photos'}

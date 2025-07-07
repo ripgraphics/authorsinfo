@@ -36,6 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useAuth } from '@/hooks/useAuth'
+import { useToast } from '@/hooks/use-toast'
 import { UserPhotoAlbums } from '@/components/user-photo-albums'
 
 interface ClientProfilePageProps {
@@ -49,7 +50,38 @@ interface ClientProfilePageProps {
 
 export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: ClientProfilePageProps) {
   const { user: authUser } = useAuth()
+  const { toast } = useToast()
   const [activeTab, setActiveTab] = useState("timeline")
+  const [isFollowing, setIsFollowing] = useState(false)
+  const [isLoadingFollow, setIsLoadingFollow] = useState(false)
+
+  // Check follow status on mount
+  React.useEffect(() => {
+    const checkFollowStatus = async () => {
+      if (!authUser) {
+        setIsFollowing(false)
+        return
+      }
+      try {
+        const response = await fetch(`/api/follow?entityId=${params.id}&targetType=user`)
+        if (response.ok) {
+          const data = await response.json()
+          setIsFollowing(data.isFollowing)
+        } else if (response.status === 401) {
+          setIsFollowing(false)
+        }
+      } catch (error) {
+        setIsFollowing(false)
+      }
+    }
+    checkFollowStatus()
+  }, [authUser, params.id])
+
+  // Follow/unfollow handler - now handled by FollowButton component
+  const handleFollow = () => {
+    // This callback can be used to update UI state if needed
+    // The FollowButton component handles all the follow logic internally
+  }
 
   // Mock data for the profile
   const mockName = user?.name || "Jane Reader"
@@ -222,18 +254,18 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
   return (
     <>
       <EntityHeader
-        entityType="photo"
-        name={mockName}
-        username={mockUsername}
-        coverImageUrl={coverImageUrl}
+        entityType="user"
+        name={user?.name || "Jane Reader"}
         profileImageUrl={avatarUrl}
+        coverImageUrl={coverImageUrl}
         stats={userStats}
-        location={mockLocation}
-        website={mockWebsite}
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        isEditable={authUser && authUser.role === 'admin'}
+        isFollowing={isFollowing}
+        onFollow={handleFollow}
+        entityId={authUser?.id === params.id ? undefined : params.id}
+        targetType={authUser?.id === params.id ? undefined : "user"}
       />
       
       {/* Timeline Tab Content */}

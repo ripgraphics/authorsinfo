@@ -16,6 +16,7 @@ import { EntityHeader, TabConfig } from "@/components/entity-header"
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import type { Book as BookType, Author, Review, BindingType, FormatType } from '@/types/book'
 import { useAuth } from '@/hooks/useAuth'
+import { useToast } from '@/hooks/use-toast'
 import {
   BookOpen,
   Calendar,
@@ -48,12 +49,13 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { FollowersList } from "@/components/followers-list"
 import { FollowersListTab } from "@/components/followers-list-tab"
-import { ExpandableSection } from "@/components/ui/expandable-section"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { ViewFullDetailsButton } from "@/components/ui/ViewFullDetailsButton"
 import { TimelineAboutSection } from "@/components/author/TimelineAboutSection"
 import { EntityHoverCard } from "@/components/entity-hover-cards"
 import { ContentSection } from "@/components/ui/content-section"
 import { formatDate } from "@/utils/dateUtils"
+import { canUserEditEntity } from '@/lib/auth-utils'
 
 interface Follower {
   id: string
@@ -92,6 +94,7 @@ export function ClientBookPage({
   params
 }: ClientBookPageProps) {
   const { user } = useAuth()
+  const { toast } = useToast()
   
   // Default reading status for display purposes when no user is logged in
   const defaultStatus = "want_to_read"
@@ -99,8 +102,14 @@ export function ClientBookPage({
   // Update tab state
   const [activeTab, setActiveTab] = useState("details")
   const [showFullAbout, setShowFullAbout] = useState(false)
+  const [showFullTimelineAbout, setShowFullTimelineAbout] = useState(false)
   const [isFollowing, setIsFollowing] = useState(false)
   const [isLoadingFollow, setIsLoadingFollow] = useState(false)
+  const [needsTruncation, setNeedsTruncation] = useState(false)
+  const [needsTimelineTruncation, setNeedsTimelineTruncation] = useState(false)
+  const [currentReadingStatus, setCurrentReadingStatus] = useState<string | null>(null)
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false)
+  const [canEdit, setCanEdit] = useState(false)
   
   // Mock photos for the Photos tab
   const mockPhotosTabData = [
@@ -191,58 +200,39 @@ export function ClientBookPage({
     },
   ]
 
-  // Follow/unfollow handlers
-  const handleFollow = async () => {
-    console.log('handleFollow called, user:', user, 'isFollowing:', isFollowing)
-    
-    if (!user) {
-      // Show a simple alert for now - in a real app you'd redirect to login
-      alert('Please log in to follow books')
-      return
-    }
-
-    setIsLoadingFollow(true)
-    try {
-      const method = isFollowing ? 'DELETE' : 'POST'
-      console.log('Making request:', method, 'to /api/follow')
-      const response = await fetch('/api/follow', {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          entityId: params.id,
-          targetType: 'book'
-        })
-      })
-
-      if (response.ok) {
-        setIsFollowing(!isFollowing)
-        // Optionally refresh the page or update followers count
-        window.location.reload()
-      } else {
-        let errorMessage = 'Failed to follow/unfollow. Please try again.'
-        try {
-          const error = await response.json()
-          console.error('Follow error:', error)
-          if (error.error) {
-            errorMessage = error.error
-          }
-        } catch (parseError) {
-          console.error('Follow error (could not parse response):', response.status, response.statusText)
-          if (response.status === 401) {
-            errorMessage = 'Please log in to follow books'
-          }
-        }
-        alert(errorMessage)
-      }
-    } catch (error) {
-      console.error('Error following/unfollowing:', error)
-      alert('An error occurred. Please try again.')
-    } finally {
-      setIsLoadingFollow(false)
-    }
+  // Follow/unfollow handler - now handled by FollowButton component
+  const handleFollow = () => {
+    // This callback can be used to update UI state if needed
+    // The FollowButton component handles all the follow logic internally
   }
+
+  // Check if content needs truncation
+  const checkTruncation = (content: string, maxHeight: number, setTruncation: (needs: boolean) => void, isTimeline = false) => {
+    // Simple approach: count characters and estimate lines
+    const charCount = content.length
+    const avgCharsPerLine = isTimeline ? 50 : 60 // Timeline has smaller text
+    const estimatedLines = Math.ceil(charCount / avgCharsPerLine)
+    const lineHeight = isTimeline ? 20 : 24 // Approximate line height in pixels
+    const estimatedHeight = estimatedLines * lineHeight
+    
+    setTruncation(estimatedHeight > maxHeight)
+  }
+
+  // Check edit permissions
+  useEffect(() => {
+    const checkEditPermissions = async () => {
+      if (!user?.id) {
+        setCanEdit(false)
+        return
+      }
+
+      // For books (catalog entities), only admins can edit
+      const isAdmin = user.role === 'admin' || user.role === 'super_admin' || user.role === 'super-admin'
+      setCanEdit(isAdmin)
+    }
+
+    checkEditPermissions()
+  }, [user])
 
   // Check follow status on component mount
   useEffect(() => {
@@ -269,6 +259,133 @@ export function ClientBookPage({
 
     checkFollowStatus()
   }, [user, params.id])
+
+  // Check truncation when content changes
+  useEffect(() => {
+    if (book.synopsis) {
+      // 240px = max-h-60 (15rem * 16px)
+      checkTruncation(book.synopsis, 240, setNeedsTruncation)
+    }
+  }, [book.synopsis])
+
+  useEffect(() => {
+    if (book.synopsis || book.overview) {
+      // 160px = max-h-40 (10rem * 16px)
+      checkTruncation(book.synopsis || book.overview || "", 160, setNeedsTimelineTruncation, true)
+    }
+  }, [book.synopsis, book.overview])
+
+  // Check current reading status on component mount
+  useEffect(() => {
+    const checkReadingStatus = async () => {
+      if (!user) {
+        setCurrentReadingStatus(null)
+        return
+      }
+
+      try {
+        const response = await fetch(`/api/reading-status?bookId=${params.id}`)
+        if (response.ok) {
+          const data = await response.json()
+          setCurrentReadingStatus(data.status)
+        }
+      } catch (error) {
+        console.error('Error checking reading status:', error)
+      }
+    }
+
+    checkReadingStatus()
+  }, [user, params.id])
+
+  // Handle reading status update
+  const handleReadingStatusUpdate = async (status: string) => {
+    if (!user) {
+      alert('Please log in to add books to your shelf')
+      return
+    }
+
+    setIsUpdatingStatus(true)
+    try {
+      const response = await fetch('/api/reading-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          bookId: params.id,
+          status: status
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setCurrentReadingStatus(data.status)
+        // Show success message
+        const statusText = status === 'remove' ? 'removed from shelf' : status.replace('_', ' ')
+        toast({
+          title: "Success!",
+          description: `Book ${statusText}`,
+        })
+      } else {
+        const error = await response.json()
+        alert(error.error || 'Failed to update reading status')
+      }
+    } catch (error) {
+      console.error('Error updating reading status:', error)
+      alert('An error occurred while updating reading status')
+    } finally {
+      setIsUpdatingStatus(false)
+    }
+  }
+
+  // Helper function to get display name for status
+  const getStatusDisplayName = (status: string) => {
+    const statusMap: Record<string, string> = {
+      'not_started': 'Want to Read',
+      'in_progress': 'Currently Reading',
+      'completed': 'Read',
+      'on_hold': 'On Hold',
+      'abandoned': 'Abandoned'
+    }
+    return statusMap[status] || status
+  }
+
+  // Handle removing from shelf
+  const handleRemoveFromShelf = async () => {
+    if (!user) {
+      alert('Please log in to manage your shelf')
+      return
+    }
+
+    setIsUpdatingStatus(true)
+    try {
+      const response = await fetch('/api/reading-status', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          bookId: params.id
+        })
+      })
+
+      if (response.ok) {
+        setCurrentReadingStatus(null)
+        toast({
+          title: "Success!",
+          description: "Book removed from shelf",
+        })
+      } else {
+        const error = await response.json()
+        alert(error.error || 'Failed to remove from shelf')
+      }
+    } catch (error) {
+      console.error('Error removing from shelf:', error)
+      alert('An error occurred while removing from shelf')
+    } finally {
+      setIsUpdatingStatus(false)
+    }
+  }
 
   // Configure tabs for the EntityHeader
   const tabs: TabConfig[] = [
@@ -305,6 +422,8 @@ export function ClientBookPage({
           entityType="book"
           name={book.title}
           bookId={params.id}
+          entityId={params.id}
+          targetType="book"
           username={authors && authors.length > 0 ? (
             <EntityHoverCard
               type="author"
@@ -349,7 +468,7 @@ export function ClientBookPage({
           } : undefined}
           publisherBookCount={publisherBooksCount}
         isMessageable={false}
-        isEditable={user && user.role === 'admin'}
+        isEditable={canEdit}
         isFollowing={isFollowing}
         onFollow={handleFollow}
         />
@@ -364,18 +483,38 @@ export function ClientBookPage({
                 <ContentSection
                   title="About"
                   onViewMore={() => setActiveTab("details")}
-                  isExpandable
-                  defaultExpanded={false}
                   className="book-page__about-section"
                 >
-                  <div className="space-y-4">
+                  <div className="space-y-2">
                     {(book.synopsis || book.overview) ? (
-                      <div 
-                        className="text-sm text-muted-foreground prose prose-sm max-w-none"
-                        dangerouslySetInnerHTML={{ 
-                          __html: book.synopsis || book.overview || "" 
-                        }}
-                      />
+                      <Collapsible open={showFullTimelineAbout} onOpenChange={setShowFullTimelineAbout}>
+                        {/* Show truncated content initially */}
+                        <div 
+                          className={`text-sm text-muted-foreground max-w-none synopsis-content prose prose-sm max-h-40 overflow-hidden ${
+                            showFullTimelineAbout ? 'hidden' : ''
+                          }`}
+                          dangerouslySetInnerHTML={{ 
+                            __html: book.synopsis || book.overview || "" 
+                          }}
+                        />
+                        
+                        {/* Show full content when expanded */}
+                        <CollapsibleContent className="text-sm text-muted-foreground max-w-none synopsis-content prose prose-sm">
+                          <div dangerouslySetInnerHTML={{ 
+                            __html: book.synopsis || book.overview || "" 
+                          }} />
+                        </CollapsibleContent>
+                        
+                        {needsTimelineTruncation && (
+                          <div className="flex justify-end mt-2">
+                            <CollapsibleTrigger asChild>
+                              <Button variant="ghost" size="sm" className="text-primary hover:bg-primary/10 hover:text-primary">
+                                {showFullTimelineAbout ? "View Less" : "View More"}
+                              </Button>
+                            </CollapsibleTrigger>
+                          </div>
+                        )}
+                      </Collapsible>
                     ) : (
                       <p className="text-sm text-muted-foreground">
                         No description available.
@@ -635,24 +774,83 @@ export function ClientBookPage({
                 <div className="book-page__shelf-section space-y-4 w-full mt-6">
                 <Dialog>
                   <DialogTrigger asChild>
-                      <button className="book-page__shelf-button inline-flex items-center justify-center gap-2 w-full rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-10 px-4 py-2">
+                      <button 
+                        className={`book-page__shelf-button inline-flex items-center justify-center gap-2 w-full rounded-md text-sm font-medium border focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-10 px-4 py-2 ${
+                          currentReadingStatus 
+                            ? 'border-primary bg-primary text-primary-foreground hover:bg-primary/90' 
+                            : 'border-input bg-background hover:bg-accent hover:text-accent-foreground'
+                        }`}
+                        disabled={isUpdatingStatus}
+                      >
                       <BookMarked className="mr-2 h-4 w-4" />
-                      Add to Shelf
+                      {currentReadingStatus ? `On Shelf (${getStatusDisplayName(currentReadingStatus)})` : 'Add to Shelf'}
                     </button>
                   </DialogTrigger>
                   <DialogContent className="max-w-lg p-6">
                     <DialogHeader>
-                      <DialogTitle>Add Book to Shelf</DialogTitle>
+                      <DialogTitle>
+                        {currentReadingStatus ? 'Update Reading Status' : 'Add Book to Shelf'}
+                      </DialogTitle>
                     </DialogHeader>
-                    <div role="menuitem" className="shelf-menu-item flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer">
-                      ✓ Want to Read
+                    <div className="space-y-2">
+                      <button 
+                        onClick={() => handleReadingStatusUpdate('want_to_read')}
+                        disabled={isUpdatingStatus}
+                        className={`shelf-menu-item flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
+                          currentReadingStatus === 'not_started' ? 'bg-accent text-accent-foreground' : ''
+                        }`}
+                      >
+                        {currentReadingStatus === 'not_started' ? '✓ ' : ''}Want to Read
+                      </button>
+                      <button 
+                        onClick={() => handleReadingStatusUpdate('currently_reading')}
+                        disabled={isUpdatingStatus}
+                        className={`shelf-menu-item flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
+                          currentReadingStatus === 'in_progress' ? 'bg-accent text-accent-foreground' : ''
+                        }`}
+                      >
+                        {currentReadingStatus === 'in_progress' ? '✓ ' : ''}Currently Reading
+                      </button>
+                      <button 
+                        onClick={() => handleReadingStatusUpdate('read')}
+                        disabled={isUpdatingStatus}
+                        className={`shelf-menu-item flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
+                          currentReadingStatus === 'completed' ? 'bg-accent text-accent-foreground' : ''
+                        }`}
+                      >
+                        {currentReadingStatus === 'completed' ? '✓ ' : ''}Read
+                      </button>
+                      <button 
+                        onClick={() => handleReadingStatusUpdate('on_hold')}
+                        disabled={isUpdatingStatus}
+                        className={`shelf-menu-item flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
+                          currentReadingStatus === 'on_hold' ? 'bg-accent text-accent-foreground' : ''
+                        }`}
+                      >
+                        {currentReadingStatus === 'on_hold' ? '✓ ' : ''}On Hold
+                      </button>
+                      <button 
+                        onClick={() => handleReadingStatusUpdate('abandoned')}
+                        disabled={isUpdatingStatus}
+                        className={`shelf-menu-item flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
+                          currentReadingStatus === 'abandoned' ? 'bg-accent text-accent-foreground' : ''
+                        }`}
+                      >
+                        {currentReadingStatus === 'abandoned' ? '✓ ' : ''}Abandoned
+                      </button>
                     </div>
-                    <div role="menuitem" className="shelf-menu-item flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer">
-                      Currently Reading
-                    </div>
-                    <div role="menuitem" className="shelf-menu-item flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer">
-                      Read
-                    </div>
+                    {currentReadingStatus && (
+                      <>
+                        <div role="separator" className="shelf-separator my-2 h-px bg-muted" />
+                        <button 
+                          onClick={handleRemoveFromShelf}
+                          disabled={isUpdatingStatus}
+                          className="shelf-menu-item flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-destructive hover:text-destructive-foreground cursor-pointer w-full text-left"
+                        >
+                          Remove from Shelf
+                        </button>
+                      </>
+                    )}
                     <div role="separator" className="shelf-separator my-2 h-px bg-muted" />
                     <button type="button" className="shelf-manage-button w-full text-left px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground">
                       Manage shelves...
@@ -668,7 +866,7 @@ export function ClientBookPage({
                 <ContentSection
                   title="Book Details"
                   headerRight={
-                    user && user.role === 'admin' ? (
+                    canEdit ? (
                       <Button variant="ghost" size="sm" className="h-8 w-8 p-0" asChild>
                         <Link href={`/books/${book.id}/edit`}>
                           <Pencil className="h-4 w-4" />
@@ -927,15 +1125,30 @@ export function ClientBookPage({
                     {book.synopsis && (
                       <div className="book-details__synopsis-section">
                         <h3 className="font-medium text-lg">Synopsis</h3>
-                        <ExpandableSection
-                          expanded={showFullAbout}
-                          onToggle={() => setShowFullAbout((v) => !v)}
-                        >
+                        <Collapsible open={showFullAbout} onOpenChange={setShowFullAbout}>
+                          {/* Show truncated content initially */}
                           <div 
-                            className="text-muted-foreground prose prose-sm max-w-none"
+                            className={`text-muted-foreground max-w-none synopsis-content prose prose-sm ${
+                              !showFullAbout ? 'max-h-60 overflow-hidden' : 'hidden'
+                            }`}
                             dangerouslySetInnerHTML={{ __html: book.synopsis }}
                           />
-                        </ExpandableSection>
+                          
+                          {/* Show full content when expanded */}
+                          <CollapsibleContent className="text-muted-foreground max-w-none synopsis-content prose prose-sm">
+                            <div dangerouslySetInnerHTML={{ __html: book.synopsis }} />
+                          </CollapsibleContent>
+                          
+                          {needsTruncation && (
+                            <div className="flex justify-end mt-2">
+                              <CollapsibleTrigger asChild>
+                                <Button variant="ghost" size="sm" className="text-primary hover:bg-primary/10 hover:text-primary">
+                                  {showFullAbout ? "View Less" : "View More"}
+                                </Button>
+                              </CollapsibleTrigger>
+                            </div>
+                          )}
+                        </Collapsible>
                       </div>
                     )}
 
@@ -943,7 +1156,7 @@ export function ClientBookPage({
                       <div className="book-details__overview-section">
                         <h3 className="font-medium text-lg">Overview</h3>
                         <div 
-                          className="text-muted-foreground prose prose-sm max-w-none"
+                          className="text-muted-foreground max-w-none"
                           dangerouslySetInnerHTML={{ __html: book.overview }}
                         />
                       </div>

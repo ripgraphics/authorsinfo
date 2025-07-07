@@ -245,6 +245,10 @@ export async function getUserPhotoAlbums(userId: string, currentUserId?: string)
         metadata,
         album_images(
           id,
+          image_id,
+          display_order,
+          is_cover,
+          is_featured,
           images(
             id,
             url,

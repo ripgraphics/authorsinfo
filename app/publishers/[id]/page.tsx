@@ -55,7 +55,7 @@ async function getPublisherBooks(publisherId: string) {
 
   if (error) {
     console.error("Error fetching publisher books:", error)
-    return []
+    throw new Error(`Failed to fetch publisher books: ${error.message}`)
   }
 
   // Process books to include cover image URL - same approach as books page
@@ -111,8 +111,14 @@ export default async function PublisherPage({ params }: { params: Promise<{ id: 
   // Get publisher followers
   const { followers, count: followersCount } = await getPublisherFollowers(id)
   
-  // Get publisher books
-  const books = await getPublisherBooks(id)
+  // Get publisher books with error handling
+  let books = []
+  try {
+    books = await getPublisherBooks(id)
+  } catch (error) {
+    console.error("Error fetching publisher books:", error)
+    books = []
+  }
   
   // Get total book count for this publisher
   const { count: totalBooksCount } = await supabaseAdmin

@@ -13,6 +13,32 @@ import type {
 } from "@/types/database"
 
 // Books
+export async function testDatabaseConnection(): Promise<boolean> {
+  try {
+    console.log("Testing database connection...")
+    const { data, error } = await supabaseAdmin.from("books").select("id").limit(1)
+    
+    if (error) {
+      console.error("Database connection test failed:", {
+        error,
+        errorCode: error.code,
+        errorMessage: error.message,
+        errorDetails: error.details
+      })
+      return false
+    }
+    
+    console.log("Database connection test successful")
+    return true
+  } catch (error) {
+    console.error("Database connection test error:", {
+      error,
+      errorMessage: error instanceof Error ? error.message : 'Unknown error'
+    })
+    return false
+  }
+}
+
 export async function getTotalBooksCount(): Promise<number> {
   try {
     const { count, error } = await supabaseAdmin.from("books").select("*", { count: "exact", head: true })
@@ -59,6 +85,8 @@ export async function getBookById(id: string): Promise<Book | null> {
   }
 
   try {
+    console.log(`Attempting to fetch book with ID: ${id}`)
+    
     // Add a timeout to the request
     const timeoutPromise = new Promise<Book | null>((_, reject) => {
       setTimeout(() => reject(new Error("Request timed out")), 5000)
@@ -74,10 +102,24 @@ export async function getBookById(id: string): Promise<Book | null> {
           .single()
 
         if (error) {
-          console.error("Error fetching book:", error)
+          console.error("Error fetching book:", {
+            error,
+            errorCode: error.code,
+            errorMessage: error.message,
+            errorDetails: error.details,
+            bookId: id
+          })
           resolve(null)
           return
         }
+
+        if (!data) {
+          console.error("No book found with ID:", id)
+          resolve(null)
+          return
+        }
+
+        console.log(`Successfully fetched book: ${data.title || 'Unknown title'}`)
 
         // Return book as-is, without trying to join with images
         resolve({
@@ -90,17 +132,31 @@ export async function getBookById(id: string): Promise<Book | null> {
           series_number: data.series_number !== null ? Number(data.series_number) : null,
         } as Book)
       } catch (error) {
-        console.error("Error in fetchPromise:", error)
+        console.error("Error in fetchPromise:", {
+          error,
+          errorMessage: error instanceof Error ? error.message : 'Unknown error',
+          errorStack: error instanceof Error ? error.stack : undefined,
+          bookId: id
+        })
         resolve(null)
       }
     })
 
     return Promise.race([fetchPromise, timeoutPromise]).catch((error) => {
-      console.error("Request failed or timed out:", error)
+      console.error("Request failed or timed out:", {
+        error,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        bookId: id
+      })
       return null
     })
   } catch (error) {
-    console.error("Error fetching book:", error)
+    console.error("Error fetching book:", {
+      error,
+      errorMessage: error instanceof Error ? error.message : 'Unknown error',
+      errorStack: error instanceof Error ? error.stack : undefined,
+      bookId: id
+    })
     return null
   }
 }

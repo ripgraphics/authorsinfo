@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 interface Book {
   title: string;
@@ -10,6 +12,8 @@ interface Book {
   date_published: string;
   publisher: string;
   pages: number;
+  isbn?: string;
+  description?: string;
 }
 
 export default function FetchByIsbnPage() {
@@ -17,6 +21,8 @@ export default function FetchByIsbnPage() {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadingBooks, setUploadingBooks] = useState<Set<number>>(new Set());
+  const { toast } = useToast();
 
   const handleFetch = async () => {
     setLoading(true);
@@ -48,6 +54,56 @@ export default function FetchByIsbnPage() {
     }
   };
 
+  const handleUploadBook = async (book: Book, index: number) => {
+    setUploadingBooks(prev => new Set(prev).add(index));
+    
+    try {
+      const bookData = {
+        title: book.title,
+        description: book.description || '',
+        cover_image_url: book.image,
+        author_names: book.authors,
+        publisher_name: book.publisher,
+        page_count: book.pages,
+        published_date: book.date_published,
+        isbn: book.isbn || '',
+      };
+
+      const res = await fetch('/api/admin/add-book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bookData),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to upload book');
+      }
+
+      const result = await res.json();
+      toast({
+        title: "Success!",
+        description: `Book "${book.title}" has been added to the application.`,
+      });
+
+      // Remove the book from the list after successful upload
+      setBooks(prev => prev.filter((_, i) => i !== index));
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to upload book';
+      toast({
+        title: "Upload Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingBooks(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(index);
+        return newSet;
+      });
+    }
+  };
+
   return (
     <div className="p-6">
       <Link href="/admin/retrieve-books" className="text-blue-500 underline">
@@ -66,13 +122,13 @@ export default function FetchByIsbnPage() {
         />
       </div>
 
-      <button
+      <Button
         onClick={handleFetch}
         disabled={loading}
-        className="px-4 py-2 bg-blue-600 text-white rounded"
+        className="mb-6"
       >
         {loading ? 'Fetching...' : 'Fetch Books'}
-      </button>
+      </Button>
 
       {error && <p className="text-red-600 mt-4">{error}</p>}
 
@@ -84,16 +140,31 @@ export default function FetchByIsbnPage() {
               alt={book.title}
               className="w-full h-48 object-cover rounded mb-4"
             />
-            <h2 className="text-lg font-semibold">{book.title}</h2>
-            <p className="text-gray-600">{book.authors.join(', ')}</p>
-            <p className="text-sm text-gray-500">
+            <h2 className="text-lg font-semibold mb-2">{book.title}</h2>
+            <p className="text-gray-600 mb-2">{book.authors.join(', ')}</p>
+            <p className="text-sm text-gray-500 mb-1">
               {new Date(book.date_published).toLocaleDateString()}
             </p>
-            <p className="text-sm text-gray-500">Publisher: {book.publisher}</p>
-            <p className="text-sm text-gray-500">{book.pages} pages</p>
+            <p className="text-sm text-gray-500 mb-1">Publisher: {book.publisher}</p>
+            <p className="text-sm text-gray-500 mb-4">{book.pages} pages</p>
+            
+            <Button
+              onClick={() => handleUploadBook(book, idx)}
+              disabled={uploadingBooks.has(idx)}
+              className="w-full"
+              variant="default"
+            >
+              {uploadingBooks.has(idx) ? 'Adding...' : 'Add to Application'}
+            </Button>
           </div>
         ))}
       </div>
+
+      {books.length === 0 && !loading && !error && (
+        <div className="text-center text-gray-500 mt-8">
+          <p>Enter ISBN(s) above and click "Fetch Books" to start</p>
+        </div>
+      )}
     </div>
   );
 } 

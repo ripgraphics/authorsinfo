@@ -1,6 +1,6 @@
 import { Metadata } from "next"
 import { notFound, redirect } from "next/navigation"
-import { getBookById, getAuthorsByBookId, getPublisherById, getReviewsByBookId, getBooksByPublisherId, getBooksByAuthorId } from "@/app/actions/data"
+import { getBookById, getAuthorsByBookId, getPublisherById, getReviewsByBookId, getBooksByPublisherId, getBooksByAuthorId, testDatabaseConnection } from "@/app/actions/data"
 import { supabaseAdmin } from "@/lib/supabase"
 import type { Book, Author, Review, BindingType, FormatType } from '@/types/book'
 import { PageBanner } from "@/components/page-banner"
@@ -134,6 +134,14 @@ export default async function BookPageServer({ params }: { params: Promise<{ id:
   // Special case: if id is "add", redirect to the add page
   if (id === "add") {
     redirect("/books/add")
+  }
+
+  // Test database connection first
+  console.log(`Testing database connection for book ID: ${id}`)
+  const dbConnectionOk = await testDatabaseConnection()
+  if (!dbConnectionOk) {
+    console.error("Database connection failed, cannot fetch book")
+    return <div>Database connection error. Please try again later.</div>
   }
 
   try {

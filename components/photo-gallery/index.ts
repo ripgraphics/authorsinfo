@@ -1,2 +1,22 @@
-export { PhotoGallery } from './PhotoGallery'
-export type { AlbumImage, Album, ImageVariant, ProcessedImage, ShareLink, ImageEdit, AnalyticsEvent } from './types' 
+export { PhotoGallery } from './photo-gallery-enterprise'
+export type { 
+  AlbumImageLegacy as AlbumImage, 
+  Album, 
+  ImageVariant, 
+  ProcessedImage, 
+  ShareLink, 
+  ImageEdit, 
+  AnalyticsEvent,
+  PhotoAlbum,
+  AlbumImage,
+  Image,
+  EntityType,
+  PhotoGalleryProps,
+  PhotoGalleryHeaderProps,
+  PhotoGalleryGridProps,
+  PhotoGalleryModalProps,
+  PhotoGalleryEmptyProps,
+  PhotoGalleryLoadingProps,
+  UsePhotoGalleryProps,
+  UsePhotoGalleryReturn
+} from './types' 

@@ -30,9 +30,15 @@ export function PhotoGalleryEmpty({
             multiple
             accept="image/*"
             onChange={(e) => {
+              console.log('Empty component file input changed')
               const files = Array.from(e.target.files || []);
+              console.log('Empty component selected files:', files.length)
+              
               if (files.length > 0) {
-                onUpload(files);
+                console.log('Empty component starting upload...')
+                onUpload(files).catch(error => {
+                  console.error('Empty component upload error:', error)
+                });
               }
               // Reset the input
               e.target.value = '';
@@ -43,6 +49,10 @@ export function PhotoGalleryEmpty({
               variant="default"
               size="lg"
               className="photo-gallery__empty-upload-button"
+              onClick={() => {
+                console.log('Empty upload button clicked')
+                document.getElementById('empty-upload')?.click()
+              }}
             >
               <Upload className="h-5 w-5 mr-2" />
               Upload Photos

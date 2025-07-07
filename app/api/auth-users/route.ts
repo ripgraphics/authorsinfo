@@ -138,6 +138,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No authenticated user' }, { status: 401 })
     }
     
+    // Check public.profiles for role
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select(`
+        id,
+        user_id,
+        role,
+        created_at
+      `)
+      .eq('user_id', session.user.id)
+      .single()
+    
+    let userRole = 'user'
+    
+    if (!profileError && profile && profile.role) {
+      userRole = profile.role
+    }
+    
     // Get user data from users table
     const { data: user, error: userError } = await supabase
       .from('users')
@@ -157,28 +175,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to fetch user' }, { status: 500 })
     }
     
-    // Get profile for this user
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select(`
-        id,
-        user_id,
-        bio,
-        role
-      `)
-      .eq('user_id', session.user.id)
-      .single()
-    
-    if (profileError && profileError.code !== 'PGRST116') {
-      console.error('Error fetching profile:', profileError)
-    }
-    
     const transformedUser = {
       id: user.id,
       email: user.email || 'No email',
       name: user.name || 'Unknown User',
       created_at: user.created_at,
-      role: profile?.role || 'user'
+      role: userRole
     }
     
     return NextResponse.json({ user: transformedUser })

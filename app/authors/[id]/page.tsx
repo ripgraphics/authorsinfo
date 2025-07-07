@@ -21,7 +21,7 @@ interface AuthorPageProps {
 interface AlbumImage {
   image: {
     url: string;
-  }[];
+  };
 }
 
 interface AlbumData {
@@ -233,8 +233,8 @@ async function getAuthorAlbums(authorId: string) {
         description,
         is_public,
         created_at,
-        album_images!inner(
-          image:images!inner(
+        album_images(
+          image:images(
             url
           )
         )
@@ -252,7 +252,7 @@ async function getAuthorAlbums(authorId: string) {
       id: album.id,
       name: album.name,
       description: album.description || undefined,
-      cover_image_url: album.album_images[0]?.image[0]?.url || undefined,
+      cover_image_url: album.album_images[0]?.image?.url || undefined,
       photo_count: album.album_images.length,
       created_at: album.created_at
     }))

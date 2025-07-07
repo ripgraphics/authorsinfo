@@ -22,20 +22,20 @@ export function AdminAuthCheck({ children }: { children: React.ReactNode }) {
           return
         }
 
-        // Check if user has admin role
+        // Check public.profiles for admin/super-admin role
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('role')
           .eq('user_id', user.id)
           .single()
 
-        if (profileError) {
-          console.error('Error fetching user profile:', profileError)
-          router.push('/')
-          return
+        let isUserAdmin = false
+
+        if (!profileError && profile) {
+          isUserAdmin = profile.role === 'admin' || profile.role === 'super_admin' || profile.role === 'super-admin'
         }
 
-        if (profile?.role !== 'admin') {
+        if (!isUserAdmin) {
           console.log('User is not an admin')
           router.push('/')
           return

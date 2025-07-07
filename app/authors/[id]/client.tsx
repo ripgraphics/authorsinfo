@@ -51,6 +51,8 @@ import { EntityHoverCard } from "@/components/entity-hover-cards"
 import { ContactInfo, ContactInfoInput } from '@/types/contact'
 import { getContactInfo, upsertContactInfo } from '@/utils/contactInfo'
 import { useAuth } from '@/hooks/useAuth'
+import { FollowButton } from '@/components/follow-button'
+import { canUserEditEntity } from '@/lib/auth-utils'
 
 interface ClientAuthorPageProps {
   author: Author
@@ -150,6 +152,26 @@ export function ClientAuthorPage({
   const [saving, setSaving] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
+  const [isFollowing, setIsFollowing] = useState(false)
+  const [showFullTimelineAbout, setShowFullTimelineAbout] = useState(false)
+  const [needsTimelineTruncation, setNeedsTimelineTruncation] = useState(false)
+  const [canEdit, setCanEdit] = useState(false)
+
+  // Check edit permissions
+  useEffect(() => {
+    const checkEditPermissions = async () => {
+      if (!user?.id) {
+        setCanEdit(false)
+        return
+      }
+
+      // For authors (catalog entities), only admins can edit
+      const isAdmin = user.role === 'admin' || user.role === 'super_admin' || user.role === 'super-admin'
+      setCanEdit(isAdmin)
+    }
+
+    checkEditPermissions()
+  }, [user])
 
   // Check initial data on mount
   useEffect(() => {
@@ -409,13 +431,15 @@ export function ClientAuthorPage({
                   <p className="text-muted-foreground">@{author?.name?.toLowerCase().replace(/\s+/g, '') || "author"}</p>
                 </div>
                 <div className="author-page__actions flex space-x-2 mt-4 md:mt-0">
+                  <FollowButton 
+                    entityId={author.id}
+                    targetType="author"
+                    variant="default"
+                    className="flex items-center"
+                  />
                   <Button className="flex items-center">
                     <MessageSquare className="h-4 w-4 mr-2" />
                     Message
-                  </Button>
-                  <Button variant="outline" className="flex items-center">
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Add Friend
                   </Button>
                   <Button variant="outline" size="icon">
                     <Ellipsis className="h-4 w-4" />
@@ -694,7 +718,7 @@ export function ClientAuthorPage({
                 <div className="overview-section__header flex flex-col space-y-1.5 p-6 border-b">
                   <div className="overview-section__title-row flex justify-between items-center">
                     <h3 className="overview-section__title text-xl font-semibold">Overview</h3>
-                    {user && user.role === 'admin' && (
+                    {user && (user.role === 'admin' || user.role === 'super_admin' || user.role === 'super-admin') && (
                       <Button 
                         variant="ghost" 
                         className="overview-section__edit-button h-8 gap-1 rounded-md px-3"
@@ -757,7 +781,7 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                 <div className="contact-section__header flex flex-col space-y-1.5 p-6 border-b">
                   <div className="contact-section__title-row flex justify-between items-center">
                     <h3 className="contact-section__title text-xl font-semibold">Contact Information</h3>
-                    {user && user.role === 'admin' && (
+                    {canEdit && (
                       <Button 
                         variant="ghost" 
                         className="contact-section__edit-button h-8 gap-1 rounded-md px-3"

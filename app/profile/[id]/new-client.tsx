@@ -62,7 +62,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        isEditable={authUser && authUser.role === 'admin'}
+        isEditable={authUser && (authUser.role === 'admin' || authUser.role === 'super_admin')}
       />
       
       {/* Tab Content */}

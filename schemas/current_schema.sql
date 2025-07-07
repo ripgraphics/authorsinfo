@@ -1,6 +1,6 @@
 --
 -- Comprehensive Database Schema
--- Generated on: 2025-07-03 00:14:41
+-- Generated on: 2025-07-07 01:48:36
 -- This file contains the complete database structure including:
 -- - All tables and their relationships
 -- - All functions and triggers
@@ -627,62 +627,1061 @@ COMMENT ON FUNCTION "extensions"."set_graphql_placeholder"() IS 'Reintroduces pl
 
 
 --
+-- Name: anonymize_user_data_enhanced("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."anonymize_user_data_enhanced"("p_user_id" "uuid") RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    -- Anonymize user data instead of deletion for compliance
+    UPDATE "public"."reading_progress" 
+    SET "user_id" = NULL, "updated_at" = "now"()
+    WHERE "user_id" = p_user_id;
+    
+    UPDATE "public"."book_reviews" 
+    SET "user_id" = NULL, "updated_at" = "now"()
+    WHERE "user_id" = p_user_id;
+    
+    UPDATE "public"."reading_lists" 
+    SET "user_id" = NULL, "updated_at" = "now"()
+    WHERE "user_id" = p_user_id;
+    
+    -- Log the anonymization
+    PERFORM "public"."log_sensitive_operation_enhanced"(
+        'data_anonymization', 'user_data', p_user_id, p_user_id,
+        "jsonb_build_object"('anonymization_timestamp', "now"())
+    );
+    
+    RETURN true;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."anonymize_user_data_enhanced"("p_user_id" "uuid") OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "anonymize_user_data_enhanced"("p_user_id" "uuid"); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."anonymize_user_data_enhanced"("p_user_id" "uuid") IS 'Enhanced user data anonymization for GDPR compliance';
+
+
+--
+-- Name: check_data_health(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."check_data_health"() RETURNS TABLE("health_check" "text", "issue_count" bigint, "severity" "text", "recommendation" "text")
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    -- Check for books without publishers
+    RETURN QUERY
+    SELECT 
+        'Books without publishers'::text,
+        COUNT(*)::bigint,
+        CASE WHEN COUNT(*) > 100 THEN 'HIGH' WHEN COUNT(*) > 10 THEN 'MEDIUM' ELSE 'LOW' END,
+        'Run fix_missing_publisher_relationships()'::text
+    FROM "public"."books"
+    WHERE publisher_id IS NULL;
+    
+    -- Check for orphaned reading progress
+    RETURN QUERY
+    SELECT 
+        'Orphaned reading progress'::text,
+        COUNT(*)::bigint,
+        CASE WHEN COUNT(*) > 50 THEN 'HIGH' WHEN COUNT(*) > 10 THEN 'MEDIUM' ELSE 'LOW' END,
+        'Run cleanup_orphaned_records()'::text
+    FROM "public"."reading_progress" rp
+    WHERE NOT EXISTS (SELECT 1 FROM "auth"."users" u WHERE u.id = rp.user_id)
+    OR NOT EXISTS (SELECT 1 FROM "public"."books" b WHERE b.id = rp.book_id);
+    
+    -- Check for inconsistent status mappings
+    RETURN QUERY
+    SELECT 
+        'Inconsistent status mappings'::text,
+        COUNT(*)::bigint,
+        CASE WHEN COUNT(*) > 20 THEN 'HIGH' WHEN COUNT(*) > 5 THEN 'MEDIUM' ELSE 'LOW' END,
+        'Run standardize_reading_status_mappings()'::text
+    FROM "public"."reading_progress"
+    WHERE status NOT IN ('not_started', 'in_progress', 'completed', 'on_hold', 'abandoned');
+    
+    -- Check for data validation issues
+    RETURN QUERY
+    SELECT 
+        'Data validation issues'::text,
+        (
+            (SELECT COUNT(*) FROM "public"."books" WHERE publication_date > CURRENT_DATE) +
+            (SELECT COUNT(*) FROM "public"."books" WHERE pages < 0) +
+            (SELECT COUNT(*) FROM "public"."reading_progress" WHERE progress_percentage < 0 OR progress_percentage > 100)
+        )::bigint,
+        CASE WHEN (
+            (SELECT COUNT(*) FROM "public"."books" WHERE publication_date > CURRENT_DATE) +
+            (SELECT COUNT(*) FROM "public"."books" WHERE pages < 0) +
+            (SELECT COUNT(*) FROM "public"."reading_progress" WHERE progress_percentage < 0 OR progress_percentage > 100)
+        ) > 50 THEN 'HIGH' 
+        WHEN (
+            (SELECT COUNT(*) FROM "public"."books" WHERE publication_date > CURRENT_DATE) +
+            (SELECT COUNT(*) FROM "public"."books" WHERE pages < 0) +
+            (SELECT COUNT(*) FROM "public"."reading_progress" WHERE progress_percentage < 0 OR progress_percentage > 100)
+        ) > 10 THEN 'MEDIUM' ELSE 'LOW' END,
+        'Run validate_and_repair_data()'::text;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."check_data_health"() OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "check_data_health"(); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."check_data_health"() IS 'Comprehensive data health check';
+
+
+--
+-- Name: check_data_integrity_health(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."check_data_integrity_health"() RETURNS TABLE("issue_type" "text", "issue_count" bigint, "severity" "text", "recommendation" "text")
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    -- Check for books with missing publisher_id
+    RETURN QUERY
+    SELECT 
+        'Books with missing publisher_id'::text,
+        COUNT(*)::bigint,
+        CASE 
+            WHEN COUNT(*) > 0 THEN 'CRITICAL'
+            ELSE 'GOOD'
+        END,
+        CASE 
+            WHEN COUNT(*) > 0 THEN 'Fix publisher relationships'
+            ELSE 'No issues found'
+        END
+    FROM "public"."books" 
+    WHERE publisher_id IS NULL;
+    
+    -- Check for orphaned reading progress records
+    RETURN QUERY
+    SELECT 
+        'Orphaned reading progress records'::text,
+        COUNT(*)::bigint,
+        CASE 
+            WHEN COUNT(*) > 0 THEN 'MEDIUM'
+            ELSE 'GOOD'
+        END,
+        CASE 
+            WHEN COUNT(*) > 0 THEN 'Clean up orphaned records'
+            ELSE 'No issues found'
+        END
+    FROM "public"."reading_progress" rp
+    LEFT JOIN "public"."books" b ON rp.book_id = b.id
+    WHERE b.id IS NULL;
+    
+    -- Check for orphaned follows records
+    RETURN QUERY
+    SELECT 
+        'Orphaned follows records'::text,
+        COUNT(*)::bigint,
+        CASE 
+            WHEN COUNT(*) > 0 THEN 'MEDIUM'
+            ELSE 'GOOD'
+        END,
+        CASE 
+            WHEN COUNT(*) > 0 THEN 'Clean up orphaned follows'
+            ELSE 'No issues found'
+        END
+    FROM "public"."follows" f
+    LEFT JOIN "auth"."users" u ON f.follower_id = u.id
+    WHERE u.id IS NULL;
+    
+    -- Check for inconsistent status values
+    RETURN QUERY
+    SELECT 
+        'Inconsistent reading status values'::text,
+        COUNT(*)::bigint,
+        CASE 
+            WHEN COUNT(*) > 0 THEN 'LOW'
+            ELSE 'GOOD'
+        END,
+        CASE 
+            WHEN COUNT(*) > 0 THEN 'Standardize status values'
+            ELSE 'No issues found'
+        END
+    FROM "public"."reading_progress"
+    WHERE reading_progress.status NOT IN ('not_started', 'in_progress', 'completed', 'on_hold', 'abandoned');
+END;
+$$;
+
+
+ALTER FUNCTION "public"."check_data_integrity_health"() OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "check_data_integrity_health"(); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."check_data_integrity_health"() IS 'Comprehensive data integrity health check';
+
+
+--
+-- Name: check_data_quality_issues_enhanced(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."check_data_quality_issues_enhanced"() RETURNS "jsonb"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    v_issues "jsonb" := '[]'::"jsonb";
+    v_issue "jsonb";
+BEGIN
+    -- Check for books without titles
+    SELECT "jsonb_build_object"(
+        'issue_type', 'missing_title',
+        'severity', 'medium',
+        'count', COUNT(*),
+        'description', 'Books without titles found'
+    ) INTO v_issue
+    FROM "public"."books"
+    WHERE "title" IS NULL OR LENGTH(TRIM("title")) = 0;
+    
+    IF (v_issue->>'count')::integer > 0 THEN
+        v_issues := v_issues || v_issue;
+    END IF;
+    
+    -- Check for books without authors
+    SELECT "jsonb_build_object"(
+        'issue_type', 'missing_author',
+        'severity', 'medium',
+        'count', COUNT(*),
+        'description', 'Books without authors found'
+    ) INTO v_issue
+    FROM "public"."books"
+    WHERE "author" IS NULL OR LENGTH(TRIM("author")) = 0;
+    
+    IF (v_issue->>'count')::integer > 0 THEN
+        v_issues := v_issues || v_issue;
+    END IF;
+    
+    -- Check for orphaned reading progress
+    SELECT "jsonb_build_object"(
+        'issue_type', 'orphaned_reading_progress',
+        'severity', 'high',
+        'count', COUNT(*),
+        'description', 'Reading progress records for non-existent books'
+    ) INTO v_issue
+    FROM "public"."reading_progress" rp
+    LEFT JOIN "public"."books" b ON rp."book_id" = b."id"
+    WHERE b."id" IS NULL;
+    
+    IF (v_issue->>'count')::integer > 0 THEN
+        v_issues := v_issues || v_issue;
+    END IF;
+    
+    RETURN "jsonb_build_object"(
+        'issues', v_issues,
+        'total_issues', array_length(v_issues, 1),
+        'check_timestamp', "now"()
+    );
+END;
+$$;
+
+
+ALTER FUNCTION "public"."check_data_quality_issues_enhanced"() OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "check_data_quality_issues_enhanced"(); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."check_data_quality_issues_enhanced"() IS 'Enhanced data quality issue checking';
+
+
+--
+-- Name: check_existing_follow("uuid", "uuid", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."check_existing_follow"("p_follower_id" "uuid", "p_following_id" "uuid", "p_target_type_id" "uuid") RETURNS TABLE("follow_exists" boolean)
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+  RETURN QUERY
+  SELECT EXISTS(
+    SELECT 1 FROM public.follows 
+    WHERE follower_id = p_follower_id 
+    AND following_id = p_following_id
+    AND target_type_id = p_target_type_id
+  );
+END;
+$$;
+
+
+ALTER FUNCTION "public"."check_existing_follow"("p_follower_id" "uuid", "p_following_id" "uuid", "p_target_type_id" "uuid") OWNER TO "postgres";
+
+--
+-- Name: check_is_following("uuid", "uuid", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."check_is_following"("p_follower_id" "uuid", "p_following_id" "uuid", "p_target_type_id" "uuid") RETURNS TABLE("is_following" boolean)
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+  RETURN QUERY
+  SELECT EXISTS(
+    SELECT 1 FROM public.follows 
+    WHERE follower_id = p_follower_id 
+    AND following_id = p_following_id
+    AND target_type_id = p_target_type_id
+  );
+END;
+$$;
+
+
+ALTER FUNCTION "public"."check_is_following"("p_follower_id" "uuid", "p_following_id" "uuid", "p_target_type_id" "uuid") OWNER TO "postgres";
+
+--
+-- Name: check_publisher_data_health(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."check_publisher_data_health"() RETURNS TABLE("metric_name" "text", "current_value" bigint, "status" "text")
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    -- Count books with missing publisher_id
+    RETURN QUERY SELECT 
+        'Books with missing publisher_id'::text,
+        COUNT(*)::bigint,
+        CASE WHEN COUNT(*) = 0 THEN 'GOOD' ELSE 'NEEDS_FIX' END
+    FROM "public"."books" 
+    WHERE publisher_id IS NULL;
+    
+    -- Count total books
+    RETURN QUERY SELECT 
+        'Total books'::text,
+        COUNT(*)::bigint,
+        'INFO'::text
+    FROM "public"."books";
+    
+    -- Count total publishers
+    RETURN QUERY SELECT 
+        'Total publishers'::text,
+        COUNT(*)::bigint,
+        'INFO'::text
+    FROM "public"."publishers";
+    
+    -- Count orphaned records
+    RETURN QUERY SELECT 
+        'Orphaned reading_progress records'::text,
+        COUNT(*)::bigint,
+        CASE WHEN COUNT(*) = 0 THEN 'GOOD' ELSE 'NEEDS_CLEANUP' END
+    FROM "public"."reading_progress" rp
+    LEFT JOIN "public"."books" b ON rp.book_id = b.id
+    WHERE b.id IS NULL;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."check_publisher_data_health"() OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "check_publisher_data_health"(); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."check_publisher_data_health"() IS 'Check the health of publisher data relationships';
+
+
+--
+-- Name: check_rate_limit_enhanced("uuid", "text", integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."check_rate_limit_enhanced"("p_user_id" "uuid", "p_action" "text", "p_max_attempts" integer DEFAULT 10, "p_window_minutes" integer DEFAULT 5) RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    v_attempt_count integer;
+BEGIN
+    SELECT COUNT(*) INTO v_attempt_count
+    FROM "public"."user_activity_log"
+    WHERE "user_id" = p_user_id
+    AND "activity_type" = p_action
+    AND "created_at" >= "now"() - (p_window_minutes || ' minutes')::interval;
+    
+    RETURN v_attempt_count < p_max_attempts;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."check_rate_limit_enhanced"("p_user_id" "uuid", "p_action" "text", "p_max_attempts" integer, "p_window_minutes" integer) OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "check_rate_limit_enhanced"("p_user_id" "uuid", "p_action" "text", "p_max_attempts" integer, "p_window_minutes" integer); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."check_rate_limit_enhanced"("p_user_id" "uuid", "p_action" "text", "p_max_attempts" integer, "p_window_minutes" integer) IS 'Enhanced rate limiting for user actions';
+
+
+--
+-- Name: check_reading_privacy_access("uuid", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."check_reading_privacy_access"("target_user_id" "uuid", "requesting_user_id" "uuid" DEFAULT "auth"."uid"()) RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    -- User can always access their own data
+    IF target_user_id = requesting_user_id THEN
+        RETURN true;
+    END IF;
+
+    -- Check if the target user has public reading profile
+    IF EXISTS (
+        SELECT 1 FROM "public"."user_privacy_settings" 
+        WHERE user_id = target_user_id 
+        AND allow_public_reading_profile = true
+    ) THEN
+        RETURN true;
+    END IF;
+
+    -- Check if requesting user is a friend and target allows friends
+    IF EXISTS (
+        SELECT 1 FROM "public"."user_privacy_settings" 
+        WHERE user_id = target_user_id 
+        AND allow_friends_to_see_reading = true
+    ) AND EXISTS (
+        SELECT 1 FROM "public"."user_friends" 
+        WHERE (user_id = requesting_user_id AND friend_id = target_user_id) 
+        OR (friend_id = requesting_user_id AND user_id = target_user_id)
+    ) THEN
+        RETURN true;
+    END IF;
+
+    -- Check if requesting user is a follower and target allows followers
+    IF EXISTS (
+        SELECT 1 FROM "public"."user_privacy_settings" 
+        WHERE user_id = target_user_id 
+        AND allow_followers_to_see_reading = true
+    ) AND EXISTS (
+        SELECT 1 FROM "public"."follows" 
+        WHERE follower_id = requesting_user_id AND following_id = target_user_id
+    ) THEN
+        RETURN true;
+    END IF;
+
+    -- Check for custom permissions
+    IF EXISTS (
+        SELECT 1 FROM "public"."custom_permissions" 
+        WHERE user_id = requesting_user_id 
+        AND target_user_id = target_user_id 
+        AND permission_type = 'view_reading_progress'
+        AND (expires_at IS NULL OR expires_at > now())
+    ) THEN
+        RETURN true;
+    END IF;
+
+    RETURN false;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."check_reading_privacy_access"("target_user_id" "uuid", "requesting_user_id" "uuid") OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "check_reading_privacy_access"("target_user_id" "uuid", "requesting_user_id" "uuid"); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."check_reading_privacy_access"("target_user_id" "uuid", "requesting_user_id" "uuid") IS 'Check if a user can access another user''s reading progress';
+
+
+--
+-- Name: cleanup_old_audit_trail(integer); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."cleanup_old_audit_trail"("p_days_to_keep" integer DEFAULT 365) RETURNS integer
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    deleted_count integer;
+BEGIN
+    DELETE FROM "public"."enterprise_audit_trail"
+    WHERE "changed_at" < now() - (p_days_to_keep || ' days')::interval;
+    
+    GET DIAGNOSTICS deleted_count = ROW_COUNT;
+    RETURN deleted_count;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."cleanup_old_audit_trail"("p_days_to_keep" integer) OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "cleanup_old_audit_trail"("p_days_to_keep" integer); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."cleanup_old_audit_trail"("p_days_to_keep" integer) IS 'Cleans up old audit trail data';
+
+
+--
+-- Name: cleanup_old_monitoring_data(integer); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."cleanup_old_monitoring_data"("p_days_to_keep" integer DEFAULT 90) RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    -- Clean old user activity logs
+    DELETE FROM "public"."user_activity_log" 
+    WHERE "created_at" < "now"() - (p_days_to_keep || ' days')::interval;
+    
+    -- Clean old performance metrics
+    DELETE FROM "public"."performance_metrics" 
+    WHERE "recorded_at" < "now"() - (p_days_to_keep || ' days')::interval;
+    
+    -- Clean old system health checks
+    DELETE FROM "public"."system_health_checks" 
+    WHERE "checked_at" < "now"() - (p_days_to_keep || ' days')::interval;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."cleanup_old_monitoring_data"("p_days_to_keep" integer) OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "cleanup_old_monitoring_data"("p_days_to_keep" integer); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."cleanup_old_monitoring_data"("p_days_to_keep" integer) IS 'Cleans up old monitoring data to maintain performance';
+
+
+--
+-- Name: cleanup_orphaned_records(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."cleanup_orphaned_records"() RETURNS TABLE("table_name" "text", "records_deleted" bigint, "cleanup_type" "text", "status" "text")
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    deleted_count bigint;
+BEGIN
+    -- Clean up orphaned reading progress records
+    DELETE FROM "public"."reading_progress" rp
+    WHERE NOT EXISTS (
+        SELECT 1 FROM "public"."books" b 
+        WHERE b.id = rp.book_id
+    );
+    
+    GET DIAGNOSTICS deleted_count = ROW_COUNT;
+    
+    RETURN QUERY SELECT 
+        'reading_progress'::text,
+        deleted_count,
+        'orphaned_records'::text,
+        'SUCCESS'::text;
+    
+    -- Clean up orphaned follows records
+    DELETE FROM "public"."follows" f
+    WHERE NOT EXISTS (
+        SELECT 1 FROM "auth"."users" u 
+        WHERE u.id = f.follower_id
+    );
+    
+    GET DIAGNOSTICS deleted_count = ROW_COUNT;
+    
+    RETURN QUERY SELECT 
+        'follows'::text,
+        deleted_count,
+        'orphaned_records'::text,
+        'SUCCESS'::text;
+    
+    -- Log the cleanup operation (only if table exists)
+    BEGIN
+        INSERT INTO "public"."security_audit_log" (
+            action, 
+            table_name, 
+            new_values
+        ) VALUES (
+            'CLEANUP_ORPHANED_RECORDS',
+            'all_tables',
+            jsonb_build_object(
+                'cleanup_completed_at', now(),
+                'cleanup_type', 'orphaned_records_removal'
+            )
+        );
+    EXCEPTION WHEN OTHERS THEN
+        -- Table doesn't exist, continue without logging
+    END;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."cleanup_orphaned_records"() OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "cleanup_orphaned_records"(); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."cleanup_orphaned_records"() IS 'Clean up orphaned records for data consistency';
+
+
+--
+-- Name: comprehensive_system_health_check_enhanced(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."comprehensive_system_health_check_enhanced"() RETURNS "jsonb"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    v_health_report "jsonb";
+    v_overall_status "text" := 'healthy';
+    v_checks "jsonb" := '[]'::"jsonb";
+    v_check_result "jsonb";
+BEGIN
+    -- Check database connectivity
+    BEGIN
+        PERFORM 1;
+        v_check_result := "jsonb_build_object"(
+            'check_name', 'database_connectivity',
+            'status', 'healthy',
+            'details', 'Database connection successful'
+        );
+    EXCEPTION WHEN OTHERS THEN
+        v_overall_status := 'critical';
+        v_check_result := "jsonb_build_object"(
+            'check_name', 'database_connectivity',
+            'status', 'critical',
+            'details', 'Database connection failed: ' || SQLERRM
+        );
+    END;
+    v_checks := v_checks || v_check_result;
+    
+    -- Check table sizes
+    BEGIN
+        SELECT "jsonb_build_object"(
+            'check_name', 'table_sizes',
+            'status', CASE 
+                WHEN total_size_mb > 1000 THEN 'warning'
+                ELSE 'healthy'
+            END,
+            'details', "jsonb_build_object"(
+                'total_size_mb', total_size_mb,
+                'largest_table', largest_table
+            )
+        ) INTO v_check_result
+        FROM (
+            SELECT 
+                ROUND(SUM(pg_total_relation_size(c.oid)) / 1024.0 / 1024.0, 2) as total_size_mb,
+                c.relname as largest_table
+            FROM pg_class c
+            JOIN pg_namespace n ON n.oid = c.relnamespace
+            WHERE n.nspname = 'public'
+            GROUP BY c.relname
+            ORDER BY pg_total_relation_size(c.oid) DESC
+            LIMIT 1
+        ) size_check;
+        
+        IF (v_check_result->>'status') = 'warning' THEN
+            v_overall_status := 'warning';
+        END IF;
+    EXCEPTION WHEN OTHERS THEN
+        v_check_result := "jsonb_build_object"(
+            'check_name', 'table_sizes',
+            'status', 'critical',
+            'details', 'Failed to check table sizes: ' || SQLERRM
+        );
+        v_overall_status := 'critical';
+    END;
+    v_checks := v_checks || v_check_result;
+    
+    -- Check for orphaned records
+    BEGIN
+        SELECT "jsonb_build_object"(
+            'check_name', 'data_integrity',
+            'status', CASE 
+                WHEN orphaned_count > 0 THEN 'warning'
+                ELSE 'healthy'
+            END,
+            'details', "jsonb_build_object"(
+                'orphaned_records', orphaned_count
+            )
+        ) INTO v_check_result
+        FROM (
+            SELECT COUNT(*) as orphaned_count
+            FROM "public"."reading_progress" rp
+            LEFT JOIN "public"."books" b ON rp."book_id" = b."id"
+            WHERE b."id" IS NULL
+        ) integrity_check;
+        
+        IF (v_check_result->>'status') = 'warning' THEN
+            v_overall_status := 'warning';
+        END IF;
+    EXCEPTION WHEN OTHERS THEN
+        v_check_result := "jsonb_build_object"(
+            'check_name', 'data_integrity',
+            'status', 'critical',
+            'details', 'Failed to check data integrity: ' || SQLERRM
+        );
+        v_overall_status := 'critical';
+    END;
+    v_checks := v_checks || v_check_result;
+    
+    -- Build comprehensive health report
+    v_health_report := "jsonb_build_object"(
+        'overall_status', v_overall_status,
+        'checks', v_checks,
+        'health_check_timestamp', "now"()
+    );
+    
+    RETURN v_health_report;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."comprehensive_system_health_check_enhanced"() OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "comprehensive_system_health_check_enhanced"(); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."comprehensive_system_health_check_enhanced"() IS 'Enhanced comprehensive system health checks';
+
+
+--
+-- Name: create_data_version("text", "uuid", "text"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."create_data_version"("p_table_name" "text", "p_record_id" "uuid", "p_change_reason" "text" DEFAULT NULL::"text") RETURNS integer
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    v_next_version integer;
+    v_data_snapshot jsonb;
+    v_table_query text;
+BEGIN
+    -- Get next version number
+    SELECT COALESCE(MAX("version_number"), 0) + 1 
+    INTO v_next_version
+    FROM "public"."enterprise_data_versions"
+    WHERE "table_name" = p_table_name AND "record_id" = p_record_id;
+    
+    -- Mark previous version as not current
+    UPDATE "public"."enterprise_data_versions"
+    SET "is_current" = false
+    WHERE "table_name" = p_table_name AND "record_id" = p_record_id;
+    
+    -- Get current data snapshot
+    v_table_query := format('SELECT to_jsonb(t.*) FROM %I t WHERE id = %L', p_table_name, p_record_id);
+    EXECUTE v_table_query INTO v_data_snapshot;
+    
+    -- Insert new version
+    INSERT INTO "public"."enterprise_data_versions" (
+        "table_name",
+        "record_id",
+        "version_number",
+        "data_snapshot",
+        "created_by",
+        "change_reason"
+    ) VALUES (
+        p_table_name,
+        p_record_id,
+        v_next_version,
+        v_data_snapshot,
+        COALESCE(auth.uid(), '00000000-0000-0000-0000-000000000000'::uuid),
+        p_change_reason
+    );
+    
+    RETURN v_next_version;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."create_data_version"("p_table_name" "text", "p_record_id" "uuid", "p_change_reason" "text") OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "create_data_version"("p_table_name" "text", "p_record_id" "uuid", "p_change_reason" "text"); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."create_data_version"("p_table_name" "text", "p_record_id" "uuid", "p_change_reason" "text") IS 'Creates data versioning for tracking changes';
+
+
+--
+-- Name: create_enterprise_audit_trail(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."create_enterprise_audit_trail"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    v_old_values jsonb;
+    v_new_values jsonb;
+    v_operation text;
+BEGIN
+    -- Determine operation type
+    IF TG_OP = 'INSERT' THEN
+        v_operation := 'INSERT';
+        v_new_values := to_jsonb(NEW);
+        v_old_values := NULL;
+    ELSIF TG_OP = 'UPDATE' THEN
+        v_operation := 'UPDATE';
+        v_old_values := to_jsonb(OLD);
+        v_new_values := to_jsonb(NEW);
+    ELSIF TG_OP = 'DELETE' THEN
+        v_operation := 'DELETE';
+        v_old_values := to_jsonb(OLD);
+        v_new_values := NULL;
+    END IF;
+    
+    -- Insert audit trail record
+    INSERT INTO "public"."enterprise_audit_trail" (
+        "table_name",
+        "record_id",
+        "operation",
+        "old_values",
+        "new_values",
+        "changed_by",
+        "ip_address",
+        "user_agent",
+        "session_id",
+        "transaction_id"
+    ) VALUES (
+        TG_TABLE_NAME,
+        COALESCE(NEW.id, OLD.id),
+        v_operation,
+        v_old_values,
+        v_new_values,
+        COALESCE(auth.uid(), '00000000-0000-0000-0000-000000000000'::uuid),
+        inet_client_addr(),
+        current_setting('application_name', true),
+        current_setting('session_id', true),
+        txid_current()::text
+    );
+    
+    RETURN COALESCE(NEW, OLD);
+END;
+$$;
+
+
+ALTER FUNCTION "public"."create_enterprise_audit_trail"() OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "create_enterprise_audit_trail"(); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."create_enterprise_audit_trail"() IS 'Creates enterprise audit trail for data changes';
+
+
+--
+-- Name: decrypt_sensitive_data_enhanced("text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."decrypt_sensitive_data_enhanced"("p_encrypted_data" "text", "p_key" "text" DEFAULT 'default_key'::"text") RETURNS "text"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    -- In production, use proper decryption libraries
+    -- This is a placeholder for demonstration
+    RETURN SUBSTRING(p_encrypted_data FROM 11);
+END;
+$$;
+
+
+ALTER FUNCTION "public"."decrypt_sensitive_data_enhanced"("p_encrypted_data" "text", "p_key" "text") OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "decrypt_sensitive_data_enhanced"("p_encrypted_data" "text", "p_key" "text"); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."decrypt_sensitive_data_enhanced"("p_encrypted_data" "text", "p_key" "text") IS 'Enhanced decryption for authorized access';
+
+
+--
+-- Name: delete_follow_record("uuid", "uuid", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."delete_follow_record"("p_follower_id" "uuid", "p_following_id" "uuid", "p_target_type_id" "uuid") RETURNS TABLE("success" boolean, "error_message" "text")
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+  -- Delete follow record
+  DELETE FROM public.follows 
+  WHERE follower_id = p_follower_id 
+  AND following_id = p_following_id
+  AND target_type_id = p_target_type_id;
+
+  -- Check if any rows were affected
+  IF FOUND THEN
+    RETURN QUERY SELECT TRUE, '';
+  ELSE
+    RETURN QUERY SELECT FALSE, 'Follow record not found';
+  END IF;
+EXCEPTION
+  WHEN OTHERS THEN
+    RETURN QUERY SELECT FALSE, SQLERRM;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."delete_follow_record"("p_follower_id" "uuid", "p_following_id" "uuid", "p_target_type_id" "uuid") OWNER TO "postgres";
+
+--
+-- Name: encrypt_sensitive_data_enhanced("text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."encrypt_sensitive_data_enhanced"("p_data" "text", "p_key" "text" DEFAULT 'default_key'::"text") RETURNS "text"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    -- In production, use proper encryption libraries
+    -- This is a placeholder for demonstration
+    RETURN 'encrypted_' || encode(digest(p_data || p_key, 'sha256'), 'hex');
+END;
+$$;
+
+
+ALTER FUNCTION "public"."encrypt_sensitive_data_enhanced"("p_data" "text", "p_key" "text") OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "encrypt_sensitive_data_enhanced"("p_data" "text", "p_key" "text"); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."encrypt_sensitive_data_enhanced"("p_data" "text", "p_key" "text") IS 'Enhanced encryption for sensitive data security';
+
+
+--
+-- Name: ensure_reading_progress_consistency(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."ensure_reading_progress_consistency"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    -- Validate status values
+    IF NEW.status NOT IN ('want_to_read', 'currently_reading', 'read', 'not_started', 'in_progress', 'completed', 'on_hold', 'abandoned') THEN
+        RAISE EXCEPTION 'Invalid status value: %', NEW.status;
+    END IF;
+    
+    -- Validate progress percentage
+    IF NEW.progress_percentage < 0 OR NEW.progress_percentage > 100 THEN
+        RAISE EXCEPTION 'Progress percentage must be between 0 and 100';
+    END IF;
+    
+    -- Ensure dates are logical
+    IF NEW.finish_date IS NOT NULL AND NEW.start_date IS NOT NULL AND NEW.finish_date < NEW.start_date THEN
+        RAISE EXCEPTION 'Finish date cannot be before start date';
+    END IF;
+    
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."ensure_reading_progress_consistency"() OWNER TO "postgres";
+
+--
+-- Name: export_user_data_enhanced("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."export_user_data_enhanced"("p_user_id" "uuid") RETURNS "jsonb"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    v_export_data "jsonb";
+BEGIN
+    SELECT "jsonb_build_object"(
+        'user_info', (
+            SELECT "jsonb_build_object"(
+                'id', u."id",
+                'email', u."email",
+                'created_at', u."created_at"
+            )
+            FROM "auth"."users" u
+            WHERE u."id" = p_user_id
+        ),
+        'reading_progress', (
+            SELECT "jsonb_agg"("jsonb_build_object"(
+                'book_id', rp."book_id",
+                'status', rp."status",
+                'progress_percentage', rp."progress_percentage",
+                'start_date', rp."start_date",
+                'finish_date', rp."finish_date"
+            ))
+            FROM "public"."reading_progress" rp
+            WHERE rp."user_id" = p_user_id
+        ),
+        'book_reviews', (
+            SELECT "jsonb_agg"("jsonb_build_object"(
+                'book_id', br."book_id",
+                'rating', br."rating",
+                'review_text', br."review_text",
+                'created_at', br."created_at"
+            ))
+            FROM "public"."book_reviews" br
+            WHERE br."user_id" = p_user_id
+        ),
+        'reading_lists', (
+            SELECT "jsonb_agg"("jsonb_build_object"(
+                'list_id', rl."id",
+                'name', rl."name",
+                'description', rl."description",
+                'created_at', rl."created_at"
+            ))
+            FROM "public"."reading_lists" rl
+            WHERE rl."user_id" = p_user_id
+        ),
+        'export_timestamp', "now"()
+    ) INTO v_export_data;
+    
+    -- Log the export operation
+    PERFORM "public"."log_sensitive_operation_enhanced"(
+        'data_export', 'user_data', p_user_id, p_user_id,
+        "jsonb_build_object"('export_timestamp', "now"())
+    );
+    
+    RETURN v_export_data;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."export_user_data_enhanced"("p_user_id" "uuid") OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "export_user_data_enhanced"("p_user_id" "uuid"); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."export_user_data_enhanced"("p_user_id" "uuid") IS 'Enhanced user data export for GDPR compliance';
+
+
+--
 -- Name: extract_book_dimensions("uuid", "jsonb"); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
 CREATE OR REPLACE FUNCTION "public"."extract_book_dimensions"("book_uuid" "uuid", "dimensions_json" "jsonb") RETURNS "void"
-    LANGUAGE "plpgsql"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
     AS $$
 DECLARE
-    length_val DECIMAL;
-    length_unit_val TEXT;
-    width_val DECIMAL;
-    width_unit_val TEXT;
-    height_val DECIMAL;
-    height_unit_val TEXT;
-    weight_val DECIMAL;
-    weight_unit_val TEXT;
+    width_val NUMERIC;
+    height_val NUMERIC;
+    depth_val NUMERIC;
+    weight_val NUMERIC;
+    unit_val TEXT;
 BEGIN
-    IF dimensions_json IS NULL THEN
-        RETURN;
-    END IF;
+    -- Extract dimensions from JSON
+    width_val := (dimensions_json->>'width')::NUMERIC;
+    height_val := (dimensions_json->>'height')::NUMERIC;
+    depth_val := (dimensions_json->>'depth')::NUMERIC;
+    weight_val := (dimensions_json->>'weight')::NUMERIC;
+    unit_val := dimensions_json->>'unit';
     
-    -- Extract values safely
-    length_val := (dimensions_json->'length'->>'value')::DECIMAL;
-    length_unit_val := dimensions_json->'length'->>'unit';
-    width_val := (dimensions_json->'width'->>'value')::DECIMAL;
-    width_unit_val := dimensions_json->'width'->>'unit';
-    height_val := (dimensions_json->'height'->>'value')::DECIMAL;
-    height_unit_val := dimensions_json->'height'->>'unit';
-    weight_val := (dimensions_json->'weight'->>'value')::DECIMAL;
-    weight_unit_val := dimensions_json->'weight'->>'unit';
-    
-    -- Insert structured dimensions data
+    -- Insert or update book dimensions
     INSERT INTO book_dimensions (
-        book_id,
-        length_value, length_unit,
-        width_value, width_unit,
-        height_value, height_unit,
-        weight_value, weight_unit
+        book_id, width, height, depth, weight, unit, source
     ) VALUES (
-        book_uuid,
-        length_val,
-        length_unit_val,
-        width_val,
-        width_unit_val,
-        height_val,
-        height_unit_val,
-        weight_val,
-        weight_unit_val
+        book_uuid, width_val, height_val, depth_val, weight_val, unit_val, 'isbndb'
     ) ON CONFLICT (book_id) DO UPDATE SET
-        length_value = EXCLUDED.length_value,
-        length_unit = EXCLUDED.length_unit,
-        width_value = EXCLUDED.width_value,
-        width_unit = EXCLUDED.width_unit,
-        height_value = EXCLUDED.height_value,
-        height_unit = EXCLUDED.height_unit,
-        weight_value = EXCLUDED.weight_value,
-        weight_unit = EXCLUDED.weight_unit,
+        width = EXCLUDED.width,
+        height = EXCLUDED.height,
+        depth = EXCLUDED.depth,
+        weight = EXCLUDED.weight,
+        unit = EXCLUDED.unit,
         updated_at = NOW();
 END;
 $$;
@@ -691,62 +1690,694 @@ $$;
 ALTER FUNCTION "public"."extract_book_dimensions"("book_uuid" "uuid", "dimensions_json" "jsonb") OWNER TO "postgres";
 
 --
--- Name: get_user_feed_activities("uuid", integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: fix_missing_publisher_relationships(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
-CREATE OR REPLACE FUNCTION "public"."get_user_feed_activities"("p_user_id" "uuid", "p_limit" integer DEFAULT 20, "p_offset" integer DEFAULT 0) RETURNS TABLE("id" "uuid", "user_id" "uuid", "activity_type" "text", "entity_type" "text", "entity_id" "text", "is_public" boolean, "metadata" "jsonb", "created_at" timestamp with time zone, "user_name" "text", "user_avatar_url" "text", "like_count" bigint, "comment_count" bigint, "is_liked" boolean)
+CREATE OR REPLACE FUNCTION "public"."fix_missing_publisher_relationships"() RETURNS TABLE("book_id" "uuid", "book_title" "text", "action_taken" "text", "publisher_id" "uuid", "status" "text")
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    book_record RECORD;
+    publisher_record RECORD;
+    linked_count integer := 0;
+    created_count integer := 0;
+BEGIN
+    -- First, try to link books to existing publishers by author name
+    FOR book_record IN 
+        SELECT b.id, b.title, b.author, b.publisher_id
+        FROM "public"."books" b
+        WHERE b.publisher_id IS NULL
+        AND b.author IS NOT NULL
+    LOOP
+        -- Try to find existing publisher by author name
+        SELECT p.id INTO publisher_record
+        FROM "public"."publishers" p
+        WHERE p.name ILIKE '%' || book_record.author || '%'
+        OR book_record.author ILIKE '%' || p.name || '%'
+        LIMIT 1;
+        
+        IF publisher_record.id IS NOT NULL THEN
+            -- Link to existing publisher
+            UPDATE "public"."books" 
+            SET publisher_id = publisher_record.id
+            WHERE id = book_record.id;
+            
+            linked_count := linked_count + 1;
+            
+            RETURN QUERY SELECT 
+                book_record.id,
+                book_record.title,
+                'LINKED_TO_EXISTING'::text,
+                publisher_record.id,
+                'SUCCESS'::text;
+        ELSE
+            -- Create new publisher based on author
+            INSERT INTO "public"."publishers" (name, description)
+            VALUES (book_record.author || ' Publications', 'Auto-generated publisher for ' || book_record.author)
+            RETURNING id INTO publisher_record;
+            
+            -- Link book to new publisher
+            UPDATE "public"."books" 
+            SET publisher_id = publisher_record.id
+            WHERE id = book_record.id;
+            
+            created_count := created_count + 1;
+            
+            RETURN QUERY SELECT 
+                book_record.id,
+                book_record.title,
+                'CREATED_NEW_PUBLISHER'::text,
+                publisher_record.id,
+                'SUCCESS'::text;
+        END IF;
+    END LOOP;
+    
+    -- Log the operation (only if security_audit_log table exists)
+    BEGIN
+        INSERT INTO "public"."security_audit_log" (
+            action, 
+            table_name, 
+            new_values
+        ) VALUES (
+            'FIX_PUBLISHER_RELATIONSHIPS',
+            'books_publishers',
+            jsonb_build_object(
+                'linked_count', linked_count,
+                'created_count', created_count,
+                'total_fixed', linked_count + created_count,
+                'fix_type', 'missing_publisher_relationships'
+            )
+        );
+    EXCEPTION WHEN OTHERS THEN
+        -- Table doesn't exist, continue without logging
+    END;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."fix_missing_publisher_relationships"() OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "fix_missing_publisher_relationships"(); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."fix_missing_publisher_relationships"() IS 'Automatically fix missing publisher relationships';
+
+
+--
+-- Name: generate_data_health_report(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."generate_data_health_report"() RETURNS TABLE("report_section" "text", "metric_name" "text", "metric_value" "text", "status" "text", "recommendation" "text")
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    -- Publisher relationship health
+    RETURN QUERY SELECT 
+        'Data Integrity'::text,
+        'Books with missing publisher_id'::text,
+        COUNT(*)::text,
+        CASE WHEN COUNT(*) = 0 THEN 'GOOD' ELSE 'NEEDS_FIX' END,
+        CASE WHEN COUNT(*) = 0 THEN 'All books have publishers' ELSE 'Run safe_fix_missing_publishers()' END
+    FROM "public"."books" 
+    WHERE publisher_id IS NULL;
+    
+    -- Orphaned records health
+    RETURN QUERY SELECT 
+        'Data Integrity'::text,
+        'Orphaned reading_progress records'::text,
+        COUNT(*)::text,
+        CASE WHEN COUNT(*) = 0 THEN 'GOOD' ELSE 'NEEDS_CLEANUP' END,
+        CASE WHEN COUNT(*) = 0 THEN 'No orphaned records' ELSE 'Run safe_cleanup_orphaned_records()' END
+    FROM "public"."reading_progress" rp
+    LEFT JOIN "public"."books" b ON rp.book_id = b.id
+    WHERE b.id IS NULL;
+    
+    -- Overall data health
+    RETURN QUERY SELECT 
+        'System Health'::text,
+        'Total books in system'::text,
+        COUNT(*)::text,
+        'INFO'::text,
+        'System is operational'::text
+    FROM "public"."books";
+    
+    -- Publisher distribution
+    RETURN QUERY SELECT 
+        'System Health'::text,
+        'Total publishers in system'::text,
+        COUNT(*)::text,
+        'INFO'::text,
+        'Publisher system is operational'::text
+    FROM "public"."publishers";
+END;
+$$;
+
+
+ALTER FUNCTION "public"."generate_data_health_report"() OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "generate_data_health_report"(); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."generate_data_health_report"() IS 'Generate comprehensive data health report';
+
+
+--
+-- Name: generate_intelligent_content("text", "jsonb", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."generate_intelligent_content"("p_content_type" "text", "p_input_data" "jsonb", "p_user_id" "uuid" DEFAULT NULL::"uuid") RETURNS TABLE("generated_content" "text", "confidence_score" numeric, "metadata" "jsonb")
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    v_job_id UUID;
+    v_result TEXT;
+    v_confidence DECIMAL(5,4);
+    v_metadata JSONB;
+BEGIN
+    -- Create content generation job
+    INSERT INTO public.content_generation_jobs (
+        content_type,
+        input_parameters,
+        created_by
+    ) VALUES (
+        p_content_type,
+        p_input_data,
+        p_user_id
+    ) RETURNING id INTO v_job_id;
+    
+    -- Simulate AI content generation (replace with actual AI integration)
+    SELECT 
+        CASE p_content_type
+            WHEN 'book_summary' THEN 'This book explores...'
+            WHEN 'author_bio' THEN 'A distinguished author known for...'
+            WHEN 'review_analysis' THEN 'Based on the review analysis...'
+            ELSE 'Generated content based on input parameters.'
+        END,
+        0.85,
+        jsonb_build_object('job_id', v_job_id, 'generation_method', 'ai_enhanced')
+    INTO v_result, v_confidence, v_metadata;
+    
+    -- Update job status
+    UPDATE public.content_generation_jobs 
+    SET 
+        generation_status = 'completed',
+        generated_content = v_result,
+        quality_score = v_confidence,
+        completed_at = NOW()
+    WHERE id = v_job_id;
+    
+    RETURN QUERY SELECT v_result, v_confidence, v_metadata;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."generate_intelligent_content"("p_content_type" "text", "p_input_data" "jsonb", "p_user_id" "uuid") OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "generate_intelligent_content"("p_content_type" "text", "p_input_data" "jsonb", "p_user_id" "uuid"); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."generate_intelligent_content"("p_content_type" "text", "p_input_data" "jsonb", "p_user_id" "uuid") IS 'Generate intelligent content using AI';
+
+
+--
+-- Name: generate_monitoring_report(integer); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."generate_monitoring_report"("p_days_back" integer DEFAULT 7) RETURNS "jsonb"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    v_report "jsonb";
+BEGIN
+    SELECT "jsonb_build_object"(
+        'report_generated_at', "now"(),
+        'period_days', p_days_back,
+        'user_activity_summary', (
+            SELECT "jsonb_build_object"(
+                'total_activities', COUNT(*),
+                'unique_users', COUNT(DISTINCT "user_id"),
+                'avg_activities_per_user', ROUND(AVG(activity_count), 2)
+            )
+            FROM (
+                SELECT "user_id", COUNT(*) as activity_count
+                FROM "public"."user_activity_log"
+                WHERE "created_at" >= "now"() - (p_days_back || ' days')::interval
+                GROUP BY "user_id"
+            ) user_activities
+        ),
+        'system_health_summary', (
+            SELECT "jsonb_build_object"(
+                'total_checks', COUNT(*),
+                'healthy_checks', COUNT(*) FILTER (WHERE "status" = 'healthy'),
+                'warning_checks', COUNT(*) FILTER (WHERE "status" = 'warning'),
+                'critical_checks', COUNT(*) FILTER (WHERE "status" = 'critical')
+            )
+            FROM "public"."system_health_checks"
+            WHERE "checked_at" >= "now"() - (p_days_back || ' days')::interval
+        ),
+        'performance_summary', (
+            SELECT "jsonb_build_object"(
+                'avg_response_time', ROUND(AVG("metric_value"), 2),
+                'max_response_time', MAX("metric_value"),
+                'total_measurements', COUNT(*)
+            )
+            FROM "public"."performance_metrics"
+            WHERE "metric_name" = 'response_time' 
+            AND "recorded_at" >= "now"() - (p_days_back || ' days')::interval
+        ),
+        'book_popularity_summary', (
+            SELECT "jsonb_build_object"(
+                'total_books_tracked', COUNT(*),
+                'avg_views_per_book', ROUND(AVG("views_count"), 2),
+                'avg_rating', ROUND(AVG("avg_rating"), 2),
+                'most_viewed_book', (
+                    SELECT "title" FROM "public"."books" 
+                    WHERE "id" = bpm."book_id" 
+                    ORDER BY "views_count" DESC 
+                    LIMIT 1
+                )
+            )
+            FROM "public"."book_popularity_metrics" bpm
+            WHERE "last_updated" >= "now"() - (p_days_back || ' days')::interval
+        )
+    ) INTO v_report;
+    
+    RETURN v_report;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."generate_monitoring_report"("p_days_back" integer) OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "generate_monitoring_report"("p_days_back" integer); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."generate_monitoring_report"("p_days_back" integer) IS 'Generates comprehensive monitoring reports';
+
+
+--
+-- Name: generate_smart_notification("uuid", "text", "jsonb"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."generate_smart_notification"("p_user_id" "uuid", "p_notification_type" "text", "p_context_data" "jsonb" DEFAULT '{}'::"jsonb") RETURNS "uuid"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    v_notification_id UUID;
+    v_title TEXT;
+    v_content TEXT;
+    v_priority TEXT;
+BEGIN
+    -- Generate personalized notification content
+    SELECT 
+        CASE p_notification_type
+            WHEN 'recommendation' THEN 'New Book Recommendation'
+            WHEN 'reminder' THEN 'Reading Reminder'
+            WHEN 'alert' THEN 'Important Update'
+            ELSE 'Notification'
+        END,
+        CASE p_notification_type
+            WHEN 'recommendation' THEN 'We found a book you might love!'
+            WHEN 'reminder' THEN 'Time to continue your reading journey.'
+            WHEN 'alert' THEN 'Important information for you.'
+            ELSE 'You have a new notification.'
+        END,
+        CASE 
+            WHEN p_notification_type = 'alert' THEN 'high'
+            ELSE 'normal'
+        END
+    INTO v_title, v_content, v_priority;
+    
+    -- Create smart notification
+    INSERT INTO public.smart_notifications (
+        user_id,
+        notification_type,
+        notification_title,
+        notification_content,
+        priority_level,
+        ai_generated,
+        personalization_data
+    ) VALUES (
+        p_user_id,
+        p_notification_type,
+        v_title,
+        v_content,
+        v_priority,
+        true,
+        p_context_data
+    ) RETURNING id INTO v_notification_id;
+    
+    RETURN v_notification_id;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."generate_smart_notification"("p_user_id" "uuid", "p_notification_type" "text", "p_context_data" "jsonb") OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "generate_smart_notification"("p_user_id" "uuid", "p_notification_type" "text", "p_context_data" "jsonb"); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."generate_smart_notification"("p_user_id" "uuid", "p_notification_type" "text", "p_context_data" "jsonb") IS 'Generate personalized smart notifications';
+
+
+--
+-- Name: generate_system_alerts_enhanced(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."generate_system_alerts_enhanced"() RETURNS "jsonb"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    v_alerts "jsonb" := '[]'::"jsonb";
+    v_alert "jsonb";
+    v_health_status "jsonb";
+    v_data_quality "jsonb";
+BEGIN
+    -- Check system health
+    v_health_status := "public"."comprehensive_system_health_check_enhanced"();
+    
+    IF (v_health_status->>'overall_status') = 'critical' THEN
+        v_alert := "jsonb_build_object"(
+            'alert_type', 'system_health_critical',
+            'severity', 'critical',
+            'message', 'System health check failed',
+            'details', v_health_status
+        );
+        v_alerts := v_alerts || v_alert;
+    END IF;
+    
+    -- Check data quality
+    v_data_quality := "public"."check_data_quality_issues_enhanced"();
+    
+    IF (v_data_quality->>'total_issues')::integer > 0 THEN
+        v_alert := "jsonb_build_object"(
+            'alert_type', 'data_quality_issues',
+            'severity', 'warning',
+            'message', 'Data quality issues detected',
+            'details', v_data_quality
+        );
+        v_alerts := v_alerts || v_alert;
+    END IF;
+    
+    -- Check performance
+    IF EXISTS (
+        SELECT 1 FROM "public"."performance_metrics" 
+        WHERE "metric_name" = 'response_time' 
+        AND "metric_value" > 5000
+        AND "recorded_at" >= "now"() - INTERVAL '1 hour'
+    ) THEN
+        v_alert := "jsonb_build_object"(
+            'alert_type', 'performance_degradation',
+            'severity', 'warning',
+            'message', 'High response times detected',
+            'details', "jsonb_build_object"('timeframe', 'last_hour')
+        );
+        v_alerts := v_alerts || v_alert;
+    END IF;
+    
+    RETURN "jsonb_build_object"(
+        'alerts', v_alerts,
+        'total_alerts', array_length(v_alerts, 1),
+        'alert_timestamp', "now"()
+    );
+END;
+$$;
+
+
+ALTER FUNCTION "public"."generate_system_alerts_enhanced"() OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "generate_system_alerts_enhanced"(); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."generate_system_alerts_enhanced"() IS 'Enhanced system alert generation';
+
+
+--
+-- Name: get_ai_book_recommendations("uuid", integer); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."get_ai_book_recommendations"("p_user_id" "uuid", "p_limit" integer DEFAULT 10) RETURNS TABLE("book_id" "uuid", "title" "text", "author_name" "text", "recommendation_score" numeric, "recommendation_reason" "text")
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
 BEGIN
     RETURN QUERY
     SELECT 
-        ua.id,
-        ua.user_id,
-        ua.activity_type,
-        ua.entity_type,
-        ua.entity_id,
-        ua.is_public,
-        ua.metadata,
-        ua.created_at,
-        u.name as user_name,
-        u.avatar_url as user_avatar_url,
-        COALESCE(al.like_count, 0) as like_count,
-        COALESCE(ac.comment_count, 0) as comment_count,
-        COALESCE(ual.is_liked, false) as is_liked
-    FROM user_activities ua
-    JOIN users u ON ua.user_id = u.id
-    LEFT JOIN (
-        SELECT activity_id, COUNT(*) as like_count
-        FROM activity_likes
-        GROUP BY activity_id
-    ) al ON ua.id = al.activity_id
-    LEFT JOIN (
-        SELECT activity_id, COUNT(*) as comment_count
-        FROM activity_comments
-        GROUP BY activity_id
-    ) ac ON ua.id = ac.activity_id
-    LEFT JOIN (
-        SELECT activity_id, true as is_liked
-        FROM activity_likes
-        WHERE user_id = p_user_id
-    ) ual ON ua.id = ual.activity_id
-    WHERE (
-        -- Public activities
-        ua.is_public = true
-        OR 
-        -- User's own activities
-        ua.user_id = p_user_id
-        OR
-        -- Friends' activities
-        EXISTS (
-            SELECT 1 FROM user_friends 
-            WHERE (user_id = p_user_id AND friend_id = ua.user_id AND status = 'accepted')
-            OR (friend_id = p_user_id AND user_id = ua.user_id AND status = 'accepted')
-        )
-    )
-    ORDER BY ua.created_at DESC
-    LIMIT p_limit
-    OFFSET p_offset;
+        b.id as book_id,
+        b.title,
+        a.name as author_name,
+        COALESCE(pr.recommendation_score, 0.5) as recommendation_score,
+        pr.recommendation_reason
+    FROM public.books b
+    LEFT JOIN public.book_authors ba ON b.id = ba.book_id
+    LEFT JOIN public.authors a ON ba.author_id = a.id
+    LEFT JOIN public.personalized_recommendations pr ON b.id = pr.item_id AND pr.user_id = p_user_id
+    WHERE pr.recommendation_type = 'book'
+    ORDER BY pr.recommendation_score DESC NULLS LAST
+    LIMIT p_limit;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_ai_book_recommendations"("p_user_id" "uuid", "p_limit" integer) OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "get_ai_book_recommendations"("p_user_id" "uuid", "p_limit" integer); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."get_ai_book_recommendations"("p_user_id" "uuid", "p_limit" integer) IS 'Get AI-powered book recommendations for users';
+
+
+--
+-- Name: get_data_lineage("text"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."get_data_lineage"("p_table_name" "text") RETURNS TABLE("source_table" "text", "source_column" "text", "target_table" "text", "target_column" "text", "transformation_type" "text", "data_flow_description" "text")
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        dl."source_table",
+        dl."source_column",
+        dl."target_table",
+        dl."target_column",
+        dl."transformation_type",
+        dl."data_flow_description"
+    FROM "public"."enterprise_data_lineage" dl
+    WHERE dl."source_table" = p_table_name OR dl."target_table" = p_table_name
+    ORDER BY dl."source_table", dl."target_table";
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_data_lineage"("p_table_name" "text") OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "get_data_lineage"("p_table_name" "text"); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."get_data_lineage"("p_table_name" "text") IS 'Gets data lineage information for tables';
+
+
+--
+-- Name: get_data_quality_report("text"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."get_data_quality_report"("p_table_name" "text" DEFAULT NULL::"text") RETURNS TABLE("table_name" "text", "total_rules" integer, "passed_rules" integer, "failed_rules" integer, "critical_issues" integer, "overall_score" numeric)
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    rule_count integer;
+    passed_count integer;
+    failed_count integer;
+    critical_count integer;
+BEGIN
+    -- Get rule counts
+    SELECT COUNT(*), 
+           COUNT(*) FILTER (WHERE validation_result = 'PASS'),
+           COUNT(*) FILTER (WHERE validation_result = 'FAIL'),
+           COUNT(*) FILTER (WHERE validation_result = 'FAIL' AND severity = 'CRITICAL')
+    INTO rule_count, passed_count, failed_count, critical_count
+    FROM "public"."validate_enterprise_data_quality"(p_table_name);
+    
+    RETURN QUERY SELECT 
+        COALESCE(p_table_name, 'ALL_TABLES'),
+        rule_count,
+        passed_count,
+        failed_count,
+        critical_count,
+        CASE 
+            WHEN rule_count = 0 THEN 100.0
+            ELSE ROUND((passed_count::numeric / rule_count::numeric) * 100, 2)
+        END;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_data_quality_report"("p_table_name" "text") OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "get_data_quality_report"("p_table_name" "text"); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."get_data_quality_report"("p_table_name" "text") IS 'Generates comprehensive data quality report';
+
+
+--
+-- Name: get_entity_images("text", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."get_entity_images"("p_entity_type" "text", "p_entity_id" "uuid") RETURNS TABLE("image_id" "uuid", "image_url" "text", "thumbnail_url" "text", "alt_text" "text", "file_size" integer, "created_at" timestamp with time zone, "album_name" "text", "album_id" "uuid")
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        i.id as image_id,
+        i.url as image_url,
+        i.thumbnail_url,
+        i.alt_text,
+        i.file_size,
+        i.created_at,
+        pa.name as album_name,
+        pa.id as album_id
+    FROM public.images i
+    JOIN public.album_images ai ON i.id = ai.image_id
+    JOIN public.photo_albums pa ON ai.album_id = pa.id
+    WHERE pa.entity_type = p_entity_type
+    AND pa.entity_id = p_entity_id
+    AND i.deleted_at IS NULL
+    ORDER BY i.created_at DESC;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_entity_images"("p_entity_type" "text", "p_entity_id" "uuid") OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "get_entity_images"("p_entity_type" "text", "p_entity_id" "uuid"); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."get_entity_images"("p_entity_type" "text", "p_entity_id" "uuid") IS 'Get all images for a specific entity type and ID';
+
+
+--
+-- Name: get_performance_recommendations(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."get_performance_recommendations"() RETURNS TABLE("recommendation_type" "text", "priority" "text", "description" "text", "estimated_impact" "text")
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    -- Check for missing indexes on frequently queried columns
+    RETURN QUERY
+    SELECT 
+        'Missing Indexes'::text,
+        'HIGH'::text,
+        'Add indexes on frequently queried columns'::text,
+        '20-50% query improvement'::text
+    WHERE EXISTS (
+        SELECT 1 FROM pg_stat_user_tables 
+        WHERE schemaname = 'public' 
+        AND tablename IN ('reading_progress', 'books', 'follows')
+    );
+    
+    -- Check for slow queries
+    RETURN QUERY
+    SELECT 
+        'Slow Queries'::text,
+        'MEDIUM'::text,
+        'Optimize queries taking more than 500ms'::text,
+        '10-30% performance improvement'::text
+    WHERE EXISTS (
+        SELECT 1 FROM pg_stat_statements 
+        WHERE mean_time > 500
+    );
+    
+    -- Check for table bloat
+    RETURN QUERY
+    SELECT 
+        'Table Bloat'::text,
+        'LOW'::text,
+        'Run VACUUM on tables with high dead tuple ratio'::text,
+        '5-15% space and performance improvement'::text
+    WHERE EXISTS (
+        SELECT 1 FROM pg_stat_user_tables 
+        WHERE n_dead_tup > 1000
+    );
+    
+    -- Check for materialized view refresh
+    RETURN QUERY
+    SELECT 
+        'Materialized Views'::text,
+        'MEDIUM'::text,
+        'Refresh materialized views for better performance'::text,
+        '50-80% improvement for summary queries'::text
+    WHERE EXISTS (
+        SELECT 1 FROM pg_matviews 
+        WHERE schemaname = 'public'
+    );
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_performance_recommendations"() OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "get_performance_recommendations"(); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."get_performance_recommendations"() IS 'Get performance optimization recommendations';
+
+
+--
+-- Name: get_privacy_audit_summary(integer); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."get_privacy_audit_summary"("days_back" integer DEFAULT 30) RETURNS TABLE("action" "text", "count" bigint, "last_occurrence" timestamp with time zone)
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        pal.action,
+        COUNT(*) as count,
+        MAX(pal.created_at) as last_occurrence
+    FROM "public"."privacy_audit_log" pal
+    WHERE pal.user_id = auth.uid()
+    AND pal.created_at >= now() - (days_back || ' days')::interval
+    GROUP BY pal.action
+    ORDER BY count DESC;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_privacy_audit_summary"("days_back" integer) OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "get_privacy_audit_summary"("days_back" integer); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."get_privacy_audit_summary"("days_back" integer) IS 'Get summary of privacy audit actions for the current user';
+
+
+--
+-- Name: get_user_feed_activities("uuid", integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."get_user_feed_activities"("p_user_id" "uuid", "p_limit" integer DEFAULT 20, "p_offset" integer DEFAULT 0) RETURNS TABLE("id" "uuid", "user_id" "uuid", "activity_type" "text", "entity_type" "text", "entity_id" "text", "is_public" boolean, "metadata" "jsonb", "created_at" timestamp with time zone, "user_name" "text", "user_avatar_url" "text", "like_count" bigint, "comment_count" bigint, "is_liked" boolean)
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+BEGIN
+    -- Function implementation here
+    RETURN QUERY SELECT * FROM public.activities WHERE user_id = p_user_id LIMIT p_limit OFFSET p_offset;
 END;
 $$;
 
@@ -754,44 +2385,101 @@ $$;
 ALTER FUNCTION "public"."get_user_feed_activities"("p_user_id" "uuid", "p_limit" integer, "p_offset" integer) OWNER TO "postgres";
 
 --
+-- Name: get_user_privacy_settings("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."get_user_privacy_settings"("user_id_param" "uuid" DEFAULT "auth"."uid"()) RETURNS TABLE("default_privacy_level" "text", "allow_friends_to_see_reading" boolean, "allow_followers_to_see_reading" boolean, "allow_public_reading_profile" boolean, "show_reading_stats_publicly" boolean, "show_currently_reading_publicly" boolean, "show_reading_history_publicly" boolean, "show_reading_goals_publicly" boolean)
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        ups.default_privacy_level,
+        ups.allow_friends_to_see_reading,
+        ups.allow_followers_to_see_reading,
+        ups.allow_public_reading_profile,
+        ups.show_reading_stats_publicly,
+        ups.show_currently_reading_publicly,
+        ups.show_reading_history_publicly,
+        ups.show_reading_goals_publicly
+    FROM "public"."user_privacy_settings" ups
+    WHERE ups.user_id = user_id_param;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_user_privacy_settings"("user_id_param" "uuid") OWNER TO "postgres";
+
+--
+-- Name: grant_reading_permission("uuid", "text", timestamp with time zone); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."grant_reading_permission"("target_user_id" "uuid", "permission_type" "text" DEFAULT 'view_reading_progress'::"text", "expires_at" timestamp with time zone DEFAULT NULL::timestamp with time zone) RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    -- Insert or update permission
+    INSERT INTO "public"."custom_permissions" (user_id, target_user_id, permission_type, expires_at)
+    VALUES (auth.uid(), target_user_id, permission_type, expires_at)
+    ON CONFLICT (user_id, target_user_id, permission_type) 
+    DO UPDATE SET 
+        expires_at = EXCLUDED.expires_at,
+        updated_at = now();
+
+    -- Log the action
+    INSERT INTO "public"."privacy_audit_log" (user_id, action, target_user_id, permission_type, new_value)
+    VALUES (auth.uid(), 'grant_permission', target_user_id, permission_type, 
+            jsonb_build_object('permission_type', permission_type, 'expires_at', expires_at));
+
+    RETURN true;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."grant_reading_permission"("target_user_id" "uuid", "permission_type" "text", "expires_at" timestamp with time zone) OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "grant_reading_permission"("target_user_id" "uuid", "permission_type" "text", "expires_at" timestamp with time zone); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."grant_reading_permission"("target_user_id" "uuid", "permission_type" "text", "expires_at" timestamp with time zone) IS 'Grant custom permission to view reading progress';
+
+
+--
 -- Name: handle_album_privacy_update(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
 CREATE OR REPLACE FUNCTION "public"."handle_album_privacy_update"() RETURNS "trigger"
-    LANGUAGE "plpgsql"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
     AS $$
 BEGIN
-    -- If album is now public and should show in feed, create activity
-    IF NEW.is_public = true AND 
-       (NEW.metadata->>'show_in_feed' IS NULL OR (NEW.metadata->>'show_in_feed')::boolean = true) AND
-       (OLD.is_public = false OR OLD.metadata->>'show_in_feed' = 'false') THEN
-        
-        INSERT INTO user_activities (
-            user_id,
-            activity_type,
-            entity_type,
-            entity_id,
-            is_public,
-            metadata
-        ) VALUES (
-            NEW.owner_id,
-            'album_created',
-            'photo_album',
-            NEW.id,
-            true,
-            jsonb_build_object(
-                'album_name', NEW.name,
-                'album_description', NEW.description,
-                'privacy_level', COALESCE(NEW.metadata->>'privacy_level', 'public')
-            )
-        );
-    END IF;
-    
-    -- If album is no longer public, remove activity
-    IF NEW.is_public = false OR (NEW.metadata->>'show_in_feed')::boolean = false THEN
-        DELETE FROM user_activities 
-        WHERE entity_type = 'photo_album' 
-        AND entity_id = NEW.id;
+    -- When album privacy changes, update related feed entries
+    IF OLD.is_public != NEW.is_public THEN
+        IF NEW.is_public = true THEN
+            -- Album became public, create feed entry
+            INSERT INTO feed_entries (
+                user_id, 
+                activity_type, 
+                entity_type, 
+                entity_id, 
+                visibility,
+                metadata
+            ) VALUES (
+                NEW.owner_id,
+                'album_made_public',
+                'photo_album',
+                NEW.id::text,
+                'public',
+                jsonb_build_object('album_name', NEW.name, 'album_id', NEW.id)
+            );
+        ELSE
+            -- Album became private, remove public feed entries
+            DELETE FROM feed_entries 
+            WHERE entity_type = 'photo_album' 
+            AND entity_id = NEW.id::text 
+            AND visibility = 'public';
+        END IF;
     END IF;
     
     RETURN NEW;
@@ -802,35 +2490,49 @@ $$;
 ALTER FUNCTION "public"."handle_album_privacy_update"() OWNER TO "postgres";
 
 --
+-- Name: handle_privacy_level_update(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."handle_privacy_level_update"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    -- Update boolean flags based on privacy_level
+    NEW.allow_friends := (NEW.privacy_level = 'friends');
+    NEW.allow_followers := (NEW.privacy_level = 'followers');
+    
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."handle_privacy_level_update"() OWNER TO "postgres";
+
+--
 -- Name: handle_public_album_creation(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
 CREATE OR REPLACE FUNCTION "public"."handle_public_album_creation"() RETURNS "trigger"
-    LANGUAGE "plpgsql"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
     AS $$
 BEGIN
-    -- Only create feed activity if album is public and show_in_feed is true
-    IF NEW.is_public = true AND 
-       (NEW.metadata->>'show_in_feed' IS NULL OR (NEW.metadata->>'show_in_feed')::boolean = true) THEN
-        
-        INSERT INTO user_activities (
-            user_id,
-            activity_type,
-            entity_type,
-            entity_id,
-            is_public,
+    -- When a public album is created, create a feed entry
+    IF NEW.is_public = true AND OLD.is_public = false THEN
+        INSERT INTO feed_entries (
+            user_id, 
+            activity_type, 
+            entity_type, 
+            entity_id, 
+            visibility,
             metadata
         ) VALUES (
             NEW.owner_id,
             'album_created',
             'photo_album',
-            NEW.id,
-            true,
-            jsonb_build_object(
-                'album_name', NEW.name,
-                'album_description', NEW.description,
-                'privacy_level', COALESCE(NEW.metadata->>'privacy_level', 'public')
-            )
+            NEW.id::text,
+            'public',
+            jsonb_build_object('album_name', NEW.name, 'album_id', NEW.id)
         );
     END IF;
     
@@ -842,11 +2544,572 @@ $$;
 ALTER FUNCTION "public"."handle_public_album_creation"() OWNER TO "postgres";
 
 --
+-- Name: initialize_user_privacy_settings(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."initialize_user_privacy_settings"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    -- Create default privacy settings for new users
+    INSERT INTO "public"."user_privacy_settings" (user_id)
+    VALUES (NEW.id)
+    ON CONFLICT (user_id) DO NOTHING;
+    
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."initialize_user_privacy_settings"() OWNER TO "postgres";
+
+--
+-- Name: insert_follow_record("uuid", "uuid", "uuid"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."insert_follow_record"("p_follower_id" "uuid", "p_following_id" "uuid", "p_target_type_id" "uuid") RETURNS TABLE("success" boolean, "error_message" "text")
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+  -- Check if follow already exists
+  IF EXISTS (
+    SELECT 1 FROM public.follows 
+    WHERE follower_id = p_follower_id 
+    AND following_id = p_following_id
+    AND target_type_id = p_target_type_id
+  ) THEN
+    RETURN QUERY SELECT FALSE, 'Already following this entity';
+    RETURN;
+  END IF;
+
+  -- Insert new follow record
+  INSERT INTO public.follows (follower_id, following_id, target_type_id)
+  VALUES (p_follower_id, p_following_id, p_target_type_id);
+
+  RETURN QUERY SELECT TRUE, '';
+EXCEPTION
+  WHEN OTHERS THEN
+    RETURN QUERY SELECT FALSE, SQLERRM;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."insert_follow_record"("p_follower_id" "uuid", "p_following_id" "uuid", "p_target_type_id" "uuid") OWNER TO "postgres";
+
+--
+-- Name: log_sensitive_operation_enhanced("text", "text", "uuid", "uuid", "jsonb"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."log_sensitive_operation_enhanced"("p_operation_type" "text", "p_table_name" "text", "p_record_id" "uuid", "p_user_id" "uuid" DEFAULT "auth"."uid"(), "p_details" "jsonb" DEFAULT NULL::"jsonb") RETURNS "uuid"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    v_audit_id "uuid";
+BEGIN
+    INSERT INTO "public"."privacy_audit_log" (
+        "user_id", "action", "entity_type", "entity_id", "metadata"
+    ) VALUES (
+        p_user_id, p_operation_type, p_table_name, p_record_id::"text", p_details
+    ) RETURNING "id" INTO v_audit_id;
+    
+    RETURN v_audit_id;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."log_sensitive_operation_enhanced"("p_operation_type" "text", "p_table_name" "text", "p_record_id" "uuid", "p_user_id" "uuid", "p_details" "jsonb") OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "log_sensitive_operation_enhanced"("p_operation_type" "text", "p_table_name" "text", "p_record_id" "uuid", "p_user_id" "uuid", "p_details" "jsonb"); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."log_sensitive_operation_enhanced"("p_operation_type" "text", "p_table_name" "text", "p_record_id" "uuid", "p_user_id" "uuid", "p_details" "jsonb") IS 'Enhanced logging for sensitive operations audit trail';
+
+
+--
+-- Name: log_user_activity("uuid", "text", "jsonb", "inet", "text", "text", integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."log_user_activity"("p_user_id" "uuid", "p_activity_type" "text", "p_activity_details" "jsonb" DEFAULT NULL::"jsonb", "p_ip_address" "inet" DEFAULT NULL::"inet", "p_user_agent" "text" DEFAULT NULL::"text", "p_session_id" "text" DEFAULT NULL::"text", "p_response_time_ms" integer DEFAULT NULL::integer, "p_status_code" integer DEFAULT NULL::integer) RETURNS "uuid"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    v_activity_id "uuid";
+BEGIN
+    INSERT INTO "public"."user_activity_log" (
+        "user_id", "activity_type", "activity_details", "ip_address", 
+        "user_agent", "session_id", "response_time_ms", "status_code"
+    ) VALUES (
+        p_user_id, p_activity_type, p_activity_details, p_ip_address,
+        p_user_agent, p_session_id, p_response_time_ms, p_status_code
+    ) RETURNING "id" INTO v_activity_id;
+    
+    RETURN v_activity_id;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."log_user_activity"("p_user_id" "uuid", "p_activity_type" "text", "p_activity_details" "jsonb", "p_ip_address" "inet", "p_user_agent" "text", "p_session_id" "text", "p_response_time_ms" integer, "p_status_code" integer) OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "log_user_activity"("p_user_id" "uuid", "p_activity_type" "text", "p_activity_details" "jsonb", "p_ip_address" "inet", "p_user_agent" "text", "p_session_id" "text", "p_response_time_ms" integer, "p_status_code" integer); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."log_user_activity"("p_user_id" "uuid", "p_activity_type" "text", "p_activity_details" "jsonb", "p_ip_address" "inet", "p_user_agent" "text", "p_session_id" "text", "p_response_time_ms" integer, "p_status_code" integer) IS 'Records user activity for analytics and monitoring';
+
+
+--
+-- Name: map_progress_to_reading_status("text"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."map_progress_to_reading_status"("status" "text") RETURNS "text"
+    LANGUAGE "plpgsql" IMMUTABLE
+    AS $$
+BEGIN
+    RETURN CASE status
+        WHEN 'not_started' THEN 'want_to_read'
+        WHEN 'in_progress' THEN 'currently_reading'
+        WHEN 'completed' THEN 'read'
+        WHEN 'on_hold' THEN 'on_hold'
+        WHEN 'abandoned' THEN 'abandoned'
+        ELSE 'want_to_read'
+    END;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."map_progress_to_reading_status"("status" "text") OWNER TO "postgres";
+
+--
+-- Name: map_reading_status_to_progress("text"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."map_reading_status_to_progress"("status" "text") RETURNS "text"
+    LANGUAGE "plpgsql" IMMUTABLE
+    AS $$
+BEGIN
+    RETURN CASE status
+        WHEN 'want_to_read' THEN 'not_started'
+        WHEN 'currently_reading' THEN 'in_progress'
+        WHEN 'read' THEN 'completed'
+        WHEN 'on_hold' THEN 'on_hold'
+        WHEN 'abandoned' THEN 'abandoned'
+        WHEN 'not_started' THEN 'not_started'
+        WHEN 'in_progress' THEN 'in_progress'
+        WHEN 'completed' THEN 'completed'
+        ELSE 'not_started'
+    END;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."map_reading_status_to_progress"("status" "text") OWNER TO "postgres";
+
+--
+-- Name: mask_sensitive_data("text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."mask_sensitive_data"("input_text" "text", "mask_type" "text" DEFAULT 'PARTIAL'::"text") RETURNS "text"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    CASE mask_type
+        WHEN 'FULL' THEN
+            RETURN '***MASKED***';
+        WHEN 'PARTIAL' THEN
+            IF length(input_text) <= 3 THEN
+                RETURN '***';
+            ELSE
+                RETURN left(input_text, 1) || repeat('*', length(input_text) - 2) || right(input_text, 1);
+            END IF;
+        WHEN 'EMAIL' THEN
+            IF position('@' in input_text) > 0 THEN
+                RETURN left(input_text, 1) || '***' || '@' || split_part(input_text, '@', 2);
+            ELSE
+                RETURN '***@***';
+            END IF;
+        ELSE
+            RETURN input_text;
+    END CASE;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."mask_sensitive_data"("input_text" "text", "mask_type" "text") OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "mask_sensitive_data"("input_text" "text", "mask_type" "text"); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."mask_sensitive_data"("input_text" "text", "mask_type" "text") IS 'Mask sensitive data for privacy compliance';
+
+
+--
+-- Name: monitor_data_health(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."monitor_data_health"() RETURNS TABLE("health_metric" "text", "current_value" bigint, "threshold_value" bigint, "status" "text", "last_check" timestamp with time zone)
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    -- Monitor books with missing publisher_id
+    RETURN QUERY
+    SELECT 
+        'Books with missing publisher_id'::text,
+        COUNT(*)::bigint,
+        0::bigint,
+        CASE 
+            WHEN COUNT(*) = 0 THEN 'GOOD'
+            ELSE 'CRITICAL'
+        END,
+        now()
+    FROM "public"."books" 
+    WHERE publisher_id IS NULL;
+    
+    -- Monitor orphaned reading progress records
+    RETURN QUERY
+    SELECT 
+        'Orphaned reading progress records'::text,
+        COUNT(*)::bigint,
+        0::bigint,
+        CASE 
+            WHEN COUNT(*) = 0 THEN 'GOOD'
+            ELSE 'WARNING'
+        END,
+        now()
+    FROM "public"."reading_progress" rp
+    LEFT JOIN "public"."books" b ON rp.book_id = b.id
+    WHERE b.id IS NULL;
+    
+    -- Monitor orphaned follows records
+    RETURN QUERY
+    SELECT 
+        'Orphaned follows records'::text,
+        COUNT(*)::bigint,
+        0::bigint,
+        CASE 
+            WHEN COUNT(*) = 0 THEN 'GOOD'
+            ELSE 'WARNING'
+        END,
+        now()
+    FROM "public"."follows" f
+    LEFT JOIN "auth"."users" u ON f.follower_id = u.id
+    WHERE u.id IS NULL;
+    
+    -- Monitor data consistency (FIXED: Use table alias to avoid ambiguity)
+    RETURN QUERY
+    SELECT 
+        'Inconsistent status values'::text,
+        COUNT(*)::bigint,
+        0::bigint,
+        CASE 
+            WHEN COUNT(*) = 0 THEN 'GOOD'
+            ELSE 'WARNING'
+        END,
+        now()
+    FROM "public"."reading_progress" rp
+    WHERE rp.status NOT IN ('not_started', 'in_progress', 'completed', 'on_hold', 'abandoned');
+END;
+$$;
+
+
+ALTER FUNCTION "public"."monitor_data_health"() OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "monitor_data_health"(); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."monitor_data_health"() IS 'Monitor data health metrics continuously';
+
+
+--
+-- Name: monitor_database_performance_enhanced(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."monitor_database_performance_enhanced"() RETURNS "jsonb"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    v_performance_data "jsonb";
+BEGIN
+    SELECT "jsonb_build_object"(
+        'database_size_mb', (
+            SELECT ROUND(SUM(pg_total_relation_size(c.oid)) / 1024.0 / 1024.0, 2)
+            FROM pg_class c
+            JOIN pg_namespace n ON n.oid = c.relnamespace
+            WHERE n.nspname = 'public'
+        ),
+        'active_connections', (
+            SELECT COUNT(*) 
+            FROM pg_stat_activity 
+            WHERE state = 'active'
+        ),
+        'cache_hit_ratio', (
+            SELECT ROUND(
+                (sum(heap_blks_hit) / (sum(heap_blks_hit) + sum(heap_blks_read))) * 100, 2
+            )
+            FROM pg_statio_user_tables
+        ),
+        'slow_queries', (
+            SELECT COUNT(*) 
+            FROM pg_stat_statements 
+            WHERE mean_time > 1000
+        ),
+        'monitoring_timestamp', "now"()
+    ) INTO v_performance_data;
+    
+    -- Record performance metrics
+    PERFORM "public"."record_performance_metric"(
+        'database_size_mb', 
+        (v_performance_data->>'database_size_mb')::numeric,
+        'MB', 'database'
+    );
+    
+    PERFORM "public"."record_performance_metric"(
+        'cache_hit_ratio', 
+        (v_performance_data->>'cache_hit_ratio')::numeric,
+        '%', 'database'
+    );
+    
+    RETURN v_performance_data;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."monitor_database_performance_enhanced"() OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "monitor_database_performance_enhanced"(); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."monitor_database_performance_enhanced"() IS 'Enhanced database performance monitoring';
+
+
+--
+-- Name: monitor_entity_storage_usage(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."monitor_entity_storage_usage"() RETURNS TABLE("entity_type" "text", "entity_id" "uuid", "storage_usage_mb" numeric, "image_count" bigint, "warning_level" "text")
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        pa.entity_type,
+        pa.entity_id,
+        ROUND(SUM(i.file_size) / 1024.0 / 1024.0, 2) as storage_usage_mb,
+        COUNT(i.id) as image_count,
+        CASE 
+            WHEN SUM(i.file_size) > 100 * 1024 * 1024 THEN 'CRITICAL' -- 100MB
+            WHEN SUM(i.file_size) > 50 * 1024 * 1024 THEN 'WARNING'   -- 50MB
+            WHEN SUM(i.file_size) > 10 * 1024 * 1024 THEN 'INFO'      -- 10MB
+            ELSE 'OK'
+        END as warning_level
+    FROM public.images i
+    JOIN public.album_images ai ON i.id = ai.image_id
+    JOIN public.photo_albums pa ON ai.album_id = pa.id
+    WHERE i.deleted_at IS NULL
+    GROUP BY pa.entity_type, pa.entity_id
+    HAVING SUM(i.file_size) > 5 * 1024 * 1024 -- Only show entities using >5MB
+    ORDER BY storage_usage_mb DESC;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."monitor_entity_storage_usage"() OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "monitor_entity_storage_usage"(); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."monitor_entity_storage_usage"() IS 'Monitor storage usage with warning levels';
+
+
+--
+-- Name: monitor_query_performance(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."monitor_query_performance"() RETURNS TABLE("query_pattern" "text", "avg_execution_time" numeric, "total_calls" bigint, "performance_status" "text")
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        CASE 
+            WHEN query LIKE '%reading_progress%' THEN 'Reading Progress Queries'
+            WHEN query LIKE '%books%' AND query LIKE '%publisher%' THEN 'Book-Publisher Queries'
+            WHEN query LIKE '%follows%' THEN 'Follow Queries'
+            WHEN query LIKE '%auth.users%' THEN 'User Authentication Queries'
+            ELSE 'Other Queries'
+        END as query_pattern,
+        AVG(mean_time) as avg_execution_time,
+        SUM(calls) as total_calls,
+        CASE 
+            WHEN AVG(mean_time) > 1000 THEN 'CRITICAL'
+            WHEN AVG(mean_time) > 500 THEN 'WARNING'
+            WHEN AVG(mean_time) > 100 THEN 'ATTENTION'
+            ELSE 'GOOD'
+        END as performance_status
+    FROM pg_stat_statements 
+    WHERE query LIKE '%public%'
+    GROUP BY 
+        CASE 
+            WHEN query LIKE '%reading_progress%' THEN 'Reading Progress Queries'
+            WHEN query LIKE '%books%' AND query LIKE '%publisher%' THEN 'Book-Publisher Queries'
+            WHEN query LIKE '%follows%' THEN 'Follow Queries'
+            WHEN query LIKE '%auth.users%' THEN 'User Authentication Queries'
+            ELSE 'Other Queries'
+        END
+    ORDER BY avg_execution_time DESC;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."monitor_query_performance"() OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "monitor_query_performance"(); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."monitor_query_performance"() IS 'Monitor query performance patterns';
+
+
+--
+-- Name: perform_database_maintenance_enhanced(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."perform_database_maintenance_enhanced"() RETURNS "jsonb"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    v_maintenance_result "jsonb";
+    v_start_time timestamp with time zone := "now"();
+    v_operations_completed integer := 0;
+    v_errors "text"[] := '{}';
+BEGIN
+    -- Clean up old monitoring data
+    BEGIN
+        PERFORM "public"."cleanup_old_monitoring_data"(90);
+        v_operations_completed := v_operations_completed + 1;
+    EXCEPTION WHEN OTHERS THEN
+        v_errors := array_append(v_errors, 'Failed to cleanup monitoring data: ' || SQLERRM);
+    END;
+    
+    -- Update book popularity metrics for all books
+    BEGIN
+        PERFORM "public"."update_book_popularity_metrics"(b."id")
+        FROM "public"."books" b
+        WHERE b."id" IN (
+            SELECT DISTINCT "book_id" 
+            FROM "public"."book_views" 
+            WHERE "created_at" >= "now"() - INTERVAL '7 days'
+        );
+        v_operations_completed := v_operations_completed + 1;
+    EXCEPTION WHEN OTHERS THEN
+        v_errors := array_append(v_errors, 'Failed to update book popularity: ' || SQLERRM);
+    END;
+    
+    -- Analyze tables for query optimization
+    BEGIN
+        ANALYZE "public"."books";
+        ANALYZE "public"."book_reviews";
+        ANALYZE "public"."reading_progress";
+        ANALYZE "public"."user_activity_log";
+        v_operations_completed := v_operations_completed + 1;
+    EXCEPTION WHEN OTHERS THEN
+        v_errors := array_append(v_errors, 'Failed to analyze tables: ' || SQLERRM);
+    END;
+    
+    -- Build maintenance result
+    v_maintenance_result := "jsonb_build_object"(
+        'maintenance_started_at', v_start_time,
+        'maintenance_completed_at', "now"(),
+        'operations_completed', v_operations_completed,
+        'errors', v_errors,
+        'duration_seconds', EXTRACT(EPOCH FROM ("now"() - v_start_time))
+    );
+    
+    RETURN v_maintenance_result;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."perform_database_maintenance_enhanced"() OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "perform_database_maintenance_enhanced"(); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."perform_database_maintenance_enhanced"() IS 'Enhanced automated database maintenance tasks';
+
+
+--
+-- Name: perform_system_health_check("text", "text", "jsonb", integer, "text"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."perform_system_health_check"("p_check_name" "text", "p_status" "text", "p_details" "jsonb" DEFAULT NULL::"jsonb", "p_response_time_ms" integer DEFAULT NULL::integer, "p_error_message" "text" DEFAULT NULL::"text") RETURNS "uuid"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    v_check_id "uuid";
+BEGIN
+    INSERT INTO "public"."system_health_checks" (
+        "check_name", "status", "details", "response_time_ms", "error_message"
+    ) VALUES (
+        p_check_name, p_status, p_details, p_response_time_ms, p_error_message
+    ) RETURNING "id" INTO v_check_id;
+    
+    RETURN v_check_id;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."perform_system_health_check"("p_check_name" "text", "p_status" "text", "p_details" "jsonb", "p_response_time_ms" integer, "p_error_message" "text") OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "perform_system_health_check"("p_check_name" "text", "p_status" "text", "p_details" "jsonb", "p_response_time_ms" integer, "p_error_message" "text"); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."perform_system_health_check"("p_check_name" "text", "p_status" "text", "p_details" "jsonb", "p_response_time_ms" integer, "p_error_message" "text") IS 'Performs and records system health checks';
+
+
+--
+-- Name: populate_album_images_entity_context(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."populate_album_images_entity_context"() RETURNS "void"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    -- Update album_images with entity context from photo_albums
+    UPDATE public.album_images 
+    SET 
+        entity_type_id = (
+            SELECT et.id 
+            FROM public.entity_types et 
+            WHERE et.entity_category = pa.entity_type
+            LIMIT 1
+        ),
+        entity_id = pa.entity_id
+    FROM public.photo_albums pa
+    WHERE album_images.album_id = pa.id
+    AND pa.entity_type IS NOT NULL
+    AND pa.entity_id IS NOT NULL;
+    
+    RAISE NOTICE 'Populated entity context for album_images';
+END;
+$$;
+
+
+ALTER FUNCTION "public"."populate_album_images_entity_context"() OWNER TO "postgres";
+
+--
 -- Name: populate_dewey_decimal_classifications(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
 CREATE OR REPLACE FUNCTION "public"."populate_dewey_decimal_classifications"() RETURNS "void"
-    LANGUAGE "plpgsql"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
     AS $$
 BEGIN
     -- Insert major Dewey Decimal categories (simplified version)
@@ -869,11 +3132,34 @@ $$;
 ALTER FUNCTION "public"."populate_dewey_decimal_classifications"() OWNER TO "postgres";
 
 --
+-- Name: populate_images_entity_type_id(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."populate_images_entity_type_id"() RETURNS "void"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    -- Update images with entity_type_id from album_images
+    UPDATE public.images 
+    SET entity_type_id = ai.entity_type_id
+    FROM public.album_images ai
+    WHERE images.id = ai.image_id
+    AND ai.entity_type_id IS NOT NULL;
+    
+    RAISE NOTICE 'Populated entity_type_id for images';
+END;
+$$;
+
+
+ALTER FUNCTION "public"."populate_images_entity_type_id"() OWNER TO "postgres";
+
+--
 -- Name: process_complete_isbndb_book_data("uuid", "jsonb"); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
 CREATE OR REPLACE FUNCTION "public"."process_complete_isbndb_book_data"("book_uuid" "uuid", "isbndb_data" "jsonb") RETURNS "void"
-    LANGUAGE "plpgsql"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
     AS $$
 DECLARE
     excerpt_text TEXT;
@@ -943,7 +3229,8 @@ ALTER FUNCTION "public"."process_complete_isbndb_book_data"("book_uuid" "uuid", 
 --
 
 CREATE OR REPLACE FUNCTION "public"."process_dewey_decimal_classifications"("book_uuid" "uuid", "dewey_array" "text"[]) RETURNS "void"
-    LANGUAGE "plpgsql"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
     AS $$
 DECLARE
     dewey_code TEXT;
@@ -984,7 +3271,8 @@ ALTER FUNCTION "public"."process_dewey_decimal_classifications"("book_uuid" "uui
 --
 
 CREATE OR REPLACE FUNCTION "public"."process_other_isbns"("book_uuid" "uuid", "other_isbns_json" "jsonb") RETURNS "void"
-    LANGUAGE "plpgsql"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
     AS $$
 DECLARE
     isbn_record JSONB;
@@ -1030,7 +3318,8 @@ ALTER FUNCTION "public"."process_other_isbns"("book_uuid" "uuid", "other_isbns_j
 --
 
 CREATE OR REPLACE FUNCTION "public"."process_related_books"("book_uuid" "uuid", "related_json" "jsonb") RETURNS "void"
-    LANGUAGE "plpgsql"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
     AS $$
 DECLARE
     relation_type TEXT;
@@ -1043,12 +3332,12 @@ BEGIN
     
     -- Store related book information
     INSERT INTO book_relations (
-        book_id, relation_type, relation_source
+        book_id, relation_type, relation_source, relation_data
     ) VALUES (
-        book_uuid, 
-        COALESCE(relation_type, 'unknown'),
-        'isbndb'
-    ) ON CONFLICT (book_id, related_book_id, relation_type) DO NOTHING;
+        book_uuid, relation_type, 'isbndb', related_json
+    ) ON CONFLICT (book_id, relation_type) DO UPDATE SET
+        relation_data = EXCLUDED.relation_data,
+        updated_at = NOW();
 END;
 $$;
 
@@ -1056,11 +3345,725 @@ $$;
 ALTER FUNCTION "public"."process_related_books"("book_uuid" "uuid", "related_json" "jsonb") OWNER TO "postgres";
 
 --
+-- Name: record_performance_metric("text", numeric, "text", "text", "jsonb"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."record_performance_metric"("p_metric_name" "text", "p_metric_value" numeric, "p_metric_unit" "text" DEFAULT NULL::"text", "p_category" "text" DEFAULT 'general'::"text", "p_additional_data" "jsonb" DEFAULT NULL::"jsonb") RETURNS "uuid"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    v_metric_id "uuid";
+BEGIN
+    INSERT INTO "public"."performance_metrics" (
+        "metric_name", "metric_value", "metric_unit", "category", "additional_data"
+    ) VALUES (
+        p_metric_name, p_metric_value, p_metric_unit, p_category, p_additional_data
+    ) RETURNING "id" INTO v_metric_id;
+    
+    RETURN v_metric_id;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."record_performance_metric"("p_metric_name" "text", "p_metric_value" numeric, "p_metric_unit" "text", "p_category" "text", "p_additional_data" "jsonb") OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "record_performance_metric"("p_metric_name" "text", "p_metric_value" numeric, "p_metric_unit" "text", "p_category" "text", "p_additional_data" "jsonb"); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."record_performance_metric"("p_metric_name" "text", "p_metric_value" numeric, "p_metric_unit" "text", "p_category" "text", "p_additional_data" "jsonb") IS 'Records performance metrics for monitoring';
+
+
+--
+-- Name: refresh_materialized_views(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."refresh_materialized_views"() RETURNS TABLE("view_name" "text", "refresh_status" "text", "refresh_time" timestamp with time zone)
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    -- Refresh book popularity summary
+    REFRESH MATERIALIZED VIEW "public"."book_popularity_summary";
+    RETURN QUERY SELECT 'book_popularity_summary'::text, 'REFRESHED'::text, now();
+    
+    -- Refresh user activity summary
+    REFRESH MATERIALIZED VIEW "public"."user_activity_summary";
+    RETURN QUERY SELECT 'user_activity_summary'::text, 'REFRESHED'::text, now();
+    
+    -- Refresh publisher summary
+    REFRESH MATERIALIZED VIEW "public"."publisher_summary";
+    RETURN QUERY SELECT 'publisher_summary'::text, 'REFRESHED'::text, now();
+END;
+$$;
+
+
+ALTER FUNCTION "public"."refresh_materialized_views"() OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "refresh_materialized_views"(); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."refresh_materialized_views"() IS 'Refresh all materialized views';
+
+
+--
+-- Name: revoke_reading_permission("uuid", "text"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."revoke_reading_permission"("target_user_id" "uuid", "permission_type" "text" DEFAULT 'view_reading_progress'::"text") RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    -- Delete permission
+    DELETE FROM "public"."custom_permissions" 
+    WHERE user_id = auth.uid() 
+    AND target_user_id = target_user_id 
+    AND permission_type = permission_type;
+
+    -- Log the action
+    INSERT INTO "public"."privacy_audit_log" (user_id, action, target_user_id, permission_type)
+    VALUES (auth.uid(), 'revoke_permission', target_user_id, permission_type);
+
+    RETURN true;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."revoke_reading_permission"("target_user_id" "uuid", "permission_type" "text") OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "revoke_reading_permission"("target_user_id" "uuid", "permission_type" "text"); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."revoke_reading_permission"("target_user_id" "uuid", "permission_type" "text") IS 'Revoke custom permission to view reading progress';
+
+
+--
+-- Name: run_data_maintenance(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."run_data_maintenance"() RETURNS TABLE("maintenance_step" "text", "records_processed" bigint, "status" "text")
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    processed_count bigint;
+BEGIN
+    -- Step 1: Fix publisher relationships
+    PERFORM * FROM "public"."fix_missing_publisher_relationships"();
+    
+    SELECT COUNT(*) INTO processed_count
+    FROM "public"."books" 
+    WHERE publisher_id IS NOT NULL;
+    
+    RETURN QUERY SELECT 
+        'Fix Publisher Relationships'::text,
+        processed_count,
+        'COMPLETED'::text;
+    
+    -- Step 2: Clean up orphaned records
+    PERFORM * FROM "public"."cleanup_orphaned_records"();
+    
+    RETURN QUERY SELECT 
+        'Cleanup Orphaned Records'::text,
+        0::bigint,
+        'COMPLETED'::text;
+    
+    -- Step 3: Standardize status values
+    PERFORM * FROM "public"."standardize_reading_statuses"();
+    
+    RETURN QUERY SELECT 
+        'Standardize Status Values'::text,
+        0::bigint,
+        'COMPLETED'::text;
+    
+    -- Step 4: Validate and repair data
+    PERFORM * FROM "public"."validate_and_repair_data"();
+    
+    RETURN QUERY SELECT 
+        'Validate and Repair Data'::text,
+        0::bigint,
+        'COMPLETED'::text;
+    
+    -- Log the maintenance run (only if table exists)
+    BEGIN
+        INSERT INTO "public"."security_audit_log" (
+            action, 
+            table_name, 
+            new_values
+        ) VALUES (
+            'DATA_MAINTENANCE',
+            'all_tables',
+            jsonb_build_object(
+                'maintenance_completed_at', now(),
+                'maintenance_type', 'comprehensive_data_integrity'
+            )
+        );
+    EXCEPTION WHEN OTHERS THEN
+        -- Table doesn't exist, continue without logging
+    END;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."run_data_maintenance"() OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "run_data_maintenance"(); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."run_data_maintenance"() IS 'Run comprehensive data maintenance procedures';
+
+
+--
+-- Name: run_performance_maintenance(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."run_performance_maintenance"() RETURNS TABLE("maintenance_step" "text", "records_processed" bigint, "performance_improvement" "text")
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    table_record record;
+    processed_count bigint;
+BEGIN
+    -- Analyze tables for better query planning
+    FOR table_record IN 
+        SELECT tablename FROM pg_tables 
+        WHERE schemaname = 'public'
+        AND tablename IN ('reading_progress', 'books', 'follows', 'publishers', 'authors')
+    LOOP
+        EXECUTE format('ANALYZE %I', table_record.tablename);
+        processed_count := 1;
+        
+        RETURN QUERY SELECT 
+            ('ANALYZE ' || table_record.tablename)::text,
+            processed_count,
+            'Improved query planning'::text;
+    END LOOP;
+    
+    -- Refresh materialized views
+    PERFORM refresh_materialized_views();
+    
+    RETURN QUERY SELECT 
+        'Refresh Materialized Views'::text,
+        3::bigint,
+        'Updated summary data'::text;
+    
+    -- Log the maintenance run
+    INSERT INTO "public"."security_audit_log" (
+        action, 
+        table_name, 
+        new_values
+    ) VALUES (
+        'PERFORMANCE_MAINTENANCE',
+        'all_tables',
+        jsonb_build_object(
+            'maintenance_run_at', now(),
+            'maintenance_type', 'performance_optimization'
+        )
+    );
+END;
+$$;
+
+
+ALTER FUNCTION "public"."run_performance_maintenance"() OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "run_performance_maintenance"(); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."run_performance_maintenance"() IS 'Run automated performance maintenance';
+
+
+--
+-- Name: safe_cleanup_orphaned_records(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."safe_cleanup_orphaned_records"() RETURNS TABLE("table_name" "text", "orphaned_count" bigint, "action_taken" "text")
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    orphaned_count bigint;
+BEGIN
+    -- Clean up orphaned reading_progress records (safe operation)
+    DELETE FROM "public"."reading_progress" 
+    WHERE book_id NOT IN (SELECT id FROM "public"."books");
+    
+    GET DIAGNOSTICS orphaned_count = ROW_COUNT;
+    RETURN QUERY SELECT 'reading_progress'::text, orphaned_count, 'DELETED_ORPHANED'::text;
+    
+    -- Clean up orphaned follows records (safe operation)
+    DELETE FROM "public"."follows" 
+    WHERE follower_id NOT IN (SELECT id FROM "auth"."users")
+    OR following_id NOT IN (SELECT id FROM "auth"."users");
+    
+    GET DIAGNOSTICS orphaned_count = ROW_COUNT;
+    RETURN QUERY SELECT 'follows'::text, orphaned_count, 'DELETED_ORPHANED'::text;
+    
+    -- Log the cleanup operation
+    INSERT INTO "public"."security_audit_log" (
+        action, 
+        table_name, 
+        new_values
+    ) VALUES (
+        'SAFE_ORPHANED_CLEANUP',
+        'multiple_tables',
+        jsonb_build_object(
+            'cleanup_completed_at', now(),
+            'cleanup_type', 'orphaned_records_removal'
+        )
+    );
+END;
+$$;
+
+
+ALTER FUNCTION "public"."safe_cleanup_orphaned_records"() OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "safe_cleanup_orphaned_records"(); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."safe_cleanup_orphaned_records"() IS 'Safely remove orphaned records without affecting valid data';
+
+
+--
+-- Name: safe_fix_missing_publishers(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."safe_fix_missing_publishers"() RETURNS TABLE("book_id" "uuid", "book_title" character varying, "action_taken" "text", "publisher_id" "uuid", "status" "text")
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    book_record RECORD;
+    publisher_record RECORD;
+    linked_count integer := 0;
+    created_count integer := 0;
+BEGIN
+    -- First, try to link books to existing publishers by author name
+    FOR book_record IN 
+        SELECT b.id, b.title, b.author, b.publisher_id
+        FROM "public"."books" b
+        WHERE b.publisher_id IS NULL
+        AND b.author IS NOT NULL
+        AND b.author != ''
+    LOOP
+        -- Try to find existing publisher by author name
+        SELECT p.id INTO publisher_record
+        FROM "public"."publishers" p
+        WHERE LOWER(p.name) = LOWER(book_record.author)
+        LIMIT 1;
+        
+        IF publisher_record.id IS NOT NULL THEN
+            -- Link to existing publisher
+            UPDATE "public"."books" 
+            SET publisher_id = publisher_record.id
+            WHERE id = book_record.id;
+            
+            linked_count := linked_count + 1;
+            
+            RETURN QUERY SELECT 
+                book_record.id,
+                book_record.title,
+                'LINKED_TO_EXISTING_PUBLISHER'::text,
+                publisher_record.id,
+                'SUCCESS'::text;
+        ELSE
+            -- Create new publisher for this author
+            INSERT INTO "public"."publishers" (name, created_at, updated_at)
+            VALUES (book_record.author, now(), now())
+            RETURNING id INTO publisher_record;
+            
+            -- Link book to new publisher
+            UPDATE "public"."books" 
+            SET publisher_id = publisher_record.id
+            WHERE id = book_record.id;
+            
+            created_count := created_count + 1;
+            
+            RETURN QUERY SELECT 
+                book_record.id,
+                book_record.title,
+                'CREATED_NEW_PUBLISHER'::text,
+                publisher_record.id,
+                'SUCCESS'::text;
+        END IF;
+    END LOOP;
+    
+    -- Log the operation safely
+    INSERT INTO "public"."security_audit_log" (
+        action, 
+        table_name, 
+        new_values
+    ) VALUES (
+        'SAFE_DATA_INTEGRITY_FIX',
+        'books_publishers',
+        jsonb_build_object(
+            'linked_count', linked_count,
+            'created_count', created_count,
+            'total_fixed', linked_count + created_count,
+            'fix_type', 'missing_publisher_relationships'
+        )
+    );
+END;
+$$;
+
+
+ALTER FUNCTION "public"."safe_fix_missing_publishers"() OWNER TO "postgres";
+
+--
+-- Name: simple_check_publisher_health(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."simple_check_publisher_health"() RETURNS TABLE("metric_name" "text", "current_value" bigint, "status" "text")
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    -- Count books with missing publisher_id
+    RETURN QUERY SELECT 
+        'Books with missing publisher_id'::text,
+        COUNT(*)::bigint,
+        CASE WHEN COUNT(*) = 0 THEN 'GOOD' ELSE 'NEEDS_FIX' END
+    FROM "public"."books" 
+    WHERE publisher_id IS NULL;
+    
+    -- Count total books
+    RETURN QUERY SELECT 
+        'Total books'::text,
+        COUNT(*)::bigint,
+        'INFO'::text
+    FROM "public"."books";
+    
+    -- Count total publishers
+    RETURN QUERY SELECT 
+        'Total publishers'::text,
+        COUNT(*)::bigint,
+        'INFO'::text
+    FROM "public"."publishers";
+END;
+$$;
+
+
+ALTER FUNCTION "public"."simple_check_publisher_health"() OWNER TO "postgres";
+
+--
+-- Name: simple_fix_missing_publishers(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."simple_fix_missing_publishers"() RETURNS TABLE("book_id" "uuid", "book_title" character varying, "action_taken" "text", "publisher_id" "uuid", "status" "text")
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    book_record RECORD;
+    publisher_record RECORD;
+    linked_count integer := 0;
+    created_count integer := 0;
+BEGIN
+    -- First, try to link books to existing publishers by author name
+    FOR book_record IN 
+        SELECT b.id, b.title, b.author, b.publisher_id
+        FROM "public"."books" b
+        WHERE b.publisher_id IS NULL
+        AND b.author IS NOT NULL
+        AND b.author != ''
+    LOOP
+        -- Try to find existing publisher by author name
+        SELECT p.id INTO publisher_record
+        FROM "public"."publishers" p
+        WHERE LOWER(p.name) = LOWER(book_record.author)
+        LIMIT 1;
+        
+        IF publisher_record.id IS NOT NULL THEN
+            -- Link to existing publisher
+            UPDATE "public"."books" 
+            SET publisher_id = publisher_record.id
+            WHERE id = book_record.id;
+            
+            linked_count := linked_count + 1;
+            
+            RETURN QUERY SELECT 
+                book_record.id,
+                book_record.title,
+                'LINKED_TO_EXISTING_PUBLISHER'::text,
+                publisher_record.id,
+                'SUCCESS'::text;
+        ELSE
+            -- Create new publisher for this author
+            INSERT INTO "public"."publishers" (name, created_at, updated_at)
+            VALUES (book_record.author, now(), now())
+            RETURNING id INTO publisher_record;
+            
+            -- Link book to new publisher
+            UPDATE "public"."books" 
+            SET publisher_id = publisher_record.id
+            WHERE id = book_record.id;
+            
+            created_count := created_count + 1;
+            
+            RETURN QUERY SELECT 
+                book_record.id,
+                book_record.title,
+                'CREATED_NEW_PUBLISHER'::text,
+                publisher_record.id,
+                'SUCCESS'::text;
+        END IF;
+    END LOOP;
+    
+    -- Simple logging without requiring security_audit_log table
+    RAISE NOTICE 'Publisher fix completed: % books linked, % new publishers created', linked_count, created_count;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."simple_fix_missing_publishers"() OWNER TO "postgres";
+
+--
+-- Name: standardize_reading_status_mappings(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."standardize_reading_status_mappings"() RETURNS TABLE("old_status" "text", "new_status" "text", "updated_count" bigint)
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    status_mapping record;
+    updated_count bigint;
+BEGIN
+    -- Define status mappings
+    FOR status_mapping IN 
+        SELECT 
+            'want_to_read' as old_status, 'not_started' as new_status
+        UNION ALL
+        SELECT 'currently_reading', 'in_progress'
+        UNION ALL
+        SELECT 'read', 'completed'
+        UNION ALL
+        SELECT 'on_hold', 'on_hold'
+        UNION ALL
+        SELECT 'abandoned', 'abandoned'
+    LOOP
+        -- Update reading_progress table
+        UPDATE "public"."reading_progress" 
+        SET status = status_mapping.new_status
+        WHERE status = status_mapping.old_status;
+        
+        GET DIAGNOSTICS updated_count = ROW_COUNT;
+        
+        RETURN QUERY SELECT 
+            status_mapping.old_status,
+            status_mapping.new_status,
+            updated_count;
+    END LOOP;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."standardize_reading_status_mappings"() OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "standardize_reading_status_mappings"(); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."standardize_reading_status_mappings"() IS 'Standardize reading progress status mappings';
+
+
+--
+-- Name: standardize_reading_statuses(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."standardize_reading_statuses"() RETURNS TABLE("old_status" "text", "new_status" "text", "updated_count" bigint)
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    status_mapping RECORD;
+    updated_count bigint;
+BEGIN
+    -- Define status mappings
+    FOR status_mapping IN 
+        SELECT 
+            'want_to_read' as old_status, 'not_started' as new_status
+        UNION ALL
+        SELECT 'currently_reading', 'in_progress'
+        UNION ALL
+        SELECT 'read', 'completed'
+        UNION ALL
+        SELECT 'on_hold', 'on_hold'
+        UNION ALL
+        SELECT 'abandoned', 'abandoned'
+    LOOP
+        -- Update reading_progress table
+        UPDATE "public"."reading_progress" 
+        SET status = status_mapping.new_status
+        WHERE status = status_mapping.old_status;
+        
+        GET DIAGNOSTICS updated_count = ROW_COUNT;
+        
+        RETURN QUERY SELECT 
+            status_mapping.old_status,
+            status_mapping.new_status,
+            updated_count;
+    END LOOP;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."standardize_reading_statuses"() OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "standardize_reading_statuses"(); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."standardize_reading_statuses"() IS 'Standardize reading status values across the application';
+
+
+--
+-- Name: trigger_content_processing(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."trigger_content_processing"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    -- Automatically process new content for NLP analysis
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO public.nlp_analysis (
+            content_id,
+            content_type,
+            analysis_type,
+            original_text
+        ) VALUES (
+            NEW.id,
+            TG_TABLE_NAME,
+            'sentiment',
+            COALESCE(NEW.description, NEW.title, NEW.content, '')
+        );
+    END IF;
+    
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."trigger_content_processing"() OWNER TO "postgres";
+
+--
+-- Name: trigger_recommendation_generation(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."trigger_recommendation_generation"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    -- Generate AI recommendations when user activity changes
+    IF TG_OP = 'INSERT' OR TG_OP = 'UPDATE' THEN
+        -- This would integrate with your recommendation engine
+        -- For now, we'll just log the activity
+        INSERT INTO public.user_activity_log (
+            user_id,
+            activity_type,
+            activity_data
+        ) VALUES (
+            NEW.user_id,
+            'recommendation_trigger',
+            jsonb_build_object('trigger_table', TG_TABLE_NAME, 'trigger_operation', TG_OP)
+        );
+    END IF;
+    
+    RETURN COALESCE(NEW, OLD);
+END;
+$$;
+
+
+ALTER FUNCTION "public"."trigger_recommendation_generation"() OWNER TO "postgres";
+
+--
+-- Name: trigger_update_book_popularity(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."trigger_update_book_popularity"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    IF TG_OP = 'INSERT' OR TG_OP = 'UPDATE' THEN
+        PERFORM "public"."update_book_popularity_metrics"(NEW."book_id");
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        PERFORM "public"."update_book_popularity_metrics"(OLD."book_id");
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."trigger_update_book_popularity"() OWNER TO "postgres";
+
+--
+-- Name: update_book_popularity_metrics("uuid"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."update_book_popularity_metrics"("p_book_id" "uuid") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    INSERT INTO "public"."book_popularity_metrics" (
+        "book_id", "views_count", "reviews_count", "avg_rating", 
+        "reading_progress_count", "reading_list_count"
+    )
+    SELECT 
+        b."id",
+        COALESCE(COUNT(DISTINCT bv."id"), 0) as views_count,
+        COALESCE(COUNT(DISTINCT br."id"), 0) as reviews_count,
+        COALESCE(AVG(br."rating"), 0) as avg_rating,
+        COALESCE(COUNT(DISTINCT rp."id"), 0) as reading_progress_count,
+        COALESCE(COUNT(DISTINCT rli."id"), 0) as reading_list_count
+    FROM "public"."books" b
+    LEFT JOIN "public"."book_views" bv ON b."id" = bv."book_id"
+    LEFT JOIN "public"."book_reviews" br ON b."id" = br."book_id"
+    LEFT JOIN "public"."reading_progress" rp ON b."id" = rp."book_id"
+    LEFT JOIN "public"."reading_list_items" rli ON b."id" = rli."book_id"
+    WHERE b."id" = p_book_id
+    GROUP BY b."id"
+    ON CONFLICT ("book_id") DO UPDATE SET
+        "views_count" = EXCLUDED."views_count",
+        "reviews_count" = EXCLUDED."reviews_count",
+        "avg_rating" = EXCLUDED."avg_rating",
+        "reading_progress_count" = EXCLUDED."reading_progress_count",
+        "reading_list_count" = EXCLUDED."reading_list_count",
+        "last_updated" = "now"();
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_book_popularity_metrics"("p_book_id" "uuid") OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "update_book_popularity_metrics"("p_book_id" "uuid"); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."update_book_popularity_metrics"("p_book_id" "uuid") IS 'Updates book popularity metrics based on user interactions';
+
+
+--
+-- Name: update_photo_albums_updated_at(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."update_photo_albums_updated_at"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_photo_albums_updated_at"() OWNER TO "postgres";
+
+--
 -- Name: update_updated_at_column(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
 CREATE OR REPLACE FUNCTION "public"."update_updated_at_column"() RETURNS "trigger"
-    LANGUAGE "plpgsql"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
     AS $$
 BEGIN
     NEW.updated_at = NOW();
@@ -1070,6 +4073,555 @@ $$;
 
 
 ALTER FUNCTION "public"."update_updated_at_column"() OWNER TO "postgres";
+
+--
+-- Name: update_user_privacy_settings("text", boolean, boolean, boolean, boolean, boolean, boolean, boolean); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."update_user_privacy_settings"("default_privacy_level" "text" DEFAULT NULL::"text", "allow_friends_to_see_reading" boolean DEFAULT NULL::boolean, "allow_followers_to_see_reading" boolean DEFAULT NULL::boolean, "allow_public_reading_profile" boolean DEFAULT NULL::boolean, "show_reading_stats_publicly" boolean DEFAULT NULL::boolean, "show_currently_reading_publicly" boolean DEFAULT NULL::boolean, "show_reading_history_publicly" boolean DEFAULT NULL::boolean, "show_reading_goals_publicly" boolean DEFAULT NULL::boolean) RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    old_settings jsonb;
+    new_settings jsonb;
+BEGIN
+    -- Get current settings
+    SELECT to_jsonb(ups.*) INTO old_settings
+    FROM "public"."user_privacy_settings" ups
+    WHERE ups.user_id = auth.uid();
+
+    -- Insert or update settings
+    INSERT INTO "public"."user_privacy_settings" (
+        user_id, default_privacy_level, allow_friends_to_see_reading, 
+        allow_followers_to_see_reading, allow_public_reading_profile,
+        show_reading_stats_publicly, show_currently_reading_publicly,
+        show_reading_history_publicly, show_reading_goals_publicly
+    )
+    VALUES (
+        auth.uid(),
+        COALESCE(default_privacy_level, 'private'),
+        COALESCE(allow_friends_to_see_reading, false),
+        COALESCE(allow_followers_to_see_reading, false),
+        COALESCE(allow_public_reading_profile, false),
+        COALESCE(show_reading_stats_publicly, false),
+        COALESCE(show_currently_reading_publicly, false),
+        COALESCE(show_reading_history_publicly, false),
+        COALESCE(show_reading_goals_publicly, false)
+    )
+    ON CONFLICT (user_id) DO UPDATE SET
+        default_privacy_level = EXCLUDED.default_privacy_level,
+        allow_friends_to_see_reading = EXCLUDED.allow_friends_to_see_reading,
+        allow_followers_to_see_reading = EXCLUDED.allow_followers_to_see_reading,
+        allow_public_reading_profile = EXCLUDED.allow_public_reading_profile,
+        show_reading_stats_publicly = EXCLUDED.show_reading_stats_publicly,
+        show_currently_reading_publicly = EXCLUDED.show_currently_reading_publicly,
+        show_reading_history_publicly = EXCLUDED.show_reading_history_publicly,
+        show_reading_goals_publicly = EXCLUDED.show_reading_goals_publicly,
+        updated_at = now();
+
+    -- Get new settings
+    SELECT to_jsonb(ups.*) INTO new_settings
+    FROM "public"."user_privacy_settings" ups
+    WHERE ups.user_id = auth.uid();
+
+    -- Log the action
+    INSERT INTO "public"."privacy_audit_log" (user_id, action, old_value, new_value)
+    VALUES (auth.uid(), 'update_privacy_settings', old_settings, new_settings);
+
+    RETURN true;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_user_privacy_settings"("default_privacy_level" "text", "allow_friends_to_see_reading" boolean, "allow_followers_to_see_reading" boolean, "allow_public_reading_profile" boolean, "show_reading_stats_publicly" boolean, "show_currently_reading_publicly" boolean, "show_reading_history_publicly" boolean, "show_reading_goals_publicly" boolean) OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "update_user_privacy_settings"("default_privacy_level" "text", "allow_friends_to_see_reading" boolean, "allow_followers_to_see_reading" boolean, "allow_public_reading_profile" boolean, "show_reading_stats_publicly" boolean, "show_currently_reading_publicly" boolean, "show_reading_history_publicly" boolean, "show_reading_goals_publicly" boolean); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."update_user_privacy_settings"("default_privacy_level" "text", "allow_friends_to_see_reading" boolean, "allow_followers_to_see_reading" boolean, "allow_public_reading_profile" boolean, "show_reading_stats_publicly" boolean, "show_currently_reading_publicly" boolean, "show_reading_history_publicly" boolean, "show_reading_goals_publicly" boolean) IS 'Update user privacy settings with audit logging';
+
+
+--
+-- Name: upsert_reading_progress("uuid", "uuid", "text", integer, "text"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."upsert_reading_progress"("p_user_id" "uuid", "p_book_id" "uuid", "p_status" "text", "p_progress_percentage" integer DEFAULT NULL::integer, "p_privacy_level" "text" DEFAULT 'private'::"text") RETURNS "jsonb"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    normalized_status text;
+    progress_percentage integer;
+    result_record record;
+BEGIN
+    -- Normalize the status
+    normalized_status := "public"."map_reading_status_to_progress"(p_status);
+    
+    -- Use provided progress percentage or calculate based on status
+    IF p_progress_percentage IS NOT NULL THEN
+        progress_percentage := p_progress_percentage;
+    ELSE
+        progress_percentage := CASE normalized_status
+            WHEN 'not_started' THEN 0
+            WHEN 'in_progress' THEN 50
+            WHEN 'completed' THEN 100
+            WHEN 'on_hold' THEN 25
+            WHEN 'abandoned' THEN 0
+            ELSE 0
+        END;
+    END IF;
+    
+    -- Upsert into reading_progress table (only using existing columns)
+    INSERT INTO "public"."reading_progress" (
+        user_id, book_id, status, progress_percentage, privacy_level, 
+        start_date, finish_date, created_at, updated_at
+    ) VALUES (
+        p_user_id, p_book_id, normalized_status, progress_percentage, p_privacy_level,
+        CASE WHEN normalized_status = 'in_progress' THEN now() ELSE NULL END,
+        CASE WHEN normalized_status = 'completed' THEN now() ELSE NULL END,
+        now(), now()
+    )
+    ON CONFLICT (user_id, book_id) 
+    DO UPDATE SET
+        status = EXCLUDED.status,
+        progress_percentage = EXCLUDED.progress_percentage,
+        privacy_level = EXCLUDED.privacy_level,
+        start_date = CASE 
+            WHEN EXCLUDED.status = 'in_progress' AND reading_progress.start_date IS NULL 
+            THEN now() 
+            ELSE reading_progress.start_date 
+        END,
+        finish_date = CASE 
+            WHEN EXCLUDED.status = 'completed' 
+            THEN now() 
+            ELSE reading_progress.finish_date 
+        END,
+        updated_at = now()
+    RETURNING * INTO result_record;
+    
+    -- Return the result
+    RETURN jsonb_build_object(
+        'success', true,
+        'data', to_jsonb(result_record),
+        'status', normalized_status
+    );
+END;
+$$;
+
+
+ALTER FUNCTION "public"."upsert_reading_progress"("p_user_id" "uuid", "p_book_id" "uuid", "p_status" "text", "p_progress_percentage" integer, "p_privacy_level" "text") OWNER TO "postgres";
+
+--
+-- Name: validate_and_repair_data(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."validate_and_repair_data"() RETURNS TABLE("validation_type" "text", "issue_count" bigint, "fixed_count" bigint, "status" "text")
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    issue_count bigint;
+    fixed_count bigint;
+BEGIN
+    -- Fix books with invalid publisher_id references
+    UPDATE "public"."books" 
+    SET publisher_id = NULL
+    WHERE publisher_id IS NOT NULL
+    AND NOT EXISTS (
+        SELECT 1 FROM "public"."publishers" p 
+        WHERE p.id = books.publisher_id
+    );
+    
+    GET DIAGNOSTICS fixed_count = ROW_COUNT;
+    
+    RETURN QUERY SELECT 
+        'Invalid publisher references'::text,
+        0::bigint,
+        fixed_count,
+        'FIXED'::text;
+    
+    -- Fix reading progress with invalid book_id references
+    UPDATE "public"."reading_progress" 
+    SET book_id = NULL
+    WHERE book_id IS NOT NULL
+    AND NOT EXISTS (
+        SELECT 1 FROM "public"."books" b 
+        WHERE b.id = reading_progress.book_id
+    );
+    
+    GET DIAGNOSTICS fixed_count = ROW_COUNT;
+    
+    RETURN QUERY SELECT 
+        'Invalid book references'::text,
+        0::bigint,
+        fixed_count,
+        'FIXED'::text;
+    
+    -- Fix follows with invalid user references
+    UPDATE "public"."follows" 
+    SET follower_id = NULL
+    WHERE follower_id IS NOT NULL
+    AND NOT EXISTS (
+        SELECT 1 FROM "auth"."users" u 
+        WHERE u.id = follows.follower_id
+    );
+    
+    GET DIAGNOSTICS fixed_count = ROW_COUNT;
+    
+    RETURN QUERY SELECT 
+        'Invalid user references'::text,
+        0::bigint,
+        fixed_count,
+        'FIXED'::text;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."validate_and_repair_data"() OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "validate_and_repair_data"(); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."validate_and_repair_data"() IS 'Validate and repair data integrity issues';
+
+
+--
+-- Name: validate_book_data("jsonb"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."validate_book_data"("book_data" "jsonb") RETURNS "jsonb"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    validation_errors text[] := '{}';
+    result jsonb;
+BEGIN
+    -- Validate required fields
+    IF book_data->>'title' IS NULL OR book_data->>'title' = '' THEN
+        validation_errors := validation_errors || 'Title is required';
+    END IF;
+    
+    IF book_data->>'author' IS NULL OR book_data->>'author' = '' THEN
+        validation_errors := validation_errors || 'Author is required';
+    END IF;
+    
+    -- Validate ISBN format if provided
+    IF book_data->>'isbn13' IS NOT NULL AND book_data->>'isbn13' != '' THEN
+        IF length(book_data->>'isbn13') != 13 THEN
+            validation_errors := validation_errors || 'ISBN-13 must be exactly 13 characters';
+        END IF;
+    END IF;
+    
+    IF book_data->>'isbn10' IS NOT NULL AND book_data->>'isbn10' != '' THEN
+        IF length(book_data->>'isbn10') != 10 THEN
+            validation_errors := validation_errors || 'ISBN-10 must be exactly 10 characters';
+        END IF;
+    END IF;
+    
+    -- Validate publication date
+    IF book_data->>'publication_date' IS NOT NULL THEN
+        BEGIN
+            PERFORM (book_data->>'publication_date')::date;
+        EXCEPTION WHEN OTHERS THEN
+            validation_errors := validation_errors || 'Invalid publication date format';
+        END;
+    END IF;
+    
+    -- Return validation result
+    IF array_length(validation_errors, 1) > 0 THEN
+        result := jsonb_build_object(
+            'valid', false,
+            'errors', validation_errors
+        );
+    ELSE
+        result := jsonb_build_object(
+            'valid', true,
+            'data', book_data
+        );
+    END IF;
+    
+    RETURN result;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."validate_book_data"("book_data" "jsonb") OWNER TO "postgres";
+
+--
+-- Name: validate_book_data_enhanced("text", "text", "text", integer); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."validate_book_data_enhanced"("p_title" "text", "p_author" "text", "p_isbn" "text" DEFAULT NULL::"text", "p_publication_year" integer DEFAULT NULL::integer) RETURNS "jsonb"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $_$
+DECLARE
+    v_validation_result "jsonb";
+    v_errors "text"[] := '{}';
+    v_warnings "text"[] := '{}';
+BEGIN
+    -- Title validation
+    IF p_title IS NULL OR LENGTH(TRIM(p_title)) = 0 THEN
+        v_errors := array_append(v_errors, 'Title is required');
+    ELSIF LENGTH(p_title) > 500 THEN
+        v_errors := array_append(v_errors, 'Title exceeds maximum length of 500 characters');
+    END IF;
+    
+    -- Author validation
+    IF p_author IS NULL OR LENGTH(TRIM(p_author)) = 0 THEN
+        v_errors := array_append(v_errors, 'Author is required');
+    ELSIF LENGTH(p_author) > 200 THEN
+        v_errors := array_append(v_errors, 'Author name exceeds maximum length of 200 characters');
+    END IF;
+    
+    -- ISBN validation
+    IF p_isbn IS NOT NULL AND LENGTH(p_isbn) > 0 THEN
+        IF NOT p_isbn ~ '^[0-9X-]{10,13}$' THEN
+            v_errors := array_append(v_errors, 'Invalid ISBN format');
+        END IF;
+    END IF;
+    
+    -- Publication year validation
+    IF p_publication_year IS NOT NULL THEN
+        IF p_publication_year < 1000 OR p_publication_year > EXTRACT(YEAR FROM CURRENT_DATE) + 5 THEN
+            v_warnings := array_append(v_warnings, 'Publication year seems unusual');
+        END IF;
+    END IF;
+    
+    -- Build validation result
+    v_validation_result := "jsonb_build_object"(
+        'is_valid', array_length(v_errors, 1) = 0,
+        'errors', v_errors,
+        'warnings', v_warnings,
+        'validation_timestamp', "now"()
+    );
+    
+    RETURN v_validation_result;
+END;
+$_$;
+
+
+ALTER FUNCTION "public"."validate_book_data_enhanced"("p_title" "text", "p_author" "text", "p_isbn" "text", "p_publication_year" integer) OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "validate_book_data_enhanced"("p_title" "text", "p_author" "text", "p_isbn" "text", "p_publication_year" integer); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."validate_book_data_enhanced"("p_title" "text", "p_author" "text", "p_isbn" "text", "p_publication_year" integer) IS 'Enhanced book data validation for integrity and quality';
+
+
+--
+-- Name: validate_enterprise_data_quality("text"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."validate_enterprise_data_quality"("p_table_name" "text" DEFAULT NULL::"text") RETURNS TABLE("rule_name" "text", "table_name" "text", "column_name" "text", "rule_type" "text", "validation_result" "text", "error_count" bigint, "severity" "text")
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+    rule_record RECORD;
+    validation_query text;
+    error_count_val bigint;
+BEGIN
+    FOR rule_record IN 
+        SELECT * FROM "public"."enterprise_data_quality_rules" 
+        WHERE "is_active" = true 
+        AND (p_table_name IS NULL OR "table_name" = p_table_name)
+    LOOP
+        -- Build dynamic validation query based on rule type
+        CASE rule_record.rule_type
+            WHEN 'NOT_NULL' THEN
+                validation_query := format(
+                    'SELECT COUNT(*) FROM %I WHERE %I IS NULL',
+                    rule_record.table_name,
+                    rule_record.column_name
+                );
+            WHEN 'UNIQUE' THEN
+                validation_query := format(
+                    'SELECT COUNT(*) FROM (SELECT %I, COUNT(*) FROM %I GROUP BY %I HAVING COUNT(*) > 1) t',
+                    rule_record.column_name,
+                    rule_record.table_name,
+                    rule_record.column_name
+                );
+            WHEN 'FOREIGN_KEY' THEN
+                -- Extract foreign key details from rule_definition
+                validation_query := format(
+                    'SELECT COUNT(*) FROM %I t1 LEFT JOIN %s t2 ON t1.%I = t2.%I WHERE t2.%I IS NULL',
+                    rule_record.table_name,
+                    split_part(rule_record.rule_definition, ':', 1),
+                    rule_record.column_name,
+                    split_part(rule_record.rule_definition, ':', 2),
+                    split_part(rule_record.rule_definition, ':', 2)
+                );
+            WHEN 'CHECK' THEN
+                validation_query := format(
+                    'SELECT COUNT(*) FROM %I WHERE NOT (%s)',
+                    rule_record.table_name,
+                    rule_record.rule_definition
+                );
+            ELSE
+                validation_query := rule_record.rule_definition;
+        END CASE;
+        
+        -- Execute validation query
+        BEGIN
+            EXECUTE validation_query INTO error_count_val;
+        EXCEPTION WHEN OTHERS THEN
+            error_count_val := -1; -- Error in validation
+        END;
+        
+        RETURN QUERY SELECT 
+            rule_record.rule_name,
+            rule_record.table_name,
+            rule_record.column_name,
+            rule_record.rule_type,
+            CASE 
+                WHEN error_count_val = 0 THEN 'PASS'
+                WHEN error_count_val > 0 THEN 'FAIL'
+                ELSE 'ERROR'
+            END,
+            error_count_val,
+            rule_record.severity;
+    END LOOP;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."validate_enterprise_data_quality"("p_table_name" "text") OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "validate_enterprise_data_quality"("p_table_name" "text"); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."validate_enterprise_data_quality"("p_table_name" "text") IS 'Validates enterprise data quality rules';
+
+
+--
+-- Name: validate_follow_entity("uuid", "text"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."validate_follow_entity"("p_entity_id" "uuid", "p_target_type" "text") RETURNS boolean
+    LANGUAGE "plpgsql"
+    AS $$
+DECLARE
+    entity_exists boolean := false;
+BEGIN
+    -- Check if entity exists based on target type
+    CASE p_target_type
+        WHEN 'user' THEN
+            SELECT EXISTS(SELECT 1 FROM auth.users WHERE id = p_entity_id) INTO entity_exists;
+        WHEN 'book' THEN
+            SELECT EXISTS(SELECT 1 FROM public.books WHERE id = p_entity_id) INTO entity_exists;
+        WHEN 'author' THEN
+            SELECT EXISTS(SELECT 1 FROM public.authors WHERE id = p_entity_id) INTO entity_exists;
+        WHEN 'publisher' THEN
+            SELECT EXISTS(SELECT 1 FROM public.publishers WHERE id = p_entity_id) INTO entity_exists;
+        WHEN 'group' THEN
+            SELECT EXISTS(SELECT 1 FROM public.groups WHERE id = p_entity_id) INTO entity_exists;
+        ELSE
+            entity_exists := false;
+    END CASE;
+    
+    RETURN entity_exists;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."validate_follow_entity"("p_entity_id" "uuid", "p_target_type" "text") OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "validate_follow_entity"("p_entity_id" "uuid", "p_target_type" "text"); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."validate_follow_entity"("p_entity_id" "uuid", "p_target_type" "text") IS 'Validates that an entity exists before allowing a follow relationship';
+
+
+--
+-- Name: validate_follow_entity_trigger(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."validate_follow_entity_trigger"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+DECLARE
+    target_type_name text;
+    entity_exists boolean;
+BEGIN
+    -- Get the target type name
+    SELECT name INTO target_type_name 
+    FROM public.follow_target_types 
+    WHERE id = NEW.target_type_id;
+    
+    -- Validate entity exists
+    entity_exists := public.validate_follow_entity(NEW.following_id, target_type_name);
+    
+    IF NOT entity_exists THEN
+        RAISE EXCEPTION 'Entity with ID % does not exist in table %', NEW.following_id, target_type_name;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."validate_follow_entity_trigger"() OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "validate_follow_entity_trigger"(); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."validate_follow_entity_trigger"() IS 'Trigger to validate entity existence before follow insert';
+
+
+--
+-- Name: validate_user_data_enhanced("text", "text"); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE FUNCTION "public"."validate_user_data_enhanced"("p_email" "text", "p_name" "text" DEFAULT NULL::"text") RETURNS "jsonb"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $_$
+DECLARE
+    v_validation_result "jsonb";
+    v_errors "text"[] := '{}';
+    v_warnings "text"[] := '{}';
+BEGIN
+    -- Email validation
+    IF p_email IS NULL OR LENGTH(TRIM(p_email)) = 0 THEN
+        v_errors := array_append(v_errors, 'Email is required');
+    ELSIF NOT p_email ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$' THEN
+        v_errors := array_append(v_errors, 'Invalid email format');
+    END IF;
+    
+    -- Name validation
+    IF p_name IS NOT NULL AND LENGTH(TRIM(p_name)) > 0 THEN
+        IF LENGTH(p_name) > 100 THEN
+            v_errors := array_append(v_errors, 'Name exceeds maximum length of 100 characters');
+        END IF;
+        
+        IF p_name ~ '[0-9]' THEN
+            v_warnings := array_append(v_warnings, 'Name contains numbers');
+        END IF;
+    END IF;
+    
+    -- Build validation result
+    v_validation_result := "jsonb_build_object"(
+        'is_valid', array_length(v_errors, 1) = 0,
+        'errors', v_errors,
+        'warnings', v_warnings,
+        'validation_timestamp', "now"()
+    );
+    
+    RETURN v_validation_result;
+END;
+$_$;
+
+
+ALTER FUNCTION "public"."validate_user_data_enhanced"("p_email" "text", "p_name" "text") OWNER TO "postgres";
+
+--
+-- Name: FUNCTION "validate_user_data_enhanced"("p_email" "text", "p_name" "text"); Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON FUNCTION "public"."validate_user_data_enhanced"("p_email" "text", "p_name" "text") IS 'Enhanced user data validation for format and completeness';
+
 
 --
 -- Name: apply_rls("jsonb", integer); Type: FUNCTION; Schema: realtime; Owner: supabase_admin
@@ -2560,11 +6112,34 @@ CREATE TABLE IF NOT EXISTS "public"."activities" (
     "group_id" "uuid",
     "event_id" "uuid",
     "book_id" "uuid",
-    "author_id" "uuid"
+    "author_id" "uuid",
+    "entity_type" "text",
+    "entity_id" "uuid"
 );
 
 
 ALTER TABLE "public"."activities" OWNER TO "postgres";
+
+--
+-- Name: TABLE "activities"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."activities" IS 'User activities for tracking engagement';
+
+
+--
+-- Name: COLUMN "activities"."entity_type"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN "public"."activities"."entity_type" IS 'Type of entity this activity relates to (book, author, event, etc.)';
+
+
+--
+-- Name: COLUMN "activities"."entity_id"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN "public"."activities"."entity_id" IS 'ID of the entity this activity relates to';
+
 
 --
 -- Name: activity_log; Type: TABLE; Schema: public; Owner: postgres
@@ -2582,6 +6157,252 @@ CREATE TABLE IF NOT EXISTS "public"."activity_log" (
 
 
 ALTER TABLE "public"."activity_log" OWNER TO "postgres";
+
+--
+-- Name: book_reviews; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."book_reviews" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "rating" integer NOT NULL,
+    "review_text" "text",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "contains_spoilers" boolean DEFAULT false,
+    "group_id" "uuid",
+    "visibility" "text" DEFAULT 'public'::"text" NOT NULL,
+    "book_id" "uuid"
+);
+
+
+ALTER TABLE "public"."book_reviews" OWNER TO "postgres";
+
+--
+-- Name: book_views; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."book_views" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "user_id" "uuid",
+    "book_id" "uuid",
+    "viewed_at" timestamp with time zone
+);
+
+
+ALTER TABLE "public"."book_views" OWNER TO "postgres";
+
+--
+-- Name: books; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."books" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "isbn10" character varying,
+    "isbn13" character varying,
+    "title" character varying NOT NULL,
+    "title_long" "text",
+    "publisher_id" "uuid",
+    "publication_date" "date",
+    "binding" character varying,
+    "pages" integer,
+    "list_price" numeric,
+    "language" character varying,
+    "edition" character varying,
+    "synopsis" "text",
+    "overview" "text",
+    "dimensions" character varying,
+    "weight" numeric,
+    "cover_image_id" "uuid",
+    "original_image_url" "text",
+    "author" character varying,
+    "featured" boolean DEFAULT false NOT NULL,
+    "book_gallery_img" "text"[],
+    "average_rating" numeric DEFAULT 0,
+    "review_count" integer DEFAULT 0,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "author_id" "uuid",
+    "binding_type_id" "uuid",
+    "format_type_id" "uuid",
+    "status_id" "uuid",
+    "updated_at" timestamp with time zone DEFAULT "now"()
+);
+
+
+ALTER TABLE "public"."books" OWNER TO "postgres";
+
+--
+-- Name: TABLE "books"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."books" IS 'Book catalog with metadata';
+
+
+--
+-- Name: COLUMN "books"."isbn10"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN "public"."books"."isbn10" IS 'ISBN-10 identifier';
+
+
+--
+-- Name: COLUMN "books"."isbn13"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN "public"."books"."isbn13" IS 'ISBN-13 identifier';
+
+
+--
+-- Name: COLUMN "books"."title"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN "public"."books"."title" IS 'Book title';
+
+
+--
+-- Name: COLUMN "books"."publication_date"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN "public"."books"."publication_date" IS 'Book publication date';
+
+
+--
+-- Name: reading_lists; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."reading_lists" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "name" character varying(100) NOT NULL,
+    "description" "text",
+    "is_public" boolean DEFAULT false,
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"()
+);
+
+
+ALTER TABLE "public"."reading_lists" OWNER TO "postgres";
+
+--
+-- Name: reading_progress; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."reading_progress" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "status" "text" NOT NULL,
+    "progress_percentage" integer DEFAULT 0 NOT NULL,
+    "start_date" timestamp with time zone,
+    "finish_date" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "book_id" "uuid",
+    "privacy_level" "text" DEFAULT 'private'::"text" NOT NULL,
+    "allow_friends" boolean DEFAULT false NOT NULL,
+    "allow_followers" boolean DEFAULT false NOT NULL,
+    "custom_permissions" "jsonb" DEFAULT '[]'::"jsonb",
+    "privacy_audit_log" "jsonb" DEFAULT '[]'::"jsonb",
+    CONSTRAINT "reading_progress_privacy_level_check" CHECK (("privacy_level" = ANY (ARRAY['private'::"text", 'friends'::"text", 'followers'::"text", 'public'::"text"])))
+);
+
+
+ALTER TABLE "public"."reading_progress" OWNER TO "postgres";
+
+--
+-- Name: TABLE "reading_progress"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."reading_progress" IS 'User reading progress tracking';
+
+
+--
+-- Name: system_health_checks; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."system_health_checks" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "check_name" "text" NOT NULL,
+    "status" "text" NOT NULL,
+    "details" "jsonb",
+    "checked_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "response_time_ms" integer,
+    "error_message" "text",
+    CONSTRAINT "system_health_checks_status_check" CHECK (("status" = ANY (ARRAY['healthy'::"text", 'warning'::"text", 'critical'::"text"])))
+);
+
+
+ALTER TABLE "public"."system_health_checks" OWNER TO "postgres";
+
+--
+-- Name: TABLE "system_health_checks"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."system_health_checks" IS 'System health monitoring data for enterprise monitoring';
+
+
+--
+-- Name: user_activity_log; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."user_activity_log" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "activity_type" "text" NOT NULL,
+    "activity_details" "jsonb",
+    "ip_address" "inet",
+    "user_agent" "text",
+    "session_id" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "response_time_ms" integer,
+    "status_code" integer
+);
+
+
+ALTER TABLE "public"."user_activity_log" OWNER TO "postgres";
+
+--
+-- Name: TABLE "user_activity_log"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."user_activity_log" IS 'Detailed user activity tracking for analytics and security';
+
+
+--
+-- Name: advanced_analytics_dashboard_enhanced; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE VIEW "public"."advanced_analytics_dashboard_enhanced" AS
+ SELECT ( SELECT "count"(DISTINCT "reading_progress"."user_id") AS "count"
+           FROM "public"."reading_progress") AS "active_readers",
+    ( SELECT "count"(DISTINCT "book_reviews"."user_id") AS "count"
+           FROM "public"."book_reviews") AS "active_reviewers",
+    ( SELECT "count"(DISTINCT "reading_lists"."user_id") AS "count"
+           FROM "public"."reading_lists") AS "list_creators",
+    ( SELECT "count"(*) AS "count"
+           FROM "public"."books") AS "total_books",
+    ( SELECT "count"(*) AS "count"
+           FROM "public"."book_views") AS "total_book_views",
+    ( SELECT "count"(*) AS "count"
+           FROM "public"."book_reviews") AS "total_reviews",
+    ( SELECT "round"("avg"("book_reviews"."rating"), 2) AS "round"
+           FROM "public"."book_reviews"
+          WHERE ("book_reviews"."rating" IS NOT NULL)) AS "avg_rating",
+    ( SELECT "count"(*) AS "count"
+           FROM "public"."user_activity_log"
+          WHERE ("user_activity_log"."created_at" >= ("now"() - '24:00:00'::interval))) AS "activities_last_24h",
+    ( SELECT "count"(*) AS "count"
+           FROM "public"."system_health_checks"
+          WHERE ("system_health_checks"."checked_at" >= ("now"() - '24:00:00'::interval))) AS "health_checks_last_24h",
+    ( SELECT "count"(*) AS "count"
+           FROM "public"."books"
+          WHERE (("books"."title" IS NULL) OR ("length"(TRIM(BOTH FROM "books"."title")) = 0))) AS "books_without_title",
+    ( SELECT "count"(*) AS "count"
+           FROM "public"."books"
+          WHERE (("books"."author" IS NULL) OR ("length"(TRIM(BOTH FROM "books"."author")) = 0))) AS "books_without_author",
+    "now"() AS "dashboard_timestamp";
+
+
+ALTER TABLE "public"."advanced_analytics_dashboard_enhanced" OWNER TO "postgres";
 
 --
 -- Name: album_analytics; Type: TABLE; Schema: public; Owner: postgres
@@ -2614,7 +6435,9 @@ CREATE TABLE IF NOT EXISTS "public"."album_images" (
     "is_featured" boolean DEFAULT false,
     "metadata" "jsonb",
     "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"()
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "entity_type_id" "uuid",
+    "entity_id" "uuid"
 );
 
 
@@ -2652,18 +6475,83 @@ CREATE TABLE IF NOT EXISTS "public"."authors" (
     "nationality" "text",
     "website" "text",
     "author_image_id" "uuid",
-    "author_gallery_id" integer,
     "twitter_handle" "text",
     "facebook_handle" "text",
     "instagram_handle" "text",
     "goodreads_url" "text",
     "cover_image_id" "uuid",
     "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"()
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "author_gallery_id" "uuid"
 );
 
 
 ALTER TABLE "public"."authors" OWNER TO "postgres";
+
+--
+-- Name: TABLE "authors"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."authors" IS 'Book authors information';
+
+
+--
+-- Name: automation_executions; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."automation_executions" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "workflow_id" "uuid",
+    "execution_status" "text" NOT NULL,
+    "start_time" timestamp with time zone DEFAULT "now"(),
+    "end_time" timestamp with time zone,
+    "execution_duration" interval,
+    "input_data" "jsonb",
+    "output_data" "jsonb",
+    "error_message" "text",
+    "performance_metrics" "jsonb",
+    CONSTRAINT "automation_executions_execution_status_check" CHECK (("execution_status" = ANY (ARRAY['started'::"text", 'running'::"text", 'completed'::"text", 'failed'::"text", 'cancelled'::"text"])))
+);
+
+
+ALTER TABLE "public"."automation_executions" OWNER TO "postgres";
+
+--
+-- Name: TABLE "automation_executions"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."automation_executions" IS 'Logs automation workflow executions and performance';
+
+
+--
+-- Name: automation_workflows; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."automation_workflows" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "workflow_name" "text" NOT NULL,
+    "workflow_type" "text" NOT NULL,
+    "trigger_conditions" "jsonb" NOT NULL,
+    "workflow_steps" "jsonb" NOT NULL,
+    "is_active" boolean DEFAULT true,
+    "execution_frequency" "text" DEFAULT 'on_demand'::"text",
+    "last_executed" timestamp with time zone,
+    "next_execution" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "created_by" "uuid",
+    CONSTRAINT "automation_workflows_workflow_type_check" CHECK (("workflow_type" = ANY (ARRAY['data_processing'::"text", 'content_generation'::"text", 'notification'::"text", 'maintenance'::"text", 'analytics'::"text"])))
+);
+
+
+ALTER TABLE "public"."automation_workflows" OWNER TO "postgres";
+
+--
+-- Name: TABLE "automation_workflows"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."automation_workflows" IS 'Workflow automation engine for enterprise processes';
+
 
 --
 -- Name: binding_types; Type: TABLE; Schema: public; Owner: postgres
@@ -2700,8 +6588,8 @@ ALTER TABLE "public"."blocks" OWNER TO "postgres";
 
 CREATE TABLE IF NOT EXISTS "public"."book_authors" (
     "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
-    "book_id" "uuid",
-    "author_id" "uuid",
+    "book_id" "uuid" NOT NULL,
+    "author_id" "uuid" NOT NULL,
     "created_at" timestamp with time zone,
     "updated_at" timestamp with time zone
 );
@@ -2803,8 +6691,8 @@ ALTER TABLE "public"."book_clubs" OWNER TO "postgres";
 
 CREATE TABLE IF NOT EXISTS "public"."book_genre_mappings" (
     "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
-    "book_id" "uuid",
-    "genre_id" "uuid"
+    "book_id" "uuid" NOT NULL,
+    "genre_id" "uuid" NOT NULL
 );
 
 
@@ -2836,6 +6724,94 @@ CREATE TABLE IF NOT EXISTS "public"."book_id_mapping" (
 
 
 ALTER TABLE "public"."book_id_mapping" OWNER TO "postgres";
+
+--
+-- Name: book_popularity_metrics; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."book_popularity_metrics" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "book_id" "uuid" NOT NULL,
+    "views_count" integer DEFAULT 0,
+    "reviews_count" integer DEFAULT 0,
+    "avg_rating" numeric(3,2),
+    "reading_progress_count" integer DEFAULT 0,
+    "reading_list_count" integer DEFAULT 0,
+    "last_updated" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."book_popularity_metrics" OWNER TO "postgres";
+
+--
+-- Name: TABLE "book_popularity_metrics"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."book_popularity_metrics" IS 'Aggregated book popularity metrics for recommendations';
+
+
+--
+-- Name: book_popularity_analytics; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE VIEW "public"."book_popularity_analytics" AS
+ SELECT "b"."id",
+    "b"."title",
+    "b"."author",
+    "bpm"."views_count",
+    "bpm"."reviews_count",
+    "bpm"."avg_rating",
+    "bpm"."reading_progress_count",
+    "bpm"."reading_list_count",
+    "bpm"."last_updated",
+    "rank"() OVER (ORDER BY "bpm"."views_count" DESC) AS "popularity_rank",
+    "rank"() OVER (ORDER BY "bpm"."avg_rating" DESC NULLS LAST) AS "rating_rank"
+   FROM ("public"."books" "b"
+     LEFT JOIN "public"."book_popularity_metrics" "bpm" ON (("b"."id" = "bpm"."book_id")))
+  WHERE ("bpm"."book_id" IS NOT NULL);
+
+
+ALTER TABLE "public"."book_popularity_analytics" OWNER TO "postgres";
+
+--
+-- Name: book_popularity_summary; Type: MATERIALIZED VIEW; Schema: public; Owner: postgres
+--
+
+CREATE MATERIALIZED VIEW "public"."book_popularity_summary" AS
+ SELECT "b"."id" AS "book_id",
+    "b"."title",
+    "b"."author",
+    "b"."average_rating",
+    "b"."review_count",
+    "count"("rp"."id") AS "total_reading_entries",
+    "count"(DISTINCT "rp"."user_id") AS "unique_readers",
+    "count"(
+        CASE
+            WHEN ("rp"."status" = 'completed'::"text") THEN 1
+            ELSE NULL::integer
+        END) AS "completed_reads",
+    "count"(
+        CASE
+            WHEN ("rp"."status" = 'in_progress'::"text") THEN 1
+            ELSE NULL::integer
+        END) AS "active_reads",
+    "avg"("rp"."progress_percentage") AS "avg_progress",
+    "b"."created_at",
+    "b"."updated_at"
+   FROM ("public"."books" "b"
+     LEFT JOIN "public"."reading_progress" "rp" ON (("b"."id" = "rp"."book_id")))
+  GROUP BY "b"."id", "b"."title", "b"."author", "b"."average_rating", "b"."review_count", "b"."created_at", "b"."updated_at"
+  WITH NO DATA;
+
+
+ALTER TABLE "public"."book_popularity_summary" OWNER TO "postgres";
+
+--
+-- Name: MATERIALIZED VIEW "book_popularity_summary"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON MATERIALIZED VIEW "public"."book_popularity_summary" IS 'Cached book popularity data for performance';
+
 
 --
 -- Name: book_publishers; Type: TABLE; Schema: public; Owner: postgres
@@ -2871,26 +6847,6 @@ CREATE TABLE IF NOT EXISTS "public"."book_recommendations" (
 ALTER TABLE "public"."book_recommendations" OWNER TO "postgres";
 
 --
--- Name: book_reviews; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE IF NOT EXISTS "public"."book_reviews" (
-    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
-    "user_id" "uuid" NOT NULL,
-    "rating" integer NOT NULL,
-    "review_text" "text",
-    "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"(),
-    "contains_spoilers" boolean DEFAULT false,
-    "group_id" "uuid",
-    "visibility" "text" DEFAULT 'public'::"text" NOT NULL,
-    "book_id" "uuid"
-);
-
-
-ALTER TABLE "public"."book_reviews" OWNER TO "postgres";
-
---
 -- Name: book_similarity_scores; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -2911,8 +6867,8 @@ ALTER TABLE "public"."book_similarity_scores" OWNER TO "postgres";
 
 CREATE TABLE IF NOT EXISTS "public"."book_subjects" (
     "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
-    "book_id" "uuid",
-    "subject_id" "uuid",
+    "book_id" "uuid" NOT NULL,
+    "subject_id" "uuid" NOT NULL,
     "created_at" timestamp with time zone,
     "updated_at" timestamp with time zone
 );
@@ -2926,8 +6882,8 @@ ALTER TABLE "public"."book_subjects" OWNER TO "postgres";
 
 CREATE TABLE IF NOT EXISTS "public"."book_tag_mappings" (
     "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
-    "book_id" "uuid",
-    "tag_id" "uuid",
+    "book_id" "uuid" NOT NULL,
+    "tag_id" "uuid" NOT NULL,
     "created_at" timestamp with time zone,
     "updated_at" timestamp with time zone
 );
@@ -2950,59 +6906,6 @@ CREATE TABLE IF NOT EXISTS "public"."book_tags" (
 ALTER TABLE "public"."book_tags" OWNER TO "postgres";
 
 --
--- Name: book_views; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE IF NOT EXISTS "public"."book_views" (
-    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
-    "user_id" "uuid",
-    "book_id" "uuid",
-    "viewed_at" timestamp with time zone
-);
-
-
-ALTER TABLE "public"."book_views" OWNER TO "postgres";
-
---
--- Name: books; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE IF NOT EXISTS "public"."books" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "isbn10" character varying,
-    "isbn13" character varying,
-    "title" character varying NOT NULL,
-    "title_long" "text",
-    "publisher_id" "uuid",
-    "publication_date" "date",
-    "binding" character varying,
-    "pages" integer,
-    "list_price" numeric,
-    "language" character varying,
-    "edition" character varying,
-    "synopsis" "text",
-    "overview" "text",
-    "dimensions" character varying,
-    "weight" numeric,
-    "cover_image_id" "uuid",
-    "original_image_url" "text",
-    "author" character varying,
-    "featured" boolean DEFAULT false NOT NULL,
-    "book_gallery_img" "text"[],
-    "average_rating" numeric DEFAULT 0,
-    "review_count" integer DEFAULT 0,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "author_id" "uuid",
-    "binding_type_id" "uuid",
-    "format_type_id" "uuid",
-    "status_id" "uuid",
-    "updated_at" timestamp with time zone DEFAULT "now"()
-);
-
-
-ALTER TABLE "public"."books" OWNER TO "postgres";
-
---
 -- Name: carousel_images; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -3017,6 +6920,33 @@ CREATE TABLE IF NOT EXISTS "public"."carousel_images" (
 
 
 ALTER TABLE "public"."carousel_images" OWNER TO "postgres";
+
+--
+-- Name: collaborative_filtering_data; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."collaborative_filtering_data" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid",
+    "item_id" "uuid",
+    "item_type" "text" NOT NULL,
+    "interaction_type" "text" NOT NULL,
+    "interaction_strength" numeric(3,2) DEFAULT 1.0,
+    "interaction_timestamp" timestamp with time zone DEFAULT "now"(),
+    "context_data" "jsonb" DEFAULT '{}'::"jsonb",
+    CONSTRAINT "collaborative_filtering_data_interaction_type_check" CHECK (("interaction_type" = ANY (ARRAY['view'::"text", 'like'::"text", 'share'::"text", 'comment'::"text", 'read'::"text", 'purchase'::"text"]))),
+    CONSTRAINT "collaborative_filtering_data_item_type_check" CHECK (("item_type" = ANY (ARRAY['book'::"text", 'author'::"text", 'publisher'::"text", 'event'::"text"])))
+);
+
+
+ALTER TABLE "public"."collaborative_filtering_data" OWNER TO "postgres";
+
+--
+-- Name: TABLE "collaborative_filtering_data"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."collaborative_filtering_data" IS 'User interaction data for collaborative filtering';
+
 
 --
 -- Name: comments; Type: TABLE; Schema: public; Owner: postgres
@@ -3035,6 +6965,27 @@ CREATE TABLE IF NOT EXISTS "public"."comments" (
 
 
 ALTER TABLE "public"."comments" OWNER TO "postgres";
+
+--
+-- Name: TABLE "comments"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."comments" IS 'Comments on feed entries';
+
+
+--
+-- Name: COLUMN "comments"."user_id"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN "public"."comments"."user_id" IS 'User who made the comment';
+
+
+--
+-- Name: COLUMN "comments"."feed_entry_id"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN "public"."comments"."feed_entry_id" IS 'Feed entry being commented on';
+
 
 --
 -- Name: contact_info; Type: TABLE; Schema: public; Owner: postgres
@@ -3061,6 +7012,60 @@ CREATE TABLE IF NOT EXISTS "public"."contact_info" (
 ALTER TABLE "public"."contact_info" OWNER TO "postgres";
 
 --
+-- Name: content_features; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."content_features" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "content_id" "uuid" NOT NULL,
+    "content_type" "text" NOT NULL,
+    "feature_name" "text" NOT NULL,
+    "feature_value" "jsonb" NOT NULL,
+    "feature_importance" numeric(5,4),
+    "last_updated" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "content_features_content_type_check" CHECK (("content_type" = ANY (ARRAY['book'::"text", 'author'::"text", 'publisher'::"text", 'event'::"text"])))
+);
+
+
+ALTER TABLE "public"."content_features" OWNER TO "postgres";
+
+--
+-- Name: TABLE "content_features"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."content_features" IS 'Content features for content-based recommendation systems';
+
+
+--
+-- Name: content_generation_jobs; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."content_generation_jobs" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "content_type" "text" NOT NULL,
+    "input_parameters" "jsonb" NOT NULL,
+    "generation_status" "text" DEFAULT 'pending'::"text" NOT NULL,
+    "generated_content" "text",
+    "content_metadata" "jsonb",
+    "quality_score" numeric(3,2),
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "completed_at" timestamp with time zone,
+    "created_by" "uuid",
+    CONSTRAINT "content_generation_jobs_content_type_check" CHECK (("content_type" = ANY (ARRAY['book_summary'::"text", 'author_bio'::"text", 'review_analysis'::"text", 'recommendation_text'::"text", 'event_description'::"text"]))),
+    CONSTRAINT "content_generation_jobs_generation_status_check" CHECK (("generation_status" = ANY (ARRAY['pending'::"text", 'processing'::"text", 'completed'::"text", 'failed'::"text"])))
+);
+
+
+ALTER TABLE "public"."content_generation_jobs" OWNER TO "postgres";
+
+--
+-- Name: TABLE "content_generation_jobs"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."content_generation_jobs" IS 'AI-powered content generation jobs and results';
+
+
+--
 -- Name: countries; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -3076,6 +7081,121 @@ CREATE TABLE IF NOT EXISTS "public"."countries" (
 
 
 ALTER TABLE "public"."countries" OWNER TO "postgres";
+
+--
+-- Name: custom_permissions; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."custom_permissions" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "target_user_id" "uuid" NOT NULL,
+    "permission_type" "text" NOT NULL,
+    "granted_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "expires_at" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "custom_permissions_permission_type_check" CHECK (("permission_type" = ANY (ARRAY['view_reading_progress'::"text", 'view_reading_stats'::"text", 'view_reading_history'::"text"])))
+);
+
+
+ALTER TABLE "public"."custom_permissions" OWNER TO "postgres";
+
+--
+-- Name: TABLE "custom_permissions"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."custom_permissions" IS 'Granular permissions for specific users to view reading progress';
+
+
+--
+-- Name: data_consistency_monitoring; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE VIEW "public"."data_consistency_monitoring" AS
+ SELECT 'Books without publishers'::"text" AS "issue_type",
+    "count"(*) AS "issue_count",
+        CASE
+            WHEN ("count"(*) > 100) THEN 'CRITICAL'::"text"
+            WHEN ("count"(*) > 10) THEN 'WARNING'::"text"
+            ELSE 'INFO'::"text"
+        END AS "severity"
+   FROM "public"."books"
+  WHERE ("books"."publisher_id" IS NULL)
+UNION ALL
+ SELECT 'Orphaned reading progress'::"text" AS "issue_type",
+    "count"(*) AS "issue_count",
+        CASE
+            WHEN ("count"(*) > 50) THEN 'CRITICAL'::"text"
+            WHEN ("count"(*) > 10) THEN 'WARNING'::"text"
+            ELSE 'INFO'::"text"
+        END AS "severity"
+   FROM "public"."reading_progress" "rp"
+  WHERE ((NOT (EXISTS ( SELECT 1
+           FROM "auth"."users" "u"
+          WHERE ("u"."id" = "rp"."user_id")))) OR (NOT (EXISTS ( SELECT 1
+           FROM "public"."books" "b"
+          WHERE ("b"."id" = "rp"."book_id")))))
+UNION ALL
+ SELECT 'Invalid publication dates'::"text" AS "issue_type",
+    "count"(*) AS "issue_count",
+        CASE
+            WHEN ("count"(*) > 20) THEN 'CRITICAL'::"text"
+            WHEN ("count"(*) > 5) THEN 'WARNING'::"text"
+            ELSE 'INFO'::"text"
+        END AS "severity"
+   FROM "public"."books"
+  WHERE ("books"."publication_date" > CURRENT_DATE)
+UNION ALL
+ SELECT 'Invalid progress percentages'::"text" AS "issue_type",
+    "count"(*) AS "issue_count",
+        CASE
+            WHEN ("count"(*) > 30) THEN 'CRITICAL'::"text"
+            WHEN ("count"(*) > 10) THEN 'WARNING'::"text"
+            ELSE 'INFO'::"text"
+        END AS "severity"
+   FROM "public"."reading_progress"
+  WHERE (("reading_progress"."progress_percentage" < 0) OR ("reading_progress"."progress_percentage" > 100));
+
+
+ALTER TABLE "public"."data_consistency_monitoring" OWNER TO "postgres";
+
+--
+-- Name: VIEW "data_consistency_monitoring"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON VIEW "public"."data_consistency_monitoring" IS 'Real-time data consistency monitoring';
+
+
+--
+-- Name: data_enrichment_jobs; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."data_enrichment_jobs" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "target_table" "text" NOT NULL,
+    "target_column" "text" NOT NULL,
+    "enrichment_type" "text" NOT NULL,
+    "enrichment_status" "text" DEFAULT 'pending'::"text" NOT NULL,
+    "records_processed" integer DEFAULT 0,
+    "records_updated" integer DEFAULT 0,
+    "enrichment_config" "jsonb" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "completed_at" timestamp with time zone,
+    "created_by" "uuid",
+    CONSTRAINT "data_enrichment_jobs_enrichment_status_check" CHECK (("enrichment_status" = ANY (ARRAY['pending'::"text", 'processing'::"text", 'completed'::"text", 'failed'::"text"]))),
+    CONSTRAINT "data_enrichment_jobs_enrichment_type_check" CHECK (("enrichment_type" = ANY (ARRAY['author_info'::"text", 'book_details'::"text", 'publisher_data'::"text", 'genre_classification'::"text", 'similarity_scoring'::"text"])))
+);
+
+
+ALTER TABLE "public"."data_enrichment_jobs" OWNER TO "postgres";
+
+--
+-- Name: TABLE "data_enrichment_jobs"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."data_enrichment_jobs" IS 'Intelligent data enrichment and processing jobs';
+
 
 --
 -- Name: dewey_decimal_classifications; Type: TABLE; Schema: public; Owner: postgres
@@ -3138,6 +7258,253 @@ CREATE TABLE IF NOT EXISTS "public"."discussions" (
 ALTER TABLE "public"."discussions" OWNER TO "postgres";
 
 --
+-- Name: enterprise_audit_trail; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."enterprise_audit_trail" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "table_name" "text" NOT NULL,
+    "record_id" "uuid" NOT NULL,
+    "operation" "text" NOT NULL,
+    "old_values" "jsonb",
+    "new_values" "jsonb",
+    "changed_by" "uuid" NOT NULL,
+    "changed_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "ip_address" "inet",
+    "user_agent" "text",
+    "session_id" "text",
+    "transaction_id" "text",
+    "application_version" "text",
+    "environment" "text" DEFAULT 'production'::"text",
+    CONSTRAINT "enterprise_audit_trail_operation_check" CHECK (("operation" = ANY (ARRAY['INSERT'::"text", 'UPDATE'::"text", 'DELETE'::"text", 'TRUNCATE'::"text"])))
+);
+
+
+ALTER TABLE "public"."enterprise_audit_trail" OWNER TO "postgres";
+
+--
+-- Name: TABLE "enterprise_audit_trail"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."enterprise_audit_trail" IS 'Enterprise audit trail for all data changes with full context';
+
+
+--
+-- Name: enterprise_audit_summary; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE VIEW "public"."enterprise_audit_summary" AS
+ SELECT "enterprise_audit_trail"."table_name",
+    "enterprise_audit_trail"."operation",
+    "count"(*) AS "operation_count",
+    "count"(DISTINCT "enterprise_audit_trail"."changed_by") AS "unique_users",
+    "min"("enterprise_audit_trail"."changed_at") AS "first_operation",
+    "max"("enterprise_audit_trail"."changed_at") AS "last_operation"
+   FROM "public"."enterprise_audit_trail"
+  WHERE ("enterprise_audit_trail"."changed_at" >= ("now"() - '30 days'::interval))
+  GROUP BY "enterprise_audit_trail"."table_name", "enterprise_audit_trail"."operation"
+  ORDER BY "enterprise_audit_trail"."table_name", "enterprise_audit_trail"."operation";
+
+
+ALTER TABLE "public"."enterprise_audit_summary" OWNER TO "postgres";
+
+--
+-- Name: enterprise_data_lineage; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."enterprise_data_lineage" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "source_table" "text" NOT NULL,
+    "source_column" "text",
+    "target_table" "text" NOT NULL,
+    "target_column" "text",
+    "transformation_type" "text" NOT NULL,
+    "transformation_logic" "text",
+    "data_flow_description" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "enterprise_data_lineage_transformation_type_check" CHECK (("transformation_type" = ANY (ARRAY['DIRECT'::"text", 'AGGREGATED'::"text", 'TRANSFORMED'::"text", 'DERIVED'::"text"])))
+);
+
+
+ALTER TABLE "public"."enterprise_data_lineage" OWNER TO "postgres";
+
+--
+-- Name: TABLE "enterprise_data_lineage"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."enterprise_data_lineage" IS 'Data lineage tracking for enterprise data governance';
+
+
+--
+-- Name: enterprise_data_quality_dashboard; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE VIEW "public"."enterprise_data_quality_dashboard" AS
+ SELECT "t"."table_name",
+    "t"."total_rules",
+    "t"."passed_rules",
+    "t"."failed_rules",
+    "t"."critical_issues",
+    "t"."overall_score",
+        CASE
+            WHEN ("t"."overall_score" >= (95)::numeric) THEN 'EXCELLENT'::"text"
+            WHEN ("t"."overall_score" >= (85)::numeric) THEN 'GOOD'::"text"
+            WHEN ("t"."overall_score" >= (70)::numeric) THEN 'FAIR'::"text"
+            ELSE 'POOR'::"text"
+        END AS "quality_status"
+   FROM "public"."get_data_quality_report"() "t"("table_name", "total_rules", "passed_rules", "failed_rules", "critical_issues", "overall_score");
+
+
+ALTER TABLE "public"."enterprise_data_quality_dashboard" OWNER TO "postgres";
+
+--
+-- Name: enterprise_data_quality_rules; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."enterprise_data_quality_rules" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "rule_name" "text" NOT NULL,
+    "table_name" "text" NOT NULL,
+    "column_name" "text",
+    "rule_type" "text" NOT NULL,
+    "rule_definition" "text" NOT NULL,
+    "severity" "text" NOT NULL,
+    "is_active" boolean DEFAULT true,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "enterprise_data_quality_rules_rule_type_check" CHECK (("rule_type" = ANY (ARRAY['NOT_NULL'::"text", 'UNIQUE'::"text", 'FOREIGN_KEY'::"text", 'CHECK'::"text", 'CUSTOM'::"text"]))),
+    CONSTRAINT "enterprise_data_quality_rules_severity_check" CHECK (("severity" = ANY (ARRAY['LOW'::"text", 'MEDIUM'::"text", 'HIGH'::"text", 'CRITICAL'::"text"])))
+);
+
+
+ALTER TABLE "public"."enterprise_data_quality_rules" OWNER TO "postgres";
+
+--
+-- Name: TABLE "enterprise_data_quality_rules"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."enterprise_data_quality_rules" IS 'Data quality rules for enterprise data validation';
+
+
+--
+-- Name: enterprise_data_versions; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."enterprise_data_versions" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "table_name" "text" NOT NULL,
+    "record_id" "uuid" NOT NULL,
+    "version_number" integer NOT NULL,
+    "data_snapshot" "jsonb" NOT NULL,
+    "created_by" "uuid" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "change_reason" "text",
+    "is_current" boolean DEFAULT true
+);
+
+
+ALTER TABLE "public"."enterprise_data_versions" OWNER TO "postgres";
+
+--
+-- Name: TABLE "enterprise_data_versions"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."enterprise_data_versions" IS 'Data versioning for tracking changes over time';
+
+
+--
+-- Name: entity_types; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."entity_types" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "name" "text" NOT NULL,
+    "description" "text",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "entity_category" "text"
+);
+
+
+ALTER TABLE "public"."entity_types" OWNER TO "postgres";
+
+--
+-- Name: TABLE "entity_types"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."entity_types" IS 'Centralized entity type definitions for enterprise-grade entity management';
+
+
+--
+-- Name: COLUMN "entity_types"."entity_category"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN "public"."entity_types"."entity_category" IS 'Entity category for grouping and permissions';
+
+
+--
+-- Name: images; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."images" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "url" "text" NOT NULL,
+    "alt_text" character varying(255),
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "thumbnail_url" "text",
+    "medium_url" "text",
+    "large_url" "text",
+    "original_filename" character varying(255),
+    "file_size" integer,
+    "width" integer,
+    "height" integer,
+    "format" character varying(10),
+    "mime_type" character varying(100),
+    "caption" "text",
+    "metadata" "jsonb",
+    "storage_path" "text",
+    "storage_provider" character varying(50) DEFAULT 'supabase'::character varying,
+    "is_processed" boolean DEFAULT false,
+    "processing_status" character varying(50),
+    "deleted_at" timestamp with time zone,
+    "entity_type_id" "uuid"
+);
+
+
+ALTER TABLE "public"."images" OWNER TO "postgres";
+
+--
+-- Name: entity_image_analytics; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE VIEW "public"."entity_image_analytics" AS
+ SELECT "et"."name" AS "entity_type_name",
+    "et"."entity_category",
+    "count"("i"."id") AS "total_images",
+    "count"(DISTINCT "ai"."entity_id") AS "unique_entities",
+    "avg"("i"."file_size") AS "avg_file_size",
+    "sum"("i"."file_size") AS "total_storage_used",
+    "min"("i"."created_at") AS "earliest_image",
+    "max"("i"."created_at") AS "latest_image"
+   FROM (("public"."images" "i"
+     JOIN "public"."album_images" "ai" ON (("i"."id" = "ai"."image_id")))
+     JOIN "public"."entity_types" "et" ON (("i"."entity_type_id" = "et"."id")))
+  WHERE ("i"."deleted_at" IS NULL)
+  GROUP BY "et"."id", "et"."name", "et"."entity_category"
+  ORDER BY ("count"("i"."id")) DESC;
+
+
+ALTER TABLE "public"."entity_image_analytics" OWNER TO "postgres";
+
+--
+-- Name: VIEW "entity_image_analytics"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON VIEW "public"."entity_image_analytics" IS 'Enterprise analytics view for entity-based image usage and storage';
+
+
+--
 -- Name: event_analytics; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -3190,7 +7557,7 @@ CREATE TABLE IF NOT EXISTS "public"."event_books" (
     "notes" "text",
     "created_at" timestamp with time zone DEFAULT "now"(),
     "updated_at" timestamp with time zone DEFAULT "now"(),
-    "book_id" "uuid"
+    "book_id" "uuid" NOT NULL
 );
 
 
@@ -3790,11 +8157,34 @@ CREATE TABLE IF NOT EXISTS "public"."feed_entries" (
     "visibility" "text" DEFAULT 'public'::"text" NOT NULL,
     "allowed_user_ids" "uuid"[],
     "is_hidden" boolean DEFAULT false NOT NULL,
-    "is_deleted" boolean DEFAULT false NOT NULL
+    "is_deleted" boolean DEFAULT false NOT NULL,
+    "entity_type" "text",
+    "entity_id" "uuid"
 );
 
 
 ALTER TABLE "public"."feed_entries" OWNER TO "postgres";
+
+--
+-- Name: TABLE "feed_entries"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."feed_entries" IS 'User activity feed entries';
+
+
+--
+-- Name: COLUMN "feed_entries"."entity_type"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN "public"."feed_entries"."entity_type" IS 'Type of entity this feed entry relates to (book, author, event, etc.)';
+
+
+--
+-- Name: COLUMN "feed_entries"."entity_id"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN "public"."feed_entries"."entity_id" IS 'ID of the entity this feed entry relates to';
+
 
 --
 -- Name: feed_entry_tags; Type: TABLE; Schema: public; Owner: postgres
@@ -3832,7 +8222,7 @@ ALTER TABLE "public"."follow_target_types" OWNER TO "postgres";
 CREATE TABLE IF NOT EXISTS "public"."follows" (
     "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
     "follower_id" "uuid" NOT NULL,
-    "following_id" "text" NOT NULL,
+    "following_id" "uuid" NOT NULL,
     "created_at" timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     "updated_at" timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     "target_type_id_uuid_temp" "uuid",
@@ -3841,6 +8231,27 @@ CREATE TABLE IF NOT EXISTS "public"."follows" (
 
 
 ALTER TABLE "public"."follows" OWNER TO "postgres";
+
+--
+-- Name: TABLE "follows"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."follows" IS 'Follows table - allows following users, books, authors, publishers, and groups. following_id can reference any entity type.';
+
+
+--
+-- Name: COLUMN "follows"."following_id"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN "public"."follows"."following_id" IS 'ID of the entity being followed (can be user, book, author, etc.)';
+
+
+--
+-- Name: COLUMN "follows"."target_type_id"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN "public"."follows"."target_type_id" IS 'Reference to follow_target_types table to specify entity type';
+
 
 --
 -- Name: format_types; Type: TABLE; Schema: public; Owner: postgres
@@ -4727,53 +9138,6 @@ CREATE TABLE IF NOT EXISTS "public"."image_tags" (
 ALTER TABLE "public"."image_tags" OWNER TO "postgres";
 
 --
--- Name: image_types; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE IF NOT EXISTS "public"."image_types" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "name" "text" NOT NULL,
-    "description" "text",
-    "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"()
-);
-
-
-ALTER TABLE "public"."image_types" OWNER TO "postgres";
-
---
--- Name: images; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE IF NOT EXISTS "public"."images" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "url" "text" NOT NULL,
-    "alt_text" character varying(255),
-    "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"(),
-    "thumbnail_url" "text",
-    "medium_url" "text",
-    "large_url" "text",
-    "original_filename" character varying(255),
-    "file_size" integer,
-    "width" integer,
-    "height" integer,
-    "format" character varying(10),
-    "mime_type" character varying(100),
-    "caption" "text",
-    "metadata" "jsonb",
-    "storage_path" "text",
-    "storage_provider" character varying(50) DEFAULT 'supabase'::character varying,
-    "is_processed" boolean DEFAULT false,
-    "processing_status" character varying(50),
-    "deleted_at" timestamp with time zone,
-    "img_type_id" "uuid"
-);
-
-
-ALTER TABLE "public"."images" OWNER TO "postgres";
-
---
 -- Name: invoices; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -4813,6 +9177,27 @@ CREATE TABLE IF NOT EXISTS "public"."likes" (
 
 
 ALTER TABLE "public"."likes" OWNER TO "postgres";
+
+--
+-- Name: TABLE "likes"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."likes" IS 'User likes on feed entries';
+
+
+--
+-- Name: COLUMN "likes"."user_id"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN "public"."likes"."user_id" IS 'User who liked the feed entry';
+
+
+--
+-- Name: COLUMN "likes"."feed_entry_id"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN "public"."likes"."feed_entry_id" IS 'Feed entry being liked';
+
 
 --
 -- Name: list_followers; Type: TABLE; Schema: public; Owner: postgres
@@ -4863,6 +9248,119 @@ CREATE TABLE IF NOT EXISTS "public"."mentions" (
 ALTER TABLE "public"."mentions" OWNER TO "postgres";
 
 --
+-- Name: ml_models; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."ml_models" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "model_name" "text" NOT NULL,
+    "model_version" "text" NOT NULL,
+    "model_type" "text" NOT NULL,
+    "model_parameters" "jsonb" DEFAULT '{}'::"jsonb" NOT NULL,
+    "training_data_snapshot" "jsonb",
+    "model_metrics" "jsonb",
+    "model_file_path" "text",
+    "is_active" boolean DEFAULT true,
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "created_by" "uuid",
+    CONSTRAINT "ml_models_model_type_check" CHECK (("model_type" = ANY (ARRAY['recommendation'::"text", 'classification'::"text", 'regression'::"text", 'clustering'::"text", 'nlp'::"text"])))
+);
+
+
+ALTER TABLE "public"."ml_models" OWNER TO "postgres";
+
+--
+-- Name: TABLE "ml_models"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."ml_models" IS 'AI/ML model registry for enterprise-grade machine learning capabilities';
+
+
+--
+-- Name: ml_predictions; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."ml_predictions" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "model_id" "uuid",
+    "user_id" "uuid",
+    "input_data" "jsonb" NOT NULL,
+    "prediction_result" "jsonb" NOT NULL,
+    "confidence_score" numeric(5,4),
+    "prediction_timestamp" timestamp with time zone DEFAULT "now"(),
+    "metadata" "jsonb" DEFAULT '{}'::"jsonb"
+);
+
+
+ALTER TABLE "public"."ml_predictions" OWNER TO "postgres";
+
+--
+-- Name: TABLE "ml_predictions"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."ml_predictions" IS 'Stores AI/ML prediction results and confidence scores';
+
+
+--
+-- Name: ml_training_jobs; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."ml_training_jobs" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "model_id" "uuid",
+    "job_name" "text" NOT NULL,
+    "job_status" "text" DEFAULT 'pending'::"text" NOT NULL,
+    "training_config" "jsonb" NOT NULL,
+    "start_time" timestamp with time zone,
+    "end_time" timestamp with time zone,
+    "progress_percentage" integer DEFAULT 0,
+    "error_message" "text",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "ml_training_jobs_job_status_check" CHECK (("job_status" = ANY (ARRAY['pending'::"text", 'running'::"text", 'completed'::"text", 'failed'::"text", 'cancelled'::"text"])))
+);
+
+
+ALTER TABLE "public"."ml_training_jobs" OWNER TO "postgres";
+
+--
+-- Name: TABLE "ml_training_jobs"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."ml_training_jobs" IS 'Tracks AI/ML model training jobs and their status';
+
+
+--
+-- Name: nlp_analysis; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."nlp_analysis" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "content_id" "uuid",
+    "content_type" "text" NOT NULL,
+    "analysis_type" "text" NOT NULL,
+    "original_text" "text" NOT NULL,
+    "processed_text" "text",
+    "analysis_results" "jsonb" NOT NULL,
+    "confidence_score" numeric(5,4),
+    "language_detected" "text",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "nlp_analysis_analysis_type_check" CHECK (("analysis_type" = ANY (ARRAY['sentiment'::"text", 'topic'::"text", 'keyword'::"text", 'summary'::"text", 'translation'::"text"]))),
+    CONSTRAINT "nlp_analysis_content_type_check" CHECK (("content_type" = ANY (ARRAY['book'::"text", 'review'::"text", 'comment'::"text", 'event'::"text", 'discussion'::"text"])))
+);
+
+
+ALTER TABLE "public"."nlp_analysis" OWNER TO "postgres";
+
+--
+-- Name: TABLE "nlp_analysis"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."nlp_analysis" IS 'Natural Language Processing analysis results';
+
+
+--
 -- Name: notifications; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -4881,6 +9379,13 @@ CREATE TABLE IF NOT EXISTS "public"."notifications" (
 
 
 ALTER TABLE "public"."notifications" OWNER TO "postgres";
+
+--
+-- Name: TABLE "notifications"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."notifications" IS 'User notifications';
+
 
 --
 -- Name: payment_methods; Type: TABLE; Schema: public; Owner: postgres
@@ -4935,6 +9440,62 @@ CREATE TABLE IF NOT EXISTS "public"."payment_transactions" (
 ALTER TABLE "public"."payment_transactions" OWNER TO "postgres";
 
 --
+-- Name: performance_dashboard; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE VIEW "public"."performance_dashboard" AS
+ SELECT 'Query Performance'::"text" AS "category",
+    "monitor_query_performance"."query_pattern" AS "metric",
+    ("monitor_query_performance"."avg_execution_time")::"text" AS "value",
+    "monitor_query_performance"."performance_status" AS "status"
+   FROM "public"."monitor_query_performance"() "monitor_query_performance"("query_pattern", "avg_execution_time", "total_calls", "performance_status")
+UNION ALL
+ SELECT 'Table Performance'::"text" AS "category",
+    "pg_tables"."tablename" AS "metric",
+    "pg_size_pretty"("pg_total_relation_size"((((("pg_tables"."schemaname")::"text" || '.'::"text") || ("pg_tables"."tablename")::"text"))::"regclass")) AS "value",
+        CASE
+            WHEN ("pg_total_relation_size"((((("pg_tables"."schemaname")::"text" || '.'::"text") || ("pg_tables"."tablename")::"text"))::"regclass") > 1073741824) THEN 'WARNING'::"text"
+            ELSE 'GOOD'::"text"
+        END AS "status"
+   FROM "pg_tables"
+  WHERE ("pg_tables"."schemaname" = 'public'::"name")
+UNION ALL
+ SELECT 'Index Usage'::"text" AS "category",
+    "pg_stat_user_indexes"."indexrelname" AS "metric",
+    'Active'::"text" AS "value",
+    'GOOD'::"text" AS "status"
+   FROM "pg_stat_user_indexes"
+  WHERE ("pg_stat_user_indexes"."schemaname" = 'public'::"name")
+ LIMIT 10;
+
+
+ALTER TABLE "public"."performance_dashboard" OWNER TO "postgres";
+
+--
+-- Name: performance_metrics; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."performance_metrics" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "metric_name" "text" NOT NULL,
+    "metric_value" numeric NOT NULL,
+    "metric_unit" "text",
+    "category" "text" NOT NULL,
+    "recorded_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "additional_data" "jsonb"
+);
+
+
+ALTER TABLE "public"."performance_metrics" OWNER TO "postgres";
+
+--
+-- Name: TABLE "performance_metrics"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."performance_metrics" IS 'Application performance metrics for monitoring and optimization';
+
+
+--
 -- Name: personalized_recommendations; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -4981,21 +9542,45 @@ CREATE TABLE IF NOT EXISTS "public"."photo_albums" (
     "description" "text",
     "cover_image_id" "uuid",
     "owner_id" "uuid" NOT NULL,
-    "is_public" boolean DEFAULT false,
+    "is_public" boolean DEFAULT false NOT NULL,
     "view_count" integer DEFAULT 0,
     "like_count" integer DEFAULT 0,
     "share_count" integer DEFAULT 0,
-    "album_type" character varying(50) NOT NULL,
     "entity_id" "uuid",
     "entity_type" character varying(50),
     "metadata" "jsonb",
-    "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"(),
-    "deleted_at" timestamp with time zone
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "deleted_at" timestamp with time zone,
+    CONSTRAINT "entity_consistency" CHECK (((("entity_type" IS NULL) AND ("entity_id" IS NULL)) OR (("entity_type" IS NOT NULL) AND ("entity_id" IS NOT NULL)))),
+    CONSTRAINT "valid_counts" CHECK ((("view_count" >= 0) AND ("like_count" >= 0) AND ("share_count" >= 0))),
+    CONSTRAINT "valid_entity_type" CHECK ((("entity_type" IS NULL) OR (("entity_type")::"text" = ANY ((ARRAY['user'::character varying, 'publisher'::character varying, 'author'::character varying, 'group'::character varying])::"text"[])))),
+    CONSTRAINT "valid_timestamps" CHECK (("updated_at" >= "created_at"))
 );
 
 
 ALTER TABLE "public"."photo_albums" OWNER TO "postgres";
+
+--
+-- Name: TABLE "photo_albums"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."photo_albums" IS 'Photo albums with privacy controls';
+
+
+--
+-- Name: COLUMN "photo_albums"."owner_id"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN "public"."photo_albums"."owner_id" IS 'Album owner user ID';
+
+
+--
+-- Name: COLUMN "photo_albums"."is_public"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN "public"."photo_albums"."is_public" IS 'Whether album is public';
+
 
 --
 -- Name: posts; Type: TABLE; Schema: public; Owner: postgres
@@ -5039,6 +9624,34 @@ CREATE TABLE IF NOT EXISTS "public"."prices" (
 ALTER TABLE "public"."prices" OWNER TO "postgres";
 
 --
+-- Name: privacy_audit_log; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."privacy_audit_log" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "action" "text" NOT NULL,
+    "target_user_id" "uuid",
+    "permission_type" "text",
+    "old_value" "jsonb",
+    "new_value" "jsonb",
+    "ip_address" "inet",
+    "user_agent" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "privacy_audit_log_action_check" CHECK (("action" = ANY (ARRAY['grant_permission'::"text", 'revoke_permission'::"text", 'update_privacy_settings'::"text", 'view_reading_progress'::"text"])))
+);
+
+
+ALTER TABLE "public"."privacy_audit_log" OWNER TO "postgres";
+
+--
+-- Name: TABLE "privacy_audit_log"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."privacy_audit_log" IS 'Audit trail for all privacy-related actions and changes';
+
+
+--
 -- Name: profiles; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -5053,6 +9666,34 @@ CREATE TABLE IF NOT EXISTS "public"."profiles" (
 
 
 ALTER TABLE "public"."profiles" OWNER TO "postgres";
+
+--
+-- Name: TABLE "profiles"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."profiles" IS 'Extended user profile information';
+
+
+--
+-- Name: COLUMN "profiles"."user_id"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN "public"."profiles"."user_id" IS 'Reference to user account';
+
+
+--
+-- Name: COLUMN "profiles"."bio"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN "public"."profiles"."bio" IS 'User biography text';
+
+
+--
+-- Name: COLUMN "profiles"."role"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN "public"."profiles"."role" IS 'User role (user, admin, moderator)';
+
 
 --
 -- Name: promo_codes; Type: TABLE; Schema: public; Owner: postgres
@@ -5110,6 +9751,41 @@ CREATE TABLE IF NOT EXISTS "public"."publishers" (
 ALTER TABLE "public"."publishers" OWNER TO "postgres";
 
 --
+-- Name: TABLE "publishers"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."publishers" IS 'Book publishers information';
+
+
+--
+-- Name: publisher_summary; Type: MATERIALIZED VIEW; Schema: public; Owner: postgres
+--
+
+CREATE MATERIALIZED VIEW "public"."publisher_summary" AS
+ SELECT "p"."id" AS "publisher_id",
+    "p"."name" AS "publisher_name",
+    "count"("b"."id") AS "total_books",
+    "avg"("b"."average_rating") AS "avg_rating",
+    "sum"("b"."review_count") AS "total_reviews",
+    "count"("rp"."id") AS "total_reading_entries",
+    "count"(DISTINCT "rp"."user_id") AS "unique_readers"
+   FROM (("public"."publishers" "p"
+     LEFT JOIN "public"."books" "b" ON (("p"."id" = "b"."publisher_id")))
+     LEFT JOIN "public"."reading_progress" "rp" ON (("b"."id" = "rp"."book_id")))
+  GROUP BY "p"."id", "p"."name"
+  WITH NO DATA;
+
+
+ALTER TABLE "public"."publisher_summary" OWNER TO "postgres";
+
+--
+-- Name: MATERIALIZED VIEW "publisher_summary"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON MATERIALIZED VIEW "public"."publisher_summary" IS 'Cached publisher data for performance';
+
+
+--
 -- Name: reactions; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -5141,6 +9817,13 @@ CREATE TABLE IF NOT EXISTS "public"."reading_challenges" (
 
 
 ALTER TABLE "public"."reading_challenges" OWNER TO "postgres";
+
+--
+-- Name: TABLE "reading_challenges"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."reading_challenges" IS 'Reading challenge participation';
+
 
 --
 -- Name: reading_goals; Type: TABLE; Schema: public; Owner: postgres
@@ -5176,42 +9859,6 @@ CREATE TABLE IF NOT EXISTS "public"."reading_list_items" (
 
 
 ALTER TABLE "public"."reading_list_items" OWNER TO "postgres";
-
---
--- Name: reading_lists; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE IF NOT EXISTS "public"."reading_lists" (
-    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
-    "user_id" "uuid" NOT NULL,
-    "name" character varying(100) NOT NULL,
-    "description" "text",
-    "is_public" boolean DEFAULT false,
-    "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"()
-);
-
-
-ALTER TABLE "public"."reading_lists" OWNER TO "postgres";
-
---
--- Name: reading_progress; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE IF NOT EXISTS "public"."reading_progress" (
-    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
-    "user_id" "uuid" NOT NULL,
-    "status" "text" NOT NULL,
-    "progress_percentage" integer DEFAULT 0 NOT NULL,
-    "start_date" timestamp with time zone,
-    "finish_date" timestamp with time zone,
-    "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"(),
-    "book_id" "uuid"
-);
-
-
-ALTER TABLE "public"."reading_progress" OWNER TO "postgres";
 
 --
 -- Name: reading_series; Type: TABLE; Schema: public; Owner: postgres
@@ -5384,6 +10031,41 @@ CREATE TABLE IF NOT EXISTS "public"."similar_books" (
 ALTER TABLE "public"."similar_books" OWNER TO "postgres";
 
 --
+-- Name: smart_notifications; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."smart_notifications" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid",
+    "notification_type" "text" NOT NULL,
+    "notification_title" "text" NOT NULL,
+    "notification_content" "text" NOT NULL,
+    "priority_level" "text" DEFAULT 'normal'::"text" NOT NULL,
+    "delivery_channel" "text" DEFAULT 'in_app'::"text" NOT NULL,
+    "delivery_status" "text" DEFAULT 'pending'::"text" NOT NULL,
+    "ai_generated" boolean DEFAULT false,
+    "personalization_data" "jsonb" DEFAULT '{}'::"jsonb",
+    "scheduled_for" timestamp with time zone,
+    "sent_at" timestamp with time zone,
+    "read_at" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    CONSTRAINT "smart_notifications_delivery_channel_check" CHECK (("delivery_channel" = ANY (ARRAY['in_app'::"text", 'email'::"text", 'push'::"text", 'sms'::"text"]))),
+    CONSTRAINT "smart_notifications_delivery_status_check" CHECK (("delivery_status" = ANY (ARRAY['pending'::"text", 'sent'::"text", 'delivered'::"text", 'read'::"text", 'failed'::"text"]))),
+    CONSTRAINT "smart_notifications_notification_type_check" CHECK (("notification_type" = ANY (ARRAY['recommendation'::"text", 'reminder'::"text", 'alert'::"text", 'update'::"text", 'social'::"text"]))),
+    CONSTRAINT "smart_notifications_priority_level_check" CHECK (("priority_level" = ANY (ARRAY['low'::"text", 'normal'::"text", 'high'::"text", 'urgent'::"text"])))
+);
+
+
+ALTER TABLE "public"."smart_notifications" OWNER TO "postgres";
+
+--
+-- Name: TABLE "smart_notifications"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."smart_notifications" IS 'AI-powered intelligent notification system';
+
+
+--
 -- Name: statuses; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -5466,6 +10148,25 @@ CREATE TABLE IF NOT EXISTS "public"."sync_state" (
 
 
 ALTER TABLE "public"."sync_state" OWNER TO "postgres";
+
+--
+-- Name: system_performance_overview; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE VIEW "public"."system_performance_overview" AS
+ SELECT "pm"."category",
+    "pm"."metric_name",
+    "avg"("pm"."metric_value") AS "avg_value",
+    "max"("pm"."metric_value") AS "max_value",
+    "min"("pm"."metric_value") AS "min_value",
+    "count"(*) AS "measurement_count",
+    "max"("pm"."recorded_at") AS "last_measured"
+   FROM "public"."performance_metrics" "pm"
+  WHERE ("pm"."recorded_at" >= ("now"() - '24:00:00'::interval))
+  GROUP BY "pm"."category", "pm"."metric_name";
+
+
+ALTER TABLE "public"."system_performance_overview" OWNER TO "postgres";
 
 --
 -- Name: tags; Type: TABLE; Schema: public; Owner: postgres
@@ -5559,6 +10260,152 @@ CREATE TABLE IF NOT EXISTS "public"."tickets" (
 ALTER TABLE "public"."tickets" OWNER TO "postgres";
 
 --
+-- Name: unified_book_data; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE VIEW "public"."unified_book_data" AS
+ SELECT "b"."id",
+    "b"."title",
+    "b"."title_long",
+    "b"."isbn10",
+    "b"."isbn13",
+    "b"."publication_date",
+    "b"."binding",
+    "b"."pages",
+    "b"."list_price",
+    "b"."language",
+    "b"."edition",
+    "b"."synopsis",
+    "b"."overview",
+    "b"."dimensions",
+    "b"."weight",
+    "b"."cover_image_id",
+    "b"."original_image_url",
+    "b"."author",
+    "b"."featured",
+    "b"."book_gallery_img",
+    "b"."average_rating",
+    "b"."review_count",
+    "b"."created_at",
+    "b"."updated_at",
+    "b"."author_id",
+    "b"."binding_type_id",
+    "b"."format_type_id",
+    "b"."status_id",
+    "b"."publisher_id",
+    "p"."name" AS "publisher_name",
+    "p"."website" AS "publisher_website",
+    "a"."name" AS "author_name",
+    "a"."author_image_id",
+    "bt"."name" AS "binding_type_name",
+    "ft"."name" AS "format_type_name"
+   FROM (((("public"."books" "b"
+     LEFT JOIN "public"."publishers" "p" ON (("b"."publisher_id" = "p"."id")))
+     LEFT JOIN "public"."authors" "a" ON (("b"."author_id" = "a"."id")))
+     LEFT JOIN "public"."binding_types" "bt" ON (("b"."binding_type_id" = "bt"."id")))
+     LEFT JOIN "public"."format_types" "ft" ON (("b"."format_type_id" = "ft"."id")));
+
+
+ALTER TABLE "public"."unified_book_data" OWNER TO "postgres";
+
+--
+-- Name: unified_reading_progress; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE VIEW "public"."unified_reading_progress" AS
+ SELECT "rp"."id",
+    "rp"."user_id",
+    "rp"."book_id",
+    "rp"."status",
+    "rp"."progress_percentage",
+    "rp"."start_date",
+    "rp"."finish_date",
+    COALESCE("rp"."privacy_level", 'private'::"text") AS "privacy_level",
+    COALESCE("rp"."allow_friends", false) AS "allow_friends",
+    COALESCE("rp"."allow_followers", false) AS "allow_followers",
+    "rp"."custom_permissions",
+    "rp"."privacy_audit_log",
+    "rp"."created_at",
+    "rp"."updated_at"
+   FROM "public"."reading_progress" "rp";
+
+
+ALTER TABLE "public"."unified_reading_progress" OWNER TO "postgres";
+
+--
+-- Name: user_activity_metrics; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE VIEW "public"."user_activity_metrics" AS
+ SELECT "ual"."user_id",
+    "u"."email",
+    "count"(*) AS "total_activities",
+    "count"(
+        CASE
+            WHEN ("ual"."activity_type" = 'login'::"text") THEN 1
+            ELSE NULL::integer
+        END) AS "login_count",
+    "count"(
+        CASE
+            WHEN ("ual"."activity_type" = 'book_view'::"text") THEN 1
+            ELSE NULL::integer
+        END) AS "book_views",
+    "count"(
+        CASE
+            WHEN ("ual"."activity_type" = 'review'::"text") THEN 1
+            ELSE NULL::integer
+        END) AS "reviews",
+    "avg"("ual"."response_time_ms") AS "avg_response_time",
+    "max"("ual"."created_at") AS "last_activity",
+    "min"("ual"."created_at") AS "first_activity"
+   FROM ("public"."user_activity_log" "ual"
+     JOIN "auth"."users" "u" ON (("ual"."user_id" = "u"."id")))
+  GROUP BY "ual"."user_id", "u"."email";
+
+
+ALTER TABLE "public"."user_activity_metrics" OWNER TO "postgres";
+
+--
+-- Name: user_activity_summary; Type: MATERIALIZED VIEW; Schema: public; Owner: postgres
+--
+
+CREATE MATERIALIZED VIEW "public"."user_activity_summary" AS
+ SELECT "u"."id" AS "user_id",
+    "u"."email",
+    "count"("rp"."id") AS "total_reading_entries",
+    "count"(DISTINCT "rp"."book_id") AS "unique_books_read",
+    "count"(
+        CASE
+            WHEN ("rp"."status" = 'completed'::"text") THEN 1
+            ELSE NULL::integer
+        END) AS "books_completed",
+    "count"(
+        CASE
+            WHEN ("rp"."status" = 'in_progress'::"text") THEN 1
+            ELSE NULL::integer
+        END) AS "books_in_progress",
+    "avg"("rp"."progress_percentage") AS "avg_progress_percentage",
+    "max"("rp"."created_at") AS "last_activity",
+    "count"("f"."id") AS "total_follows",
+    "count"("fr"."id") AS "total_friends"
+   FROM ((("auth"."users" "u"
+     LEFT JOIN "public"."reading_progress" "rp" ON (("u"."id" = "rp"."user_id")))
+     LEFT JOIN "public"."follows" "f" ON (("u"."id" = "f"."follower_id")))
+     LEFT JOIN "public"."friends" "fr" ON (("u"."id" = "fr"."user_id")))
+  GROUP BY "u"."id", "u"."email"
+  WITH NO DATA;
+
+
+ALTER TABLE "public"."user_activity_summary" OWNER TO "postgres";
+
+--
+-- Name: MATERIALIZED VIEW "user_activity_summary"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON MATERIALIZED VIEW "public"."user_activity_summary" IS 'Cached user activity data for performance';
+
+
+--
 -- Name: user_book_interactions; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -5574,6 +10421,31 @@ CREATE TABLE IF NOT EXISTS "public"."user_book_interactions" (
 
 
 ALTER TABLE "public"."user_book_interactions" OWNER TO "postgres";
+
+--
+-- Name: user_engagement_analytics; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE VIEW "public"."user_engagement_analytics" AS
+ SELECT "u"."id",
+    "u"."email",
+    "count"(DISTINCT "rp"."book_id") AS "books_in_progress",
+    "count"(DISTINCT "br"."book_id") AS "books_reviewed",
+    "count"(DISTINCT "rli"."book_id") AS "books_in_lists",
+    "count"(DISTINCT "rl"."id") AS "reading_lists_created",
+    "avg"("br"."rating") AS "avg_review_rating",
+    "max"("ual"."created_at") AS "last_activity",
+    "count"(DISTINCT "ual"."id") AS "total_activities"
+   FROM ((((("auth"."users" "u"
+     LEFT JOIN "public"."reading_progress" "rp" ON (("u"."id" = "rp"."user_id")))
+     LEFT JOIN "public"."book_reviews" "br" ON (("u"."id" = "br"."user_id")))
+     LEFT JOIN "public"."reading_lists" "rl" ON (("u"."id" = "rl"."user_id")))
+     LEFT JOIN "public"."reading_list_items" "rli" ON (("rl"."id" = "rli"."list_id")))
+     LEFT JOIN "public"."user_activity_log" "ual" ON (("u"."id" = "ual"."user_id")))
+  GROUP BY "u"."id", "u"."email";
+
+
+ALTER TABLE "public"."user_engagement_analytics" OWNER TO "postgres";
 
 --
 -- Name: user_friends; Type: TABLE; Schema: public; Owner: postgres
@@ -5594,6 +10466,56 @@ CREATE TABLE IF NOT EXISTS "public"."user_friends" (
 
 
 ALTER TABLE "public"."user_friends" OWNER TO "postgres";
+
+--
+-- Name: user_privacy_settings; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE IF NOT EXISTS "public"."user_privacy_settings" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "default_privacy_level" "text" DEFAULT 'private'::"text" NOT NULL,
+    "allow_friends_to_see_reading" boolean DEFAULT false NOT NULL,
+    "allow_followers_to_see_reading" boolean DEFAULT false NOT NULL,
+    "allow_public_reading_profile" boolean DEFAULT false NOT NULL,
+    "show_reading_stats_publicly" boolean DEFAULT false NOT NULL,
+    "show_currently_reading_publicly" boolean DEFAULT false NOT NULL,
+    "show_reading_history_publicly" boolean DEFAULT false NOT NULL,
+    "show_reading_goals_publicly" boolean DEFAULT false NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "user_privacy_settings_default_privacy_level_check" CHECK (("default_privacy_level" = ANY (ARRAY['private'::"text", 'friends'::"text", 'followers'::"text", 'public'::"text"])))
+);
+
+
+ALTER TABLE "public"."user_privacy_settings" OWNER TO "postgres";
+
+--
+-- Name: TABLE "user_privacy_settings"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."user_privacy_settings" IS 'User privacy preferences and settings for reading progress visibility';
+
+
+--
+-- Name: user_privacy_overview; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE VIEW "public"."user_privacy_overview" AS
+ SELECT "u"."id" AS "user_id",
+    "u"."email",
+    "ups"."default_privacy_level",
+    "ups"."allow_public_reading_profile",
+    "count"("cp"."id") AS "active_custom_permissions",
+    "count"("pal"."id") AS "privacy_actions_last_30_days"
+   FROM ((("auth"."users" "u"
+     LEFT JOIN "public"."user_privacy_settings" "ups" ON (("u"."id" = "ups"."user_id")))
+     LEFT JOIN "public"."custom_permissions" "cp" ON ((("u"."id" = "cp"."user_id") AND (("cp"."expires_at" IS NULL) OR ("cp"."expires_at" > "now"())))))
+     LEFT JOIN "public"."privacy_audit_log" "pal" ON ((("u"."id" = "pal"."user_id") AND ("pal"."created_at" >= ("now"() - '30 days'::interval)))))
+  GROUP BY "u"."id", "u"."email", "ups"."default_privacy_level", "ups"."allow_public_reading_profile";
+
+
+ALTER TABLE "public"."user_privacy_overview" OWNER TO "postgres";
 
 --
 -- Name: user_reading_preferences; Type: TABLE; Schema: public; Owner: postgres
@@ -5630,6 +10552,34 @@ CREATE TABLE IF NOT EXISTS "public"."users" (
 
 
 ALTER TABLE "public"."users" OWNER TO "postgres";
+
+--
+-- Name: TABLE "users"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON TABLE "public"."users" IS 'User accounts and basic information';
+
+
+--
+-- Name: COLUMN "users"."email"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN "public"."users"."email" IS 'User email address for authentication';
+
+
+--
+-- Name: COLUMN "users"."name"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN "public"."users"."name" IS 'User display name';
+
+
+--
+-- Name: COLUMN "users"."role_id"; Type: COMMENT; Schema: public; Owner: postgres
+--
+
+COMMENT ON COLUMN "public"."users"."role_id" IS 'Reference to user role for permissions';
+
 
 --
 -- Name: messages; Type: TABLE; Schema: realtime; Owner: supabase_realtime_admin
@@ -6161,6 +11111,366 @@ ALTER TABLE ONLY "auth"."users"
 
 
 --
+-- Name: activities activities_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."activities"
+    ADD CONSTRAINT "activities_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: activity_log activity_log_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."activity_log"
+    ADD CONSTRAINT "activity_log_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: album_analytics album_analytics_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."album_analytics"
+    ADD CONSTRAINT "album_analytics_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: album_images album_images_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."album_images"
+    ADD CONSTRAINT "album_images_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: album_shares album_shares_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."album_shares"
+    ADD CONSTRAINT "album_shares_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: authors authors_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."authors"
+    ADD CONSTRAINT "authors_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: automation_executions automation_executions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."automation_executions"
+    ADD CONSTRAINT "automation_executions_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: automation_workflows automation_workflows_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."automation_workflows"
+    ADD CONSTRAINT "automation_workflows_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: binding_types binding_types_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."binding_types"
+    ADD CONSTRAINT "binding_types_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: blocks blocks_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."blocks"
+    ADD CONSTRAINT "blocks_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: book_authors book_authors_book_author_unique; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_authors"
+    ADD CONSTRAINT "book_authors_book_author_unique" UNIQUE ("book_id", "author_id");
+
+
+--
+-- Name: book_authors book_authors_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_authors"
+    ADD CONSTRAINT "book_authors_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: book_club_books book_club_books_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_club_books"
+    ADD CONSTRAINT "book_club_books_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: book_club_discussion_comments book_club_discussion_comments_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_club_discussion_comments"
+    ADD CONSTRAINT "book_club_discussion_comments_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: book_club_discussions book_club_discussions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_club_discussions"
+    ADD CONSTRAINT "book_club_discussions_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: book_club_members book_club_members_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_club_members"
+    ADD CONSTRAINT "book_club_members_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: book_clubs book_clubs_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_clubs"
+    ADD CONSTRAINT "book_clubs_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: book_genre_mappings book_genre_mappings_book_genre_unique; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_genre_mappings"
+    ADD CONSTRAINT "book_genre_mappings_book_genre_unique" UNIQUE ("book_id", "genre_id");
+
+
+--
+-- Name: book_genre_mappings book_genre_mappings_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_genre_mappings"
+    ADD CONSTRAINT "book_genre_mappings_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: book_genres book_genres_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_genres"
+    ADD CONSTRAINT "book_genres_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: book_popularity_metrics book_popularity_metrics_book_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_popularity_metrics"
+    ADD CONSTRAINT "book_popularity_metrics_book_id_key" UNIQUE ("book_id");
+
+
+--
+-- Name: book_popularity_metrics book_popularity_metrics_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_popularity_metrics"
+    ADD CONSTRAINT "book_popularity_metrics_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: book_publishers book_publishers_book_publisher_unique; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_publishers"
+    ADD CONSTRAINT "book_publishers_book_publisher_unique" UNIQUE ("book_id", "publisher_id");
+
+
+--
+-- Name: book_publishers book_publishers_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_publishers"
+    ADD CONSTRAINT "book_publishers_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: book_recommendations book_recommendations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_recommendations"
+    ADD CONSTRAINT "book_recommendations_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: book_reviews book_reviews_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_reviews"
+    ADD CONSTRAINT "book_reviews_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: book_similarity_scores book_similarity_scores_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_similarity_scores"
+    ADD CONSTRAINT "book_similarity_scores_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: book_subjects book_subjects_book_subject_unique; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_subjects"
+    ADD CONSTRAINT "book_subjects_book_subject_unique" UNIQUE ("book_id", "subject_id");
+
+
+--
+-- Name: book_subjects book_subjects_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_subjects"
+    ADD CONSTRAINT "book_subjects_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: book_tag_mappings book_tag_mappings_book_tag_unique; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_tag_mappings"
+    ADD CONSTRAINT "book_tag_mappings_book_tag_unique" UNIQUE ("book_id", "tag_id");
+
+
+--
+-- Name: book_tag_mappings book_tag_mappings_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_tag_mappings"
+    ADD CONSTRAINT "book_tag_mappings_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: book_tags book_tags_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_tags"
+    ADD CONSTRAINT "book_tags_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: book_views book_views_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_views"
+    ADD CONSTRAINT "book_views_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: books books_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."books"
+    ADD CONSTRAINT "books_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: carousel_images carousel_images_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."carousel_images"
+    ADD CONSTRAINT "carousel_images_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: collaborative_filtering_data collaborative_filtering_data_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."collaborative_filtering_data"
+    ADD CONSTRAINT "collaborative_filtering_data_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: comments comments_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."comments"
+    ADD CONSTRAINT "comments_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: contact_info contact_info_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."contact_info"
+    ADD CONSTRAINT "contact_info_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: content_features content_features_content_id_content_type_feature_name_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."content_features"
+    ADD CONSTRAINT "content_features_content_id_content_type_feature_name_key" UNIQUE ("content_id", "content_type", "feature_name");
+
+
+--
+-- Name: content_features content_features_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."content_features"
+    ADD CONSTRAINT "content_features_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: content_generation_jobs content_generation_jobs_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."content_generation_jobs"
+    ADD CONSTRAINT "content_generation_jobs_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: countries countries_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."countries"
+    ADD CONSTRAINT "countries_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: custom_permissions custom_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."custom_permissions"
+    ADD CONSTRAINT "custom_permissions_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: custom_permissions custom_permissions_user_target_unique; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."custom_permissions"
+    ADD CONSTRAINT "custom_permissions_user_target_unique" UNIQUE ("user_id", "target_user_id", "permission_type");
+
+
+--
+-- Name: data_enrichment_jobs data_enrichment_jobs_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."data_enrichment_jobs"
+    ADD CONSTRAINT "data_enrichment_jobs_pkey" PRIMARY KEY ("id");
+
+
+--
 -- Name: dewey_decimal_classifications dewey_decimal_classifications_code_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -6177,6 +11487,1198 @@ ALTER TABLE ONLY "public"."dewey_decimal_classifications"
 
 
 --
+-- Name: discussion_comments discussion_comments_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."discussion_comments"
+    ADD CONSTRAINT "discussion_comments_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: discussions discussions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."discussions"
+    ADD CONSTRAINT "discussions_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: enterprise_audit_trail enterprise_audit_trail_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."enterprise_audit_trail"
+    ADD CONSTRAINT "enterprise_audit_trail_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: enterprise_data_lineage enterprise_data_lineage_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."enterprise_data_lineage"
+    ADD CONSTRAINT "enterprise_data_lineage_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: enterprise_data_lineage enterprise_data_lineage_source_table_target_table_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."enterprise_data_lineage"
+    ADD CONSTRAINT "enterprise_data_lineage_source_table_target_table_key" UNIQUE ("source_table", "target_table");
+
+
+--
+-- Name: enterprise_data_quality_rules enterprise_data_quality_rules_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."enterprise_data_quality_rules"
+    ADD CONSTRAINT "enterprise_data_quality_rules_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: enterprise_data_quality_rules enterprise_data_quality_rules_rule_name_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."enterprise_data_quality_rules"
+    ADD CONSTRAINT "enterprise_data_quality_rules_rule_name_key" UNIQUE ("rule_name");
+
+
+--
+-- Name: enterprise_data_versions enterprise_data_versions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."enterprise_data_versions"
+    ADD CONSTRAINT "enterprise_data_versions_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: enterprise_data_versions enterprise_data_versions_table_name_record_id_version_numbe_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."enterprise_data_versions"
+    ADD CONSTRAINT "enterprise_data_versions_table_name_record_id_version_numbe_key" UNIQUE ("table_name", "record_id", "version_number");
+
+
+--
+-- Name: entity_types entity_types_name_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."entity_types"
+    ADD CONSTRAINT "entity_types_name_key" UNIQUE ("name");
+
+
+--
+-- Name: event_analytics event_analytics_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_analytics"
+    ADD CONSTRAINT "event_analytics_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: event_approvals event_approvals_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_approvals"
+    ADD CONSTRAINT "event_approvals_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: event_books event_books_event_book_unique; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_books"
+    ADD CONSTRAINT "event_books_event_book_unique" UNIQUE ("event_id", "book_id");
+
+
+--
+-- Name: event_books event_books_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_books"
+    ADD CONSTRAINT "event_books_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: event_calendar_exports event_calendar_exports_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_calendar_exports"
+    ADD CONSTRAINT "event_calendar_exports_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: event_categories event_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_categories"
+    ADD CONSTRAINT "event_categories_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: event_chat_messages event_chat_messages_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_chat_messages"
+    ADD CONSTRAINT "event_chat_messages_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: event_chat_rooms event_chat_rooms_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_chat_rooms"
+    ADD CONSTRAINT "event_chat_rooms_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: event_comments event_comments_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_comments"
+    ADD CONSTRAINT "event_comments_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: event_creator_permissions event_creator_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_creator_permissions"
+    ADD CONSTRAINT "event_creator_permissions_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: event_financials event_financials_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_financials"
+    ADD CONSTRAINT "event_financials_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: event_interests event_interests_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_interests"
+    ADD CONSTRAINT "event_interests_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: event_likes event_likes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_likes"
+    ADD CONSTRAINT "event_likes_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: event_livestreams event_livestreams_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_livestreams"
+    ADD CONSTRAINT "event_livestreams_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: event_locations event_locations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_locations"
+    ADD CONSTRAINT "event_locations_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: event_media event_media_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_media"
+    ADD CONSTRAINT "event_media_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: event_permission_requests event_permission_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_permission_requests"
+    ADD CONSTRAINT "event_permission_requests_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: event_questions event_questions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_questions"
+    ADD CONSTRAINT "event_questions_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: event_registrations event_registrations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_registrations"
+    ADD CONSTRAINT "event_registrations_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: event_reminders event_reminders_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_reminders"
+    ADD CONSTRAINT "event_reminders_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: event_sessions event_sessions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_sessions"
+    ADD CONSTRAINT "event_sessions_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: event_shares event_shares_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_shares"
+    ADD CONSTRAINT "event_shares_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: event_speakers event_speakers_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_speakers"
+    ADD CONSTRAINT "event_speakers_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: event_sponsors event_sponsors_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_sponsors"
+    ADD CONSTRAINT "event_sponsors_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: event_staff event_staff_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_staff"
+    ADD CONSTRAINT "event_staff_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: event_surveys event_surveys_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_surveys"
+    ADD CONSTRAINT "event_surveys_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: event_tags event_tags_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_tags"
+    ADD CONSTRAINT "event_tags_pkey" PRIMARY KEY ("event_id", "tag_id");
+
+
+--
+-- Name: event_types event_types_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_types"
+    ADD CONSTRAINT "event_types_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: event_views event_views_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_views"
+    ADD CONSTRAINT "event_views_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: event_waitlists event_waitlists_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_waitlists"
+    ADD CONSTRAINT "event_waitlists_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: events events_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."events"
+    ADD CONSTRAINT "events_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: feed_entries feed_entries_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."feed_entries"
+    ADD CONSTRAINT "feed_entries_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: follow_target_types follow_target_types_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."follow_target_types"
+    ADD CONSTRAINT "follow_target_types_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: follows follows_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."follows"
+    ADD CONSTRAINT "follows_pkey" PRIMARY KEY ("follower_id", "following_id");
+
+
+--
+-- Name: format_types format_types_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."format_types"
+    ADD CONSTRAINT "format_types_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: friends friends_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."friends"
+    ADD CONSTRAINT "friends_pkey" PRIMARY KEY ("user_id", "friend_id");
+
+
+--
+-- Name: group_achievements group_achievements_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_achievements"
+    ADD CONSTRAINT "group_achievements_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_analytics group_analytics_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_analytics"
+    ADD CONSTRAINT "group_analytics_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_announcements group_announcements_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_announcements"
+    ADD CONSTRAINT "group_announcements_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_audit_log group_audit_log_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_audit_log"
+    ADD CONSTRAINT "group_audit_log_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_author_events group_author_events_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_author_events"
+    ADD CONSTRAINT "group_author_events_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_book_list_items group_book_list_items_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_book_list_items"
+    ADD CONSTRAINT "group_book_list_items_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_book_lists group_book_lists_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_book_lists"
+    ADD CONSTRAINT "group_book_lists_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_book_reviews group_book_reviews_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_book_reviews"
+    ADD CONSTRAINT "group_book_reviews_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_book_swaps group_book_swaps_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_book_swaps"
+    ADD CONSTRAINT "group_book_swaps_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_book_wishlist_items group_book_wishlist_items_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_book_wishlist_items"
+    ADD CONSTRAINT "group_book_wishlist_items_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_book_wishlists group_book_wishlists_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_book_wishlists"
+    ADD CONSTRAINT "group_book_wishlists_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_bots group_bots_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_bots"
+    ADD CONSTRAINT "group_bots_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_chat_channels group_chat_channels_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_chat_channels"
+    ADD CONSTRAINT "group_chat_channels_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_chat_message_attachments group_chat_message_attachments_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_chat_message_attachments"
+    ADD CONSTRAINT "group_chat_message_attachments_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_chat_message_reactions group_chat_message_reactions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_chat_message_reactions"
+    ADD CONSTRAINT "group_chat_message_reactions_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_chat_messages group_chat_messages_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_chat_messages"
+    ADD CONSTRAINT "group_chat_messages_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_content_moderation_logs group_content_moderation_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_content_moderation_logs"
+    ADD CONSTRAINT "group_content_moderation_logs_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_custom_fields group_custom_fields_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_custom_fields"
+    ADD CONSTRAINT "group_custom_fields_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_discussion_categories group_discussion_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_discussion_categories"
+    ADD CONSTRAINT "group_discussion_categories_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_event_feedback group_event_feedback_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_event_feedback"
+    ADD CONSTRAINT "group_event_feedback_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_events group_events_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_events"
+    ADD CONSTRAINT "group_events_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_integrations group_integrations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_integrations"
+    ADD CONSTRAINT "group_integrations_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_invites group_invites_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_invites"
+    ADD CONSTRAINT "group_invites_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_leaderboards group_leaderboards_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_leaderboards"
+    ADD CONSTRAINT "group_leaderboards_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_member_achievements group_member_achievements_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_member_achievements"
+    ADD CONSTRAINT "group_member_achievements_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_member_devices group_member_devices_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_member_devices"
+    ADD CONSTRAINT "group_member_devices_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_member_streaks group_member_streaks_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_member_streaks"
+    ADD CONSTRAINT "group_member_streaks_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_members group_members_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_members"
+    ADD CONSTRAINT "group_members_pkey" PRIMARY KEY ("group_id", "user_id");
+
+
+--
+-- Name: group_membership_questions group_membership_questions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_membership_questions"
+    ADD CONSTRAINT "group_membership_questions_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_moderation_logs group_moderation_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_moderation_logs"
+    ADD CONSTRAINT "group_moderation_logs_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_onboarding_checklists group_onboarding_checklists_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_onboarding_checklists"
+    ADD CONSTRAINT "group_onboarding_checklists_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_onboarding_progress group_onboarding_progress_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_onboarding_progress"
+    ADD CONSTRAINT "group_onboarding_progress_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_onboarding_tasks group_onboarding_tasks_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_onboarding_tasks"
+    ADD CONSTRAINT "group_onboarding_tasks_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_poll_votes group_poll_votes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_poll_votes"
+    ADD CONSTRAINT "group_poll_votes_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_polls group_polls_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_polls"
+    ADD CONSTRAINT "group_polls_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_reading_challenge_progress group_reading_challenge_progress_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_reading_challenge_progress"
+    ADD CONSTRAINT "group_reading_challenge_progress_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_reading_challenges group_reading_challenges_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_reading_challenges"
+    ADD CONSTRAINT "group_reading_challenges_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_reading_progress group_reading_progress_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_reading_progress"
+    ADD CONSTRAINT "group_reading_progress_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_reading_sessions group_reading_sessions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_reading_sessions"
+    ADD CONSTRAINT "group_reading_sessions_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_reports group_reports_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_reports"
+    ADD CONSTRAINT "group_reports_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_roles group_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_roles"
+    ADD CONSTRAINT "group_roles_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_rules group_rules_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_rules"
+    ADD CONSTRAINT "group_rules_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_shared_documents group_shared_documents_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_shared_documents"
+    ADD CONSTRAINT "group_shared_documents_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_tags group_tags_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_tags"
+    ADD CONSTRAINT "group_tags_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_types group_types_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_types"
+    ADD CONSTRAINT "group_types_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_webhook_logs group_webhook_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_webhook_logs"
+    ADD CONSTRAINT "group_webhook_logs_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_webhooks group_webhooks_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_webhooks"
+    ADD CONSTRAINT "group_webhooks_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: group_welcome_messages group_welcome_messages_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_welcome_messages"
+    ADD CONSTRAINT "group_welcome_messages_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: groups groups_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."groups"
+    ADD CONSTRAINT "groups_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: image_tags image_tags_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."image_tags"
+    ADD CONSTRAINT "image_tags_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: entity_types image_types_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."entity_types"
+    ADD CONSTRAINT "image_types_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: images images_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."images"
+    ADD CONSTRAINT "images_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: invoices invoices_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."invoices"
+    ADD CONSTRAINT "invoices_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: likes likes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."likes"
+    ADD CONSTRAINT "likes_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: list_followers list_followers_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."list_followers"
+    ADD CONSTRAINT "list_followers_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: media_attachments media_attachments_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."media_attachments"
+    ADD CONSTRAINT "media_attachments_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: mentions mentions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."mentions"
+    ADD CONSTRAINT "mentions_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: ml_models ml_models_model_name_model_version_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."ml_models"
+    ADD CONSTRAINT "ml_models_model_name_model_version_key" UNIQUE ("model_name", "model_version");
+
+
+--
+-- Name: ml_models ml_models_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."ml_models"
+    ADD CONSTRAINT "ml_models_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: ml_predictions ml_predictions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."ml_predictions"
+    ADD CONSTRAINT "ml_predictions_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: ml_training_jobs ml_training_jobs_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."ml_training_jobs"
+    ADD CONSTRAINT "ml_training_jobs_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: nlp_analysis nlp_analysis_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."nlp_analysis"
+    ADD CONSTRAINT "nlp_analysis_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."notifications"
+    ADD CONSTRAINT "notifications_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: payment_methods payment_methods_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."payment_methods"
+    ADD CONSTRAINT "payment_methods_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: payment_transactions payment_transactions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."payment_transactions"
+    ADD CONSTRAINT "payment_transactions_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: performance_metrics performance_metrics_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."performance_metrics"
+    ADD CONSTRAINT "performance_metrics_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: personalized_recommendations personalized_recommendations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."personalized_recommendations"
+    ADD CONSTRAINT "personalized_recommendations_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: photo_album photo_album_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."photo_album"
+    ADD CONSTRAINT "photo_album_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: photo_albums photo_albums_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."photo_albums"
+    ADD CONSTRAINT "photo_albums_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: posts posts_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."posts"
+    ADD CONSTRAINT "posts_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: prices prices_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."prices"
+    ADD CONSTRAINT "prices_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: privacy_audit_log privacy_audit_log_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."privacy_audit_log"
+    ADD CONSTRAINT "privacy_audit_log_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: profiles profiles_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."profiles"
+    ADD CONSTRAINT "profiles_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: promo_codes promo_codes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."promo_codes"
+    ADD CONSTRAINT "promo_codes_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: publishers publishers_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."publishers"
+    ADD CONSTRAINT "publishers_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: reactions reactions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."reactions"
+    ADD CONSTRAINT "reactions_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: reading_challenges reading_challenges_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."reading_challenges"
+    ADD CONSTRAINT "reading_challenges_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: reading_goals reading_goals_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."reading_goals"
+    ADD CONSTRAINT "reading_goals_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: reading_list_items reading_list_items_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."reading_list_items"
+    ADD CONSTRAINT "reading_list_items_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: reading_lists reading_lists_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."reading_lists"
+    ADD CONSTRAINT "reading_lists_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: reading_progress reading_progress_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."reading_progress"
+    ADD CONSTRAINT "reading_progress_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: reading_series reading_series_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."reading_series"
+    ADD CONSTRAINT "reading_series_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: reading_sessions reading_sessions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."reading_sessions"
+    ADD CONSTRAINT "reading_sessions_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: reading_stats_daily reading_stats_daily_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."reading_stats_daily"
+    ADD CONSTRAINT "reading_stats_daily_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: reading_streaks reading_streaks_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."reading_streaks"
+    ADD CONSTRAINT "reading_streaks_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: review_likes review_likes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."review_likes"
+    ADD CONSTRAINT "review_likes_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: reviews reviews_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."reviews"
+    ADD CONSTRAINT "reviews_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: roles roles_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."roles"
+    ADD CONSTRAINT "roles_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: session_registrations session_registrations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."session_registrations"
+    ADD CONSTRAINT "session_registrations_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: similar_books similar_books_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."similar_books"
+    ADD CONSTRAINT "similar_books_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: smart_notifications smart_notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."smart_notifications"
+    ADD CONSTRAINT "smart_notifications_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: statuses statuses_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."statuses"
+    ADD CONSTRAINT "statuses_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: subjects subjects_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."subjects"
+    ADD CONSTRAINT "subjects_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: survey_questions survey_questions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."survey_questions"
+    ADD CONSTRAINT "survey_questions_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: survey_responses survey_responses_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."survey_responses"
+    ADD CONSTRAINT "survey_responses_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: sync_state sync_state_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."sync_state"
+    ADD CONSTRAINT "sync_state_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: system_health_checks system_health_checks_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."system_health_checks"
+    ADD CONSTRAINT "system_health_checks_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: tags tags_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."tags"
+    ADD CONSTRAINT "tags_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: ticket_benefits ticket_benefits_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."ticket_benefits"
+    ADD CONSTRAINT "ticket_benefits_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: ticket_types ticket_types_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."ticket_types"
+    ADD CONSTRAINT "ticket_types_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: tickets tickets_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."tickets"
+    ADD CONSTRAINT "tickets_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: user_activity_log user_activity_log_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."user_activity_log"
+    ADD CONSTRAINT "user_activity_log_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: user_book_interactions user_book_interactions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."user_book_interactions"
+    ADD CONSTRAINT "user_book_interactions_pkey" PRIMARY KEY ("id");
+
+
+--
 -- Name: user_friends user_friends_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -6190,6 +12692,38 @@ ALTER TABLE ONLY "public"."user_friends"
 
 ALTER TABLE ONLY "public"."user_friends"
     ADD CONSTRAINT "user_friends_user_id_friend_id_key" UNIQUE ("user_id", "friend_id");
+
+
+--
+-- Name: user_privacy_settings user_privacy_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."user_privacy_settings"
+    ADD CONSTRAINT "user_privacy_settings_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: user_privacy_settings user_privacy_settings_user_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."user_privacy_settings"
+    ADD CONSTRAINT "user_privacy_settings_user_id_key" UNIQUE ("user_id");
+
+
+--
+-- Name: user_reading_preferences user_reading_preferences_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."user_reading_preferences"
+    ADD CONSTRAINT "user_reading_preferences_pkey" PRIMARY KEY ("id");
+
+
+--
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."users"
+    ADD CONSTRAINT "users_pkey" PRIMARY KEY ("id");
 
 
 --
@@ -6388,6 +12922,13 @@ CREATE INDEX "identities_user_id_idx" ON "auth"."identities" USING "btree" ("use
 --
 
 CREATE INDEX "idx_auth_code" ON "auth"."flow_state" USING "btree" ("auth_code");
+
+
+--
+-- Name: idx_auth_users_email; Type: INDEX; Schema: auth; Owner: supabase_auth_admin
+--
+
+CREATE INDEX "idx_auth_users_email" ON "auth"."users" USING "btree" ("email");
 
 
 --
@@ -6601,6 +13142,622 @@ CREATE INDEX "users_is_anonymous_idx" ON "auth"."users" USING "btree" ("is_anony
 
 
 --
+-- Name: idx_activities_author_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_activities_author_id" ON "public"."activities" USING "btree" ("author_id");
+
+
+--
+-- Name: idx_activities_book_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_activities_book_id" ON "public"."activities" USING "btree" ("book_id");
+
+
+--
+-- Name: idx_activities_created_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_activities_created_at" ON "public"."activities" USING "btree" ("created_at");
+
+
+--
+-- Name: idx_activities_event_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_activities_event_id" ON "public"."activities" USING "btree" ("event_id");
+
+
+--
+-- Name: idx_activities_group_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_activities_group_id" ON "public"."activities" USING "btree" ("group_id");
+
+
+--
+-- Name: idx_activities_list_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_activities_list_id" ON "public"."activities" USING "btree" ("list_id");
+
+
+--
+-- Name: idx_activities_review_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_activities_review_id" ON "public"."activities" USING "btree" ("review_id");
+
+
+--
+-- Name: idx_activities_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_activities_user_id" ON "public"."activities" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_activity_log_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_activity_log_user_id" ON "public"."activity_log" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_album_images_album_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_album_images_album_id" ON "public"."album_images" USING "btree" ("album_id");
+
+
+--
+-- Name: idx_album_images_entity; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_album_images_entity" ON "public"."album_images" USING "btree" ("entity_type_id", "entity_id");
+
+
+--
+-- Name: idx_album_images_entity_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_album_images_entity_id" ON "public"."album_images" USING "btree" ("entity_id");
+
+
+--
+-- Name: idx_album_images_entity_type; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_album_images_entity_type" ON "public"."album_images" USING "btree" ("entity_type_id");
+
+
+--
+-- Name: idx_album_images_image_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_album_images_image_id" ON "public"."album_images" USING "btree" ("image_id");
+
+
+--
+-- Name: idx_album_shares_album_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_album_shares_album_id" ON "public"."album_shares" USING "btree" ("album_id");
+
+
+--
+-- Name: idx_album_shares_shared_by; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_album_shares_shared_by" ON "public"."album_shares" USING "btree" ("shared_by");
+
+
+--
+-- Name: idx_album_shares_shared_with; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_album_shares_shared_with" ON "public"."album_shares" USING "btree" ("shared_with");
+
+
+--
+-- Name: idx_authors_author_image_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_authors_author_image_id" ON "public"."authors" USING "btree" ("author_image_id");
+
+
+--
+-- Name: idx_authors_cover_image_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_authors_cover_image_id" ON "public"."authors" USING "btree" ("cover_image_id");
+
+
+--
+-- Name: idx_authors_created_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_authors_created_at" ON "public"."authors" USING "btree" ("created_at" DESC);
+
+
+--
+-- Name: idx_authors_featured; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_authors_featured" ON "public"."authors" USING "btree" ("featured");
+
+
+--
+-- Name: idx_authors_name; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_authors_name" ON "public"."authors" USING "btree" ("name");
+
+
+--
+-- Name: idx_automation_workflows_active; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_automation_workflows_active" ON "public"."automation_workflows" USING "btree" ("is_active");
+
+
+--
+-- Name: idx_automation_workflows_next_execution; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_automation_workflows_next_execution" ON "public"."automation_workflows" USING "btree" ("next_execution");
+
+
+--
+-- Name: idx_automation_workflows_type; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_automation_workflows_type" ON "public"."automation_workflows" USING "btree" ("workflow_type");
+
+
+--
+-- Name: idx_blocks_blocked_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_blocks_blocked_user_id" ON "public"."blocks" USING "btree" ("blocked_user_id");
+
+
+--
+-- Name: idx_blocks_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_blocks_user_id" ON "public"."blocks" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_book_authors_author_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_authors_author_id" ON "public"."book_authors" USING "btree" ("author_id");
+
+
+--
+-- Name: idx_book_authors_book_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_authors_book_id" ON "public"."book_authors" USING "btree" ("book_id");
+
+
+--
+-- Name: idx_book_club_books_book_club_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_club_books_book_club_id" ON "public"."book_club_books" USING "btree" ("book_club_id");
+
+
+--
+-- Name: idx_book_club_books_book_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_club_books_book_id" ON "public"."book_club_books" USING "btree" ("book_id");
+
+
+--
+-- Name: idx_book_club_books_created_by; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_club_books_created_by" ON "public"."book_club_books" USING "btree" ("created_by");
+
+
+--
+-- Name: idx_book_club_discussion_comments_created_by; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_club_discussion_comments_created_by" ON "public"."book_club_discussion_comments" USING "btree" ("created_by");
+
+
+--
+-- Name: idx_book_club_discussion_comments_discussion_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_club_discussion_comments_discussion_id" ON "public"."book_club_discussion_comments" USING "btree" ("discussion_id");
+
+
+--
+-- Name: idx_book_club_discussions_book_club_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_club_discussions_book_club_id" ON "public"."book_club_discussions" USING "btree" ("book_club_id");
+
+
+--
+-- Name: idx_book_club_discussions_book_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_club_discussions_book_id" ON "public"."book_club_discussions" USING "btree" ("book_id");
+
+
+--
+-- Name: idx_book_club_discussions_created_by; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_club_discussions_created_by" ON "public"."book_club_discussions" USING "btree" ("created_by");
+
+
+--
+-- Name: idx_book_club_members_book_club_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_club_members_book_club_id" ON "public"."book_club_members" USING "btree" ("book_club_id");
+
+
+--
+-- Name: idx_book_club_members_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_club_members_user_id" ON "public"."book_club_members" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_book_clubs_created_by; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_clubs_created_by" ON "public"."book_clubs" USING "btree" ("created_by");
+
+
+--
+-- Name: idx_book_clubs_current_book_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_clubs_current_book_id" ON "public"."book_clubs" USING "btree" ("current_book_id");
+
+
+--
+-- Name: idx_book_genre_mappings_book_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_genre_mappings_book_id" ON "public"."book_genre_mappings" USING "btree" ("book_id");
+
+
+--
+-- Name: idx_book_genre_mappings_genre_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_genre_mappings_genre_id" ON "public"."book_genre_mappings" USING "btree" ("genre_id");
+
+
+--
+-- Name: idx_book_popularity_metrics_book_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_popularity_metrics_book_id" ON "public"."book_popularity_metrics" USING "btree" ("book_id");
+
+
+--
+-- Name: idx_book_popularity_metrics_rating; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_popularity_metrics_rating" ON "public"."book_popularity_metrics" USING "btree" ("avg_rating" DESC NULLS LAST);
+
+
+--
+-- Name: idx_book_popularity_metrics_updated; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_popularity_metrics_updated" ON "public"."book_popularity_metrics" USING "btree" ("last_updated");
+
+
+--
+-- Name: idx_book_popularity_metrics_views; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_popularity_metrics_views" ON "public"."book_popularity_metrics" USING "btree" ("views_count" DESC);
+
+
+--
+-- Name: idx_book_publishers_book_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_publishers_book_id" ON "public"."book_publishers" USING "btree" ("book_id");
+
+
+--
+-- Name: idx_book_publishers_publisher_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_publishers_publisher_id" ON "public"."book_publishers" USING "btree" ("publisher_id");
+
+
+--
+-- Name: idx_book_recommendations_book_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_recommendations_book_id" ON "public"."book_recommendations" USING "btree" ("book_id");
+
+
+--
+-- Name: idx_book_recommendations_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_recommendations_user_id" ON "public"."book_recommendations" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_book_reviews_book_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_reviews_book_id" ON "public"."book_reviews" USING "btree" ("book_id");
+
+
+--
+-- Name: idx_book_reviews_group_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_reviews_group_id" ON "public"."book_reviews" USING "btree" ("group_id");
+
+
+--
+-- Name: idx_book_reviews_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_reviews_user_id" ON "public"."book_reviews" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_book_similarity_scores_book_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_similarity_scores_book_id" ON "public"."book_similarity_scores" USING "btree" ("book_id");
+
+
+--
+-- Name: idx_book_subjects_book_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_subjects_book_id" ON "public"."book_subjects" USING "btree" ("book_id");
+
+
+--
+-- Name: idx_book_subjects_subject_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_subjects_subject_id" ON "public"."book_subjects" USING "btree" ("subject_id");
+
+
+--
+-- Name: idx_book_tag_mappings_book_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_tag_mappings_book_id" ON "public"."book_tag_mappings" USING "btree" ("book_id");
+
+
+--
+-- Name: idx_book_tag_mappings_tag_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_tag_mappings_tag_id" ON "public"."book_tag_mappings" USING "btree" ("tag_id");
+
+
+--
+-- Name: idx_book_views_book_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_views_book_id" ON "public"."book_views" USING "btree" ("book_id");
+
+
+--
+-- Name: idx_book_views_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_book_views_user_id" ON "public"."book_views" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_books_author_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_books_author_id" ON "public"."books" USING "btree" ("author_id");
+
+
+--
+-- Name: idx_books_binding_type_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_books_binding_type_id" ON "public"."books" USING "btree" ("binding_type_id");
+
+
+--
+-- Name: idx_books_cover_image_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_books_cover_image_id" ON "public"."books" USING "btree" ("cover_image_id");
+
+
+--
+-- Name: idx_books_created_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_books_created_at" ON "public"."books" USING "btree" ("created_at" DESC);
+
+
+--
+-- Name: idx_books_featured; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_books_featured" ON "public"."books" USING "btree" ("featured");
+
+
+--
+-- Name: idx_books_featured_created; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_books_featured_created" ON "public"."books" USING "btree" ("featured", "created_at" DESC);
+
+
+--
+-- Name: idx_books_format_type_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_books_format_type_id" ON "public"."books" USING "btree" ("format_type_id");
+
+
+--
+-- Name: idx_books_isbn10; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_books_isbn10" ON "public"."books" USING "btree" ("isbn10");
+
+
+--
+-- Name: idx_books_isbn13; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_books_isbn13" ON "public"."books" USING "btree" ("isbn13");
+
+
+--
+-- Name: idx_books_publication_date; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_books_publication_date" ON "public"."books" USING "btree" ("publication_date");
+
+
+--
+-- Name: idx_books_publisher_date; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_books_publisher_date" ON "public"."books" USING "btree" ("publisher_id", "created_at" DESC);
+
+
+--
+-- Name: idx_books_publisher_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_books_publisher_id" ON "public"."books" USING "btree" ("publisher_id");
+
+
+--
+-- Name: idx_books_publisher_id_null; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_books_publisher_id_null" ON "public"."books" USING "btree" ("publisher_id") WHERE ("publisher_id" IS NULL);
+
+
+--
+-- Name: idx_books_status_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_books_status_id" ON "public"."books" USING "btree" ("status_id");
+
+
+--
+-- Name: idx_books_title; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_books_title" ON "public"."books" USING "btree" ("title");
+
+
+--
+-- Name: idx_books_title_publisher; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_books_title_publisher" ON "public"."books" USING "btree" ("title", "publisher_id");
+
+
+--
+-- Name: idx_collaborative_filtering_interaction; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_collaborative_filtering_interaction" ON "public"."collaborative_filtering_data" USING "btree" ("interaction_type", "interaction_timestamp");
+
+
+--
+-- Name: idx_collaborative_filtering_item; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_collaborative_filtering_item" ON "public"."collaborative_filtering_data" USING "btree" ("item_id", "item_type");
+
+
+--
+-- Name: idx_collaborative_filtering_user; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_collaborative_filtering_user" ON "public"."collaborative_filtering_data" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_comments_feed_entry_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_comments_feed_entry_id" ON "public"."comments" USING "btree" ("feed_entry_id");
+
+
+--
+-- Name: idx_comments_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_comments_user_id" ON "public"."comments" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_content_generation_created_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_content_generation_created_at" ON "public"."content_generation_jobs" USING "btree" ("created_at");
+
+
+--
+-- Name: idx_content_generation_status; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_content_generation_status" ON "public"."content_generation_jobs" USING "btree" ("generation_status");
+
+
+--
+-- Name: idx_content_generation_type; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_content_generation_type" ON "public"."content_generation_jobs" USING "btree" ("content_type");
+
+
+--
+-- Name: idx_custom_permissions_target_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_custom_permissions_target_user_id" ON "public"."custom_permissions" USING "btree" ("target_user_id");
+
+
+--
+-- Name: idx_custom_permissions_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_custom_permissions_user_id" ON "public"."custom_permissions" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_custom_permissions_user_target; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_custom_permissions_user_target" ON "public"."custom_permissions" USING "btree" ("user_id", "target_user_id");
+
+
+--
 -- Name: idx_dewey_decimal_classifications_code; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -6612,6 +13769,1014 @@ CREATE INDEX "idx_dewey_decimal_classifications_code" ON "public"."dewey_decimal
 --
 
 CREATE INDEX "idx_dewey_decimal_classifications_parent_code" ON "public"."dewey_decimal_classifications" USING "btree" ("parent_code");
+
+
+--
+-- Name: idx_discussion_comments_discussion_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_discussion_comments_discussion_id" ON "public"."discussion_comments" USING "btree" ("discussion_id");
+
+
+--
+-- Name: idx_discussion_comments_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_discussion_comments_user_id" ON "public"."discussion_comments" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_discussions_book_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_discussions_book_id" ON "public"."discussions" USING "btree" ("book_id");
+
+
+--
+-- Name: idx_discussions_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_discussions_user_id" ON "public"."discussions" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_enterprise_audit_trail_changed_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_enterprise_audit_trail_changed_at" ON "public"."enterprise_audit_trail" USING "btree" ("changed_at");
+
+
+--
+-- Name: idx_enterprise_audit_trail_changed_by; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_enterprise_audit_trail_changed_by" ON "public"."enterprise_audit_trail" USING "btree" ("changed_by");
+
+
+--
+-- Name: idx_enterprise_audit_trail_operation; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_enterprise_audit_trail_operation" ON "public"."enterprise_audit_trail" USING "btree" ("operation");
+
+
+--
+-- Name: idx_enterprise_audit_trail_table_record; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_enterprise_audit_trail_table_record" ON "public"."enterprise_audit_trail" USING "btree" ("table_name", "record_id");
+
+
+--
+-- Name: idx_enterprise_data_quality_rules_active; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_enterprise_data_quality_rules_active" ON "public"."enterprise_data_quality_rules" USING "btree" ("is_active") WHERE ("is_active" = true);
+
+
+--
+-- Name: idx_enterprise_data_quality_rules_table; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_enterprise_data_quality_rules_table" ON "public"."enterprise_data_quality_rules" USING "btree" ("table_name");
+
+
+--
+-- Name: idx_enterprise_data_versions_created_by; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_enterprise_data_versions_created_by" ON "public"."enterprise_data_versions" USING "btree" ("created_by");
+
+
+--
+-- Name: idx_enterprise_data_versions_current; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_enterprise_data_versions_current" ON "public"."enterprise_data_versions" USING "btree" ("is_current") WHERE ("is_current" = true);
+
+
+--
+-- Name: idx_enterprise_data_versions_table_record; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_enterprise_data_versions_table_record" ON "public"."enterprise_data_versions" USING "btree" ("table_name", "record_id");
+
+
+--
+-- Name: idx_event_books_book_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_books_book_id" ON "public"."event_books" USING "btree" ("book_id");
+
+
+--
+-- Name: idx_event_books_event_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_books_event_id" ON "public"."event_books" USING "btree" ("event_id");
+
+
+--
+-- Name: idx_event_chat_messages_chat_room_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_chat_messages_chat_room_id" ON "public"."event_chat_messages" USING "btree" ("chat_room_id");
+
+
+--
+-- Name: idx_event_chat_messages_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_chat_messages_user_id" ON "public"."event_chat_messages" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_event_chat_rooms_event_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_chat_rooms_event_id" ON "public"."event_chat_rooms" USING "btree" ("event_id");
+
+
+--
+-- Name: idx_event_comments_event_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_comments_event_id" ON "public"."event_comments" USING "btree" ("event_id");
+
+
+--
+-- Name: idx_event_comments_parent_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_comments_parent_id" ON "public"."event_comments" USING "btree" ("parent_id");
+
+
+--
+-- Name: idx_event_comments_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_comments_user_id" ON "public"."event_comments" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_event_creator_permissions_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_creator_permissions_user_id" ON "public"."event_creator_permissions" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_event_financials_event_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_financials_event_id" ON "public"."event_financials" USING "btree" ("event_id");
+
+
+--
+-- Name: idx_event_interests_event_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_interests_event_id" ON "public"."event_interests" USING "btree" ("event_id");
+
+
+--
+-- Name: idx_event_interests_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_interests_user_id" ON "public"."event_interests" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_event_likes_event_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_likes_event_id" ON "public"."event_likes" USING "btree" ("event_id");
+
+
+--
+-- Name: idx_event_likes_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_likes_user_id" ON "public"."event_likes" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_event_livestreams_event_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_livestreams_event_id" ON "public"."event_livestreams" USING "btree" ("event_id");
+
+
+--
+-- Name: idx_event_locations_event_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_locations_event_id" ON "public"."event_locations" USING "btree" ("event_id");
+
+
+--
+-- Name: idx_event_media_event_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_media_event_id" ON "public"."event_media" USING "btree" ("event_id");
+
+
+--
+-- Name: idx_event_permission_requests_reviewed_by; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_permission_requests_reviewed_by" ON "public"."event_permission_requests" USING "btree" ("reviewed_by");
+
+
+--
+-- Name: idx_event_permission_requests_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_permission_requests_user_id" ON "public"."event_permission_requests" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_event_questions_event_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_questions_event_id" ON "public"."event_questions" USING "btree" ("event_id");
+
+
+--
+-- Name: idx_event_registrations_event_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_registrations_event_id" ON "public"."event_registrations" USING "btree" ("event_id");
+
+
+--
+-- Name: idx_event_registrations_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_registrations_user_id" ON "public"."event_registrations" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_event_reminders_event_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_reminders_event_id" ON "public"."event_reminders" USING "btree" ("event_id");
+
+
+--
+-- Name: idx_event_reminders_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_reminders_user_id" ON "public"."event_reminders" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_event_sessions_event_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_sessions_event_id" ON "public"."event_sessions" USING "btree" ("event_id");
+
+
+--
+-- Name: idx_event_shares_event_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_shares_event_id" ON "public"."event_shares" USING "btree" ("event_id");
+
+
+--
+-- Name: idx_event_shares_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_shares_user_id" ON "public"."event_shares" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_event_speakers_author_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_speakers_author_id" ON "public"."event_speakers" USING "btree" ("author_id");
+
+
+--
+-- Name: idx_event_speakers_event_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_speakers_event_id" ON "public"."event_speakers" USING "btree" ("event_id");
+
+
+--
+-- Name: idx_event_speakers_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_speakers_user_id" ON "public"."event_speakers" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_event_sponsors_event_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_sponsors_event_id" ON "public"."event_sponsors" USING "btree" ("event_id");
+
+
+--
+-- Name: idx_event_staff_event_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_staff_event_id" ON "public"."event_staff" USING "btree" ("event_id");
+
+
+--
+-- Name: idx_event_staff_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_staff_user_id" ON "public"."event_staff" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_event_surveys_event_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_surveys_event_id" ON "public"."event_surveys" USING "btree" ("event_id");
+
+
+--
+-- Name: idx_event_tags_event_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_tags_event_id" ON "public"."event_tags" USING "btree" ("event_id");
+
+
+--
+-- Name: idx_event_views_event_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_views_event_id" ON "public"."event_views" USING "btree" ("event_id");
+
+
+--
+-- Name: idx_event_views_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_views_user_id" ON "public"."event_views" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_event_waitlists_event_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_event_waitlists_event_id" ON "public"."event_waitlists" USING "btree" ("event_id");
+
+
+--
+-- Name: idx_events_author_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_events_author_id" ON "public"."events" USING "btree" ("author_id");
+
+
+--
+-- Name: idx_events_book_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_events_book_id" ON "public"."events" USING "btree" ("book_id");
+
+
+--
+-- Name: idx_events_cover_image_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_events_cover_image_id" ON "public"."events" USING "btree" ("cover_image_id");
+
+
+--
+-- Name: idx_events_created_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_events_created_at" ON "public"."events" USING "btree" ("created_at" DESC);
+
+
+--
+-- Name: idx_events_created_by; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_events_created_by" ON "public"."events" USING "btree" ("created_by");
+
+
+--
+-- Name: idx_events_date_range; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_events_date_range" ON "public"."events" USING "btree" ("start_date", "end_date");
+
+
+--
+-- Name: idx_events_end_date; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_events_end_date" ON "public"."events" USING "btree" ("end_date");
+
+
+--
+-- Name: idx_events_event_image_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_events_event_image_id" ON "public"."events" USING "btree" ("event_image_id");
+
+
+--
+-- Name: idx_events_group_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_events_group_id" ON "public"."events" USING "btree" ("group_id");
+
+
+--
+-- Name: idx_events_parent_event_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_events_parent_event_id" ON "public"."events" USING "btree" ("parent_event_id");
+
+
+--
+-- Name: idx_events_publisher_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_events_publisher_id" ON "public"."events" USING "btree" ("publisher_id");
+
+
+--
+-- Name: idx_events_start_date; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_events_start_date" ON "public"."events" USING "btree" ("start_date");
+
+
+--
+-- Name: idx_events_title; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_events_title" ON "public"."events" USING "gin" ("to_tsvector"('"english"'::"regconfig", "title"));
+
+
+--
+-- Name: idx_feed_entries_created_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_feed_entries_created_at" ON "public"."feed_entries" USING "btree" ("created_at");
+
+
+--
+-- Name: idx_feed_entries_group_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_feed_entries_group_id" ON "public"."feed_entries" USING "btree" ("group_id");
+
+
+--
+-- Name: idx_feed_entries_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_feed_entries_user_id" ON "public"."feed_entries" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_feed_entries_visibility; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_feed_entries_visibility" ON "public"."feed_entries" USING "btree" ("visibility");
+
+
+--
+-- Name: idx_feed_entry_tags_feed_entry_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_feed_entry_tags_feed_entry_id" ON "public"."feed_entry_tags" USING "btree" ("feed_entry_id");
+
+
+--
+-- Name: idx_follows_created_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_follows_created_at" ON "public"."follows" USING "btree" ("created_at" DESC);
+
+
+--
+-- Name: idx_follows_follower_following; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_follows_follower_following" ON "public"."follows" USING "btree" ("follower_id", "following_id");
+
+
+--
+-- Name: idx_follows_follower_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_follows_follower_id" ON "public"."follows" USING "btree" ("follower_id");
+
+
+--
+-- Name: idx_follows_following_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_follows_following_id" ON "public"."follows" USING "btree" ("following_id");
+
+
+--
+-- Name: idx_follows_target_type; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_follows_target_type" ON "public"."follows" USING "btree" ("target_type_id");
+
+
+--
+-- Name: idx_friends_created_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_friends_created_at" ON "public"."friends" USING "btree" ("created_at" DESC);
+
+
+--
+-- Name: idx_friends_friend_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_friends_friend_id" ON "public"."friends" USING "btree" ("friend_id");
+
+
+--
+-- Name: idx_friends_requested_by; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_friends_requested_by" ON "public"."friends" USING "btree" ("requested_by");
+
+
+--
+-- Name: idx_friends_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_friends_user_id" ON "public"."friends" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_group_members_group_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_group_members_group_id" ON "public"."group_members" USING "btree" ("group_id");
+
+
+--
+-- Name: idx_group_members_status; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_group_members_status" ON "public"."group_members" USING "btree" ("status");
+
+
+--
+-- Name: idx_group_members_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_group_members_user_id" ON "public"."group_members" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_groups_created_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_groups_created_at" ON "public"."groups" USING "btree" ("created_at" DESC);
+
+
+--
+-- Name: idx_groups_created_by; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_groups_created_by" ON "public"."groups" USING "btree" ("created_by");
+
+
+--
+-- Name: idx_groups_is_private; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_groups_is_private" ON "public"."groups" USING "btree" ("is_private");
+
+
+--
+-- Name: idx_groups_name; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_groups_name" ON "public"."groups" USING "gin" ("to_tsvector"('"english"'::"regconfig", ("name")::"text"));
+
+
+--
+-- Name: idx_groups_private_created; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_groups_private_created" ON "public"."groups" USING "btree" ("is_private", "created_at" DESC);
+
+
+--
+-- Name: idx_images_img_type_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_images_img_type_id" ON "public"."images" USING "btree" ("entity_type_id");
+
+
+--
+-- Name: idx_likes_feed_entry_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_likes_feed_entry_id" ON "public"."likes" USING "btree" ("feed_entry_id");
+
+
+--
+-- Name: idx_likes_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_likes_user_id" ON "public"."likes" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_ml_models_active; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_ml_models_active" ON "public"."ml_models" USING "btree" ("is_active");
+
+
+--
+-- Name: idx_ml_models_created_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_ml_models_created_at" ON "public"."ml_models" USING "btree" ("created_at");
+
+
+--
+-- Name: idx_ml_models_type; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_ml_models_type" ON "public"."ml_models" USING "btree" ("model_type");
+
+
+--
+-- Name: idx_ml_predictions_confidence; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_ml_predictions_confidence" ON "public"."ml_predictions" USING "btree" ("confidence_score");
+
+
+--
+-- Name: idx_ml_predictions_model; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_ml_predictions_model" ON "public"."ml_predictions" USING "btree" ("model_id");
+
+
+--
+-- Name: idx_ml_predictions_timestamp; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_ml_predictions_timestamp" ON "public"."ml_predictions" USING "btree" ("prediction_timestamp");
+
+
+--
+-- Name: idx_ml_predictions_user; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_ml_predictions_user" ON "public"."ml_predictions" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_nlp_analysis_confidence; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_nlp_analysis_confidence" ON "public"."nlp_analysis" USING "btree" ("confidence_score");
+
+
+--
+-- Name: idx_nlp_analysis_content; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_nlp_analysis_content" ON "public"."nlp_analysis" USING "btree" ("content_id", "content_type");
+
+
+--
+-- Name: idx_nlp_analysis_type; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_nlp_analysis_type" ON "public"."nlp_analysis" USING "btree" ("analysis_type");
+
+
+--
+-- Name: idx_notifications_is_read; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_notifications_is_read" ON "public"."notifications" USING "btree" ("is_read");
+
+
+--
+-- Name: idx_notifications_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_notifications_user_id" ON "public"."notifications" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_performance_metrics_category; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_performance_metrics_category" ON "public"."performance_metrics" USING "btree" ("category");
+
+
+--
+-- Name: idx_performance_metrics_name_category; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_performance_metrics_name_category" ON "public"."performance_metrics" USING "btree" ("metric_name", "category");
+
+
+--
+-- Name: idx_performance_metrics_recorded_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_performance_metrics_recorded_at" ON "public"."performance_metrics" USING "btree" ("recorded_at");
+
+
+--
+-- Name: idx_photo_albums_cover_image_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_photo_albums_cover_image_id" ON "public"."photo_albums" USING "btree" ("cover_image_id");
+
+
+--
+-- Name: idx_photo_albums_created_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_photo_albums_created_at" ON "public"."photo_albums" USING "btree" ("created_at");
+
+
+--
+-- Name: idx_photo_albums_deleted; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_photo_albums_deleted" ON "public"."photo_albums" USING "btree" ("deleted_at") WHERE ("deleted_at" IS NULL);
+
+
+--
+-- Name: idx_photo_albums_entity; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_photo_albums_entity" ON "public"."photo_albums" USING "btree" ("entity_type", "entity_id");
+
+
+--
+-- Name: idx_photo_albums_is_public; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_photo_albums_is_public" ON "public"."photo_albums" USING "btree" ("is_public");
+
+
+--
+-- Name: idx_photo_albums_owner_entity; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_photo_albums_owner_entity" ON "public"."photo_albums" USING "btree" ("owner_id", "entity_type");
+
+
+--
+-- Name: idx_photo_albums_owner_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_photo_albums_owner_id" ON "public"."photo_albums" USING "btree" ("owner_id");
+
+
+--
+-- Name: idx_photo_albums_public_created; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_photo_albums_public_created" ON "public"."photo_albums" USING "btree" ("is_public", "created_at") WHERE (("is_public" = true) AND ("deleted_at" IS NULL));
+
+
+--
+-- Name: idx_privacy_audit_log_user_action; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_privacy_audit_log_user_action" ON "public"."privacy_audit_log" USING "btree" ("user_id", "action", "created_at");
+
+
+--
+-- Name: idx_profiles_role; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_profiles_role" ON "public"."profiles" USING "btree" ("role");
+
+
+--
+-- Name: idx_profiles_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_profiles_user_id" ON "public"."profiles" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_publishers_country_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_publishers_country_id" ON "public"."publishers" USING "btree" ("country_id");
+
+
+--
+-- Name: idx_publishers_cover_image_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_publishers_cover_image_id" ON "public"."publishers" USING "btree" ("cover_image_id");
+
+
+--
+-- Name: idx_publishers_created_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_publishers_created_at" ON "public"."publishers" USING "btree" ("created_at" DESC);
+
+
+--
+-- Name: idx_publishers_featured; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_publishers_featured" ON "public"."publishers" USING "btree" ("featured");
+
+
+--
+-- Name: idx_publishers_name; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_publishers_name" ON "public"."publishers" USING "btree" ("name");
+
+
+--
+-- Name: idx_publishers_publisher_image_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_publishers_publisher_image_id" ON "public"."publishers" USING "btree" ("publisher_image_id");
+
+
+--
+-- Name: idx_reading_challenges_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_reading_challenges_user_id" ON "public"."reading_challenges" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_reading_lists_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_reading_lists_user_id" ON "public"."reading_lists" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_reading_progress_book_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_reading_progress_book_id" ON "public"."reading_progress" USING "btree" ("book_id");
+
+
+--
+-- Name: idx_reading_progress_created_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_reading_progress_created_at" ON "public"."reading_progress" USING "btree" ("created_at" DESC);
+
+
+--
+-- Name: idx_reading_progress_created_at_desc; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_reading_progress_created_at_desc" ON "public"."reading_progress" USING "btree" ("created_at" DESC);
+
+
+--
+-- Name: idx_reading_progress_privacy_level; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_reading_progress_privacy_level" ON "public"."reading_progress" USING "btree" ("privacy_level");
+
+
+--
+-- Name: idx_reading_progress_status; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_reading_progress_status" ON "public"."reading_progress" USING "btree" ("status");
+
+
+--
+-- Name: idx_reading_progress_status_user; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_reading_progress_status_user" ON "public"."reading_progress" USING "btree" ("status", "user_id");
+
+
+--
+-- Name: idx_reading_progress_user_book_composite; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_reading_progress_user_book_composite" ON "public"."reading_progress" USING "btree" ("user_id", "book_id");
+
+
+--
+-- Name: idx_reading_progress_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_reading_progress_user_id" ON "public"."reading_progress" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_reading_progress_user_privacy; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_reading_progress_user_privacy" ON "public"."reading_progress" USING "btree" ("user_id", "privacy_level");
+
+
+--
+-- Name: idx_reading_progress_user_status; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_reading_progress_user_status" ON "public"."reading_progress" USING "btree" ("user_id", "status");
+
+
+--
+-- Name: idx_smart_notifications_priority; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_smart_notifications_priority" ON "public"."smart_notifications" USING "btree" ("priority_level");
+
+
+--
+-- Name: idx_smart_notifications_scheduled; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_smart_notifications_scheduled" ON "public"."smart_notifications" USING "btree" ("scheduled_for");
+
+
+--
+-- Name: idx_smart_notifications_status; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_smart_notifications_status" ON "public"."smart_notifications" USING "btree" ("delivery_status");
+
+
+--
+-- Name: idx_smart_notifications_user; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_smart_notifications_user" ON "public"."smart_notifications" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_system_health_checks_checked_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_system_health_checks_checked_at" ON "public"."system_health_checks" USING "btree" ("checked_at");
+
+
+--
+-- Name: idx_system_health_checks_name_status; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_system_health_checks_name_status" ON "public"."system_health_checks" USING "btree" ("check_name", "status");
+
+
+--
+-- Name: idx_system_health_checks_status; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_system_health_checks_status" ON "public"."system_health_checks" USING "btree" ("status");
+
+
+--
+-- Name: idx_user_activity_log_activity_type; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_user_activity_log_activity_type" ON "public"."user_activity_log" USING "btree" ("activity_type");
+
+
+--
+-- Name: idx_user_activity_log_created_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_user_activity_log_created_at" ON "public"."user_activity_log" USING "btree" ("created_at");
+
+
+--
+-- Name: idx_user_activity_log_user_activity; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_user_activity_log_user_activity" ON "public"."user_activity_log" USING "btree" ("user_id", "activity_type");
+
+
+--
+-- Name: idx_user_activity_log_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_user_activity_log_user_id" ON "public"."user_activity_log" USING "btree" ("user_id");
 
 
 --
@@ -6633,6 +14798,27 @@ CREATE INDEX "idx_user_friends_status" ON "public"."user_friends" USING "btree" 
 --
 
 CREATE INDEX "idx_user_friends_user_id" ON "public"."user_friends" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_user_privacy_settings_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_user_privacy_settings_user_id" ON "public"."user_privacy_settings" USING "btree" ("user_id");
+
+
+--
+-- Name: idx_users_email; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_users_email" ON "public"."users" USING "btree" ("email");
+
+
+--
+-- Name: idx_users_role_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "idx_users_role_id" ON "public"."users" USING "btree" ("role_id");
 
 
 --
@@ -6734,10 +14920,101 @@ ALTER INDEX "realtime"."messages_pkey" ATTACH PARTITION "realtime"."messages_202
 
 
 --
+-- Name: users trigger_initialize_user_privacy_settings; Type: TRIGGER; Schema: auth; Owner: supabase_auth_admin
+--
+
+CREATE OR REPLACE TRIGGER "trigger_initialize_user_privacy_settings" AFTER INSERT ON "auth"."users" FOR EACH ROW EXECUTE FUNCTION "public"."initialize_user_privacy_settings"();
+
+
+--
+-- Name: authors audit_trail_authors; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE TRIGGER "audit_trail_authors" AFTER INSERT OR DELETE OR UPDATE ON "public"."authors" FOR EACH ROW EXECUTE FUNCTION "public"."create_enterprise_audit_trail"();
+
+
+--
+-- Name: books audit_trail_books; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE TRIGGER "audit_trail_books" AFTER INSERT OR DELETE OR UPDATE ON "public"."books" FOR EACH ROW EXECUTE FUNCTION "public"."create_enterprise_audit_trail"();
+
+
+--
+-- Name: publishers audit_trail_publishers; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE TRIGGER "audit_trail_publishers" AFTER INSERT OR DELETE OR UPDATE ON "public"."publishers" FOR EACH ROW EXECUTE FUNCTION "public"."create_enterprise_audit_trail"();
+
+
+--
+-- Name: reading_progress audit_trail_reading_progress; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE TRIGGER "audit_trail_reading_progress" AFTER INSERT OR DELETE OR UPDATE ON "public"."reading_progress" FOR EACH ROW EXECUTE FUNCTION "public"."create_enterprise_audit_trail"();
+
+
+--
+-- Name: users audit_trail_users; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE TRIGGER "audit_trail_users" AFTER INSERT OR DELETE OR UPDATE ON "public"."users" FOR EACH ROW EXECUTE FUNCTION "public"."create_enterprise_audit_trail"();
+
+
+--
+-- Name: photo_albums set_photo_albums_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE TRIGGER "set_photo_albums_updated_at" BEFORE UPDATE ON "public"."photo_albums" FOR EACH ROW EXECUTE FUNCTION "public"."update_photo_albums_updated_at"();
+
+
+--
+-- Name: book_reviews trigger_book_reviews_popularity; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE TRIGGER "trigger_book_reviews_popularity" AFTER INSERT OR DELETE OR UPDATE ON "public"."book_reviews" FOR EACH ROW EXECUTE FUNCTION "public"."trigger_update_book_popularity"();
+
+
+--
+-- Name: book_views trigger_book_views_popularity; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE TRIGGER "trigger_book_views_popularity" AFTER INSERT OR DELETE OR UPDATE ON "public"."book_views" FOR EACH ROW EXECUTE FUNCTION "public"."trigger_update_book_popularity"();
+
+
+--
+-- Name: reading_progress trigger_handle_privacy_level_update; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE TRIGGER "trigger_handle_privacy_level_update" BEFORE INSERT OR UPDATE ON "public"."reading_progress" FOR EACH ROW EXECUTE FUNCTION "public"."handle_privacy_level_update"();
+
+
+--
+-- Name: reading_progress trigger_reading_progress_consistency; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE TRIGGER "trigger_reading_progress_consistency" BEFORE INSERT OR UPDATE ON "public"."reading_progress" FOR EACH ROW EXECUTE FUNCTION "public"."ensure_reading_progress_consistency"();
+
+
+--
+-- Name: reading_progress trigger_reading_progress_popularity; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE TRIGGER "trigger_reading_progress_popularity" AFTER INSERT OR DELETE OR UPDATE ON "public"."reading_progress" FOR EACH ROW EXECUTE FUNCTION "public"."trigger_update_book_popularity"();
+
+
+--
 -- Name: dewey_decimal_classifications update_dewey_decimal_classifications_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
 CREATE OR REPLACE TRIGGER "update_dewey_decimal_classifications_updated_at" BEFORE UPDATE ON "public"."dewey_decimal_classifications" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+--
+-- Name: follows validate_follow_entity_trigger; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE OR REPLACE TRIGGER "validate_follow_entity_trigger" BEFORE INSERT ON "public"."follows" FOR EACH ROW EXECUTE FUNCTION "public"."validate_follow_entity_trigger"();
 
 
 --
@@ -6843,11 +15120,1115 @@ ALTER TABLE ONLY "auth"."sso_domains"
 
 
 --
+-- Name: activities activities_author_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."activities"
+    ADD CONSTRAINT "activities_author_id_fkey" FOREIGN KEY ("author_id") REFERENCES "public"."authors"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: activities activities_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."activities"
+    ADD CONSTRAINT "activities_book_id_fkey" FOREIGN KEY ("book_id") REFERENCES "public"."books"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: activities activities_event_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."activities"
+    ADD CONSTRAINT "activities_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: activities activities_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."activities"
+    ADD CONSTRAINT "activities_group_id_fkey" FOREIGN KEY ("group_id") REFERENCES "public"."groups"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: activities activities_list_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."activities"
+    ADD CONSTRAINT "activities_list_id_fkey" FOREIGN KEY ("list_id") REFERENCES "public"."reading_lists"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: activities activities_review_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."activities"
+    ADD CONSTRAINT "activities_review_id_fkey" FOREIGN KEY ("review_id") REFERENCES "public"."book_reviews"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: activities activities_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."activities"
+    ADD CONSTRAINT "activities_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: activity_log activity_log_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."activity_log"
+    ADD CONSTRAINT "activity_log_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: album_images album_images_album_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."album_images"
+    ADD CONSTRAINT "album_images_album_id_fkey" FOREIGN KEY ("album_id") REFERENCES "public"."photo_albums"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: album_images album_images_entity_type_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."album_images"
+    ADD CONSTRAINT "album_images_entity_type_id_fkey" FOREIGN KEY ("entity_type_id") REFERENCES "public"."entity_types"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: album_images album_images_image_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."album_images"
+    ADD CONSTRAINT "album_images_image_id_fkey" FOREIGN KEY ("image_id") REFERENCES "public"."images"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: album_shares album_shares_album_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."album_shares"
+    ADD CONSTRAINT "album_shares_album_id_fkey" FOREIGN KEY ("album_id") REFERENCES "public"."photo_albums"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: album_shares album_shares_shared_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."album_shares"
+    ADD CONSTRAINT "album_shares_shared_by_fkey" FOREIGN KEY ("shared_by") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: album_shares album_shares_shared_with_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."album_shares"
+    ADD CONSTRAINT "album_shares_shared_with_fkey" FOREIGN KEY ("shared_with") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: authors authors_author_image_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."authors"
+    ADD CONSTRAINT "authors_author_image_id_fkey" FOREIGN KEY ("author_image_id") REFERENCES "public"."images"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: authors authors_cover_image_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."authors"
+    ADD CONSTRAINT "authors_cover_image_id_fkey" FOREIGN KEY ("cover_image_id") REFERENCES "public"."images"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: automation_executions automation_executions_workflow_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."automation_executions"
+    ADD CONSTRAINT "automation_executions_workflow_id_fkey" FOREIGN KEY ("workflow_id") REFERENCES "public"."automation_workflows"("id");
+
+
+--
+-- Name: automation_workflows automation_workflows_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."automation_workflows"
+    ADD CONSTRAINT "automation_workflows_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
+
+
+--
+-- Name: blocks blocks_blocked_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."blocks"
+    ADD CONSTRAINT "blocks_blocked_user_id_fkey" FOREIGN KEY ("blocked_user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: blocks blocks_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."blocks"
+    ADD CONSTRAINT "blocks_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: book_authors book_authors_author_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_authors"
+    ADD CONSTRAINT "book_authors_author_id_fkey" FOREIGN KEY ("author_id") REFERENCES "public"."authors"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: book_authors book_authors_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_authors"
+    ADD CONSTRAINT "book_authors_book_id_fkey" FOREIGN KEY ("book_id") REFERENCES "public"."books"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: book_club_books book_club_books_book_club_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_club_books"
+    ADD CONSTRAINT "book_club_books_book_club_id_fkey" FOREIGN KEY ("book_club_id") REFERENCES "public"."book_clubs"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: book_club_books book_club_books_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_club_books"
+    ADD CONSTRAINT "book_club_books_book_id_fkey" FOREIGN KEY ("book_id") REFERENCES "public"."books"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: book_club_books book_club_books_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_club_books"
+    ADD CONSTRAINT "book_club_books_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: book_club_discussion_comments book_club_discussion_comments_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_club_discussion_comments"
+    ADD CONSTRAINT "book_club_discussion_comments_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: book_club_discussion_comments book_club_discussion_comments_discussion_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_club_discussion_comments"
+    ADD CONSTRAINT "book_club_discussion_comments_discussion_id_fkey" FOREIGN KEY ("discussion_id") REFERENCES "public"."book_club_discussions"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: book_club_discussions book_club_discussions_book_club_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_club_discussions"
+    ADD CONSTRAINT "book_club_discussions_book_club_id_fkey" FOREIGN KEY ("book_club_id") REFERENCES "public"."book_clubs"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: book_club_discussions book_club_discussions_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_club_discussions"
+    ADD CONSTRAINT "book_club_discussions_book_id_fkey" FOREIGN KEY ("book_id") REFERENCES "public"."books"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: book_club_discussions book_club_discussions_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_club_discussions"
+    ADD CONSTRAINT "book_club_discussions_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: book_club_members book_club_members_book_club_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_club_members"
+    ADD CONSTRAINT "book_club_members_book_club_id_fkey" FOREIGN KEY ("book_club_id") REFERENCES "public"."book_clubs"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: book_club_members book_club_members_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_club_members"
+    ADD CONSTRAINT "book_club_members_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: book_clubs book_clubs_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_clubs"
+    ADD CONSTRAINT "book_clubs_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: book_clubs book_clubs_current_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_clubs"
+    ADD CONSTRAINT "book_clubs_current_book_id_fkey" FOREIGN KEY ("current_book_id") REFERENCES "public"."books"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: book_genre_mappings book_genre_mappings_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_genre_mappings"
+    ADD CONSTRAINT "book_genre_mappings_book_id_fkey" FOREIGN KEY ("book_id") REFERENCES "public"."books"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: book_genre_mappings book_genre_mappings_genre_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_genre_mappings"
+    ADD CONSTRAINT "book_genre_mappings_genre_id_fkey" FOREIGN KEY ("genre_id") REFERENCES "public"."book_genres"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: book_popularity_metrics book_popularity_metrics_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_popularity_metrics"
+    ADD CONSTRAINT "book_popularity_metrics_book_id_fkey" FOREIGN KEY ("book_id") REFERENCES "public"."books"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: book_publishers book_publishers_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_publishers"
+    ADD CONSTRAINT "book_publishers_book_id_fkey" FOREIGN KEY ("book_id") REFERENCES "public"."books"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: book_publishers book_publishers_publisher_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_publishers"
+    ADD CONSTRAINT "book_publishers_publisher_id_fkey" FOREIGN KEY ("publisher_id") REFERENCES "public"."publishers"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: book_recommendations book_recommendations_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_recommendations"
+    ADD CONSTRAINT "book_recommendations_book_id_fkey" FOREIGN KEY ("book_id") REFERENCES "public"."books"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: book_recommendations book_recommendations_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_recommendations"
+    ADD CONSTRAINT "book_recommendations_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: book_reviews book_reviews_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_reviews"
+    ADD CONSTRAINT "book_reviews_book_id_fkey" FOREIGN KEY ("book_id") REFERENCES "public"."books"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: book_reviews book_reviews_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_reviews"
+    ADD CONSTRAINT "book_reviews_group_id_fkey" FOREIGN KEY ("group_id") REFERENCES "public"."groups"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: book_reviews book_reviews_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_reviews"
+    ADD CONSTRAINT "book_reviews_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: book_similarity_scores book_similarity_scores_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_similarity_scores"
+    ADD CONSTRAINT "book_similarity_scores_book_id_fkey" FOREIGN KEY ("book_id") REFERENCES "public"."books"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: book_subjects book_subjects_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_subjects"
+    ADD CONSTRAINT "book_subjects_book_id_fkey" FOREIGN KEY ("book_id") REFERENCES "public"."books"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: book_subjects book_subjects_subject_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_subjects"
+    ADD CONSTRAINT "book_subjects_subject_id_fkey" FOREIGN KEY ("subject_id") REFERENCES "public"."subjects"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: book_tag_mappings book_tag_mappings_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_tag_mappings"
+    ADD CONSTRAINT "book_tag_mappings_book_id_fkey" FOREIGN KEY ("book_id") REFERENCES "public"."books"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: book_tag_mappings book_tag_mappings_tag_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_tag_mappings"
+    ADD CONSTRAINT "book_tag_mappings_tag_id_fkey" FOREIGN KEY ("tag_id") REFERENCES "public"."book_tags"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: book_views book_views_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_views"
+    ADD CONSTRAINT "book_views_book_id_fkey" FOREIGN KEY ("book_id") REFERENCES "public"."books"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: book_views book_views_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."book_views"
+    ADD CONSTRAINT "book_views_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: books books_author_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."books"
+    ADD CONSTRAINT "books_author_id_fkey" FOREIGN KEY ("author_id") REFERENCES "public"."authors"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: books books_binding_type_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."books"
+    ADD CONSTRAINT "books_binding_type_id_fkey" FOREIGN KEY ("binding_type_id") REFERENCES "public"."binding_types"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: books books_cover_image_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."books"
+    ADD CONSTRAINT "books_cover_image_id_fkey" FOREIGN KEY ("cover_image_id") REFERENCES "public"."images"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: books books_format_type_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."books"
+    ADD CONSTRAINT "books_format_type_id_fkey" FOREIGN KEY ("format_type_id") REFERENCES "public"."format_types"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: books books_publisher_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."books"
+    ADD CONSTRAINT "books_publisher_id_fkey" FOREIGN KEY ("publisher_id") REFERENCES "public"."publishers"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: books books_status_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."books"
+    ADD CONSTRAINT "books_status_id_fkey" FOREIGN KEY ("status_id") REFERENCES "public"."statuses"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: collaborative_filtering_data collaborative_filtering_data_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."collaborative_filtering_data"
+    ADD CONSTRAINT "collaborative_filtering_data_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id");
+
+
+--
+-- Name: comments comments_feed_entry_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."comments"
+    ADD CONSTRAINT "comments_feed_entry_id_fkey" FOREIGN KEY ("feed_entry_id") REFERENCES "public"."feed_entries"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: comments comments_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."comments"
+    ADD CONSTRAINT "comments_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: content_generation_jobs content_generation_jobs_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."content_generation_jobs"
+    ADD CONSTRAINT "content_generation_jobs_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
+
+
+--
+-- Name: custom_permissions custom_permissions_target_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."custom_permissions"
+    ADD CONSTRAINT "custom_permissions_target_user_id_fkey" FOREIGN KEY ("target_user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: custom_permissions custom_permissions_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."custom_permissions"
+    ADD CONSTRAINT "custom_permissions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: data_enrichment_jobs data_enrichment_jobs_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."data_enrichment_jobs"
+    ADD CONSTRAINT "data_enrichment_jobs_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
+
+
+--
 -- Name: dewey_decimal_classifications dewey_decimal_classifications_parent_code_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY "public"."dewey_decimal_classifications"
     ADD CONSTRAINT "dewey_decimal_classifications_parent_code_fkey" FOREIGN KEY ("parent_code") REFERENCES "public"."dewey_decimal_classifications"("code");
+
+
+--
+-- Name: discussion_comments discussion_comments_discussion_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."discussion_comments"
+    ADD CONSTRAINT "discussion_comments_discussion_id_fkey" FOREIGN KEY ("discussion_id") REFERENCES "public"."discussions"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: discussion_comments discussion_comments_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."discussion_comments"
+    ADD CONSTRAINT "discussion_comments_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: discussions discussions_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."discussions"
+    ADD CONSTRAINT "discussions_book_id_fkey" FOREIGN KEY ("book_id") REFERENCES "public"."books"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: discussions discussions_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."discussions"
+    ADD CONSTRAINT "discussions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: enterprise_data_versions enterprise_data_versions_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."enterprise_data_versions"
+    ADD CONSTRAINT "enterprise_data_versions_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: event_books event_books_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_books"
+    ADD CONSTRAINT "event_books_book_id_fkey" FOREIGN KEY ("book_id") REFERENCES "public"."books"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_books event_books_event_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_books"
+    ADD CONSTRAINT "event_books_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_chat_messages event_chat_messages_chat_room_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_chat_messages"
+    ADD CONSTRAINT "event_chat_messages_chat_room_id_fkey" FOREIGN KEY ("chat_room_id") REFERENCES "public"."event_chat_rooms"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_chat_messages event_chat_messages_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_chat_messages"
+    ADD CONSTRAINT "event_chat_messages_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_chat_rooms event_chat_rooms_event_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_chat_rooms"
+    ADD CONSTRAINT "event_chat_rooms_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_comments event_comments_event_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_comments"
+    ADD CONSTRAINT "event_comments_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_comments event_comments_parent_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_comments"
+    ADD CONSTRAINT "event_comments_parent_id_fkey" FOREIGN KEY ("parent_id") REFERENCES "public"."event_comments"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: event_comments event_comments_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_comments"
+    ADD CONSTRAINT "event_comments_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_creator_permissions event_creator_permissions_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_creator_permissions"
+    ADD CONSTRAINT "event_creator_permissions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_financials event_financials_event_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_financials"
+    ADD CONSTRAINT "event_financials_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_interests event_interests_event_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_interests"
+    ADD CONSTRAINT "event_interests_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_interests event_interests_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_interests"
+    ADD CONSTRAINT "event_interests_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_likes event_likes_event_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_likes"
+    ADD CONSTRAINT "event_likes_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_likes event_likes_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_likes"
+    ADD CONSTRAINT "event_likes_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_livestreams event_livestreams_event_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_livestreams"
+    ADD CONSTRAINT "event_livestreams_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_locations event_locations_event_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_locations"
+    ADD CONSTRAINT "event_locations_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_media event_media_event_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_media"
+    ADD CONSTRAINT "event_media_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_permission_requests event_permission_requests_reviewed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_permission_requests"
+    ADD CONSTRAINT "event_permission_requests_reviewed_by_fkey" FOREIGN KEY ("reviewed_by") REFERENCES "public"."users"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: event_permission_requests event_permission_requests_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_permission_requests"
+    ADD CONSTRAINT "event_permission_requests_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_questions event_questions_event_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_questions"
+    ADD CONSTRAINT "event_questions_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_registrations event_registrations_event_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_registrations"
+    ADD CONSTRAINT "event_registrations_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_registrations event_registrations_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_registrations"
+    ADD CONSTRAINT "event_registrations_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_reminders event_reminders_event_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_reminders"
+    ADD CONSTRAINT "event_reminders_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_reminders event_reminders_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_reminders"
+    ADD CONSTRAINT "event_reminders_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_sessions event_sessions_event_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_sessions"
+    ADD CONSTRAINT "event_sessions_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_shares event_shares_event_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_shares"
+    ADD CONSTRAINT "event_shares_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_shares event_shares_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_shares"
+    ADD CONSTRAINT "event_shares_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_speakers event_speakers_author_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_speakers"
+    ADD CONSTRAINT "event_speakers_author_id_fkey" FOREIGN KEY ("author_id") REFERENCES "public"."authors"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: event_speakers event_speakers_event_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_speakers"
+    ADD CONSTRAINT "event_speakers_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_speakers event_speakers_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_speakers"
+    ADD CONSTRAINT "event_speakers_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: event_sponsors event_sponsors_event_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_sponsors"
+    ADD CONSTRAINT "event_sponsors_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_staff event_staff_event_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_staff"
+    ADD CONSTRAINT "event_staff_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_staff event_staff_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_staff"
+    ADD CONSTRAINT "event_staff_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_surveys event_surveys_event_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_surveys"
+    ADD CONSTRAINT "event_surveys_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_tags event_tags_event_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_tags"
+    ADD CONSTRAINT "event_tags_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_views event_views_event_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_views"
+    ADD CONSTRAINT "event_views_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_views event_views_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_views"
+    ADD CONSTRAINT "event_views_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: event_waitlists event_waitlists_event_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."event_waitlists"
+    ADD CONSTRAINT "event_waitlists_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: events events_author_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."events"
+    ADD CONSTRAINT "events_author_id_fkey" FOREIGN KEY ("author_id") REFERENCES "public"."authors"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: events events_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."events"
+    ADD CONSTRAINT "events_book_id_fkey" FOREIGN KEY ("book_id") REFERENCES "public"."books"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: events events_cover_image_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."events"
+    ADD CONSTRAINT "events_cover_image_id_fkey" FOREIGN KEY ("cover_image_id") REFERENCES "public"."images"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: events events_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."events"
+    ADD CONSTRAINT "events_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: events events_event_image_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."events"
+    ADD CONSTRAINT "events_event_image_id_fkey" FOREIGN KEY ("event_image_id") REFERENCES "public"."images"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: events events_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."events"
+    ADD CONSTRAINT "events_group_id_fkey" FOREIGN KEY ("group_id") REFERENCES "public"."groups"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: events events_parent_event_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."events"
+    ADD CONSTRAINT "events_parent_event_id_fkey" FOREIGN KEY ("parent_event_id") REFERENCES "public"."events"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: events events_publisher_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."events"
+    ADD CONSTRAINT "events_publisher_id_fkey" FOREIGN KEY ("publisher_id") REFERENCES "public"."publishers"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: feed_entries feed_entries_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."feed_entries"
+    ADD CONSTRAINT "feed_entries_group_id_fkey" FOREIGN KEY ("group_id") REFERENCES "public"."groups"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: feed_entries feed_entries_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."feed_entries"
+    ADD CONSTRAINT "feed_entries_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: feed_entry_tags feed_entry_tags_feed_entry_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."feed_entry_tags"
+    ADD CONSTRAINT "feed_entry_tags_feed_entry_id_fkey" FOREIGN KEY ("feed_entry_id") REFERENCES "public"."feed_entries"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: follows follows_follower_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."follows"
+    ADD CONSTRAINT "follows_follower_id_fkey" FOREIGN KEY ("follower_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: friends friends_friend_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."friends"
+    ADD CONSTRAINT "friends_friend_id_fkey" FOREIGN KEY ("friend_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: friends friends_requested_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."friends"
+    ADD CONSTRAINT "friends_requested_by_fkey" FOREIGN KEY ("requested_by") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: friends friends_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."friends"
+    ADD CONSTRAINT "friends_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: group_members group_members_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_members"
+    ADD CONSTRAINT "group_members_group_id_fkey" FOREIGN KEY ("group_id") REFERENCES "public"."groups"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: group_members group_members_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."group_members"
+    ADD CONSTRAINT "group_members_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: images images_entity_type_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."images"
+    ADD CONSTRAINT "images_entity_type_id_fkey" FOREIGN KEY ("entity_type_id") REFERENCES "public"."entity_types"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: ml_models ml_models_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."ml_models"
+    ADD CONSTRAINT "ml_models_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
+
+
+--
+-- Name: ml_predictions ml_predictions_model_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."ml_predictions"
+    ADD CONSTRAINT "ml_predictions_model_id_fkey" FOREIGN KEY ("model_id") REFERENCES "public"."ml_models"("id");
+
+
+--
+-- Name: ml_predictions ml_predictions_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."ml_predictions"
+    ADD CONSTRAINT "ml_predictions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id");
+
+
+--
+-- Name: ml_training_jobs ml_training_jobs_model_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."ml_training_jobs"
+    ADD CONSTRAINT "ml_training_jobs_model_id_fkey" FOREIGN KEY ("model_id") REFERENCES "public"."ml_models"("id");
+
+
+--
+-- Name: photo_albums photo_albums_cover_image_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."photo_albums"
+    ADD CONSTRAINT "photo_albums_cover_image_id_fkey" FOREIGN KEY ("cover_image_id") REFERENCES "public"."images"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: photo_albums photo_albums_owner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."photo_albums"
+    ADD CONSTRAINT "photo_albums_owner_id_fkey" FOREIGN KEY ("owner_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: publishers publishers_country_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."publishers"
+    ADD CONSTRAINT "publishers_country_id_fkey" FOREIGN KEY ("country_id") REFERENCES "public"."countries"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: publishers publishers_cover_image_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."publishers"
+    ADD CONSTRAINT "publishers_cover_image_id_fkey" FOREIGN KEY ("cover_image_id") REFERENCES "public"."images"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: publishers publishers_publisher_image_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."publishers"
+    ADD CONSTRAINT "publishers_publisher_image_id_fkey" FOREIGN KEY ("publisher_image_id") REFERENCES "public"."images"("id") ON DELETE SET NULL;
+
+
+--
+-- Name: reading_lists reading_lists_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."reading_lists"
+    ADD CONSTRAINT "reading_lists_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: reading_progress reading_progress_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."reading_progress"
+    ADD CONSTRAINT "reading_progress_book_id_fkey" FOREIGN KEY ("book_id") REFERENCES "public"."books"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: reading_progress reading_progress_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."reading_progress"
+    ADD CONSTRAINT "reading_progress_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: smart_notifications smart_notifications_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."smart_notifications"
+    ADD CONSTRAINT "smart_notifications_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id");
 
 
 --
@@ -6872,6 +16253,14 @@ ALTER TABLE ONLY "public"."user_friends"
 
 ALTER TABLE ONLY "public"."user_friends"
     ADD CONSTRAINT "user_friends_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: users users_role_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY "public"."users"
+    ADD CONSTRAINT "users_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "public"."roles"("id") ON DELETE SET NULL;
 
 
 --
@@ -6904,6 +16293,13 @@ ALTER TABLE ONLY "storage"."s3_multipart_uploads_parts"
 
 ALTER TABLE ONLY "storage"."s3_multipart_uploads_parts"
     ADD CONSTRAINT "s3_multipart_uploads_parts_upload_id_fkey" FOREIGN KEY ("upload_id") REFERENCES "storage"."s3_multipart_uploads"("id") ON DELETE CASCADE;
+
+
+--
+-- Name: users Users can read basic auth user info for follows; Type: POLICY; Schema: auth; Owner: supabase_auth_admin
+--
+
+CREATE POLICY "Users can read basic auth user info for follows" ON "auth"."users" FOR SELECT USING (("auth"."role"() = 'authenticated'::"text"));
 
 
 --
@@ -7003,10 +16399,989 @@ ALTER TABLE "auth"."sso_providers" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "auth"."users" ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: ml_models Admins can manage ML models; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Admins can manage ML models" ON "public"."ml_models" USING ((EXISTS ( SELECT 1
+   FROM ("public"."users" "u"
+     JOIN "public"."roles" "r" ON (("u"."role_id" = "r"."id")))
+  WHERE (("u"."id" = "auth"."uid"()) AND (("r"."name")::"text" = 'admin'::"text")))));
+
+
+--
+-- Name: automation_workflows Admins can manage automation; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Admins can manage automation" ON "public"."automation_workflows" USING ((EXISTS ( SELECT 1
+   FROM ("public"."users" "u"
+     JOIN "public"."roles" "r" ON (("u"."role_id" = "r"."id")))
+  WHERE (("u"."id" = "auth"."uid"()) AND (("r"."name")::"text" = 'admin'::"text")))));
+
+
+--
 -- Name: dewey_decimal_classifications Allow admin access to dewey_decimal_classifications; Type: POLICY; Schema: public; Owner: postgres
 --
 
 CREATE POLICY "Allow admin access to dewey_decimal_classifications" ON "public"."dewey_decimal_classifications" USING (("auth"."role"() = 'admin'::"text"));
+
+
+--
+-- Name: activity_log Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."activity_log" FOR SELECT USING (true);
+
+
+--
+-- Name: album_analytics Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."album_analytics" FOR SELECT USING (true);
+
+
+--
+-- Name: album_shares Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."album_shares" FOR SELECT USING (true);
+
+
+--
+-- Name: book_authors Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."book_authors" FOR SELECT USING (true);
+
+
+--
+-- Name: book_club_books Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."book_club_books" FOR SELECT USING (true);
+
+
+--
+-- Name: book_club_discussion_comments Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."book_club_discussion_comments" FOR SELECT USING (true);
+
+
+--
+-- Name: book_club_discussions Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."book_club_discussions" FOR SELECT USING (true);
+
+
+--
+-- Name: book_club_members Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."book_club_members" FOR SELECT USING (true);
+
+
+--
+-- Name: book_clubs Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."book_clubs" FOR SELECT USING (true);
+
+
+--
+-- Name: book_genre_mappings Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."book_genre_mappings" FOR SELECT USING (true);
+
+
+--
+-- Name: book_publishers Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."book_publishers" FOR SELECT USING (true);
+
+
+--
+-- Name: book_recommendations Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."book_recommendations" FOR SELECT USING (true);
+
+
+--
+-- Name: book_similarity_scores Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."book_similarity_scores" FOR SELECT USING (true);
+
+
+--
+-- Name: book_subjects Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."book_subjects" FOR SELECT USING (true);
+
+
+--
+-- Name: book_tag_mappings Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."book_tag_mappings" FOR SELECT USING (true);
+
+
+--
+-- Name: book_tags Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."book_tags" FOR SELECT USING (true);
+
+
+--
+-- Name: book_views Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."book_views" FOR SELECT USING (true);
+
+
+--
+-- Name: carousel_images Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."carousel_images" FOR SELECT USING (true);
+
+
+--
+-- Name: contact_info Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."contact_info" FOR SELECT USING (true);
+
+
+--
+-- Name: discussion_comments Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."discussion_comments" FOR SELECT USING (true);
+
+
+--
+-- Name: discussions Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."discussions" FOR SELECT USING (true);
+
+
+--
+-- Name: entity_types Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."entity_types" FOR SELECT USING (true);
+
+
+--
+-- Name: event_analytics Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_analytics" FOR SELECT USING (true);
+
+
+--
+-- Name: event_approvals Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_approvals" FOR SELECT USING (true);
+
+
+--
+-- Name: event_books Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_books" FOR SELECT USING (true);
+
+
+--
+-- Name: event_calendar_exports Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_calendar_exports" FOR SELECT USING (true);
+
+
+--
+-- Name: event_categories Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_categories" FOR SELECT USING (true);
+
+
+--
+-- Name: event_chat_messages Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_chat_messages" FOR SELECT USING (true);
+
+
+--
+-- Name: event_chat_rooms Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_chat_rooms" FOR SELECT USING (true);
+
+
+--
+-- Name: event_comments Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_comments" FOR SELECT USING (true);
+
+
+--
+-- Name: event_creator_permissions Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_creator_permissions" FOR SELECT USING (true);
+
+
+--
+-- Name: event_financials Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_financials" FOR SELECT USING (true);
+
+
+--
+-- Name: event_interests Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_interests" FOR SELECT USING (true);
+
+
+--
+-- Name: event_likes Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_likes" FOR SELECT USING (true);
+
+
+--
+-- Name: event_livestreams Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_livestreams" FOR SELECT USING (true);
+
+
+--
+-- Name: event_locations Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_locations" FOR SELECT USING (true);
+
+
+--
+-- Name: event_media Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_media" FOR SELECT USING (true);
+
+
+--
+-- Name: event_permission_requests Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_permission_requests" FOR SELECT USING (true);
+
+
+--
+-- Name: event_questions Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_questions" FOR SELECT USING (true);
+
+
+--
+-- Name: event_registrations Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_registrations" FOR SELECT USING (true);
+
+
+--
+-- Name: event_reminders Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_reminders" FOR SELECT USING (true);
+
+
+--
+-- Name: event_sessions Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_sessions" FOR SELECT USING (true);
+
+
+--
+-- Name: event_shares Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_shares" FOR SELECT USING (true);
+
+
+--
+-- Name: event_speakers Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_speakers" FOR SELECT USING (true);
+
+
+--
+-- Name: event_sponsors Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_sponsors" FOR SELECT USING (true);
+
+
+--
+-- Name: event_staff Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_staff" FOR SELECT USING (true);
+
+
+--
+-- Name: event_surveys Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_surveys" FOR SELECT USING (true);
+
+
+--
+-- Name: event_tags Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_tags" FOR SELECT USING (true);
+
+
+--
+-- Name: event_types Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_types" FOR SELECT USING (true);
+
+
+--
+-- Name: event_views Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_views" FOR SELECT USING (true);
+
+
+--
+-- Name: event_waitlists Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."event_waitlists" FOR SELECT USING (true);
+
+
+--
+-- Name: feed_entry_tags Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."feed_entry_tags" FOR SELECT USING (true);
+
+
+--
+-- Name: follow_target_types Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."follow_target_types" FOR SELECT USING (true);
+
+
+--
+-- Name: group_achievements Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_achievements" FOR SELECT USING (true);
+
+
+--
+-- Name: group_analytics Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_analytics" FOR SELECT USING (true);
+
+
+--
+-- Name: group_announcements Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_announcements" FOR SELECT USING (true);
+
+
+--
+-- Name: group_audit_log Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_audit_log" FOR SELECT USING (true);
+
+
+--
+-- Name: group_author_events Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_author_events" FOR SELECT USING (true);
+
+
+--
+-- Name: group_book_list_items Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_book_list_items" FOR SELECT USING (true);
+
+
+--
+-- Name: group_book_lists Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_book_lists" FOR SELECT USING (true);
+
+
+--
+-- Name: group_book_reviews Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_book_reviews" FOR SELECT USING (true);
+
+
+--
+-- Name: group_book_swaps Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_book_swaps" FOR SELECT USING (true);
+
+
+--
+-- Name: group_book_wishlist_items Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_book_wishlist_items" FOR SELECT USING (true);
+
+
+--
+-- Name: group_book_wishlists Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_book_wishlists" FOR SELECT USING (true);
+
+
+--
+-- Name: group_bots Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_bots" FOR SELECT USING (true);
+
+
+--
+-- Name: group_chat_channels Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_chat_channels" FOR SELECT USING (true);
+
+
+--
+-- Name: group_chat_message_attachments Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_chat_message_attachments" FOR SELECT USING (true);
+
+
+--
+-- Name: group_chat_message_reactions Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_chat_message_reactions" FOR SELECT USING (true);
+
+
+--
+-- Name: group_chat_messages Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_chat_messages" FOR SELECT USING (true);
+
+
+--
+-- Name: group_content_moderation_logs Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_content_moderation_logs" FOR SELECT USING (true);
+
+
+--
+-- Name: group_custom_fields Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_custom_fields" FOR SELECT USING (true);
+
+
+--
+-- Name: group_discussion_categories Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_discussion_categories" FOR SELECT USING (true);
+
+
+--
+-- Name: group_event_feedback Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_event_feedback" FOR SELECT USING (true);
+
+
+--
+-- Name: group_events Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_events" FOR SELECT USING (true);
+
+
+--
+-- Name: group_integrations Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_integrations" FOR SELECT USING (true);
+
+
+--
+-- Name: group_invites Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_invites" FOR SELECT USING (true);
+
+
+--
+-- Name: group_leaderboards Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_leaderboards" FOR SELECT USING (true);
+
+
+--
+-- Name: group_member_achievements Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_member_achievements" FOR SELECT USING (true);
+
+
+--
+-- Name: group_member_devices Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_member_devices" FOR SELECT USING (true);
+
+
+--
+-- Name: group_member_streaks Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_member_streaks" FOR SELECT USING (true);
+
+
+--
+-- Name: group_membership_questions Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_membership_questions" FOR SELECT USING (true);
+
+
+--
+-- Name: group_moderation_logs Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_moderation_logs" FOR SELECT USING (true);
+
+
+--
+-- Name: group_onboarding_checklists Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_onboarding_checklists" FOR SELECT USING (true);
+
+
+--
+-- Name: group_onboarding_progress Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_onboarding_progress" FOR SELECT USING (true);
+
+
+--
+-- Name: group_onboarding_tasks Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_onboarding_tasks" FOR SELECT USING (true);
+
+
+--
+-- Name: group_poll_votes Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_poll_votes" FOR SELECT USING (true);
+
+
+--
+-- Name: group_polls Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_polls" FOR SELECT USING (true);
+
+
+--
+-- Name: group_reading_challenge_progress Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_reading_challenge_progress" FOR SELECT USING (true);
+
+
+--
+-- Name: group_reading_challenges Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_reading_challenges" FOR SELECT USING (true);
+
+
+--
+-- Name: group_reading_progress Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_reading_progress" FOR SELECT USING (true);
+
+
+--
+-- Name: group_reading_sessions Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_reading_sessions" FOR SELECT USING (true);
+
+
+--
+-- Name: group_reports Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_reports" FOR SELECT USING (true);
+
+
+--
+-- Name: group_roles Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_roles" FOR SELECT USING (true);
+
+
+--
+-- Name: group_rules Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_rules" FOR SELECT USING (true);
+
+
+--
+-- Name: group_shared_documents Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_shared_documents" FOR SELECT USING (true);
+
+
+--
+-- Name: group_tags Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_tags" FOR SELECT USING (true);
+
+
+--
+-- Name: group_types Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_types" FOR SELECT USING (true);
+
+
+--
+-- Name: group_webhook_logs Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_webhook_logs" FOR SELECT USING (true);
+
+
+--
+-- Name: group_webhooks Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_webhooks" FOR SELECT USING (true);
+
+
+--
+-- Name: group_welcome_messages Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."group_welcome_messages" FOR SELECT USING (true);
+
+
+--
+-- Name: id_mappings Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."id_mappings" FOR SELECT USING (true);
+
+
+--
+-- Name: image_tag_mappings Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."image_tag_mappings" FOR SELECT USING (true);
+
+
+--
+-- Name: image_tags Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."image_tags" FOR SELECT USING (true);
+
+
+--
+-- Name: images Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."images" FOR SELECT USING (true);
+
+
+--
+-- Name: invoices Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."invoices" FOR SELECT USING (true);
+
+
+--
+-- Name: list_followers Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."list_followers" FOR SELECT USING (true);
+
+
+--
+-- Name: media_attachments Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."media_attachments" FOR SELECT USING (true);
+
+
+--
+-- Name: mentions Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."mentions" FOR SELECT USING (true);
+
+
+--
+-- Name: payment_methods Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."payment_methods" FOR SELECT USING (true);
+
+
+--
+-- Name: payment_transactions Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."payment_transactions" FOR SELECT USING (true);
+
+
+--
+-- Name: personalized_recommendations Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."personalized_recommendations" FOR SELECT USING (true);
+
+
+--
+-- Name: photo_album Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."photo_album" FOR SELECT USING (true);
+
+
+--
+-- Name: prices Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."prices" FOR SELECT USING (true);
+
+
+--
+-- Name: promo_codes Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."promo_codes" FOR SELECT USING (true);
+
+
+--
+-- Name: reactions Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."reactions" FOR SELECT USING (true);
+
+
+--
+-- Name: reading_challenges Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."reading_challenges" FOR SELECT USING (true);
+
+
+--
+-- Name: reading_goals Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."reading_goals" FOR SELECT USING (true);
+
+
+--
+-- Name: reading_list_items Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."reading_list_items" FOR SELECT USING (true);
+
+
+--
+-- Name: reading_series Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."reading_series" FOR SELECT USING (true);
+
+
+--
+-- Name: reading_sessions Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."reading_sessions" FOR SELECT USING (true);
+
+
+--
+-- Name: reading_stats_daily Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."reading_stats_daily" FOR SELECT USING (true);
+
+
+--
+-- Name: reading_streaks Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."reading_streaks" FOR SELECT USING (true);
+
+
+--
+-- Name: review_likes Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."review_likes" FOR SELECT USING (true);
+
+
+--
+-- Name: reviews Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."reviews" FOR SELECT USING (true);
+
+
+--
+-- Name: roles Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."roles" FOR SELECT USING (true);
+
+
+--
+-- Name: series_events Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."series_events" FOR SELECT USING (true);
+
+
+--
+-- Name: session_registrations Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."session_registrations" FOR SELECT USING (true);
+
+
+--
+-- Name: similar_books Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."similar_books" FOR SELECT USING (true);
+
+
+--
+-- Name: statuses Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."statuses" FOR SELECT USING (true);
+
+
+--
+-- Name: subjects Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."subjects" FOR SELECT USING (true);
+
+
+--
+-- Name: survey_questions Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."survey_questions" FOR SELECT USING (true);
+
+
+--
+-- Name: survey_responses Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."survey_responses" FOR SELECT USING (true);
+
+
+--
+-- Name: sync_state Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."sync_state" FOR SELECT USING (true);
+
+
+--
+-- Name: ticket_benefits Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."ticket_benefits" FOR SELECT USING (true);
+
+
+--
+-- Name: ticket_types Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."ticket_types" FOR SELECT USING (true);
+
+
+--
+-- Name: tickets Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."tickets" FOR SELECT USING (true);
+
+
+--
+-- Name: user_book_interactions Allow public read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Allow public read" ON "public"."user_book_interactions" FOR SELECT USING (true);
 
 
 --
@@ -7017,10 +17392,82 @@ CREATE POLICY "Allow read access to dewey_decimal_classifications" ON "public"."
 
 
 --
+-- Name: photo_albums Public albums are viewable by everyone; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Public albums are viewable by everyone" ON "public"."photo_albums" FOR SELECT USING ((("is_public" = true) AND (("deleted_at" IS NULL) OR ("deleted_at" > "now"()))));
+
+
+--
+-- Name: authors Public read access for authors; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Public read access for authors" ON "public"."authors" FOR SELECT USING (true);
+
+
+--
+-- Name: book_id_mapping Public read access for book_id_mapping; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Public read access for book_id_mapping" ON "public"."book_id_mapping" FOR SELECT USING (true);
+
+
+--
+-- Name: books Public read access for books; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Public read access for books" ON "public"."books" FOR SELECT USING (true);
+
+
+--
+-- Name: events Public read access for public events; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Public read access for public events" ON "public"."events" FOR SELECT USING ((("visibility" = 'public'::"text") OR ("auth"."uid"() = "created_by")));
+
+
+--
+-- Name: groups Public read access for public groups; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Public read access for public groups" ON "public"."groups" FOR SELECT USING (((NOT "is_private") OR ("auth"."uid"() IN ( SELECT "group_members"."user_id"
+   FROM "public"."group_members"
+  WHERE ("group_members"."group_id" = "groups"."id")))));
+
+
+--
+-- Name: publishers Public read access for publishers; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Public read access for publishers" ON "public"."publishers" FOR SELECT USING (true);
+
+
+--
+-- Name: content_generation_jobs Users can create content jobs; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Users can create content jobs" ON "public"."content_generation_jobs" FOR INSERT WITH CHECK (("created_by" = "auth"."uid"()));
+
+
+--
 -- Name: user_friends Users can create friend requests; Type: POLICY; Schema: public; Owner: postgres
 --
 
 CREATE POLICY "Users can create friend requests" ON "public"."user_friends" FOR INSERT WITH CHECK ((("auth"."uid"() = "user_id") OR ("auth"."uid"() = "friend_id")));
+
+
+--
+-- Name: photo_albums Users can create their own albums; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Users can create their own albums" ON "public"."photo_albums" FOR INSERT WITH CHECK (("owner_id" = "auth"."uid"()));
+
+
+--
+-- Name: photo_albums Users can delete their own albums; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Users can delete their own albums" ON "public"."photo_albums" FOR UPDATE USING (("owner_id" = "auth"."uid"())) WITH CHECK (("owner_id" = "auth"."uid"()));
 
 
 --
@@ -7031,10 +17478,115 @@ CREATE POLICY "Users can delete their own friends" ON "public"."user_friends" FO
 
 
 --
+-- Name: ml_predictions Users can insert their own predictions; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Users can insert their own predictions" ON "public"."ml_predictions" FOR INSERT WITH CHECK (("user_id" = "auth"."uid"()));
+
+
+--
+-- Name: comments Users can manage own comments; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Users can manage own comments" ON "public"."comments" USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: likes Users can manage own likes; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Users can manage own likes" ON "public"."likes" USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: photo_albums Users can manage own photo albums; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Users can manage own photo albums" ON "public"."photo_albums" USING (("auth"."uid"() = "owner_id"));
+
+
+--
+-- Name: profiles Users can read basic profile info for follows; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Users can read basic profile info for follows" ON "public"."profiles" FOR SELECT USING (("auth"."role"() = 'authenticated'::"text"));
+
+
+--
+-- Name: users Users can read basic user info for follows; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Users can read basic user info for follows" ON "public"."users" FOR SELECT USING (("auth"."role"() = 'authenticated'::"text"));
+
+
+--
+-- Name: profiles Users can update own profile; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Users can update own profile" ON "public"."profiles" FOR UPDATE USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: users Users can update own profile; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Users can update own profile" ON "public"."users" FOR UPDATE USING (("auth"."uid"() = "id"));
+
+
+--
+-- Name: photo_albums Users can update their own albums; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Users can update their own albums" ON "public"."photo_albums" FOR UPDATE USING (("owner_id" = "auth"."uid"()));
+
+
+--
 -- Name: user_friends Users can update their own friends; Type: POLICY; Schema: public; Owner: postgres
 --
 
 CREATE POLICY "Users can update their own friends" ON "public"."user_friends" FOR UPDATE USING ((("auth"."uid"() = "user_id") OR ("auth"."uid"() = "friend_id")));
+
+
+--
+-- Name: smart_notifications Users can update their own notifications; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Users can update their own notifications" ON "public"."smart_notifications" FOR UPDATE USING (("user_id" = "auth"."uid"()));
+
+
+--
+-- Name: ml_models Users can view active ML models; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Users can view active ML models" ON "public"."ml_models" FOR SELECT USING (("is_active" = true));
+
+
+--
+-- Name: profiles Users can view own profile; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Users can view own profile" ON "public"."profiles" FOR SELECT USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: users Users can view own profile; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Users can view own profile" ON "public"."users" FOR SELECT USING (("auth"."uid"() = "id"));
+
+
+--
+-- Name: photo_albums Users can view their own albums; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Users can view their own albums" ON "public"."photo_albums" FOR SELECT USING ((("owner_id" = "auth"."uid"()) AND (("deleted_at" IS NULL) OR ("deleted_at" > "now"()))));
+
+
+--
+-- Name: content_generation_jobs Users can view their own content jobs; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Users can view their own content jobs" ON "public"."content_generation_jobs" FOR SELECT USING (("created_by" = "auth"."uid"()));
 
 
 --
@@ -7045,16 +17597,1687 @@ CREATE POLICY "Users can view their own friends" ON "public"."user_friends" FOR 
 
 
 --
+-- Name: smart_notifications Users can view their own notifications; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Users can view their own notifications" ON "public"."smart_notifications" FOR SELECT USING (("user_id" = "auth"."uid"()));
+
+
+--
+-- Name: ml_predictions Users can view their own predictions; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Users can view their own predictions" ON "public"."ml_predictions" FOR SELECT USING (("user_id" = "auth"."uid"()));
+
+
+--
+-- Name: activities; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."activities" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: activities activities_delete_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "activities_delete_policy" ON "public"."activities" FOR DELETE USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: activities activities_insert_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "activities_insert_policy" ON "public"."activities" FOR INSERT WITH CHECK (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: activities activities_select_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "activities_select_policy" ON "public"."activities" FOR SELECT USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: activities activities_update_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "activities_update_policy" ON "public"."activities" FOR UPDATE USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: activity_log; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."activity_log" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: book_reviews admin_full_access_enhanced; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "admin_full_access_enhanced" ON "public"."book_reviews" TO "authenticated" USING (("auth"."role"() = 'service_role'::"text"));
+
+
+--
+-- Name: books admin_full_access_enhanced; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "admin_full_access_enhanced" ON "public"."books" TO "authenticated" USING (("auth"."role"() = 'service_role'::"text"));
+
+
+--
+-- Name: reading_progress admin_full_access_enhanced; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "admin_full_access_enhanced" ON "public"."reading_progress" TO "authenticated" USING (("auth"."role"() = 'service_role'::"text"));
+
+
+--
+-- Name: performance_metrics admin_performance_metrics; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "admin_performance_metrics" ON "public"."performance_metrics" TO "authenticated" USING (("auth"."role"() = 'service_role'::"text"));
+
+
+--
+-- Name: system_health_checks admin_system_health_checks; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "admin_system_health_checks" ON "public"."system_health_checks" TO "authenticated" USING (("auth"."role"() = 'service_role'::"text"));
+
+
+--
+-- Name: album_analytics; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."album_analytics" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: album_images; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."album_images" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: album_images album_images_delete_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "album_images_delete_policy" ON "public"."album_images" FOR DELETE USING ((EXISTS ( SELECT 1
+   FROM "public"."photo_albums"
+  WHERE (("photo_albums"."id" = "album_images"."album_id") AND ("photo_albums"."owner_id" = "auth"."uid"())))));
+
+
+--
+-- Name: album_images album_images_insert_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "album_images_insert_policy" ON "public"."album_images" FOR INSERT WITH CHECK ((EXISTS ( SELECT 1
+   FROM "public"."photo_albums"
+  WHERE (("photo_albums"."id" = "album_images"."album_id") AND ("photo_albums"."owner_id" = "auth"."uid"())))));
+
+
+--
+-- Name: album_images album_images_select_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "album_images_select_policy" ON "public"."album_images" FOR SELECT USING ((EXISTS ( SELECT 1
+   FROM "public"."photo_albums"
+  WHERE (("photo_albums"."id" = "album_images"."album_id") AND (("photo_albums"."is_public" = true) OR ("photo_albums"."owner_id" = "auth"."uid"()))))));
+
+
+--
+-- Name: album_images album_images_update_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "album_images_update_policy" ON "public"."album_images" FOR UPDATE USING ((EXISTS ( SELECT 1
+   FROM "public"."photo_albums"
+  WHERE (("photo_albums"."id" = "album_images"."album_id") AND ("photo_albums"."owner_id" = "auth"."uid"())))));
+
+
+--
+-- Name: album_shares; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."album_shares" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: enterprise_audit_trail audit_trail_admin_read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "audit_trail_admin_read" ON "public"."enterprise_audit_trail" FOR SELECT TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role_id" IS NOT NULL)))));
+
+
+--
+-- Name: enterprise_audit_trail audit_trail_own_changes; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "audit_trail_own_changes" ON "public"."enterprise_audit_trail" FOR SELECT TO "authenticated" USING (("changed_by" = "auth"."uid"()));
+
+
+--
+-- Name: authors; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."authors" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: authors authors_select_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "authors_select_policy" ON "public"."authors" FOR SELECT USING (true);
+
+
+--
+-- Name: automation_executions; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."automation_executions" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: automation_workflows; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."automation_workflows" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: binding_types; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."binding_types" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: binding_types binding_types_select_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "binding_types_select_policy" ON "public"."binding_types" FOR SELECT USING (("auth"."role"() = 'authenticated'::"text"));
+
+
+--
+-- Name: blocks; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."blocks" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: blocks blocks_delete_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "blocks_delete_policy" ON "public"."blocks" FOR DELETE USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: blocks blocks_insert_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "blocks_insert_policy" ON "public"."blocks" FOR INSERT WITH CHECK (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: blocks blocks_select_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "blocks_select_policy" ON "public"."blocks" FOR SELECT USING ((("auth"."uid"() = "user_id") OR ("auth"."uid"() = "blocked_user_id")));
+
+
+--
+-- Name: book_authors; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."book_authors" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: book_club_books; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."book_club_books" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: book_club_discussion_comments; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."book_club_discussion_comments" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: book_club_discussions; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."book_club_discussions" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: book_club_members; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."book_club_members" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: book_clubs; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."book_clubs" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: book_genre_mappings; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."book_genre_mappings" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: book_genres; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."book_genres" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: book_genres book_genres_select_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "book_genres_select_policy" ON "public"."book_genres" FOR SELECT USING (("auth"."role"() = 'authenticated'::"text"));
+
+
+--
+-- Name: book_id_mapping; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."book_id_mapping" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: book_popularity_metrics; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."book_popularity_metrics" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: book_publishers; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."book_publishers" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: book_recommendations; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."book_recommendations" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: book_reviews; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."book_reviews" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: book_reviews book_reviews_delete_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "book_reviews_delete_policy" ON "public"."book_reviews" FOR DELETE USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: book_reviews book_reviews_insert_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "book_reviews_insert_policy" ON "public"."book_reviews" FOR INSERT WITH CHECK (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: book_reviews book_reviews_select_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "book_reviews_select_policy" ON "public"."book_reviews" FOR SELECT USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: book_reviews book_reviews_update_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "book_reviews_update_policy" ON "public"."book_reviews" FOR UPDATE USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: book_similarity_scores; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."book_similarity_scores" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: book_subjects; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."book_subjects" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: book_tag_mappings; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."book_tag_mappings" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: book_tags; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."book_tags" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: book_views; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."book_views" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: books; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."books" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: books books_select_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "books_select_policy" ON "public"."books" FOR SELECT USING (true);
+
+
+--
+-- Name: carousel_images; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."carousel_images" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: collaborative_filtering_data; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."collaborative_filtering_data" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: comments; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."comments" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: contact_info; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."contact_info" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: content_features; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."content_features" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: content_generation_jobs; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."content_generation_jobs" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: countries; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."countries" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: countries countries_select_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "countries_select_policy" ON "public"."countries" FOR SELECT USING (("auth"."role"() = 'authenticated'::"text"));
+
+
+--
+-- Name: custom_permissions; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."custom_permissions" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: custom_permissions custom_permissions_owner_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "custom_permissions_owner_policy" ON "public"."custom_permissions" USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: custom_permissions custom_permissions_target_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "custom_permissions_target_policy" ON "public"."custom_permissions" FOR SELECT USING (("auth"."uid"() = "target_user_id"));
+
+
+--
+-- Name: data_enrichment_jobs; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."data_enrichment_jobs" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: enterprise_data_lineage data_lineage_read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "data_lineage_read" ON "public"."enterprise_data_lineage" FOR SELECT TO "authenticated" USING (true);
+
+
+--
+-- Name: enterprise_data_quality_rules data_quality_rules_read; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "data_quality_rules_read" ON "public"."enterprise_data_quality_rules" FOR SELECT TO "authenticated" USING (("is_active" = true));
+
+
+--
+-- Name: enterprise_data_versions data_versions_admin_access; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "data_versions_admin_access" ON "public"."enterprise_data_versions" TO "authenticated" USING ((EXISTS ( SELECT 1
+   FROM "public"."users"
+  WHERE (("users"."id" = "auth"."uid"()) AND ("users"."role_id" IS NOT NULL)))));
+
+
+--
 -- Name: dewey_decimal_classifications; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE "public"."dewey_decimal_classifications" ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: discussion_comments; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."discussion_comments" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: discussions; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."discussions" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: enterprise_audit_trail; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."enterprise_audit_trail" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: enterprise_data_lineage; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."enterprise_data_lineage" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: enterprise_data_quality_rules; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."enterprise_data_quality_rules" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: enterprise_data_versions; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."enterprise_data_versions" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: entity_types; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."entity_types" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_analytics; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_analytics" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_approvals; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_approvals" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_books; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_books" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_calendar_exports; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_calendar_exports" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_categories; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_categories" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_chat_messages; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_chat_messages" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_chat_rooms; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_chat_rooms" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_comments; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_comments" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_creator_permissions; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_creator_permissions" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_financials; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_financials" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_interests; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_interests" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_likes; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_likes" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_livestreams; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_livestreams" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_locations; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_locations" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_media; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_media" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_permission_requests; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_permission_requests" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_questions; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_questions" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_registrations; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_registrations" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_reminders; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_reminders" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_sessions; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_sessions" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_shares; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_shares" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_speakers; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_speakers" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_sponsors; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_sponsors" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_staff; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_staff" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_surveys; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_surveys" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_tags; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_tags" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_types; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_types" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_views; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_views" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: event_waitlists; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."event_waitlists" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: events; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."events" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: feed_entries; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."feed_entries" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: feed_entries feed_entries_delete_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "feed_entries_delete_policy" ON "public"."feed_entries" FOR DELETE USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: feed_entries feed_entries_insert_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "feed_entries_insert_policy" ON "public"."feed_entries" FOR INSERT WITH CHECK (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: feed_entries feed_entries_select_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "feed_entries_select_policy" ON "public"."feed_entries" FOR SELECT USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: feed_entries feed_entries_update_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "feed_entries_update_policy" ON "public"."feed_entries" FOR UPDATE USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: feed_entry_tags; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."feed_entry_tags" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: follow_target_types; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."follow_target_types" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: follows; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."follows" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: follows follows_delete_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "follows_delete_policy" ON "public"."follows" FOR DELETE USING (("auth"."uid"() = "follower_id"));
+
+
+--
+-- Name: follows follows_insert_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "follows_insert_policy" ON "public"."follows" FOR INSERT WITH CHECK (("auth"."uid"() = "follower_id"));
+
+
+--
+-- Name: follows follows_select_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "follows_select_policy" ON "public"."follows" FOR SELECT USING ((("auth"."uid"() = "follower_id") OR ("auth"."uid"() = "following_id")));
+
+
+--
+-- Name: follows follows_update_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "follows_update_policy" ON "public"."follows" FOR UPDATE USING (("auth"."uid"() = "follower_id"));
+
+
+--
+-- Name: format_types; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."format_types" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: format_types format_types_select_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "format_types_select_policy" ON "public"."format_types" FOR SELECT USING (("auth"."role"() = 'authenticated'::"text"));
+
+
+--
+-- Name: friends; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."friends" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: friends friends_delete_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "friends_delete_policy" ON "public"."friends" FOR DELETE USING ((("auth"."uid"() = "user_id") OR ("auth"."uid"() = "friend_id")));
+
+
+--
+-- Name: friends friends_insert_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "friends_insert_policy" ON "public"."friends" FOR INSERT WITH CHECK (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: friends friends_select_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "friends_select_policy" ON "public"."friends" FOR SELECT USING ((("auth"."uid"() = "user_id") OR ("auth"."uid"() = "friend_id")));
+
+
+--
+-- Name: group_achievements; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_achievements" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_analytics; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_analytics" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_announcements; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_announcements" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_audit_log; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_audit_log" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_author_events; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_author_events" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_book_list_items; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_book_list_items" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_book_lists; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_book_lists" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_book_reviews; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_book_reviews" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_book_swaps; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_book_swaps" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_book_wishlist_items; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_book_wishlist_items" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_book_wishlists; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_book_wishlists" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_bots; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_bots" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_chat_channels; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_chat_channels" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_chat_message_attachments; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_chat_message_attachments" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_chat_message_reactions; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_chat_message_reactions" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_chat_messages; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_chat_messages" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_content_moderation_logs; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_content_moderation_logs" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_custom_fields; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_custom_fields" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_discussion_categories; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_discussion_categories" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_event_feedback; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_event_feedback" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_events; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_events" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_integrations; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_integrations" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_invites; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_invites" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_leaderboards; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_leaderboards" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_member_achievements; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_member_achievements" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_member_devices; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_member_devices" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_member_streaks; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_member_streaks" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_members; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_members" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_members group_members_select_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "group_members_select_policy" ON "public"."group_members" FOR SELECT USING ((("auth"."uid"() = "user_id") OR (EXISTS ( SELECT 1
+   FROM "public"."groups"
+  WHERE (("groups"."id" = "group_members"."group_id") AND ("groups"."is_private" = false))))));
+
+
+--
+-- Name: group_membership_questions; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_membership_questions" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_moderation_logs; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_moderation_logs" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_onboarding_checklists; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_onboarding_checklists" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_onboarding_progress; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_onboarding_progress" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_onboarding_tasks; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_onboarding_tasks" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_poll_votes; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_poll_votes" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_polls; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_polls" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_reading_challenge_progress; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_reading_challenge_progress" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_reading_challenges; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_reading_challenges" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_reading_progress; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_reading_progress" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_reading_sessions; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_reading_sessions" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_reports; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_reports" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_roles; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_roles" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_rules; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_rules" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_shared_documents; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_shared_documents" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_tags; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_tags" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_types; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_types" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_webhook_logs; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_webhook_logs" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_webhooks; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_webhooks" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: group_welcome_messages; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."group_welcome_messages" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: groups; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."groups" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: id_mappings; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."id_mappings" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: image_tag_mappings; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."image_tag_mappings" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: image_tags; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."image_tags" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: images; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."images" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: invoices; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."invoices" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: likes; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."likes" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: list_followers; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."list_followers" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: media_attachments; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."media_attachments" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: mentions; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."mentions" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: ml_models; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."ml_models" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: ml_predictions; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."ml_predictions" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: ml_training_jobs; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."ml_training_jobs" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: nlp_analysis; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."nlp_analysis" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: notifications; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."notifications" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: notifications notifications_delete_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "notifications_delete_policy" ON "public"."notifications" FOR DELETE USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: notifications notifications_insert_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "notifications_insert_policy" ON "public"."notifications" FOR INSERT WITH CHECK (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: notifications notifications_select_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "notifications_select_policy" ON "public"."notifications" FOR SELECT USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: notifications notifications_update_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "notifications_update_policy" ON "public"."notifications" FOR UPDATE USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: payment_methods; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."payment_methods" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: payment_transactions; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."payment_transactions" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: performance_metrics; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."performance_metrics" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: personalized_recommendations; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."personalized_recommendations" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: photo_album; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."photo_album" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: photo_albums; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."photo_albums" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: photo_albums photo_albums_delete_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "photo_albums_delete_policy" ON "public"."photo_albums" FOR DELETE USING (("auth"."uid"() = "owner_id"));
+
+
+--
+-- Name: photo_albums photo_albums_insert_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "photo_albums_insert_policy" ON "public"."photo_albums" FOR INSERT WITH CHECK (("auth"."uid"() = "owner_id"));
+
+
+--
+-- Name: photo_albums photo_albums_select_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "photo_albums_select_policy" ON "public"."photo_albums" FOR SELECT USING ((("is_public" = true) OR ("auth"."uid"() = "owner_id")));
+
+
+--
+-- Name: photo_albums photo_albums_update_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "photo_albums_update_policy" ON "public"."photo_albums" FOR UPDATE USING (("auth"."uid"() = "owner_id"));
+
+
+--
+-- Name: posts; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."posts" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: posts posts_delete_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "posts_delete_policy" ON "public"."posts" FOR DELETE USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: posts posts_insert_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "posts_insert_policy" ON "public"."posts" FOR INSERT WITH CHECK (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: posts posts_select_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "posts_select_policy" ON "public"."posts" FOR SELECT USING ((("visibility" = 'public'::"text") OR ("auth"."uid"() = "user_id")));
+
+
+--
+-- Name: posts posts_update_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "posts_update_policy" ON "public"."posts" FOR UPDATE USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: prices; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."prices" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: privacy_audit_log; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."privacy_audit_log" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: privacy_audit_log privacy_audit_log_owner_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "privacy_audit_log_owner_policy" ON "public"."privacy_audit_log" USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: profiles; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."profiles" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: promo_codes; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."promo_codes" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: book_popularity_metrics public_book_popularity_metrics; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "public_book_popularity_metrics" ON "public"."book_popularity_metrics" FOR SELECT TO "authenticated" USING (true);
+
+
+--
+-- Name: publishers; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."publishers" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: reactions; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."reactions" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: reading_challenges; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."reading_challenges" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: reading_goals; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."reading_goals" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: reading_list_items; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."reading_list_items" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: reading_lists; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."reading_lists" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: reading_lists reading_lists_delete_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "reading_lists_delete_policy" ON "public"."reading_lists" FOR DELETE USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: reading_lists reading_lists_insert_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "reading_lists_insert_policy" ON "public"."reading_lists" FOR INSERT WITH CHECK (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: reading_lists reading_lists_select_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "reading_lists_select_policy" ON "public"."reading_lists" FOR SELECT USING ((("is_public" = true) OR ("auth"."uid"() = "user_id")));
+
+
+--
+-- Name: reading_lists reading_lists_update_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "reading_lists_update_policy" ON "public"."reading_lists" FOR UPDATE USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: reading_progress; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."reading_progress" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: reading_progress reading_progress_owner_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "reading_progress_owner_policy" ON "public"."reading_progress" USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: reading_progress reading_progress_public_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "reading_progress_public_policy" ON "public"."reading_progress" FOR SELECT USING ((("privacy_level" = 'public'::"text") OR (("privacy_level" = 'friends'::"text") AND (EXISTS ( SELECT 1
+   FROM "public"."user_friends"
+  WHERE ((("user_friends"."user_id" = "auth"."uid"()) AND ("user_friends"."friend_id" = "reading_progress"."user_id")) OR (("user_friends"."friend_id" = "auth"."uid"()) AND ("user_friends"."user_id" = "reading_progress"."user_id")))))) OR (("privacy_level" = 'followers'::"text") AND (EXISTS ( SELECT 1
+   FROM "public"."follows"
+  WHERE (("follows"."follower_id" = "auth"."uid"()) AND ("follows"."following_id" = "reading_progress"."user_id")))))));
+
+
+--
+-- Name: reading_series; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."reading_series" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: reading_sessions; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."reading_sessions" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: reading_stats_daily; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."reading_stats_daily" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: reading_streaks; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."reading_streaks" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: review_likes; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."review_likes" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: reviews; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."reviews" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: roles; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."roles" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: series_events; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."series_events" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: session_registrations; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."session_registrations" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: similar_books; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."similar_books" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: smart_notifications; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."smart_notifications" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: statuses; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."statuses" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: subjects; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."subjects" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: survey_questions; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."survey_questions" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: survey_responses; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."survey_responses" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: sync_state; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."sync_state" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: system_health_checks; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."system_health_checks" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tags; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."tags" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tags tags_select_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "tags_select_policy" ON "public"."tags" FOR SELECT USING (("auth"."role"() = 'authenticated'::"text"));
+
+
+--
+-- Name: ticket_benefits; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."ticket_benefits" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: ticket_types; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."ticket_types" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: tickets; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."tickets" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: user_activity_log; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."user_activity_log" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: user_book_interactions; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."user_book_interactions" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: user_book_interactions user_book_interactions_delete_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "user_book_interactions_delete_policy" ON "public"."user_book_interactions" FOR DELETE USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: user_book_interactions user_book_interactions_insert_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "user_book_interactions_insert_policy" ON "public"."user_book_interactions" FOR INSERT WITH CHECK (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: user_book_interactions user_book_interactions_select_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "user_book_interactions_select_policy" ON "public"."user_book_interactions" FOR SELECT USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: user_book_interactions user_book_interactions_update_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "user_book_interactions_update_policy" ON "public"."user_book_interactions" FOR UPDATE USING (("auth"."uid"() = "user_id"));
+
+
+--
 -- Name: user_friends; Type: ROW SECURITY; Schema: public; Owner: postgres
 --
 
 ALTER TABLE "public"."user_friends" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: user_activity_log user_own_activity_log; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "user_own_activity_log" ON "public"."user_activity_log" FOR SELECT TO "authenticated" USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: user_privacy_settings; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."user_privacy_settings" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: user_privacy_settings user_privacy_settings_owner_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "user_privacy_settings_owner_policy" ON "public"."user_privacy_settings" USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: user_reading_preferences; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."user_reading_preferences" ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: user_reading_preferences user_reading_preferences_select_policy; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "user_reading_preferences_select_policy" ON "public"."user_reading_preferences" FOR SELECT USING (("auth"."uid"() = "user_id"));
+
+
+--
+-- Name: users; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE "public"."users" ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: messages; Type: ROW SECURITY; Schema: realtime; Owner: supabase_realtime_admin
@@ -7223,12 +19446,300 @@ GRANT ALL ON FUNCTION "extensions"."set_graphql_placeholder"() TO "postgres" WIT
 
 
 --
+-- Name: FUNCTION "anonymize_user_data_enhanced"("p_user_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."anonymize_user_data_enhanced"("p_user_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."anonymize_user_data_enhanced"("p_user_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."anonymize_user_data_enhanced"("p_user_id" "uuid") TO "service_role";
+
+
+--
+-- Name: FUNCTION "check_data_health"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."check_data_health"() TO "anon";
+GRANT ALL ON FUNCTION "public"."check_data_health"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."check_data_health"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "check_data_integrity_health"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."check_data_integrity_health"() TO "anon";
+GRANT ALL ON FUNCTION "public"."check_data_integrity_health"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."check_data_integrity_health"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "check_data_quality_issues_enhanced"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."check_data_quality_issues_enhanced"() TO "anon";
+GRANT ALL ON FUNCTION "public"."check_data_quality_issues_enhanced"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."check_data_quality_issues_enhanced"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "check_existing_follow"("p_follower_id" "uuid", "p_following_id" "uuid", "p_target_type_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."check_existing_follow"("p_follower_id" "uuid", "p_following_id" "uuid", "p_target_type_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."check_existing_follow"("p_follower_id" "uuid", "p_following_id" "uuid", "p_target_type_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."check_existing_follow"("p_follower_id" "uuid", "p_following_id" "uuid", "p_target_type_id" "uuid") TO "service_role";
+
+
+--
+-- Name: FUNCTION "check_is_following"("p_follower_id" "uuid", "p_following_id" "uuid", "p_target_type_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."check_is_following"("p_follower_id" "uuid", "p_following_id" "uuid", "p_target_type_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."check_is_following"("p_follower_id" "uuid", "p_following_id" "uuid", "p_target_type_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."check_is_following"("p_follower_id" "uuid", "p_following_id" "uuid", "p_target_type_id" "uuid") TO "service_role";
+
+
+--
+-- Name: FUNCTION "check_publisher_data_health"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."check_publisher_data_health"() TO "anon";
+GRANT ALL ON FUNCTION "public"."check_publisher_data_health"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."check_publisher_data_health"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "check_rate_limit_enhanced"("p_user_id" "uuid", "p_action" "text", "p_max_attempts" integer, "p_window_minutes" integer); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."check_rate_limit_enhanced"("p_user_id" "uuid", "p_action" "text", "p_max_attempts" integer, "p_window_minutes" integer) TO "anon";
+GRANT ALL ON FUNCTION "public"."check_rate_limit_enhanced"("p_user_id" "uuid", "p_action" "text", "p_max_attempts" integer, "p_window_minutes" integer) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."check_rate_limit_enhanced"("p_user_id" "uuid", "p_action" "text", "p_max_attempts" integer, "p_window_minutes" integer) TO "service_role";
+
+
+--
+-- Name: FUNCTION "check_reading_privacy_access"("target_user_id" "uuid", "requesting_user_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."check_reading_privacy_access"("target_user_id" "uuid", "requesting_user_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."check_reading_privacy_access"("target_user_id" "uuid", "requesting_user_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."check_reading_privacy_access"("target_user_id" "uuid", "requesting_user_id" "uuid") TO "service_role";
+
+
+--
+-- Name: FUNCTION "cleanup_old_audit_trail"("p_days_to_keep" integer); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."cleanup_old_audit_trail"("p_days_to_keep" integer) TO "anon";
+GRANT ALL ON FUNCTION "public"."cleanup_old_audit_trail"("p_days_to_keep" integer) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."cleanup_old_audit_trail"("p_days_to_keep" integer) TO "service_role";
+
+
+--
+-- Name: FUNCTION "cleanup_old_monitoring_data"("p_days_to_keep" integer); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."cleanup_old_monitoring_data"("p_days_to_keep" integer) TO "anon";
+GRANT ALL ON FUNCTION "public"."cleanup_old_monitoring_data"("p_days_to_keep" integer) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."cleanup_old_monitoring_data"("p_days_to_keep" integer) TO "service_role";
+
+
+--
+-- Name: FUNCTION "cleanup_orphaned_records"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."cleanup_orphaned_records"() TO "anon";
+GRANT ALL ON FUNCTION "public"."cleanup_orphaned_records"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."cleanup_orphaned_records"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "comprehensive_system_health_check_enhanced"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."comprehensive_system_health_check_enhanced"() TO "anon";
+GRANT ALL ON FUNCTION "public"."comprehensive_system_health_check_enhanced"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."comprehensive_system_health_check_enhanced"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "create_data_version"("p_table_name" "text", "p_record_id" "uuid", "p_change_reason" "text"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."create_data_version"("p_table_name" "text", "p_record_id" "uuid", "p_change_reason" "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."create_data_version"("p_table_name" "text", "p_record_id" "uuid", "p_change_reason" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."create_data_version"("p_table_name" "text", "p_record_id" "uuid", "p_change_reason" "text") TO "service_role";
+
+
+--
+-- Name: FUNCTION "create_enterprise_audit_trail"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."create_enterprise_audit_trail"() TO "anon";
+GRANT ALL ON FUNCTION "public"."create_enterprise_audit_trail"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."create_enterprise_audit_trail"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "decrypt_sensitive_data_enhanced"("p_encrypted_data" "text", "p_key" "text"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."decrypt_sensitive_data_enhanced"("p_encrypted_data" "text", "p_key" "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."decrypt_sensitive_data_enhanced"("p_encrypted_data" "text", "p_key" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."decrypt_sensitive_data_enhanced"("p_encrypted_data" "text", "p_key" "text") TO "service_role";
+
+
+--
+-- Name: FUNCTION "delete_follow_record"("p_follower_id" "uuid", "p_following_id" "uuid", "p_target_type_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."delete_follow_record"("p_follower_id" "uuid", "p_following_id" "uuid", "p_target_type_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."delete_follow_record"("p_follower_id" "uuid", "p_following_id" "uuid", "p_target_type_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."delete_follow_record"("p_follower_id" "uuid", "p_following_id" "uuid", "p_target_type_id" "uuid") TO "service_role";
+
+
+--
+-- Name: FUNCTION "encrypt_sensitive_data_enhanced"("p_data" "text", "p_key" "text"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."encrypt_sensitive_data_enhanced"("p_data" "text", "p_key" "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."encrypt_sensitive_data_enhanced"("p_data" "text", "p_key" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."encrypt_sensitive_data_enhanced"("p_data" "text", "p_key" "text") TO "service_role";
+
+
+--
+-- Name: FUNCTION "ensure_reading_progress_consistency"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."ensure_reading_progress_consistency"() TO "anon";
+GRANT ALL ON FUNCTION "public"."ensure_reading_progress_consistency"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."ensure_reading_progress_consistency"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "export_user_data_enhanced"("p_user_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."export_user_data_enhanced"("p_user_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."export_user_data_enhanced"("p_user_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."export_user_data_enhanced"("p_user_id" "uuid") TO "service_role";
+
+
+--
 -- Name: FUNCTION "extract_book_dimensions"("book_uuid" "uuid", "dimensions_json" "jsonb"); Type: ACL; Schema: public; Owner: postgres
 --
 
 GRANT ALL ON FUNCTION "public"."extract_book_dimensions"("book_uuid" "uuid", "dimensions_json" "jsonb") TO "anon";
 GRANT ALL ON FUNCTION "public"."extract_book_dimensions"("book_uuid" "uuid", "dimensions_json" "jsonb") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."extract_book_dimensions"("book_uuid" "uuid", "dimensions_json" "jsonb") TO "service_role";
+
+
+--
+-- Name: FUNCTION "fix_missing_publisher_relationships"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."fix_missing_publisher_relationships"() TO "anon";
+GRANT ALL ON FUNCTION "public"."fix_missing_publisher_relationships"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."fix_missing_publisher_relationships"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "generate_data_health_report"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."generate_data_health_report"() TO "anon";
+GRANT ALL ON FUNCTION "public"."generate_data_health_report"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."generate_data_health_report"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "generate_intelligent_content"("p_content_type" "text", "p_input_data" "jsonb", "p_user_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."generate_intelligent_content"("p_content_type" "text", "p_input_data" "jsonb", "p_user_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."generate_intelligent_content"("p_content_type" "text", "p_input_data" "jsonb", "p_user_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."generate_intelligent_content"("p_content_type" "text", "p_input_data" "jsonb", "p_user_id" "uuid") TO "service_role";
+
+
+--
+-- Name: FUNCTION "generate_monitoring_report"("p_days_back" integer); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."generate_monitoring_report"("p_days_back" integer) TO "anon";
+GRANT ALL ON FUNCTION "public"."generate_monitoring_report"("p_days_back" integer) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."generate_monitoring_report"("p_days_back" integer) TO "service_role";
+
+
+--
+-- Name: FUNCTION "generate_smart_notification"("p_user_id" "uuid", "p_notification_type" "text", "p_context_data" "jsonb"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."generate_smart_notification"("p_user_id" "uuid", "p_notification_type" "text", "p_context_data" "jsonb") TO "anon";
+GRANT ALL ON FUNCTION "public"."generate_smart_notification"("p_user_id" "uuid", "p_notification_type" "text", "p_context_data" "jsonb") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."generate_smart_notification"("p_user_id" "uuid", "p_notification_type" "text", "p_context_data" "jsonb") TO "service_role";
+
+
+--
+-- Name: FUNCTION "generate_system_alerts_enhanced"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."generate_system_alerts_enhanced"() TO "anon";
+GRANT ALL ON FUNCTION "public"."generate_system_alerts_enhanced"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."generate_system_alerts_enhanced"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "get_ai_book_recommendations"("p_user_id" "uuid", "p_limit" integer); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."get_ai_book_recommendations"("p_user_id" "uuid", "p_limit" integer) TO "anon";
+GRANT ALL ON FUNCTION "public"."get_ai_book_recommendations"("p_user_id" "uuid", "p_limit" integer) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_ai_book_recommendations"("p_user_id" "uuid", "p_limit" integer) TO "service_role";
+
+
+--
+-- Name: FUNCTION "get_data_lineage"("p_table_name" "text"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."get_data_lineage"("p_table_name" "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."get_data_lineage"("p_table_name" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_data_lineage"("p_table_name" "text") TO "service_role";
+
+
+--
+-- Name: FUNCTION "get_data_quality_report"("p_table_name" "text"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."get_data_quality_report"("p_table_name" "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."get_data_quality_report"("p_table_name" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_data_quality_report"("p_table_name" "text") TO "service_role";
+
+
+--
+-- Name: FUNCTION "get_entity_images"("p_entity_type" "text", "p_entity_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."get_entity_images"("p_entity_type" "text", "p_entity_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."get_entity_images"("p_entity_type" "text", "p_entity_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_entity_images"("p_entity_type" "text", "p_entity_id" "uuid") TO "service_role";
+
+
+--
+-- Name: FUNCTION "get_performance_recommendations"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."get_performance_recommendations"() TO "anon";
+GRANT ALL ON FUNCTION "public"."get_performance_recommendations"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_performance_recommendations"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "get_privacy_audit_summary"("days_back" integer); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."get_privacy_audit_summary"("days_back" integer) TO "anon";
+GRANT ALL ON FUNCTION "public"."get_privacy_audit_summary"("days_back" integer) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_privacy_audit_summary"("days_back" integer) TO "service_role";
 
 
 --
@@ -7241,12 +19752,39 @@ GRANT ALL ON FUNCTION "public"."get_user_feed_activities"("p_user_id" "uuid", "p
 
 
 --
+-- Name: FUNCTION "get_user_privacy_settings"("user_id_param" "uuid"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."get_user_privacy_settings"("user_id_param" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."get_user_privacy_settings"("user_id_param" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_user_privacy_settings"("user_id_param" "uuid") TO "service_role";
+
+
+--
+-- Name: FUNCTION "grant_reading_permission"("target_user_id" "uuid", "permission_type" "text", "expires_at" timestamp with time zone); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."grant_reading_permission"("target_user_id" "uuid", "permission_type" "text", "expires_at" timestamp with time zone) TO "anon";
+GRANT ALL ON FUNCTION "public"."grant_reading_permission"("target_user_id" "uuid", "permission_type" "text", "expires_at" timestamp with time zone) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."grant_reading_permission"("target_user_id" "uuid", "permission_type" "text", "expires_at" timestamp with time zone) TO "service_role";
+
+
+--
 -- Name: FUNCTION "handle_album_privacy_update"(); Type: ACL; Schema: public; Owner: postgres
 --
 
 GRANT ALL ON FUNCTION "public"."handle_album_privacy_update"() TO "anon";
 GRANT ALL ON FUNCTION "public"."handle_album_privacy_update"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."handle_album_privacy_update"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "handle_privacy_level_update"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."handle_privacy_level_update"() TO "anon";
+GRANT ALL ON FUNCTION "public"."handle_privacy_level_update"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."handle_privacy_level_update"() TO "service_role";
 
 
 --
@@ -7259,12 +19797,147 @@ GRANT ALL ON FUNCTION "public"."handle_public_album_creation"() TO "service_role
 
 
 --
+-- Name: FUNCTION "initialize_user_privacy_settings"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."initialize_user_privacy_settings"() TO "anon";
+GRANT ALL ON FUNCTION "public"."initialize_user_privacy_settings"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."initialize_user_privacy_settings"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "insert_follow_record"("p_follower_id" "uuid", "p_following_id" "uuid", "p_target_type_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."insert_follow_record"("p_follower_id" "uuid", "p_following_id" "uuid", "p_target_type_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."insert_follow_record"("p_follower_id" "uuid", "p_following_id" "uuid", "p_target_type_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."insert_follow_record"("p_follower_id" "uuid", "p_following_id" "uuid", "p_target_type_id" "uuid") TO "service_role";
+
+
+--
+-- Name: FUNCTION "log_sensitive_operation_enhanced"("p_operation_type" "text", "p_table_name" "text", "p_record_id" "uuid", "p_user_id" "uuid", "p_details" "jsonb"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."log_sensitive_operation_enhanced"("p_operation_type" "text", "p_table_name" "text", "p_record_id" "uuid", "p_user_id" "uuid", "p_details" "jsonb") TO "anon";
+GRANT ALL ON FUNCTION "public"."log_sensitive_operation_enhanced"("p_operation_type" "text", "p_table_name" "text", "p_record_id" "uuid", "p_user_id" "uuid", "p_details" "jsonb") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."log_sensitive_operation_enhanced"("p_operation_type" "text", "p_table_name" "text", "p_record_id" "uuid", "p_user_id" "uuid", "p_details" "jsonb") TO "service_role";
+
+
+--
+-- Name: FUNCTION "log_user_activity"("p_user_id" "uuid", "p_activity_type" "text", "p_activity_details" "jsonb", "p_ip_address" "inet", "p_user_agent" "text", "p_session_id" "text", "p_response_time_ms" integer, "p_status_code" integer); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."log_user_activity"("p_user_id" "uuid", "p_activity_type" "text", "p_activity_details" "jsonb", "p_ip_address" "inet", "p_user_agent" "text", "p_session_id" "text", "p_response_time_ms" integer, "p_status_code" integer) TO "anon";
+GRANT ALL ON FUNCTION "public"."log_user_activity"("p_user_id" "uuid", "p_activity_type" "text", "p_activity_details" "jsonb", "p_ip_address" "inet", "p_user_agent" "text", "p_session_id" "text", "p_response_time_ms" integer, "p_status_code" integer) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."log_user_activity"("p_user_id" "uuid", "p_activity_type" "text", "p_activity_details" "jsonb", "p_ip_address" "inet", "p_user_agent" "text", "p_session_id" "text", "p_response_time_ms" integer, "p_status_code" integer) TO "service_role";
+
+
+--
+-- Name: FUNCTION "map_progress_to_reading_status"("status" "text"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."map_progress_to_reading_status"("status" "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."map_progress_to_reading_status"("status" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."map_progress_to_reading_status"("status" "text") TO "service_role";
+
+
+--
+-- Name: FUNCTION "map_reading_status_to_progress"("status" "text"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."map_reading_status_to_progress"("status" "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."map_reading_status_to_progress"("status" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."map_reading_status_to_progress"("status" "text") TO "service_role";
+
+
+--
+-- Name: FUNCTION "mask_sensitive_data"("input_text" "text", "mask_type" "text"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."mask_sensitive_data"("input_text" "text", "mask_type" "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."mask_sensitive_data"("input_text" "text", "mask_type" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."mask_sensitive_data"("input_text" "text", "mask_type" "text") TO "service_role";
+
+
+--
+-- Name: FUNCTION "monitor_data_health"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."monitor_data_health"() TO "anon";
+GRANT ALL ON FUNCTION "public"."monitor_data_health"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."monitor_data_health"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "monitor_database_performance_enhanced"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."monitor_database_performance_enhanced"() TO "anon";
+GRANT ALL ON FUNCTION "public"."monitor_database_performance_enhanced"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."monitor_database_performance_enhanced"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "monitor_entity_storage_usage"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."monitor_entity_storage_usage"() TO "anon";
+GRANT ALL ON FUNCTION "public"."monitor_entity_storage_usage"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."monitor_entity_storage_usage"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "monitor_query_performance"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."monitor_query_performance"() TO "anon";
+GRANT ALL ON FUNCTION "public"."monitor_query_performance"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."monitor_query_performance"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "perform_database_maintenance_enhanced"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."perform_database_maintenance_enhanced"() TO "anon";
+GRANT ALL ON FUNCTION "public"."perform_database_maintenance_enhanced"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."perform_database_maintenance_enhanced"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "perform_system_health_check"("p_check_name" "text", "p_status" "text", "p_details" "jsonb", "p_response_time_ms" integer, "p_error_message" "text"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."perform_system_health_check"("p_check_name" "text", "p_status" "text", "p_details" "jsonb", "p_response_time_ms" integer, "p_error_message" "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."perform_system_health_check"("p_check_name" "text", "p_status" "text", "p_details" "jsonb", "p_response_time_ms" integer, "p_error_message" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."perform_system_health_check"("p_check_name" "text", "p_status" "text", "p_details" "jsonb", "p_response_time_ms" integer, "p_error_message" "text") TO "service_role";
+
+
+--
+-- Name: FUNCTION "populate_album_images_entity_context"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."populate_album_images_entity_context"() TO "anon";
+GRANT ALL ON FUNCTION "public"."populate_album_images_entity_context"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."populate_album_images_entity_context"() TO "service_role";
+
+
+--
 -- Name: FUNCTION "populate_dewey_decimal_classifications"(); Type: ACL; Schema: public; Owner: postgres
 --
 
 GRANT ALL ON FUNCTION "public"."populate_dewey_decimal_classifications"() TO "anon";
 GRANT ALL ON FUNCTION "public"."populate_dewey_decimal_classifications"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."populate_dewey_decimal_classifications"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "populate_images_entity_type_id"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."populate_images_entity_type_id"() TO "anon";
+GRANT ALL ON FUNCTION "public"."populate_images_entity_type_id"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."populate_images_entity_type_id"() TO "service_role";
 
 
 --
@@ -7304,12 +19977,237 @@ GRANT ALL ON FUNCTION "public"."process_related_books"("book_uuid" "uuid", "rela
 
 
 --
+-- Name: FUNCTION "record_performance_metric"("p_metric_name" "text", "p_metric_value" numeric, "p_metric_unit" "text", "p_category" "text", "p_additional_data" "jsonb"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."record_performance_metric"("p_metric_name" "text", "p_metric_value" numeric, "p_metric_unit" "text", "p_category" "text", "p_additional_data" "jsonb") TO "anon";
+GRANT ALL ON FUNCTION "public"."record_performance_metric"("p_metric_name" "text", "p_metric_value" numeric, "p_metric_unit" "text", "p_category" "text", "p_additional_data" "jsonb") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."record_performance_metric"("p_metric_name" "text", "p_metric_value" numeric, "p_metric_unit" "text", "p_category" "text", "p_additional_data" "jsonb") TO "service_role";
+
+
+--
+-- Name: FUNCTION "refresh_materialized_views"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."refresh_materialized_views"() TO "anon";
+GRANT ALL ON FUNCTION "public"."refresh_materialized_views"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."refresh_materialized_views"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "revoke_reading_permission"("target_user_id" "uuid", "permission_type" "text"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."revoke_reading_permission"("target_user_id" "uuid", "permission_type" "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."revoke_reading_permission"("target_user_id" "uuid", "permission_type" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."revoke_reading_permission"("target_user_id" "uuid", "permission_type" "text") TO "service_role";
+
+
+--
+-- Name: FUNCTION "run_data_maintenance"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."run_data_maintenance"() TO "anon";
+GRANT ALL ON FUNCTION "public"."run_data_maintenance"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."run_data_maintenance"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "run_performance_maintenance"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."run_performance_maintenance"() TO "anon";
+GRANT ALL ON FUNCTION "public"."run_performance_maintenance"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."run_performance_maintenance"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "safe_cleanup_orphaned_records"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."safe_cleanup_orphaned_records"() TO "anon";
+GRANT ALL ON FUNCTION "public"."safe_cleanup_orphaned_records"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."safe_cleanup_orphaned_records"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "safe_fix_missing_publishers"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."safe_fix_missing_publishers"() TO "anon";
+GRANT ALL ON FUNCTION "public"."safe_fix_missing_publishers"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."safe_fix_missing_publishers"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "simple_check_publisher_health"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."simple_check_publisher_health"() TO "anon";
+GRANT ALL ON FUNCTION "public"."simple_check_publisher_health"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."simple_check_publisher_health"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "simple_fix_missing_publishers"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."simple_fix_missing_publishers"() TO "anon";
+GRANT ALL ON FUNCTION "public"."simple_fix_missing_publishers"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."simple_fix_missing_publishers"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "standardize_reading_status_mappings"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."standardize_reading_status_mappings"() TO "anon";
+GRANT ALL ON FUNCTION "public"."standardize_reading_status_mappings"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."standardize_reading_status_mappings"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "standardize_reading_statuses"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."standardize_reading_statuses"() TO "anon";
+GRANT ALL ON FUNCTION "public"."standardize_reading_statuses"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."standardize_reading_statuses"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "trigger_content_processing"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."trigger_content_processing"() TO "anon";
+GRANT ALL ON FUNCTION "public"."trigger_content_processing"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."trigger_content_processing"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "trigger_recommendation_generation"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."trigger_recommendation_generation"() TO "anon";
+GRANT ALL ON FUNCTION "public"."trigger_recommendation_generation"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."trigger_recommendation_generation"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "trigger_update_book_popularity"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."trigger_update_book_popularity"() TO "anon";
+GRANT ALL ON FUNCTION "public"."trigger_update_book_popularity"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."trigger_update_book_popularity"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "update_book_popularity_metrics"("p_book_id" "uuid"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."update_book_popularity_metrics"("p_book_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."update_book_popularity_metrics"("p_book_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_book_popularity_metrics"("p_book_id" "uuid") TO "service_role";
+
+
+--
+-- Name: FUNCTION "update_photo_albums_updated_at"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."update_photo_albums_updated_at"() TO "anon";
+GRANT ALL ON FUNCTION "public"."update_photo_albums_updated_at"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_photo_albums_updated_at"() TO "service_role";
+
+
+--
 -- Name: FUNCTION "update_updated_at_column"(); Type: ACL; Schema: public; Owner: postgres
 --
 
 GRANT ALL ON FUNCTION "public"."update_updated_at_column"() TO "anon";
 GRANT ALL ON FUNCTION "public"."update_updated_at_column"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_updated_at_column"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "update_user_privacy_settings"("default_privacy_level" "text", "allow_friends_to_see_reading" boolean, "allow_followers_to_see_reading" boolean, "allow_public_reading_profile" boolean, "show_reading_stats_publicly" boolean, "show_currently_reading_publicly" boolean, "show_reading_history_publicly" boolean, "show_reading_goals_publicly" boolean); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."update_user_privacy_settings"("default_privacy_level" "text", "allow_friends_to_see_reading" boolean, "allow_followers_to_see_reading" boolean, "allow_public_reading_profile" boolean, "show_reading_stats_publicly" boolean, "show_currently_reading_publicly" boolean, "show_reading_history_publicly" boolean, "show_reading_goals_publicly" boolean) TO "anon";
+GRANT ALL ON FUNCTION "public"."update_user_privacy_settings"("default_privacy_level" "text", "allow_friends_to_see_reading" boolean, "allow_followers_to_see_reading" boolean, "allow_public_reading_profile" boolean, "show_reading_stats_publicly" boolean, "show_currently_reading_publicly" boolean, "show_reading_history_publicly" boolean, "show_reading_goals_publicly" boolean) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_user_privacy_settings"("default_privacy_level" "text", "allow_friends_to_see_reading" boolean, "allow_followers_to_see_reading" boolean, "allow_public_reading_profile" boolean, "show_reading_stats_publicly" boolean, "show_currently_reading_publicly" boolean, "show_reading_history_publicly" boolean, "show_reading_goals_publicly" boolean) TO "service_role";
+
+
+--
+-- Name: FUNCTION "upsert_reading_progress"("p_user_id" "uuid", "p_book_id" "uuid", "p_status" "text", "p_progress_percentage" integer, "p_privacy_level" "text"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."upsert_reading_progress"("p_user_id" "uuid", "p_book_id" "uuid", "p_status" "text", "p_progress_percentage" integer, "p_privacy_level" "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."upsert_reading_progress"("p_user_id" "uuid", "p_book_id" "uuid", "p_status" "text", "p_progress_percentage" integer, "p_privacy_level" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."upsert_reading_progress"("p_user_id" "uuid", "p_book_id" "uuid", "p_status" "text", "p_progress_percentage" integer, "p_privacy_level" "text") TO "service_role";
+
+
+--
+-- Name: FUNCTION "validate_and_repair_data"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."validate_and_repair_data"() TO "anon";
+GRANT ALL ON FUNCTION "public"."validate_and_repair_data"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."validate_and_repair_data"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "validate_book_data"("book_data" "jsonb"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."validate_book_data"("book_data" "jsonb") TO "anon";
+GRANT ALL ON FUNCTION "public"."validate_book_data"("book_data" "jsonb") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."validate_book_data"("book_data" "jsonb") TO "service_role";
+
+
+--
+-- Name: FUNCTION "validate_book_data_enhanced"("p_title" "text", "p_author" "text", "p_isbn" "text", "p_publication_year" integer); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."validate_book_data_enhanced"("p_title" "text", "p_author" "text", "p_isbn" "text", "p_publication_year" integer) TO "anon";
+GRANT ALL ON FUNCTION "public"."validate_book_data_enhanced"("p_title" "text", "p_author" "text", "p_isbn" "text", "p_publication_year" integer) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."validate_book_data_enhanced"("p_title" "text", "p_author" "text", "p_isbn" "text", "p_publication_year" integer) TO "service_role";
+
+
+--
+-- Name: FUNCTION "validate_enterprise_data_quality"("p_table_name" "text"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."validate_enterprise_data_quality"("p_table_name" "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."validate_enterprise_data_quality"("p_table_name" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."validate_enterprise_data_quality"("p_table_name" "text") TO "service_role";
+
+
+--
+-- Name: FUNCTION "validate_follow_entity"("p_entity_id" "uuid", "p_target_type" "text"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."validate_follow_entity"("p_entity_id" "uuid", "p_target_type" "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."validate_follow_entity"("p_entity_id" "uuid", "p_target_type" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."validate_follow_entity"("p_entity_id" "uuid", "p_target_type" "text") TO "service_role";
+
+
+--
+-- Name: FUNCTION "validate_follow_entity_trigger"(); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."validate_follow_entity_trigger"() TO "anon";
+GRANT ALL ON FUNCTION "public"."validate_follow_entity_trigger"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."validate_follow_entity_trigger"() TO "service_role";
+
+
+--
+-- Name: FUNCTION "validate_user_data_enhanced"("p_email" "text", "p_name" "text"); Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON FUNCTION "public"."validate_user_data_enhanced"("p_email" "text", "p_name" "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."validate_user_data_enhanced"("p_email" "text", "p_name" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."validate_user_data_enhanced"("p_email" "text", "p_name" "text") TO "service_role";
 
 
 --
@@ -7615,6 +20513,78 @@ GRANT ALL ON TABLE "public"."activity_log" TO "service_role";
 
 
 --
+-- Name: TABLE "book_reviews"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."book_reviews" TO "anon";
+GRANT ALL ON TABLE "public"."book_reviews" TO "authenticated";
+GRANT ALL ON TABLE "public"."book_reviews" TO "service_role";
+
+
+--
+-- Name: TABLE "book_views"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."book_views" TO "anon";
+GRANT ALL ON TABLE "public"."book_views" TO "authenticated";
+GRANT ALL ON TABLE "public"."book_views" TO "service_role";
+
+
+--
+-- Name: TABLE "books"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."books" TO "anon";
+GRANT ALL ON TABLE "public"."books" TO "authenticated";
+GRANT ALL ON TABLE "public"."books" TO "service_role";
+
+
+--
+-- Name: TABLE "reading_lists"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."reading_lists" TO "anon";
+GRANT ALL ON TABLE "public"."reading_lists" TO "authenticated";
+GRANT ALL ON TABLE "public"."reading_lists" TO "service_role";
+
+
+--
+-- Name: TABLE "reading_progress"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."reading_progress" TO "anon";
+GRANT ALL ON TABLE "public"."reading_progress" TO "authenticated";
+GRANT ALL ON TABLE "public"."reading_progress" TO "service_role";
+
+
+--
+-- Name: TABLE "system_health_checks"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."system_health_checks" TO "anon";
+GRANT ALL ON TABLE "public"."system_health_checks" TO "authenticated";
+GRANT ALL ON TABLE "public"."system_health_checks" TO "service_role";
+
+
+--
+-- Name: TABLE "user_activity_log"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."user_activity_log" TO "anon";
+GRANT ALL ON TABLE "public"."user_activity_log" TO "authenticated";
+GRANT ALL ON TABLE "public"."user_activity_log" TO "service_role";
+
+
+--
+-- Name: TABLE "advanced_analytics_dashboard_enhanced"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."advanced_analytics_dashboard_enhanced" TO "anon";
+GRANT ALL ON TABLE "public"."advanced_analytics_dashboard_enhanced" TO "authenticated";
+GRANT ALL ON TABLE "public"."advanced_analytics_dashboard_enhanced" TO "service_role";
+
+
+--
 -- Name: TABLE "album_analytics"; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -7648,6 +20618,24 @@ GRANT ALL ON TABLE "public"."album_shares" TO "service_role";
 GRANT ALL ON TABLE "public"."authors" TO "anon";
 GRANT ALL ON TABLE "public"."authors" TO "authenticated";
 GRANT ALL ON TABLE "public"."authors" TO "service_role";
+
+
+--
+-- Name: TABLE "automation_executions"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."automation_executions" TO "anon";
+GRANT ALL ON TABLE "public"."automation_executions" TO "authenticated";
+GRANT ALL ON TABLE "public"."automation_executions" TO "service_role";
+
+
+--
+-- Name: TABLE "automation_workflows"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."automation_workflows" TO "anon";
+GRANT ALL ON TABLE "public"."automation_workflows" TO "authenticated";
+GRANT ALL ON TABLE "public"."automation_workflows" TO "service_role";
 
 
 --
@@ -7750,6 +20738,33 @@ GRANT ALL ON TABLE "public"."book_id_mapping" TO "service_role";
 
 
 --
+-- Name: TABLE "book_popularity_metrics"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."book_popularity_metrics" TO "anon";
+GRANT ALL ON TABLE "public"."book_popularity_metrics" TO "authenticated";
+GRANT ALL ON TABLE "public"."book_popularity_metrics" TO "service_role";
+
+
+--
+-- Name: TABLE "book_popularity_analytics"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."book_popularity_analytics" TO "anon";
+GRANT ALL ON TABLE "public"."book_popularity_analytics" TO "authenticated";
+GRANT ALL ON TABLE "public"."book_popularity_analytics" TO "service_role";
+
+
+--
+-- Name: TABLE "book_popularity_summary"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."book_popularity_summary" TO "anon";
+GRANT ALL ON TABLE "public"."book_popularity_summary" TO "authenticated";
+GRANT ALL ON TABLE "public"."book_popularity_summary" TO "service_role";
+
+
+--
 -- Name: TABLE "book_publishers"; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -7765,15 +20780,6 @@ GRANT ALL ON TABLE "public"."book_publishers" TO "service_role";
 GRANT ALL ON TABLE "public"."book_recommendations" TO "anon";
 GRANT ALL ON TABLE "public"."book_recommendations" TO "authenticated";
 GRANT ALL ON TABLE "public"."book_recommendations" TO "service_role";
-
-
---
--- Name: TABLE "book_reviews"; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT ALL ON TABLE "public"."book_reviews" TO "anon";
-GRANT ALL ON TABLE "public"."book_reviews" TO "authenticated";
-GRANT ALL ON TABLE "public"."book_reviews" TO "service_role";
 
 
 --
@@ -7813,30 +20819,21 @@ GRANT ALL ON TABLE "public"."book_tags" TO "service_role";
 
 
 --
--- Name: TABLE "book_views"; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT ALL ON TABLE "public"."book_views" TO "anon";
-GRANT ALL ON TABLE "public"."book_views" TO "authenticated";
-GRANT ALL ON TABLE "public"."book_views" TO "service_role";
-
-
---
--- Name: TABLE "books"; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT ALL ON TABLE "public"."books" TO "anon";
-GRANT ALL ON TABLE "public"."books" TO "authenticated";
-GRANT ALL ON TABLE "public"."books" TO "service_role";
-
-
---
 -- Name: TABLE "carousel_images"; Type: ACL; Schema: public; Owner: postgres
 --
 
 GRANT ALL ON TABLE "public"."carousel_images" TO "anon";
 GRANT ALL ON TABLE "public"."carousel_images" TO "authenticated";
 GRANT ALL ON TABLE "public"."carousel_images" TO "service_role";
+
+
+--
+-- Name: TABLE "collaborative_filtering_data"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."collaborative_filtering_data" TO "anon";
+GRANT ALL ON TABLE "public"."collaborative_filtering_data" TO "authenticated";
+GRANT ALL ON TABLE "public"."collaborative_filtering_data" TO "service_role";
 
 
 --
@@ -7858,12 +20855,57 @@ GRANT ALL ON TABLE "public"."contact_info" TO "service_role";
 
 
 --
+-- Name: TABLE "content_features"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."content_features" TO "anon";
+GRANT ALL ON TABLE "public"."content_features" TO "authenticated";
+GRANT ALL ON TABLE "public"."content_features" TO "service_role";
+
+
+--
+-- Name: TABLE "content_generation_jobs"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."content_generation_jobs" TO "anon";
+GRANT ALL ON TABLE "public"."content_generation_jobs" TO "authenticated";
+GRANT ALL ON TABLE "public"."content_generation_jobs" TO "service_role";
+
+
+--
 -- Name: TABLE "countries"; Type: ACL; Schema: public; Owner: postgres
 --
 
 GRANT ALL ON TABLE "public"."countries" TO "anon";
 GRANT ALL ON TABLE "public"."countries" TO "authenticated";
 GRANT ALL ON TABLE "public"."countries" TO "service_role";
+
+
+--
+-- Name: TABLE "custom_permissions"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."custom_permissions" TO "anon";
+GRANT ALL ON TABLE "public"."custom_permissions" TO "authenticated";
+GRANT ALL ON TABLE "public"."custom_permissions" TO "service_role";
+
+
+--
+-- Name: TABLE "data_consistency_monitoring"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."data_consistency_monitoring" TO "anon";
+GRANT ALL ON TABLE "public"."data_consistency_monitoring" TO "authenticated";
+GRANT ALL ON TABLE "public"."data_consistency_monitoring" TO "service_role";
+
+
+--
+-- Name: TABLE "data_enrichment_jobs"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."data_enrichment_jobs" TO "anon";
+GRANT ALL ON TABLE "public"."data_enrichment_jobs" TO "authenticated";
+GRANT ALL ON TABLE "public"."data_enrichment_jobs" TO "service_role";
 
 
 --
@@ -7891,6 +20933,87 @@ GRANT ALL ON TABLE "public"."discussion_comments" TO "service_role";
 GRANT ALL ON TABLE "public"."discussions" TO "anon";
 GRANT ALL ON TABLE "public"."discussions" TO "authenticated";
 GRANT ALL ON TABLE "public"."discussions" TO "service_role";
+
+
+--
+-- Name: TABLE "enterprise_audit_trail"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."enterprise_audit_trail" TO "anon";
+GRANT ALL ON TABLE "public"."enterprise_audit_trail" TO "authenticated";
+GRANT ALL ON TABLE "public"."enterprise_audit_trail" TO "service_role";
+
+
+--
+-- Name: TABLE "enterprise_audit_summary"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."enterprise_audit_summary" TO "anon";
+GRANT ALL ON TABLE "public"."enterprise_audit_summary" TO "authenticated";
+GRANT ALL ON TABLE "public"."enterprise_audit_summary" TO "service_role";
+
+
+--
+-- Name: TABLE "enterprise_data_lineage"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."enterprise_data_lineage" TO "anon";
+GRANT ALL ON TABLE "public"."enterprise_data_lineage" TO "authenticated";
+GRANT ALL ON TABLE "public"."enterprise_data_lineage" TO "service_role";
+
+
+--
+-- Name: TABLE "enterprise_data_quality_dashboard"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."enterprise_data_quality_dashboard" TO "anon";
+GRANT ALL ON TABLE "public"."enterprise_data_quality_dashboard" TO "authenticated";
+GRANT ALL ON TABLE "public"."enterprise_data_quality_dashboard" TO "service_role";
+
+
+--
+-- Name: TABLE "enterprise_data_quality_rules"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."enterprise_data_quality_rules" TO "anon";
+GRANT ALL ON TABLE "public"."enterprise_data_quality_rules" TO "authenticated";
+GRANT ALL ON TABLE "public"."enterprise_data_quality_rules" TO "service_role";
+
+
+--
+-- Name: TABLE "enterprise_data_versions"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."enterprise_data_versions" TO "anon";
+GRANT ALL ON TABLE "public"."enterprise_data_versions" TO "authenticated";
+GRANT ALL ON TABLE "public"."enterprise_data_versions" TO "service_role";
+
+
+--
+-- Name: TABLE "entity_types"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."entity_types" TO "anon";
+GRANT ALL ON TABLE "public"."entity_types" TO "authenticated";
+GRANT ALL ON TABLE "public"."entity_types" TO "service_role";
+
+
+--
+-- Name: TABLE "images"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."images" TO "anon";
+GRANT ALL ON TABLE "public"."images" TO "authenticated";
+GRANT ALL ON TABLE "public"."images" TO "service_role";
+
+
+--
+-- Name: TABLE "entity_image_analytics"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."entity_image_analytics" TO "anon";
+GRANT ALL ON TABLE "public"."entity_image_analytics" TO "authenticated";
+GRANT ALL ON TABLE "public"."entity_image_analytics" TO "service_role";
 
 
 --
@@ -8686,24 +21809,6 @@ GRANT ALL ON TABLE "public"."image_tags" TO "service_role";
 
 
 --
--- Name: TABLE "image_types"; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT ALL ON TABLE "public"."image_types" TO "anon";
-GRANT ALL ON TABLE "public"."image_types" TO "authenticated";
-GRANT ALL ON TABLE "public"."image_types" TO "service_role";
-
-
---
--- Name: TABLE "images"; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT ALL ON TABLE "public"."images" TO "anon";
-GRANT ALL ON TABLE "public"."images" TO "authenticated";
-GRANT ALL ON TABLE "public"."images" TO "service_role";
-
-
---
 -- Name: TABLE "invoices"; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -8749,6 +21854,42 @@ GRANT ALL ON TABLE "public"."mentions" TO "service_role";
 
 
 --
+-- Name: TABLE "ml_models"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."ml_models" TO "anon";
+GRANT ALL ON TABLE "public"."ml_models" TO "authenticated";
+GRANT ALL ON TABLE "public"."ml_models" TO "service_role";
+
+
+--
+-- Name: TABLE "ml_predictions"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."ml_predictions" TO "anon";
+GRANT ALL ON TABLE "public"."ml_predictions" TO "authenticated";
+GRANT ALL ON TABLE "public"."ml_predictions" TO "service_role";
+
+
+--
+-- Name: TABLE "ml_training_jobs"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."ml_training_jobs" TO "anon";
+GRANT ALL ON TABLE "public"."ml_training_jobs" TO "authenticated";
+GRANT ALL ON TABLE "public"."ml_training_jobs" TO "service_role";
+
+
+--
+-- Name: TABLE "nlp_analysis"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."nlp_analysis" TO "anon";
+GRANT ALL ON TABLE "public"."nlp_analysis" TO "authenticated";
+GRANT ALL ON TABLE "public"."nlp_analysis" TO "service_role";
+
+
+--
 -- Name: TABLE "notifications"; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -8773,6 +21914,24 @@ GRANT ALL ON TABLE "public"."payment_methods" TO "service_role";
 GRANT ALL ON TABLE "public"."payment_transactions" TO "anon";
 GRANT ALL ON TABLE "public"."payment_transactions" TO "authenticated";
 GRANT ALL ON TABLE "public"."payment_transactions" TO "service_role";
+
+
+--
+-- Name: TABLE "performance_dashboard"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."performance_dashboard" TO "anon";
+GRANT ALL ON TABLE "public"."performance_dashboard" TO "authenticated";
+GRANT ALL ON TABLE "public"."performance_dashboard" TO "service_role";
+
+
+--
+-- Name: TABLE "performance_metrics"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."performance_metrics" TO "anon";
+GRANT ALL ON TABLE "public"."performance_metrics" TO "authenticated";
+GRANT ALL ON TABLE "public"."performance_metrics" TO "service_role";
 
 
 --
@@ -8821,6 +21980,15 @@ GRANT ALL ON TABLE "public"."prices" TO "service_role";
 
 
 --
+-- Name: TABLE "privacy_audit_log"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."privacy_audit_log" TO "anon";
+GRANT ALL ON TABLE "public"."privacy_audit_log" TO "authenticated";
+GRANT ALL ON TABLE "public"."privacy_audit_log" TO "service_role";
+
+
+--
 -- Name: TABLE "profiles"; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -8845,6 +22013,15 @@ GRANT ALL ON TABLE "public"."promo_codes" TO "service_role";
 GRANT ALL ON TABLE "public"."publishers" TO "anon";
 GRANT ALL ON TABLE "public"."publishers" TO "authenticated";
 GRANT ALL ON TABLE "public"."publishers" TO "service_role";
+
+
+--
+-- Name: TABLE "publisher_summary"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."publisher_summary" TO "anon";
+GRANT ALL ON TABLE "public"."publisher_summary" TO "authenticated";
+GRANT ALL ON TABLE "public"."publisher_summary" TO "service_role";
 
 
 --
@@ -8881,24 +22058,6 @@ GRANT ALL ON TABLE "public"."reading_goals" TO "service_role";
 GRANT ALL ON TABLE "public"."reading_list_items" TO "anon";
 GRANT ALL ON TABLE "public"."reading_list_items" TO "authenticated";
 GRANT ALL ON TABLE "public"."reading_list_items" TO "service_role";
-
-
---
--- Name: TABLE "reading_lists"; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT ALL ON TABLE "public"."reading_lists" TO "anon";
-GRANT ALL ON TABLE "public"."reading_lists" TO "authenticated";
-GRANT ALL ON TABLE "public"."reading_lists" TO "service_role";
-
-
---
--- Name: TABLE "reading_progress"; Type: ACL; Schema: public; Owner: postgres
---
-
-GRANT ALL ON TABLE "public"."reading_progress" TO "anon";
-GRANT ALL ON TABLE "public"."reading_progress" TO "authenticated";
-GRANT ALL ON TABLE "public"."reading_progress" TO "service_role";
 
 
 --
@@ -8992,6 +22151,15 @@ GRANT ALL ON TABLE "public"."similar_books" TO "service_role";
 
 
 --
+-- Name: TABLE "smart_notifications"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."smart_notifications" TO "anon";
+GRANT ALL ON TABLE "public"."smart_notifications" TO "authenticated";
+GRANT ALL ON TABLE "public"."smart_notifications" TO "service_role";
+
+
+--
 -- Name: TABLE "statuses"; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9037,6 +22205,15 @@ GRANT ALL ON TABLE "public"."sync_state" TO "service_role";
 
 
 --
+-- Name: TABLE "system_performance_overview"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."system_performance_overview" TO "anon";
+GRANT ALL ON TABLE "public"."system_performance_overview" TO "authenticated";
+GRANT ALL ON TABLE "public"."system_performance_overview" TO "service_role";
+
+
+--
 -- Name: TABLE "tags"; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9073,6 +22250,42 @@ GRANT ALL ON TABLE "public"."tickets" TO "service_role";
 
 
 --
+-- Name: TABLE "unified_book_data"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."unified_book_data" TO "anon";
+GRANT ALL ON TABLE "public"."unified_book_data" TO "authenticated";
+GRANT ALL ON TABLE "public"."unified_book_data" TO "service_role";
+
+
+--
+-- Name: TABLE "unified_reading_progress"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."unified_reading_progress" TO "anon";
+GRANT ALL ON TABLE "public"."unified_reading_progress" TO "authenticated";
+GRANT ALL ON TABLE "public"."unified_reading_progress" TO "service_role";
+
+
+--
+-- Name: TABLE "user_activity_metrics"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."user_activity_metrics" TO "anon";
+GRANT ALL ON TABLE "public"."user_activity_metrics" TO "authenticated";
+GRANT ALL ON TABLE "public"."user_activity_metrics" TO "service_role";
+
+
+--
+-- Name: TABLE "user_activity_summary"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."user_activity_summary" TO "anon";
+GRANT ALL ON TABLE "public"."user_activity_summary" TO "authenticated";
+GRANT ALL ON TABLE "public"."user_activity_summary" TO "service_role";
+
+
+--
 -- Name: TABLE "user_book_interactions"; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9082,12 +22295,39 @@ GRANT ALL ON TABLE "public"."user_book_interactions" TO "service_role";
 
 
 --
+-- Name: TABLE "user_engagement_analytics"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."user_engagement_analytics" TO "anon";
+GRANT ALL ON TABLE "public"."user_engagement_analytics" TO "authenticated";
+GRANT ALL ON TABLE "public"."user_engagement_analytics" TO "service_role";
+
+
+--
 -- Name: TABLE "user_friends"; Type: ACL; Schema: public; Owner: postgres
 --
 
 GRANT ALL ON TABLE "public"."user_friends" TO "anon";
 GRANT ALL ON TABLE "public"."user_friends" TO "authenticated";
 GRANT ALL ON TABLE "public"."user_friends" TO "service_role";
+
+
+--
+-- Name: TABLE "user_privacy_settings"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."user_privacy_settings" TO "anon";
+GRANT ALL ON TABLE "public"."user_privacy_settings" TO "authenticated";
+GRANT ALL ON TABLE "public"."user_privacy_settings" TO "service_role";
+
+
+--
+-- Name: TABLE "user_privacy_overview"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE "public"."user_privacy_overview" TO "anon";
+GRANT ALL ON TABLE "public"."user_privacy_overview" TO "authenticated";
+GRANT ALL ON TABLE "public"."user_privacy_overview" TO "service_role";
 
 
 --

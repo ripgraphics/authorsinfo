@@ -36,18 +36,23 @@ export default function LoginPage() {
   // Use the correct Supabase client with Database type
   const supabase = createClientComponentClient<Database>()
 
+  // Get redirect URL from query parameters
+  const searchParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '')
+  const redirectTo = searchParams.get('redirect') || '/'
+
   useEffect(() => {
     async function fetchUsers() {
       try {
-        const res = await fetch('/api/auth-users')
-        if (!res.ok) {
-          setFetchError('Failed to fetch users from Auth.')
-          return
+        const response = await fetch('/api/auth-users')
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
         }
-        const data = await res.json()
-        setUsers(data)
-      } catch (error) {
-        setFetchError('An unexpected error occurred while fetching users.')
+        const data = await response.json()
+        // The API returns the users array directly, not wrapped in a users property
+        setUsers(Array.isArray(data) ? data : [])
+      } catch (error: any) {
+        console.error('Error fetching users:', error)
+        setFetchError(error?.message || 'Failed to fetch users')
       }
     }
     fetchUsers()
@@ -63,42 +68,29 @@ export default function LoginPage() {
     const loginEmail = emailArg ?? email;
     const loginPassword = passwordArg ?? password;
     
-    console.log("=== LOGIN ATTEMPT DEBUG ===");
-    console.log("Email:", loginEmail);
-    console.log("Password:", loginPassword);
-    console.log("Password length:", loginPassword.length);
-    console.log("Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
-    
     try {
       // First test the Supabase connection
       const testRes = await fetch('/api/test-supabase');
       const testData = await testRes.json();
-      console.log("Supabase connection test:", testData);
       
       if (!testRes.ok) {
         throw new Error(`Supabase connection failed: ${testData.details || testData.error}`);
       }
       
-      console.log("Attempting sign in with:", { email: loginEmail, password: loginPassword });
       const { error, data } = await supabase.auth.signInWithPassword({
         email: loginEmail,
         password: loginPassword,
       });
-      console.log("Supabase signInWithPassword result:", { error, data });
       
       if (error) {
-        console.error("Supabase auth error:", error);
-        console.error("Error code:", error.status);
-        console.error("Error message:", error.message);
-        console.error("Error name:", error.name);
         throw error;
       }
       
       toast({ title: "Success", description: "You have been signed in successfully" });
       
-      // Simple redirect after successful login
+      // Redirect to the original page or home
       setTimeout(() => {
-        router.push("/");
+        router.push(redirectTo);
       }, 1000);
     } catch (error: any) {
       console.error("Sign in error:", error);

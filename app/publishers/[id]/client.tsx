@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { EntityHeader, TabConfig } from "@/components/entity-header"
+import { PublisherPhotoAlbums } from "@/components/publisher-photo-albums"
 import {
   BookOpen,
   Users,
@@ -314,6 +315,8 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
         activeTab={activeTab}
         onTabChange={setActiveTab}
         isEditable={user && user.role === "admin"}
+        entityId={publisher?.id}
+        targetType="publisher"
       />
       
       {/* Conditionally render content based on active tab */}
@@ -595,54 +598,12 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
 
       {activeTab === "photos" && (
         <div className="publisher-page__tab-content space-y-6">
-                  <Card className="rounded-lg border bg-card text-card-foreground shadow-sm">
-                    <div className="flex flex-col space-y-1.5 p-6">
-                      <div className="flex justify-between items-center">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">Photos</div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            type="button"
-                            role="combobox"
-                            aria-controls="radix-:rk:"
-                            aria-expanded="false"
-                            aria-autocomplete="none"
-                            dir="ltr"
-                            data-state="closed"
-                            className="flex h-10 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-[180px]"
-                          >
-                            <span style={{ pointerEvents: "none" }}>All Photos</span>
-                            <ChevronDown className="h-4 w-4 opacity-50" aria-hidden="true" />
-                          </Button>
-                          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
-                            <ImageIcon className="h-4 w-4 mr-2" />
-                            Add Photos
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                    <CardContent className="p-6 pt-0">
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {mockPhotosTabData.map((photo) => (
-                          <div key={photo.id} className="group relative">
-                            <div className="aspect-square relative rounded-lg overflow-hidden">
-                              <img
-                                alt={photo.title}
-                                src={photo.url || "/placeholder.svg"}
-                                className="object-cover group-hover:scale-105 transition-transform absolute inset-0 w-full h-full"
-                              />
-                            </div>
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-end">
-                              <div className="p-3 text-white w-full">
-                                <p className="text-sm truncate">{photo.title}</p>
-                                <p className="text-xs opacity-80">{photo.date}</p>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
+          <PublisherPhotoAlbums 
+            publisherId={params.id}
+            publisherName={publisher.name}
+            isOwner={user && user.role === "admin"}
+          />
+        </div>
       )}
 
       {activeTab === "more" && (

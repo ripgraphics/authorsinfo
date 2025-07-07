@@ -54,8 +54,8 @@ export function PhotoGalleryImage({
       transition={{ duration: 0.2 }}
     >
       <Image
-        src={image.thumbnailUrl || image.url}
-        alt={image.altText || ''}
+        src={image.url}
+        alt={image.altText || image.filename || ''}
         fill
         className={`photo-gallery__image object-cover transition-opacity duration-200 ${
           isDragging ? 'opacity-50' : 'opacity-100'
@@ -100,7 +100,7 @@ export function PhotoGalleryImage({
             )}
           </div>
 
-          {showTags && image.tags.length > 0 && (
+          {showTags && image.tags && image.tags.length > 0 && (
             <div className="photo-gallery__image-tags flex flex-wrap gap-2">
               {image.tags.map((tag) => (
                 <Badge

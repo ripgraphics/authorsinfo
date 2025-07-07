@@ -2,10 +2,39 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { getFollowTargetType } from '@/lib/follows-server'
+import { supabaseAdmin } from '@/lib/supabase'
+import { followEntity, unfollowEntity } from '@/app/actions/follow'
+
+// Create the cache outside of the helper function so it persists between calls
+const targetTypeIdCache = new Map<string, number>();
+
+// Helper function to get the target type ID from the database
+const getTargetTypeId = async (targetType: string): Promise<number | null> => {
+  if (targetTypeIdCache.has(targetType)) {
+    return targetTypeIdCache.get(targetType)!;
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('follow_target_types')
+    .select('id')
+    .eq('name', targetType)
+    .single();
+
+  if (error) {
+    console.error(`Error fetching target type ID for ${targetType}:`, error);
+    return null;
+  }
+  
+  // The ID is a number, not a string
+  const id = data.id;
+  targetTypeIdCache.set(targetType, id);
+  return id;
+};
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createServerComponentClient({ cookies })
+    const cookieStore = await cookies()
+    const supabase = createServerComponentClient({ cookies: () => cookieStore })
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {
@@ -62,10 +91,26 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error creating follow:', error)
-      return NextResponse.json(
-        { error: 'Failed to follow entity' },
-        { status: 500 }
-      )
+      
+      // Provide more specific error messages based on the error type
+      if (error.code === '23503') {
+        // Foreign key constraint violation
+        return NextResponse.json(
+          { error: `Cannot follow ${targetType}: Entity does not exist or is not accessible` },
+          { status: 400 }
+        )
+      } else if (error.code === '23505') {
+        // Unique constraint violation
+        return NextResponse.json(
+          { error: `Already following this ${targetType}` },
+          { status: 400 }
+        )
+      } else {
+        return NextResponse.json(
+          { error: `Failed to follow ${targetType}: ${error.message}` },
+          { status: 500 }
+        )
+      }
     }
 
     return NextResponse.json({
@@ -85,7 +130,8 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = createServerComponentClient({ cookies })
+    const cookieStore = await cookies()
+    const supabase = createServerComponentClient({ cookies: () => cookieStore })
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {
@@ -124,7 +170,7 @@ export async function DELETE(request: NextRequest) {
     if (error) {
       console.error('Error unfollowing:', error)
       return NextResponse.json(
-        { error: 'Failed to unfollow entity' },
+        { error: `Failed to unfollow ${targetType}: ${error.message}` },
         { status: 500 }
       )
     }
@@ -144,55 +190,93 @@ export async function DELETE(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url)
+  const entityId = searchParams.get('entityId')
+  const targetType = searchParams.get('targetType')
+
+  if (!entityId || !targetType) {
+    return NextResponse.json(
+      { error: 'entityId and targetType are required' },
+      {
+        status: 400,
+        headers: {
+          'Cache-Control': 'no-store, max-age=0',
+        },
+      }
+    )
+  }
+
   try {
-    const supabase = createServerComponentClient({ cookies })
-    const { data: { user } } = await supabase.auth.getUser()
-    
+    const cookieStore = await cookies()
+    const supabase = createServerComponentClient({ cookies: () => cookieStore })
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
     if (!user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
+      // If no user, they can't be following anything.
+      return NextResponse.json({ isFollowing: false }, {
+        status: 200,
+        headers: {
+          'Cache-Control': 'no-store, max-age=0',
+        },
+      })
     }
 
-    const { searchParams } = new URL(request.url)
-    const entityId = searchParams.get('entityId')
-    const targetType = searchParams.get('targetType')
-    
-    if (!entityId || !targetType) {
-      return NextResponse.json(
-        { error: 'entityId and targetType are required' },
-        { status: 400 }
-      )
-    }
-
-    // Get the target type ID
-    const targetTypeData = await getFollowTargetType(targetType)
-    if (!targetTypeData) {
+    const targetTypeId = await getTargetTypeId(targetType)
+    if (!targetTypeId) {
       return NextResponse.json(
         { error: `Invalid target type: ${targetType}` },
-        { status: 400 }
+        { 
+          status: 400,
+          headers: {
+            'Cache-Control': 'no-store, max-age=0',
+          },
+        }
       )
     }
 
-    // Check if following
-    const { data: follow } = await supabase
-      .from('follows')
-      .select('id')
-      .eq('follower_id', user.id)
-      .eq('following_id', entityId)
-      .eq('target_type_id', targetTypeData.id)
-      .single()
+    const { data, error } = await supabaseAdmin.rpc('check_is_following', {
+      p_follower_id: user.id,
+      p_following_id: entityId,
+      p_target_type_id: targetTypeId,
+    });
+    
+    // Check the actual is_following property, not just if data exists
+    const isFollowing = data && data.length > 0 && data[0].is_following === true;
 
-    return NextResponse.json({
-      isFollowing: !!follow
-    })
+    if (error) {
+      console.error('Error checking follow status:', error);
+      return NextResponse.json(
+        { error: 'Failed to check follow status' },
+        {
+          status: 500,
+          headers: {
+            'Cache-Control': 'no-store, max-age=0',
+          },
+        }
+      );
+    }
 
-  } catch (error) {
-    console.error('Error in check follow status API:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { isFollowing },
+      {
+        status: 200,
+        headers: {
+          'Cache-Control': 'no-store, max-age=0',
+        },
+      }
+    );
+  } catch (error) {
+    console.error('Error in GET /api/follow:', error)
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      {
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-store, max-age=0',
+        },
+      }
     )
   }
 } 

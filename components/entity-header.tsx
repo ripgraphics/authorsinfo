@@ -21,6 +21,7 @@ import { EntityHoverCard } from "@/components/entity-hover-cards"
 import { GroupActions } from '@/components/group/GroupActions'
 import { useGroupPermissions } from '@/hooks/useGroupPermissions'
 import { useAuth } from '@/hooks/useAuth'
+import { FollowButton } from '@/components/follow-button'
 import { EntityImageUpload } from '@/components/entity/EntityImageUpload'
 import { ImageCropper } from '@/components/ui/image-cropper'
 import {
@@ -67,6 +68,8 @@ export interface EntityHeaderProps {
   isFollowing?: boolean
   isMessageable?: boolean
   isEditable?: boolean
+  entityId?: string
+  targetType?: 'user' | 'book' | 'author' | 'publisher' | 'group'
   creatorName?: string
   creator?: {
     id: string
@@ -133,6 +136,8 @@ export function EntityHeader({
   isFollowing = false,
   isMessageable = true,
   isEditable = false,
+  entityId,
+  targetType,
   creatorName,
   creator,
   author,
@@ -427,17 +432,15 @@ export function EntityHeader({
             <span className="entity-header__message-text hidden sm:inline">Message</span>
           </Button>
         )}
-        {onFollow && (
-          <Button 
+        {entityId && targetType && (
+          <FollowButton
+            entityId={entityId}
+            targetType={targetType}
+            entityName={name}
             variant={isFollowing ? "outline" : "default"} 
             className="entity-header__follow-button flex items-center"
-            onClick={onFollow}
-          >
-            <UserPlus className="h-4 w-4 mr-2" />
-            <span className="entity-header__follow-text">
-              {isFollowing ? 'Unfollow' : 'Follow'}
-            </span>
-          </Button>
+            onFollowChange={onFollow}
+          />
         )}
         {!isEditable && (
           <Button variant="outline" size="icon">

@@ -16,7 +16,9 @@ export type ReadingProgress = {
   start_date?: string
   finish_date?: string
   notes?: string
-  is_public?: boolean
+  privacy_level?: string
+  allow_friends?: boolean
+  allow_followers?: boolean
   created_at?: string
   updated_at?: string
 }
@@ -117,7 +119,9 @@ export async function updateReadingProgress(progress: Partial<ReadingProgress>) 
           start_date: progress.start_date || new Date().toISOString(),
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-          is_public: progress.is_public !== undefined ? progress.is_public : true,
+          privacy_level: progress.privacy_level || 'private',
+          allow_friends: progress.allow_friends !== undefined ? progress.allow_friends : false,
+          allow_followers: progress.allow_followers !== undefined ? progress.allow_followers : false,
         })
         .select()
 
@@ -366,7 +370,7 @@ export async function getFriendsReadingActivity(limit = 10) {
         book_cover:book_id(cover_image:cover_image_id(url))
       `)
       .in("user_id", friendIds)
-      .eq("is_public", true)
+      .or('privacy_level.eq.public,privacy_level.eq.friends')
       .order("updated_at", { ascending: false })
       .limit(limit)
 

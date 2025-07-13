@@ -41,7 +41,7 @@ import { PhotosList } from "@/components/photos-list"
 import { PhotoAlbumManager } from "@/components/photo-album-manager"
 import { PhotoAlbumsList } from "@/components/photo-albums-list"
 import { CreateAlbumDialog } from '@/components/create-album-dialog'
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { ExpandableSection } from "@/components/ui/expandable-section"
@@ -53,6 +53,7 @@ import { getContactInfo, upsertContactInfo } from '@/utils/contactInfo'
 import { useAuth } from '@/hooks/useAuth'
 import { FollowButton } from '@/components/follow-button'
 import { canUserEditEntity } from '@/lib/auth-utils'
+import { EntityTabs, EntityTab } from '@/components/ui/entity-tabs';
 
 interface ClientAuthorPageProps {
   author: Author
@@ -140,7 +141,19 @@ export function ClientAuthorPage({
   albums = []
 }: ClientAuthorPageProps) {
   const { user } = useAuth()
-  const [activeTab, setActiveTab] = useState("timeline")
+  const searchParams = useSearchParams();
+  const validTabs: EntityTab[] = [
+    { id: 'timeline', label: 'Timeline' },
+    { id: 'about', label: 'About' },
+    { id: 'books', label: 'Books' },
+    { id: 'followers', label: `Followers (${followersCount})` },
+    { id: 'photos', label: 'Photos' },
+    { id: 'more', label: 'More' },
+  ];
+  const tabParam = searchParams?.get('tab');
+  const validTabIds = validTabs.map(t => t.id);
+  const initialTab = tabParam && validTabIds.includes(tabParam) ? tabParam : 'timeline';
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [author, setAuthor] = useState(initialAuthor)
   const [refreshing, setRefreshing] = useState(false)
   const [bioDialogOpen, setBioDialogOpen] = useState(false)
@@ -385,6 +398,13 @@ export function ClientAuthorPage({
     setShowFullBio(prev => !prev);
   }
 
+  // Keep activeTab in sync with URL
+  useEffect(() => {
+    if (tabParam && validTabIds.includes(tabParam) && tabParam !== activeTab) {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam, validTabIds, activeTab]);
+
   return (
     <div className="author-page author-page__container py-6">
       {/* Cover Photo and Profile Section */}
@@ -480,44 +500,11 @@ export function ClientAuthorPage({
 
         <div className="author-page__header-nav border-t">
           <div className="author-page__header-nav-container">
-            <div className="author-page__header-tabs grid grid-cols-6 h-auto mt-0 bg-transparent">
-              <button 
-                className={`author-page__header-tab inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 ${activeTab === "timeline" ? "border-b-2 border-primary" : ""}`}
-                onClick={() => setActiveTab("timeline")}
-              >
-                Timeline
-              </button>
-              <button 
-                className={`author-page__header-tab inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 ${activeTab === "about" ? "border-b-2 border-primary" : ""}`}
-                onClick={() => setActiveTab("about")}
-              >
-                About
-              </button>
-              <button 
-                className={`author-page__header-tab inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 ${activeTab === "books" ? "border-b-2 border-primary" : ""}`}
-                onClick={() => setActiveTab("books")}
-              >
-                Books
-              </button>
-              <button 
-                className={`author-page__header-tab inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 ${activeTab === "followers" ? "border-b-2 border-primary" : ""}`}
-                onClick={() => setActiveTab("followers")}
-              >
-                Followers ({followersCount})
-              </button>
-              <button 
-                className={`author-page__header-tab inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 ${activeTab === "photos" ? "border-b-2 border-primary" : ""}`}
-                onClick={() => setActiveTab("photos")}
-              >
-                Photos
-              </button>
-              <button 
-                className={`author-page__header-tab inline-flex items-center justify-center whitespace-nowrap px-3 py-1.5 text-sm font-medium h-12 ${activeTab === "more" ? "border-b-2 border-primary" : ""}`}
-                onClick={() => setActiveTab("more")}
-              >
-                More
-              </button>
-            </div>
+            <EntityTabs
+              tabs={validTabs}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+            />
           </div>
         </div>
       </div>

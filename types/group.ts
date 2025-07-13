@@ -7,18 +7,6 @@ export interface Group {
   created_at: string;
   cover_image_url?: string;
   member_count?: number;
-  group_image_id?: number;
-  cover_image_id?: number;
-  is_public: boolean;
-  is_discoverable: boolean;
-  tags?: string[];
-  updated_at: string;
-  creatorName?: string;
-  creatorEmail?: string;
-  creatorCreatedAt?: string;
-  creatorJoinedAt?: string;
-  contact_info?: ContactInfo;
-  followers?: GroupFollower[];
 }
 
 export interface ContactInfo {

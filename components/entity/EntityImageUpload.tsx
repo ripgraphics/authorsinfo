@@ -311,6 +311,40 @@ export function EntityImageUpload({
                   throw new Error(`Failed to update ${entityType} profile: ${updateError.message}`)
                 }
 
+                // Add image to entity album
+                const albumType = `${entityType}_${type}_album`
+                try {
+                  const albumResponse = await fetch('/api/entity-images', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      entityId: entityId,
+                      entityType: entityType,
+                      albumType: albumType,
+                      imageId: imageData.id,
+                      isCover: true,
+                      isFeatured: true,
+                      metadata: {
+                        aspect_ratio: type === 'cover' ? 16/9 : 1,
+                        uploaded_via: 'entity_image_upload',
+                        original_filename: fileToUpload?.name || 'uploaded-image.jpg',
+                        file_size: fileToUpload?.size || 0
+                      }
+                    })
+                  })
+
+                  if (!albumResponse.ok) {
+                    const errorText = await albumResponse.text()
+                    console.error('Failed to add image to album:', errorText)
+                    // Don't throw error here, just log it
+                  }
+                } catch (albumError) {
+                  console.error('Error adding image to album:', albumError)
+                  // Don't fail the upload if album addition fails
+                }
+
                 // Optionally delete old image from Cloudinary (only if it's a Cloudinary URL)
                 if (oldImageUrl && oldImageUrl.includes('cloudinary.com')) {
                   try {
@@ -338,7 +372,7 @@ export function EntityImageUpload({
                 onImageChange(result.info.secure_url)
                 toast({
                   title: "Success",
-                  description: `${entityType} ${type} has been updated successfully.`
+                  description: `${entityType} ${type} has been updated successfully and added to album.`
                 })
                 
                 // Close modal and reset state

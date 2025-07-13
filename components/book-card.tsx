@@ -12,7 +12,7 @@ interface BookCardProps {
   coverImageUrl?: string
   className?: string
   author?: {
-    id: number
+    id: string
     name: string
     author_image?: {
       url: string

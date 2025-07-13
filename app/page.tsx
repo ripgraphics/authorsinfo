@@ -109,9 +109,9 @@ async function RecentPublishers() {
             <Link href={`/publishers/${publisher.id}`} key={publisher.id} className="block">
               <Card className="overflow-hidden h-full transition-transform hover:scale-105">
                 <div className="relative aspect-[3/2] w-full">
-                  {publisher.logo_url ? (
+                  {publisher.publisher_image?.url ? (
                     <Image
-                      src={publisher.logo_url || "/placeholder.svg"}
+                      src={publisher.publisher_image.url || "/placeholder.svg"}
                       alt={publisher.name}
                       fill
                       className="object-contain p-4"

@@ -221,16 +221,6 @@ export default async function AddBookPage({ searchParams }: AddBookPageProps) {
                     />
                   </div>
                 </Link>
-              ) : bookImage ? (
-                <div className="w-full h-full">
-                  <Image
-                    src={bookImage || "/placeholder.svg"}
-                    alt={bookTitle}
-                    width={400}
-                    height={600}
-                    className="w-full aspect-[2/3] object-cover"
-                  />
-                </div>
               ) : (
                 <div className="w-full aspect-[2/3] bg-muted flex items-center justify-center">
                   <BookOpen className="h-16 w-16 text-muted-foreground" />

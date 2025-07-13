@@ -56,6 +56,8 @@ import { EntityHoverCard } from "@/components/entity-hover-cards"
 import { ContentSection } from "@/components/ui/content-section"
 import { formatDate } from "@/utils/dateUtils"
 import { canUserEditEntity } from '@/lib/auth-utils'
+import { BookCard } from "@/components/book-card";
+import { supabase } from '@/lib/supabase/client';
 
 interface Follower {
   id: string
@@ -110,7 +112,8 @@ export function ClientBookPage({
   const [currentReadingStatus, setCurrentReadingStatus] = useState<string | null>(null)
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false)
   const [canEdit, setCanEdit] = useState(false)
-  
+  const [moreBooks, setMoreBooks] = useState<any[]>([]);
+
   // Mock photos for the Photos tab
   const mockPhotosTabData = [
     { id: "1", title: "Reading at the park", date: "June 15, 2023", url: "/placeholder.svg?height=300&width=300" },
@@ -416,6 +419,20 @@ export function ClientBookPage({
   const publishDate = book.publish_date || book.publication_date || undefined
   const language = book.language || undefined
 
+  useEffect(() => {
+    async function fetchMoreBooks() {
+      if (!authors || authors.length === 0) return;
+      const { data, error } = await supabase
+        .from('books')
+        .select('id, title, cover_image:images!cover_image_id(id, url)')
+        .eq('author_id', authors[0].id)
+        .neq('id', book.id)
+        .limit(4);
+      if (!error && data) setMoreBooks(data);
+    }
+    fetchMoreBooks();
+  }, [authors, book.id]);
+
   return (
     <div className="book-page">
         <EntityHeader
@@ -437,8 +454,8 @@ export function ClientBookPage({
             <span className="text-muted-foreground">{authors[0].name}</span>
             </EntityHoverCard>
           ) : undefined}
-          coverImageUrl={book.cover_image_url || book.original_image_url || "/placeholder.svg?height=400&width=1200"}
-        profileImageUrl={book.cover_image_url || book.original_image_url || "/placeholder.svg?height=200&width=200"}
+          coverImageUrl={book.cover_image?.url || "/placeholder.svg?height=400&width=1200"}
+        profileImageUrl={book.cover_image?.url || "/placeholder.svg?height=200&width=200"}
         stats={[
           { 
             icon: <BookOpen className="h-4 w-4 mr-1" />, 
@@ -464,7 +481,7 @@ export function ClientBookPage({
           id: publisher.id,
             name: publisher.name,
             publisher_image: publisher.publisher_image,
-            logo_url: publisher.logo_url
+            logo_url: publisher.publisher_image?.url
           } : undefined}
           publisherBookCount={publisherBooksCount}
         isMessageable={false}
@@ -753,11 +770,11 @@ export function ClientBookPage({
               <div className="book-page__details-sidebar lg:col-span-1">
               {/* Book Cover (full width) */}
                 <Card className="book-page__cover-card overflow-hidden">
-                {(book.cover_image_url || book.original_image_url) ? (
+                {book.cover_image?.url ? (
                     <div className="book-page__cover-image w-full h-full">
                     <Image
-                      src={book.cover_image_url ?? book.original_image_url ?? "/placeholder.svg"}
-                      alt={book.title}
+                      src={book.cover_image.url}
+                      alt={book.cover_image?.alt_text ?? book.title}
                       width={400}
                       height={600}
                       className="w-full aspect-[2/3] object-cover"
@@ -922,7 +939,7 @@ export function ClientBookPage({
                                 id: publisher.id,
                                 name: publisher.name,
                                 publisher_image: publisher.publisher_image,
-                                logo_url: publisher.logo_url,
+                                logo_url: publisher.publisher_image?.url,
                                 bookCount: publisherBooksCount
                               }}
                             >
@@ -1171,27 +1188,21 @@ export function ClientBookPage({
                     footer={
                       <div className="mt-4 text-center">
                         <Button variant="outline" asChild>
-                          <Link href={`/authors/${authors[0].id}`}>View All Books</Link>
+                          <Link href={`/authors/${authors[0].id}?tab=books`}>View All Books</Link>
                         </Button>
                       </div>
                     }
                     className="book-page__more-books-section"
                   >
-                    {authorBookCounts[authors[0].id] && authorBookCounts[authors[0].id] > 1 ? (
+                    {moreBooks.length > 0 ? (
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                        {/* This is a placeholder for book cards. In a real implementation, 
-                            you would fetch and map over actual books by this author */}
-                        {Array.from({ length: Math.min(4, authorBookCounts[authors[0].id] - 1) }).map((_, index) => (
-                          <div key={index} className="book-card-container">
-                            <div className="aspect-[2/3] relative rounded-md overflow-hidden bg-muted">
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <BookOpen className="h-10 w-10 text-muted-foreground" />
-                              </div>
-                            </div>
-                            <div className="mt-2">
-                              <h4 className="text-sm font-medium line-clamp-2">Another Book Title</h4>
-                            </div>
-                          </div>
+                        {moreBooks.map((b) => (
+                          <BookCard
+                            key={b.id}
+                            id={b.id}
+                            title={b.title}
+                            coverImageUrl={b.cover_image?.url || "/placeholder.svg"}
+                          />
                         ))}
                       </div>
                     ) : (

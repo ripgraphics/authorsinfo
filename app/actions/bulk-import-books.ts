@@ -269,15 +269,21 @@ export async function bulkImportBookObjects(bookObjects: any[]): Promise<ImportR
               folder: 'authorsinfo/bookcovers',
               transformation: [{ height: 900, crop: 'fit', format: 'webp' }],
             });
-            const { data: imgTypeRow } = await supabase
-              .from('image_types')
+            // Get Book Cover entity type
+            const { data: entityTypeRow } = await supabase
+              .from('entity_types')
               .select('id')
-              .eq('name', 'cover')
+              .eq('name', 'Book Cover')
               .maybeSingle();
-            const imgTypeId = imgTypeRow?.id ?? null;
+            const entityTypeId = entityTypeRow?.id ?? null;
             const { data: imageRow, error: imgErr } = await supabase
               .from('images')
-              .insert({ url: uploadRes.secure_url, alt_text: book.title, img_type_id: imgTypeId })
+              .insert({ 
+                url: uploadRes.secure_url, 
+                alt_text: book.title, 
+                entity_type_id: entityTypeId,
+                metadata: { entity_type: 'book', entity_id: null } // Will be updated when book is created
+              })
               .select('id')
               .single();
             if (imageRow) {
@@ -640,15 +646,16 @@ export async function bulkImportBooks(isbns: string[]): Promise<ImportResult> {
             folder: 'authorsinfo/bookcovers',
             transformation: [{ height: 900, crop: 'fit', format: 'webp' }],
           });
-          const { data: imgTypeRow } = await supabase
-            .from('image_types')
-            .select('id')
-            .eq('name', 'cover')
-            .maybeSingle();
-          const imgTypeId = imgTypeRow?.id ?? null;
+          // Use Book Cover entity type ID directly
+          const entityTypeId = '9d91008f-4f24-4501-b18a-922e2cfd6d34';
           const { data: imageRow, error: imgErr } = await supabase
             .from('images')
-            .insert({ url: uploadRes.secure_url, alt_text: book.title, img_type_id: imgTypeId })
+            .insert({ 
+              url: uploadRes.secure_url, 
+              alt_text: book.title, 
+              entity_type_id: entityTypeId,
+              metadata: { entity_type: 'book', entity_id: null } // Will be updated when book is created
+            })
             .select('id')
             .single();
           if (imageRow) {
@@ -894,463 +901,14 @@ export async function importNewestBooks(): Promise<ImportResult> {
   const result: ImportResult = { added: 0, duplicates: 0, errors: 0, errorDetails: [], logs: [] };
 
   try {
-    // Try to import new_books.json, but handle missing file gracefully
-    let allBooks: any[] = [];
-    try {
-      // Use dynamic import to avoid TypeScript module resolution issues
-      const newBooksData = await import('../../new_books.json' as any);
-      allBooks = Array.isArray(newBooksData.books) ? newBooksData.books : [];
-      console.log(`Loaded ${allBooks.length} books from new_books.json`);
-      result.logs?.push(`Loaded ${allBooks.length} books from new_books.json`);
-    } catch (importError) {
-      console.log('new_books.json not found, skipping static import');
-      result.logs?.push('new_books.json not found, skipping static import');
-      return result;
-    }
-
-    if (!allBooks.length) {
-      result.errors++;
-      result.errorDetails?.push('new_books.json contains no books');
-      result.logs?.push('No books found in new_books.json');
-      return result;
-    }
-
-    // Gather ISBNs and check duplicates
-    const isbns = allBooks.map((b: any) => b.isbn10 || b.isbn).filter(Boolean);
-    console.log(`Checking ${isbns.length} ISBNs for duplicates...`);
-    result.logs?.push(`Checking ${isbns.length} ISBNs for duplicates...`);
-    const { duplicates, newIsbns, error } = await checkForDuplicates(isbns);
-    if (error) {
-      console.error('Error checking duplicates:', error);
-      result.errors++;
-      result.errorDetails?.push(`Error checking duplicates: ${error}`);
-      result.logs?.push(`Error checking duplicates: ${error}`);
-      return result;
-    }
-    
-    // Handle case where newIsbns might be undefined
-    if (!newIsbns) {
-      result.errors++;
-      result.errorDetails?.push('Failed to check for duplicates');
-      result.logs?.push('Failed to check for duplicates');
-      return result;
-    }
-    
-    result.duplicates = duplicates.length;
-    console.log(`Found ${duplicates.length} duplicates, ${newIsbns.length} new books to import.`);
-    result.logs?.push(`Found ${duplicates.length} duplicates, ${newIsbns.length} new books to import.`);
-
-    // Update existing duplicate books with extended metadata
-    for (const isbn of duplicates) {
-      const dataItem = allBooks.find((b: any) => b.isbn10 === isbn || b.isbn === isbn || b.isbn13 === isbn);
-      if (!dataItem) continue;
-      result.logs?.push(`Updating existing book with ISBN ${isbn}`);
-      const updateData: any = {
-        description: dataItem.synopsis,
-        language: dataItem.language,
-        pages: dataItem.pages,
-      };
-      const { error: updateErr } = await supabase
-        .from('books')
-        .update(updateData)
-        .or(`isbn10.eq.${isbn},isbn13.eq.${isbn}`);
-      if (updateErr) {
-        result.errors++;
-        result.errorDetails?.push(`Error updating book ${dataItem.title}: ${updateErr.message}`);
-        result.logs?.push(`Error updating book ${dataItem.title}: ${updateErr.message}`);
-      } else {
-        result.logs?.push(`Book updated: ${dataItem.title} (ISBN ${isbn})`);
-      }
-    }
-
-    const newBooks = allBooks.filter((b: any) => newIsbns.includes(b.isbn10 || b.isbn));
-    console.log('New book titles:', newBooks.map((b: any) => b.title).join(', '));
-    result.logs?.push(`New book titles: ${newBooks.map((b: any) => b.title).join(', ')}`);
-
-    let processedCount = 0;
-    for (const book of newBooks) {
-      processedCount++;
-      console.log(`Processing (${processedCount}/${newBooks.length}): ${book.title}`);
-      result.logs?.push(`Processing (${processedCount}/${newBooks.length}): ${book.title}`);
-      try {
-        // Find or create publisher
-        let publisherId: number | null = null;
-        if (book.publisher) {
-          const { data: existingPub } = await supabase
-            .from('publishers')
-            .select('id')
-            .eq('name', book.publisher)
-            .maybeSingle();
-          if (existingPub) {
-            publisherId = existingPub.id;
-          } else {
-            const { data: newPub, error: pubErr } = await supabase
-              .from('publishers')
-              .insert({ name: book.publisher })
-              .select('id')
-              .single();
-            if (!pubErr && newPub) publisherId = newPub.id;
-          }
-        }
-
-        // Find or create binding type
-        let bindingTypeId: number | null = null
-        if (book.binding) {
-          const { data: existingBinding } = await supabase
-            .from("binding_types")
-            .select("id")
-            .ilike("name", book.binding)
-            .maybeSingle()
-
-          if (existingBinding) {
-            bindingTypeId = existingBinding.id
-          } else {
-            const { data: newBinding, error: bindingError } = await supabase
-              .from("binding_types")
-              .insert({ name: book.binding })
-              .select("id")
-              .single()
-
-            if (!bindingError && newBinding) {
-              bindingTypeId = newBinding.id
-            }
-          }
-        }
-
-        // Find or create format type (we'll use a simple mapping for common formats)
-        let formatTypeId: number | null = null
-        if (book.binding) {
-          // Map common binding types to format types
-          let formatName = 'Print' // default format
-          if (book.binding.toLowerCase().includes('ebook') || book.binding.toLowerCase().includes('kindle')) {
-            formatName = 'Digital'
-          } else if (book.binding.toLowerCase().includes('audio')) {
-            formatName = 'Audio'
-          }
-
-          const { data: existingFormat } = await supabase
-            .from("format_types")
-            .select("id")
-            .ilike("name", formatName)
-            .maybeSingle()
-
-          if (existingFormat) {
-            formatTypeId = existingFormat.id
-          } else {
-            const { data: newFormat, error: formatError } = await supabase
-              .from("format_types")
-              .insert({ name: formatName })
-              .select("id")
-              .single()
-
-            if (!formatError && newFormat) {
-              formatTypeId = newFormat.id
-            }
-          }
-        }
-
-        // Find or create authors
-        const authorIds: string[] = []; // Changed to string[] to match UUID format
-        
-        // Enhanced debugging for author data
-        console.log(`\n=== DEBUGGING AUTHOR DATA FOR "${book.title}" ===`);
-        console.log('Full book object:', JSON.stringify(book, null, 2));
-        console.log('book.authors:', book.authors);
-        console.log('book.authors type:', typeof book.authors);
-        console.log('book.authors is Array:', Array.isArray(book.authors));
-        console.log('book.authors length:', book.authors?.length);
-        console.log('=== END AUTHOR DEBUG ===\n');
-
-        if (Array.isArray(book.authors) && book.authors.length > 0) {
-          console.log(`Processing ${book.authors.length} authors for book "${book.title}":`, book.authors);
-          for (const authorName of book.authors) {
-            // Skip empty or invalid author names
-            if (!authorName || typeof authorName !== 'string' || authorName.trim() === '') {
-              console.warn(`Skipping invalid author name:`, authorName);
-              continue;
-            }
-
-            const cleanAuthorName = authorName.trim();
-            console.log(`Processing author: "${cleanAuthorName}"`);
-
-            const { data: existingAuth } = await supabase
-              .from('authors')
-              .select('id')
-              .eq('name', cleanAuthorName)
-              .maybeSingle();
-            if (existingAuth) {
-              console.log(`Found existing author: ${cleanAuthorName} (ID: ${existingAuth.id})`);
-              authorIds.push(existingAuth.id);
-            } else {
-              console.log(`Creating new author: ${cleanAuthorName}`);
-              const { data: newAuth, error: authErr } = await supabase
-                .from('authors')
-                .insert({ name: cleanAuthorName })
-                .select('id')
-                .single();
-              if (!authErr && newAuth) {
-                console.log(`Successfully created author: ${cleanAuthorName} (ID: ${newAuth.id})`);
-                authorIds.push(newAuth.id);
-              } else {
-                console.error(`Error creating author "${cleanAuthorName}":`, authErr);
-                result.errors++;
-                const errorMsg = `Failed to create author "${cleanAuthorName}" for book ${book.title}: ${authErr?.message}`;
-                result.errorDetails?.push(errorMsg);
-                result.logs?.push(errorMsg);
-              }
-            }
-          }
-        } else {
-          console.error(`❌ No valid authors found for book "${book.title}"`);
-          console.error(`   - book.authors exists: ${!!book.authors}`);
-          console.error(`   - book.authors is array: ${Array.isArray(book.authors)}`);
-          console.error(`   - book.authors length: ${book.authors?.length}`);
-          console.error(`   - book.authors value: ${JSON.stringify(book.authors)}`);
-          result.logs?.push(`❌ No valid authors found for book "${book.title}". Authors field: ${JSON.stringify(book.authors)}`);
-        }
-
-        // Skip books without authors - don't create Unknown Author
-        if (authorIds.length === 0) {
-          result.errors++;
-          const errorMsg = `Skipping book "${book.title}": No valid authors found in data. Authors field: ${JSON.stringify(book.authors)}`;
-          result.errorDetails?.push(errorMsg);
-          result.logs?.push(errorMsg);
-          console.error(errorMsg);
-          continue;
-        }
-
-        console.log(`Final author IDs for "${book.title}":`, authorIds);
-
-        console.log(`Book "${book.title}" has ${authorIds.length} authors, proceeding with insertion`);
-        result.logs?.push(`Book "${book.title}" has ${authorIds.length} authors, proceeding with insertion`);
-
-        // Upload cover image
-        let coverImageId: number | null = null;
-        const imageUrl = book.image_original || book.image;
-        if (imageUrl) {
-          const uploadRes = await cloudinary.uploader.upload(imageUrl, {
-            folder: 'authorsinfo/bookcovers',
-            transformation: [{ height: 900, crop: 'fit', format: 'webp' }],
-          });
-          const { data: imgTypeRow } = await supabase
-            .from('image_types')
-            .select('id')
-            .eq('name', 'cover')
-            .maybeSingle();
-          const imgTypeId = imgTypeRow?.id ?? null;
-          const { data: imageRow, error: imgErr } = await supabase
-            .from('images')
-            .insert({ url: uploadRes.secure_url, alt_text: book.title, img_type_id: imgTypeId })
-            .select('id')
-            .single();
-          if (imageRow) coverImageId = imageRow.id;
-        }
-
-        // Format publication date properly
-        let publicationDate = null;
-        if (book.date_published) {
-          const dateStr = book.date_published;
-          let formattedDate = null;
-          
-          if (dateStr && /^\d{4}$/.test(dateStr)) {
-            // Year only: 2015 -> 2015-01-01
-            formattedDate = `${dateStr}-01-01`;
-          } else if (dateStr && /^\d{4}-\d{2}$/.test(dateStr)) {
-            // Year-month: 2015-04 -> 2015-04-01
-            formattedDate = `${dateStr}-01`;
-          } else if (dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-            // Full date: keep as is
-            formattedDate = dateStr;
-          } else {
-            // Invalid format: set to null
-            console.warn(`Invalid date format: ${dateStr}, setting to null`);
-            formattedDate = null;
-          }
-          
-          // Check if date is in the future
-          if (formattedDate) {
-            const pubDate = new Date(formattedDate);
-            const today = new Date();
-            if (pubDate > today) {
-              console.warn(`Future publication date: ${formattedDate}, setting to null`);
-              publicationDate = null;
-            } else {
-              publicationDate = formattedDate;
-            }
-          }
-        }
-
-        // Properly handle ISBN10 vs ISBN13 (before any insertion attempts)
-        let isbn10 = null;
-        let isbn13 = null;
-        
-        // Check if book.isbn is ISBN10 (10 digits, possibly ending with X)
-        if (book.isbn && /^[0-9X]{10}$/.test(book.isbn)) {
-          isbn10 = book.isbn;
-        }
-        // Check if book.isbn is ISBN13 (13 digits)
-        else if (book.isbn && /^[0-9]{13}$/.test(book.isbn)) {
-          isbn13 = book.isbn;
-        }
-        
-        // Check isbn10 field if it exists
-        if (book.isbn10 && /^[0-9X]{10}$/.test(book.isbn10)) {
-          isbn10 = book.isbn10;
-        }
-        
-        // Also check the explicit isbn13 field
-        if (book.isbn13 && /^[0-9]{13}$/.test(book.isbn13)) {
-          isbn13 = book.isbn13;
-        }
-
-        // Use a transaction-like approach: try to insert book and authors in rapid succession
-        console.log(`Attempting to insert book "${book.title}" with immediate author linking`);
-        
-        let newBookId: string | null = null;
-        let success = false;
-
-        // Try with description first
-        try {
-          const { data: newBook, error: bookError } = await supabase
-            .from('books')
-            .insert({
-              title: book.title,
-              title_long: book.title_long || null,
-              // Removed 'description' field as it doesn't exist in schema
-              synopsis: book.synopsis || null,
-              overview: book.overview || null,
-              isbn10: isbn10,
-              isbn13: isbn13,
-              publisher_id: publisherId,
-              publication_date: publicationDate,
-              language: book.language,
-              pages: book.pages,
-              binding: book.binding || null,
-              edition: book.edition || null,
-              dimensions: book.dimensions || null,
-              weight: book.dimensions_structured?.weight?.value || null,
-              list_price: book.msrp || null,
-              binding_type_id: bindingTypeId,
-              format_type_id: formatTypeId,
-              cover_image_id: coverImageId,
-              author: book.authors?.[0] || 'Unknown Author', // Set primary author (trigger will sync with author_id)
-              author_id: authorIds[0] || null, // Set the primary author ID
-            })
-            .select('id')
-            .single();
-
-          if (!bookError && newBook?.id) {
-            newBookId = newBook.id;
-            console.log(`Book inserted successfully with description, ID: ${newBookId}`);
-            
-            // Immediately link authors
-            const linkPromises = authorIds.map(authId => 
-              supabase.from('book_authors').insert({ book_id: newBookId, author_id: authId })
-            );
-            await Promise.all(linkPromises);
-            console.log(`Successfully linked ${authorIds.length} authors`);
-            success = true;
-          }
-        } catch (error) {
-          console.log(`Book insert with description failed, trying without description`);
-        }
-
-        // If that failed, try without description
-        if (!success) {
-          try {
-            const { data: newBook, error: bookError } = await supabase
-              .from('books')
-              .insert({
-                title: book.title,
-                title_long: book.title_long || null,
-                synopsis: book.synopsis || null,
-                overview: book.overview || null,
-                isbn10: isbn10, // Use the same ISBN logic
-                isbn13: isbn13, // Use the same ISBN logic
-                publisher_id: publisherId,
-                publication_date: publicationDate, // Use formatted date
-                language: book.language,
-                pages: book.pages,
-                binding: book.binding || null,
-                edition: book.edition || null,
-                dimensions: book.dimensions || null,
-                weight: book.dimensions_structured?.weight?.value || null,
-                list_price: book.msrp || null,
-                binding_type_id: bindingTypeId,
-                format_type_id: formatTypeId,
-                cover_image_id: coverImageId,
-                author: book.authors?.[0] || 'Unknown Author', // Set primary author (trigger will sync with author_id)
-                author_id: authorIds[0] || null, // Set the primary author ID
-              })
-              .select('id')
-              .single();
-
-            if (!bookError && newBook?.id) {
-              newBookId = newBook.id;
-              console.log(`Book inserted successfully without description, ID: ${newBookId}`);
-              
-              // Immediately link authors
-              const linkPromises = authorIds.map(authId => 
-                supabase.from('book_authors').insert({ book_id: newBookId, author_id: authId })
-              );
-              await Promise.all(linkPromises);
-              console.log(`Successfully linked ${authorIds.length} authors`);
-              success = true;
-            }
-          } catch (error) {
-            console.error(`Both book insertion attempts failed:`, error);
-          }
-        }
-
-        if (success && newBookId) {
-          result.added++;
-          console.log(`Successfully processed book "${book.title}"`);
-
-          // Link subjects
-          if (Array.isArray(book.subjects)) {
-            for (const subjectName of book.subjects) {
-              const { data: existingSub } = await supabase
-                .from('subjects')
-                .select('id')
-                .eq('name', subjectName)
-                .maybeSingle();
-              let subjectId = existingSub?.id;
-              if (!subjectId) {
-                const { data: newSub } = await supabase
-                  .from('subjects')
-                  .insert({ name: subjectName })
-                  .select('id')
-                  .single();
-                if (newSub) subjectId = newSub.id;
-              }
-              if (subjectId) {
-                await supabase
-                  .from('book_subjects')
-                  .upsert({ book_id: newBookId, subject_id: subjectId });
-              }
-            }
-          }
-        } else {
-          result.errors++;
-          const errorMsg = `Failed to insert book ${book.title}: Book insertion failed - check logs for details`;
-          result.errorDetails?.push(errorMsg);
-          result.logs?.push(errorMsg);
-          console.error(errorMsg);
-        }
-      } catch (err) {
-        result.errors++;
-        result.errorDetails?.push(`Error processing book ${book.title}: ${(err as Error).message}`);
-        result.logs?.push(`Error processing book ${book.title}: ${(err as Error).message}`);
-      }
-    }
-    console.log(`Import complete. Added: ${result.added}, Duplicates: ${result.duplicates}, Errors: ${result.errors}`);
-    result.logs?.push(`Import complete. Added: ${result.added}, Duplicates: ${result.duplicates}, Errors: ${result.errors}`);
-    revalidatePath('/books');
+    // Since new_books.json doesn't exist, return early with a message
+    console.log('new_books.json not found, skipping static import');
+    result.logs?.push('new_books.json not found, skipping static import');
     return result;
   } catch (error) {
-    console.error("Import error:", error);
+    console.error('Error in importNewestBooks:', error);
     result.errors++;
-    result.errorDetails?.push(`General error: ${error}`);
+    result.errorDetails?.push(`Error in importNewestBooks: ${error}`);
     return result;
   }
 }

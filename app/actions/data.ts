@@ -58,10 +58,14 @@ export async function getTotalBooksCount(): Promise<number> {
 // Update the getRecentBooks function
 export async function getRecentBooks(limit = 10, offset = 0): Promise<Book[]> {
   try {
-    // Fetch books without foreign key relationships
+    // Fetch books with cover image and author data
     const { data, error } = await supabaseAdmin
       .from("books")
-      .select("*")
+      .select(`
+        *,
+        cover_image:images!books_cover_image_id_fkey(url, alt_text),
+        author:authors!books_author_id_fkey(id, name, author_image:images!authors_author_image_id_fkey(url, alt_text))
+      `)
       .range(offset, offset + limit - 1)
 
     if (error) {
@@ -69,8 +73,20 @@ export async function getRecentBooks(limit = 10, offset = 0): Promise<Book[]> {
       return []
     }
 
-    // Return books as-is, without trying to join with images
-    return data as Book[]
+    // Process books to include cover image URL and author data
+    const books = (data || []).map(book => ({
+      ...book,
+      cover_image_url: book.cover_image?.url || null,
+      author: book.author ? {
+        ...book.author,
+        author_image: book.author.author_image ? {
+          url: book.author.author_image.url,
+          alt_text: book.author.author_image.alt_text
+        } : null
+      } : null
+    })) as Book[]
+
+    return books
   } catch (error) {
     console.error("Error fetching books:", error)
     return []
@@ -94,10 +110,13 @@ export async function getBookById(id: string): Promise<Book | null> {
 
     const fetchPromise = new Promise<Book | null>(async (resolve) => {
       try {
-        // Fetch book without foreign key relationships
+        // Fetch book with cover image URL
         const { data, error } = await supabaseAdmin
           .from("books")
-          .select("*")
+          .select(`
+            *,
+            cover_image:images!cover_image_id(url, alt_text)
+          `)
           .eq("id", id)
           .single()
 
@@ -383,10 +402,13 @@ export async function getTotalPublishersCount(): Promise<number> {
 // Update the getRecentPublishers function to support pagination and join with images
 export async function getRecentPublishers(limit = 10, offset = 0): Promise<Publisher[]> {
   try {
-    // Fetch publishers without foreign key relationships
+    // Fetch publishers with their image relationships
     const { data, error } = await supabaseAdmin
       .from("publishers")
-      .select("*")
+      .select(`
+        *,
+        publisher_image:images!publishers_publisher_image_id_fkey(id, url, alt_text)
+      `)
       .range(offset, offset + limit - 1)
 
     if (error) {
@@ -394,7 +416,6 @@ export async function getRecentPublishers(limit = 10, offset = 0): Promise<Publi
       return []
     }
 
-    // Return publishers as-is, without trying to join with images
     return data as Publisher[]
   } catch (error) {
     console.error("Error fetching publishers:", error)

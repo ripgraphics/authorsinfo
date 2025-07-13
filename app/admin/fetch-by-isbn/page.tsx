@@ -2,7 +2,10 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { BookOpen } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Book {
@@ -69,6 +72,8 @@ export default function FetchByIsbnPage() {
         isbn: book.isbn || '',
       };
 
+      console.log('Sending book data to API:', bookData);
+
       const res = await fetch('/api/admin/add-book', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -77,19 +82,23 @@ export default function FetchByIsbnPage() {
 
       if (!res.ok) {
         const errorData = await res.json();
+        console.error('API Error:', errorData);
         throw new Error(errorData.error || 'Failed to upload book');
       }
 
       const result = await res.json();
+      console.log('API Success:', result);
+      
       toast({
         title: "Success!",
-        description: `Book "${book.title}" has been added to the application.`,
+        description: `Book "${book.title}" has been added to the system.`,
       });
 
       // Remove the book from the list after successful upload
       setBooks(prev => prev.filter((_, i) => i !== index));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to upload book';
+      console.error('Upload error:', err);
       toast({
         title: "Upload Failed",
         description: errorMessage,
@@ -132,36 +141,54 @@ export default function FetchByIsbnPage() {
 
       {error && <p className="text-red-600 mt-4">{error}</p>}
 
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-6">
         {books.map((book, idx) => (
-          <div key={idx} className="border rounded shadow p-4">
-            <img
-              src={book.image}
-              alt={book.title}
-              className="w-full h-48 object-cover rounded mb-4"
-            />
-            <h2 className="text-lg font-semibold mb-2">{book.title}</h2>
-            <p className="text-gray-600 mb-2">{book.authors.join(', ')}</p>
-            <p className="text-sm text-gray-500 mb-1">
-              {new Date(book.date_published).toLocaleDateString()}
-            </p>
-            <p className="text-sm text-gray-500 mb-1">Publisher: {book.publisher}</p>
-            <p className="text-sm text-gray-500 mb-4">{book.pages} pages</p>
+          <Card key={idx} className="overflow-hidden hover:shadow-lg transition-shadow">
+            {/* Image container with 2:3 aspect ratio */}
+            <div className="relative w-full" style={{ aspectRatio: "2/3" }}>
+              {book.image ? (
+                <Image
+                  src={book.image}
+                  alt={book.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, (max-width: 1536px) 25vw, 16vw"
+                  className="object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-muted flex items-center justify-center">
+                  <BookOpen className="h-12 w-12 text-muted-foreground" />
+                </div>
+              )}
+            </div>
             
-            <Button
-              onClick={() => handleUploadBook(book, idx)}
-              disabled={uploadingBooks.has(idx)}
-              className="w-full"
-              variant="default"
-            >
-              {uploadingBooks.has(idx) ? 'Adding...' : 'Add to Application'}
-            </Button>
-          </div>
+            <CardContent className="p-4">
+              <h2 className="font-semibold text-lg mb-2 line-clamp-2 min-h-[3rem] leading-tight">{book.title}</h2>
+              <p className="text-muted-foreground text-sm mb-2 line-clamp-1">
+                by {book.authors.join(', ')}
+              </p>
+              <div className="space-y-1 text-sm text-muted-foreground mb-4">
+                <p>{new Date(book.date_published).toLocaleDateString()}</p>
+                <p>Publisher: {book.publisher}</p>
+                <p>{book.pages} pages</p>
+                {book.isbn && <p>ISBN: {book.isbn}</p>}
+              </div>
+              
+              <Button
+                onClick={() => handleUploadBook(book, idx)}
+                disabled={uploadingBooks.has(idx)}
+                className="w-full"
+                variant="default"
+              >
+                {uploadingBooks.has(idx) ? 'Adding...' : 'Add to System'}
+              </Button>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
       {books.length === 0 && !loading && !error && (
-        <div className="text-center text-gray-500 mt-8">
+        <div className="text-center text-muted-foreground mt-8">
+          <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
           <p>Enter ISBN(s) above and click "Fetch Books" to start</p>
         </div>
       )}

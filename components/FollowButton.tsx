@@ -37,6 +37,12 @@ export default function FollowButton({
   // Check initial follow status
   useEffect(() => {
     const checkFollowStatus = async () => {
+      // Don't check follow status if targetType is undefined
+      if (!targetType) {
+        setIsLoading(false)
+        return
+      }
+
       try {
         // Use the faster API route instead of server action
         const response = await fetch(`/api/follow?entityId=${entityId}&targetType=${targetType}`)
@@ -60,7 +66,7 @@ export default function FollowButton({
   }, [entityId, targetType])
 
   const handleFollowToggle = useCallback(async () => {
-    if (isActionLoading || disabled) return
+    if (isActionLoading || disabled || !targetType) return
 
     setIsActionLoading(true)
     
@@ -134,6 +140,11 @@ export default function FollowButton({
         )}
       </Button>
     )
+  }
+
+  // Don't render the button if targetType is undefined
+  if (!targetType) {
+    return null
   }
 
   return (

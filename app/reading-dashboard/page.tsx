@@ -66,9 +66,12 @@ export default async function ReadingDashboardPage() {
                         key={book.id}
                         id={book.id}
                         title={book.title}
-                        author={book.author?.name || "Unknown Author"}
-                        coverUrl={book.cover_image_url || "/abstract-book-cover.png"}
-                        compact
+                        author={book.author ? {
+                          id: book.author.id,
+                          name: book.author.name,
+                          author_image: book.author.author_image
+                        } : undefined}
+                        coverImageUrl={book.cover_image_url || "/placeholder.svg"}
                       />
                     ))}
                   </div>

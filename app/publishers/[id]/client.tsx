@@ -48,6 +48,7 @@ import { ExpandableSection } from "@/components/ui/expandable-section"
 import { ViewFullDetailsButton } from "@/components/ui/ViewFullDetailsButton"
 import { TimelineAboutSection } from "@/components/author/TimelineAboutSection"
 import { useAuth } from '@/hooks/useAuth'
+import { useRouter, useSearchParams } from "next/navigation"
 
 interface ClientPublisherPageProps {
   publisher: any
@@ -63,7 +64,24 @@ interface ClientPublisherPageProps {
 }
 
 export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl, publisherImageUrl, params, followers = [], followersCount = 0, books = [], booksCount = 0 }: ClientPublisherPageProps) {
-  const [activeTab, setActiveTab] = useState("timeline")
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const tabs: TabConfig[] = [
+    { id: "timeline", label: "Timeline" },
+    { id: "about", label: "About" },
+    { id: "books", label: "Books" },
+    { id: "followers", label: "Followers" },
+    { id: "photos", label: "Photos" },
+    { id: "more", label: "More" }
+  ];
+  const tabIds = tabs.map(t => t.id);
+  const activeTab = tabIds.includes(tabParam || "") ? tabParam! : tabs[0].id;
+  const handleTabChange = (tabId: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", tabId);
+    router.replace(`?${params.toString()}`);
+  };
   const [publisher, setPublisher] = useState(initialPublisher)
   const [refreshing, setRefreshing] = useState(false)
   const { toast } = useToast()
@@ -92,16 +110,6 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
   }
 
   // Configure tabs for the EntityHeader
-  const tabs: TabConfig[] = [
-    { id: "timeline", label: "Timeline" },
-    { id: "about", label: "About" },
-    { id: "books", label: "Books" },
-    { id: "followers", label: "Followers" },
-    { id: "photos", label: "Photos" },
-    { id: "more", label: "More" }
-  ]
-
-  // Set up stats for the EntityHeader
   const publisherStats = [
     { 
       icon: <BookOpen className="h-4 w-4 mr-1" />, 
@@ -313,7 +321,7 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
         website={publisher?.website}
         tabs={tabs}
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         isEditable={user && user.role === "admin"}
         entityId={publisher?.id}
         targetType="publisher"

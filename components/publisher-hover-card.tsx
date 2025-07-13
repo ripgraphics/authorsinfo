@@ -12,7 +12,7 @@ interface PublisherHoverCardProps {
 }
 
 export function PublisherHoverCard({ publisher, bookCount, children }: PublisherHoverCardProps) {
-  const imageUrl = publisher.publisher_image?.url || publisher.logo_url || "/placeholder.svg"
+  const imageUrl = publisher.publisher_image?.url || "/placeholder.svg"
 
   return (
     <HoverCard>

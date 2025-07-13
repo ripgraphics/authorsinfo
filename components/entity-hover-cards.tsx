@@ -65,7 +65,7 @@ export function EntityHoverCard({ type, entity, children }: EntityHoverCardProps
           icon: <BookOpen className="mr-1 h-3 w-3" />,
           countText: `${(entity as PublisherEntity).bookCount} books`,
           href: `/publishers/${entity.id}`,
-          imageUrl: (entity as PublisherEntity).publisher_image?.url || (entity as PublisherEntity).logo_url
+          imageUrl: (entity as PublisherEntity).publisher_image?.url
         }
       case 'group': {
         const groupEntity = entity as GroupEntity
@@ -169,7 +169,7 @@ export function PublisherHoverCard({ publisher, bookCount, children }: Publisher
         id: publisher.id,
         name: publisher.name,
         publisher_image: publisher.publisher_image,
-        logo_url: publisher.logo_url,
+        logo_url: publisher.publisher_image?.url,
         bookCount: bookCount
       }}
     >

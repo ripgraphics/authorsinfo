@@ -1,7 +1,37 @@
 // Using built-in fetch and FormData provided by Next.js runtime
 
-const ISBNDB_API_KEY = process.env.ISBNDB_API_KEY
+const ISBNDB_API_KEY = process.env.NEXT_PUBLIC_ISBNDB_API_KEY
 const BASE_URL = "https://api2.isbndb.com"
+
+// Helper function to check if API key is available
+function checkApiKey(): void {
+  if (!ISBNDB_API_KEY) {
+    throw new Error("ISBNDB_API_KEY environment variable is not set. Please add your ISBNdb API key to your environment variables.")
+  }
+}
+
+// Helper function to make API requests with better error handling
+async function makeApiRequest(url: string, options: RequestInit = {}): Promise<Response> {
+  checkApiKey()
+  
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      Authorization: ISBNDB_API_KEY!,
+      ...options.headers,
+    },
+  })
+
+  if (response.status === 403) {
+    throw new Error("ISBNDB API key is invalid or has expired. Please check your API key configuration.")
+  }
+
+  if (response.status === 429) {
+    throw new Error("ISBNDB API rate limit exceeded. Please wait before making more requests.")
+  }
+
+  return response
+}
 
 export interface Book {
   title: string
@@ -187,22 +217,28 @@ export async function getBulkBooks(isbns: string[]): Promise<Book[]> {
 // New function to search latest books
 export async function getLatestBooks(page = 1, pageSize = 20): Promise<Book[]> {
   try {
-    // Sort by newest books (this is an approximation since ISBNdb doesn't have a direct "latest books" endpoint)
-    // We'll search with an empty query and sort by date if possible
-    const response = await fetch(`${BASE_URL}/books/?page=${page}&pageSize=${pageSize}`, {
-      headers: {
-        Authorization: ISBNDB_API_KEY!,
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error(`ISBNDB API error: ${response.status}`)
+    // Check if API key is available
+    if (!ISBNDB_API_KEY) {
+      console.warn("ISBNDB_API_KEY not set. Latest books feature is disabled.")
+      return []
     }
 
+    // Since ISBNdb doesn't have a "latest books" endpoint, we'll search for popular books
+    // Using common search terms that should return recent/popular books
+    const searchTerms = ["bestseller", "new", "popular", "fiction", "nonfiction"]
+    const randomTerm = searchTerms[Math.floor(Math.random() * searchTerms.length)]
+    
+    console.log(`Searching for books with term: ${randomTerm}`)
+    
+    const response = await makeApiRequest(`${BASE_URL}/books/${randomTerm}?page=${page}&pageSize=${pageSize}`)
+
     const data = await response.json()
+    console.log("ISBNdb response:", data)
+    
     return data.books || []
   } catch (error) {
     console.error("Error fetching latest books:", error)
+    // Return empty array instead of throwing to prevent app crashes
     return []
   }
 }

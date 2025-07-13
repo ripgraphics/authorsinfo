@@ -189,17 +189,10 @@ async function BooksList({
     return <div>Error loading books</div>
   }
 
-  // Process books to include cover image URL
+  // Process books to include cover image URL (only from Cloudinary via cover_image_id)
   const processedBooks = books.map((book: Record<string, any>) => {
-    // Safely determine the cover image URL
-    let coverImageUrl = null
-    if (book.cover_image?.url) {
-      coverImageUrl = book.cover_image.url
-    } else if (book.cover_image_url) {
-      coverImageUrl = book.cover_image_url
-    } else if (book.original_image_url) {
-      coverImageUrl = book.original_image_url
-    }
+    // Only use Cloudinary images via cover_image_id, no fallbacks to original_image_url
+    const coverImageUrl = book.cover_image?.url || null
 
     // Safely extract publication year
     let publicationYear = null

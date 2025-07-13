@@ -39,6 +39,9 @@ interface Publisher {
   }
   founded_year?: number
   logo_url?: string
+  publisher_image?: {
+    url: string
+  }
 }
 
 interface Country {
@@ -208,10 +211,10 @@ async function PublishersList({
           publishers.map((publisher) => (
             <Link href={`/publishers/${publisher.id}`} key={publisher.id} className="block">
               <Card className="overflow-hidden h-full transition-transform hover:scale-105">
-                <div className="relative w-full" style={{ aspectRatio: "7/4" }}>
-                  {publisher.logo_url ? (
+                <div className="relative aspect-[3/2] w-full">
+                  {publisher.publisher_image?.url ? (
                     <Image
-                      src={publisher.logo_url || "/placeholder.svg"}
+                      src={publisher.publisher_image.url || "/placeholder.svg"}
                       alt={publisher.name}
                       fill
                       className="object-contain p-4"

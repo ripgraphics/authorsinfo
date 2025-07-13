@@ -122,11 +122,13 @@ export function AdminSidebar() {
               {expanded.books && (
                 <div className="pl-9 mt-1 space-y-1">
                   <Link
-                    className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                      pathname === "/admin/books" ? "bg-white/10 text-white font-medium" : "text-gray-400"
+                    }`}
                     href="/admin/books"
                   >
                     <Package className="h-4 w-4" />
-                    All Books
+                    Books Management
                   </Link>
                   <Link
                     className="flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"

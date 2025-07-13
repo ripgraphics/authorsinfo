@@ -573,13 +573,9 @@ export default function EditBookPage({ params }: EditBookPageProps) {
         setBook(processedBook)
         console.log("Book data loaded:", processedBook)
 
-        // Set cover preview
+        // Set cover preview - only use Cloudinary images
         if (bookData.cover_image?.url) {
           setCoverPreview(bookData.cover_image.url)
-        } else if (bookData.cover_image_url) {
-          setCoverPreview(bookData.cover_image_url)
-        } else if (bookData.original_image_url) {
-          setCoverPreview(bookData.original_image_url)
         }
 
         // Set initial selected authors

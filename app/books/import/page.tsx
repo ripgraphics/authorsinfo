@@ -60,8 +60,14 @@ export default function ImportBooksPage() {
     try {
       const books = await getLatestBooks(currentPage)
       setLatestBooks(books)
+      
+      // Show a message if no books are returned (likely due to missing API key)
+      if (books.length === 0) {
+        console.warn("No latest books returned. This may be due to missing ISBNDB_API_KEY environment variable.")
+      }
     } catch (error) {
       console.error("Error loading latest books:", error)
+      // Don't show error to user, just log it and continue
     } finally {
       setLoading(false)
     }
@@ -138,7 +144,7 @@ export default function ImportBooksPage() {
   }
 
   return (
-    <div " book-page container mx-auto py-8">
+    <div className="book-page container mx-auto py-8">
       <div className="flex flex-col space-y-4">
         <h1 className="text-3xl font-bold">Import Books</h1>
         <p className="text-gray-500">
@@ -362,7 +368,22 @@ export default function ImportBooksPage() {
                     </Table>
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-gray-500">No books found. Try refreshing the page.</div>
+                  <div className="text-center py-8 text-gray-500">
+                    <p className="mb-2">No books found from ISBNdb API.</p>
+                    <p className="text-sm">This could be due to:</p>
+                    <ul className="text-sm mt-1 space-y-1">
+                      <li>• API rate limiting (try again in a moment)</li>
+                      <li>• Network connectivity issues</li>
+                      <li>• API key restrictions</li>
+                    </ul>
+                    <Button 
+                      variant="outline" 
+                      className="mt-4"
+                      onClick={loadLatestBooks}
+                    >
+                      Try Again
+                    </Button>
+                  </div>
                 )}
 
                 {latestBooks.length > 0 && (

@@ -6,10 +6,13 @@ const supabase = createClient(
 );
 
 export interface ISBNdbBookData {
+  // Core book information
   title: string;
   title_long?: string;
   isbn: string;
   isbn13: string;
+  
+  // Classification and metadata
   dewey_decimal?: string[];
   binding?: string;
   publisher?: string;
@@ -17,6 +20,8 @@ export interface ISBNdbBookData {
   date_published?: string;
   edition?: string;
   pages?: number;
+  
+  // Physical characteristics
   dimensions?: string;
   dimensions_structured?: {
     length?: { unit: string; value: number };
@@ -24,16 +29,36 @@ export interface ISBNdbBookData {
     height?: { unit: string; value: number };
     weight?: { unit: string; value: number };
   };
+  
+  // Content and description
   overview?: string;
-  image?: string;
-  image_original?: string;
-  msrp?: number;
   excerpt?: string;
   synopsis?: string;
+  
+  // Media and images
+  image?: string;
+  image_original?: string;
+  
+  // Pricing and commerce
+  msrp?: number;
+  
+  // Relationships and metadata
   authors?: string[];
   subjects?: string[];
   reviews?: string[];
-  prices?: any[];
+  prices?: Array<{
+    condition?: string;
+    merchant?: string;
+    merchant_logo?: string;
+    merchant_logo_offset?: {
+      x?: string;
+      y?: string;
+    };
+    shipping?: string;
+    price?: string;
+    total?: string;
+    link?: string;
+  }>;
   related?: {
     type: string;
   };
@@ -41,6 +66,10 @@ export interface ISBNdbBookData {
     isbn: string;
     binding: string;
   }>;
+  
+  // Additional fields from API documentation
+  // These may not always be present but should be captured when available
+  [key: string]: any; // Allow for any additional fields from ISBNdb
 }
 
 export interface DataCollectionStats {
@@ -50,6 +79,8 @@ export interface DataCollectionStats {
   totalSkipped: number;
   errors: string[];
   processingTime: number;
+  dataFieldsCollected: string[];
+  missingFields: string[];
 }
 
 export class ISBNdbDataCollector {
@@ -62,11 +93,18 @@ export class ISBNdbDataCollector {
   }
 
   /**
-   * Fetch detailed book information from ISBNdb
+   * Fetch detailed book information from ISBNdb with ALL available data
    */
-  async fetchBookDetails(isbn: string): Promise<ISBNdbBookData | null> {
+  async fetchBookDetails(isbn: string, withPrices: boolean = false): Promise<ISBNdbBookData | null> {
     try {
-      const response = await fetch(`${this.baseUrl}/book/${isbn}`, {
+      const params = new URLSearchParams();
+      if (withPrices) {
+        params.append('with_prices', '1');
+      }
+
+      const url = `${this.baseUrl}/book/${isbn}${params.toString() ? `?${params.toString()}` : ''}`;
+      
+      const response = await fetch(url, {
         headers: {
           'Authorization': this.apiKey,
           'Content-Type': 'application/json',
@@ -79,7 +117,14 @@ export class ISBNdbDataCollector {
       }
 
       const data = await response.json();
-      return data.book || null;
+      const bookData = data.book || null;
+      
+      if (bookData) {
+        // Log what fields we're collecting for debugging
+        console.log(`Collected fields for ISBN ${isbn}:`, Object.keys(bookData));
+      }
+      
+      return bookData;
     } catch (error) {
       console.error(`Error fetching book ${isbn}:`, error);
       return null;
@@ -87,7 +132,7 @@ export class ISBNdbDataCollector {
   }
 
   /**
-   * Search books with comprehensive data collection
+   * Search books with comprehensive data collection including ALL available fields
    */
   async searchBooks(query: string, options: {
     page?: number;
@@ -96,7 +141,8 @@ export class ISBNdbDataCollector {
     year?: number;
     language?: string;
     shouldMatchAll?: boolean;
-  } = {}): Promise<{ total: number; books: ISBNdbBookData[] }> {
+    withPrices?: boolean;
+  } = {}): Promise<{ total: number; books: ISBNdbBookData[]; stats: DataCollectionStats }> {
     try {
       const params = new URLSearchParams({
         page: String(options.page || 1),
@@ -120,17 +166,21 @@ export class ISBNdbDataCollector {
 
       const data = await response.json();
       
-      // Fetch detailed information for each book
+      // Fetch detailed information for each book with ALL available data
       const detailedBooks = await Promise.all(
         (data.books || []).map(async (book: any) => {
-          const detailed = await this.fetchBookDetails(book.isbn13 || book.isbn);
+          const detailed = await this.fetchBookDetails(book.isbn13 || book.isbn, options.withPrices);
           return detailed || book;
         })
       );
 
+      // Analyze data collection statistics
+      const stats = this.analyzeDataCollection(detailedBooks);
+
       return {
         total: data.total || detailedBooks.length,
         books: detailedBooks,
+        stats,
       };
     } catch (error) {
       console.error('Error searching books:', error);
@@ -139,13 +189,14 @@ export class ISBNdbDataCollector {
   }
 
   /**
-   * Fetch books by year with comprehensive data
+   * Fetch books by year with comprehensive data collection
    */
   async fetchBooksByYear(year: number, options: {
     page?: number;
     pageSize?: number;
     searchType?: 'recent' | 'year';
-  } = {}): Promise<{ total: number; books: ISBNdbBookData[] }> {
+    withPrices?: boolean;
+  } = {}): Promise<{ total: number; books: ISBNdbBookData[]; stats: DataCollectionStats }> {
     try {
       const params = new URLSearchParams({
         page: String(options.page || 1),
@@ -172,17 +223,21 @@ export class ISBNdbDataCollector {
 
       const data = await response.json();
       
-      // Fetch detailed information for each book
+      // Fetch detailed information for each book with ALL available data
       const detailedBooks = await Promise.all(
         (data.books || []).map(async (book: any) => {
-          const detailed = await this.fetchBookDetails(book.isbn13 || book.isbn);
+          const detailed = await this.fetchBookDetails(book.isbn13 || book.isbn, options.withPrices);
           return detailed || book;
         })
       );
 
+      // Analyze data collection statistics
+      const stats = this.analyzeDataCollection(detailedBooks);
+
       return {
         total: data.total || detailedBooks.length,
         books: detailedBooks,
+        stats,
       };
     } catch (error) {
       console.error('Error fetching books by year:', error);
@@ -191,7 +246,44 @@ export class ISBNdbDataCollector {
   }
 
   /**
-   * Store book with complete data collection
+   * Analyze data collection statistics
+   */
+  private analyzeDataCollection(books: ISBNdbBookData[]): DataCollectionStats {
+    const allFields = new Set<string>();
+    const missingFields = new Set<string>();
+    const expectedFields = [
+      'title', 'title_long', 'isbn', 'isbn13', 'dewey_decimal', 'binding', 
+      'publisher', 'language', 'date_published', 'edition', 'pages', 
+      'dimensions', 'dimensions_structured', 'overview', 'image', 'image_original',
+      'msrp', 'excerpt', 'synopsis', 'authors', 'subjects', 'reviews', 
+      'prices', 'related', 'other_isbns'
+    ];
+
+    books.forEach(book => {
+      Object.keys(book).forEach(field => allFields.add(field));
+    });
+
+    expectedFields.forEach(field => {
+      const hasField = books.some(book => book[field] !== undefined && book[field] !== null);
+      if (!hasField) {
+        missingFields.add(field);
+      }
+    });
+
+    return {
+      totalProcessed: books.length,
+      totalStored: 0, // Will be updated by calling function
+      totalUpdated: 0, // Will be updated by calling function
+      totalSkipped: 0, // Will be updated by calling function
+      errors: [],
+      processingTime: 0, // Will be updated by calling function
+      dataFieldsCollected: Array.from(allFields),
+      missingFields: Array.from(missingFields),
+    };
+  }
+
+  /**
+   * Store book with complete data collection including ALL ISBNdb fields
    */
   async storeBookWithCompleteData(bookData: ISBNdbBookData): Promise<any> {
     try {
@@ -203,7 +295,7 @@ export class ISBNdbDataCollector {
         .single();
 
       if (existingBook) {
-        // Update existing book
+        // Update existing book with ALL available data
         const { data: updatedBook, error: updateError } = await supabase
           .from('books')
           .update({
@@ -224,7 +316,7 @@ export class ISBNdbDataCollector {
             other_isbns: bookData.other_isbns,
             isbndb_last_updated: new Date().toISOString(),
             isbndb_data_version: '2.6.0',
-            raw_isbndb_data: bookData,
+            raw_isbndb_data: bookData, // Store ALL raw data
           })
           .eq('id', existingBook.id)
           .select()
@@ -234,12 +326,12 @@ export class ISBNdbDataCollector {
           throw updateError;
         }
 
-        // Process additional data
+        // Process additional data using the comprehensive function
         await this.processAdditionalData(existingBook.id, bookData);
 
         return { book: updatedBook, action: 'updated' };
       } else {
-        // Create new book
+        // Create new book with ALL available data
         const { data: newBook, error: insertError } = await supabase
           .from('books')
           .insert({
@@ -262,7 +354,7 @@ export class ISBNdbDataCollector {
             other_isbns: bookData.other_isbns,
             isbndb_last_updated: new Date().toISOString(),
             isbndb_data_version: '2.6.0',
-            raw_isbndb_data: bookData,
+            raw_isbndb_data: bookData, // Store ALL raw data
           })
           .select()
           .single();
@@ -271,7 +363,7 @@ export class ISBNdbDataCollector {
           throw insertError;
         }
 
-        // Process additional data
+        // Process additional data using the comprehensive function
         await this.processAdditionalData(newBook.id, bookData);
 
         // Handle authors and subjects
@@ -396,6 +488,8 @@ export class ISBNdbDataCollector {
       totalSkipped: 0,
       errors: [],
       processingTime: 0,
+      dataFieldsCollected: [],
+      missingFields: [],
     };
 
     for (const book of books) {

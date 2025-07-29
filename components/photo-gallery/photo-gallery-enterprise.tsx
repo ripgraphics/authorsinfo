@@ -72,6 +72,7 @@ interface PhotoGalleryProps {
   showShare?: boolean
   maxImages?: number
   className?: string
+  onPhotosUploaded?: (photoIds: string[]) => void
 }
 
 interface AlbumState {
@@ -89,7 +90,8 @@ export function PhotoGallery({
   showStats = true,
   showShare = true,
   maxImages = 1000,
-  className = ''
+  className = '',
+  onPhotosUploaded
 }: PhotoGalleryProps) {
   const [currentAlbumId, setCurrentAlbumId] = useState<string | undefined>(initialAlbumId)
   const [albumState, setAlbumState] = useState<AlbumState>({
@@ -247,6 +249,9 @@ export function PhotoGallery({
 
       console.log('Uploading files to album:', currentAlbumId)
 
+      // Track uploaded photo IDs for callback
+      const uploadedPhotoIds: string[] = []
+
       // Upload files to storage and create image records
       for (const file of files) {
         console.log('Processing file:', file.name, 'Size:', file.size, 'Type:', file.type)
@@ -274,6 +279,8 @@ export function PhotoGallery({
           publicId: uploadResult.publicId,
           imageId: uploadResult.imageId
         })
+        
+        uploadedPhotoIds.push(uploadResult.imageId)
       }
 
       console.log('All files uploaded successfully')
@@ -281,6 +288,11 @@ export function PhotoGallery({
       // Reload the album to show the new images
       if (currentAlbumId) {
         await loadAlbum(currentAlbumId)
+      }
+      
+      // Notify parent component of successful upload
+      if (onPhotosUploaded && uploadedPhotoIds.length > 0) {
+        onPhotosUploaded(uploadedPhotoIds)
       }
       
     } catch (error) {

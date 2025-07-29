@@ -7,7 +7,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useAuth } from '@/hooks/useAuth'
 import { PhotoAlbumCreator } from './photo-album-creator'
 import { AlbumSettingsDialog } from './album-settings-dialog'
-import { PhotoGallery } from './photo-gallery'
+import { EnterprisePhotoGrid } from './photo-gallery/enterprise-photo-grid'
 import { 
   FolderPlus, 
   Settings, 
@@ -146,6 +146,12 @@ export function UserPhotoAlbums({ userId, isOwnProfile = false }: UserPhotoAlbum
     loadAlbums()
     setIsSettingsOpen(false)
     setSelectedAlbumForSettings(null)
+  }
+
+  const handlePhotosUploaded = (photoIds: string[]) => {
+    console.log('Photos uploaded to album:', photoIds)
+    // Refresh albums to update photo counts
+    loadAlbums()
   }
 
   const getPrivacyIcon = (album: Album) => {
@@ -387,10 +393,12 @@ export function UserPhotoAlbums({ userId, isOwnProfile = false }: UserPhotoAlbum
               </Button>
             </div>
             <div className="flex-1 overflow-hidden">
-              <PhotoGallery
+              <EnterprisePhotoGrid
+                albumId={selectedAlbum.id}
                 entityId={userId}
                 entityType="user"
-                initialAlbumId={selectedAlbum.id}
+                isOwner={isOwnProfile}
+                maxHeight="calc(90vh - 120px)"
               />
             </div>
           </div>

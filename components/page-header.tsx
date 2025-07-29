@@ -28,17 +28,20 @@ export function PageHeader({ title, description }: PageHeaderProps) {
   const [searchOpen, setSearchOpen] = useState(false)
   const { user, loading } = useAuth()
 
+  const handleSignOut = async () => {
+    const supabase = createClientComponentClient()
+    await supabase.auth.signOut()
+    router.push('/login')
+  }
+
   return (
     <header className="page-header sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 max-w-7xl">
         {/* Left section - Logo and Navigation */}
         <div className="page-header__left flex items-center gap-4 md:gap-6 lg:gap-10">
           <Link href="/" className="page-header__logo flex items-center gap-2 font-bold text-xl">
-            <img 
-              src="/images/authorsinfo-logo-w-135x45.svg" 
-              alt="Author's Info Logo" 
-              className="h-8 w-auto"
-            />
+            <BookOpen className="h-8 w-8" />
+            <span>Author's Info</span>
           </Link>
 
           {/* Navigation moved next to logo */}
@@ -97,11 +100,7 @@ export function PageHeader({ title, description }: PageHeaderProps) {
                 </DropdownMenuItem>
               </Link>
               <DropdownMenuSeparator className="page-header__dropdown-separator" />
-                <DropdownMenuItem className="page-header__dropdown-item" onClick={async () => {
-                  const supabase = createClientComponentClient()
-                  await supabase.auth.signOut()
-                  window.location.reload()
-                }}>
+                <DropdownMenuItem className="page-header__dropdown-item" onClick={handleSignOut}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
               </DropdownMenuItem>

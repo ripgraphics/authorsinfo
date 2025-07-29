@@ -39,7 +39,7 @@ export function PhotoGalleryGrid({
             }
           });
         }}
-        className={`photo-gallery__grid grid gap-4 ${gridColsClass}`}
+        className={`photo-gallery__grid grid gap-4 ${gridColsClass} p-4`}
       >
         {images.map((image) => (
           <Reorder.Item
@@ -65,7 +65,7 @@ export function PhotoGalleryGrid({
   }
 
   return (
-    <div className={`photo-gallery__grid grid gap-4 ${gridColsClass}`}>
+    <div className={`photo-gallery__grid grid gap-4 ${gridColsClass} p-4`}>
       {images.map((image) => (
         <div key={image.id} className="photo-gallery__grid-item">
           <PhotoGalleryImage

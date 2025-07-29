@@ -902,12 +902,12 @@ export async function importNewestBooks(): Promise<ImportResult> {
 
   try {
     // Since new_books.json doesn't exist, return early with a message
-    console.log('new_books.json not found, skipping static import');
-    result.logs?.push('new_books.json not found, skipping static import');
-    return result;
-  } catch (error) {
+      console.log('new_books.json not found, skipping static import');
+      result.logs?.push('new_books.json not found, skipping static import');
+      return result;
+        } catch (error) {
     console.error('Error in importNewestBooks:', error);
-    result.errors++;
+          result.errors++;
     result.errorDetails?.push(`Error in importNewestBooks: ${error}`);
     return result;
   }

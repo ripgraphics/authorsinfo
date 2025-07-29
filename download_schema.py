@@ -494,21 +494,21 @@ Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 ### Books
 - GET /books
 - POST /books
-- GET /books/{id}
-- PUT /books/{id}
-- DELETE /books/{id}
+- GET /books/{{id}}
+- PUT /books/{{id}}
+- DELETE /books/{{id}}
 
 ### Authors
 - GET /authors
 - POST /authors
-- GET /authors/{id}
-- PUT /authors/{id}
+- GET /authors/{{id}}
+- PUT /authors/{{id}}
 
 ### Users
 - GET /users
-- GET /users/{id}
-- PUT /users/{id}
-- GET /users/{id}/profile
+- GET /users/{{id}}
+- PUT /users/{{id}}
+- GET /users/{{id}}/profile
 
 ### Social Features
 - POST /follow
@@ -518,14 +518,14 @@ Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
 ### Media
 - POST /images/upload
-- GET /images/{id}
-- DELETE /images/{id}
+- GET /images/{{id}}
+- DELETE /images/{{id}}
 
 ## Data Models
 
 ### Book Model
 ```typescript
-interface Book {
+interface Book {{
   id: string;
   title: string;
   author_id: string;
@@ -536,32 +536,32 @@ interface Book {
   status_id: string;
   created_at: string;
   updated_at: string;
-}
+}}
 ```
 
 ### User Model
 ```typescript
-interface User {
+interface User {{
   id: string;
   email: string;
   name: string;
   avatar_url: string;
   created_at: string;
   updated_at: string;
-}
+}}
 ```
 
 ## Error Handling
 
 ### Standard Error Response
 ```json
-{
-  "error": {
+{{
+  "error": {{
     "code": "ERROR_CODE",
     "message": "Human readable message",
-    "details": {}
-  }
-}
+    "details": {{}}
+  }}
+}}
 ```
 
 ## Rate Limiting

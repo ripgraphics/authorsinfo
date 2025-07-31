@@ -16,9 +16,11 @@ type EntityAlbumType =
   | 'publisher_gallery_album'
   | 'user_avatar_album'
   | 'user_gallery_album'
+  | 'event_entity_header_album'
+  | 'event_gallery_album'
 
 // Entity types
-type EntityType = 'book' | 'author' | 'publisher' | 'user'
+type EntityType = 'book' | 'author' | 'publisher' | 'user' | 'event'
 
 interface EntityImageRequest {
   entityId: string
@@ -154,23 +156,97 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Add image to entity album using database function
-    const { data: albumData, error: albumError } = await supabase.rpc('add_image_to_entity_album', {
-      p_entity_id: entityId,
-      p_entity_type: entityType,
-      p_album_type: albumType,
-      p_image_id: finalImageId,
-      p_display_order: displayOrder || 1,
-      p_is_cover: isCover,
-      p_is_featured: isFeatured
-    })
+    // Try to use the database function first, but fall back to manual creation if it fails
+    let albumData: any = null
+    let albumError: any = null
 
+    try {
+      const { data, error } = await supabase.rpc('add_image_to_entity_album', {
+        p_entity_id: entityId,
+        p_entity_type: entityType,
+        p_album_type: albumType,
+        p_image_id: finalImageId,
+        p_display_order: displayOrder || 1,
+        p_is_cover: isCover,
+        p_is_featured: isFeatured
+      })
+      
+      albumData = data
+      albumError = error
+    } catch (error) {
+      console.log('Database function not available, using manual album creation')
+      albumError = error
+    }
+
+    // If the database function failed, create the album and add image manually
     if (albumError) {
-      console.error('Error adding image to entity album:', albumError)
-      return NextResponse.json({
-        success: false,
-        error: 'Failed to add image to entity album'
-      }, { status: 500 })
+      console.log('Creating album and adding image manually')
+      
+      // First, check if album exists
+      let { data: existingAlbum } = await supabase
+        .from('photo_albums')
+        .select('id')
+        .eq('entity_id', entityId)
+        .eq('entity_type', entityType)
+        .eq('album_type', albumType)
+        .single()
+
+      let albumId: string
+
+      if (!existingAlbum) {
+        // Create new album
+        const { data: newAlbum, error: createAlbumError } = await supabase
+          .from('photo_albums')
+          .insert({
+            name: albumType,
+            description: `Auto-created album for ${entityType} ${entityId}`,
+            entity_id: entityId,
+            entity_type: entityType,
+            album_type: albumType,
+            is_public: false,
+            metadata: {
+              created_via: 'entity_image_api',
+              total_images: 0,
+              total_size: 0,
+              last_modified: new Date().toISOString()
+            }
+          })
+          .select('id')
+          .single()
+
+        if (createAlbumError) {
+          console.error('Error creating album:', createAlbumError)
+          return NextResponse.json({
+            success: false,
+            error: 'Failed to create album'
+          }, { status: 500 })
+        }
+
+        albumId = newAlbum.id
+      } else {
+        albumId = existingAlbum.id
+      }
+
+      // Add image to album
+      const { error: addImageError } = await supabase
+        .from('album_images')
+        .insert({
+          album_id: albumId,
+          image_id: finalImageId,
+          display_order: displayOrder || 1,
+          is_cover: isCover,
+          is_featured: isFeatured
+        })
+
+      if (addImageError) {
+        console.error('Error adding image to album:', addImageError)
+        return NextResponse.json({
+          success: false,
+          error: 'Failed to add image to entity album'
+        }, { status: 500 })
+      }
+
+      albumData = albumId
     }
 
     // Update entity table with image reference if it's a cover/avatar/header
@@ -391,6 +467,14 @@ async function updateEntityImageReference(
     } else if (albumType === 'author_entity_header_album') {
       updateData.cover_image_id = imageId
     }
+  } else if (entityType === 'event') {
+    if (albumType === 'event_entity_header_album') {
+      updateData.entity_header_image_id = imageId
+    } else if (albumType === 'event_gallery_album') {
+      // No specific album image reference for events, so this might need adjustment
+      // For now, we'll just log a warning if an event album type is encountered
+      console.warn(`Event album type ${albumType} does not have a specific image reference update.`)
+    }
   }
 
   if (Object.keys(updateData).length > 0) {
@@ -427,6 +511,10 @@ async function clearEntityImageReference(
       updateData.author_image_id = null
     } else if (albumType === 'author_entity_header_album') {
       updateData.cover_image_id = null
+    }
+  } else if (entityType === 'event') {
+    if (albumType === 'event_entity_header_album') {
+      updateData.entity_header_image_id = null
     }
   }
 

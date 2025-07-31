@@ -386,6 +386,17 @@ export function EnterprisePhotoGrid({
     }
   }
 
+  const LoadingSkeleton = () => (
+    <div className={`grid ${getGridClass()}`}>
+      {Array.from({ length: 20 }).map((_, i) => (
+        <Skeleton
+          key={i}
+          className={viewMode === 'list' ? 'h-32' : 'aspect-square'}
+        />
+      ))}
+    </div>
+  )
+
   const PhotoCard = ({ photo, index }: { photo: Photo; index: number }) => {
     const isSelected = selectedPhotos.includes(photo.id)
     const isListView = viewMode === 'list'
@@ -400,11 +411,11 @@ export function EnterprisePhotoGrid({
         {/* Selection Checkbox */}
         {enableSelection && (
           <div className="absolute top-2 left-2 z-10">
-                         <Checkbox
-               checked={isSelected}
-               onCheckedChange={(checked) => handlePhotoSelect(photo.id, checked as boolean)}
-               className="bg-white/80 backdrop-blur-sm"
-             />
+            <Checkbox
+              checked={isSelected}
+              onCheckedChange={(checked) => handlePhotoSelect(photo.id, checked as boolean)}
+              className="bg-white/80 backdrop-blur-sm"
+            />
           </div>
         )}
 
@@ -440,14 +451,14 @@ export function EnterprisePhotoGrid({
                 <Eye className="h-3 w-3" />
                 {photo.analytics?.views || 0}
               </div>
-                             <div className="flex items-center gap-1 text-xs">
-                 <Heart className="h-3 w-3" />
-                 {photo.likes?.length || 0}
-               </div>
-               <div className="flex items-center gap-1 text-xs">
-                 <MessageCircle className="h-3 w-3" />
-                 {photo.comments?.length || 0}
-               </div>
+              <div className="flex items-center gap-1 text-xs">
+                <Heart className="h-3 w-3" />
+                {photo.likes?.length || 0}
+              </div>
+              <div className="flex items-center gap-1 text-xs">
+                <MessageCircle className="h-3 w-3" />
+                {photo.comments?.length || 0}
+              </div>
             </div>
           </div>
 
@@ -485,14 +496,14 @@ export function EnterprisePhotoGrid({
                 <Eye className="h-3 w-3" />
                 {photo.analytics?.views || 0}
               </div>
-                             <div className="flex items-center gap-1">
-                 <Heart className="h-3 w-3" />
-                 {photo.likes?.length || 0}
-               </div>
-               <div className="flex items-center gap-1">
-                 <MessageCircle className="h-3 w-3" />
-                 {photo.comments?.length || 0}
-               </div>
+              <div className="flex items-center gap-1">
+                <Heart className="h-3 w-3" />
+                {photo.likes?.length || 0}
+              </div>
+              <div className="flex items-center gap-1">
+                <MessageCircle className="h-3 w-3" />
+                {photo.comments?.length || 0}
+              </div>
             </div>
 
             {photo.tags && photo.tags.length > 0 && (
@@ -515,133 +526,124 @@ export function EnterprisePhotoGrid({
     )
   }
 
-  const LoadingSkeleton = () => (
-    <div className={`grid ${getGridClass()}`}>
-      {Array.from({ length: 20 }).map((_, i) => (
-        <Skeleton
-          key={i}
-          className={viewMode === 'list' ? 'h-32' : 'aspect-square'}
-        />
-      ))}
-    </div>
-  )
-
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col h-full">
       {/* Header Controls */}
       {showHeader && (
-        <div className="flex flex-col gap-4">
-          {/* Search and Filters */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search photos..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+        <div className="flex-shrink-0">
+          <div className="flex flex-col gap-4 p-4">
+            {/* Search and Filters */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search photos..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
 
-            <div className="flex gap-2">
-              <Select value={filterBy} onValueChange={(value: any) => setFilterBy(value)}>
-                <SelectTrigger className="w-32">
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Photos</SelectItem>
-                  <SelectItem value="tagged">Tagged</SelectItem>
-                  <SelectItem value="untagged">Untagged</SelectItem>
-                  <SelectItem value="liked">Liked</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2">
+                <Select value={filterBy} onValueChange={(value: any) => setFilterBy(value)}>
+                  <SelectTrigger className="w-32">
+                    <Filter className="h-4 w-4 mr-2" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Photos</SelectItem>
+                    <SelectItem value="tagged">Tagged</SelectItem>
+                    <SelectItem value="untagged">Untagged</SelectItem>
+                    <SelectItem value="liked">Liked</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="date">Date</SelectItem>
-                  <SelectItem value="name">Name</SelectItem>
-                  <SelectItem value="views">Views</SelectItem>
-                  <SelectItem value="likes">Likes</SelectItem>
-                </SelectContent>
-              </Select>
+                <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="date">Date</SelectItem>
+                    <SelectItem value="name">Name</SelectItem>
+                    <SelectItem value="views">Views</SelectItem>
+                    <SelectItem value="likes">Likes</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              >
-                {sortOrder === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />}
-              </Button>
-            </div>
-          </div>
-
-          {/* View Controls */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">
-                {photos.length} photo{photos.length !== 1 ? 's' : ''}
-              </span>
-              
-              {enableSelection && selectedPhotos.length > 0 && (
-                <Badge variant="secondary">
-                  {selectedPhotos.length} selected
-                </Badge>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2">
-              {enableSelection && (
                 <Button
                   variant="outline"
-                  size="sm"
-                  onClick={handleSelectAll}
+                  size="icon"
+                  onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
                 >
-                  {selectedPhotos.length === photos.length ? (
-                    <CheckSquare className="h-4 w-4 mr-2" />
-                  ) : (
-                    <Square className="h-4 w-4 mr-2" />
-                  )}
-                  Select All
+                  {sortOrder === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />}
                 </Button>
-              )}
+              </div>
+            </div>
 
-              <div className="flex border rounded-lg">
-                <Button
-                  variant={viewMode === 'grid-large' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('grid-large')}
-                  className="rounded-r-none"
-                >
-                  <Grid2X2 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'grid-medium' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('grid-medium')}
-                  className="rounded-none"
-                >
-                  <Grid3X3 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'grid-small' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('grid-small')}
-                  className="rounded-none"
-                >
-                  <ImageIcon className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                  className="rounded-l-none"
-                >
-                  <List className="h-4 w-4" />
-                </Button>
+            {/* View Controls */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  {photos.length} photo{photos.length !== 1 ? 's' : ''}
+                </span>
+                
+                {enableSelection && selectedPhotos.length > 0 && (
+                  <Badge variant="secondary">
+                    {selectedPhotos.length} selected
+                  </Badge>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                {enableSelection && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSelectAll}
+                  >
+                    {selectedPhotos.length === photos.length ? (
+                      <CheckSquare className="h-4 w-4 mr-2" />
+                    ) : (
+                      <Square className="h-4 w-4 mr-2" />
+                    )}
+                    Select All
+                  </Button>
+                )}
+
+                <div className="flex border rounded-lg">
+                  <Button
+                    variant={viewMode === 'grid-large' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('grid-large')}
+                    className="rounded-r-none"
+                  >
+                    <Grid2X2 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'grid-medium' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('grid-medium')}
+                    className="rounded-none"
+                  >
+                    <Grid3X3 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'grid-small' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('grid-small')}
+                    className="rounded-none"
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'list' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('list')}
+                    className="rounded-l-none"
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -649,10 +651,7 @@ export function EnterprisePhotoGrid({
       )}
 
       {/* Photo Grid */}
-      <div 
-        className="overflow-auto"
-        style={{ maxHeight: maxHeight }}
-      >
+      <div className="flex-grow overflow-auto p-4 pb-8">
         {loading && photos.length === 0 ? (
           <LoadingSkeleton />
         ) : photos.length === 0 ? (
@@ -691,7 +690,6 @@ export function EnterprisePhotoGrid({
         )}
       </div>
 
-      {/* Enterprise Photo Viewer */}
       <EnterprisePhotoViewer
         isOpen={viewerOpen}
         onClose={() => setViewerOpen(false)}
@@ -705,4 +703,4 @@ export function EnterprisePhotoGrid({
       />
     </div>
   )
-} 
+}

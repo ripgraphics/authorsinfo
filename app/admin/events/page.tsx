@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase-server';
 import { CalendarDaysIcon, CheckCircleIcon, XCircleIcon, EyeIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
-import { UserHoverCard } from '@/components/user-hover-card';
+import { UserHoverCard } from '@/components/entity-hover-cards';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 

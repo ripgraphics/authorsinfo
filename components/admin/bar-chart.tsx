@@ -26,8 +26,8 @@ export function BarChart({ title, description, data, className, color = "bg-blue
       </CardHeader>
       <CardContent>
         <div className="h-[200px] flex items-end justify-between gap-2">
-          {data.map((item) => (
-            <div key={item.label} className="flex flex-col items-center">
+          {data.map((item, index) => (
+            <div key={`${item.label}-${index}`} className="flex flex-col items-center">
               <div className="w-full flex flex-col items-center">
                 <div
                   className={cn("w-12 rounded-t-sm", color)}

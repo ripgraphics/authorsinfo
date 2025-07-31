@@ -42,6 +42,7 @@ import {
   MessageCircle,
   Activity
 } from "lucide-react"
+import { EntityPhotoAlbums } from '@/components/user-photo-albums'
 
 interface Follower {
   id: string
@@ -253,7 +254,18 @@ export function ClientGroupPage({
       case 'followers':
         return <FollowersList initialFollowers={followers} entityId={group.id} entityType="group" />
       case 'photos':
-        return <PhotosList photos={[]} /> // Replace with actual photos data
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold">Photos</h2>
+            </div>
+            <EntityPhotoAlbums
+              entityId={group.id}
+              entityType="group"
+              isOwnEntity={canEdit}
+            />
+          </div>
+        )
       default:
         return <GroupTimeline activities={activities} />
     }

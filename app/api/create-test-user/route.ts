@@ -1,86 +1,76 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
-export async function GET() {
-  return await createTestUser()
-}
-
-export async function POST() {
-  return await createTestUser()
-}
-
-async function createTestUser() {
+export async function POST(request: NextRequest) {
   try {
-    console.log('Creating a fresh test user...')
+    const cookieStore = await cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     
-    const testEmail = 'testuser@authorsinfo.com'
-    const testPassword = 'password123'
+    // Get current user from session
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
     
-    // First, check if user already exists
-    const { data: existingUsers, error: fetchError } = await supabaseAdmin.auth.admin.listUsers({ limit: 1000 })
-    if (fetchError) {
-      console.error('Error fetching users:', fetchError)
-      return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 })
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
     }
 
-    const existingUser = existingUsers.users.find(u => u.email === testEmail)
+    // Check if user already exists in public.users table
+    const { data: existingUser, error: checkError } = await supabaseAdmin
+      .from('users')
+      .select('id, email, name')
+      .eq('id', user.id)
+      .single()
+
+    if (checkError && checkError.code !== 'PGRST116') {
+      console.error('Error checking existing user:', checkError)
+      return NextResponse.json(
+        { error: 'Failed to check existing user' },
+        { status: 500 }
+      )
+    }
+
     if (existingUser) {
-      console.log(`User ${testEmail} already exists. Updating password...`)
-      
-      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(existingUser.id, {
-        password: testPassword,
-        email_confirm: true
-      })
-      
-      if (updateError) {
-        console.error('Error updating user:', updateError)
-        return NextResponse.json({ error: 'Failed to update user' }, { status: 500 })
-      }
-      
-      console.log(`✅ Successfully updated password for ${testEmail}`)
-      
-      return NextResponse.json({ 
-        success: true,
-        message: `Updated password for existing user: ${testEmail}`,
-        credentials: {
-          email: testEmail,
-          password: testPassword
-        }
-      })
-    } else {
-      console.log(`Creating new user: ${testEmail}`)
-      
-      const { data, error } = await supabaseAdmin.auth.admin.createUser({
-        email: testEmail,
-        password: testPassword,
-        email_confirm: true,
-        user_metadata: {
-          name: 'Test User',
-          full_name: 'Test User'
-        }
-      })
-      
-      if (error) {
-        console.error('Error creating user:', error)
-        return NextResponse.json({ error: 'Failed to create user' }, { status: 500 })
-      }
-      
-      console.log(`✅ Successfully created user: ${testEmail}`)
-      console.log('User ID:', data.user.id)
-      
-      return NextResponse.json({ 
-        success: true,
-        message: `Created new user: ${testEmail}`,
-        userId: data.user.id,
-        credentials: {
-          email: testEmail,
-          password: testPassword
-        }
+      return NextResponse.json({
+        message: 'User already exists in public.users table',
+        user: existingUser
       })
     }
 
-  } catch (error: any) {
-    console.error('Create test user error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    // Create user in public.users table
+    const { data: newUser, error: createError } = await supabaseAdmin
+      .from('users')
+      .insert({
+        id: user.id,
+        email: user.email,
+        name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Test User',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single()
+
+    if (createError) {
+      console.error('Error creating user:', createError)
+      return NextResponse.json(
+        { error: 'Failed to create user in public.users table' },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({
+      message: 'User created successfully in public.users table',
+      user: newUser
+    })
+
+  } catch (error) {
+    console.error('Error in create-test-user API:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
   }
 } 

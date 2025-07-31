@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast'
 import { supabase } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/useAuth'
 import { PhotoAlbumCreator } from '@/components/photo-album-creator'
-import { EnterprisePhotoUpload } from '@/components/enterprise-photo-upload'
+import { EnterpriseImageUpload } from '@/components/ui/enterprise-image-upload'
 import {
   FolderPlus,
   Image as ImageIcon,
@@ -38,18 +38,18 @@ interface PhotoAlbum {
   cover_image_id: string | null
   owner_id: string
   is_public: boolean
-  view_count: number
-  like_count: number
-  share_count: number
-  entity_type: string
-  entity_id: string
+  view_count: number | null
+  like_count: number | null
+  share_count: number | null
+  entity_type: string | null
+  entity_id: string | null
   metadata: any
   created_at: string
   updated_at: string
   image_count: number
   cover_image?: {
     url: string
-  }
+  } | null
 }
 
 interface PublisherPhotoAlbumsProps {
@@ -67,9 +67,7 @@ export function PublisherPhotoAlbums({ publisherId, publisherName, isOwner }: Pu
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [filterType, setFilterType] = useState<'all' | 'public' | 'private'>('all')
   const [selectedAlbum, setSelectedAlbum] = useState<PhotoAlbum | null>(null)
-  const [showUploadDialog, setShowUploadDialog] = useState(false)
   const [uploadAlbumId, setUploadAlbumId] = useState<string | null>(null)
-  const [uploadAlbumName, setUploadAlbumName] = useState<string>('')
 
   // Load albums
   const loadAlbums = async () => {
@@ -133,31 +131,9 @@ export function PublisherPhotoAlbums({ publisherId, publisherName, isOwner }: Pu
     loadAlbums()
   }, [publisherId, filterType, isOwner])
 
-  // Handle album creation with redirect to upload
-  const handleAlbumCreated = async (albumId?: string) => {
+  // Handle album creation
+  const handleAlbumCreated = async () => {
     await loadAlbums()
-    if (albumId) {
-      // Get the album name from the database since it might not be in state yet
-      try {
-        const { data: album, error } = await supabase
-          .from('photo_albums')
-          .select('name')
-          .eq('id', albumId)
-          .single()
-        
-        if (album && !error) {
-          setUploadAlbumId(albumId)
-          setUploadAlbumName(album.name)
-          setShowUploadDialog(true)
-        }
-      } catch (error) {
-        console.error('Error fetching album name:', error)
-        // Fallback to just opening upload dialog
-        setUploadAlbumId(albumId)
-        setUploadAlbumName('New Album')
-        setShowUploadDialog(true)
-      }
-    }
   }
 
   // Handle photo upload completion
@@ -166,17 +142,12 @@ export function PublisherPhotoAlbums({ publisherId, publisherName, isOwner }: Pu
       title: "Success",
       description: `${photoIds.length} photos uploaded successfully`,
     })
-    setShowUploadDialog(false)
-    setUploadAlbumId(null)
-    setUploadAlbumName('')
     loadAlbums() // Refresh albums to update counts
   }
 
   // Open upload dialog for existing album
   const openUploadDialog = (album: PhotoAlbum) => {
     setUploadAlbumId(album.id)
-    setUploadAlbumName(album.name)
-    setShowUploadDialog(true)
   }
 
   // Filter albums based on search term
@@ -358,7 +329,7 @@ export function PublisherPhotoAlbums({ publisherId, publisherName, isOwner }: Pu
                 </div>
                 <div className="flex gap-2">
                   <Button 
-                    variant="outline" 
+                    variant="default" 
                     size="sm" 
                     className="flex-1"
                     onClick={() => setSelectedAlbum(album)}
@@ -384,17 +355,15 @@ export function PublisherPhotoAlbums({ publisherId, publisherName, isOwner }: Pu
       )}
 
       {/* Photo Upload Dialog */}
-      {showUploadDialog && uploadAlbumId && (
-        <EnterprisePhotoUpload
+      {uploadAlbumId && (
+        <EnterpriseImageUpload
+          entityId={uploadAlbumId}
+          entityType="publisher"
+          context="album"
           albumId={uploadAlbumId}
-          albumName={uploadAlbumName}
-          isOpen={showUploadDialog}
-          onClose={() => {
-            setShowUploadDialog(false)
-            setUploadAlbumId(null)
-            setUploadAlbumName('')
-          }}
-          onPhotosUploaded={handlePhotosUploaded}
+          onUploadComplete={handlePhotosUploaded}
+          buttonText="Add Photos"
+          size="sm"
         />
       )}
 

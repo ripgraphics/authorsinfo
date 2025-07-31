@@ -49,6 +49,7 @@ import { ViewFullDetailsButton } from "@/components/ui/ViewFullDetailsButton"
 import { TimelineAboutSection } from "@/components/author/TimelineAboutSection"
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter, useSearchParams } from "next/navigation"
+import { EntityPhotoAlbums } from '@/components/user-photo-albums'
 
 interface ClientPublisherPageProps {
   publisher: any

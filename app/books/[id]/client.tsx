@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { AuthorAvatar } from "@/components/author-avatar"
 import { AuthorHoverCard } from "@/components/author-hover-card"
-import { PublisherHoverCard } from "@/components/publisher-hover-card"
+import { PublisherHoverCard } from "@/components/entity-hover-cards"
 import { EntityHeader, TabConfig } from "@/components/entity-header"
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import type { Book as BookType, Author, Review, BindingType, FormatType } from '@/types/book'
@@ -58,6 +58,9 @@ import { formatDate } from "@/utils/dateUtils"
 import { canUserEditEntity } from '@/lib/auth-utils'
 import { BookCard } from "@/components/book-card";
 import { supabase } from '@/lib/supabase/client';
+import { EntityTabs, EntityTab } from '@/components/ui/entity-tabs'
+import { EntityPhotoAlbums } from '@/components/user-photo-albums'
+import { useSearchParams } from 'next/navigation'
 
 interface Follower {
   id: string
@@ -97,12 +100,21 @@ export function ClientBookPage({
 }: ClientBookPageProps) {
   const { user } = useAuth()
   const { toast } = useToast()
+  const searchParams = useSearchParams()
   
-  // Default reading status for display purposes when no user is logged in
-  const defaultStatus = "want_to_read"
+  const validTabs: EntityTab[] = [
+    { id: 'timeline', label: 'Timeline' },
+    { id: 'about', label: 'About' },
+    { id: 'reviews', label: 'Reviews' },
+    { id: 'followers', label: `Followers (${followersCount})` },
+    { id: 'photos', label: 'Photos' },
+    { id: 'more', label: 'More' },
+  ]
   
-  // Update tab state
-  const [activeTab, setActiveTab] = useState("details")
+  const tabParam = searchParams?.get('tab')
+  const validTabIds = validTabs.map(t => t.id)
+  const initialTab = tabParam && validTabIds.includes(tabParam) ? tabParam : 'timeline'
+  const [activeTab, setActiveTab] = useState(initialTab)
   const [showFullAbout, setShowFullAbout] = useState(false)
   const [showFullTimelineAbout, setShowFullTimelineAbout] = useState(false)
   const [isFollowing, setIsFollowing] = useState(false)

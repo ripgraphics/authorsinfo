@@ -81,6 +81,7 @@ export async function uploadPhoto(
     // Check if the response is ok
     if (!response.ok) {
       const errorText = await response.text()
+      console.error('Cloudinary upload failed:', errorText)
       throw new Error(`Cloudinary upload failed: ${errorText}`)
     }
 
@@ -105,6 +106,7 @@ export async function uploadPhoto(
       .single()
 
     if (imageError) {
+      console.error('Database image insert error:', imageError)
       throw new Error(`Failed to create image record: ${imageError.message}`)
     }
 

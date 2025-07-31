@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { PhotoUploadDialog } from './photo-upload-dialog'
+import { EnterpriseImageUpload } from '@/components/ui/enterprise-image-upload'
 import { AlbumSettingsDialog } from './album-settings-dialog'
 import { useRouter } from 'next/navigation'
 
@@ -58,9 +58,14 @@ export function PhotoAlbumsList({ albums, onAlbumUpdated }: PhotoAlbumsListProps
           </CardContent>
           <CardFooter className="p-4 pt-0 flex justify-between">
             <div className="flex space-x-2">
-              <PhotoUploadDialog
+              <EnterpriseImageUpload
+                entityId={album.id}
+                entityType="user"
+                context="album"
                 albumId={album.id}
-                onPhotosUploaded={onAlbumUpdated}
+                onUploadComplete={onAlbumUpdated}
+                buttonText="Add Photos"
+                size="sm"
               />
               <AlbumSettingsDialog
                 album={album}

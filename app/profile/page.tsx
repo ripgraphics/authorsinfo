@@ -1,17 +1,36 @@
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
 
-export default function ProfilePage() {
-  // In a real app, this would fetch the current user ID from the session
-  // and redirect to their profile page
-  // For this mock, we'll redirect to a placeholder profile page
+export default async function ProfilePage() {
+  const cookieStore = await cookies()
+  const supabase = createServerComponentClient({ cookies: () => cookieStore })
   
-  // This would normally get the user ID from authentication
-  const mockUserId = "current-user"
-  
-  // Redirect to the user's profile page
-  redirect(`/profile/${mockUserId}`)
+  try {
+    // Get the current user from the session using getUser() for better security
+    const { data: { user }, error } = await supabase.auth.getUser()
+    
+    if (error) {
+      console.error('Error getting user:', error)
+      // Redirect to login if there's an error
+      redirect('/login')
+    }
+    
+    if (!user) {
+      // Redirect to login if no user is authenticated
+      redirect('/login')
+    }
+    
+    // Redirect to the user's actual profile page using their real ID
+    redirect(`/profile/${user.id}`)
+    
+  } catch (error) {
+    console.error('Error in profile page:', error)
+    // Redirect to login on any error
+    redirect('/login')
+  }
   
   // This won't render, but is needed for TypeScript
   return (

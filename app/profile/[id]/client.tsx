@@ -1,7 +1,8 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -38,7 +39,7 @@ import {
 } from "@/components/ui/select"
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
-import { UserPhotoAlbums } from '@/components/user-photo-albums'
+import { EntityPhotoAlbums } from '@/components/user-photo-albums'
 
 interface ClientProfilePageProps {
   user: any
@@ -52,9 +53,18 @@ interface ClientProfilePageProps {
 export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: ClientProfilePageProps) {
   const { user: authUser } = useAuth()
   const { toast } = useToast()
+  const searchParams = useSearchParams()
   const [activeTab, setActiveTab] = useState("timeline")
   const [isFollowing, setIsFollowing] = useState(false)
   const [isLoadingFollow, setIsLoadingFollow] = useState(false)
+
+  // Set initial tab based on URL search parameters
+  useEffect(() => {
+    const tabParam = searchParams.get('tab')
+    if (tabParam && ['timeline', 'about', 'books', 'friends', 'photos', 'more'].includes(tabParam)) {
+      setActiveTab(tabParam)
+    }
+  }, [searchParams])
 
   // Check follow status on mount
   React.useEffect(() => {
@@ -616,9 +626,10 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
         {activeTab === "photos" && (
           <div className="profile-page__photos-tab">
             <div className="profile-page__tab-content">
-              <UserPhotoAlbums 
-                userId={params.id} 
-                isOwnProfile={authUser?.id === params.id} 
+              <EntityPhotoAlbums 
+                entityId={params.id} 
+                entityType="user"
+                isOwnEntity={authUser?.id === params.id} 
               />
             </div>
           </div>

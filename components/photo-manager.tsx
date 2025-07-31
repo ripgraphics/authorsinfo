@@ -142,50 +142,52 @@ export function PhotoManager({
 
   return (
     <>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {photos.map((photo, index) => (
-          <div
-            key={photo.id}
-            className="group relative aspect-square rounded-lg overflow-hidden"
-            draggable={!!albumId}
-            onDragStart={() => handleDragStart(photo.id)}
-            onDragOver={handleDragOver}
-            onDrop={() => handleDrop(photo.id)}
-          >
-            <img
-              src={photo.url}
-              alt={photo.alt || "Photo"}
-              className="object-cover w-full h-full"
-            />
-            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-white/20"
-                onClick={() => handlePhotoClick(index)}
-              >
-                <Eye className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-white/20"
-                onClick={() => handleDeleteClick(photo.id)}
-              >
-                <Trash2 className="h-5 w-5" />
-              </Button>
-              {albumId && (
+      <div className="photo-manager-container h-full overflow-y-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-4">
+          {photos.map((photo, index) => (
+            <div
+              key={photo.id}
+              className="group relative aspect-square rounded-lg overflow-hidden"
+              draggable={!!albumId}
+              onDragStart={() => handleDragStart(photo.id)}
+              onDragOver={handleDragOver}
+              onDrop={() => handleDrop(photo.id)}
+            >
+              <img
+                src={photo.url}
+                alt={photo.alt || "Photo"}
+                className="object-cover w-full h-full"
+              />
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-white hover:bg-white/20 cursor-grab"
+                  className="text-white hover:bg-white/20"
+                  onClick={() => handlePhotoClick(index)}
                 >
-                  <GripVertical className="h-5 w-5" />
+                  <Eye className="h-5 w-5" />
                 </Button>
-              )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-white hover:bg-white/20"
+                  onClick={() => handleDeleteClick(photo.id)}
+                >
+                  <Trash2 className="h-5 w-5" />
+                </Button>
+                {albumId && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-white hover:bg-white/20 cursor-grab"
+                  >
+                    <GripVertical className="h-5 w-5" />
+                  </Button>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       <PhotoViewerModal

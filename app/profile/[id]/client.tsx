@@ -627,6 +627,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
           <div className="profile-page__photos-tab">
             <div className="profile-page__tab-content space-y-6">
               <ContentSection
+                title="Photo Albums"
                 className="profile-page__photos-section"
               >
                 <EntityPhotoAlbums 

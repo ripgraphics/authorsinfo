@@ -625,12 +625,16 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
         
         {activeTab === "photos" && (
           <div className="profile-page__photos-tab">
-            <div className="profile-page__tab-content">
-              <EntityPhotoAlbums 
-                entityId={params.id} 
-                entityType="user"
-                isOwnEntity={authUser?.id === params.id} 
-              />
+            <div className="profile-page__tab-content space-y-6">
+              <ContentSection
+                className="profile-page__photos-section"
+              >
+                <EntityPhotoAlbums 
+                  entityId={params.id} 
+                  entityType="user"
+                  isOwnEntity={authUser?.id === params.id} 
+                />
+              </ContentSection>
             </div>
           </div>
         )}

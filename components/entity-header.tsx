@@ -286,7 +286,9 @@ export function EntityHeader({
       // Add image to entity album
       const albumType = entityType === 'book' ? 'book_entity_header_album' : 
                        entityType === 'author' ? 'author_entity_header_album' :
-                       entityType === 'publisher' ? 'publisher_entity_header_album' : 'user_gallery_album'
+                       entityType === 'publisher' ? 'publisher_entity_header_album' :
+                       entityType === 'event' ? 'event_entity_header_album' :
+                       'user_gallery_album'
 
       const albumResponse = await fetch('/api/entity-images', {
         method: 'POST',

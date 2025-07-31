@@ -18,6 +18,12 @@ interface FollowButtonProps {
   disabled?: boolean
 }
 
+// UUID validation function
+const isValidUUID = (uuid: string): boolean => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  return uuidRegex.test(uuid)
+}
+
 export default function FollowButton({
   entityId,
   targetType,
@@ -34,11 +40,22 @@ export default function FollowButton({
   const { toast } = useToast()
   const router = useRouter()
 
+  // Check if entityId is valid
+  const isValidEntityId = useMemo(() => {
+    if (typeof entityId === 'number') return true
+    if (typeof entityId === 'string') {
+      // Skip validation for special cases like "current-user"
+      if (entityId === 'current-user') return false
+      return isValidUUID(entityId)
+    }
+    return false
+  }, [entityId])
+
   // Check initial follow status
   useEffect(() => {
     const checkFollowStatus = async () => {
-      // Don't check follow status if targetType is undefined
-      if (!targetType) {
+      // Don't check follow status if targetType is undefined or entityId is invalid
+      if (!targetType || !isValidEntityId) {
         setIsLoading(false)
         return
       }
@@ -63,10 +80,10 @@ export default function FollowButton({
     }
 
     checkFollowStatus()
-  }, [entityId, targetType])
+  }, [entityId, targetType, isValidEntityId])
 
   const handleFollowToggle = useCallback(async () => {
-    if (isActionLoading || disabled || !targetType) return
+    if (isActionLoading || disabled || !targetType || !isValidEntityId) return
 
     setIsActionLoading(true)
     
@@ -117,13 +134,18 @@ export default function FollowButton({
     } finally {
       setIsActionLoading(false)
     }
-  }, [entityId, targetType, isFollowingState, isActionLoading, disabled, toast, router])
+  }, [entityId, targetType, isFollowingState, isActionLoading, disabled, isValidEntityId, toast, router])
 
   // Memoize button text and icon to prevent unnecessary re-renders
   const { buttonText, ButtonIcon } = useMemo(() => ({
     buttonText: isFollowingState ? 'Unfollow' : 'Follow',
     ButtonIcon: isFollowingState ? UserMinus : UserPlus
   }), [isFollowingState])
+
+  // Don't render the button if targetType is undefined or entityId is invalid
+  if (!targetType || !isValidEntityId) {
+    return null
+  }
 
   // Show a more subtle loading state with skeleton effect
   if (isLoading) {
@@ -140,11 +162,6 @@ export default function FollowButton({
         )}
       </Button>
     )
-  }
-
-  // Don't render the button if targetType is undefined
-  if (!targetType) {
-    return null
   }
 
   return (

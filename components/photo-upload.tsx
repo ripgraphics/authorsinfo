@@ -100,7 +100,7 @@ export function PhotoUpload({
       />
       <label htmlFor="photo-upload">
         <Button 
-          variant="outline" 
+          variant="default" 
           className="cursor-pointer"
           disabled={isUploading}
         >

@@ -77,8 +77,33 @@ interface AdminBookActionsProps {
 }
 
 export function AdminBookActions({ book, open, onOpenChange, onEdit, onDelete }: AdminBookActionsProps) {
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
+  const copyToClipboard = async (text: string) => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        // You could add a toast notification here
+        console.log('Copied to clipboard:', text);
+      } else {
+        // Fallback for older browsers or non-secure contexts
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          console.log('Copied to clipboard (fallback):', text);
+        } catch (err) {
+          console.error('Failed to copy to clipboard:', err);
+        }
+        document.body.removeChild(textArea);
+      }
+    } catch (error) {
+      console.error('Copy to clipboard failed:', error);
+    }
   }
 
   const handleToggleFeatured = async () => {

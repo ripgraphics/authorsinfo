@@ -118,7 +118,9 @@ export async function uploadImage(
           {
             url: data.secure_url,
             alt_text: alt_text || "",
-            img_type_id: 1, // Assuming 1 is for book covers
+            storage_provider: 'cloudinary',
+            storage_path: folder,
+            metadata: { cloudinary_public_id: data.public_id },
           },
         ])
         .select()
@@ -139,7 +141,9 @@ export async function uploadImage(
     const insertObject: Record<string, any> = {
       url: data.secure_url,
       alt_text: alt_text || "",
-      img_type_id: 1, // Assuming 1 is for book covers
+      storage_provider: 'cloudinary',
+      storage_path: folder,
+      metadata: { cloudinary_public_id: data.public_id },
     }
 
     // Store the Cloudinary public_id in a field that exists
@@ -159,11 +163,24 @@ export async function uploadImage(
         insertObject.metadata = { cloudinary_public_id: data.public_id }
       }
 
-      // Add type field if it exists (instead of img_type_id)
-      if ("type" in sampleRow) {
-        insertObject.type = "book_cover"
-        // Remove img_type_id if type exists
-        delete insertObject.img_type_id
+      // Add additional fields if they exist
+      if ("original_filename" in sampleRow && data.original_filename) {
+        insertObject.original_filename = data.original_filename
+      }
+      if ("file_size" in sampleRow && data.bytes) {
+        insertObject.file_size = data.bytes
+      }
+      if ("width" in sampleRow && data.width) {
+        insertObject.width = data.width
+      }
+      if ("height" in sampleRow && data.height) {
+        insertObject.height = data.height
+      }
+      if ("format" in sampleRow && data.format) {
+        insertObject.format = data.format
+      }
+      if ("mime_type" in sampleRow && data.resource_type) {
+        insertObject.mime_type = `${data.resource_type}/${data.format}`
       }
     }
 

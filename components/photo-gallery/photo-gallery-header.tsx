@@ -45,6 +45,16 @@ export function PhotoGalleryHeader({
     }
   };
 
+  const handleUploadClick = () => {
+    console.log('Upload button clicked')
+    const fileInput = document.getElementById('photo-upload') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
+    } else {
+      console.error('File input not found');
+    }
+  };
+
   const handleShare = async () => {
     try {
       const url = `${window.location.origin}/gallery/${albumId || `${entityType}/${entityId}`}`;
@@ -92,21 +102,16 @@ export function PhotoGalleryHeader({
               onChange={handleFileChange}
               disabled={isUploading}
             />
-            <Label htmlFor="photo-upload">
-              <Button
-                variant="outline"
-                size="sm"
-                className="photo-gallery__upload-button"
-                disabled={isUploading}
-                onClick={() => {
-                  console.log('Upload button clicked')
-                  document.getElementById('photo-upload')?.click()
-                }}
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                {isUploading ? 'Uploading...' : 'Upload Photos'}
-              </Button>
-            </Label>
+            <Button
+              variant="default"
+              size="sm"
+              className="photo-gallery__upload-button"
+              disabled={isUploading}
+              onClick={handleUploadClick}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              {isUploading ? 'Uploading...' : 'Upload Photos'}
+            </Button>
           </div>
         )}
 

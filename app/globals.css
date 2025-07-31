@@ -6,6 +6,42 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* ContentEditable placeholder styles */
+[contenteditable]:empty:before {
+  content: attr(data-placeholder);
+  color: #6b7280;
+  pointer-events: none;
+}
+/* New styles for contentEditable to preserve spaces and wrap text */
+[contenteditable] {
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Enterprise-grade hovercard positioning and overflow handling */
+[data-radix-hover-card-content] {
+  max-width: calc(100vw - 10px) !important;
+  max-height: calc(100vh - 10px) !important;
+  overflow: hidden !important;
+}
+
+[data-radix-hover-card-content] * {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Ensure hovercard content doesn't overflow its container */
+[data-radix-hover-card-content] .flex-1 {
+  min-width: 0;
+  overflow: hidden;
+}
+
+[data-radix-hover-card-content] .min-w-0 {
+  min-width: 0;
+  overflow: hidden;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

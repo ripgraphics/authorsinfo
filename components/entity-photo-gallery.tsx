@@ -388,7 +388,7 @@ export function EntityPhotoGallery({
               entityType={entityType}
               entityId={entityId}
               trigger={
-                <Button size="sm" variant="outline">
+                <Button size="sm" variant="default">
                   <Plus className="h-4 w-4 mr-2" />
                   Create Album
                 </Button>
@@ -432,7 +432,7 @@ export function EntityPhotoGallery({
                   <div className="flex items-center gap-2">
                     <Button
                       size="sm"
-                      variant="outline"
+                      variant="default"
                       onClick={() => setSelectedAlbum(album)}
                     >
                       View Album
@@ -441,6 +441,7 @@ export function EntityPhotoGallery({
                     {isOwner && showUploadButtons && (
                       <Button
                         size="sm"
+                        variant="default"
                         onClick={() => handleImageUpload(
                           album.album_type as EntityAlbumType,
                           album.album_type.includes('avatar') ? 1 : 16/9,
@@ -472,7 +473,7 @@ export function EntityPhotoGallery({
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Cover Image Upload */}
               <Button
-                variant="outline"
+                variant="default"
                 className="h-20 flex-col gap-2"
                 onClick={() => handleImageUpload(
                   entityType === 'book' ? 'book_cover_album' : 'author_entity_header_album',
@@ -486,7 +487,7 @@ export function EntityPhotoGallery({
 
               {/* Avatar Upload */}
               <Button
-                variant="outline"
+                variant="default"
                 className="h-20 flex-col gap-2"
                 onClick={() => handleImageUpload(
                   entityType === 'book' ? 'book_avatar_album' : 'author_avatar_album',
@@ -501,7 +502,7 @@ export function EntityPhotoGallery({
               {/* Entity Header Upload */}
               {entityType === 'book' && (
                 <Button
-                  variant="outline"
+                  variant="default"
                   className="h-20 flex-col gap-2"
                   onClick={() => handleImageUpload('book_entity_header_album', 16/9, true)}
                 >
@@ -512,7 +513,7 @@ export function EntityPhotoGallery({
 
               {/* Gallery Upload */}
               <Button
-                variant="outline"
+                variant="default"
                 className="h-20 flex-col gap-2"
                 onClick={() => handleImageUpload(
                   entityType === 'book' ? 'book_gallery_album' : 'author_gallery_album',

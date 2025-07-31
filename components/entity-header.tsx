@@ -9,7 +9,7 @@ import Link from "next/link"
 import { Avatar } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 import { AuthorHoverCard, PublisherHoverCard, GroupHoverCard, EventCreatorHoverCard } from "@/components/entity-hover-cards"
-import { UserHoverCard } from "@/components/user-hover-card"
+import { UserHoverCard } from "@/components/entity-hover-cards"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
 import {
   DropdownMenu,

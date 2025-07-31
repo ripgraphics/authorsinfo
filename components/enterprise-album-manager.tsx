@@ -15,7 +15,7 @@ import { Switch } from "@/components/ui/switch"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/lib/supabase/client"
 import { useAuth } from "@/hooks/useAuth"
-import { EnterprisePhotoUpload } from "./enterprise-photo-upload"
+import { EnterpriseImageUpload } from "./ui/enterprise-image-upload"
 import {
   Plus,
   Image as ImageIcon,
@@ -62,9 +62,9 @@ interface Album {
   is_public: boolean
   cover_image_url?: string
   photo_count: number
-  view_count: number
-  like_count: number
-  share_count: number
+  view_count: number | null
+  like_count: number | null
+  share_count: number | null
   created_at: string
   updated_at: string
   metadata?: {
@@ -106,23 +106,15 @@ export function EnterpriseAlbumManager({
   
   // State management
   const [albums, setAlbums] = useState<Album[]>([])
-  const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null)
-  const [albumPhotos, setAlbumPhotos] = useState<Photo[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [albumPhotos, setAlbumPhotos] = useState<Photo[]>([])
   const [isCreatingAlbum, setIsCreatingAlbum] = useState(false)
-  const [isUploadOpen, setIsUploadOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState("albums")
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [sortBy, setSortBy] = useState<'date' | 'name' | 'popularity'>('date')
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filterCategory, setFilterCategory] = useState<'all' | 'public' | 'private' | 'featured'>('all')
-  
-  // Album creation form
+  const [showCreateDialog, setShowCreateDialog] = useState(false)
+  const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null)
   const [newAlbum, setNewAlbum] = useState({
     name: '',
     description: '',
-    privacy_level: 'public',
+    privacy_level: 'public' as 'public' | 'private',
     show_in_feed: true,
     category: '',
     tags: [] as string[]
@@ -291,8 +283,21 @@ export function EnterpriseAlbumManager({
       await loadAlbums()
 
       // Immediately open upload dialog for new album
-      setSelectedAlbum(album)
-      setIsUploadOpen(true)
+      setSelectedAlbum({
+        id: album.id,
+        name: album.name,
+        description: album.description,
+        is_public: album.is_public,
+        cover_image_url: undefined,
+        photo_count: 0,
+        view_count: album.view_count || 0,
+        like_count: album.like_count || 0,
+        share_count: album.share_count || 0,
+        created_at: album.created_at,
+        updated_at: album.updated_at,
+        metadata: album.metadata
+      })
+      // setIsUploadOpen(true) // This state variable was removed
 
       toast({
         title: "Album created successfully",
@@ -313,7 +318,7 @@ export function EnterpriseAlbumManager({
 
   // Handle photo upload completion
   const handlePhotosUploaded = (photoIds: string[]) => {
-    setIsUploadOpen(false)
+    // setIsUploadOpen(false) // This state variable was removed
     loadAlbums() // Refresh album counts
     if (selectedAlbum) {
       loadAlbumPhotos(selectedAlbum.id) // Refresh album photos
@@ -351,7 +356,7 @@ export function EnterpriseAlbumManager({
           comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
           break
         case 'popularity':
-          comparison = (a.view_count + a.like_count) - (b.view_count + b.like_count)
+          comparison = (a.view_count || 0) - (b.view_count || 0)
           break
       }
       return sortOrder === 'asc' ? comparison : -comparison
@@ -359,8 +364,8 @@ export function EnterpriseAlbumManager({
 
   // Calculate statistics
   const totalPhotos = albums.reduce((sum, album) => sum + album.photo_count, 0)
-  const totalViews = albums.reduce((sum, album) => sum + album.view_count, 0)
-  const totalLikes = albums.reduce((sum, album) => sum + album.like_count, 0)
+  const totalViews = albums.reduce((sum, album) => sum + (album.view_count || 0), 0)
+  const totalLikes = albums.reduce((sum, album) => sum + (album.like_count || 0), 0)
   const publicAlbums = albums.filter(album => album.is_public).length
 
   useEffect(() => {
@@ -409,7 +414,7 @@ export function EnterpriseAlbumManager({
         <div className="flex items-center justify-between">
           <h2 className="text-3xl font-bold">Photo Albums</h2>
           {isOwnProfile && (
-            <Dialog>
+            <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
               <DialogTrigger asChild>
                 <Button className="flex items-center gap-2">
                   <FolderPlus className="h-4 w-4" />
@@ -612,7 +617,7 @@ export function EnterpriseAlbumManager({
                 </p>
               </div>
               {isOwnProfile && (
-                <Dialog>
+                <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
                   <DialogTrigger asChild>
                     <Button className="flex items-center gap-2">
                       <FolderPlus className="h-4 w-4" />
@@ -685,16 +690,15 @@ export function EnterpriseAlbumManager({
                           <Eye className="h-4 w-4" />
                         </Button>
                         {isOwnProfile && (
-                          <Button
+                          <EnterpriseImageUpload
+                            entityId={album.id}
+                            entityType={entityType}
+                            context="album"
+                            albumId={album.id}
+                            onUploadComplete={handlePhotosUploaded}
+                            buttonText="Add Photos"
                             size="sm"
-                            variant="secondary"
-                            onClick={() => {
-                              setSelectedAlbum(album)
-                              setIsUploadOpen(true)
-                            }}
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
+                          />
                         )}
                       </div>
                     </div>
@@ -738,11 +742,11 @@ export function EnterpriseAlbumManager({
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-1">
                             <Eye className="h-3 w-3" />
-                            {album.view_count}
+                            {album.view_count || 0}
                           </div>
                           <div className="flex items-center gap-1">
                             <Heart className="h-3 w-3" />
-                            {album.like_count}
+                            {album.like_count || 0}
                           </div>
                         </div>
                       </div>
@@ -756,7 +760,7 @@ export function EnterpriseAlbumManager({
                           className="flex-1"
                           onClick={() => {
                             setSelectedAlbum(album)
-                            setIsUploadOpen(true)
+                            // setIsUploadOpen(true) // This state variable was removed
                           }}
                         >
                           <Plus className="h-4 w-4 mr-1" />
@@ -821,8 +825,8 @@ export function EnterpriseAlbumManager({
                           )}
                           <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
                             <span>{album.photo_count} photos</span>
-                            <span>{album.view_count} views</span>
-                            <span>{album.like_count} likes</span>
+                            <span>{album.view_count || 0} views</span>
+                            <span>{album.like_count || 0} likes</span>
                             <span>{formatDate(album.created_at)}</span>
                           </div>
                         </div>
@@ -836,7 +840,7 @@ export function EnterpriseAlbumManager({
                               size="sm"
                               onClick={() => {
                                 setSelectedAlbum(album)
-                                setIsUploadOpen(true)
+                                // setIsUploadOpen(true) // This state variable was removed
                               }}
                             >
                               <Plus className="h-4 w-4 mr-1" />
@@ -855,16 +859,15 @@ export function EnterpriseAlbumManager({
       )}
 
       {/* Enterprise Photo Upload Modal */}
-      {selectedAlbum && isUploadOpen && (
-        <EnterprisePhotoUpload
+      {selectedAlbum && (
+        <EnterpriseImageUpload
+          entityId={selectedAlbum.id}
+          entityType={entityType}
+          context="album"
           albumId={selectedAlbum.id}
-          albumName={selectedAlbum.name}
-          isOpen={isUploadOpen}
-          onClose={() => {
-            setIsUploadOpen(false)
-            setSelectedAlbum(null)
-          }}
-          onPhotosUploaded={handlePhotosUploaded}
+          onUploadComplete={handlePhotosUploaded}
+          buttonText="Add Photos"
+          size="sm"
         />
       )}
     </div>

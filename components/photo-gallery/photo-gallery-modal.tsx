@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { X, ChevronLeft, ChevronRight, Tag, Download, Share2 } from 'lucide-react';
+import { CloseButton } from '@/components/ui/close-button';
 
 export function PhotoGalleryModal({
   isOpen,
@@ -49,14 +50,10 @@ export function PhotoGalleryModal({
       <DialogContent className="photo-gallery__modal max-w-7xl p-0">
         <div className="photo-gallery__modal-content relative">
           {/* Close button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="photo-gallery__modal-close absolute right-4 top-4 z-10"
-            onClick={onClose}
-          >
-            <X className="h-6 w-6" />
-          </Button>
+                     <CloseButton
+             onClick={onClose}
+             className="absolute right-4 top-4 z-10"
+           />
 
           {/* Navigation buttons */}
           <Button
@@ -84,6 +81,7 @@ export function PhotoGalleryModal({
               fill
               className="photo-gallery__modal-image object-contain"
               priority
+              sizes="(max-width: 768px) 100vw, 90vw"
             />
           </div>
 

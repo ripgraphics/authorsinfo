@@ -15,6 +15,133 @@
   padding: 16px;
 }
 
+/* Enterprise Photo Gallery Container */
+.enterprise-photo-gallery-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  max-height: 80vh;
+  background: #f0f7fc;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.enterprise-photo-gallery-container .photo-gallery-grid {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px;
+  height: 100%;
+  max-height: calc(80vh - 120px); /* Account for header and tabs */
+}
+
+.enterprise-photo-gallery-container .photo-gallery__grid {
+  min-height: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* Photo Gallery Grid Container */
+.photo-gallery-grid-container {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+}
+
+.photo-gallery-grid-container .photo-gallery__grid {
+  min-height: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* Photo Manager Container */
+.photo-manager-container {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  max-height: 70vh;
+}
+
+.photo-manager-container .grid {
+  min-height: 100%;
+  height: auto;
+}
+
+/* Enterprise Tab Navigation */
+.enterprise-tab-navigation {
+  display: flex;
+  gap: 8px;
+  padding: 16px 16px 0 16px;
+  border-bottom: 1px solid #e0e7ff;
+  background: #f8fafc;
+}
+
+.enterprise-tab {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  border-radius: 4px 4px 0 0;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.enterprise-tab:hover {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.enterprise-tab.active {
+  background: #40A3D8;
+  color: white;
+}
+
+/* Enterprise Empty State */
+.enterprise-photo-gallery-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 400px;
+  padding: 24px;
+  text-align: center;
+}
+
+.enterprise-photo-gallery-empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.enterprise-photo-gallery-empty-text {
+  font-size: 18px;
+  color: #64748b;
+  margin-bottom: 24px;
+}
+
+.enterprise-photo-gallery-button {
+  padding: 12px 24px;
+  background: #40A3D8;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.enterprise-photo-gallery-button:hover {
+  background: #2c7aa7;
+}
+
 .photo-gallery-item {
   position: absolute;
   padding: 8px;
@@ -195,3 +322,5 @@
     font-size: 14px;
   }
 } 
+
+ 

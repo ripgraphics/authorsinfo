@@ -306,7 +306,13 @@ export default function PublisherEditPage({ params }: PublisherEditPageProps) {
                     <div className="mt-2 flex items-center gap-4">
                       <div className="relative h-32 w-32 overflow-hidden rounded-md border">
                         {logoPreview ? (
-                          <Image src={logoPreview} alt="Publisher logo" fill className="object-cover" />
+                          <Image 
+                            src={logoPreview} 
+                            alt="Publisher logo" 
+                            fill 
+                            className="object-cover"
+                            sizes="128px"
+                          />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center bg-secondary">
                             <Building className="h-12 w-12 text-muted-foreground" />
@@ -335,6 +341,7 @@ export default function PublisherEditPage({ params }: PublisherEditPageProps) {
                             alt="Publisher cover"
                             fill
                             className="object-cover"
+                            sizes="(max-width: 768px) 100vw, 50vw"
                           />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center bg-secondary">

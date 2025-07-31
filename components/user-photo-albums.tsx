@@ -5,9 +5,11 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useAuth } from '@/hooks/useAuth'
+import { useToast } from '@/hooks/use-toast'
 import { PhotoAlbumCreator } from './photo-album-creator'
 import { AlbumSettingsDialog } from './album-settings-dialog'
 import { EnterprisePhotoGrid } from './photo-gallery/enterprise-photo-grid'
+import { EnterpriseImageUpload } from '@/components/ui/enterprise-image-upload'
 import { 
   FolderPlus, 
   Settings, 
@@ -23,9 +25,10 @@ import {
 import Link from 'next/link'
 import Image from 'next/image'
 
-interface UserPhotoAlbumsProps {
-  userId: string
-  isOwnProfile?: boolean
+interface EntityPhotoAlbumsProps {
+  entityId: string
+  entityType: 'user' | 'publisher' | 'author' | 'group' | 'book' | 'event' | 'content'
+  isOwnEntity?: boolean
 }
 
 interface Album {
@@ -45,7 +48,11 @@ interface Album {
   }
 }
 
-export function UserPhotoAlbums({ userId, isOwnProfile = false }: UserPhotoAlbumsProps) {
+export function EntityPhotoAlbums({ 
+  entityId, 
+  entityType = 'user',
+  isOwnEntity = false 
+}: EntityPhotoAlbumsProps) {
   const [albums, setAlbums] = useState<Album[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null)
@@ -53,11 +60,12 @@ export function UserPhotoAlbums({ userId, isOwnProfile = false }: UserPhotoAlbum
   const [selectedAlbumForSettings, setSelectedAlbumForSettings] = useState<Album | null>(null)
   
   const { user } = useAuth()
+  const { toast } = useToast()
   const supabase = createClientComponentClient()
 
   useEffect(() => {
     loadAlbums()
-  }, [userId])
+  }, [entityId])
 
   const loadAlbums = async () => {
     setIsLoading(true)
@@ -74,11 +82,11 @@ export function UserPhotoAlbums({ userId, isOwnProfile = false }: UserPhotoAlbum
           updated_at,
           metadata
         `)
-        .eq('owner_id', userId)
+        .eq('owner_id', entityId)
         .order('created_at', { ascending: false })
 
       // If not own profile, only show public albums or albums shared with current user
-      if (!isOwnProfile && user) {
+      if (!isOwnEntity && user) {
         query = query.or(`is_public.eq.true,album_shares.shared_with.eq.${user.id}`)
       }
 
@@ -198,19 +206,19 @@ export function UserPhotoAlbums({ userId, isOwnProfile = false }: UserPhotoAlbum
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Photo Albums</h2>
-          {isOwnProfile && <PhotoAlbumCreator onAlbumCreated={handleAlbumCreated} />}
+      <div className="user-photo-albums-loading-container space-y-4">
+        <div className="user-photo-albums-loading-header flex items-center justify-between">
+          <h2 className="user-photo-albums-loading-title text-2xl font-bold">Photo Albums</h2>
+          {isOwnEntity && <PhotoAlbumCreator onAlbumCreated={handleAlbumCreated} />}
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="user-photo-albums-loading-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[...Array(6)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-4">
-                <div className="aspect-square bg-muted rounded-lg mb-4" />
-                <div className="space-y-2">
-                  <div className="h-4 bg-muted rounded w-3/4" />
-                  <div className="h-3 bg-muted rounded w-1/2" />
+            <Card key={i} className="user-photo-albums-loading-card animate-pulse">
+              <CardContent className="user-photo-albums-loading-content p-4">
+                <div className="user-photo-albums-loading-thumbnail aspect-square bg-muted rounded-lg mb-4" />
+                <div className="user-photo-albums-loading-text space-y-2">
+                  <div className="user-photo-albums-loading-title-skeleton h-4 bg-muted rounded w-3/4" />
+                  <div className="user-photo-albums-loading-description-skeleton h-3 bg-muted rounded w-1/2" />
                 </div>
               </CardContent>
             </Card>
@@ -221,16 +229,16 @@ export function UserPhotoAlbums({ userId, isOwnProfile = false }: UserPhotoAlbum
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Photo Albums</h2>
-        {isOwnProfile && (
+    <div className="user-photo-albums-container space-y-6">
+      <div className="user-photo-albums-header flex items-center justify-between">
+        <h2 className="user-photo-albums-title text-2xl font-bold">Photo Albums</h2>
+        {isOwnEntity && (
           <PhotoAlbumCreator 
             onAlbumCreated={handleAlbumCreated}
-            entityType="user"
-            entityId={userId}
+            entityType={entityType as 'user' | 'publisher' | 'author' | 'group'}
+            entityId={entityId}
             trigger={
-              <Button className="flex items-center gap-2">
+              <Button className="user-photo-albums-create-button flex items-center gap-2">
                 <FolderPlus className="h-4 w-4" />
                 {albums.length === 0 ? "Create Your First Album" : "Create An Album"}
               </Button>
@@ -240,28 +248,28 @@ export function UserPhotoAlbums({ userId, isOwnProfile = false }: UserPhotoAlbum
       </div>
 
       {albums.length === 0 ? (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <div className="flex flex-col items-center space-y-4">
-              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+        <Card className="user-photo-albums-empty-card">
+          <CardContent className="user-photo-albums-empty-content p-8 text-center">
+            <div className="user-photo-albums-empty-state flex flex-col items-center space-y-4">
+              <div className="user-photo-albums-empty-icon w-16 h-16 bg-muted rounded-full flex items-center justify-center">
                 <ImageIcon className="h-8 w-8 text-muted-foreground" />
               </div>
-              <div>
-                <h3 className="text-lg font-semibold">No albums yet</h3>
-                <p className="text-muted-foreground">
-                  {isOwnProfile 
+              <div className="user-photo-albums-empty-text">
+                <h3 className="user-photo-albums-empty-title text-lg font-semibold">No albums yet</h3>
+                <p className="user-photo-albums-empty-description text-muted-foreground">
+                  {isOwnEntity 
                     ? "Create your first photo album to get started"
                     : "This user hasn't created any albums yet"
                   }
                 </p>
               </div>
-              {isOwnProfile && (
+              {isOwnEntity && (
                 <PhotoAlbumCreator 
                   onAlbumCreated={handleAlbumCreated}
-                  entityType="user"
-                  entityId={userId}
+                  entityType={entityType as 'user' | 'publisher' | 'author' | 'group'}
+                  entityId={entityId}
                   trigger={
-                    <Button className="flex items-center gap-2">
+                    <Button className="user-photo-albums-create-first-button flex items-center gap-2">
                       <FolderPlus className="h-4 w-4" />
                       Create Your First Album
                     </Button>
@@ -272,11 +280,11 @@ export function UserPhotoAlbums({ userId, isOwnProfile = false }: UserPhotoAlbum
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="user-photo-albums-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {albums.map((album) => (
-            <Card key={album.id} className="overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
+            <Card key={album.id} className="user-photo-album-card overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
               <div 
-                className="aspect-video relative overflow-hidden cursor-pointer group"
+                className="user-photo-album-cover aspect-video relative overflow-hidden cursor-pointer group"
                 onClick={() => setSelectedAlbum(album)}
               >
                 {album.cover_image_url ? (
@@ -284,36 +292,37 @@ export function UserPhotoAlbums({ userId, isOwnProfile = false }: UserPhotoAlbum
                     src={album.cover_image_url}
                     alt={album.name}
                     fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="user-photo-album-cover-image object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 ) : (
-                  <div className="w-full h-full bg-muted flex items-center justify-center">
+                  <div className="user-photo-album-placeholder w-full h-full bg-muted flex items-center justify-center">
                     <ImageIcon className="h-12 w-12 text-muted-foreground" />
                   </div>
                 )}
                 
                 {/* Privacy Badge */}
-                <div className="absolute top-2 left-2">
-                  <Badge variant="secondary" className="flex items-center gap-1">
+                <div className="user-photo-album-privacy-badge absolute top-2 left-2">
+                  <Badge variant="secondary" className="user-photo-album-privacy-indicator flex items-center gap-1">
                     {getPrivacyIcon(album)}
                     {getPrivacyLabel(album)}
                   </Badge>
                 </div>
 
                 {/* Photo Count */}
-                <div className="absolute bottom-2 right-2">
-                  <Badge variant="default" className="bg-black/70 text-white">
+                <div className="user-photo-album-count-badge absolute bottom-2 right-2">
+                  <Badge variant="default" className="user-photo-album-count-indicator bg-black/70 text-white">
                     {album.photo_count} {album.photo_count === 1 ? 'photo' : 'photos'}
                   </Badge>
                 </div>
 
                 {/* Hover overlay */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="user-photo-album-hover-overlay absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                  <div className="user-photo-album-hover-content opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <Button
                       variant="secondary"
                       size="sm"
-                      className="bg-white/90 text-black hover:bg-white"
+                      className="user-photo-album-view-button bg-white/90 text-black hover:bg-white"
                     >
                       View Album
                     </Button>
@@ -321,46 +330,47 @@ export function UserPhotoAlbums({ userId, isOwnProfile = false }: UserPhotoAlbum
                 </div>
               </div>
 
-              <CardContent className="p-4 flex flex-col flex-1">
-                <div className="space-y-2 flex-1">
-                  <h3 className="font-semibold text-lg truncate">{album.name}</h3>
+              <CardContent className="user-photo-album-content p-4 flex flex-col flex-1">
+                <div className="user-photo-album-info space-y-2 flex-1">
+                  <h3 className="user-photo-album-name font-semibold text-lg truncate">{album.name}</h3>
                   {album.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">
+                    <p className="user-photo-album-description text-sm text-muted-foreground line-clamp-2">
                       {album.description}
                     </p>
                   )}
                 </div>
 
                 {/* Footer - Always at bottom */}
-                <div className="mt-4 space-y-3">
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1">
+                <div className="user-photo-album-footer mt-4 space-y-3">
+                  <div className="user-photo-album-metadata flex items-center justify-between text-xs text-muted-foreground">
+                    <div className="user-photo-album-created-date flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
                       {formatDate(album.created_at)}
                     </div>
                     
                     {album.metadata?.show_in_feed && (
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="user-photo-album-feed-badge text-xs">
                         In Feed
                       </Badge>
                     )}
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="user-photo-album-actions flex gap-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1"
+                      className="user-photo-album-view-action flex-1"
                       onClick={() => setSelectedAlbum(album)}
                     >
                       View Album
                     </Button>
                     
-                    {isOwnProfile && (
+                    {isOwnEntity && (
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleAlbumSettings(album)}
+                        className="user-photo-album-settings-button"
                       >
                         <Settings className="h-4 w-4" />
                       </Button>
@@ -375,30 +385,51 @@ export function UserPhotoAlbums({ userId, isOwnProfile = false }: UserPhotoAlbum
 
       {/* Album Viewer Modal */}
       {selectedAlbum && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="bg-background rounded-lg w-full max-w-6xl h-full max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b">
-              <div>
-                <h2 className="text-xl font-semibold">{selectedAlbum.name}</h2>
+        <div className="user-photo-album-modal-overlay fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+          <div className="user-photo-album-modal-container bg-background rounded-lg w-full max-w-6xl h-full max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="user-photo-album-modal-header flex items-center justify-between p-4 border-b flex-shrink-0">
+              <div className="user-photo-album-modal-title-section">
+                <h2 className="user-photo-album-modal-title text-xl font-semibold">{selectedAlbum.name}</h2>
                 {selectedAlbum.description && (
-                  <p className="text-muted-foreground">{selectedAlbum.description}</p>
+                  <p className="user-photo-album-modal-description text-muted-foreground">{selectedAlbum.description}</p>
                 )}
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSelectedAlbum(null)}
-              >
-                ×
-              </Button>
+              <div className="user-photo-album-modal-actions flex items-center gap-2">
+                {isOwnEntity && (
+                  <EnterpriseImageUpload
+                    entityType={entityType}
+                    entityId={entityId}
+                    context="album"
+                    albumId={selectedAlbum.id}
+                    onUploadComplete={(imageIds: string[]) => {
+                      loadAlbums() // Refresh albums after upload
+                      toast({
+                        title: "Success",
+                        description: `Added ${imageIds.length} photo${imageIds.length !== 1 ? 's' : ''} to album`
+                      })
+                    }}
+                    variant="default"
+                    size="sm"
+                    buttonText="Add Photos"
+                  />
+                )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSelectedAlbum(null)}
+                  className="user-photo-album-modal-close-button"
+                >
+                  ×
+                </Button>
+              </div>
             </div>
-            <div className="flex-1 overflow-hidden">
+            <div className="user-photo-album-modal-content flex-1 min-h-0 overflow-hidden">
               <EnterprisePhotoGrid
                 albumId={selectedAlbum.id}
-                entityId={userId}
-                entityType="user"
-                isOwner={isOwnProfile}
-                maxHeight="calc(90vh - 120px)"
+                entityId={entityId}
+                entityType={entityType}
+                isOwner={isOwnEntity}
+                maxHeight="100%"
               />
             </div>
           </div>

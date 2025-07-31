@@ -12,6 +12,7 @@ import {
   Download,
   Share2
 } from 'lucide-react'
+import { CloseButton } from '@/components/ui/close-button'
 
 interface SimplePhoto {
   id: string
@@ -141,14 +142,10 @@ export function SimplePhotoViewer({
                 <Download className="h-4 w-4" />
               </Button>
               
-              <Button
-                variant="ghost"
-                size="icon"
-                className="bg-black/50 hover:bg-black/70 text-white"
-                onClick={onClose}
-              >
-                <X className="h-4 w-4" />
-              </Button>
+                             <CloseButton
+                 onClick={onClose}
+                 className="text-white hover:opacity-80 transition-opacity"
+               />
             </div>
           </div>
 

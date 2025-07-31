@@ -5,14 +5,18 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import EntityComments from '@/components/entity-comments'
+import { CloseButton } from '@/components/ui/close-button'
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
+import { useAuth } from '@/hooks/useAuth'
+import { isUserAdmin } from '@/lib/auth-utils'
 import { 
   X, 
   ChevronLeft, 
@@ -53,6 +57,11 @@ interface Photo {
   comments?: PhotoComment[]
   shares?: PhotoShare[]
   analytics?: PhotoAnalytics
+  is_featured?: boolean
+  user?: {
+    name: string
+    avatar_url?: string
+  }
 }
 
 interface PhotoTag {
@@ -140,29 +149,129 @@ export function EnterprisePhotoViewer({
   const [showTags, setShowTags] = useState(false)
   const [showComments, setShowComments] = useState(false)
   const [showInfo, setShowInfo] = useState(false)
-  const [newComment, setNewComment] = useState('')
-  const [replyingTo, setReplyingTo] = useState<string | null>(null)
-  const [replyContent, setReplyContent] = useState('')
+  const [albumOwner, setAlbumOwner] = useState<{ name: string; avatar_url?: string } | null>(null)
+
   const [isTagging, setIsTagging] = useState(false)
   const [tagPosition, setTagPosition] = useState<{ x: number; y: number } | null>(null)
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedEntityType, setSelectedEntityType] = useState<'user' | 'book' | 'publisher' | 'author'>('user')
-  const [activeTab, setActiveTab] = useState('comments')
+  const [showDetailsModal, setShowDetailsModal] = useState(false)
+  const [showShareModal, setShowShareModal] = useState(false)
+  const [isPhotoDataLoaded, setIsPhotoDataLoaded] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
   
   const supabase = createClientComponentClient()
   const { toast } = useToast()
+  const { user } = useAuth()
+
+  // Check admin permissions
+  useEffect(() => {
+    if (user) {
+      isUserAdmin(user.id).then(setIsAdmin)
+    }
+  }, [user])
+
+  // Load album owner information when component mounts
+  useEffect(() => {
+    if (albumId) {
+      loadAlbumOwner()
+    }
+  }, [albumId])
+
+  const loadAlbumOwner = async () => {
+    try {
+      // Get album details to find the owner
+      const { data: album, error: albumError } = await supabase
+        .from('photo_albums')
+        .select('owner_id, entity_id, entity_type')
+        .eq('id', albumId)
+        .single()
+
+      if (albumError) throw albumError
+
+      // Get the owner information based on entity type
+      if (album.entity_type === 'user' && album.entity_id) {
+        // For user albums, get the user information
+        const { data: userData } = await supabase
+          .from('users')
+          .select('id, name, email')
+          .eq('id', album.entity_id)
+          .single()
+
+        if (userData) {
+          setAlbumOwner({
+            name: userData.name || userData.email || "User",
+            avatar_url: undefined // We'll need to get this from user metadata
+          })
+        }
+      } else if (album.entity_type === 'author' && album.entity_id) {
+        // For author albums, get the author information
+        const { data: authorData } = await supabase
+          .from('authors')
+          .select('id, name')
+          .eq('id', album.entity_id)
+          .single()
+
+        if (authorData) {
+          setAlbumOwner({
+            name: authorData.name || "Author",
+            avatar_url: undefined
+          })
+        }
+      } else if (album.entity_type === 'publisher' && album.entity_id) {
+        // For publisher albums, get the publisher information
+        const { data: publisherData } = await supabase
+          .from('publishers')
+          .select('id, name')
+          .eq('id', album.entity_id)
+          .single()
+
+        if (publisherData) {
+          setAlbumOwner({
+            name: publisherData.name || "Publisher",
+            avatar_url: undefined
+          })
+        }
+      } else if (album.entity_type === 'group' && album.entity_id) {
+        // For group albums, get the group information
+        const { data: groupData } = await supabase
+          .from('groups')
+          .select('id, name')
+          .eq('id', album.entity_id)
+          .single()
+
+        if (groupData) {
+          setAlbumOwner({
+            name: groupData.name || "Group",
+            avatar_url: undefined
+          })
+        }
+      }
+    } catch (error) {
+      console.error('Error loading album owner:', error)
+      // Fallback to current user if we can't get album owner
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        setAlbumOwner({
+          name: user.user_metadata?.full_name || user.email || "User",
+          avatar_url: user.user_metadata?.avatar_url
+        })
+      }
+    }
+  }
 
   // Load photo data when index changes
   useEffect(() => {
     if (photos[currentIndex]) {
+      setIsPhotoDataLoaded(false)
       loadPhotoData(photos[currentIndex].id)
     }
   }, [currentIndex, photos])
 
   const loadPhotoData = async (photoId: string) => {
     try {
-      // Load photo with tags, likes, comments
+      // Load photo with tags, likes, comments, and user information
       const { data: photoData, error } = await supabase
         .from('images')
         .select(`
@@ -203,9 +312,46 @@ export function EnterprisePhotoViewer({
 
       if (error) throw error
 
+      // Get the actual image uploader information using the new uploader_id field
+      let userInfo = null
+      
+      // Try uploader_id first (migration should have populated this)
+      if (photoData.uploader_id) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('id, name, email')
+          .eq('id', photoData.uploader_id)
+          .single()
+        
+        if (userData) {
+          userInfo = {
+            name: userData.name || userData.email || "User",
+            avatar_url: undefined
+          }
+        }
+      }
+      // Fall back to metadata.user_id if uploader_id is still null
+      else if (photoData.metadata?.user_id) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('id, name, email')
+          .eq('id', photoData.metadata.user_id)
+          .single()
+        
+        if (userData) {
+          userInfo = {
+            name: userData.name || userData.email || "User",
+            avatar_url: undefined
+          }
+        }
+      }
+
+
+
       // Use the existing counters from the images table
       const photoWithData = {
         ...photoData,
+        user: userInfo || { name: "User", avatar_url: undefined },
         analytics: {
           views: photoData.view_count || 0,
           unique_views: Math.floor((photoData.view_count || 0) * 0.7), // Estimate
@@ -217,6 +363,7 @@ export function EnterprisePhotoViewer({
       }
 
       setPhoto(photoWithData)
+      setIsPhotoDataLoaded(true)
       
       // Track view by updating view count
       await supabase
@@ -287,28 +434,7 @@ export function EnterprisePhotoViewer({
     }
   }
 
-  const handleComment = async () => {
-    if (!photo || !newComment.trim()) return
-    
-    try {
-      await supabase
-        .from('photo_comments')
-        .insert({
-          photo_id: photo.id,
-          // user_id: currentUserId, // TODO: Add current user
-          content: newComment.trim(),
-          parent_id: replyingTo,
-          created_at: new Date().toISOString()
-        })
-      
-      setNewComment('')
-      setReplyingTo(null)
-      await loadPhotoData(photo.id)
-      await trackAnalytics(photo.id, 'comment')
-    } catch (error) {
-      console.error('Error posting comment:', error)
-    }
-  }
+
 
   const handleShare = async (platform: string) => {
     if (!photo) return
@@ -367,6 +493,52 @@ export function EnterprisePhotoViewer({
       document.body.removeChild(link)
     } catch (error) {
       console.error('Error downloading photo:', error)
+    }
+  }
+
+  const handleDeletePhoto = async () => {
+    if (!photo) return
+    
+    // Confirm deletion
+    if (!confirm('Are you sure you want to delete this photo? This action cannot be undone.')) {
+      return
+    }
+    
+    try {
+      // Delete from album first
+      if (albumId) {
+        await supabase
+          .from('album_images')
+          .delete()
+          .eq('album_id', albumId)
+          .eq('image_id', photo.id)
+      }
+      
+      // TODO: Consider if we should delete the image entirely or just remove from album
+      // For now, we'll just remove from album
+      
+      toast({
+        title: 'Photo deleted',
+        description: 'Photo has been removed from the album'
+      })
+      
+      // Navigate to next photo or close if last one
+      if (photos.length > 1) {
+        if (currentIndex >= photos.length - 1) {
+          onIndexChange(0)
+        } else {
+          onIndexChange(currentIndex + 1)
+        }
+      } else {
+        onClose()
+      }
+    } catch (error) {
+      console.error('Error deleting photo:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to delete photo',
+        variant: 'destructive'
+      })
     }
   }
 
@@ -535,32 +707,54 @@ export function EnterprisePhotoViewer({
                   <Info className="h-4 w-4" />
                 </Button>
                 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="bg-black/50 hover:bg-black/70 text-white"
+                {(isOwner || isAdmin) && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="bg-black/50 hover:bg-black/70 text-white"
+                      onClick={() => setShowDetailsModal(true)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="bg-black/50 hover:bg-red-700 text-white"
+                      onClick={handleDeletePhoto}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
+                
+                <CloseButton
                   onClick={onClose}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+                  className="text-white hover:opacity-80 transition-opacity"
+                />
               </div>
             </div>
 
             {/* Main Image */}
             <div 
-              className={`relative max-w-full max-h-full ${isTagging ? 'cursor-crosshair' : 'cursor-pointer'}`}
+              className={`relative w-full h-full flex items-center justify-center ${isTagging ? 'cursor-crosshair' : 'cursor-pointer'}`}
               onClick={handleImageClick}
               title={isTagging ? 'Click to add tag' : currentIndex < photos.length - 1 ? 'Click to go to next image' : 'Last image'}
             >
-              <img
-                src={photo.url}
-                alt={photo.alt_text || 'Photo'}
-                className="max-w-full max-h-full object-contain"
-                style={{
-                  transform: `scale(${zoom}) rotate(${rotation}deg)`,
-                  transition: 'transform 0.3s ease'
-                }}
-              />
+               <img
+                 src={photo.url}
+                 alt={photo.alt_text || 'Photo'}
+                 className="max-w-full max-h-full object-contain"
+                 style={{
+                   transform: `scale(${zoom}) rotate(${rotation}deg)`,
+                   transition: 'transform 0.3s ease',
+                   maxWidth: '100%',
+                   maxHeight: '100%',
+                   width: 'auto',
+                   height: 'auto'
+                 }}
+               />
               
               {/* Photo Tags */}
               {showTags && photo.tags?.map((tag) => (
@@ -638,253 +832,326 @@ export function EnterprisePhotoViewer({
             </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="w-80 bg-background border-l flex flex-col">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="comments">Comments</TabsTrigger>
-                <TabsTrigger value="details">Details</TabsTrigger>
-                <TabsTrigger value="share">Share</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="comments" className="flex-1 flex flex-col p-4">
-                <ScrollArea className="flex-1 mb-4">
-                  <div className="space-y-4">
-                    {photo.comments?.map((comment) => (
-                      <div key={comment.id} className="space-y-2">
-                        <div className="flex items-start gap-2">
-                          <Avatar className="h-8 w-8">
-                          </Avatar>
-                          <div className="flex-1">
-                            <div className="bg-muted rounded-lg p-3">
-                              <div className="font-semibold text-sm">User</div>
-                              <p className="text-sm">{comment.content}</p>
-                            </div>
-                            <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                              <span>{new Date(comment.created_at).toLocaleDateString()}</span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-auto p-0 text-xs"
-                                onClick={() => setReplyingTo(comment.id)}
-                              >
-                                Reply
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {comment.replies?.map((reply) => (
-                          <div key={reply.id} className="ml-10 flex items-start gap-2">
-                            <Avatar className="h-6 w-6">
-                            </Avatar>
-                            <div className="flex-1">
-                              <div className="bg-muted rounded-lg p-2">
-                                <div className="font-semibold text-xs">User</div>
-                                <p className="text-xs">{reply.content}</p>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-                
-                <div className="space-y-2">
-                  {replyingTo && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span>Replying to comment</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-auto p-0 text-xs"
-                        onClick={() => setReplyingTo(null)}
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  )}
-                  <div className="flex gap-2">
-                    <Textarea
-                      placeholder="Add a comment..."
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      className="flex-1 min-h-[80px]"
-                    />
-                    <Button
-                      size="sm"
-                      onClick={handleComment}
-                      disabled={!newComment.trim()}
-                    >
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  </div>
+          {/* Right Sidebar - Fixed Width */}
+          <div className="w-96 bg-white border-l border-gray-200 flex flex-col">
+            {/* Sidebar */}
+            {isPhotoDataLoaded ? (
+              <EntityComments
+                entityId={photo.id}
+                entityType="photo"
+                entityName={photo.user?.name || "User"}
+                entityAvatar={photo.user?.avatar_url}
+                entityCreatedAt={photo.created_at}
+                isOwner={isOwner}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full bg-gray-50">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-2"></div>
+                  <div className="text-sm text-gray-500">Loading photo details...</div>
                 </div>
-              </TabsContent>
-              
-              <TabsContent value="details" className="flex-1 p-4">
-                <ScrollArea className="h-full">
-                  <div className="space-y-4">
-                    {photo.description && (
-                      <div>
-                        <h4 className="font-semibold mb-2">Description</h4>
-                        <p className="text-sm text-muted-foreground">{photo.description}</p>
-                      </div>
-                    )}
-                    
-                    <div>
-                      <h4 className="font-semibold mb-2">Analytics</h4>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div>Views: {photo.analytics?.views || 0}</div>
-                        <div>Likes: {photo.likes?.length || 0}</div>
-                        <div>Comments: {photo.comments?.length || 0}</div>
-                        <div>Shares: {photo.analytics?.shares || 0}</div>
-                      </div>
-                    </div>
-                    
-                    {photo.tags && photo.tags.length > 0 && (
-                      <div>
-                        <h4 className="font-semibold mb-2">Tags</h4>
-                        <div className="flex flex-wrap gap-1">
-                          {photo.tags.map((tag) => (
-                            <Badge key={tag.id} variant="secondary" className="text-xs">
-                              {tag.entity_name}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    <div>
-                      <h4 className="font-semibold mb-2">Upload Info</h4>
-                      <div className="text-sm text-muted-foreground">
-                        <div>Date: {new Date(photo.created_at).toLocaleDateString()}</div>
-                        {photo.metadata && (
-                          <>
-                            {photo.metadata.file_size && (
-                              <div>Size: {(photo.metadata.file_size / 1024 / 1024).toFixed(2)} MB</div>
-                            )}
-                            {photo.metadata.dimensions && (
-                              <div>Dimensions: {photo.metadata.dimensions}</div>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </ScrollArea>
-              </TabsContent>
-              
-              <TabsContent value="share" className="flex-1 p-4">
+              </div>
+            )}
+          </div>
+
+                     {/* Tagging Modal */}
+           {isTagging && tagPosition && (
+             <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+               <div className="bg-background p-4 rounded-lg max-w-md w-full mx-4">
+                 <h3 className="font-semibold mb-4">Tag Someone</h3>
+                 
+                 <div className="space-y-4">
+                   <Select value={selectedEntityType} onValueChange={(value: any) => setSelectedEntityType(value)}>
+                     <SelectTrigger>
+                       <SelectValue placeholder="Select type" />
+                     </SelectTrigger>
+                     <SelectContent>
+                       <SelectItem value="user">User</SelectItem>
+                       <SelectItem value="book">Book</SelectItem>
+                       <SelectItem value="publisher">Publisher</SelectItem>
+                       <SelectItem value="author">Author</SelectItem>
+                     </SelectContent>
+                   </Select>
+                   
+                   <Input
+                     placeholder={`Search ${selectedEntityType}s...`}
+                     value={searchQuery}
+                     onChange={(e) => {
+                       setSearchQuery(e.target.value)
+                       searchEntities(e.target.value)
+                     }}
+                   />
+                   
+                   {searchResults.length > 0 && (
+                     <ScrollArea className="h-32">
+                       <div className="space-y-1">
+                         {searchResults.map((result) => (
+                           <Button
+                             key={result.id}
+                             variant="ghost"
+                             className="w-full justify-start"
+                             onClick={() => handleTagPhoto(result.id, result.name)}
+                           >
+                             {result.name}
+                           </Button>
+                         ))}
+                       </div>
+                     </ScrollArea>
+                   )}
+                 </div>
+                 
+                 <div className="flex gap-2 mt-4">
+                   <Button variant="outline" onClick={() => setIsTagging(false)} className="flex-1">
+                     Cancel
+                   </Button>
+                 </div>
+               </div>
+             </div>
+           )}
+
+           {/* Details Modal */}
+           {showDetailsModal && (
+             <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+               <div className="bg-background p-6 rounded-lg max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+                 <div className="flex items-center justify-between mb-4">
+                   <h3 className="font-semibold text-lg">Photo Details</h3>
+                   <CloseButton
+                     onClick={() => setShowDetailsModal(false)}
+                   />
+                 </div>
+                 
+                 <div className="space-y-6">
+                   {photo.description && (
+                     <div>
+                       <h4 className="font-semibold mb-2">Description</h4>
+                       <p className="text-sm text-muted-foreground">{photo.description}</p>
+                     </div>
+                   )}
+                   
+                   <div>
+                     <h4 className="font-semibold mb-2">Analytics</h4>
+                     <div className="grid grid-cols-2 gap-4 text-sm">
+                       <div className="bg-muted p-3 rounded">
+                         <div className="font-medium">Views</div>
+                         <div className="text-2xl font-bold">{photo.analytics?.views || 0}</div>
+                       </div>
+                       <div className="bg-muted p-3 rounded">
+                         <div className="font-medium">Likes</div>
+                         <div className="text-2xl font-bold">{photo.likes?.length || 0}</div>
+                       </div>
+                       <div className="bg-muted p-3 rounded">
+                         <div className="font-medium">Comments</div>
+                         <div className="text-2xl font-bold">{photo.comments?.length || 0}</div>
+                       </div>
+                       <div className="bg-muted p-3 rounded">
+                         <div className="font-medium">Shares</div>
+                         <div className="text-2xl font-bold">{photo.analytics?.shares || 0}</div>
+                       </div>
+                     </div>
+                   </div>
+                   
+                   {photo.tags && photo.tags.length > 0 && (
+                     <div>
+                       <h4 className="font-semibold mb-2">Tags</h4>
+                       <div className="flex flex-wrap gap-2">
+                         {photo.tags.map((tag) => (
+                           <Badge key={tag.id} variant="secondary">
+                             {tag.entity_name}
+                           </Badge>
+                         ))}
+                       </div>
+                     </div>
+                   )}
+                   
+                   <div>
+                     <h4 className="font-semibold mb-2">Upload Info</h4>
+                     <div className="text-sm text-muted-foreground space-y-1">
+                       <div>Date: {new Date(photo.created_at).toLocaleDateString()}</div>
+                       {photo.metadata && (
+                         <>
+                           {photo.metadata.file_size && (
+                             <div>Size: {(photo.metadata.file_size / 1024 / 1024).toFixed(2)} MB</div>
+                           )}
+                           {photo.metadata.dimensions && (
+                             <div>Dimensions: {photo.metadata.dimensions}</div>
+                           )}
+                         </>
+                       )}
+                     </div>
+                   </div>
+                 </div>
+               </div>
+             </div>
+           )}
+
+                     {/* Edit Modal */}
+          {showDetailsModal && (
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="bg-background p-6 rounded-lg max-w-md w-full mx-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-lg">Edit Photo</h3>
+                  <CloseButton
+                    onClick={() => setShowDetailsModal(false)}
+                  />
+                </div>
+                
                 <div className="space-y-4">
                   <div>
-                    <h4 className="font-semibold mb-2">Share on Social Media</h4>
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button variant="outline" onClick={() => handleShare('facebook')}>
-                        <Facebook className="h-4 w-4 mr-2" />
-                        Facebook
-                      </Button>
-                      <Button variant="outline" onClick={() => handleShare('twitter')}>
-                        <Twitter className="h-4 w-4 mr-2" />
-                        Twitter
-                      </Button>
-                      <Button variant="outline" onClick={() => handleShare('instagram')}>
-                        <Instagram className="h-4 w-4 mr-2" />
-                        Instagram
-                      </Button>
-                      <Button variant="outline" onClick={() => handleShare('copy')}>
-                        <Copy className="h-4 w-4 mr-2" />
-                        Copy Link
-                      </Button>
-                    </div>
+                    <label className="block text-sm font-medium mb-2">Alt Text</label>
+                    <Input
+                      value={photo.alt_text || ''}
+                      onChange={(e) => {
+                        setPhoto(prev => prev ? { ...prev, alt_text: e.target.value } : null)
+                      }}
+                      placeholder="Describe this photo"
+                    />
                   </div>
                   
                   <div>
-                    <h4 className="font-semibold mb-2">Direct Link</h4>
-                    <div className="flex gap-2">
-                      <Input
-                        value={`${window.location.origin}/photos/${photo.id}`}
-                        readOnly
-                        className="flex-1"
-                      />
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleShare('copy')}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-semibold mb-2">Embed Code</h4>
+                    <label className="block text-sm font-medium mb-2">Description</label>
                     <Textarea
-                      value={`<iframe src="${window.location.origin}/embed/photos/${photo.id}" width="600" height="400"></iframe>`}
-                      readOnly
+                      value={photo.description || ''}
+                      onChange={(e) => {
+                        setPhoto(prev => prev ? { ...prev, description: e.target.value } : null)
+                      }}
+                      placeholder="Add a description"
                       className="h-20"
                     />
                   </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
-
-          {/* Tagging Modal */}
-          {isTagging && tagPosition && (
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className="bg-background p-4 rounded-lg max-w-md w-full mx-4">
-                <h3 className="font-semibold mb-4">Tag Someone</h3>
-                
-                <div className="space-y-4">
-                  <Select value={selectedEntityType} onValueChange={(value: any) => setSelectedEntityType(value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="user">User</SelectItem>
-                      <SelectItem value="book">Book</SelectItem>
-                      <SelectItem value="publisher">Publisher</SelectItem>
-                      <SelectItem value="author">Author</SelectItem>
-                    </SelectContent>
-                  </Select>
                   
-                  <Input
-                    placeholder={`Search ${selectedEntityType}s...`}
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value)
-                      searchEntities(e.target.value)
-                    }}
-                  />
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="featured"
+                      checked={photo.is_featured || false}
+                      onChange={(e) => {
+                        setPhoto(prev => prev ? { ...prev, is_featured: e.target.checked } : null)
+                      }}
+                    />
+                    <label htmlFor="featured" className="text-sm font-medium">
+                      Featured Photo
+                    </label>
+                  </div>
                   
-                  {searchResults.length > 0 && (
-                    <ScrollArea className="h-32">
-                      <div className="space-y-1">
-                        {searchResults.map((result) => (
-                          <Button
-                            key={result.id}
-                            variant="ghost"
-                            className="w-full justify-start"
-                            onClick={() => handleTagPhoto(result.id, result.name)}
-                          >
-                            {result.name}
-                          </Button>
-                        ))}
-                      </div>
-                    </ScrollArea>
-                  )}
-                </div>
-                
-                <div className="flex gap-2 mt-4">
-                  <Button variant="outline" onClick={() => setIsTagging(false)} className="flex-1">
-                    Cancel
-                  </Button>
+                  <div className="flex justify-end space-x-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowDetailsModal(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={async () => {
+                        if (!photo) return
+                        
+                        try {
+                          // Update photo metadata
+                          await supabase
+                            .from('images')
+                            .update({
+                              alt_text: photo.alt_text,
+                              description: photo.description
+                            })
+                            .eq('id', photo.id)
+                          
+                          // Update album image settings if needed
+                          if (albumId) {
+                            await supabase
+                              .from('album_images')
+                              .update({
+                                is_featured: photo.is_featured
+                              })
+                              .eq('album_id', albumId)
+                              .eq('image_id', photo.id)
+                          }
+                          
+                          setShowDetailsModal(false)
+                          toast({
+                            title: 'Photo updated',
+                            description: 'Photo details have been saved'
+                          })
+                        } catch (error) {
+                          console.error('Error updating photo:', error)
+                          toast({
+                            title: 'Error',
+                            description: 'Failed to update photo',
+                            variant: 'destructive'
+                          })
+                        }
+                      }}
+                    >
+                      Save Changes
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
           )}
+
+          {/* Share Modal */}
+          {showShareModal && (
+             <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+               <div className="bg-background p-6 rounded-lg max-w-md w-full mx-4">
+                 <div className="flex items-center justify-between mb-4">
+                   <h3 className="font-semibold text-lg">Share Photo</h3>
+                   <CloseButton
+                     onClick={() => setShowShareModal(false)}
+                   />
+                 </div>
+                 
+                 <div className="space-y-4">
+                   <div>
+                     <h4 className="font-semibold mb-2">Share on Social Media</h4>
+                     <div className="grid grid-cols-2 gap-2">
+                       <Button variant="outline" onClick={() => handleShare('facebook')}>
+                         <Facebook className="h-4 w-4 mr-2" />
+                         Facebook
+                       </Button>
+                       <Button variant="outline" onClick={() => handleShare('twitter')}>
+                         <Twitter className="h-4 w-4 mr-2" />
+                         Twitter
+                       </Button>
+                       <Button variant="outline" onClick={() => handleShare('instagram')}>
+                         <Instagram className="h-4 w-4 mr-2" />
+                         Instagram
+                       </Button>
+                       <Button variant="outline" onClick={() => handleShare('copy')}>
+                         <Copy className="h-4 w-4 mr-2" />
+                         Copy Link
+                       </Button>
+                     </div>
+                   </div>
+                   
+                   <div>
+                     <h4 className="font-semibold mb-2">Direct Link</h4>
+                     <div className="flex gap-2">
+                       <Input
+                         value={`${window.location.origin}/photos/${photo.id}`}
+                         readOnly
+                         className="flex-1"
+                       />
+                       <Button
+                         variant="outline"
+                         size="icon"
+                         onClick={() => handleShare('copy')}
+                       >
+                         <Copy className="h-4 w-4" />
+                       </Button>
+                     </div>
+                   </div>
+                   
+                   <div>
+                     <h4 className="font-semibold mb-2">Embed Code</h4>
+                     <Textarea
+                       value={`<iframe src="${window.location.origin}/embed/photos/${photo.id}" width="600" height="400"></iframe>`}
+                       readOnly
+                       className="h-20"
+                     />
+                   </div>
+                 </div>
+               </div>
+             </div>
+           )}
         </div>
       </DialogContent>
     </Dialog>

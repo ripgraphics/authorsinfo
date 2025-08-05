@@ -13,39 +13,31 @@ export function TableInfo() {
   useEffect(() => {
     async function fetchTableInfo() {
       try {
-        // Get activities table columns
-        const { data, error } = await supabase.rpc('get_table_columns', { 
-          table_name_param: 'activities' 
-        })
+        // Get activities table structure by querying a sample row
+        const { data, error } = await supabase.from('activities')
+          .select('*')
+          .limit(1)
         
         if (error) {
           throw error
         }
         
-        setTableInfo(data)
+        // If we get data, extract the column information
+        if (data && data.length > 0) {
+          const sampleRow = data[0]
+          const columnInfo = Object.keys(sampleRow).map(key => ({
+            column_name: key,
+            data_type: typeof sampleRow[key],
+            is_nullable: sampleRow[key] === null ? "YES" : "NO"
+          }))
+          
+          setTableInfo(columnInfo)
+        } else {
+          setError("No data found in activities table")
+        }
       } catch (err: any) {
         console.error("Error fetching table info:", err)
         setError(err.message || "Failed to fetch table information")
-        
-        // Fallback to manual query
-        try {
-          const { data, error } = await supabase.from('activities')
-            .select('*')
-            .limit(1)
-          
-          if (error) throw error
-          
-          // If we get data, extract the keys
-          if (data && data.length > 0) {
-            setTableInfo(Object.keys(data[0]).map(key => ({
-              column_name: key,
-              data_type: typeof data[0][key],
-              is_nullable: "unknown"
-            })))
-          }
-        } catch (e) {
-          console.error("Fallback also failed:", e)
-        }
       } finally {
         setLoading(false)
       }

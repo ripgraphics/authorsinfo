@@ -67,22 +67,22 @@ export async function POST(request: NextRequest) {
 
       result = { data, error }
     } else {
-              // Insert new record
-        const { data, error } = await supabase
-          .from('reading_progress')
-          .insert({
-            book_id: bookId,
-            user_id: user.id,
-            status: readingProgressStatus,
-            start_date: readingProgressStatus === 'in_progress' ? new Date().toISOString() : undefined,
-            finish_date: readingProgressStatus === 'completed' ? new Date().toISOString() : undefined,
-            privacy_level: defaultPrivacyLevel,
-            allow_friends: defaultPrivacyLevel === 'friends',
-            allow_followers: defaultPrivacyLevel === 'followers',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-          .select()
+      // Insert new record
+      const { data, error } = await supabase
+        .from('reading_progress')
+        .insert({
+          book_id: bookId,
+          user_id: user.id,
+          status: readingProgressStatus,
+          start_date: readingProgressStatus === 'in_progress' ? new Date().toISOString() : undefined,
+          finish_date: readingProgressStatus === 'completed' ? new Date().toISOString() : undefined,
+          privacy_level: defaultPrivacyLevel,
+          allow_friends: defaultPrivacyLevel === 'friends',
+          allow_followers: defaultPrivacyLevel === 'followers',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select()
 
       result = { data, error }
     }
@@ -90,6 +90,67 @@ export async function POST(request: NextRequest) {
     if (result.error) {
       console.error('Error updating reading status:', result.error)
       return NextResponse.json({ error: result.error.message }, { status: 500 })
+    }
+
+    // Create activity for timeline
+    try {
+      // Get book details for the activity
+      const { data: book } = await supabase
+        .from('books')
+        .select('id, title, author_id')
+        .eq('id', bookId)
+        .single()
+
+      if (book) {
+        // Get author details if available
+        let authorName = "Unknown Author"
+        if (book.author_id) {
+          const { data: author } = await supabase
+            .from('authors')
+            .select('id, name')
+            .eq('id', book.author_id)
+            .single()
+          
+          if (author) {
+            authorName = author.name
+          }
+        }
+
+        // Determine activity type and data based on status
+        let activityType = "book_added"
+        let activityData: any = {
+          book_title: book.title,
+          book_author: authorName,
+          shelf: status === "want_to_read" ? "Want to Read" : 
+                 status === "currently_reading" ? "Currently Reading" :
+                 status === "read" ? "Read" :
+                 status === "on_hold" ? "On Hold" : "Abandoned"
+        }
+
+        // Create the activity
+        const { error: activityError } = await supabase
+          .from('activities')
+          .insert({
+            user_id: user.id,
+            activity_type: activityType,
+            entity_type: "book",
+            entity_id: book.id,
+            data: activityData,
+            metadata: {
+              privacy_level: defaultPrivacyLevel,
+              engagement_count: 0,
+              is_premium: false
+            }
+          })
+
+        if (activityError) {
+          console.error('Error creating activity:', activityError)
+          // Don't fail the whole operation if activity creation fails
+        }
+      }
+    } catch (activityError) {
+      console.error('Error creating activity for reading status:', activityError)
+      // Don't fail the whole operation if activity creation fails
     }
 
     return NextResponse.json({ 
@@ -122,25 +183,34 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Missing bookId' }, { status: 400 })
     }
 
-    // Delete the reading progress record
-    const { error } = await supabase
+    // Delete from reading_progress
+    const { error: progressError } = await supabase
       .from('reading_progress')
       .delete()
       .eq('book_id', bookId)
       .eq('user_id', user.id)
 
-    if (error) {
-      console.error('Error deleting reading status:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    if (progressError) {
+      console.error('Error deleting reading progress:', progressError)
+      return NextResponse.json({ error: progressError.message }, { status: 500 })
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Reading status deleted successfully'
-    })
+    // Delete from reading_status
+    const { error: statusError } = await supabase
+      .from('reading_status')
+      .delete()
+      .eq('book_id', bookId)
+      .eq('user_id', user.id)
+
+    if (statusError) {
+      console.error('Error deleting reading status:', statusError)
+      return NextResponse.json({ error: statusError.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true })
 
   } catch (error) {
-    console.error('Error in reading status DELETE API:', error)
+    console.error('Error in reading status DELETE:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

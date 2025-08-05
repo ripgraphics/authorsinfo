@@ -36,7 +36,7 @@ export async function getUserReadingProgress(bookId: string) {
       return { progress: null, error: "User not authenticated" }
     }
 
-    // Get the reading progress for this book and user
+    // Get the user's reading progress for this book
     const { data, error } = await supabase
       .from("reading_progress")
       .select("*")
@@ -45,12 +45,11 @@ export async function getUserReadingProgress(bookId: string) {
       .single()
 
     if (error && error.code !== "PGRST116") {
-      // PGRST116 is "no rows returned" which is fine
       console.error("Error fetching reading progress:", error)
       return { progress: null, error: error.message }
     }
 
-    return { progress: data as ReadingProgress | null, error: null }
+    return { progress: data, error: null }
   } catch (error) {
     console.error("Error in getUserReadingProgress:", error)
     return { progress: null, error: "An unexpected error occurred" }
@@ -70,28 +69,10 @@ export async function updateReadingProgress(progress: Partial<ReadingProgress>) 
       return { success: false, error: "User not authenticated" }
     }
 
-    // Ensure user_id is set
-    progress.user_id = user.id
-
-    // Calculate percentage if current_page and total_pages are provided
-    if (progress.current_page && progress.total_pages && progress.total_pages > 0) {
-      progress.percentage = Math.min(100, Math.round((progress.current_page / progress.total_pages) * 100))
-    }
-
-    // Set finish_date if status is completed
-    if (progress.status === "completed" && !progress.finish_date) {
-      progress.finish_date = new Date().toISOString()
-    }
-
-    // Set start_date if status is in_progress and no start_date
-    if (progress.status === "in_progress" && !progress.start_date) {
-      progress.start_date = new Date().toISOString()
-    }
-
     // Check if a record already exists
-    const { data: existingProgress, error: checkError } = await supabase
+    const { data: existingProgress } = await supabase
       .from("reading_progress")
-      .select("id")
+      .select("*")
       .eq("book_id", progress.book_id)
       .eq("user_id", user.id)
       .single()
@@ -131,6 +112,67 @@ export async function updateReadingProgress(progress: Partial<ReadingProgress>) 
     if (result.error) {
       console.error("Error updating reading progress:", result.error)
       return { success: false, error: result.error.message }
+    }
+
+    // Create activity for timeline
+    try {
+      // Get book details for the activity
+      const { data: book } = await supabase
+        .from("books")
+        .select("id, title, author_id")
+        .eq("id", progress.book_id)
+        .single()
+
+      if (book) {
+        // Get author details if available
+        let authorName = "Unknown Author"
+        if (book.author_id) {
+          const { data: author } = await supabase
+            .from("authors")
+            .select("id, name")
+            .eq("id", book.author_id)
+            .single()
+          
+          if (author) {
+            authorName = author.name
+          }
+        }
+
+        // Determine activity type based on status
+        let activityType = "book_added"
+        let activityData: any = {
+          book_title: book.title,
+          book_author: authorName,
+          shelf: progress.status === "not_started" ? "Want to Read" : 
+                 progress.status === "in_progress" ? "Currently Reading" :
+                 progress.status === "completed" ? "Read" :
+                 progress.status === "on_hold" ? "On Hold" : "Abandoned"
+        }
+
+        // Create the activity
+        const { error: activityError } = await supabase
+          .from("activities")
+          .insert({
+            user_id: user.id,
+            activity_type: activityType,
+            entity_type: "book",
+            entity_id: book.id,
+            data: activityData,
+            metadata: {
+              privacy_level: progress.privacy_level || "private",
+              engagement_count: 0,
+              is_premium: false
+            }
+          })
+
+        if (activityError) {
+          console.error("Error creating activity:", activityError)
+          // Don't fail the whole operation if activity creation fails
+        }
+      }
+    } catch (activityError) {
+      console.error("Error creating activity for reading progress:", activityError)
+      // Don't fail the whole operation if activity creation fails
     }
 
     // Also update the reading_status table if it exists (for backward compatibility)
@@ -179,16 +221,24 @@ export async function deleteReadingProgress(bookId: string) {
     }
 
     // Delete the reading progress
-    const { error } = await supabase.from("reading_progress").delete().eq("book_id", bookId).eq("user_id", user.id)
+    const { error } = await supabase
+      .from("reading_progress")
+      .delete()
+      .eq("book_id", bookId)
+      .eq("user_id", user.id)
 
     if (error) {
       console.error("Error deleting reading progress:", error)
       return { success: false, error: error.message }
     }
 
-    // Also delete from reading_status if it exists
+    // Also delete from reading_status table if it exists
     try {
-      await supabase.from("reading_status").delete().eq("book_id", bookId).eq("user_id", user.id)
+      await supabase
+        .from("reading_status")
+        .delete()
+        .eq("book_id", bookId)
+        .eq("user_id", user.id)
     } catch (error) {
       console.log("Reading status table might not exist:", error)
       // Continue even if this fails
@@ -261,50 +311,28 @@ export async function getReadingStats() {
       return { stats: null, error: "User not authenticated" }
     }
 
-    // Get counts by status
-    const { data, error } = await supabase.from("reading_progress").select("status").eq("user_id", user.id)
+    // Get reading statistics
+    const { data, error } = await supabase
+      .from("reading_progress")
+      .select("status")
+      .eq("user_id", user.id)
 
     if (error) {
       console.error("Error fetching reading stats:", error)
       return { stats: null, error: error.message }
     }
 
-    // Calculate counts
-    const counts = {
-      not_started: 0,
-      in_progress: 0,
-      completed: 0,
-      on_hold: 0,
-      abandoned: 0,
-      total: data.length,
+    // Calculate statistics
+    const stats = {
+      total_books: data.length,
+      completed: data.filter((item) => item.status === "completed").length,
+      in_progress: data.filter((item) => item.status === "in_progress").length,
+      want_to_read: data.filter((item) => item.status === "not_started").length,
+      on_hold: data.filter((item) => item.status === "on_hold").length,
+      abandoned: data.filter((item) => item.status === "abandoned").length,
     }
 
-    data.forEach((item) => {
-      if (item.status && counts[item.status as keyof typeof counts] !== undefined) {
-        counts[item.status as keyof typeof counts]++
-      }
-    })
-
-    // Get books completed this year
-    const startOfYear = new Date(new Date().getFullYear(), 0, 1).toISOString()
-    const { data: completedThisYear, error: yearError } = await supabase
-      .from("reading_progress")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("status", "completed")
-      .gte("finish_date", startOfYear)
-
-    if (yearError) {
-      console.error("Error fetching completed books:", yearError)
-    }
-
-    return {
-      stats: {
-        ...counts,
-        completed_this_year: completedThisYear?.length || 0,
-      },
-      error: null,
-    }
+    return { stats, error: null }
   } catch (error) {
     console.error("Error in getReadingStats:", error)
     return { stats: null, error: "An unexpected error occurred" }
@@ -375,16 +403,15 @@ export async function getFriendsReadingActivity(limit = 10) {
       .limit(limit)
 
     if (error) {
-      console.error("Error fetching friends' reading activity:", error)
+      console.error("Error fetching friends reading activity:", error)
       return { activity: [], error: error.message }
     }
 
-    // Process the data
+    // Process the data to include cover image URL and user name
     const processedActivity = data.map((item) => ({
       ...item,
-      user_name: item.user?.name || "Unknown User",
-      user_avatar: item.user?.avatar_url || null,
       book_title: item.book?.title || "Unknown Book",
+      user_name: item.user?.name || "Unknown User",
       cover_image_url: item.book_cover?.cover_image?.url || null,
     }))
 

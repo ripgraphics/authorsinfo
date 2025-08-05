@@ -86,13 +86,13 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
       // Get friends count
       const { data: friends, error: friendsError } = await supabaseAdmin
-        .from('friends')
+        .from('user_friends')
         .select('id', { count: 'exact' })
         .eq('user_id', user.id)
         .eq('status', 'accepted')
 
       const { data: reverseFriends, error: reverseFriendsError } = await supabaseAdmin
-        .from('friends')
+        .from('user_friends')
         .select('id', { count: 'exact' })
         .eq('friend_id', user.id)
         .eq('status', 'accepted')

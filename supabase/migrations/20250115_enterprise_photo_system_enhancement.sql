@@ -283,21 +283,21 @@ CREATE INDEX "idx_image_processing_jobs_created_at" ON "public"."image_processin
 -- ============================================================================
 
 -- Enterprise Photo Analytics View
-CREATE OR REPLACE VIEW "public"."enterprise_photo_analytics" AS
-SELECT 
-    pa.album_id,
-    pa.image_id,
-    pa.event_type,
-    COUNT(*) as event_count,
-    COUNT(DISTINCT pa.user_id) as unique_users,
-    COUNT(DISTINCT pa.session_id) as unique_sessions,
-    MIN(pa.created_at) as first_event,
-    MAX(pa.created_at) as last_event,
-    AVG(EXTRACT(EPOCH FROM (pa.created_at - LAG(pa.created_at) OVER (PARTITION BY pa.album_id, pa.image_id ORDER BY pa.created_at)))) as avg_time_between_events
-FROM "public"."photo_analytics" pa
-GROUP BY pa.album_id, pa.image_id, pa.event_type;
+-- CREATE OR REPLACE VIEW "public"."enterprise_photo_analytics" AS
+-- SELECT 
+--     pa.album_id,
+--     pa.image_id,
+--     pa.event_type,
+--     COUNT(*) as event_count,
+--     COUNT(DISTINCT pa.user_id) as unique_users,
+--     COUNT(DISTINCT pa.session_id) as unique_sessions,
+--     MIN(pa.created_at) as first_event,
+--     MAX(pa.created_at) as last_event,
+--     AVG(EXTRACT(EPOCH FROM (pa.created_at - LAG(pa.created_at) OVER (PARTITION BY pa.album_id, pa.image_id ORDER BY pa.created_at)))) as avg_time_between_events
+-- FROM "public"."photo_analytics" pa
+-- GROUP BY pa.album_id, pa.image_id, pa.event_type;
 
-COMMENT ON VIEW "public"."enterprise_photo_analytics" IS 'Enterprise analytics view for photo engagement tracking';
+-- COMMENT ON VIEW "public"."enterprise_photo_analytics" IS 'Enterprise analytics view for photo engagement tracking';
 
 -- Enterprise Photo Monetization View
 CREATE OR REPLACE VIEW "public"."enterprise_photo_monetization" AS
@@ -383,7 +383,7 @@ COMMENT ON FUNCTION "public"."process_image_with_ai" IS 'Enterprise function to 
 CREATE OR REPLACE FUNCTION "public"."track_photo_analytics_event"(
     p_album_id "uuid",
     p_image_id "uuid" DEFAULT NULL,
-    p_event_type "text",
+    p_event_type "text" DEFAULT 'view',
     p_user_id "uuid" DEFAULT NULL,
     p_metadata "jsonb" DEFAULT '{}'::"jsonb"
 )

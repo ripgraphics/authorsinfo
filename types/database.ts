@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instanciate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "12.2.12 (cd3cf9e)"
+  }
   public: {
     Tables: {
       activities: {
@@ -22,6 +27,7 @@ export type Database = {
           group_id: string | null
           id: string
           list_id: string | null
+          metadata: Json | null
           review_id: string | null
           user_id: string
           user_profile_id: string | null
@@ -38,6 +44,7 @@ export type Database = {
           group_id?: string | null
           id?: string
           list_id?: string | null
+          metadata?: Json | null
           review_id?: string | null
           user_id: string
           user_profile_id?: string | null
@@ -54,6 +61,7 @@ export type Database = {
           group_id?: string | null
           id?: string
           list_id?: string | null
+          metadata?: Json | null
           review_id?: string | null
           user_id?: string
           user_profile_id?: string | null
@@ -197,6 +205,72 @@ export type Database = {
           },
         ]
       }
+      ai_image_analysis: {
+        Row: {
+          analysis_type: string
+          confidence_score: number | null
+          content_safety_score: number | null
+          created_at: string
+          id: string
+          image_id: string
+          metadata: Json | null
+          model_version: string | null
+          moderation_flags: string[] | null
+          objects_detected: Json | null
+          processing_time_ms: number | null
+          quality_metrics: Json | null
+          sentiment_score: number | null
+          tags: string[] | null
+        }
+        Insert: {
+          analysis_type: string
+          confidence_score?: number | null
+          content_safety_score?: number | null
+          created_at?: string
+          id?: string
+          image_id: string
+          metadata?: Json | null
+          model_version?: string | null
+          moderation_flags?: string[] | null
+          objects_detected?: Json | null
+          processing_time_ms?: number | null
+          quality_metrics?: Json | null
+          sentiment_score?: number | null
+          tags?: string[] | null
+        }
+        Update: {
+          analysis_type?: string
+          confidence_score?: number | null
+          content_safety_score?: number | null
+          created_at?: string
+          id?: string
+          image_id?: string
+          metadata?: Json | null
+          model_version?: string | null
+          moderation_flags?: string[] | null
+          objects_detected?: Json | null
+          processing_time_ms?: number | null
+          quality_metrics?: Json | null
+          sentiment_score?: number | null
+          tags?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_image_analysis_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "image_uploaders"
+            referencedColumns: ["image_id"]
+          },
+          {
+            foreignKeyName: "ai_image_analysis_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "images"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       album_analytics: {
         Row: {
           album_id: string
@@ -232,7 +306,11 @@ export type Database = {
       }
       album_images: {
         Row: {
+          ai_tags: string[] | null
           album_id: string
+          caption: string | null
+          comment_count: number | null
+          community_engagement: number | null
           created_at: string | null
           display_order: number
           entity_id: string | null
@@ -241,11 +319,21 @@ export type Database = {
           image_id: string
           is_cover: boolean | null
           is_featured: boolean | null
+          last_viewed_at: string | null
+          like_count: number | null
           metadata: Json | null
+          performance_score: number | null
+          revenue_generated: number | null
+          share_count: number | null
           updated_at: string | null
+          view_count: number | null
         }
         Insert: {
+          ai_tags?: string[] | null
           album_id: string
+          caption?: string | null
+          comment_count?: number | null
+          community_engagement?: number | null
           created_at?: string | null
           display_order: number
           entity_id?: string | null
@@ -254,11 +342,21 @@ export type Database = {
           image_id: string
           is_cover?: boolean | null
           is_featured?: boolean | null
+          last_viewed_at?: string | null
+          like_count?: number | null
           metadata?: Json | null
+          performance_score?: number | null
+          revenue_generated?: number | null
+          share_count?: number | null
           updated_at?: string | null
+          view_count?: number | null
         }
         Update: {
+          ai_tags?: string[] | null
           album_id?: string
+          caption?: string | null
+          comment_count?: number | null
+          community_engagement?: number | null
           created_at?: string | null
           display_order?: number
           entity_id?: string | null
@@ -267,8 +365,14 @@ export type Database = {
           image_id?: string
           is_cover?: boolean | null
           is_featured?: boolean | null
+          last_viewed_at?: string | null
+          like_count?: number | null
           metadata?: Json | null
+          performance_score?: number | null
+          revenue_generated?: number | null
+          share_count?: number | null
           updated_at?: string | null
+          view_count?: number | null
         }
         Relationships: [
           {
@@ -284,6 +388,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "entity_types"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "album_images_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "image_uploaders"
+            referencedColumns: ["image_id"]
           },
           {
             foreignKeyName: "album_images_image_id_fkey"
@@ -395,6 +506,7 @@ export type Database = {
           instagram_handle: string | null
           name: string
           nationality: string | null
+          permalink: string | null
           twitter_handle: string | null
           updated_at: string | null
           website: string | null
@@ -413,6 +525,7 @@ export type Database = {
           instagram_handle?: string | null
           name: string
           nationality?: string | null
+          permalink?: string | null
           twitter_handle?: string | null
           updated_at?: string | null
           website?: string | null
@@ -431,6 +544,7 @@ export type Database = {
           instagram_handle?: string | null
           name?: string
           nationality?: string | null
+          permalink?: string | null
           twitter_handle?: string | null
           updated_at?: string | null
           website?: string | null
@@ -440,8 +554,22 @@ export type Database = {
             foreignKeyName: "authors_author_image_id_fkey"
             columns: ["author_image_id"]
             isOneToOne: false
+            referencedRelation: "image_uploaders"
+            referencedColumns: ["image_id"]
+          },
+          {
+            foreignKeyName: "authors_author_image_id_fkey"
+            columns: ["author_image_id"]
+            isOneToOne: false
             referencedRelation: "images"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "authors_cover_image_id_fkey"
+            columns: ["cover_image_id"]
+            isOneToOne: false
+            referencedRelation: "image_uploaders"
+            referencedColumns: ["image_id"]
           },
           {
             foreignKeyName: "authors_cover_image_id_fkey"
@@ -1719,6 +1847,67 @@ export type Database = {
           },
         ]
       }
+      bookmarks: {
+        Row: {
+          bookmark_folder: string | null
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          is_private: boolean | null
+          notes: string | null
+          tags: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bookmark_folder?: string | null
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          is_private?: boolean | null
+          notes?: string | null
+          tags?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bookmark_folder?: string | null
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          is_private?: boolean | null
+          notes?: string | null
+          tags?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookmarks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_activity_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "bookmarks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_engagement_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookmarks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_privacy_overview"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       books: {
         Row: {
           author: string | null
@@ -1741,6 +1930,7 @@ export type Database = {
           original_image_url: string | null
           overview: string | null
           pages: number | null
+          permalink: string | null
           publication_date: string | null
           publisher_id: string | null
           review_count: number | null
@@ -1772,6 +1962,7 @@ export type Database = {
           original_image_url?: string | null
           overview?: string | null
           pages?: number | null
+          permalink?: string | null
           publication_date?: string | null
           publisher_id?: string | null
           review_count?: number | null
@@ -1803,6 +1994,7 @@ export type Database = {
           original_image_url?: string | null
           overview?: string | null
           pages?: number | null
+          permalink?: string | null
           publication_date?: string | null
           publisher_id?: string | null
           review_count?: number | null
@@ -1827,6 +2019,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "binding_types"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "books_cover_image_id_fkey"
+            columns: ["cover_image_id"]
+            isOneToOne: false
+            referencedRelation: "image_uploaders"
+            referencedColumns: ["image_id"]
           },
           {
             foreignKeyName: "books_cover_image_id_fkey"
@@ -1947,34 +2146,125 @@ export type Database = {
           },
         ]
       }
+      comment_likes: {
+        Row: {
+          comment_id: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_likes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "photo_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comment_reactions: {
+        Row: {
+          comment_id: string
+          created_at: string
+          id: string
+          reaction_type: string
+          user_id: string
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string
+          id?: string
+          reaction_type: string
+          user_id: string
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string
+          id?: string
+          reaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_reactions_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comment_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_activity_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "comment_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_engagement_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comment_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_privacy_overview"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       comments: {
         Row: {
           content: string
           created_at: string
+          entity_id: string | null
+          entity_type: string | null
           feed_entry_id: string | null
           id: string
           is_deleted: boolean
           is_hidden: boolean
+          parent_id: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           content: string
           created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
           feed_entry_id?: string | null
           id?: string
           is_deleted?: boolean
           is_hidden?: boolean
+          parent_id?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           content?: string
           created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
           feed_entry_id?: string | null
           id?: string
           is_deleted?: boolean
           is_hidden?: boolean
+          parent_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -2075,6 +2365,94 @@ export type Database = {
           last_updated?: string | null
         }
         Relationships: []
+      }
+      content_flags: {
+        Row: {
+          content_id: string
+          content_type: string
+          created_at: string
+          flag_details: string | null
+          flag_reason: string
+          flagged_by: string
+          id: string
+          moderated_at: string | null
+          moderated_by: string | null
+          moderation_notes: string | null
+          moderation_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          content_id: string
+          content_type: string
+          created_at?: string
+          flag_details?: string | null
+          flag_reason: string
+          flagged_by: string
+          id?: string
+          moderated_at?: string | null
+          moderated_by?: string | null
+          moderation_notes?: string | null
+          moderation_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          content_id?: string
+          content_type?: string
+          created_at?: string
+          flag_details?: string | null
+          flag_reason?: string
+          flagged_by?: string
+          id?: string
+          moderated_at?: string | null
+          moderated_by?: string | null
+          moderation_notes?: string | null
+          moderation_status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_flags_flagged_by_fkey"
+            columns: ["flagged_by"]
+            isOneToOne: false
+            referencedRelation: "user_activity_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "content_flags_flagged_by_fkey"
+            columns: ["flagged_by"]
+            isOneToOne: false
+            referencedRelation: "user_engagement_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_flags_flagged_by_fkey"
+            columns: ["flagged_by"]
+            isOneToOne: false
+            referencedRelation: "user_privacy_overview"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "content_flags_moderated_by_fkey"
+            columns: ["moderated_by"]
+            isOneToOne: false
+            referencedRelation: "user_activity_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "content_flags_moderated_by_fkey"
+            columns: ["moderated_by"]
+            isOneToOne: false
+            referencedRelation: "user_engagement_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_flags_moderated_by_fkey"
+            columns: ["moderated_by"]
+            isOneToOne: false
+            referencedRelation: "user_privacy_overview"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       content_generation_jobs: {
         Row: {
@@ -2601,6 +2979,70 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      entity_tags: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          is_verified: boolean | null
+          tag_category: string | null
+          tag_color: string | null
+          tag_name: string
+          updated_at: string
+          usage_count: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          is_verified?: boolean | null
+          tag_category?: string | null
+          tag_color?: string | null
+          tag_name: string
+          updated_at?: string
+          usage_count?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          is_verified?: boolean | null
+          tag_category?: string | null
+          tag_color?: string | null
+          tag_name?: string
+          updated_at?: string
+          usage_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_tags_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_activity_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "entity_tags_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_engagement_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entity_tags_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_privacy_overview"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -4122,6 +4564,7 @@ export type Database = {
           is_recurring: boolean | null
           max_attendees: number | null
           parent_event_id: string | null
+          permalink: string | null
           price: number | null
           published_at: string | null
           publisher_id: string | null
@@ -4168,6 +4611,7 @@ export type Database = {
           is_recurring?: boolean | null
           max_attendees?: number | null
           parent_event_id?: string | null
+          permalink?: string | null
           price?: number | null
           published_at?: string | null
           publisher_id?: string | null
@@ -4214,6 +4658,7 @@ export type Database = {
           is_recurring?: boolean | null
           max_attendees?: number | null
           parent_event_id?: string | null
+          permalink?: string | null
           price?: number | null
           published_at?: string | null
           publisher_id?: string | null
@@ -4278,6 +4723,13 @@ export type Database = {
             foreignKeyName: "events_cover_image_id_fkey"
             columns: ["cover_image_id"]
             isOneToOne: false
+            referencedRelation: "image_uploaders"
+            referencedColumns: ["image_id"]
+          },
+          {
+            foreignKeyName: "events_cover_image_id_fkey"
+            columns: ["cover_image_id"]
+            isOneToOne: false
             referencedRelation: "images"
             referencedColumns: ["id"]
           },
@@ -4287,6 +4739,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_event_image_id_fkey"
+            columns: ["event_image_id"]
+            isOneToOne: false
+            referencedRelation: "image_uploaders"
+            referencedColumns: ["image_id"]
           },
           {
             foreignKeyName: "events_event_image_id_fkey"
@@ -4507,6 +4966,216 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      friend_activities: {
+        Row: {
+          activity_type: string
+          created_at: string | null
+          friend_id: string
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string | null
+          friend_id: string
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string | null
+          friend_id?: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "friend_activities_friend_id_fkey"
+            columns: ["friend_id"]
+            isOneToOne: false
+            referencedRelation: "user_activity_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "friend_activities_friend_id_fkey"
+            columns: ["friend_id"]
+            isOneToOne: false
+            referencedRelation: "user_engagement_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friend_activities_friend_id_fkey"
+            columns: ["friend_id"]
+            isOneToOne: false
+            referencedRelation: "user_privacy_overview"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "friend_activities_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_activity_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "friend_activities_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_engagement_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friend_activities_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_privacy_overview"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      friend_analytics: {
+        Row: {
+          created_at: string | null
+          friend_requests_accepted: number | null
+          friend_requests_received: number | null
+          friend_requests_rejected: number | null
+          friend_requests_sent: number | null
+          id: string
+          last_activity_at: string | null
+          total_friends: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          friend_requests_accepted?: number | null
+          friend_requests_received?: number | null
+          friend_requests_rejected?: number | null
+          friend_requests_sent?: number | null
+          id?: string
+          last_activity_at?: string | null
+          total_friends?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          friend_requests_accepted?: number | null
+          friend_requests_received?: number | null
+          friend_requests_rejected?: number | null
+          friend_requests_sent?: number | null
+          id?: string
+          last_activity_at?: string | null
+          total_friends?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "friend_analytics_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "user_activity_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "friend_analytics_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "user_engagement_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friend_analytics_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "user_privacy_overview"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      friend_suggestions: {
+        Row: {
+          common_interests: string[] | null
+          created_at: string | null
+          id: string
+          is_dismissed: boolean | null
+          mutual_friends_count: number | null
+          suggested_user_id: string
+          suggestion_score: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          common_interests?: string[] | null
+          created_at?: string | null
+          id?: string
+          is_dismissed?: boolean | null
+          mutual_friends_count?: number | null
+          suggested_user_id: string
+          suggestion_score?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          common_interests?: string[] | null
+          created_at?: string | null
+          id?: string
+          is_dismissed?: boolean | null
+          mutual_friends_count?: number | null
+          suggested_user_id?: string
+          suggestion_score?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "friend_suggestions_suggested_user_id_fkey"
+            columns: ["suggested_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_activity_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "friend_suggestions_suggested_user_id_fkey"
+            columns: ["suggested_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_engagement_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friend_suggestions_suggested_user_id_fkey"
+            columns: ["suggested_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_privacy_overview"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "friend_suggestions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_activity_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "friend_suggestions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_engagement_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friend_suggestions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_privacy_overview"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       friends: {
         Row: {
@@ -4908,6 +5577,70 @@ export type Database = {
           title?: string | null
         }
         Relationships: []
+      }
+      group_books: {
+        Row: {
+          added_at: string | null
+          added_by: string | null
+          book_id: string
+          group_id: string
+        }
+        Insert: {
+          added_at?: string | null
+          added_by?: string | null
+          book_id: string
+          group_id: string
+        }
+        Update: {
+          added_at?: string | null
+          added_by?: string | null
+          book_id?: string
+          group_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_books_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_books_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "book_popularity_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_books_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "book_popularity_summary"
+            referencedColumns: ["book_id"]
+          },
+          {
+            foreignKeyName: "group_books_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_books_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "unified_book_data"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_books_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       group_bots: {
         Row: {
@@ -6007,6 +6740,7 @@ export type Database = {
           is_private: boolean | null
           member_count: number | null
           name: string
+          permalink: string | null
         }
         Insert: {
           cover_image_url?: string | null
@@ -6017,6 +6751,7 @@ export type Database = {
           is_private?: boolean | null
           member_count?: number | null
           name: string
+          permalink?: string | null
         }
         Update: {
           cover_image_url?: string | null
@@ -6027,6 +6762,7 @@ export type Database = {
           is_private?: boolean | null
           member_count?: number | null
           name?: string
+          permalink?: string | null
         }
         Relationships: []
       }
@@ -6047,6 +6783,72 @@ export type Database = {
           table_name?: string
         }
         Relationships: []
+      }
+      image_processing_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          image_id: string
+          job_type: string
+          parameters: Json | null
+          priority: number | null
+          processing_time_ms: number | null
+          result: Json | null
+          started_at: string | null
+          status: string | null
+          updated_at: string
+          worker_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          image_id: string
+          job_type: string
+          parameters?: Json | null
+          priority?: number | null
+          processing_time_ms?: number | null
+          result?: Json | null
+          started_at?: string | null
+          status?: string | null
+          updated_at?: string
+          worker_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          image_id?: string
+          job_type?: string
+          parameters?: Json | null
+          priority?: number | null
+          processing_time_ms?: number | null
+          result?: Json | null
+          started_at?: string | null
+          status?: string | null
+          updated_at?: string
+          worker_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "image_processing_jobs_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "image_uploaders"
+            referencedColumns: ["image_id"]
+          },
+          {
+            foreignKeyName: "image_processing_jobs_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "images"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       image_tag_mappings: {
         Row: {
@@ -6093,74 +6895,149 @@ export type Database = {
       images: {
         Row: {
           alt_text: string | null
+          camera_info: Json | null
           caption: string | null
+          comment_count: number | null
+          content_rating: string | null
+          copyright_status: string | null
           created_at: string | null
           deleted_at: string | null
+          description: string | null
+          download_count: number | null
+          edit_history: Json[] | null
           entity_type_id: string | null
           file_size: number | null
           format: string | null
           height: number | null
           id: string
+          ip_address: unknown | null
+          is_ai_generated: boolean | null
+          is_featured: boolean | null
+          is_monetized: boolean | null
+          is_nsfw: boolean | null
           is_processed: boolean | null
           large_url: string | null
+          license_type: string | null
+          like_count: number | null
+          location: Json | null
           medium_url: string | null
           metadata: Json | null
           mime_type: string | null
           original_filename: string | null
           processing_status: string | null
+          quality_score: number | null
+          revenue_generated: number | null
+          share_count: number | null
           storage_path: string | null
           storage_provider: string | null
+          tags: string[] | null
           thumbnail_url: string | null
           updated_at: string | null
+          upload_source: string | null
+          uploader_id: string | null
+          uploader_type: string | null
           url: string
+          user_agent: string | null
+          view_count: number | null
+          watermark_applied: boolean | null
           width: number | null
         }
         Insert: {
           alt_text?: string | null
+          camera_info?: Json | null
           caption?: string | null
+          comment_count?: number | null
+          content_rating?: string | null
+          copyright_status?: string | null
           created_at?: string | null
           deleted_at?: string | null
+          description?: string | null
+          download_count?: number | null
+          edit_history?: Json[] | null
           entity_type_id?: string | null
           file_size?: number | null
           format?: string | null
           height?: number | null
           id?: string
+          ip_address?: unknown | null
+          is_ai_generated?: boolean | null
+          is_featured?: boolean | null
+          is_monetized?: boolean | null
+          is_nsfw?: boolean | null
           is_processed?: boolean | null
           large_url?: string | null
+          license_type?: string | null
+          like_count?: number | null
+          location?: Json | null
           medium_url?: string | null
           metadata?: Json | null
           mime_type?: string | null
           original_filename?: string | null
           processing_status?: string | null
+          quality_score?: number | null
+          revenue_generated?: number | null
+          share_count?: number | null
           storage_path?: string | null
           storage_provider?: string | null
+          tags?: string[] | null
           thumbnail_url?: string | null
           updated_at?: string | null
+          upload_source?: string | null
+          uploader_id?: string | null
+          uploader_type?: string | null
           url: string
+          user_agent?: string | null
+          view_count?: number | null
+          watermark_applied?: boolean | null
           width?: number | null
         }
         Update: {
           alt_text?: string | null
+          camera_info?: Json | null
           caption?: string | null
+          comment_count?: number | null
+          content_rating?: string | null
+          copyright_status?: string | null
           created_at?: string | null
           deleted_at?: string | null
+          description?: string | null
+          download_count?: number | null
+          edit_history?: Json[] | null
           entity_type_id?: string | null
           file_size?: number | null
           format?: string | null
           height?: number | null
           id?: string
+          ip_address?: unknown | null
+          is_ai_generated?: boolean | null
+          is_featured?: boolean | null
+          is_monetized?: boolean | null
+          is_nsfw?: boolean | null
           is_processed?: boolean | null
           large_url?: string | null
+          license_type?: string | null
+          like_count?: number | null
+          location?: Json | null
           medium_url?: string | null
           metadata?: Json | null
           mime_type?: string | null
           original_filename?: string | null
           processing_status?: string | null
+          quality_score?: number | null
+          revenue_generated?: number | null
+          share_count?: number | null
           storage_path?: string | null
           storage_provider?: string | null
+          tags?: string[] | null
           thumbnail_url?: string | null
           updated_at?: string | null
+          upload_source?: string | null
+          uploader_id?: string | null
+          uploader_type?: string | null
           url?: string
+          user_agent?: string | null
+          view_count?: number | null
+          watermark_applied?: boolean | null
           width?: number | null
         }
         Relationships: [
@@ -6169,6 +7046,13 @@ export type Database = {
             columns: ["entity_type_id"]
             isOneToOne: false
             referencedRelation: "entity_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "images_uploader_id_fkey"
+            columns: ["uploader_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -6233,6 +7117,8 @@ export type Database = {
       likes: {
         Row: {
           created_at: string
+          entity_id: string | null
+          entity_type: string | null
           feed_entry_id: string | null
           id: string
           updated_at: string | null
@@ -6240,6 +7126,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
           feed_entry_id?: string | null
           id?: string
           updated_at?: string | null
@@ -6247,6 +7135,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
           feed_entry_id?: string | null
           id?: string
           updated_at?: string | null
@@ -6511,6 +7401,82 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "ml_models"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      moderation_queue: {
+        Row: {
+          assigned_at: string | null
+          assigned_to: string | null
+          content_id: string
+          content_type: string
+          created_at: string
+          first_flagged_at: string
+          flag_count: number | null
+          id: string
+          last_flagged_at: string
+          priority: string | null
+          resolution_action: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_to?: string | null
+          content_id: string
+          content_type: string
+          created_at?: string
+          first_flagged_at?: string
+          flag_count?: number | null
+          id?: string
+          last_flagged_at?: string
+          priority?: string | null
+          resolution_action?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_to?: string | null
+          content_id?: string
+          content_type?: string
+          created_at?: string
+          first_flagged_at?: string
+          flag_count?: number | null
+          id?: string
+          last_flagged_at?: string
+          priority?: string | null
+          resolution_action?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moderation_queue_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "user_activity_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "moderation_queue_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "user_engagement_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "moderation_queue_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "user_privacy_overview"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -6807,57 +7773,91 @@ export type Database = {
       }
       photo_albums: {
         Row: {
+          ai_enhanced: boolean | null
+          analytics_enabled: boolean | null
+          community_features: boolean | null
+          community_score: number | null
           cover_image_id: string | null
           created_at: string
           deleted_at: string | null
           description: string | null
           entity_id: string | null
+          entity_metadata: Json | null
           entity_type: string | null
           id: string
           is_public: boolean
           like_count: number | null
           metadata: Json | null
+          monetization_enabled: boolean | null
           name: string
           owner_id: string
+          premium_content: boolean | null
+          revenue_generated: number | null
           share_count: number | null
+          total_subscribers: number | null
           updated_at: string
           view_count: number | null
         }
         Insert: {
+          ai_enhanced?: boolean | null
+          analytics_enabled?: boolean | null
+          community_features?: boolean | null
+          community_score?: number | null
           cover_image_id?: string | null
           created_at?: string
           deleted_at?: string | null
           description?: string | null
           entity_id?: string | null
+          entity_metadata?: Json | null
           entity_type?: string | null
           id?: string
           is_public?: boolean
           like_count?: number | null
           metadata?: Json | null
+          monetization_enabled?: boolean | null
           name: string
           owner_id: string
+          premium_content?: boolean | null
+          revenue_generated?: number | null
           share_count?: number | null
+          total_subscribers?: number | null
           updated_at?: string
           view_count?: number | null
         }
         Update: {
+          ai_enhanced?: boolean | null
+          analytics_enabled?: boolean | null
+          community_features?: boolean | null
+          community_score?: number | null
           cover_image_id?: string | null
           created_at?: string
           deleted_at?: string | null
           description?: string | null
           entity_id?: string | null
+          entity_metadata?: Json | null
           entity_type?: string | null
           id?: string
           is_public?: boolean
           like_count?: number | null
           metadata?: Json | null
+          monetization_enabled?: boolean | null
           name?: string
           owner_id?: string
+          premium_content?: boolean | null
+          revenue_generated?: number | null
           share_count?: number | null
+          total_subscribers?: number | null
           updated_at?: string
           view_count?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "photo_albums_cover_image_id_fkey"
+            columns: ["cover_image_id"]
+            isOneToOne: false
+            referencedRelation: "image_uploaders"
+            referencedColumns: ["image_id"]
+          },
           {
             foreignKeyName: "photo_albums_cover_image_id_fkey"
             columns: ["cover_image_id"]
@@ -6885,6 +7885,559 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "user_privacy_overview"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      photo_analytics: {
+        Row: {
+          album_id: string
+          created_at: string
+          event_type: string
+          id: string
+          image_id: string | null
+          metadata: Json | null
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          album_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          image_id?: string | null
+          metadata?: Json | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          album_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          image_id?: string | null
+          metadata?: Json | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_analytics_album_id_fkey"
+            columns: ["album_id"]
+            isOneToOne: false
+            referencedRelation: "photo_albums"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photo_analytics_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "image_uploaders"
+            referencedColumns: ["image_id"]
+          },
+          {
+            foreignKeyName: "photo_analytics_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "images"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photo_analytics_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_activity_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "photo_analytics_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_engagement_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photo_analytics_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_privacy_overview"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      photo_bookmarks: {
+        Row: {
+          collection_name: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          photo_id: string
+          user_id: string
+        }
+        Insert: {
+          collection_name?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          photo_id: string
+          user_id: string
+        }
+        Update: {
+          collection_name?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          photo_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_bookmarks_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "image_uploaders"
+            referencedColumns: ["image_id"]
+          },
+          {
+            foreignKeyName: "photo_bookmarks_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "images"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      photo_comments: {
+        Row: {
+          content: string
+          content_html: string | null
+          created_at: string | null
+          edited_at: string | null
+          id: string
+          ip_address: unknown | null
+          is_edited: boolean | null
+          is_hidden: boolean | null
+          is_pinned: boolean | null
+          language: string | null
+          like_count: number | null
+          mentions: string[] | null
+          moderation_status: string | null
+          parent_id: string | null
+          photo_id: string
+          reply_count: number | null
+          sentiment_score: number | null
+          updated_at: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          content_html?: string | null
+          created_at?: string | null
+          edited_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          is_edited?: boolean | null
+          is_hidden?: boolean | null
+          is_pinned?: boolean | null
+          language?: string | null
+          like_count?: number | null
+          mentions?: string[] | null
+          moderation_status?: string | null
+          parent_id?: string | null
+          photo_id: string
+          reply_count?: number | null
+          sentiment_score?: number | null
+          updated_at?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          content_html?: string | null
+          created_at?: string | null
+          edited_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          is_edited?: boolean | null
+          is_hidden?: boolean | null
+          is_pinned?: boolean | null
+          language?: string | null
+          like_count?: number | null
+          mentions?: string[] | null
+          moderation_status?: string | null
+          parent_id?: string | null
+          photo_id?: string
+          reply_count?: number | null
+          sentiment_score?: number | null
+          updated_at?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "photo_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photo_comments_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "image_uploaders"
+            referencedColumns: ["image_id"]
+          },
+          {
+            foreignKeyName: "photo_comments_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "images"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      photo_community: {
+        Row: {
+          album_id: string
+          content: string | null
+          created_at: string
+          id: string
+          image_id: string | null
+          interaction_type: string
+          metadata: Json | null
+          rating: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          album_id: string
+          content?: string | null
+          created_at?: string
+          id?: string
+          image_id?: string | null
+          interaction_type: string
+          metadata?: Json | null
+          rating?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          album_id?: string
+          content?: string | null
+          created_at?: string
+          id?: string
+          image_id?: string | null
+          interaction_type?: string
+          metadata?: Json | null
+          rating?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_community_album_id_fkey"
+            columns: ["album_id"]
+            isOneToOne: false
+            referencedRelation: "photo_albums"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photo_community_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "image_uploaders"
+            referencedColumns: ["image_id"]
+          },
+          {
+            foreignKeyName: "photo_community_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "images"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photo_community_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_activity_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "photo_community_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_engagement_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photo_community_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_privacy_overview"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      photo_likes: {
+        Row: {
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          like_type: string | null
+          photo_id: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          like_type?: string | null
+          photo_id: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          like_type?: string | null
+          photo_id?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_likes_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "image_uploaders"
+            referencedColumns: ["image_id"]
+          },
+          {
+            foreignKeyName: "photo_likes_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "images"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      photo_monetization: {
+        Row: {
+          album_id: string
+          amount: number | null
+          created_at: string
+          currency: string | null
+          event_type: string
+          id: string
+          image_id: string | null
+          metadata: Json | null
+          payment_method: string | null
+          status: string | null
+          transaction_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          album_id: string
+          amount?: number | null
+          created_at?: string
+          currency?: string | null
+          event_type: string
+          id?: string
+          image_id?: string | null
+          metadata?: Json | null
+          payment_method?: string | null
+          status?: string | null
+          transaction_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          album_id?: string
+          amount?: number | null
+          created_at?: string
+          currency?: string | null
+          event_type?: string
+          id?: string
+          image_id?: string | null
+          metadata?: Json | null
+          payment_method?: string | null
+          status?: string | null
+          transaction_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_monetization_album_id_fkey"
+            columns: ["album_id"]
+            isOneToOne: false
+            referencedRelation: "photo_albums"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photo_monetization_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "image_uploaders"
+            referencedColumns: ["image_id"]
+          },
+          {
+            foreignKeyName: "photo_monetization_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "images"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photo_monetization_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_activity_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "photo_monetization_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_engagement_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photo_monetization_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_privacy_overview"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      photo_shares: {
+        Row: {
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          photo_id: string
+          platform_data: Json | null
+          referrer_url: string | null
+          share_type: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          photo_id: string
+          platform_data?: Json | null
+          referrer_url?: string | null
+          share_type: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          photo_id?: string
+          platform_data?: Json | null
+          referrer_url?: string | null
+          share_type?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_shares_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "image_uploaders"
+            referencedColumns: ["image_id"]
+          },
+          {
+            foreignKeyName: "photo_shares_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "images"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      photo_tags: {
+        Row: {
+          confidence_score: number | null
+          created_at: string | null
+          entity_id: string
+          entity_name: string
+          entity_type: string
+          height: number | null
+          id: string
+          is_auto_generated: boolean | null
+          is_verified: boolean | null
+          photo_id: string
+          tagged_by: string | null
+          updated_at: string | null
+          verified_by: string | null
+          visibility: string | null
+          width: number | null
+          x_position: number
+          y_position: number
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string | null
+          entity_id: string
+          entity_name: string
+          entity_type: string
+          height?: number | null
+          id?: string
+          is_auto_generated?: boolean | null
+          is_verified?: boolean | null
+          photo_id: string
+          tagged_by?: string | null
+          updated_at?: string | null
+          verified_by?: string | null
+          visibility?: string | null
+          width?: number | null
+          x_position: number
+          y_position: number
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string | null
+          entity_id?: string
+          entity_name?: string
+          entity_type?: string
+          height?: number | null
+          id?: string
+          is_auto_generated?: boolean | null
+          is_verified?: boolean | null
+          photo_id?: string
+          tagged_by?: string | null
+          updated_at?: string | null
+          verified_by?: string | null
+          visibility?: string | null
+          width?: number | null
+          x_position?: number
+          y_position?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_tags_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "image_uploaders"
+            referencedColumns: ["image_id"]
+          },
+          {
+            foreignKeyName: "photo_tags_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "images"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -7104,6 +8657,7 @@ export type Database = {
           founded_year: number | null
           id: string
           name: string
+          permalink: string | null
           phone: string | null
           postal_code: string | null
           publisher_gallery_id: string | null
@@ -7126,6 +8680,7 @@ export type Database = {
           founded_year?: number | null
           id?: string
           name: string
+          permalink?: string | null
           phone?: string | null
           postal_code?: string | null
           publisher_gallery_id?: string | null
@@ -7148,6 +8703,7 @@ export type Database = {
           founded_year?: number | null
           id?: string
           name?: string
+          permalink?: string | null
           phone?: string | null
           postal_code?: string | null
           publisher_gallery_id?: string | null
@@ -7168,8 +8724,22 @@ export type Database = {
             foreignKeyName: "publishers_cover_image_id_fkey"
             columns: ["cover_image_id"]
             isOneToOne: false
+            referencedRelation: "image_uploaders"
+            referencedColumns: ["image_id"]
+          },
+          {
+            foreignKeyName: "publishers_cover_image_id_fkey"
+            columns: ["cover_image_id"]
+            isOneToOne: false
             referencedRelation: "images"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "publishers_publisher_image_id_fkey"
+            columns: ["publisher_image_id"]
+            isOneToOne: false
+            referencedRelation: "image_uploaders"
+            referencedColumns: ["image_id"]
           },
           {
             foreignKeyName: "publishers_publisher_image_id_fkey"
@@ -7729,6 +9299,70 @@ export type Database = {
         }
         Relationships: []
       }
+      shares: {
+        Row: {
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          is_public: boolean | null
+          share_platform: string | null
+          share_text: string | null
+          share_type: string | null
+          share_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          is_public?: boolean | null
+          share_platform?: string | null
+          share_text?: string | null
+          share_type?: string | null
+          share_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          is_public?: boolean | null
+          share_platform?: string | null
+          share_text?: string | null
+          share_type?: string | null
+          share_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shares_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_activity_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "shares_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_engagement_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shares_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_privacy_overview"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       similar_books: {
         Row: {
           book_id: string
@@ -7819,6 +9453,70 @@ export type Database = {
           },
           {
             foreignKeyName: "smart_notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_privacy_overview"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      social_audit_log: {
+        Row: {
+          action_details: Json | null
+          action_type: string
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          ip_address: unknown | null
+          session_id: string | null
+          target_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_details?: Json | null
+          action_type: string
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          ip_address?: unknown | null
+          session_id?: string | null
+          target_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_details?: Json | null
+          action_type?: string
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          ip_address?: unknown | null
+          session_id?: string | null
+          target_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_audit_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_activity_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "social_audit_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_engagement_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_audit_log_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "user_privacy_overview"
@@ -8450,25 +10148,34 @@ export type Database = {
           created_at: string | null
           email: string | null
           id: string
+          location: string | null
           name: string | null
+          permalink: string | null
           role_id: string | null
           updated_at: string | null
+          website: string | null
         }
         Insert: {
           created_at?: string | null
           email?: string | null
           id: string
+          location?: string | null
           name?: string | null
+          permalink?: string | null
           role_id?: string | null
           updated_at?: string | null
+          website?: string | null
         }
         Update: {
           created_at?: string | null
           email?: string | null
           id?: string
+          location?: string | null
           name?: string | null
+          permalink?: string | null
           role_id?: string | null
           updated_at?: string | null
+          website?: string | null
         }
         Relationships: [
           {
@@ -8563,6 +10270,128 @@ export type Database = {
         }
         Relationships: []
       }
+      enterprise_photo_analytics: {
+        Row: {
+          album_id: string | null
+          avg_time_between_events: number | null
+          event_count: number | null
+          event_type: string | null
+          first_event: string | null
+          image_id: string | null
+          last_event: string | null
+          unique_sessions: number | null
+          unique_users: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_analytics_album_id_fkey"
+            columns: ["album_id"]
+            isOneToOne: false
+            referencedRelation: "photo_albums"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photo_analytics_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "image_uploaders"
+            referencedColumns: ["image_id"]
+          },
+          {
+            foreignKeyName: "photo_analytics_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "images"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      enterprise_photo_community: {
+        Row: {
+          album_id: string | null
+          avg_rating: number | null
+          first_interaction: string | null
+          image_id: string | null
+          interaction_count: number | null
+          interaction_type: string | null
+          last_interaction: string | null
+          rating_count: number | null
+          unique_users: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_community_album_id_fkey"
+            columns: ["album_id"]
+            isOneToOne: false
+            referencedRelation: "photo_albums"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photo_community_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "image_uploaders"
+            referencedColumns: ["image_id"]
+          },
+          {
+            foreignKeyName: "photo_community_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "images"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      enterprise_photo_monetization: {
+        Row: {
+          album_id: string | null
+          avg_transaction_value: number | null
+          event_type: string | null
+          first_transaction: string | null
+          image_id: string | null
+          last_transaction: string | null
+          total_revenue: number | null
+          transaction_count: number | null
+          unique_payers: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_monetization_album_id_fkey"
+            columns: ["album_id"]
+            isOneToOne: false
+            referencedRelation: "photo_albums"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photo_monetization_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "image_uploaders"
+            referencedColumns: ["image_id"]
+          },
+          {
+            foreignKeyName: "photo_monetization_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "images"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      entity_album_analytics: {
+        Row: {
+          avg_photos_per_album: number | null
+          entity_id: string | null
+          entity_type: string | null
+          first_album_created: string | null
+          latest_album_created: string | null
+          private_albums: number | null
+          public_albums: number | null
+          total_albums: number | null
+          total_photos: number | null
+        }
+        Relationships: []
+      }
       entity_image_analytics: {
         Row: {
           avg_file_size: number | null
@@ -8573,6 +10402,56 @@ export type Database = {
           total_images: number | null
           total_storage_used: number | null
           unique_entities: number | null
+        }
+        Relationships: []
+      }
+      entity_social_analytics: {
+        Row: {
+          entity_id: string | null
+          entity_type: string | null
+          recent_engagement_score: number | null
+          total_bookmarks: number | null
+          total_comments: number | null
+          total_likes: number | null
+          total_shares: number | null
+          total_tags: number | null
+          unique_bookmarkers: number | null
+          unique_commenters: number | null
+          unique_likers: number | null
+          unique_sharers: number | null
+        }
+        Relationships: []
+      }
+      image_uploaders: {
+        Row: {
+          alt_text: string | null
+          created_at: string | null
+          image_id: string | null
+          uploader_email: string | null
+          uploader_id: string | null
+          uploader_name: string | null
+          uploader_type: string | null
+          url: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "images_uploader_id_fkey"
+            columns: ["uploader_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      moderation_analytics: {
+        Row: {
+          avg_resolution_time_hours: number | null
+          content_type: string | null
+          flag_count: number | null
+          flag_date: string | null
+          flag_reason: string | null
+          priority: string | null
+          status: string | null
         }
         Relationships: []
       }
@@ -8594,6 +10473,17 @@ export type Database = {
           total_reading_entries: number | null
           total_reviews: number | null
           unique_readers: number | null
+        }
+        Relationships: []
+      }
+      social_activity_analytics: {
+        Row: {
+          action_count: number | null
+          action_type: string | null
+          activity_date: string | null
+          entity_type: string | null
+          unique_entities: number | null
+          unique_users: number | null
         }
         Relationships: []
       }
@@ -8652,6 +10542,13 @@ export type Database = {
             foreignKeyName: "authors_author_image_id_fkey"
             columns: ["author_image_id"]
             isOneToOne: false
+            referencedRelation: "image_uploaders"
+            referencedColumns: ["image_id"]
+          },
+          {
+            foreignKeyName: "authors_author_image_id_fkey"
+            columns: ["author_image_id"]
+            isOneToOne: false
             referencedRelation: "images"
             referencedColumns: ["id"]
           },
@@ -8668,6 +10565,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "binding_types"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "books_cover_image_id_fkey"
+            columns: ["cover_image_id"]
+            isOneToOne: false
+            referencedRelation: "image_uploaders"
+            referencedColumns: ["image_id"]
           },
           {
             foreignKeyName: "books_cover_image_id_fkey"
@@ -8863,6 +10767,16 @@ export type Database = {
       }
     }
     Functions: {
+      add_entity_comment: {
+        Args: {
+          p_user_id: string
+          p_entity_type: string
+          p_entity_id: string
+          p_content: string
+          p_parent_id?: string
+        }
+        Returns: string
+      }
       anonymize_user_data_enhanced: {
         Args: { p_user_id: string }
         Returns: boolean
@@ -8908,6 +10822,10 @@ export type Database = {
         Returns: {
           is_following: boolean
         }[]
+      }
+      check_permalink_availability: {
+        Args: { permalink: string; entity_type: string; exclude_id?: string }
+        Returns: boolean
       }
       check_publisher_data_health: {
         Args: Record<PropertyKey, never>
@@ -8959,6 +10877,17 @@ export type Database = {
         }
         Returns: number
       }
+      create_entity_album: {
+        Args: {
+          p_name: string
+          p_entity_type: string
+          p_entity_id: string
+          p_description?: string
+          p_is_public?: boolean
+          p_metadata?: Json
+        }
+        Returns: string
+      }
       decrypt_sensitive_data_enhanced: {
         Args: { p_encrypted_data: string; p_key?: string }
         Returns: string
@@ -8996,6 +10925,16 @@ export type Database = {
           status: string
         }[]
       }
+      flag_content: {
+        Args: {
+          p_flagged_by: string
+          p_content_type: string
+          p_content_id: string
+          p_flag_reason: string
+          p_flag_details?: string
+        }
+        Returns: string
+      }
       generate_data_health_report: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -9005,6 +10944,10 @@ export type Database = {
           status: string
           recommendation: string
         }[]
+      }
+      generate_friend_suggestions: {
+        Args: { target_user_id: string }
+        Returns: undefined
       }
       generate_intelligent_content: {
         Args: { p_content_type: string; p_input_data: Json; p_user_id?: string }
@@ -9017,6 +10960,10 @@ export type Database = {
       generate_monitoring_report: {
         Args: { p_days_back?: number }
         Returns: Json
+      }
+      generate_permalink: {
+        Args: { input_text: string; entity_type?: string }
+        Returns: string
       }
       generate_smart_notification: {
         Args: {
@@ -9062,6 +11009,23 @@ export type Database = {
           overall_score: number
         }[]
       }
+      get_entity_albums: {
+        Args: { p_entity_type: string; p_entity_id: string; p_user_id?: string }
+        Returns: {
+          album_id: string
+          album_name: string
+          album_description: string
+          is_public: boolean
+          photo_count: number
+          created_at: string
+          owner_id: string
+          can_edit: boolean
+        }[]
+      }
+      get_entity_by_permalink: {
+        Args: { permalink: string; entity_type: string }
+        Returns: string
+      }
       get_entity_images: {
         Args: { p_entity_type: string; p_entity_id: string }
         Returns: {
@@ -9074,6 +11038,33 @@ export type Database = {
           album_name: string
           album_id: string
         }[]
+      }
+      get_entity_social_stats: {
+        Args: { p_entity_type: string; p_entity_id: string; p_user_id?: string }
+        Returns: {
+          like_count: number
+          comment_count: number
+          share_count: number
+          bookmark_count: number
+          tag_count: number
+          is_liked: boolean
+          is_bookmarked: boolean
+          user_reaction_type: string
+        }[]
+      }
+      get_moderation_stats: {
+        Args: { p_days_back?: number }
+        Returns: {
+          total_flags: number
+          pending_flags: number
+          resolved_flags: number
+          avg_resolution_time_hours: number
+          top_flag_reasons: Json
+        }[]
+      }
+      get_mutual_friends_count: {
+        Args: { user1_id: string; user2_id: string }
+        Returns: number
       }
       get_performance_recommendations: {
         Args: Record<PropertyKey, never>
@@ -9131,6 +11122,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      has_user_liked_entity: {
+        Args: { p_user_id: string; p_entity_type: string; p_entity_id: string }
+        Returns: boolean
+      }
       insert_follow_record: {
         Args: {
           p_follower_id: string
@@ -9149,6 +11144,20 @@ export type Database = {
           p_record_id: string
           p_user_id?: string
           p_details?: Json
+        }
+        Returns: string
+      }
+      log_social_action: {
+        Args: {
+          p_user_id: string
+          p_action_type: string
+          p_entity_type: string
+          p_entity_id: string
+          p_target_id?: string
+          p_action_details?: Json
+          p_ip_address?: unknown
+          p_user_agent?: string
+          p_session_id?: string
         }
         Returns: string
       }
@@ -9243,6 +11252,10 @@ export type Database = {
       process_dewey_decimal_classifications: {
         Args: { book_uuid: string; dewey_array: string[] }
         Returns: undefined
+      }
+      process_image_with_ai: {
+        Args: { p_image_id: string; p_analysis_types?: string[] }
+        Returns: Json
       }
       process_other_isbns: {
         Args: { book_uuid: string; other_isbns_json: Json }
@@ -9342,6 +11355,20 @@ export type Database = {
           updated_count: number
         }[]
       }
+      toggle_entity_like: {
+        Args: { p_user_id: string; p_entity_type: string; p_entity_id: string }
+        Returns: boolean
+      }
+      track_photo_analytics_event: {
+        Args: {
+          p_album_id: string
+          p_event_type: string
+          p_image_id?: string
+          p_user_id?: string
+          p_metadata?: Json
+        }
+        Returns: string
+      }
       update_book_popularity_metrics: {
         Args: { p_book_id: string }
         Returns: undefined
@@ -9407,6 +11434,10 @@ export type Database = {
         Args: { p_entity_id: string; p_target_type: string }
         Returns: boolean
       }
+      validate_permalink: {
+        Args: { permalink: string }
+        Returns: boolean
+      }
       validate_user_data_enhanced: {
         Args: { p_email: string; p_name?: string }
         Returns: Json
@@ -9421,21 +11452,25 @@ export type Database = {
   }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -9453,14 +11488,16 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -9476,14 +11513,16 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -9499,14 +11538,16 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
@@ -9514,14 +11555,16 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never

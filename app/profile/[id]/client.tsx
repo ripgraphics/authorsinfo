@@ -42,6 +42,8 @@ import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
 import { EntityPhotoAlbums } from '@/components/user-photo-albums'
 import { FriendList } from '@/components/friend-list'
+import { TimelineActivities } from '@/components/timeline-activities'
+import { EnterpriseTimelineActivities } from '@/components/enterprise-timeline-activities'
 
 interface ClientProfilePageProps {
   user: any
@@ -412,54 +414,18 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, p
                   </form>
                 </ContentSection>
 
-                {/* Activity Feed */}
-                <ContentSection title="Recent Activity">
-                  <div className="space-y-6">
-                    <div className="flex items-start space-x-4">
-                      <div className="flex-shrink-0">
-                        <span className="relative flex shrink-0 overflow-hidden rounded-full h-10 w-10">
-                          <img
-                            src={avatarUrl || "/placeholder.svg?height=200&width=200"}
-                            alt={user.name}
-                            className="aspect-square h-full w-full"
-                          />
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between">
-                          <div>
-                            <div className="font-medium">{user.name}</div>
-                            <div className="text-xs text-muted-foreground">2 days ago</div>
-                          </div>
-                          <Button variant="ghost" size="icon">
-                            <Ellipsis className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <p className="mt-2">
-                          Rated{" "}
-                          <Link href="#" className="text-primary hover:underline font-medium">
-                            Dune
-                          </Link>{" "}
-                          by Frank Herbert 5 stars
-                        </p>
-                        <div className="flex items-center gap-6 mt-4">
-                          <Button variant="ghost" size="sm" className="gap-1">
-                            <Heart className="h-4 w-4" />
-                            <span>Like</span>
-                          </Button>
-                          <Button variant="ghost" size="sm" className="gap-1">
-                            <MessageSquare className="h-4 w-4" />
-                            <span>Comment</span>
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Share2 className="h-4 w-4" />
-                            <span className="ml-1">Share</span>
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </ContentSection>
+                {/* Enterprise Timeline Activities */}
+                <EnterpriseTimelineActivities 
+                  userId={user.id}
+                  userAvatarUrl={avatarUrl}
+                  userName={user.name}
+                  isOwnProfile={authUser?.id === user.id}
+                  privacySettings={{
+                    show_activities: true,
+                    show_engagement: true,
+                    show_revenue: authUser?.id === user.id // Only show revenue on own profile
+                  }}
+                />
               </div>
             </div>
           </div>

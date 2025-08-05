@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import Link from 'next/link'
+import { ProfileLink } from '@/components/profile-link'
 
 interface Activity {
   id: string
@@ -179,12 +180,13 @@ export function FeedContent() {
                 
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-2">
-                    <Link 
-                      href={`/profile/${activity.user_id}`}
+                    <ProfileLink 
+                      userId={activity.user_id}
+                      userName={activity.user_name}
                       className="font-semibold hover:underline"
                     >
                       {activity.user_name}
-                    </Link>
+                    </ProfileLink>
                     <span className="text-muted-foreground">
                       {activity.metadata.status === 'completed' ? 'finished reading' : 'is reading'}
                     </span>
@@ -252,12 +254,13 @@ export function FeedContent() {
                 
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-2">
-                    <Link 
-                      href={`/profile/${activity.user_id}`}
+                    <ProfileLink 
+                      userId={activity.user_id}
+                      userName={activity.user_name}
                       className="font-semibold hover:underline"
                     >
                       {activity.user_name}
-                    </Link>
+                    </ProfileLink>
                     <span className="text-muted-foreground">
                       {activity.activity_type.replace('_', ' ')}
                     </span>

@@ -11,12 +11,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Bell, BookOpen, Menu, MessageSquare, Search, User, Users, LogOut, Lock } from "lucide-react"
+import { Bell, BookOpen, Menu, MessageSquare, Search, User, Users, LogOut, Lock, UserPlus } from "lucide-react"
+import { FriendRequestNotification } from "./friend-request-notification"
 import { Avatar } from "@/components/ui/avatar"
 import { Navigation } from "@/components/navigation"
 import { SearchModal } from "@/components/search-modal"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useAuth } from "@/hooks/useAuth"
+import { getProfileUrlFromUser } from "@/lib/utils/profile-url-client"
 
 interface PageHeaderProps {
   title?: string
@@ -58,10 +60,7 @@ export function PageHeader({ title, description }: PageHeaderProps) {
             <span className="sr-only">Search</span>
           </Button>
 
-          <Button variant="ghost" size="icon" className="page-header__notifications-btn rounded-full">
-            <Bell className="h-5 w-5" />
-            <span className="sr-only">Notifications</span>
-          </Button>
+          <FriendRequestNotification />
 
           <Button variant="ghost" size="icon" className="page-header__messages-btn rounded-full">
             <MessageSquare className="h-5 w-5" />
@@ -81,7 +80,7 @@ export function PageHeader({ title, description }: PageHeaderProps) {
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 page-header__dropdown-content">
-                <Link href={`/profile/${user.id}`}>
+                <Link href={getProfileUrlFromUser(user)}>
                 <DropdownMenuItem className="page-header__dropdown-item">
                   <User className="mr-2 h-4 w-4" />
                   <span>Profile</span>
@@ -97,6 +96,18 @@ export function PageHeader({ title, description }: PageHeaderProps) {
                 <DropdownMenuItem className="page-header__dropdown-item">
                   <BookOpen className="mr-2 h-4 w-4" />
                   <span>My Books</span>
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/friends">
+                <DropdownMenuItem className="page-header__dropdown-item">
+                  <Users className="mr-2 h-4 w-4" />
+                  <span>Friends</span>
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/friend-requests">
+                <DropdownMenuItem className="page-header__dropdown-item">
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  <span>Friend Requests</span>
                 </DropdownMenuItem>
               </Link>
               <DropdownMenuSeparator className="page-header__dropdown-separator" />

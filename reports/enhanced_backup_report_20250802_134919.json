@@ -1,0 +1,85 @@
+{
+  "id": "20250802_134919",
+  "started_at": "2025-08-02T13:49:19.242106",
+  "operations": [
+    {
+      "operation": "npx supabase status",
+      "status": "failed",
+      "details": "Command failed: npx supabase status\nError: Command 'npx supabase status' returned non-zero exit status 1.\nStderr: failed to inspect container health: Error response from daemon: No such container: supabase_db_v0-4-11-2025-authors-info-2\nTry rerunning the command with --debug to troubleshoot the error.\n",
+      "timestamp": "2025-08-02T13:49:19.960279",
+      "duration_ms": 0
+    },
+    {
+      "operation": "npx supabase db dump",
+      "status": "success",
+      "details": "Measuring schema dump performance",
+      "timestamp": "2025-08-02T13:49:47.972791",
+      "duration_ms": 0
+    },
+    {
+      "operation": "npx supabase db dump",
+      "status": "success",
+      "details": "Downloading schema",
+      "timestamp": "2025-08-02T13:50:17.763988",
+      "duration_ms": 0
+    },
+    {
+      "operation": "npx supabase db dump --data-only",
+      "status": "success",
+      "details": "Downloading data",
+      "timestamp": "2025-08-02T13:51:07.609979",
+      "duration_ms": 0
+    },
+    {
+      "operation": "npx supabase db dump",
+      "status": "success",
+      "details": "Creating migration script",
+      "timestamp": "2025-08-02T13:51:37.553033",
+      "duration_ms": 0
+    }
+  ],
+  "statistics": {
+    "compression": {
+      "original_file": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\COMPLETE_BACKUP_20250802_134919.sql",
+      "compressed_file": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\COMPLETE_BACKUP_20250802_134919.sql.gz",
+      "original_size_kb": 790.96,
+      "compressed_size_kb": 107.82,
+      "compression_ratio_percent": 86.4
+    }
+  },
+  "errors": [],
+  "files_created": [
+    "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\COMPLETE_BACKUP_20250802_134919.sql",
+    "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\COMPLETE_BACKUP_LATEST.sql",
+    "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\COMPLETE_BACKUP_20250802_134919.sql.gz",
+    "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\migration_to_production_20250802_134919.sql",
+    "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\DISASTER_RECOVERY_PLAN_20250802_134919.md"
+  ],
+  "checksums": {},
+  "health_checks": {
+    "overall_status": "error",
+    "issues": [
+      "Health check failed: Command 'npx supabase status' returned non-zero exit status 1."
+    ],
+    "recommendations": [],
+    "metrics": {}
+  },
+  "performance_metrics": {
+    "backup_speed": 18.57,
+    "compression_efficiency": 0,
+    "recommendations": [
+      "Regular vacuum and analyze operations recommended",
+      "Monitor connection pool usage"
+    ],
+    "bottlenecks": []
+  },
+  "test_results": {
+    "syntax_check": true,
+    "schema_validation": false,
+    "data_validation": true,
+    "completeness_check": true
+  },
+  "test_score": "3/4",
+  "completed_at": "2025-08-02T13:51:37.681247",
+  "duration_seconds": 138.439141
+}

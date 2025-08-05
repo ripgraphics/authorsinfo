@@ -11,7 +11,7 @@ async function getUsers() {
   try {
     const { data: users, error } = await supabaseAdmin
       .from('users')
-      .select('id, name, email, created_at')
+      .select('id, name, email, created_at, permalink')
       .order('name')
       .limit(30)
     
@@ -78,7 +78,7 @@ export default async function UserListPage() {
               </CardHeader>
               <CardContent>
                 <div className="flex justify-end">
-                  <Link href={`/profile/${user.id}`}>
+                  <Link href={user.permalink ? `/profile/${user.permalink}` : `/profile/${user.id}`}>
                     <Button>View Profile</Button>
                   </Link>
                 </div>

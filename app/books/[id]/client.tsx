@@ -1336,49 +1336,12 @@ export function ClientBookPage({
         
         {activeTab === "photos" && (
           <div className="book-page__photos-tab">
-          <div className="book-page__tab-content space-y-6">
-              <ContentSection
-                title="Photos"
-                headerRight={
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="button"
-                      role="combobox"
-                      aria-expanded="false"
-                      aria-autocomplete="none"
-                      className="flex h-10 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-[180px]"
-                    >
-                      <span style={{ pointerEvents: "none" }}>All Photos</span>
-                      <ChevronDown className="h-4 w-4 opacity-50" aria-hidden="true" />
-                    </Button>
-                    <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
-                      <ImageIcon className="h-4 w-4 mr-2" />
-                      Add Photos
-                    </Button>
-                  </div>
-                }
-                className="book-page__photos-section"
-              >
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {mockPhotosTabData.map((photo) => (
-                    <div key={photo.id} className="group relative">
-                      <div className="aspect-square relative rounded-lg overflow-hidden">
-                        <img
-                          alt={photo.title}
-                          src={photo.url || "/placeholder.svg"}
-                          className="object-cover group-hover:scale-105 transition-transform absolute inset-0 w-full h-full"
-                        />
-                      </div>
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-end">
-                        <div className="p-3 text-white w-full">
-                          <p className="text-sm truncate">{photo.title}</p>
-                          <p className="text-xs opacity-80">{photo.date}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </ContentSection>
+            <div className="book-page__tab-content space-y-6">
+              <EntityPhotoAlbums
+                entityId={params.id}
+                entityType="book"
+                isOwnEntity={false}
+              />
             </div>
           </div>
         )}

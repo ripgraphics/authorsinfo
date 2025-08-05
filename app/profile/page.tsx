@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { supabaseAdmin } from "@/lib/supabase/server"
 
 export default async function ProfilePage() {
   const cookieStore = await cookies()
@@ -23,24 +24,25 @@ export default async function ProfilePage() {
       redirect('/login')
     }
     
-    // Redirect to the user's actual profile page using their real ID
-    redirect(`/profile/${user.id}`)
+    // Get the user's permalink from the database
+    const { data: userData, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('permalink')
+      .eq('id', user.id)
+      .single()
+    
+    if (userError || !userData) {
+      console.error('Error getting user data:', userError)
+      // Fallback to UUID if permalink not found
+      redirect(`/profile/${user.id}`)
+    }
+    
+    // Redirect to the user's profile page using their permalink
+    const profileUrl = userData.permalink ? `/profile/${userData.permalink}` : `/profile/${user.id}`
+    redirect(profileUrl)
     
   } catch (error) {
     console.error('Error in profile page:', error)
-    // Redirect to login on any error
     redirect('/login')
   }
-  
-  // This won't render, but is needed for TypeScript
-  return (
-    <div>
-      <div className="py-8 space-y-4">
-        <div>Redirecting to your profile...</div>
-        <div>
-          <p>To see all users, visit the <Link href="/profile/user-list" className="text-primary underline">user list page</Link>.</p>
-        </div>
-      </div>
-    </div>
-  )
 }

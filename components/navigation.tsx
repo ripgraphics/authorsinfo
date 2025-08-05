@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 
+
 export function Navigation() {
   const pathname = usePathname()
 
@@ -30,6 +31,7 @@ export function Navigation() {
       <Button variant={pathname.startsWith("/reading-dashboard") ? "default" : "ghost"} asChild className="nav-reading-dashboard-button">
         <Link href="/reading-dashboard">Reading Dashboard</Link>
       </Button>
+
     </nav>
   )
 }

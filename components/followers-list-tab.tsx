@@ -38,7 +38,7 @@ export function FollowersListTab({
             followers.map((follower) => (
               <Link
                 key={follower.id}
-                href={`/profile/${follower.id}`}
+                href={follower.permalink ? `/profile/${follower.permalink}` : `/profile/${follower.id}`}
                 className="flex items-center gap-3 p-3 border rounded-lg hover:bg-accent transition-colors"
               >
                 <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14 bg-muted">

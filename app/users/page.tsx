@@ -3,10 +3,10 @@ import { supabaseAdmin } from "@/lib/supabase"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 export default async function UsersPage() {
-  // Fetch user id and name from the database
+  // Fetch user id, name, and permalink from the database
   const { data: users, error } = await supabaseAdmin
     .from('users')
-    .select('id, name')
+    .select('id, name, permalink')
     .order('name')
 
   if (error) {
@@ -24,7 +24,7 @@ export default async function UsersPage() {
         {users?.map((user: any) => (
           <Link
             key={user.id}
-            href={`/profile/${user.id}`}
+            href={user.permalink ? `/profile/${user.permalink}` : `/profile/${user.id}`}
             className="block bg-white rounded-lg shadow hover:shadow-lg p-4 text-center transition-transform hover:scale-105"
           >
             <div className="mx-auto mb-4 w-16 h-16">

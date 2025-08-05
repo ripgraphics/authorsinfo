@@ -1,0 +1,87 @@
+{
+  "id": "20250802_111313",
+  "started_at": "2025-08-02T11:13:13.090352",
+  "operations": [
+    {
+      "operation": "npx supabase db dump",
+      "status": "success",
+      "details": "Downloading complete database schema",
+      "timestamp": "2025-08-02T11:13:41.743492"
+    },
+    {
+      "operation": "npx supabase db dump --data-only",
+      "status": "success",
+      "details": "Downloading all database data",
+      "timestamp": "2025-08-02T11:14:31.112735"
+    },
+    {
+      "operation": "npx supabase db dump",
+      "status": "success",
+      "details": "Downloading schema structure only",
+      "timestamp": "2025-08-02T11:15:03.636619"
+    },
+    {
+      "operation": "npx supabase db dump --data-only",
+      "status": "success",
+      "details": "Downloading database data only",
+      "timestamp": "2025-08-02T11:15:53.647675"
+    }
+  ],
+  "statistics": {
+    "complete_backup": {
+      "file": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\COMPLETE_BACKUP_20250802_111313.sql",
+      "lines": 18655,
+      "size_kb": 772.62,
+      "checksum": "5501770ce13e398c7d06e2e8beb7f0fc63d939fe27f91c27d8ee03da86f3d970"
+    },
+    "schema_backup": {
+      "files": [
+        "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\current_schema.sql",
+        "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\schemas\\schema_20250802_111313.sql",
+        "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\schemas\\latest_schema.sql"
+      ],
+      "lines": 16568,
+      "size_kb": 520.05,
+      "checksum": "3da0e5c1d2f3f739f484d5794b11f4b298c184059646ba74d22a307a1c4dadc8"
+    },
+    "data_backup": {
+      "file": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\data_only_20250802_111313.sql",
+      "lines": 2062,
+      "size_kb": 251.77,
+      "checksum": "16fa67282bba6d843d054608221db49fbd9ca7b598869404505f528c26ee8c63"
+    },
+    "compression": {
+      "original_file": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\COMPLETE_BACKUP_20250802_111313.sql",
+      "compressed_file": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\COMPLETE_BACKUP_20250802_111313.sql.gz",
+      "original_size_kb": 790.83,
+      "compressed_size_kb": 107.98,
+      "compression_ratio_percent": 86.3
+    },
+    "rotation": {
+      "archived_files": 0,
+      "deleted_files": 0,
+      "cutoff_date": "2025-06-03T11:15:53.695596"
+    }
+  },
+  "errors": [],
+  "files_created": [
+    "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\COMPLETE_BACKUP_20250802_111313.sql",
+    "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\COMPLETE_BACKUP_LATEST.sql",
+    "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\current_schema.sql",
+    "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\schemas\\schema_20250802_111313.sql",
+    "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\schemas\\latest_schema.sql",
+    "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\data_only_20250802_111313.sql",
+    "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\data_only_latest.sql",
+    "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\COMPLETE_BACKUP_20250802_111313.sql.gz",
+    "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\RECOVERY_MANIFEST_20250802_111313.md",
+    "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\RECOVERY_MANIFEST_LATEST.md"
+  ],
+  "checksums": {
+    "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\COMPLETE_BACKUP_20250802_111313.sql": "5501770ce13e398c7d06e2e8beb7f0fc63d939fe27f91c27d8ee03da86f3d970",
+    "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\data_only_20250802_111313.sql": "16fa67282bba6d843d054608221db49fbd9ca7b598869404505f528c26ee8c63"
+  },
+  "completed_at": "2025-08-02T11:15:53.697891",
+  "duration_seconds": 160.607539,
+  "status": "completed",
+  "files_count": 10
+}

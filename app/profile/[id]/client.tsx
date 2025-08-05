@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
+import Image from "next/image"
+import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -40,9 +41,17 @@ import {
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
 import { EntityPhotoAlbums } from '@/components/user-photo-albums'
+import { FriendList } from '@/components/friend-list'
 
 interface ClientProfilePageProps {
   user: any
+  userStats: {
+    booksRead: number
+    friendsCount: number
+    location: string | null
+    website: string | null
+    joinedDate: string
+  }
   avatarUrl: string
   coverImageUrl: string
   params: {
@@ -50,13 +59,26 @@ interface ClientProfilePageProps {
   }
 }
 
-export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: ClientProfilePageProps) {
+export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, params }: ClientProfilePageProps) {
   const { user: authUser } = useAuth()
   const { toast } = useToast()
   const searchParams = useSearchParams()
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState("timeline")
   const [isFollowing, setIsFollowing] = useState(false)
   const [isLoadingFollow, setIsLoadingFollow] = useState(false)
+
+  // Handle permalink redirect
+  useEffect(() => {
+    // Check if the current ID is a UUID and the user has a permalink
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(params.id)
+    
+    if (isUUID && user?.permalink && user.permalink !== params.id) {
+      // Redirect to the permalink URL
+      const newUrl = `/profile/${user.permalink}`
+      router.replace(newUrl)
+    }
+  }, [user, params.id, router])
 
   // Set initial tab based on URL search parameters
   useEffect(() => {
@@ -93,18 +115,20 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
     // This callback can be used to update UI state if needed
   }
 
-  // Mock data for the profile
-  const mockName = user?.name || "Jane Reader"
-  const mockUsername = user?.name ? user.name.split(" ").join("").toLowerCase() : "janereader"
-  const mockBooksRead = 127
-  const mockFriendsCount = 248
-  const mockLocation = "Portland, OR"
-  const mockWebsite = mockUsername + ".com"
-  const mockAbout =
-    "Book lover, coffee addict, and aspiring writer. I read mostly fantasy, sci-fi, and literary fiction."
-  const mockJoinedDate = "March 2020"
+  // Use real data from props
+  const realName = user?.name || "Unknown User"
+  const realUsername = user?.permalink || user?.name?.split(" ").join("").toLowerCase() || "user"
+  const realBooksRead = userStats.booksRead
+  const realFriendsCount = userStats.friendsCount
+  const realLocation = userStats.location || "Location not set"
+  const realWebsite = userStats.website || `${realUsername}.com`
+  const realAbout = "Book lover, coffee addict, and aspiring writer. I read mostly fantasy, sci-fi, and literary fiction."
+  const realJoinedDate = userStats.joinedDate ? new Date(userStats.joinedDate).toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'long' 
+  }) : "Unknown"
 
-  // Mock currently reading books
+  // Mock currently reading books (can be replaced with real data later)
   const mockCurrentlyReading = [
     {
       title: "The Name of the Wind",
@@ -120,7 +144,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
     },
   ]
 
-  // Mock photos
+  // Mock photos (can be replaced with real data later)
   const mockPhotos = [
     "/placeholder.svg?height=300&width=300",
     "/placeholder.svg?height=300&width=300",
@@ -130,24 +154,24 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
     "/placeholder.svg?height=300&width=300",
   ]
 
-  // Set up stats for the EntityHeader
-  const userStats = [
+  // Set up stats for the EntityHeader using real data
+  const userStatsForHeader = [
     { 
       icon: <BookOpen className="h-4 w-4 mr-1" />, 
-      text: `${mockBooksRead} books read` 
+      text: `${realBooksRead} books read` 
     },
     { 
       icon: <Users className="h-4 w-4 mr-1" />, 
-      text: `${mockFriendsCount} friends` 
+      text: `${realFriendsCount} friends` 
     },
     {
       icon: <MapPin className="h-4 w-4 mr-1" />,
-      text: mockLocation
+      text: realLocation
     },
     {
       icon: <Globe className="h-4 w-4 mr-1" />,
       text: "Website",
-      href: `https://${mockWebsite}`
+      href: realWebsite.startsWith('http') ? realWebsite : `https://${realWebsite}`
     }
   ]
 
@@ -233,17 +257,17 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
     <div className="profile-page">
       <EntityHeader
         entityType="user"
-        name={user?.name || "Jane Reader"}
+        name={realName}
         profileImageUrl={avatarUrl}
         coverImageUrl={coverImageUrl}
-        stats={userStats}
+        stats={userStatsForHeader}
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={setActiveTab}
         isFollowing={isFollowing}
         onFollow={handleFollow}
-        entityId={authUser?.id === params.id ? undefined : params.id}
-        targetType={authUser?.id === params.id ? undefined : "user"}
+        entityId={user.id === authUser?.id ? undefined : params.id}
+        targetType={user.id === authUser?.id ? undefined : "user"}
       />
       
       <div className="profile-page__content">
@@ -255,20 +279,20 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                 {/* About Section */}
                 <ContentSection title="About">
                   <div className="space-y-4">
-                    <p>{mockAbout}</p>
+                    <p>{realAbout}</p>
                     <div className="space-y-2">
                       <div className="flex items-center">
                         <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                        <span>Lives in {mockLocation}</span>
+                        <span>Lives in {realLocation}</span>
                       </div>
                       <div className="flex items-center">
                         <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                        <span>Joined {mockJoinedDate}</span>
+                        <span>Joined {realJoinedDate}</span>
                       </div>
                       <div className="flex items-center">
                         <Globe className="h-4 w-4 mr-2 text-muted-foreground" />
                         <a
-                          href={`https://${mockWebsite}`}
+                          href={realWebsite}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="hover:underline"
@@ -296,10 +320,12 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                     {mockCurrentlyReading.map((book, index) => (
                       <div key={index} className="flex gap-3">
                         <div className="relative h-20 w-14 flex-shrink-0">
-                          <img
+                          <Image
                             src={book.coverUrl || "/placeholder.svg"}
                             alt={book.title}
-                            className="object-cover rounded-md absolute inset-0 w-full h-full"
+                            fill
+                            className="object-cover rounded-md"
+                            priority={index === 0}
                           />
                         </div>
                         <div className="flex-1 space-y-1">
@@ -326,16 +352,17 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                 {/* Photos Section */}
                 <ContentSection 
                   title="Photos"
-                  viewMoreLink={`/profile/${mockUsername}/photos`}
+                  viewMoreLink={`/profile/${realUsername}/photos`}
                   viewMoreText="See All"
                 >
                   <div className="grid grid-cols-3 gap-2">
                     {mockPhotos.slice(0, 6).map((photoUrl, index) => (
                       <div key={index} className="aspect-square relative rounded overflow-hidden">
-                        <img
+                        <Image
                           src={photoUrl || "/placeholder.svg"}
                           alt={`Photo ${index + 1}`}
-                          className="object-cover hover:scale-105 transition-transform absolute inset-0 w-full h-full"
+                          fill
+                          className="object-cover hover:scale-105 transition-transform"
                         />
                       </div>
                     ))}
@@ -350,9 +377,11 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                   <form>
                     <div className="flex gap-3">
                       <span className="relative flex shrink-0 overflow-hidden rounded-full h-10 w-10">
-                        <img
+                        <Image
                           src={avatarUrl || "/placeholder.svg?height=200&width=200"}
                           alt={user.name}
+                          width={40}
+                          height={40}
                           className="aspect-square h-full w-full"
                         />
                       </span>
@@ -461,21 +490,21 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                     </nav>
                   </div>
                 </div>
-                <div className="lg:col-span-2 space-y-6">
-                  <ContentSection title="Overview" id="overview">
-                    <p className="text-muted-foreground">{mockAbout}</p>
+                                  <div className="lg:col-span-2 space-y-6">
+                    <ContentSection title="Overview">
+                    <p className="text-muted-foreground">{realAbout}</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                       <div className="flex items-start gap-3">
                         <Globe className="h-5 w-5 text-muted-foreground mt-0.5" />
                         <div>
                           <h3 className="font-medium">Website</h3>
                           <a
-                            href={`https://${mockWebsite}`}
+                            href={realWebsite}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-primary hover:underline"
                           >
-                            {mockWebsite}
+                            {realWebsite}
                           </a>
                         </div>
                       </div>
@@ -483,7 +512,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                         <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
                         <div>
                           <h3 className="font-medium">Joined</h3>
-                          <p className="text-muted-foreground">{mockJoinedDate}</p>
+                          <p className="text-muted-foreground">{realJoinedDate}</p>
                         </div>
                       </div>
                     </div>
@@ -498,7 +527,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
           <div className="profile-page__books-tab">
             <div className="profile-page__tab-content">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                <h2 className="text-2xl font-bold">My Books ({mockBooksRead})</h2>
+                <h2 className="text-2xl font-bold">My Books ({realBooksRead})</h2>
                 
                 <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
                   <div className="relative w-full sm:w-64">
@@ -536,9 +565,10 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                   <Link href={`/books/${book.id}`} key={book.id} className="group">
                     <Card className="h-full overflow-hidden transition-all hover:shadow-md">
                       <div className="relative aspect-[2/3] overflow-hidden">
-                        <img 
+                        <Image 
                           src={book.cover_url} 
                           alt={book.title}
+                          fill
                           className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
                         />
                         {book.status && (
@@ -576,49 +606,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
         {activeTab === "friends" && (
           <div className="profile-page__friends-tab">
             <div className="profile-page__tab-content">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold">Friends ({mockFriendsCount})</h2>
-                
-                <div className="flex gap-3">
-                  <div className="relative w-64">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="search"
-                      placeholder="Search friends..."
-                      className="w-full pl-9"
-                    />
-                  </div>
-                  <Button variant="outline">Find Friends</Button>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {Array.from({ length: 12 }).map((_, i) => (
-                  <Card key={i} className="overflow-hidden">
-                    <CardContent className="p-6">
-                      <div className="flex items-center gap-3">
-                        <img 
-                          src={`/placeholder.svg?text=${String.fromCharCode(65 + i)}&width=100&height=100`} 
-                          alt={`Friend ${i + 1}`}
-                          className="w-12 h-12 rounded-full object-cover"
-                        />
-                        <div>
-                          <h3 className="font-medium">Friend {i + 1}</h3>
-                          <p className="text-sm text-muted-foreground">{Math.floor(Math.random() * 300)} books</p>
-                        </div>
-                      </div>
-                      <div className="flex justify-between mt-4">
-                        <Button variant="secondary" size="sm">Message</Button>
-                        <Button variant="ghost" size="sm">View Profile</Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-              
-              <div className="mt-8 text-center">
-                <Button>View All Friends</Button>
-              </div>
+              <FriendList userId={params.id} />
             </div>
           </div>
         )}
@@ -626,16 +614,11 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
         {activeTab === "photos" && (
           <div className="profile-page__photos-tab">
             <div className="profile-page__tab-content space-y-6">
-              <ContentSection
-                title="Photo Albums"
-                className="profile-page__photos-section"
-              >
-                <EntityPhotoAlbums 
-                  entityId={params.id} 
-                  entityType="user"
-                  isOwnEntity={authUser?.id === params.id} 
-                />
-              </ContentSection>
+              <EntityPhotoAlbums 
+                entityId={params.id} 
+                entityType="user"
+                isOwnEntity={authUser?.id === params.id} 
+              />
             </div>
           </div>
         )}
@@ -653,7 +636,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                       <div>
                         <div className="flex justify-between mb-2">
                           <span>Total Books Read</span>
-                          <span className="font-medium">{mockBooksRead}</span>
+                          <span className="font-medium">{realBooksRead}</span>
                         </div>
                         <div className="flex justify-between mb-2">
                           <span>Pages Read</span>

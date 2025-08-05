@@ -23,6 +23,7 @@ import { useGroupPermissions } from '@/hooks/useGroupPermissions'
 import { useAuth } from '@/hooks/useAuth'
 import { FollowButton } from '@/components/follow-button'
 import { EntityImageUpload } from '@/components/entity/EntityImageUpload'
+import { AddFriendButton } from '@/components/add-friend-button'
 import { ImageCropper } from '@/components/ui/image-cropper'
 import {
   Dialog,
@@ -625,6 +626,16 @@ export function EntityHeader({
 
     return (
       <>
+        {/* Add Friend button for user profiles */}
+        {entityType === 'user' && entityId && (
+          <AddFriendButton
+            targetUserId={entityId}
+            targetUserName={name}
+            className="entity-header__add-friend-button flex items-center"
+            variant="outline"
+            size="sm"
+          />
+        )}
         {isMessageable && onMessage && (
           <Button className="entity-header__message-button flex items-center" onClick={onMessage}>
             <MessageSquare className="h-4 w-4 mr-2" />

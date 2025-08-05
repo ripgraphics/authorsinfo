@@ -1,0 +1,44 @@
+{
+  "timestamp": "20250802_020005",
+  "started_at": "2025-08-02T02:00:05.708317",
+  "operations": [
+    {
+      "command": "npx supabase db dump",
+      "description": "Downloading schema structure",
+      "status": "success",
+      "timestamp": "2025-08-02T02:00:36.203598"
+    },
+    {
+      "command": "npx supabase db dump",
+      "description": "Getting schema part for complete backup",
+      "status": "success",
+      "timestamp": "2025-08-02T02:01:04.294859"
+    },
+    {
+      "command": "npx supabase db dump --data-only",
+      "description": "Getting data part for complete backup",
+      "status": "success",
+      "timestamp": "2025-08-02T02:01:53.559547"
+    }
+  ],
+  "statistics": {
+    "schema": {
+      "lines": 16568,
+      "size_kb": 520.05,
+      "files_created": [
+        "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\schemas\\current_schema.sql",
+        "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\current_schema.sql",
+        "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\schemas\\schema_20250802_020005.sql"
+      ]
+    }
+  },
+  "errors": [
+    {
+      "operation": "full_backup",
+      "error": "can only concatenate str (not \"NoneType\") to str",
+      "timestamp": "2025-08-02T02:01:53.559778"
+    }
+  ],
+  "completed_at": "2025-08-02T02:01:53.560115",
+  "status": "failed"
+}

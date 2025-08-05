@@ -2,6 +2,7 @@
 
 import { Users } from "lucide-react"
 import Link from "next/link"
+import { getProfileUrlFromUser } from "@/lib/utils/profile-url-client"
 
 interface Follower {
   id: string
@@ -57,7 +58,7 @@ export function FollowersList({
             {followers.slice(-9).map((follower) => (
               <Link
                 key={follower.id}
-                href={`/profile/${follower.id}`}
+                href={getProfileUrlFromUser(follower)}
                 className="followers-list__item flex flex-col items-center text-center p-2 rounded-lg border border-border hover:bg-accent/50 transition-colors"
               >
                 <span className="followers-list__avatar-wrapper relative flex shrink-0 overflow-hidden rounded-full h-16 w-16 mb-1">

@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { getFollowTargetType } from '@/lib/follows-server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { followEntity, unfollowEntity } from '@/app/actions/follow'
+import { getUserIdFromPermalinkServer } from '@/lib/utils/profile-url-server'
 
 // Create the cache outside of the helper function so it persists between calls
 const targetTypeIdCache = new Map<string, number>();
@@ -53,6 +54,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Convert permalink to UUID if this is a user follow
+    let actualEntityId = entityId
+    if (targetType === 'user') {
+      const userUUID = await getUserIdFromPermalinkServer(entityId)
+      if (!userUUID) {
+        return NextResponse.json(
+          { error: 'User not found' },
+          { status: 404 }
+        )
+      }
+      actualEntityId = userUUID
+    }
+
     // Get the target type ID
     const targetTypeData = await getFollowTargetType(targetType)
     if (!targetTypeData) {
@@ -67,7 +81,7 @@ export async function POST(request: NextRequest) {
       .from('follows')
       .select('id')
       .eq('follower_id', user.id)
-      .eq('following_id', entityId)
+      .eq('following_id', actualEntityId)
       .eq('target_type_id', targetTypeData.id)
       .single()
 
@@ -83,7 +97,7 @@ export async function POST(request: NextRequest) {
       .from('follows')
       .insert({
         follower_id: user.id,
-        following_id: entityId,
+        following_id: actualEntityId,
         target_type_id: targetTypeData.id
       })
       .select()
@@ -150,6 +164,19 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
+    // Convert permalink to UUID if this is a user follow
+    let actualEntityId = entityId
+    if (targetType === 'user') {
+      const userUUID = await getUserIdFromPermalinkServer(entityId)
+      if (!userUUID) {
+        return NextResponse.json(
+          { error: 'User not found' },
+          { status: 404 }
+        )
+      }
+      actualEntityId = userUUID
+    }
+
     // Get the target type ID
     const targetTypeData = await getFollowTargetType(targetType)
     if (!targetTypeData) {
@@ -164,7 +191,7 @@ export async function DELETE(request: NextRequest) {
       .from('follows')
       .delete()
       .eq('follower_id', user.id)
-      .eq('following_id', entityId)
+      .eq('following_id', actualEntityId)
       .eq('target_type_id', targetTypeData.id)
 
     if (error) {
@@ -223,6 +250,19 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    // Convert permalink to UUID if this is a user follow
+    let actualEntityId = entityId
+    if (targetType === 'user') {
+      const userUUID = await getUserIdFromPermalinkServer(entityId)
+      if (!userUUID) {
+        return NextResponse.json(
+          { error: 'User not found' },
+          { status: 404 }
+        )
+      }
+      actualEntityId = userUUID
+    }
+
     const targetTypeId = await getTargetTypeId(targetType)
     if (!targetTypeId) {
       return NextResponse.json(
@@ -238,7 +278,7 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await supabaseAdmin.rpc('check_is_following', {
       p_follower_id: user.id,
-      p_following_id: entityId,
+      p_following_id: actualEntityId,
       p_target_type_id: targetTypeId,
     });
     

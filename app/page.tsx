@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getRecentBooks, getRecentAuthors, getRecentPublishers } from "./actions/data"
 import { BookOpen, User, Building } from "lucide-react"
 import FeaturedEvents from "@/components/featured-events"
+import { FriendRequestsWidget } from "@/components/friend-requests-widget"
 
 async function RecentBooks() {
   const books = await getRecentBooks(6)
@@ -189,9 +190,17 @@ export default function Home() {
         </TabsContent>
       </Tabs>
       
-      {/* Featured Events Section */}
-      <div className="-mx-4 -mb-8">
-        <FeaturedEvents />
+      {/* Friend Requests Widget */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-3">
+          {/* Featured Events Section */}
+          <div className="-mx-4 -mb-8">
+            <FeaturedEvents />
+          </div>
+        </div>
+        <div className="lg:col-span-1">
+          <FriendRequestsWidget />
+        </div>
       </div>
     </div>
   )

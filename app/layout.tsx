@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/page-header"
 import { PageContainer } from "@/components/page-container"
 import { Toaster } from "@/components/ui/toaster"
 import { ClientLayout } from "@/components/client-layout"
+import { RealTimeNotifications } from "@/components/real-time-notifications"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -29,6 +30,7 @@ export default function RootLayout({
             <ClientLayout>
               {children}
             </ClientLayout>
+            <RealTimeNotifications />
           </div>
           <Toaster />
         </ThemeProvider>

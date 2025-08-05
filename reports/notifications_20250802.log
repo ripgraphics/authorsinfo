@@ -1,0 +1,2 @@
+[2025-08-02T13:29:42.745489] BACKUP FAILURE: Backup failed: 'EnhancedEnterpriseBackupSystem' object has no attribute 'compress_backup'
+[2025-08-02T13:51:37.683042] Enterprise Backup Completed - 20250802_134919: Backup completed successfully. Health: error

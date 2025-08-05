@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { EntityHeader, TabConfig } from "@/components/entity-header"
-import { PublisherPhotoAlbums } from "@/components/publisher-photo-albums"
+import { EntityPhotoAlbums } from '@/components/user-photo-albums'
 import {
   BookOpen,
   Users,
@@ -49,7 +49,6 @@ import { ViewFullDetailsButton } from "@/components/ui/ViewFullDetailsButton"
 import { TimelineAboutSection } from "@/components/author/TimelineAboutSection"
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter, useSearchParams } from "next/navigation"
-import { EntityPhotoAlbums } from '@/components/user-photo-albums'
 
 interface ClientPublisherPageProps {
   publisher: any
@@ -607,10 +606,10 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
 
       {activeTab === "photos" && (
         <div className="publisher-page__tab-content space-y-6">
-          <PublisherPhotoAlbums 
-            publisherId={params.id}
-            publisherName={publisher.name}
-            isOwner={user && user.role === "admin"}
+          <EntityPhotoAlbums
+            entityId={params.id}
+            entityType="publisher"
+            isOwnEntity={user && user.role === "admin"}
           />
         </div>
       )}

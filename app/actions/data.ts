@@ -512,7 +512,7 @@ export async function getPublisherById(id: string): Promise<Publisher | null> {
 export async function getRecentUsers(limit = 10): Promise<User[]> {
   try {
     // Remove the order by created_at in case it doesn't exist
-    const { data, error } = await supabaseAdmin.from("users").select("*").limit(limit)
+    const { data, error } = await supabaseAdmin.from("users").select("*, permalink").limit(limit)
 
     if (error) {
       console.error("Error fetching users:", error)
@@ -528,7 +528,7 @@ export async function getRecentUsers(limit = 10): Promise<User[]> {
 
 export async function getUserById(id: string): Promise<User | null> {
   try {
-    const { data, error } = await supabaseAdmin.from("users").select("*").eq("id", id).single()
+    const { data, error } = await supabaseAdmin.from("users").select("*, permalink").eq("id", id).single()
 
     if (error) {
       console.error("Error fetching user:", error)
@@ -696,8 +696,8 @@ export async function getUserFriends(userId: string, limit = 20): Promise<User[]
     // Extract friend IDs (the other user in each relationship)
     const friendIds = friendsData.map((item) => (item.user_id === userId ? item.friend_id : item.user_id))
 
-    // Get the user data for all friends
-    const { data, error } = await supabaseAdmin.from("users").select("*").in("id", friendIds)
+    // Get the user data for all friends, including permalinks
+    const { data, error } = await supabaseAdmin.from("users").select("*, permalink").in("id", friendIds)
 
     if (error) {
       console.error("Error fetching friend users:", error)

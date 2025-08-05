@@ -20,6 +20,7 @@ import {
 import Image from 'next/image'
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
+import { getProfileUrlFromUser } from '@/lib/utils/profile-url-client'
 
 interface PhotoAlbumFeedItemProps {
   activity: {
@@ -184,7 +185,7 @@ export function PhotoAlbumFeedItem({
             <div className="flex-1">
               <div className="flex items-center space-x-2">
                 <Link 
-                  href={`/profile/${activity.user.id}`}
+                  href={getProfileUrlFromUser(activity.user)}
                   className="font-semibold hover:underline"
                 >
                   {activity.user.name}

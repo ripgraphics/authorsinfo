@@ -459,9 +459,6 @@ export function ClientEventPage({
 
       {activeTab === "photos" && (
         <div className="event-page__tab-content space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold">Photo Albums</h2>
-          </div>
           <EntityPhotoAlbums
             entityId={params.slug}
             entityType="event"

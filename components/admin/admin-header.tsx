@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar } from "@/components/ui/avatar"
 import { useAuth } from "@/hooks/useAuth"
+import { getProfileUrlFromUser } from "@/lib/utils/profile-url-client"
 
 export function AdminHeader() {
   const [searchOpen, setSearchOpen] = useState(false)
@@ -80,7 +81,7 @@ export function AdminHeader() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <Link href={`/profile/${user.id}`}>
+                <Link href={getProfileUrlFromUser({ id: user.id, permalink: user.user_metadata?.permalink })}>
                   <DropdownMenuItem>
                     <UserIcon className="mr-2 h-4 w-4" />
                     <span>Profile</span>

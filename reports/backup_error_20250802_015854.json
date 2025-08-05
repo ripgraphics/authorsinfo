@@ -1,0 +1,21 @@
+{
+  "timestamp": "20250802_015854",
+  "started_at": "2025-08-02T01:58:54.975326",
+  "operations": [],
+  "statistics": {},
+  "errors": [
+    {
+      "command": "npx supabase db dump --schema-only",
+      "error": "Command 'npx supabase db dump --schema-only' returned non-zero exit status 1.",
+      "stderr": "Usage:\n  supabase db dump [flags]\n\nFlags:\n      --data-only         Dumps only data records.\n      --db-url string     Dumps from the database specified by the connection string (must be percent-encoded).\n      --dry-run           Prints the pg_dump script that would be executed.\n  -x, --exclude strings   List of schema.tables to exclude from data-only dump.\n  -f, --file string       File path to save the dumped contents.\n  -h, --help              help for dump\n      --keep-comments     Keeps commented lines from pg_dump output.\n      --linked            Dumps from the linked project. (default true)\n      --local             Dumps from the local database.\n  -p, --password string   Password to your remote Postgres database.\n      --role-only         Dumps only cluster roles.\n  -s, --schema strings    Comma separated list of schema to include.\n      --use-copy          Uses copy statements in place of inserts.\n\nGlobal Flags:\n      --create-ticket                                  create a support ticket for any CLI error\n      --debug                                          output debug logs to stderr\n      --dns-resolver [ native | https ]                lookup domain names using the specified resolver (default native)\n      --experimental                                   enable experimental features\n      --network-id string                              use the specified docker network instead of a generated one\n  -o, --output [ env | pretty | json | toml | yaml ]   output format of status variables (default pretty)\n      --workdir string                                 path to a Supabase project directory\n      --yes                                            answer yes to all prompts\n\nunknown flag: --schema-only\nTry rerunning the command with --debug to troubleshoot the error.\n",
+      "timestamp": "2025-08-02T01:58:55.736238"
+    },
+    {
+      "operation": "full_backup",
+      "error": "Command 'npx supabase db dump --schema-only' returned non-zero exit status 1.",
+      "timestamp": "2025-08-02T01:58:55.736260"
+    }
+  ],
+  "completed_at": "2025-08-02T01:58:55.736882",
+  "status": "failed"
+}

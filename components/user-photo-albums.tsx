@@ -1,9 +1,12 @@
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+"use client"
+
+import React, { useState, useEffect } from 'react'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { ContentSection } from '@/components/ui/content-section'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
 import { PhotoAlbumCreator } from './photo-album-creator'
@@ -24,6 +27,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { getUserIdFromPermalink } from '@/lib/utils/profile-url-client'
 
 interface EntityPhotoAlbumsProps {
   entityId: string
@@ -70,6 +74,18 @@ export function EntityPhotoAlbums({
   const loadAlbums = async () => {
     setIsLoading(true)
     try {
+      // Convert permalink to UUID if this is a user entity
+      let actualEntityId = entityId
+      if (entityType === 'user') {
+        const userUUID = await getUserIdFromPermalink(entityId)
+        if (!userUUID) {
+          console.error('User not found for entityId:', entityId)
+          setAlbums([])
+          return
+        }
+        actualEntityId = userUUID
+      }
+
       let query = supabase
         .from('photo_albums')
         .select(`
@@ -82,7 +98,7 @@ export function EntityPhotoAlbums({
           updated_at,
           metadata
         `)
-        .eq('owner_id', entityId)
+        .eq('owner_id', actualEntityId)
         .order('created_at', { ascending: false })
 
       // If not own profile, only show public albums or albums shared with current user
@@ -206,11 +222,24 @@ export function EntityPhotoAlbums({
 
   if (isLoading) {
     return (
-      <div className="user-photo-albums-loading-container space-y-4">
-        <div className="user-photo-albums-loading-header flex items-center justify-between">
-          <h2 className="user-photo-albums-loading-title text-2xl font-bold">Photo Albums</h2>
-          {isOwnEntity && <PhotoAlbumCreator onAlbumCreated={handleAlbumCreated} />}
-        </div>
+      <ContentSection
+        title="Photo Albums"
+        headerRight={
+          isOwnEntity ? (
+            <PhotoAlbumCreator 
+              onAlbumCreated={handleAlbumCreated}
+              entityType={entityType as 'user' | 'publisher' | 'author' | 'group'}
+              entityId={entityId}
+              trigger={
+                <Button className="user-photo-albums-create-button flex items-center gap-2">
+                  <FolderPlus className="h-4 w-4" />
+                  Create An Album
+                </Button>
+              }
+            />
+          ) : undefined
+        }
+      >
         <div className="user-photo-albums-loading-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[...Array(6)].map((_, i) => (
             <Card key={i} className="user-photo-albums-loading-card animate-pulse">
@@ -224,15 +253,15 @@ export function EntityPhotoAlbums({
             </Card>
           ))}
         </div>
-      </div>
+      </ContentSection>
     )
   }
 
   return (
-    <div className="user-photo-albums-container space-y-6">
-      <div className="user-photo-albums-header flex items-center justify-between">
-        <h2 className="user-photo-albums-title text-2xl font-bold">Photo Albums</h2>
-        {isOwnEntity && (
+    <ContentSection
+      title="Photo Albums"
+      headerRight={
+        isOwnEntity ? (
           <PhotoAlbumCreator 
             onAlbumCreated={handleAlbumCreated}
             entityType={entityType as 'user' | 'publisher' | 'author' | 'group'}
@@ -244,41 +273,41 @@ export function EntityPhotoAlbums({
               </Button>
             }
           />
-        )}
-      </div>
-
+        ) : undefined
+      }
+    >
       {albums.length === 0 ? (
-        <Card className="user-photo-albums-empty-card">
-          <CardContent className="user-photo-albums-empty-content p-8 text-center">
-            <div className="user-photo-albums-empty-state flex flex-col items-center space-y-4">
-              <div className="user-photo-albums-empty-icon w-16 h-16 bg-muted rounded-full flex items-center justify-center">
-                <ImageIcon className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <div className="user-photo-albums-empty-text">
-                <h3 className="user-photo-albums-empty-title text-lg font-semibold">No albums yet</h3>
-                <p className="user-photo-albums-empty-description text-muted-foreground">
-                  {isOwnEntity 
-                    ? "Create your first photo album to get started"
-                    : "This user hasn't created any albums yet"
-                  }
-                </p>
-              </div>
-              {isOwnEntity && (
-                <PhotoAlbumCreator 
-                  onAlbumCreated={handleAlbumCreated}
-                  entityType={entityType as 'user' | 'publisher' | 'author' | 'group'}
-                  entityId={entityId}
-                  trigger={
-                    <Button className="user-photo-albums-create-first-button flex items-center gap-2">
-                      <FolderPlus className="h-4 w-4" />
-                      Create Your First Album
-                    </Button>
-                  }
-                />
-              )}
+        <div className="user-photo-albums-empty-content text-center">
+          <div className="user-photo-albums-empty-state flex flex-col items-center space-y-4">
+            <div className="user-photo-albums-empty-icon w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+              <ImageIcon className="h-8 w-8 text-muted-foreground" />
             </div>
-          </CardContent>
-        </Card>
+            <div className="user-photo-albums-empty-text">
+              <h3 className="user-photo-albums-empty-title text-lg font-semibold">No albums yet</h3>
+              <p className="user-photo-albums-empty-description text-muted-foreground">
+                {isOwnEntity 
+                  ? "Create your first photo album to get started"
+                  : entityType === 'event' || entityType === 'book'
+                  ? `This ${entityType} does not have any albums yet`
+                  : `This ${entityType} hasn't created any albums yet`
+                }
+              </p>
+            </div>
+            {isOwnEntity && (
+              <PhotoAlbumCreator 
+                onAlbumCreated={handleAlbumCreated}
+                entityType={entityType as 'user' | 'publisher' | 'author' | 'group'}
+                entityId={entityId}
+                trigger={
+                  <Button className="user-photo-albums-create-first-button flex items-center gap-2">
+                    <FolderPlus className="h-4 w-4" />
+                    Create Your First Album
+                  </Button>
+                }
+              />
+            )}
+          </div>
+        </div>
       ) : (
         <div className="user-photo-albums-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {albums.map((album) => (
@@ -449,6 +478,6 @@ export function EntityPhotoAlbums({
           onSettingsUpdated={handleSettingsUpdated}
         />
       )}
-    </div>
+    </ContentSection>
   )
 } 

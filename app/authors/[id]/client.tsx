@@ -41,6 +41,7 @@ import { PhotosList } from "@/components/photos-list"
 import { PhotoAlbumManager } from "@/components/photo-album-manager"
 import { PhotoAlbumsList } from "@/components/photo-albums-list"
 import { CreateAlbumDialog } from '@/components/create-album-dialog'
+import { EntityPhotoAlbums } from '@/components/user-photo-albums'
 import { useRouter, useSearchParams } from "next/navigation"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
@@ -1009,19 +1010,14 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
       )}
 
       {activeTab === "photos" && (
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold">Photo Albums</h2>
-            <CreateAlbumDialog
+        <div className="author-page__photos-tab">
+          <div className="author-page__tab-content space-y-6">
+            <EntityPhotoAlbums
               entityId={params.id}
               entityType="author"
-              onAlbumCreated={handleAlbumCreated}
+              isOwnEntity={canEdit}
             />
           </div>
-          <PhotoAlbumsList
-            albums={albums}
-            onAlbumUpdated={handleAlbumCreated}
-          />
         </div>
       )}
 

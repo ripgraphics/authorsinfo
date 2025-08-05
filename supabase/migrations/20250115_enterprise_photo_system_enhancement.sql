@@ -185,95 +185,98 @@ CREATE INDEX "idx_image_processing_jobs_created_at" ON "public"."image_processin
 -- ============================================================================
 
 -- Add enterprise columns to album_images table
-ALTER TABLE "public"."album_images" 
-ADD COLUMN IF NOT EXISTS "view_count" integer DEFAULT 0,
-ADD COLUMN IF NOT EXISTS "like_count" integer DEFAULT 0,
-ADD COLUMN IF NOT EXISTS "share_count" integer DEFAULT 0,
-ADD COLUMN IF NOT EXISTS "revenue_generated" numeric(10,2) DEFAULT 0,
-ADD COLUMN IF NOT EXISTS "ai_tags" "text"[] DEFAULT '{}',
-ADD COLUMN IF NOT EXISTS "community_engagement" numeric(3,2) DEFAULT 0;
+-- NOTE: Commented out because album_images table doesn't exist yet
+-- ALTER TABLE "public"."album_images" 
+-- ADD COLUMN IF NOT EXISTS "view_count" integer DEFAULT 0,
+-- ADD COLUMN IF NOT EXISTS "like_count" integer DEFAULT 0,
+-- ADD COLUMN IF NOT EXISTS "share_count" integer DEFAULT 0,
+-- ADD COLUMN IF NOT EXISTS "revenue_generated" numeric(10,2) DEFAULT 0,
+-- ADD COLUMN IF NOT EXISTS "ai_tags" "text"[] DEFAULT '{}',
+-- ADD COLUMN IF NOT EXISTS "community_engagement" numeric(3,2) DEFAULT 0;
 
 -- Add comments for new columns
-COMMENT ON COLUMN "public"."album_images"."view_count" IS 'Number of views for this image in the album';
-COMMENT ON COLUMN "public"."album_images"."like_count" IS 'Number of likes for this image in the album';
-COMMENT ON COLUMN "public"."album_images"."share_count" IS 'Number of shares for this image in the album';
-COMMENT ON COLUMN "public"."album_images"."revenue_generated" IS 'Total revenue generated from this image';
-COMMENT ON COLUMN "public"."album_images"."ai_tags" IS 'AI-generated tags for the image';
-COMMENT ON COLUMN "public"."album_images"."community_engagement" IS 'Community engagement score (0-1)';
+-- COMMENT ON COLUMN "public"."album_images"."view_count" IS 'Number of views for this image in the album';
+-- COMMENT ON COLUMN "public"."album_images"."like_count" IS 'Number of likes for this image in the album';
+-- COMMENT ON COLUMN "public"."album_images"."share_count" IS 'Number of shares for this image in the album';
+-- COMMENT ON COLUMN "public"."album_images"."revenue_generated" IS 'Total revenue generated from this image';
+-- COMMENT ON COLUMN "public"."album_images"."ai_tags" IS 'AI-generated tags for the image';
+-- COMMENT ON COLUMN "public"."album_images"."community_engagement" IS 'Community engagement score (0-1)';
 
 -- Add enterprise columns to photo_albums table
-ALTER TABLE "public"."photo_albums" 
-ADD COLUMN IF NOT EXISTS "monetization_enabled" boolean DEFAULT false,
-ADD COLUMN IF NOT EXISTS "premium_content" boolean DEFAULT false,
-ADD COLUMN IF NOT EXISTS "community_features" boolean DEFAULT false,
-ADD COLUMN IF NOT EXISTS "ai_enhanced" boolean DEFAULT false,
-ADD COLUMN IF NOT EXISTS "analytics_enabled" boolean DEFAULT false,
-ADD COLUMN IF NOT EXISTS "revenue_generated" numeric(10,2) DEFAULT 0,
-ADD COLUMN IF NOT EXISTS "total_subscribers" integer DEFAULT 0,
-ADD COLUMN IF NOT EXISTS "community_score" numeric(3,2) DEFAULT 0;
+-- NOTE: Commented out because photo_albums table doesn't exist yet
+-- ALTER TABLE "public"."photo_albums" 
+-- ADD COLUMN IF NOT EXISTS "monetization_enabled" boolean DEFAULT false,
+-- ADD COLUMN IF NOT EXISTS "premium_content" boolean DEFAULT false,
+-- ADD COLUMN IF NOT EXISTS "community_features" boolean DEFAULT false,
+-- ADD COLUMN IF NOT EXISTS "ai_enhanced" boolean DEFAULT false,
+-- ADD COLUMN IF NOT EXISTS "analytics_enabled" boolean DEFAULT false,
+-- ADD COLUMN IF NOT EXISTS "revenue_generated" numeric(10,2) DEFAULT 0,
+-- ADD COLUMN IF NOT EXISTS "total_subscribers" integer DEFAULT 0,
+-- ADD COLUMN IF NOT EXISTS "community_score" numeric(3,2) DEFAULT 0;
 
 -- Add comments for new columns
-COMMENT ON COLUMN "public"."photo_albums"."monetization_enabled" IS 'Whether monetization features are enabled for this album';
-COMMENT ON COLUMN "public"."photo_albums"."premium_content" IS 'Whether this album contains premium content';
-COMMENT ON COLUMN "public"."photo_albums"."community_features" IS 'Whether community features are enabled';
-COMMENT ON COLUMN "public"."photo_albums"."ai_enhanced" IS 'Whether AI features are enabled';
-COMMENT ON COLUMN "public"."photo_albums"."analytics_enabled" IS 'Whether analytics tracking is enabled';
-COMMENT ON COLUMN "public"."photo_albums"."revenue_generated" IS 'Total revenue generated from this album';
-COMMENT ON COLUMN "public"."photo_albums"."total_subscribers" IS 'Number of premium subscribers';
-COMMENT ON COLUMN "public"."photo_albums"."community_score" IS 'Community engagement score (0-1)';
+-- COMMENT ON COLUMN "public"."photo_albums"."monetization_enabled" IS 'Whether monetization features are enabled for this album';
+-- COMMENT ON COLUMN "public"."photo_albums"."premium_content" IS 'Whether this album contains premium content';
+-- COMMENT ON COLUMN "public"."photo_albums"."community_features" IS 'Whether community features are enabled';
+-- COMMENT ON COLUMN "public"."photo_albums"."ai_enhanced" IS 'Whether AI features are enabled';
+-- COMMENT ON COLUMN "public"."photo_albums"."analytics_enabled" IS 'Whether analytics tracking is enabled';
+-- COMMENT ON COLUMN "public"."photo_albums"."revenue_generated" IS 'Total revenue generated from this album';
+-- COMMENT ON COLUMN "public"."photo_albums"."total_subscribers" IS 'Number of premium subscribers';
+-- COMMENT ON COLUMN "public"."photo_albums"."community_score" IS 'Community engagement score (0-1)';
 
 -- ============================================================================
 -- 7. CREATE FOREIGN KEY CONSTRAINTS
 -- ============================================================================
 
 -- Photo Analytics foreign keys
-ALTER TABLE "public"."photo_analytics" 
-ADD CONSTRAINT "photo_analytics_album_id_fkey" 
-FOREIGN KEY ("album_id") REFERENCES "public"."photo_albums"("id") ON DELETE CASCADE;
+-- NOTE: Commented out because referenced tables don't exist yet
+-- ALTER TABLE "public"."photo_analytics" 
+-- ADD CONSTRAINT "photo_analytics_album_id_fkey" 
+-- FOREIGN KEY ("album_id") REFERENCES "public"."photo_albums"("id") ON DELETE CASCADE;
 
-ALTER TABLE "public"."photo_analytics" 
-ADD CONSTRAINT "photo_analytics_image_id_fkey" 
-FOREIGN KEY ("image_id") REFERENCES "public"."images"("id") ON DELETE CASCADE;
+-- ALTER TABLE "public"."photo_analytics" 
+-- ADD CONSTRAINT "photo_analytics_image_id_fkey" 
+-- FOREIGN KEY ("image_id") REFERENCES "public"."images"("id") ON DELETE CASCADE;
 
-ALTER TABLE "public"."photo_analytics" 
-ADD CONSTRAINT "photo_analytics_user_id_fkey" 
-FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE SET NULL;
+-- ALTER TABLE "public"."photo_analytics" 
+-- ADD CONSTRAINT "photo_analytics_user_id_fkey" 
+-- FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE SET NULL;
 
 -- Photo Monetization foreign keys
-ALTER TABLE "public"."photo_monetization" 
-ADD CONSTRAINT "photo_monetization_album_id_fkey" 
-FOREIGN KEY ("album_id") REFERENCES "public"."photo_albums"("id") ON DELETE CASCADE;
+-- ALTER TABLE "public"."photo_monetization" 
+-- ADD CONSTRAINT "photo_monetization_album_id_fkey" 
+-- FOREIGN KEY ("album_id") REFERENCES "public"."photo_albums"("id") ON DELETE CASCADE;
 
-ALTER TABLE "public"."photo_monetization" 
-ADD CONSTRAINT "photo_monetization_image_id_fkey" 
-FOREIGN KEY ("image_id") REFERENCES "public"."images"("id") ON DELETE CASCADE;
+-- ALTER TABLE "public"."photo_monetization" 
+-- ADD CONSTRAINT "photo_monetization_image_id_fkey" 
+-- FOREIGN KEY ("image_id") REFERENCES "public"."images"("id") ON DELETE CASCADE;
 
-ALTER TABLE "public"."photo_monetization" 
-ADD CONSTRAINT "photo_monetization_user_id_fkey" 
-FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE SET NULL;
+-- ALTER TABLE "public"."photo_monetization" 
+-- ADD CONSTRAINT "photo_monetization_user_id_fkey" 
+-- FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE SET NULL;
 
 -- Photo Community foreign keys
-ALTER TABLE "public"."photo_community" 
-ADD CONSTRAINT "photo_community_album_id_fkey" 
-FOREIGN KEY ("album_id") REFERENCES "public"."photo_albums"("id") ON DELETE CASCADE;
+-- ALTER TABLE "public"."photo_community" 
+-- ADD CONSTRAINT "photo_community_album_id_fkey" 
+-- FOREIGN KEY ("album_id") REFERENCES "public"."photo_albums"("id") ON DELETE CASCADE;
 
-ALTER TABLE "public"."photo_community" 
-ADD CONSTRAINT "photo_community_image_id_fkey" 
-FOREIGN KEY ("image_id") REFERENCES "public"."images"("id") ON DELETE CASCADE;
+-- ALTER TABLE "public"."photo_community" 
+-- ADD CONSTRAINT "photo_community_image_id_fkey" 
+-- FOREIGN KEY ("image_id") REFERENCES "public"."images"("id") ON DELETE CASCADE;
 
-ALTER TABLE "public"."photo_community" 
-ADD CONSTRAINT "photo_community_user_id_fkey" 
-FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+-- ALTER TABLE "public"."photo_community" 
+-- ADD CONSTRAINT "photo_community_user_id_fkey" 
+-- FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 
 -- AI Image Analysis foreign keys
-ALTER TABLE "public"."ai_image_analysis" 
-ADD CONSTRAINT "ai_image_analysis_image_id_fkey" 
-FOREIGN KEY ("image_id") REFERENCES "public"."images"("id") ON DELETE CASCADE;
+-- ALTER TABLE "public"."ai_image_analysis" 
+-- ADD CONSTRAINT "ai_image_analysis_image_id_fkey" 
+-- FOREIGN KEY ("image_id") REFERENCES "public"."images"("id") ON DELETE CASCADE;
 
 -- Image Processing Jobs foreign keys
-ALTER TABLE "public"."image_processing_jobs" 
-ADD CONSTRAINT "image_processing_jobs_image_id_fkey" 
-FOREIGN KEY ("image_id") REFERENCES "public"."images"("id") ON DELETE CASCADE;
+-- ALTER TABLE "public"."image_processing_jobs" 
+-- ADD CONSTRAINT "image_processing_jobs_image_id_fkey" 
+-- FOREIGN KEY ("image_id") REFERENCES "public"."images"("id") ON DELETE CASCADE;
 
 -- ============================================================================
 -- 8. CREATE ENTERPRISE VIEWS FOR ANALYTICS

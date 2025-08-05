@@ -252,13 +252,10 @@ export function ClientGroupPage({
       case 'discussions':
         return <DiscussionsSection discussions={discussions} groupId={group.id} />
       case 'followers':
-        return <FollowersList initialFollowers={followers} entityId={group.id} entityType="group" />
+        return <FollowersList followers={followers || []} followersCount={followersCount} entityId={group.id} entityType="group" />
       case 'photos':
         return (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">Photos</h2>
-            </div>
             <EntityPhotoAlbums
               entityId={group.id}
               entityType="group"

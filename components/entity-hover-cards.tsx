@@ -20,6 +20,7 @@ interface UserEntity extends BaseEntity {
   email?: string
   friend_count?: number
   mutual_friends?: number
+  permalink?: string
 }
 
 interface AuthorEntity extends BaseEntity {
@@ -83,7 +84,7 @@ export function EntityHoverCard({ type, entity, children, showActions = true }: 
         return {
           icon: <Users className="mr-1 h-3 w-3" />,
           countText: userEntity.friend_count ? `${userEntity.friend_count} friends` : 'New user',
-          href: `/profile/${entity.id}`,
+          href: userEntity.permalink ? `/profile/${userEntity.permalink}` : `/profile/${entity.id}`,
           imageUrl: userEntity.avatar_url || `/api/avatar/${entity.id}`,
           subtitle: userEntity.created_at ? `Joined ${new Date(userEntity.created_at).toLocaleDateString('en-US', { 
             year: 'numeric',
@@ -149,8 +150,9 @@ export function EntityHoverCard({ type, entity, children, showActions = true }: 
 
   const handleAddFriend = (e: React.MouseEvent) => {
     e.stopPropagation()
-    // TODO: Implement add friend functionality
+    // TODO: Implement add friend functionality using the new API
     console.log('Add friend:', entity.id)
+    // This could be enhanced to use the new /api/friends endpoint
   }
 
   const handleMessage = (e: React.MouseEvent) => {

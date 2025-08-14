@@ -11,21 +11,34 @@ if (-not (Test-Path $profileDir)) {
     Write-Host "Created profile directory" -ForegroundColor Cyan
 }
 
-# Get protection script path
-$currentDir = Get-Location
-$protectionScript = Join-Path $currentDir "security\database-protection.ps1"
+# Get protection script path (absolute)
+$protectionScript = (Resolve-Path "security/database-protection.ps1").Path
 
-# Create profile content
-$content = @"
-# Database Protection System
-if (Test-Path "$protectionScript") {
+# Create profile content using single-quoted here-string to avoid premature interpolation
+$contentTemplate = @'
+# Database Protection System Loader (enterprise-grade)
+try {
+    # Ensure UTF-8 console output so Unicode/emoji render correctly
+    [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
+    $OutputEncoding = [Console]::OutputEncoding
+} catch {}
+
+$scriptPath = '__PROTECTION_SCRIPT__'
+if (Test-Path $scriptPath) {
     try {
-        . "$protectionScript"
+        Unblock-File -Path $scriptPath -ErrorAction SilentlyContinue
+        . $scriptPath
     } catch {
-        Write-Warning "Protection system load failed"
+        Write-Host ("Database protection loader error: " + $_.Exception.Message) -ForegroundColor Yellow
+        Write-Host "Run security\\install-protection.ps1 from the project root to repair." -ForegroundColor Yellow
     }
+} else {
+    # Silent if script is missing to avoid noise on every shell start
 }
-"@
+'@
+# Safely inject absolute script path (escape single quotes)
+$escapedPath = $protectionScript -replace "'", "''"
+$content = $contentTemplate -replace '__PROTECTION_SCRIPT__', $escapedPath
 
 # Backup existing profile
 if (Test-Path $profilePath) {

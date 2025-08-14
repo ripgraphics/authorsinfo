@@ -2812,6 +2812,36 @@ export type Database = {
           },
         ]
       }
+      engagement_analytics: {
+        Row: {
+          action: string
+          entity_id: string
+          entity_type: string
+          id: string
+          metadata: Json | null
+          timestamp: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          metadata?: Json | null
+          timestamp?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          metadata?: Json | null
+          timestamp?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       enterprise_audit_trail: {
         Row: {
           application_version: string | null
@@ -2981,6 +3011,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      entities: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          engagement_count: number | null
+          id: string
+          last_engagement: string | null
+          last_post: string | null
+          metadata: Json | null
+          name: string | null
+          post_count: number | null
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          engagement_count?: number | null
+          id?: string
+          last_engagement?: string | null
+          last_post?: string | null
+          metadata?: Json | null
+          name?: string | null
+          post_count?: number | null
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          engagement_count?: number | null
+          id?: string
+          last_engagement?: string | null
+          last_post?: string | null
+          metadata?: Json | null
+          name?: string | null
+          post_count?: number | null
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       entity_tags: {
         Row: {
@@ -7519,6 +7591,56 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_queue: {
+        Row: {
+          created_at: string
+          data: Json | null
+          id: string
+          is_read: boolean | null
+          is_sent: boolean | null
+          message: string | null
+          notification_type: string
+          scheduled_at: string | null
+          sent_at: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json | null
+          id?: string
+          is_read?: boolean | null
+          is_sent?: boolean | null
+          message?: string | null
+          notification_type: string
+          scheduled_at?: string | null
+          sent_at?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json | null
+          id?: string
+          is_read?: boolean | null
+          is_sent?: boolean | null
+          message?: string | null
+          notification_type?: string
+          scheduled_at?: string | null
+          sent_at?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_queue_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string | null
@@ -8441,44 +8563,321 @@ export type Database = {
           },
         ]
       }
-      posts: {
+      post_bookmarks: {
         Row: {
-          allowed_user_ids: string[] | null
+          created_at: string
+          folder: string | null
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          folder?: string | null
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          folder?: string | null
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_bookmarks_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_bookmarks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_comments: {
+        Row: {
           content: string
           created_at: string
           id: string
-          image_url: string | null
-          is_deleted: boolean
-          is_hidden: boolean
-          link_url: string | null
+          is_deleted: boolean | null
+          is_edited: boolean | null
+          is_hidden: boolean | null
+          parent_comment_id: string | null
+          post_id: string
           updated_at: string
           user_id: string
-          visibility: string
         }
         Insert: {
-          allowed_user_ids?: string[] | null
           content: string
           created_at?: string
           id?: string
-          image_url?: string | null
-          is_deleted?: boolean
-          is_hidden?: boolean
-          link_url?: string | null
+          is_deleted?: boolean | null
+          is_edited?: boolean | null
+          is_hidden?: boolean | null
+          parent_comment_id?: string | null
+          post_id: string
           updated_at?: string
           user_id: string
-          visibility?: string
         }
         Update: {
-          allowed_user_ids?: string[] | null
           content?: string
           created_at?: string
           id?: string
-          image_url?: string | null
-          is_deleted?: boolean
-          is_hidden?: boolean
-          link_url?: string | null
+          is_deleted?: boolean | null
+          is_edited?: boolean | null
+          is_hidden?: boolean | null
+          parent_comment_id?: string | null
+          post_id?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "post_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_reactions: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          reaction_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          reaction_type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          reaction_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_reactions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_shares: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          share_content: string | null
+          share_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          share_content?: string | null
+          share_type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          share_content?: string | null
+          share_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_shares_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_shares_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posts: {
+        Row: {
+          age_restriction: string | null
+          allowed_user_ids: string[] | null
+          bookmark_count: number | null
+          categories: string[] | null
+          comment_count: number | null
+          content: Json
+          content_summary: string | null
+          content_type: string | null
+          content_warnings: string[] | null
+          created_at: string
+          engagement_score: number | null
+          enterprise_features: Json | null
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          image_url: string | null
+          is_deleted: boolean
+          is_featured: boolean | null
+          is_hidden: boolean
+          is_pinned: boolean | null
+          is_verified: boolean | null
+          languages: string[] | null
+          last_activity_at: string | null
+          like_count: number | null
+          link_url: string | null
+          media_files: Json | null
+          metadata: Json | null
+          publish_status: string | null
+          published_at: string | null
+          regions: string[] | null
+          scheduled_at: string | null
+          sensitive_content: boolean | null
+          seo_description: string | null
+          seo_keywords: string[] | null
+          seo_title: string | null
+          share_count: number | null
+          tags: string[] | null
+          trending_score: number | null
+          updated_at: string
+          user_id: string
+          view_count: number | null
+          visibility: string
+        }
+        Insert: {
+          age_restriction?: string | null
+          allowed_user_ids?: string[] | null
+          bookmark_count?: number | null
+          categories?: string[] | null
+          comment_count?: number | null
+          content: Json
+          content_summary?: string | null
+          content_type?: string | null
+          content_warnings?: string[] | null
+          created_at?: string
+          engagement_score?: number | null
+          enterprise_features?: Json | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          image_url?: string | null
+          is_deleted?: boolean
+          is_featured?: boolean | null
+          is_hidden?: boolean
+          is_pinned?: boolean | null
+          is_verified?: boolean | null
+          languages?: string[] | null
+          last_activity_at?: string | null
+          like_count?: number | null
+          link_url?: string | null
+          media_files?: Json | null
+          metadata?: Json | null
+          publish_status?: string | null
+          published_at?: string | null
+          regions?: string[] | null
+          scheduled_at?: string | null
+          sensitive_content?: boolean | null
+          seo_description?: string | null
+          seo_keywords?: string[] | null
+          seo_title?: string | null
+          share_count?: number | null
+          tags?: string[] | null
+          trending_score?: number | null
+          updated_at?: string
+          user_id: string
+          view_count?: number | null
+          visibility?: string
+        }
+        Update: {
+          age_restriction?: string | null
+          allowed_user_ids?: string[] | null
+          bookmark_count?: number | null
+          categories?: string[] | null
+          comment_count?: number | null
+          content?: Json
+          content_summary?: string | null
+          content_type?: string | null
+          content_warnings?: string[] | null
+          created_at?: string
+          engagement_score?: number | null
+          enterprise_features?: Json | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          image_url?: string | null
+          is_deleted?: boolean
+          is_featured?: boolean | null
+          is_hidden?: boolean
+          is_pinned?: boolean | null
+          is_verified?: boolean | null
+          languages?: string[] | null
+          last_activity_at?: string | null
+          like_count?: number | null
+          link_url?: string | null
+          media_files?: Json | null
+          metadata?: Json | null
+          publish_status?: string | null
+          published_at?: string | null
+          regions?: string[] | null
+          scheduled_at?: string | null
+          sensitive_content?: boolean | null
+          seo_description?: string | null
+          seo_keywords?: string[] | null
+          seo_title?: string | null
+          share_count?: number | null
+          tags?: string[] | null
+          trending_score?: number | null
+          updated_at?: string
+          user_id?: string
+          view_count?: number | null
           visibility?: string
         }
         Relationships: []
@@ -9887,6 +10286,42 @@ export type Database = {
           ticket_type_id?: string
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      trending_topics: {
+        Row: {
+          category: string | null
+          created_at: string
+          engagement_count: number | null
+          id: string
+          last_activity_at: string | null
+          post_count: number | null
+          topic: string
+          trending_score: number | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          engagement_count?: number | null
+          id?: string
+          last_activity_at?: string | null
+          post_count?: number | null
+          topic: string
+          trending_score?: number | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          engagement_count?: number | null
+          id?: string
+          last_activity_at?: string | null
+          post_count?: number | null
+          topic?: string
+          trending_score?: number | null
+          updated_at?: string
         }
         Relationships: []
       }

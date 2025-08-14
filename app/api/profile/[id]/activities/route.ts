@@ -28,11 +28,12 @@ export async function GET(
       // Try to find user by permalink
       const { data: user, error: userError } = await supabaseAdmin
         .from('users')
-        .select('id')
+        .select('id, name, email')
         .eq('permalink', id)
         .single()
       
       if (userError || !user) {
+        console.error('User not found for permalink:', id, userError)
         return NextResponse.json(
           { error: 'User not found' },
           { status: 404 }
@@ -41,7 +42,7 @@ export async function GET(
       
       userId = user.id
     }
-
+    
     // Enterprise: Build optimized query with filters
     let query = supabaseAdmin
       .from('activities')
@@ -57,7 +58,7 @@ export async function GET(
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
-
+    
     // Apply activity type filter
     if (filter !== 'all') {
       query = query.eq('activity_type', filter)
@@ -70,7 +71,7 @@ export async function GET(
     }
 
     const { data: activities, error, count } = await query
-
+    
     if (error) {
       console.error('Error fetching activities:', error)
       return NextResponse.json(
@@ -78,83 +79,137 @@ export async function GET(
         { status: 500 }
       )
     }
+    
+    // Ensure activities is not null
+    if (!activities) {
+      return NextResponse.json({
+        success: true,
+        activities: [],
+        has_more: false,
+        total_count: 0,
+        page,
+        limit,
+        analytics: {
+          total_activities: 0,
+          engagement_rate: 0,
+          top_activity_type: 'book_added',
+          average_engagement: 0,
+          revenue_generated: 0,
+          growth_rate: 0
+        }
+      })
+    }
 
-    // Enhance activities with entity details
+    // Enhance activities with entity details (handle missing entities gracefully)
     const enhancedActivities = await Promise.all(
       activities.map(async (activity) => {
         let entityDetails = null
         
         try {
-          // Fetch entity details based on entity_type
-          switch (activity.entity_type) {
-            case 'book':
-              const { data: book } = await supabaseAdmin
-                .from('books')
-                .select(`
-                  id, 
-                  title, 
-                  author, 
-                  cover_image_url,
-                  cover_image:images!books_cover_image_id_fkey(url, alt_text),
-                  author:authors!books_author_id_fkey(id, name, author_image:images!authors_author_image_id_fkey(url, alt_text))
-                `)
-                .eq('id', activity.entity_id)
-                .single()
-              
-              // Process book to include cover image URL
-              entityDetails = book ? {
-                ...book,
-                cover_image: book.cover_image || { url: book.cover_image_url },
-                author: book.author ? {
-                  ...book.author,
-                  author_image: book.author.author_image || null
-                } : null
-              } : null
-              break
-              
-            case 'author':
-              const { data: author } = await supabaseAdmin
-                .from('authors')
-                .select('id, name, bio')
-                .eq('id', activity.entity_id)
-                .single()
-              entityDetails = author
-              break
-              
-            case 'publisher':
-              const { data: publisher } = await supabaseAdmin
-                .from('publishers')
-                .select('id, name, website')
-                .eq('id', activity.entity_id)
-                .single()
-              entityDetails = publisher
-              break
-              
-            case 'user':
-              const { data: user } = await supabaseAdmin
-                .from('users')
-                .select('id, name, email')
-                .eq('id', activity.entity_id)
-                .single()
-              entityDetails = user
-              break
-              
-            case 'group':
-              const { data: group } = await supabaseAdmin
-                .from('groups')
-                .select('id, name, description')
-                .eq('id', activity.entity_id)
-                .single()
-              entityDetails = group
-              break
+          // Only fetch entity details if entity_type and entity_id are present
+          if (activity.entity_type && activity.entity_id) {
+            // Fetch entity details based on entity_type
+            switch (activity.entity_type) {
+              case 'book':
+                const { data: book } = await supabaseAdmin
+                  .from('books')
+                  .select(`
+                    id, 
+                    title, 
+                    synopsis,
+                    author_id,
+                    cover_image_id
+                  `)
+                  .eq('id', activity.entity_id)
+                  .single()
+                
+                if (book) {
+                  // Get author details if available
+                  let authorDetails = null
+                  if (book.author_id) {
+                    const { data: author } = await supabaseAdmin
+                      .from('authors')
+                      .select('id, name')
+                      .eq('id', book.author_id)
+                      .single()
+                    authorDetails = author
+                  }
+                  
+                  // Get cover image if available
+                  let coverImage = null
+                  if (book.cover_image_id) {
+                    const { data: image } = await supabaseAdmin
+                      .from('images')
+                      .select('url, alt_text')
+                      .eq('id', book.cover_image_id)
+                      .single()
+                    coverImage = image
+                  }
+                  
+                  entityDetails = {
+                    ...book,
+                    cover_image: coverImage,
+                    author: authorDetails
+                  }
+                }
+                break
+                
+              case 'author':
+                const { data: author } = await supabaseAdmin
+                  .from('authors')
+                  .select('id, name, bio')
+                  .eq('id', activity.entity_id)
+                  .single()
+                entityDetails = author
+                break
+                
+              case 'publisher':
+                const { data: publisher } = await supabaseAdmin
+                  .from('publishers')
+                  .select('id, name, website')
+                  .eq('id', activity.entity_id)
+                  .single()
+                entityDetails = publisher
+                break
+                
+              case 'user':
+                const { data: user } = await supabaseAdmin
+                  .from('users')
+                  .select('id, name, email')
+                  .eq('id', activity.entity_id)
+                  .single()
+                entityDetails = user
+                break
+                
+              case 'group':
+                const { data: group } = await supabaseAdmin
+                  .from('groups')
+                  .select('id, name, description')
+                  .eq('id', activity.entity_id)
+                  .single()
+                entityDetails = group
+                break
+            }
           }
         } catch (entityError) {
           console.error(`Error fetching ${activity.entity_type} details:`, entityError)
+          // Continue without entity details rather than failing
+        }
+
+        // Handle both old and new data structures for post content
+        let postContent = null
+        if (activity.activity_type === 'post_created' && activity.data) {
+          // Try to get content from multiple possible fields
+          postContent = activity.data.content || 
+                       activity.data.text || 
+                       activity.data.content_summary || 
+                       'No content available'
         }
 
         return {
           ...activity,
           entity_details: entityDetails,
+          post_content: postContent, // Add this for timeline display
           metadata: {
             engagement_count: 0,
             is_premium: false,
@@ -170,7 +225,7 @@ export async function GET(
     // Enterprise: Determine if there are more activities
     const hasMore = count ? (offset + limit) < count : false
 
-    return NextResponse.json({
+    const response = {
       success: true,
       activities: enhancedActivities,
       has_more: hasMore,
@@ -178,7 +233,9 @@ export async function GET(
       page,
       limit,
       analytics
-    })
+    }
+    
+    return NextResponse.json(response)
 
   } catch (error) {
     console.error('Error in profile activities API:', error)

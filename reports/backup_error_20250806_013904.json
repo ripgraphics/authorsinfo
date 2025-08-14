@@ -1,0 +1,24 @@
+{
+  "id": "20250806_013904",
+  "started_at": "2025-08-06T01:39:04.261223",
+  "operations": [
+    {
+      "operation": "npx supabase db dump",
+      "status": "failed",
+      "details": "Command failed: npx supabase db dump\nError: Command 'npx supabase db dump' returned non-zero exit status 1.\nStderr: Initialising cli_login_postgres role...\nDumping schemas from remote database...\npg_dump: error: connection to server at \"aws-0-us-east-2.pooler.supabase.com\" (13.59.95.192), port 5432 failed: error received from server in SCRAM exchange: Wrong password\nerror running container: exit 1\nTry rerunning the command with --debug to troubleshoot the error.\n",
+      "timestamp": "2025-08-06T01:39:06.464288"
+    }
+  ],
+  "statistics": {},
+  "errors": [
+    {
+      "operation": "enterprise_backup",
+      "error": "Command 'npx supabase db dump' returned non-zero exit status 1.",
+      "timestamp": "2025-08-06T01:39:06.464309"
+    }
+  ],
+  "files_created": [],
+  "checksums": {},
+  "completed_at": "2025-08-06T01:39:06.464714",
+  "status": "failed"
+}

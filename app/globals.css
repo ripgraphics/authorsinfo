@@ -320,4 +320,44 @@ body {
   }
 }
 
+/* Enterprise Feed Card Image Styles */
+.enterprise-feed-card-photo-content {
+  margin-bottom: 1rem;
+}
+
+.enterprise-feed-card-photo-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.enterprise-feed-card-photo-item {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background-color: hsl(var(--muted));
+}
+
+.enterprise-feed-card-photo {
+  width: 100%;
+  height: auto;
+  max-height: 400px;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  transition: transform 0.2s ease-in-out;
+}
+
+.enterprise-feed-card-photo:hover {
+  transform: scale(1.02);
+}
+
+.enterprise-feed-card-photo-caption {
+  margin-top: 0.75rem;
+  padding: 0.5rem;
+  background-color: hsl(var(--muted));
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
+}
+
 

@@ -1,6 +1,7 @@
 # SETUP AUTOMATIC SAFETY COMMANDS
 # This script sets up automatic backup triggers for dangerous database operations
 
+try { [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new() } catch {}
 Write-Host "🛡️  Setting up AUTOMATIC DATABASE SAFETY COMMANDS..." -ForegroundColor Green
 Write-Host ""
 

@@ -43,7 +43,8 @@ import { useToast } from '@/hooks/use-toast'
 import { EntityPhotoAlbums } from '@/components/user-photo-albums'
 import { FriendList } from '@/components/friend-list'
 import { TimelineActivities } from '@/components/timeline-activities'
-import { EnterpriseTimelineActivities } from '@/components/enterprise-timeline-activities'
+import EnterpriseTimelineActivities from '@/components/enterprise-timeline-activities'
+
 
 interface ClientProfilePageProps {
   user: any
@@ -374,57 +375,15 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, p
 
               {/* Main Content Area */}
               <div className="profile-page__main-content lg:col-span-2 space-y-6">
-                {/* Post Creation Form */}
-                <ContentSection title="Create Post">
-                  <form>
-                    <div className="flex gap-3">
-                      <span className="relative flex shrink-0 overflow-hidden rounded-full h-10 w-10">
-                        <Image
-                          src={avatarUrl || "/placeholder.svg?height=200&width=200"}
-                          alt={user.name}
-                          width={40}
-                          height={40}
-                          className="aspect-square h-full w-full"
-                        />
-                      </span>
-                      <Textarea
-                        placeholder={`What are you reading, ${user.name?.split(" ")[0] || "there"}?`}
-                        className="flex-1 resize-none"
-                      />
-                    </div>
-                    <div className="flex justify-between mt-4">
-                      <div className="flex gap-2">
-                        <Button type="button" variant="ghost" size="sm">
-                          <ImageIcon className="h-4 w-4 mr-2" />
-                          Photo
-                        </Button>
-                        <Button type="button" variant="ghost" size="sm">
-                          <Book className="h-4 w-4 mr-2" />
-                          Book
-                        </Button>
-                        <Button type="button" variant="ghost" size="sm">
-                          <Star className="h-4 w-4 mr-2" />
-                          Review
-                        </Button>
-                      </div>
-                      <Button type="submit" disabled>
-                        Post
-                      </Button>
-                    </div>
-                  </form>
-                </ContentSection>
 
+                
                 {/* Enterprise Timeline Activities */}
                 <EnterpriseTimelineActivities 
                   userId={user.id}
-                  userAvatarUrl={avatarUrl}
-                  userName={user.name}
-                  isOwnProfile={authUser?.id === user.id}
-                  privacySettings={{
-                    show_activities: true,
-                    show_engagement: true,
-                    show_revenue: authUser?.id === user.id // Only show revenue on own profile
-                  }}
+                  showAnalytics={true}
+                  enableModeration={false}
+                  enableAI={false}
+                  enableAudit={false}
                 />
               </div>
             </div>

@@ -1,0 +1,36 @@
+{
+  "id": "20250806_015137",
+  "started_at": "2025-08-06T01:51:37.705011",
+  "operations": [],
+  "statistics": {
+    "schema_backup": {
+      "file": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\SCHEMA_BACKUP_20250806_015137.sql",
+      "source": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\current_schema.sql",
+      "lines": 16568,
+      "size_kb": 520.05
+    },
+    "types_backup": {
+      "file": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\TYPES_BACKUP_20250806_015137.ts",
+      "source": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\types\\database.ts",
+      "lines": 12011,
+      "size_kb": 352.84
+    },
+    "migrations_backup": {
+      "file": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\MIGRATIONS_BACKUP_20250806_015137.sql",
+      "migration_files": 17,
+      "lines": 3837,
+      "size_kb": 165.61
+    }
+  },
+  "errors": [],
+  "files_created": [
+    "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\SCHEMA_BACKUP_20250806_015137.sql",
+    "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\TYPES_BACKUP_20250806_015137.ts",
+    "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\MIGRATIONS_BACKUP_20250806_015137.sql",
+    "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\RECOVERY_GUIDE_20250806_015137.md"
+  ],
+  "completed_at": "2025-08-06T01:51:37.736518",
+  "duration_seconds": 0.031507,
+  "status": "completed",
+  "files_count": 4
+}

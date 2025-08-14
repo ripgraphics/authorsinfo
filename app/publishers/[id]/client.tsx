@@ -415,46 +415,6 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
 
                   {/* Main Content Area */}
                   <div className="lg:col-span-2 space-y-6">
-                    {/* Post Creation Form */}
-                    <Card>
-                      <CardContent className="p-6 pt-6">
-                        <form>
-                          <div className="flex gap-3">
-                            <span className="relative flex shrink-0 overflow-hidden rounded-full h-10 w-10">
-                              <img
-                                src={publisherImageUrl || "/placeholder.svg?height=200&width=200"}
-                          alt={publisher?.name || "Publisher Name"}
-                                className="aspect-square h-full w-full"
-                              />
-                            </span>
-                            <Textarea
-                        placeholder={`What are you reading, ${publisher?.name?.split(" ")[0]}?`}
-                              className="flex-1 resize-none"
-                            />
-                          </div>
-                          <div className="flex justify-between mt-4">
-                            <div className="flex gap-2">
-                              <Button type="button" variant="ghost" size="sm">
-                                <ImageIcon className="h-4 w-4 mr-2" />
-                                Photo
-                              </Button>
-                              <Button type="button" variant="ghost" size="sm">
-                                <Book className="h-4 w-4 mr-2" />
-                                Book
-                              </Button>
-                              <Button type="button" variant="ghost" size="sm">
-                                <Star className="h-4 w-4 mr-2" />
-                                Review
-                              </Button>
-                            </div>
-                            <Button type="submit" disabled>
-                              Post
-                            </Button>
-                          </div>
-                        </form>
-                      </CardContent>
-                    </Card>
-
                     {/* Activity Feed */}
                     <div className="space-y-6">
                       {mockActivities.map((activity) => (

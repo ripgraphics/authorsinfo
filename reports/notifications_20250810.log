@@ -1,0 +1,1 @@
+[2025-08-10T23:58:05.379132] BACKUP FAILURE: Backup failed: Command 'npx supabase db dump' returned non-zero exit status 1.

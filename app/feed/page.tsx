@@ -18,9 +18,9 @@ export default async function FeedPage() {
   return (
     <div className="container mx-auto py-6 max-w-4xl">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">Activity Feed</h1>
+        <h1 className="text-3xl font-bold">Feed</h1>
         <p className="text-muted-foreground">
-          See what your friends and the community are up to
+          See posts and activities from your friends and the community
         </p>
       </div>
 

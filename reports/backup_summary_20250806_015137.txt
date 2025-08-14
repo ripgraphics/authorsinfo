@@ -1,0 +1,25 @@
+SIMPLE DATABASE BACKUP REPORT
+==================================================
+
+Backup ID: 20250806_015137
+Status: COMPLETED
+Duration: 0.03 seconds
+Files Created: 4
+Operations: 0
+Errors: 0
+
+Schema Backup:
+  Lines: 16568
+  Size: 520.05 KB
+  File: SCHEMA_BACKUP_20250806_015137.sql
+
+Types Backup:
+  Lines: 12011
+  Size: 352.84 KB
+  File: TYPES_BACKUP_20250806_015137.ts
+
+Migrations Backup:
+  Lines: 3837
+  Size: 165.61 KB
+  File: MIGRATIONS_BACKUP_20250806_015137.sql
+

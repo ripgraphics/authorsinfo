@@ -1,4 +1,6 @@
 {
+  "npm.packageManager": "npm",
+  "deno.enable": false,
   "deno.enablePaths": [
     "supabase/functions"
   ],

@@ -11,7 +11,6 @@ Here is the console output
 
 
 
-
 :3034/favicon.ico:1  Failed to load resource: the server responded with a status of 404 (Not Found)
 chrome-extension://invalid/:1  Failed to load resource: net::ERR_FAILED
 chrome-extension://invalid/:1  Failed to load resource: net::ERR_FAILED
@@ -39,6 +38,8 @@ chrome-extension://invalid/:1  Failed to load resource: net::ERR_FAILED
  Rendering post with image: Object
  Rendering post with image: Object
  Rendering post with image: Object
+ Rendering post with image: Object
+ Rendering post with image: Object
  EntityFeedCard renderContent: Object
  Content type switch: Object
  EntityFeedCard renderContent: Object
@@ -435,33 +436,7 @@ chrome-extension://invalid/:1  Failed to load resource: net::ERR_FAILED
  Content type switch: Object
  EntityFeedCard renderContent: Object
  Content type switch: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
+ About to insert post: Object
  Rendering post with image: Object
  Rendering post with image: Object
  Rendering post with image: Object
@@ -570,31 +545,25 @@ chrome-extension://invalid/:1  Failed to load resource: net::ERR_FAILED
  Content type switch: Object
  EntityFeedCard renderContent: Object
  Content type switch: Object
- WebSocket connection to 'wss://nmrohtlcfqujtfgcyqhw.supabase.co/realtime/v1/websocket?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tcm9odGxjZnF1anRmZ2N5cWh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzMTQ1ODIsImV4cCI6MjA1Nzg5MDU4Mn0.kpkM45hzALxly1EP86tEP4QfWJS8cOEys4zkSmZVIyU&vsn=1.0.0' failed: 
-connect @ webpack-internal:///…altimeClient.js:153
-pending:1  Failed to load resource: the server responded with a status of 401 (Unauthorized)
- Failed to fetch pending requests
-overrideMethod @ installHook.js:1
- Response status: 401
-overrideMethod @ installHook.js:1
- Response status text: Unauthorized
-overrideMethod @ installHook.js:1
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
- FriendRequestNotification - Received data: Object
+ Rendering post with image: Object
+ Rendering post with image: Object
+ Rendering post with image: Object
+ Rendering post with image: Object
+ Rendering post with image: Object
+ Rendering post with image: Object
+ Rendering post with image: Object
+ Rendering post with image: Object
+ Rendering post with image: Object
+ Rendering post with image: Object
+ Rendering post with image: Object
+ Rendering post with image: Object
+ Rendering post with image: Object
+ Rendering post with image: Object
+ Rendering post with image: Object
+ Rendering post with image: Object
+ Rendering post with image: Object
+ Rendering post with image: Object
+ Rendering post with image: Object
  Rendering post with image: Object
  Rendering post with image: Object
  Rendering post with image: Object
@@ -631,6 +600,8 @@ overrideMethod @ installHook.js:1
  Rendering post with image: Object
  Rendering post with image: Object
  Rendering post with image: Object
+ Rendering post with image: Object
+ Rendering post with image: Object
  EntityFeedCard renderContent: Object
  Content type switch: Object
  EntityFeedCard renderContent: Object
@@ -703,42 +674,6 @@ overrideMethod @ installHook.js:1
  Content type switch: Object
  EntityFeedCard renderContent: Object
  Content type switch: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
  EntityFeedCard renderContent: Object
  Content type switch: Object
  EntityFeedCard renderContent: Object
@@ -811,43 +746,52 @@ overrideMethod @ installHook.js:1
  Content type switch: Object
  EntityFeedCard renderContent: Object
  Content type switch: Object
- FriendRequestNotification - Received data: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
- Rendering post with image: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
  EntityFeedCard renderContent: Object
  Content type switch: Object
  EntityFeedCard renderContent: Object
@@ -920,6 +864,9 @@ overrideMethod @ installHook.js:1
  Content type switch: Object
  EntityFeedCard renderContent: Object
  Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ Rendering post with image: Object
  Rendering post with image: Object
  Rendering post with image: Object
  Rendering post with image: Object
@@ -956,6 +903,9 @@ overrideMethod @ installHook.js:1
  Rendering post with image: Object
  Rendering post with image: Object
  Rendering post with image: Object
+ Rendering post with image: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
  EntityFeedCard renderContent: Object
  Content type switch: Object
  EntityFeedCard renderContent: Object
@@ -1005,6 +955,44 @@ overrideMethod @ installHook.js:1
  EntityFeedCard renderContent: Object
  Content type switch: Object
  EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+ EntityFeedCard renderContent: Object
+ Content type switch: Object
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:284 EntityFeedCard renderContent: Object
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:319 Content type switch: Object
+hook.js:377 EntityFeedCard renderContent: Object
+hook.js:377 Content type switch: Object
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:284 EntityFeedCard renderContent: Object
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:319 Content type switch: Object
+hook.js:377 EntityFeedCard renderContent: Object
+hook.js:377 Content type switch: Object
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:284 EntityFeedCard renderContent: Object
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:319 Content type switch: Object
+hook.js:377 EntityFeedCard renderContent: Object
+hook.js:377 Content type switch: Object
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:284 EntityFeedCard renderContent: Object
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:319 Content type switch: Object
+hook.js:377 EntityFeedCard renderContent: Object
+hook.js:377 Content type switch: Object
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:284 EntityFeedCard renderContent: Object
 C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:319 Content type switch: Object
 hook.js:377 EntityFeedCard renderContent: Object
 hook.js:377 Content type switch: Object
@@ -1028,25 +1016,8 @@ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\compone
 C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:319 Content type switch: Object
 hook.js:377 EntityFeedCard renderContent: Object
 hook.js:377 Content type switch: Object
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\friend-request-notification.tsx:63 FriendRequestNotification - Received data: {success: true, requests: Array(0)}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\friend-request-notification.tsx:63 FriendRequestNotification - Received data: {success: true, requests: Array(0)}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\friend-request-notification.tsx:63 FriendRequestNotification - Received data: {success: true, requests: Array(0)}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\friend-request-notification.tsx:63 FriendRequestNotification - Received data: {success: true, requests: Array(0)}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\friend-request-notification.tsx:63 FriendRequestNotification - Received data: {success: true, requests: Array(0)}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\friend-request-notification.tsx:63 FriendRequestNotification - Received data: {success: true, requests: Array(0)}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\friend-request-notification.tsx:63 FriendRequestNotification - Received data: {success: true, requests: Array(0)}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\friend-request-notification.tsx:63 FriendRequestNotification - Received data: {success: true, requests: Array(0)}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\friend-request-notification.tsx:63 FriendRequestNotification - Received data: {success: true, requests: Array(0)}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\friend-request-notification.tsx:63 FriendRequestNotification - Received data: {success: true, requests: Array(0)}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\friend-request-notification.tsx:63 FriendRequestNotification - Received data: {success: true, requests: Array(0)}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\friend-request-notification.tsx:63 FriendRequestNotification - Received data: {success: true, requests: Array(0)}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\friend-request-notification.tsx:63 FriendRequestNotification - Received data: {success: true, requests: Array(0)}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\friend-request-notification.tsx:63 FriendRequestNotification - Received data: {success: true, requests: Array(0)}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\friend-request-notification.tsx:63 FriendRequestNotification - Received data: {success: true, requests: Array(0)}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\friend-request-notification.tsx:63 FriendRequestNotification - Received data: {success: true, requests: Array(0)}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\friend-request-notification.tsx:63 FriendRequestNotification - Received data: {success: true, requests: Array(0)}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\friend-request-notification.tsx:63 FriendRequestNotification - Received data: {success: true, requests: Array(0)}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\friend-request-notification.tsx:63 FriendRequestNotification - Received data: {success: true, requests: Array(0)}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\friend-request-notification.tsx:63 FriendRequestNotification - Received data: {success: true, requests: Array(0)}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\friend-request-notification.tsx:63 FriendRequestNotification - Received data: {success: true, requests: Array(0)}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\friend-request-notification.tsx:63 FriendRequestNotification - Received data: {success: true, requests: Array(0)}
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:284 EntityFeedCard renderContent: Object
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:319 Content type switch: Object
+hook.js:377 EntityFeedCard renderContent: Object
+hook.js:377 Content type switch: Object
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\friend-request-notification.tsx:63 FriendRequestNotification - Received data: Object

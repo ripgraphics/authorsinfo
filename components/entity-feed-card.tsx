@@ -114,6 +114,10 @@ export default function EntityFeedCard({
     bookmarks: []
   })
   const [isLoadingEngagement, setIsLoadingEngagement] = useState(false)
+  
+  // Image modal state
+  const [selectedImage, setSelectedImage] = useState<{url: string, index: number} | null>(null)
+  const [showImageModal, setShowImageModal] = useState(false)
 
   // Content type configurations
   const contentTypeConfigs = {
@@ -211,6 +215,35 @@ export default function EntityFeedCard({
     return 'low'
   }
 
+  // Get content summary
+  const getContentSummary = (content: PostContent, contentType: string) => {
+    if (contentType === 'text' && content.text) {
+      return content.text.length > 200 ? content.text.substring(0, 200) + '...' : content.text
+    }
+    if (contentType === 'review' && content.review) {
+      return content.review.length > 200 ? content.review.substring(0, 300) + '...' : content.review
+    }
+    if (contentType === 'poll' && content.poll_question) {
+      return `Poll: ${content.poll_question}`
+    }
+    if (contentType === 'link' && content.link_title) {
+      return `Link: ${content.link_title}`
+    }
+    return 'Content post'
+  }
+
+  // Handle image click for modal
+  const handleImageClick = (url: string, index: number) => {
+    setSelectedImage({ url, index });
+    setShowImageModal(true);
+  };
+
+  // Close image modal
+  const closeImageModal = () => {
+    setShowImageModal(false);
+    setSelectedImage(null);
+  };
+
   // Load engagement data
   const loadEngagementData = useCallback(async () => {
     if (!showEngagement || !post?.id) return
@@ -246,6 +279,26 @@ export default function EntityFeedCard({
     loadEngagementData()
   }, [loadEngagementData])
 
+  // Add keyboard support for image modal
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && showImageModal) {
+        closeImageModal()
+      }
+    }
+
+    if (showImageModal) {
+      document.addEventListener('keydown', handleKeyDown)
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = 'hidden'
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = 'unset'
+    }
+  }, [showImageModal, closeImageModal])
+
   // Format timestamp
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp)
@@ -258,23 +311,6 @@ export default function EntityFeedCard({
     if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d ago`
     
     return date.toLocaleDateString()
-  }
-
-  // Get content summary
-  const getContentSummary = (content: PostContent, contentType: string) => {
-    if (contentType === 'text' && content.text) {
-      return content.text.length > 200 ? content.text.substring(0, 200) + '...' : content.text
-    }
-    if (contentType === 'review' && content.review) {
-      return content.review.length > 200 ? content.review.substring(0, 200) + '...' : content.review
-    }
-    if (contentType === 'poll' && content.poll_question) {
-      return `Poll: ${content.poll_question}`
-    }
-    if (contentType === 'link' && content.link_title) {
-      return `Link: ${content.link_title}`
-    }
-    return 'Content post'
   }
 
   // Render content based type
@@ -342,20 +378,50 @@ export default function EntityFeedCard({
           hasImageUrl: !!post.image_url,
           fullPost: JSON.stringify(post, null, 2)
         })
+        
+        // Handle multiple images (comma-separated URLs)
+        const imageUrls = post.image_url ? post.image_url.split(',').map((url: string) => url.trim()).filter((url: string) => url) : []
+        const isMultiImage = imageUrls.length > 1
+        
         return (
           <div className="enterprise-feed-card-photo-content">
             {/* Check for image_url field first (from activities table) */}
-            {post.image_url && (
-              <div className="enterprise-feed-card-photo-grid">
-                <div className="enterprise-feed-card-photo-item">
-                  <img
-                    src={post.image_url}
-                    alt="Post image"
-                    className="enterprise-feed-card-photo w-full h-auto rounded-lg object-cover"
-                  />
-                </div>
+            {imageUrls.length > 0 && (
+              <div className={`enterprise-feed-card-photo-grid ${isMultiImage ? 'grid-cols-2 gap-2' : ''}`}>
+                {imageUrls.map((imageUrl: string, index: number) => (
+                  <div key={index} className="enterprise-feed-card-photo-item">
+                    {isMultiImage ? (
+                      // Multiple images - show in grid
+                      <img
+                        src={imageUrl}
+                        alt={`Post image ${index + 1}`}
+                        className="enterprise-feed-card-photo w-full h-auto rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                        onClick={() => handleImageClick(imageUrl, index)}
+                      />
+                    ) : (
+                      // Single image - show full size with click to expand
+                      <div className="relative group">
+                        <img
+                          src={imageUrl}
+                          alt="Post image"
+                          className="enterprise-feed-card-photo w-full h-auto rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                          onClick={() => handleImageClick(imageUrl, 0)}
+                        />
+                        {/* Click indicator for single images */}
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200 rounded-lg flex items-center justify-center">
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white bg-opacity-80 rounded-full p-2">
+                            <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
+            
             {/* Fallback to media_files for posts table */}
             {!post.image_url && post.media_files && post.media_files.length > 0 && (
               <div className="enterprise-feed-card-photo-grid">
@@ -370,6 +436,17 @@ export default function EntityFeedCard({
                 ))}
               </div>
             )}
+            
+            {/* Image count indicator for multi-image posts */}
+            {isMultiImage && (
+              <div className="mt-2 text-sm text-muted-foreground flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                {imageUrls.length} images • Click to view full size
+              </div>
+            )}
+            
             {content.text && (
               <div className="enterprise-feed-card-photo-caption mt-3">
                 <p className="text-sm text-muted-foreground">{content.text}</p>
@@ -856,6 +933,41 @@ export default function EntityFeedCard({
           </div>
         )}
       </div>
+      
+      {/* Image Modal */}
+      {showImageModal && selectedImage && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
+          onClick={closeImageModal}
+        >
+          <div 
+            className="relative max-w-4xl max-h-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close button */}
+            <button
+              onClick={closeImageModal}
+              className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-10"
+            >
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            {/* Image */}
+            <img
+              src={selectedImage.url}
+              alt={`Post image ${selectedImage.index + 1}`}
+              className="max-w-full max-h-full object-contain rounded-lg"
+            />
+            
+            {/* Image info */}
+            <div className="absolute bottom-4 left-4 text-white text-sm bg-black bg-opacity-50 px-3 py-2 rounded-lg">
+              Image {selectedImage.index + 1} • Click outside to close
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 } 

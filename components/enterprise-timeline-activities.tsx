@@ -104,7 +104,6 @@ interface EnterpriseActivity {
   is_verified?: boolean
   is_bookmarked?: boolean
   is_following?: boolean
-  engagement_score?: number
   content_safety_score?: number
   // New enterprise features
   cross_posted_to?: string[] // Array of user IDs where this was cross-posted
@@ -137,6 +136,18 @@ interface EnterpriseActivity {
     content_length_optimal: boolean
     engagement_hotspots: string[]
   }
+  // Add missing columns from the stored procedure
+  content_type?: string
+  image_url?: string
+  text?: string
+  link_url?: string
+  visibility?: string
+  content_summary?: string
+  hashtags?: string[]
+  share_count?: number
+  view_count?: number
+  engagement_score?: number
+  metadata?: any
 }
 
 interface TimelineFilters {
@@ -360,6 +371,7 @@ export default function EnterpriseTimelineActivities({
   })
   
   const [isPosting, setIsPosting] = useState(false)
+  const [isUploading, setIsUploading] = useState(false) // New state for photo upload
   
   // Enterprise features state
   const [moderationSettings, setModerationSettings] = useState<ModerationSettings>({
@@ -914,6 +926,25 @@ export default function EnterpriseTimelineActivities({
         contentType: postForm.imageUrl ? 'image' : postForm.contentType,
         content: postForm.content
       })
+
+      // Handle multiple images - create album if needed
+      let albumId = null
+      let imageUrls = []
+      
+      if (postForm.imageUrl) {
+        // Split multiple image URLs (comma-separated)
+        imageUrls = postForm.imageUrl.split(',').map(url => url.trim()).filter(url => url)
+        
+        if (imageUrls.length > 1) {
+          // Multiple images - create or get "Posts" album
+          albumId = await getOrCreatePostsAlbum(userId)
+          
+          // Upload images to album
+          for (const imageUrl of imageUrls) {
+            await addImageToPostsAlbum(albumId, imageUrl, userId)
+          }
+        }
+      }
       
       // Create the actual post in the database
       const { data, error } = await supabase
@@ -938,7 +969,10 @@ export default function EnterpriseTimelineActivities({
                 image_metadata: {
                   uploaded_at: new Date().toISOString(),
                   storage_provider: 'cloudinary',
-                  content_type: 'image'
+                  content_type: 'image',
+                  image_count: imageUrls.length,
+                  album_id: albumId,
+                  is_multi_image: imageUrls.length > 1
                 }
               })
             },
@@ -946,7 +980,9 @@ export default function EnterpriseTimelineActivities({
             entity_id: userId,
             metadata: {
               privacy_level: postForm.visibility,
-              engagement_count: 0
+              engagement_count: 0,
+              album_id: albumId,
+              image_count: imageUrls.length
             }
           }
         ])
@@ -958,9 +994,22 @@ export default function EnterpriseTimelineActivities({
 
       toast({
         title: "Post Created Successfully!",
-        description: "Your post has been created and is now visible on your timeline",
+        description: imageUrls.length > 1 
+          ? `Your post with ${imageUrls.length} images has been created and added to your Posts album!`
+          : "Your post has been created and is now visible on your timeline",
         duration: 3000
       })
+      
+      // Show additional info for multi-image posts
+      if (imageUrls.length > 1) {
+        setTimeout(() => {
+          toast({
+            title: "Images Organized",
+            description: `Your ${imageUrls.length} images are now available in your Posts album. Click "View Posts Album" to see them all organized together!`,
+            duration: 5000
+          })
+        }, 1000)
+      }
       
       // Reset form
       setPostForm({
@@ -986,6 +1035,111 @@ export default function EnterpriseTimelineActivities({
       setIsPosting(false)
     }
   }, [postForm.content, postForm.contentType, postForm.visibility, userId, supabase, fetchActivities, toast])
+
+  // Get or create "Posts" album for user
+  const getOrCreatePostsAlbum = async (userId: string): Promise<string> => {
+    try {
+      // First try to find existing "Posts" album
+      const { data: existingAlbum } = await supabase
+        .from('photo_albums')
+        .select('id')
+        .eq('owner_id', userId)
+        .eq('name', 'Posts')
+        .eq('entity_type', 'user')
+        .eq('entity_id', userId)
+        .single()
+
+      if (existingAlbum) {
+        return existingAlbum.id
+      }
+
+      // Create new "Posts" album if it doesn't exist
+      const { data: newAlbum, error } = await supabase
+        .from('photo_albums')
+        .insert({
+          name: 'Posts',
+          description: 'All post images automatically organized here',
+          owner_id: userId,
+          is_public: true,
+          entity_type: 'user',
+          entity_id: userId,
+          metadata: {
+            auto_generated: true,
+            purpose: 'post_images',
+            created_from: 'timeline_post'
+          }
+        })
+        .select('id')
+        .single()
+
+      if (error) throw error
+      return newAlbum.id
+    } catch (error) {
+      console.error('Error creating Posts album:', error)
+      throw error
+    }
+  }
+
+  // Add image to Posts album
+  const addImageToPostsAlbum = async (albumId: string, imageUrl: string, userId: string) => {
+    try {
+      // First create image record
+      const { data: imageRecord, error: imageError } = await supabase
+        .from('images')
+        .insert({
+          url: imageUrl,
+          alt_text: `Post image by ${user?.user_metadata?.full_name || 'User'}`,
+          storage_provider: 'cloudinary',
+          storage_path: 'authorsinfo/post_photos',
+          uploader_id: userId,
+          uploader_type: 'user',
+          metadata: {
+            source: 'timeline_post',
+            uploaded_at: new Date().toISOString()
+          }
+        })
+        .select('id')
+        .single()
+
+      if (imageError) throw imageError
+
+      // Add image to album
+      const { error: albumImageError } = await supabase
+        .from('album_images')
+        .insert({
+          album_id: albumId,
+          image_id: imageRecord.id,
+          display_order: 0,
+          entity_type: 'user',
+          entity_id: userId,
+          metadata: {
+            added_from: 'timeline_post',
+            added_at: new Date().toISOString()
+          }
+        })
+
+      if (albumImageError) throw albumImageError
+    } catch (error) {
+      console.error('Error adding image to Posts album:', error)
+      throw error
+    }
+  }
+
+  // Helper function to validate image URLs
+  const validateImageUrl = (url: string): boolean => {
+    try {
+      const urlObj = new URL(url)
+      return urlObj.protocol === 'https:' && urlObj.hostname.includes('cloudinary.com')
+    } catch {
+      return false
+    }
+  }
+
+  // Helper function to get image count from imageUrl field
+  const getImageCount = (imageUrl: string): number => {
+    if (!imageUrl) return 0
+    return imageUrl.split(',').map(url => url.trim()).filter(url => url).length
+  }
   
   // Handle cross-posting
   const handleCrossPost = useCallback(async () => {
@@ -1010,6 +1164,24 @@ export default function EnterpriseTimelineActivities({
 
     setIsPosting(true)
     try {
+      // Handle multiple images for cross-posting
+      let imageUrls = []
+      let albumId = null
+      
+      if (postForm.imageUrl) {
+        imageUrls = postForm.imageUrl.split(',').map(url => url.trim()).filter(url => url)
+        
+        if (imageUrls.length > 1) {
+          // Multiple images - create or get "Posts" album
+          albumId = await getOrCreatePostsAlbum(userId)
+          
+          // Upload images to album
+          for (const imageUrl of imageUrls) {
+            await addImageToPostsAlbum(albumId, imageUrl, userId)
+          }
+        }
+      }
+
       // Create cross-posts to friends' timelines
       const friends = ['Alice Anderson', 'Bob Smith', 'Carol Johnson', 'David Wilson', 'Eva Brown']
       
@@ -1024,12 +1196,16 @@ export default function EnterpriseTimelineActivities({
               content_type: postForm.imageUrl ? 'image' : postForm.contentType,
               text: postForm.content,
               content_summary: `Shared by ${user?.user_metadata?.full_name || 'You'}: ${postForm.content.substring(0, 100)}${postForm.content.length > 100 ? '...' : ''}`,
+              image_url: postForm.imageUrl || null,
               data: {
                 content: postForm.content,
                 content_type: postForm.imageUrl ? 'image' : postForm.contentType,
                 content_summary: `Shared by ${user?.user_metadata?.full_name || 'You'}: ${postForm.content.substring(0, 100)}${postForm.content.length > 100 ? '...' : ''}`,
                 shared_from: 'timeline',
-                shared_to: friend
+                shared_to: friend,
+                image_count: imageUrls.length,
+                album_id: albumId,
+                is_multi_image: imageUrls.length > 1
               },
               entity_type: 'user',
               entity_id: userId,
@@ -1037,7 +1213,9 @@ export default function EnterpriseTimelineActivities({
                 privacy_level: 'friends',
                 engagement_count: 0,
                 cross_posted: true,
-                target_user: friend
+                target_user: friend,
+                album_id: albumId,
+                image_count: imageUrls.length
               }
             }
           ])
@@ -1045,7 +1223,9 @@ export default function EnterpriseTimelineActivities({
       
       toast({
         title: "Cross-Posted Successfully!",
-        description: `Your post has been shared to ${friends.length} friends' timelines`,
+        description: imageUrls.length > 1 
+          ? `Your post with ${imageUrls.length} images has been shared to ${friends.length} friends' timelines and added to your Posts album!`
+          : `Your post has been shared to ${friends.length} friends' timelines`,
         duration: 3000
       })
       
@@ -1080,10 +1260,17 @@ export default function EnterpriseTimelineActivities({
     const input = document.createElement('input')
     input.type = 'file'
     input.accept = 'image/*'
+    input.multiple = true // Allow multiple file selection
     input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0]
-      if (file) {
-        try {
+      const files = Array.from((e.target as HTMLInputElement).files || [])
+      if (files.length === 0) return
+
+      try {
+        setIsUploading(true)
+        const uploadedUrls: string[] = []
+
+        // Upload each file
+        for (const file of files) {
           // Use the existing working Cloudinary upload system
           const formData = new FormData()
           formData.append('file', file)
@@ -1101,31 +1288,39 @@ export default function EnterpriseTimelineActivities({
           }
 
           const result = await response.json()
-          
           if (result.success) {
-            // Update form with photo URL
-            setPostForm(prev => ({ ...prev, imageUrl: result.url }))
-            
-            toast({
-              title: "Photo Added!",
-              description: "Photo has been uploaded and added to your post",
-              duration: 3000
-            })
-          } else {
-            throw new Error(result.error || 'Upload failed')
+            uploadedUrls.push(result.url)
           }
-        } catch (error) {
-          console.error('Photo upload error:', error)
-          toast({
-            title: "Photo Upload Failed",
-            description: error instanceof Error ? error.message : "Please try again",
-            variant: "destructive"
-          })
         }
+
+        // Update form with all uploaded URLs
+        const currentUrls = postForm.imageUrl ? postForm.imageUrl.split(',').map(url => url.trim()).filter(url => url) : []
+        const allUrls = [...currentUrls, ...uploadedUrls]
+        setPostForm(prev => ({
+          ...prev,
+          imageUrl: allUrls.join(', ')
+        }))
+
+        toast({
+          title: "Photos Uploaded Successfully!",
+          description: `${files.length} photo${files.length > 1 ? 's' : ''} uploaded`,
+          duration: 3000
+        })
+
+      } catch (error) {
+        console.error('Error uploading photos:', error)
+        toast({
+          title: "Upload Failed",
+          description: error instanceof Error ? error.message : "Please try again",
+          variant: "destructive"
+        })
+      } finally {
+        setIsUploading(false)
       }
     }
+
     input.click()
-  }, [userId, toast])
+  }, [userId, postForm.imageUrl, setIsUploading, toast])
 
   // Handle tagging friends
   const handleTagFriends = useCallback(() => {
@@ -1465,19 +1660,65 @@ export default function EnterpriseTimelineActivities({
                 {/* Photo Preview */}
                 {postForm.imageUrl && (
                   <div className="mt-3 relative">
-                    <img 
-                      src={postForm.imageUrl} 
-                      alt="Post photo" 
-                      className="w-full max-h-48 object-cover rounded-lg"
-                    />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="absolute top-2 right-2 bg-white/80 hover:bg-white"
-                      onClick={() => setPostForm(prev => ({ ...prev, imageUrl: '' }))}
-                    >
-                      ✕
-                    </Button>
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-700">
+                        {getImageCount(postForm.imageUrl)} image{getImageCount(postForm.imageUrl) !== 1 ? 's' : ''} selected
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => setPostForm(prev => ({ ...prev, imageUrl: '' }))}
+                      >
+                        Clear all
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {postForm.imageUrl.split(',').map(url => url.trim()).filter(url => url).map((imageUrl, index) => (
+                        <div key={index} className="relative w-24 h-24 rounded-md overflow-hidden border border-gray-300">
+                          <img 
+                            src={imageUrl} 
+                            alt={`Post photo ${index + 1}`} 
+                            className="w-full h-full object-cover"
+                          />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="absolute top-1 right-1 bg-white/80 hover:bg-white text-red-600 hover:text-red-700"
+                            onClick={() => {
+                              const newUrls = postForm.imageUrl.split(',').map(u => u.trim()).filter(u => u !== imageUrl);
+                              setPostForm(prev => ({ ...prev, imageUrl: newUrls.join(', ') }));
+                            }}
+                          >
+                            ✕
+                          </Button>
+                          {/* Validation indicator */}
+                          <div className={`absolute bottom-1 left-1 w-3 h-3 rounded-full ${
+                            validateImageUrl(imageUrl) ? 'bg-green-500' : 'bg-red-500'
+                          }`} title={validateImageUrl(imageUrl) ? 'Valid image URL' : 'Invalid image URL'} />
+                        </div>
+                      ))}
+                    </div>
+                    {/* Image count info */}
+                    {getImageCount(postForm.imageUrl) > 1 && (
+                      <div className="mt-2 text-xs text-gray-500 flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Multiple images will be automatically organized in your Posts album
+                        <Button
+                          variant="link"
+                          size="sm"
+                          className="text-blue-600 hover:text-blue-700 p-0 h-auto text-xs"
+                          onClick={() => {
+                            // Navigate to the user's photo albums page
+                            window.open(`/profile/${userId}/photos`, '_blank')
+                          }}
+                        >
+                          View Posts Album
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -1490,9 +1731,10 @@ export default function EnterpriseTimelineActivities({
                     size="sm" 
                     className="text-gray-600 hover:text-blue-600"
                     onClick={handlePhotoUpload}
+                    disabled={isUploading}
                   >
                     <Camera className="h-4 w-4 mr-2" />
-                    Photo
+                    {isUploading ? 'Uploading...' : 'Photo'}
                   </Button>
                   <Button 
                     variant="ghost" 
@@ -1667,13 +1909,16 @@ export default function EnterpriseTimelineActivities({
     return (
       <div key={activity.id} className="enterprise-feed-card">
         {/* Debug logging */}
-        {console.log('Rendering post with image:', { 
-          postId: post.id, 
-          contentType: post.content_type, 
-          imageUrl: post.image_url,
-          text: post.content?.text,
-          fullPost: JSON.stringify(post, null, 2)
-        })}
+        {(() => {
+          console.log('Rendering post with image:', { 
+            postId: post.id, 
+            contentType: post.content_type, 
+            imageUrl: post.image_url,
+            text: post.content?.text,
+            fullPost: JSON.stringify(post, null, 2)
+          })
+          return null
+        })()}
         <EntityFeedCard
           post={post}
           userDetails={{
@@ -1774,7 +2019,7 @@ export default function EnterpriseTimelineActivities({
             <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">Failed to load timeline</h3>
             <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={fetchActivities} variant="outline">
+            <Button onClick={() => fetchActivities()} variant="outline">
               Try Again
             </Button>
           </div>

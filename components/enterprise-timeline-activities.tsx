@@ -929,19 +929,27 @@ export default function EnterpriseTimelineActivities({
 
       // Handle multiple images - create album if needed
       let albumId = null
-      let imageUrls = []
+      let imageUrls: string[] = []
       
       if (postForm.imageUrl) {
         // Split multiple image URLs (comma-separated)
         imageUrls = postForm.imageUrl.split(',').map(url => url.trim()).filter(url => url)
         
         if (imageUrls.length > 1) {
-          // Multiple images - create or get "Posts" album
-          albumId = await getOrCreatePostsAlbum(userId)
-          
-          // Upload images to album
-          for (const imageUrl of imageUrls) {
-            await addImageToPostsAlbum(albumId, imageUrl, userId)
+          try {
+            console.log('Creating Posts album for multiple images...')
+            // Multiple images - create or get "Posts" album
+            albumId = await getOrCreatePostsAlbum(userId)
+            console.log('Posts album ready:', albumId)
+          } catch (albumError) {
+            console.error('Error creating Posts album:', albumError)
+            // Continue with post creation even if album creation fails
+            toast({
+              title: "Album Creation Failed",
+              description: "Your post will be created, but images may not be organized in an album.",
+              variant: "destructive",
+              duration: 3000
+            })
           }
         }
       }
@@ -992,6 +1000,29 @@ export default function EnterpriseTimelineActivities({
         throw new Error(`Failed to create post: ${error.message}`)
       }
 
+      // Now that the post is created successfully, add images to album if needed
+      if (imageUrls.length > 1 && albumId) {
+        try {
+          console.log('Adding images to Posts album:', { albumId, imageCount: imageUrls.length })
+          
+          // Add each image to the album
+          for (const imageUrl of imageUrls) {
+            await addImageToPostsAlbum(albumId, imageUrl, userId)
+          }
+          
+          console.log('Successfully added all images to Posts album')
+        } catch (albumError) {
+          console.error('Error adding images to album:', albumError)
+          // Don't fail the entire post creation, just log the error
+          toast({
+            title: "Images Organized",
+            description: `Your post was created, but there was an issue organizing the images in the album.`,
+            variant: "destructive",
+            duration: 5000
+          })
+        }
+      }
+
       toast({
         title: "Post Created Successfully!",
         description: imageUrls.length > 1 
@@ -1036,25 +1067,31 @@ export default function EnterpriseTimelineActivities({
     }
   }, [postForm.content, postForm.contentType, postForm.visibility, userId, supabase, fetchActivities, toast])
 
-  // Get or create "Posts" album for user
-  const getOrCreatePostsAlbum = async (userId: string): Promise<string> => {
+  // Get or create Posts album for user
+  const getOrCreatePostsAlbum = async (userId: string) => {
     try {
-      // First try to find existing "Posts" album
-      const { data: existingAlbum } = await supabase
+      // First check if Posts album already exists
+      const { data: existingAlbum, error: selectError } = await supabase
         .from('photo_albums')
-        .select('id')
+        .select('id, name, description')
         .eq('owner_id', userId)
         .eq('name', 'Posts')
         .eq('entity_type', 'user')
         .eq('entity_id', userId)
         .single()
 
+      if (selectError && selectError.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error('Error checking for existing Posts album:', selectError)
+        throw selectError
+      }
+
       if (existingAlbum) {
+        console.log('Found existing Posts album:', existingAlbum.id)
         return existingAlbum.id
       }
 
-      // Create new "Posts" album if it doesn't exist
-      const { data: newAlbum, error } = await supabase
+      // Create new Posts album
+      const { data: newAlbum, error: insertError } = await supabase
         .from('photo_albums')
         .insert({
           name: 'Posts',
@@ -1064,18 +1101,23 @@ export default function EnterpriseTimelineActivities({
           entity_type: 'user',
           entity_id: userId,
           metadata: {
-            auto_generated: true,
-            purpose: 'post_images',
-            created_from: 'timeline_post'
+            created_from: 'timeline_post',
+            created_at: new Date().toISOString(),
+            purpose: 'organize_post_images'
           }
         })
         .select('id')
         .single()
 
-      if (error) throw error
+      if (insertError) {
+        console.error('Error creating Posts album:', insertError)
+        throw insertError
+      }
+
+      console.log('Created new Posts album:', newAlbum.id)
       return newAlbum.id
     } catch (error) {
-      console.error('Error creating Posts album:', error)
+      console.error('Error in getOrCreatePostsAlbum:', error)
       throw error
     }
   }
@@ -1083,7 +1125,7 @@ export default function EnterpriseTimelineActivities({
   // Add image to Posts album
   const addImageToPostsAlbum = async (albumId: string, imageUrl: string, userId: string) => {
     try {
-      // First create image record
+      // First create image record with proper metadata
       const { data: imageRecord, error: imageError } = await supabase
         .from('images')
         .insert({
@@ -1095,15 +1137,19 @@ export default function EnterpriseTimelineActivities({
           uploader_type: 'user',
           metadata: {
             source: 'timeline_post',
-            uploaded_at: new Date().toISOString()
+            uploaded_at: new Date().toISOString(),
+            post_type: 'user_post'
           }
         })
         .select('id')
         .single()
 
-      if (imageError) throw imageError
+      if (imageError) {
+        console.error('Error creating image record:', imageError)
+        throw imageError
+      }
 
-      // Add image to album
+      // Add image to album with proper metadata
       const { error: albumImageError } = await supabase
         .from('album_images')
         .insert({
@@ -1114,11 +1160,26 @@ export default function EnterpriseTimelineActivities({
           entity_id: userId,
           metadata: {
             added_from: 'timeline_post',
-            added_at: new Date().toISOString()
+            added_at: new Date().toISOString(),
+            post_source: 'user_timeline'
           }
         })
 
-      if (albumImageError) throw albumImageError
+      if (albumImageError) {
+        console.error('Error adding image to album:', albumImageError)
+        // If adding to album fails, we should clean up the image record
+        await supabase
+          .from('images')
+          .delete()
+          .eq('id', imageRecord.id)
+        throw albumImageError
+      }
+
+      console.log('Successfully added image to Posts album:', {
+        imageId: imageRecord.id,
+        albumId,
+        imageUrl
+      })
     } catch (error) {
       console.error('Error adding image to Posts album:', error)
       throw error
@@ -1165,19 +1226,27 @@ export default function EnterpriseTimelineActivities({
     setIsPosting(true)
     try {
       // Handle multiple images for cross-posting
-      let imageUrls = []
+      let imageUrls: string[] = []
       let albumId = null
       
       if (postForm.imageUrl) {
         imageUrls = postForm.imageUrl.split(',').map(url => url.trim()).filter(url => url)
         
         if (imageUrls.length > 1) {
-          // Multiple images - create or get "Posts" album
-          albumId = await getOrCreatePostsAlbum(userId)
-          
-          // Upload images to album
-          for (const imageUrl of imageUrls) {
-            await addImageToPostsAlbum(albumId, imageUrl, userId)
+          try {
+            console.log('Creating Posts album for cross-posting...')
+            // Multiple images - create or get "Posts" album
+            albumId = await getOrCreatePostsAlbum(userId)
+            console.log('Posts album ready for cross-posting:', albumId)
+          } catch (albumError) {
+            console.error('Error creating Posts album for cross-posting:', albumError)
+            // Continue with cross-posting even if album creation fails
+            toast({
+              title: "Album Creation Failed",
+              description: "Your cross-posts will be created, but images may not be organized in an album.",
+              variant: "destructive",
+              duration: 3000
+            })
           }
         }
       }
@@ -1228,6 +1297,29 @@ export default function EnterpriseTimelineActivities({
           : `Your post has been shared to ${friends.length} friends' timelines`,
         duration: 3000
       })
+      
+      // Now that cross-posts are created successfully, add images to album if needed
+      if (imageUrls.length > 1 && albumId) {
+        try {
+          console.log('Adding images to Posts album for cross-posting:', { albumId, imageCount: imageUrls.length })
+          
+          // Add each image to the album
+          for (const imageUrl of imageUrls) {
+            await addImageToPostsAlbum(albumId, imageUrl, userId)
+          }
+          
+          console.log('Successfully added all images to Posts album for cross-posting')
+        } catch (albumError) {
+          console.error('Error adding images to album for cross-posting:', albumError)
+          // Don't fail the entire cross-posting, just log the error
+          toast({
+            title: "Images Organized",
+            description: `Your cross-posts were created, but there was an issue organizing the images in the album.`,
+            variant: "destructive",
+            duration: 5000
+          })
+        }
+      }
       
       // Reset form
       setPostForm({

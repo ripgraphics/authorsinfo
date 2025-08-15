@@ -935,6 +935,8 @@ export default function EnterpriseTimelineActivities({
         // Split multiple image URLs (comma-separated)
         imageUrls = postForm.imageUrl.split(',').map(url => url.trim()).filter(url => url)
         
+        console.log('Processing images for post:', { imageCount: imageUrls.length, imageUrls })
+        
         if (imageUrls.length > 1) {
           try {
             console.log('Creating Posts album for multiple images...')
@@ -1011,8 +1013,38 @@ export default function EnterpriseTimelineActivities({
           }
           
           console.log('Successfully added all images to Posts album')
+          
+          // Debug: Check album status after adding images
+          console.log('=== DEBUG: Checking album status after adding images ===')
+          const { data: albumCheck, error: albumCheckError } = await supabase
+            .from('photo_albums')
+            .select('*')
+            .eq('id', albumId)
+          
+          console.log('Album check result:', { albumCheck, albumCheckError })
+          
+          // Check if images were added to the album
+          const { data: albumImages, error: imagesError } = await supabase
+            .from('album_images')
+            .select('*')
+            .eq('album_id', albumId)
+          
+          console.log('Album images check:', { albumImages, imagesError })
+          console.log('=== END DEBUG ===')
+          
         } catch (albumError) {
           console.error('Error adding images to album:', albumError)
+          // Log more details about the error
+          if (albumError instanceof Error) {
+            console.error('Error details:', {
+              message: albumError.message,
+              stack: albumError.stack,
+              name: albumError.name
+            })
+          } else {
+            console.error('Error object:', JSON.stringify(albumError, null, 2))
+          }
+          
           // Don't fail the entire post creation, just log the error
           toast({
             title: "Images Organized",
@@ -1070,6 +1102,8 @@ export default function EnterpriseTimelineActivities({
   // Get or create Posts album for user
   const getOrCreatePostsAlbum = async (userId: string) => {
     try {
+      console.log('Getting or creating Posts album for user:', userId)
+      
       // First check if Posts album already exists
       const { data: existingAlbum, error: selectError } = await supabase
         .from('photo_albums')
@@ -1079,6 +1113,8 @@ export default function EnterpriseTimelineActivities({
         .eq('entity_type', 'user')
         .eq('entity_id', userId)
         .single()
+
+      console.log('Existing album check result:', { existingAlbum, selectError })
 
       if (selectError && selectError.code !== 'PGRST116') { // PGRST116 = no rows returned
         console.error('Error checking for existing Posts album:', selectError)
@@ -1090,32 +1126,36 @@ export default function EnterpriseTimelineActivities({
         return existingAlbum.id
       }
 
-      // Create new Posts album
-      const { data: newAlbum, error: insertError } = await supabase
+      // Create new Posts album with proper entity references
+      console.log('Creating new Posts album...')
+      const { data: newAlbum, error: createError } = await supabase
         .from('photo_albums')
         .insert({
           name: 'Posts',
           description: 'All post images automatically organized here',
           owner_id: userId,
           is_public: true,
-          entity_type: 'user',
-          entity_id: userId,
+          entity_type: 'user', // Required for entity consistency
+          entity_id: userId,   // Required for entity consistency
           metadata: {
-            created_from: 'timeline_post',
+            created_via: 'timeline_post_system',
             created_at: new Date().toISOString(),
-            purpose: 'organize_post_images'
+            purpose: 'automatic_post_image_organization'
           }
         })
         .select('id')
         .single()
 
-      if (insertError) {
-        console.error('Error creating Posts album:', insertError)
-        throw insertError
+      console.log('Album creation result:', { newAlbum, createError })
+
+      if (createError) {
+        console.error('Error creating Posts album:', createError)
+        throw createError
       }
 
-      console.log('Created new Posts album:', newAlbum.id)
+      console.log('Successfully created Posts album:', newAlbum.id)
       return newAlbum.id
+
     } catch (error) {
       console.error('Error in getOrCreatePostsAlbum:', error)
       throw error
@@ -1125,6 +1165,8 @@ export default function EnterpriseTimelineActivities({
   // Add image to Posts album
   const addImageToPostsAlbum = async (albumId: string, imageUrl: string, userId: string) => {
     try {
+      console.log('Adding image to Posts album:', { albumId, imageUrl, userId })
+      
       // First create image record with proper metadata
       const { data: imageRecord, error: imageError } = await supabase
         .from('images')
@@ -1135,6 +1177,7 @@ export default function EnterpriseTimelineActivities({
           storage_path: 'authorsinfo/post_photos',
           uploader_id: userId,
           uploader_type: 'user',
+          entity_type_id: null, // Not required for user posts
           metadata: {
             source: 'timeline_post',
             uploaded_at: new Date().toISOString(),
@@ -1149,25 +1192,47 @@ export default function EnterpriseTimelineActivities({
         throw imageError
       }
 
-      // Add image to album with proper metadata
-      const { error: albumImageError } = await supabase
+      console.log('Image record created:', imageRecord.id)
+
+      // Get the next display order for this album
+      const { data: existingImages, error: countError } = await supabase
+        .from('album_images')
+        .select('display_order')
+        .eq('album_id', albumId)
+        .order('display_order', { ascending: false })
+        .limit(1)
+
+      if (countError) {
+        console.error('Error getting display order:', countError)
+        throw countError
+      }
+
+      const nextDisplayOrder = existingImages && existingImages.length > 0 
+        ? Math.max(...existingImages.map(img => img.display_order || 0)) + 1 
+        : 1
+
+      console.log('Next display order:', nextDisplayOrder)
+
+      // Now add image to album with proper entity references
+      const { data: albumImageRecord, error: albumImageError } = await supabase
         .from('album_images')
         .insert({
           album_id: albumId,
           image_id: imageRecord.id,
-          display_order: 0,
-          entity_type: 'user',
-          entity_id: userId,
+          display_order: nextDisplayOrder,
+          entity_type: 'user', // Required for entity consistency
+          entity_id: userId,   // Required for entity consistency
           metadata: {
-            added_from: 'timeline_post',
-            added_at: new Date().toISOString(),
-            post_source: 'user_timeline'
+            added_via: 'timeline_post',
+            added_at: new Date().toISOString()
           }
         })
+        .select('id')
+        .single()
 
       if (albumImageError) {
         console.error('Error adding image to album:', albumImageError)
-        // If adding to album fails, we should clean up the image record
+        // Clean up the image record if album insertion fails
         await supabase
           .from('images')
           .delete()
@@ -1175,13 +1240,21 @@ export default function EnterpriseTimelineActivities({
         throw albumImageError
       }
 
-      console.log('Successfully added image to Posts album:', {
-        imageId: imageRecord.id,
-        albumId,
-        imageUrl
-      })
+      console.log('Image successfully added to album:', albumImageRecord.id)
+      return albumImageRecord.id
+
     } catch (error) {
       console.error('Error adding image to Posts album:', error)
+      // Log more details about the error
+      if (error instanceof Error) {
+        console.error('Error details:', {
+          message: error.message,
+          stack: error.stack,
+          name: error.name
+        })
+      } else {
+        console.error('Error object:', JSON.stringify(error, null, 2))
+      }
       throw error
     }
   }

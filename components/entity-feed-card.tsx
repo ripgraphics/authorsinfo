@@ -115,10 +115,6 @@ export default function EntityFeedCard({
   })
   const [isLoadingEngagement, setIsLoadingEngagement] = useState(false)
   
-  // Image modal state
-  const [selectedImage, setSelectedImage] = useState<{url: string, index: number} | null>(null)
-  const [showImageModal, setShowImageModal] = useState(false)
-
   // Content type configurations
   const contentTypeConfigs = {
     text: {
@@ -234,15 +230,27 @@ export default function EntityFeedCard({
 
   // Handle image click for modal
   const handleImageClick = (url: string, index: number) => {
-    setSelectedImage({ url, index });
-    setShowImageModal(true);
-  };
+    // Navigate to the photo album to view all images with proper navigation
+    // This will use the existing EntityPhotoAlbums component
+    console.log('Image clicked:', { url, index })
+    
+    // Get the user ID from the post data
+    const userId = post.user_id || post.user?.id
+    
+    if (userId) {
+      // Navigate to the photos tab and open the Posts album
+      const profileUrl = `/profile/${userId}?tab=photos`
+      window.open(profileUrl, '_blank')
+      
+      // TODO: In the future, we could pass the album ID as a parameter
+      // to directly open the specific album: `/profile/${userId}?tab=photos&album=posts`
+    }
+  }
 
-  // Close image modal
   const closeImageModal = () => {
-    setShowImageModal(false);
-    setSelectedImage(null);
-  };
+    // This function is no longer needed
+    console.log('Modal close requested - not implemented')
+  }
 
   // Load engagement data
   const loadEngagementData = useCallback(async () => {
@@ -279,25 +287,7 @@ export default function EntityFeedCard({
     loadEngagementData()
   }, [loadEngagementData])
 
-  // Add keyboard support for image modal
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && showImageModal) {
-        closeImageModal()
-      }
-    }
-
-    if (showImageModal) {
-      document.addEventListener('keydown', handleKeyDown)
-      // Prevent body scroll when modal is open
-      document.body.style.overflow = 'hidden'
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown)
-      document.body.style.overflow = 'unset'
-    }
-  }, [showImageModal, closeImageModal])
+  // Remove the modal-related useEffect since we no longer have a modal
 
   // Format timestamp
   const formatTimestamp = (timestamp: string) => {
@@ -508,20 +498,20 @@ export default function EntityFeedCard({
                   <div dangerouslySetInnerHTML={{ __html: content.review }} />
                 ) : (
                   <div className="enterprise-feed-card-review-preview">
-                    {content.review.length > 300 ? (
-                      <>
-                        <div dangerouslySetInnerHTML={{ __html: content.review.substring(0, 300) }} />
-                        <Button
-                          variant="ghost"
-                          size="sm"
+                {content.review.length > 300 ? (
+                  <>
+                    <div dangerouslySetInnerHTML={{ __html: content.review.substring(0, 300) }} />
+                    <Button
+                      variant="ghost"
+                      size="sm"
                           onClick={() => setShowFullContent(true)}
-                          className="enterprise-feed-card-expand-button mt-2"
-                        >
-                          Read more
-                        </Button>
-                      </>
-                    ) : (
-                      <div dangerouslySetInnerHTML={{ __html: content.review }} />
+                      className="enterprise-feed-card-expand-button mt-2"
+                    >
+                      Read more
+                    </Button>
+                  </>
+                ) : (
+                  <div dangerouslySetInnerHTML={{ __html: content.review }} />
                     )}
                   </div>
                 )}
@@ -935,39 +925,7 @@ export default function EntityFeedCard({
       </div>
       
       {/* Image Modal */}
-      {showImageModal && selectedImage && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
-          onClick={closeImageModal}
-        >
-          <div 
-            className="relative max-w-4xl max-h-full"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Close button */}
-            <button
-              onClick={closeImageModal}
-              className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-10"
-            >
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            
-            {/* Image */}
-            <img
-              src={selectedImage.url}
-              alt={`Post image ${selectedImage.index + 1}`}
-              className="max-w-full max-h-full object-contain rounded-lg"
-            />
-            
-            {/* Image info */}
-            <div className="absolute bottom-4 left-4 text-white text-sm bg-black bg-opacity-50 px-3 py-2 rounded-lg">
-              Image {selectedImage.index + 1} • Click outside to close
-            </div>
-          </div>
-        </div>
-      )}
+      {/* This section is no longer needed as we removed the modal */}
     </div>
   )
 } 

@@ -320,111 +320,53 @@ body {
   }
 }
 
-/* Enterprise Feed Card Image Styles */
+/* Enterprise Feed Card Photo Content */
 .enterprise-feed-card-photo-content {
-  margin-bottom: 1rem;
+  margin-top: 1rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
 }
 
 .enterprise-feed-card-photo-grid {
   display: grid;
   gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.enterprise-feed-card-photo-grid:not(.grid-cols-2) {
-  grid-template-columns: 1fr;
-}
-
-.enterprise-feed-card-photo-grid.grid-cols-2 {
   grid-template-columns: repeat(2, 1fr);
 }
 
 .enterprise-feed-card-photo-item {
   position: relative;
+  aspect-ratio: 1;
+  border-radius: 0.375rem;
   overflow: hidden;
-  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.enterprise-feed-card-photo-item:hover {
+  transform: scale(1.02);
 }
 
 .enterprise-feed-card-photo {
   width: 100%;
-  height: auto;
-  border-radius: 0.5rem;
-  transition: all 0.2s ease-in-out;
+  height: 100%;
+  object-fit: cover;
+  transition: filter 0.2s ease;
 }
 
-.enterprise-feed-card-photo:hover {
-  transform: scale(1.02);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.enterprise-feed-card-photo-item:hover .enterprise-feed-card-photo {
+  filter: brightness(1.1);
 }
 
 .enterprise-feed-card-photo-caption {
-  margin-top: 0.75rem;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+  color: white;
   padding: 0.5rem;
-  background-color: hsl(var(--muted));
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  color: hsl(var(--muted-foreground));
-}
-
-/* Image Modal Styles */
-.image-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.9);
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-}
-
-.image-modal-content {
-  position: relative;
-  max-width: 64rem;
-  max-height: 100%;
-}
-
-.image-modal-close {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  color: white;
-  transition: color 0.2s ease-in-out;
-  z-index: 10;
-}
-
-.image-modal-close:hover {
-  color: #d1d5db;
-}
-
-.image-modal-image {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  border-radius: 0.5rem;
-}
-
-.image-modal-info {
-  position: absolute;
-  bottom: 1rem;
-  left: 1rem;
-  color: white;
-  font-size: 0.875rem;
-  background-color: rgba(0, 0, 0, 0.5);
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.5rem;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .enterprise-feed-card-photo-grid.grid-cols-2 {
-    grid-template-columns: 1fr;
-  }
-  
-  .image-modal-content {
-    max-width: 100%;
-    padding: 0.5rem;
-  }
+  font-size: 0.75rem;
+  text-align: center;
 }
 
 

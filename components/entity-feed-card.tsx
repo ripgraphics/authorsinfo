@@ -53,6 +53,7 @@ import { cn } from '@/lib/utils'
 import { BookCover } from '@/components/book-cover'
 import { EntityHoverCard } from '@/components/entity-hover-cards'
 import { EngagementActions } from '@/components/enterprise/engagement-actions'
+import { PhotoViewerModal } from '@/components/photo-viewer-modal'
 
 export interface EntityFeedCardProps {
   post: any
@@ -115,6 +116,10 @@ export default function EntityFeedCard({
   })
   const [isLoadingEngagement, setIsLoadingEngagement] = useState(false)
   
+  // Image modal state
+  const [selectedImage, setSelectedImage] = useState<{url: string, index: number} | null>(null)
+  const [showImageModal, setShowImageModal] = useState(false)
+
   // Content type configurations
   const contentTypeConfigs = {
     text: {
@@ -230,27 +235,15 @@ export default function EntityFeedCard({
 
   // Handle image click for modal
   const handleImageClick = (url: string, index: number) => {
-    // Navigate to the photo album to view all images with proper navigation
-    // This will use the existing EntityPhotoAlbums component
-    console.log('Image clicked:', { url, index })
-    
-    // Get the user ID from the post data
-    const userId = post.user_id || post.user?.id
-    
-    if (userId) {
-      // Navigate to the photos tab and open the Posts album
-      const profileUrl = `/profile/${userId}?tab=photos`
-      window.open(profileUrl, '_blank')
-      
-      // TODO: In the future, we could pass the album ID as a parameter
-      // to directly open the specific album: `/profile/${userId}?tab=photos&album=posts`
-    }
-  }
+    setSelectedImage({ url, index });
+    setShowImageModal(true);
+  };
 
+  // Close image modal
   const closeImageModal = () => {
-    // This function is no longer needed
-    console.log('Modal close requested - not implemented')
-  }
+    setShowImageModal(false);
+    setSelectedImage(null);
+  };
 
   // Load engagement data
   const loadEngagementData = useCallback(async () => {
@@ -287,7 +280,7 @@ export default function EntityFeedCard({
     loadEngagementData()
   }, [loadEngagementData])
 
-  // Remove the modal-related useEffect since we no longer have a modal
+  // Note: PhotoViewerModal handles keyboard navigation (Escape, Arrow keys)
 
   // Format timestamp
   const formatTimestamp = (timestamp: string) => {
@@ -498,20 +491,20 @@ export default function EntityFeedCard({
                   <div dangerouslySetInnerHTML={{ __html: content.review }} />
                 ) : (
                   <div className="enterprise-feed-card-review-preview">
-                {content.review.length > 300 ? (
-                  <>
-                    <div dangerouslySetInnerHTML={{ __html: content.review.substring(0, 300) }} />
-                    <Button
-                      variant="ghost"
-                      size="sm"
+                    {content.review.length > 300 ? (
+                      <>
+                        <div dangerouslySetInnerHTML={{ __html: content.review.substring(0, 300) }} />
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => setShowFullContent(true)}
-                      className="enterprise-feed-card-expand-button mt-2"
-                    >
-                      Read more
-                    </Button>
-                  </>
-                ) : (
-                  <div dangerouslySetInnerHTML={{ __html: content.review }} />
+                          className="enterprise-feed-card-expand-button mt-2"
+                        >
+                          Read more
+                        </Button>
+                      </>
+                    ) : (
+                      <div dangerouslySetInnerHTML={{ __html: content.review }} />
                     )}
                   </div>
                 )}
@@ -925,7 +918,18 @@ export default function EntityFeedCard({
       </div>
       
       {/* Image Modal */}
-      {/* This section is no longer needed as we removed the modal */}
+      {showImageModal && selectedImage && (
+        <PhotoViewerModal
+          isOpen={showImageModal}
+          onClose={closeImageModal}
+          photos={(post.image_url ? post.image_url.split(',').map((url: string) => url.trim()).filter((url: string) => url) : []).map((url: string, index: number) => ({
+            id: `image-${index}`,
+            url: url,
+            alt: `Post image ${index + 1}`
+          }))}
+          initialPhotoIndex={selectedImage.index}
+        />
+      )}
     </div>
   )
-} 
+}

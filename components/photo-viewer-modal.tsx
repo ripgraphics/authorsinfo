@@ -60,6 +60,7 @@ export function PhotoViewerModal({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 bg-black/90 border-none">
+        <DialogTitle className="sr-only">Photo Viewer</DialogTitle>
         <div className="relative w-full h-full flex items-center justify-center">
           {/* Close button */}
           <Button

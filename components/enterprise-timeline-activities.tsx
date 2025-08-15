@@ -928,32 +928,15 @@ export default function EnterpriseTimelineActivities({
       })
 
       // Handle multiple images - create album if needed
-      let albumId = null
       let imageUrls: string[] = []
       
       if (postForm.imageUrl) {
         // Split multiple image URLs (comma-separated)
         imageUrls = postForm.imageUrl.split(',').map(url => url.trim()).filter(url => url)
         
-        console.log('Processing images for post:', { imageCount: imageUrls.length, imageUrls })
-        
-        if (imageUrls.length > 1) {
-          try {
-            console.log('Creating Posts album for multiple images...')
-            // Multiple images - create or get "Posts" album
-            albumId = await getOrCreatePostsAlbum(userId)
-            console.log('Posts album ready:', albumId)
-          } catch (albumError) {
-            console.error('Error creating Posts album:', albumError)
-            // Continue with post creation even if album creation fails
-            toast({
-              title: "Album Creation Failed",
-              description: "Your post will be created, but images may not be organized in an album.",
-              variant: "destructive",
-              duration: 3000
-            })
-          }
-        }
+        // Note: Images will be stored in the user's existing photo albums
+        // Users can organize them using the existing photo album system
+        console.log('Post has images:', imageUrls.length)
       }
       
       // Create the actual post in the database
@@ -981,7 +964,6 @@ export default function EnterpriseTimelineActivities({
                   storage_provider: 'cloudinary',
                   content_type: 'image',
                   image_count: imageUrls.length,
-                  album_id: albumId,
                   is_multi_image: imageUrls.length > 1
                 }
               })
@@ -991,7 +973,6 @@ export default function EnterpriseTimelineActivities({
             metadata: {
               privacy_level: postForm.visibility,
               engagement_count: 0,
-              album_id: albumId,
               image_count: imageUrls.length
             }
           }
@@ -1002,58 +983,8 @@ export default function EnterpriseTimelineActivities({
         throw new Error(`Failed to create post: ${error.message}`)
       }
 
-      // Now that the post is created successfully, add images to album if needed
-      if (imageUrls.length > 1 && albumId) {
-        try {
-          console.log('Adding images to Posts album:', { albumId, imageCount: imageUrls.length })
-          
-          // Add each image to the album
-          for (const imageUrl of imageUrls) {
-            await addImageToPostsAlbum(albumId, imageUrl, userId)
-          }
-          
-          console.log('Successfully added all images to Posts album')
-          
-          // Debug: Check album status after adding images
-          console.log('=== DEBUG: Checking album status after adding images ===')
-          const { data: albumCheck, error: albumCheckError } = await supabase
-            .from('photo_albums')
-            .select('*')
-            .eq('id', albumId)
-          
-          console.log('Album check result:', { albumCheck, albumCheckError })
-          
-          // Check if images were added to the album
-          const { data: albumImages, error: imagesError } = await supabase
-            .from('album_images')
-            .select('*')
-            .eq('album_id', albumId)
-          
-          console.log('Album images check:', { albumImages, imagesError })
-          console.log('=== END DEBUG ===')
-          
-        } catch (albumError) {
-          console.error('Error adding images to album:', albumError)
-          // Log more details about the error
-          if (albumError instanceof Error) {
-            console.error('Error details:', {
-              message: albumError.message,
-              stack: albumError.stack,
-              name: albumError.name
-            })
-          } else {
-            console.error('Error object:', JSON.stringify(albumError, null, 2))
-          }
-          
-          // Don't fail the entire post creation, just log the error
-          toast({
-            title: "Images Organized",
-            description: `Your post was created, but there was an issue organizing the images in the album.`,
-            variant: "destructive",
-            duration: 5000
-          })
-        }
-      }
+      // Images are now handled by the existing photo album system
+      // Users can organize them using their photo albums after posting
 
       toast({
         title: "Post Created Successfully!",
@@ -1099,165 +1030,12 @@ export default function EnterpriseTimelineActivities({
     }
   }, [postForm.content, postForm.contentType, postForm.visibility, userId, supabase, fetchActivities, toast])
 
-  // Get or create Posts album for user
-  const getOrCreatePostsAlbum = async (userId: string) => {
-    try {
-      console.log('Getting or creating Posts album for user:', userId)
-      
-      // First check if Posts album already exists
-      const { data: existingAlbum, error: selectError } = await supabase
-        .from('photo_albums')
-        .select('id, name, description')
-        .eq('owner_id', userId)
-        .eq('name', 'Posts')
-        .eq('entity_type', 'user')
-        .eq('entity_id', userId)
-        .single()
+  // Note: Photo album management is handled by the existing EntityPhotoAlbums component
+  // Users can organize their post images using their existing photo album system
 
-      console.log('Existing album check result:', { existingAlbum, selectError })
 
-      if (selectError && selectError.code !== 'PGRST116') { // PGRST116 = no rows returned
-        console.error('Error checking for existing Posts album:', selectError)
-        throw selectError
-      }
 
-      if (existingAlbum) {
-        console.log('Found existing Posts album:', existingAlbum.id)
-        return existingAlbum.id
-      }
 
-      // Create new Posts album with proper entity references
-      console.log('Creating new Posts album...')
-      const { data: newAlbum, error: createError } = await supabase
-        .from('photo_albums')
-        .insert({
-          name: 'Posts',
-          description: 'All post images automatically organized here',
-          owner_id: userId,
-          is_public: true,
-          entity_type: 'user', // Required for entity consistency
-          entity_id: userId,   // Required for entity consistency
-          metadata: {
-            created_via: 'timeline_post_system',
-            created_at: new Date().toISOString(),
-            purpose: 'automatic_post_image_organization'
-          }
-        })
-        .select('id')
-        .single()
-
-      console.log('Album creation result:', { newAlbum, createError })
-
-      if (createError) {
-        console.error('Error creating Posts album:', createError)
-        throw createError
-      }
-
-      console.log('Successfully created Posts album:', newAlbum.id)
-      return newAlbum.id
-
-    } catch (error) {
-      console.error('Error in getOrCreatePostsAlbum:', error)
-      throw error
-    }
-  }
-
-  // Add image to Posts album
-  const addImageToPostsAlbum = async (albumId: string, imageUrl: string, userId: string) => {
-    try {
-      console.log('Adding image to Posts album:', { albumId, imageUrl, userId })
-      
-      // First create image record with proper metadata
-      const { data: imageRecord, error: imageError } = await supabase
-        .from('images')
-        .insert({
-          url: imageUrl,
-          alt_text: `Post image by ${user?.user_metadata?.full_name || 'User'}`,
-          storage_provider: 'cloudinary',
-          storage_path: 'authorsinfo/post_photos',
-          uploader_id: userId,
-          uploader_type: 'user',
-          entity_type_id: null, // Not required for user posts
-          metadata: {
-            source: 'timeline_post',
-            uploaded_at: new Date().toISOString(),
-            post_type: 'user_post'
-          }
-        })
-        .select('id')
-        .single()
-
-      if (imageError) {
-        console.error('Error creating image record:', imageError)
-        throw imageError
-      }
-
-      console.log('Image record created:', imageRecord.id)
-
-      // Get the next display order for this album
-      const { data: existingImages, error: countError } = await supabase
-        .from('album_images')
-        .select('display_order')
-        .eq('album_id', albumId)
-        .order('display_order', { ascending: false })
-        .limit(1)
-
-      if (countError) {
-        console.error('Error getting display order:', countError)
-        throw countError
-      }
-
-      const nextDisplayOrder = existingImages && existingImages.length > 0 
-        ? Math.max(...existingImages.map(img => img.display_order || 0)) + 1 
-        : 1
-
-      console.log('Next display order:', nextDisplayOrder)
-
-      // Now add image to album with proper entity references
-      const { data: albumImageRecord, error: albumImageError } = await supabase
-        .from('album_images')
-        .insert({
-          album_id: albumId,
-          image_id: imageRecord.id,
-          display_order: nextDisplayOrder,
-          entity_type: 'user', // Required for entity consistency
-          entity_id: userId,   // Required for entity consistency
-          metadata: {
-            added_via: 'timeline_post',
-            added_at: new Date().toISOString()
-          }
-        })
-        .select('id')
-        .single()
-
-      if (albumImageError) {
-        console.error('Error adding image to album:', albumImageError)
-        // Clean up the image record if album insertion fails
-        await supabase
-          .from('images')
-          .delete()
-          .eq('id', imageRecord.id)
-        throw albumImageError
-      }
-
-      console.log('Image successfully added to album:', albumImageRecord.id)
-      return albumImageRecord.id
-
-    } catch (error) {
-      console.error('Error adding image to Posts album:', error)
-      // Log more details about the error
-      if (error instanceof Error) {
-        console.error('Error details:', {
-          message: error.message,
-          stack: error.stack,
-          name: error.name
-        })
-      } else {
-        console.error('Error object:', JSON.stringify(error, null, 2))
-      }
-      throw error
-    }
-  }
 
   // Helper function to validate image URLs
   const validateImageUrl = (url: string): boolean => {
@@ -1300,28 +1078,10 @@ export default function EnterpriseTimelineActivities({
     try {
       // Handle multiple images for cross-posting
       let imageUrls: string[] = []
-      let albumId = null
       
       if (postForm.imageUrl) {
         imageUrls = postForm.imageUrl.split(',').map(url => url.trim()).filter(url => url)
-        
-        if (imageUrls.length > 1) {
-          try {
-            console.log('Creating Posts album for cross-posting...')
-            // Multiple images - create or get "Posts" album
-            albumId = await getOrCreatePostsAlbum(userId)
-            console.log('Posts album ready for cross-posting:', albumId)
-          } catch (albumError) {
-            console.error('Error creating Posts album for cross-posting:', albumError)
-            // Continue with cross-posting even if album creation fails
-            toast({
-              title: "Album Creation Failed",
-              description: "Your cross-posts will be created, but images may not be organized in an album.",
-              variant: "destructive",
-              duration: 3000
-            })
-          }
-        }
+        console.log('Cross-posting with images:', imageUrls.length)
       }
 
       // Create cross-posts to friends' timelines
@@ -1346,7 +1106,7 @@ export default function EnterpriseTimelineActivities({
                 shared_from: 'timeline',
                 shared_to: friend,
                 image_count: imageUrls.length,
-                album_id: albumId,
+                album_id: null, // No album for cross-posts, images are handled by the user's album
                 is_multi_image: imageUrls.length > 1
               },
               entity_type: 'user',
@@ -1356,7 +1116,7 @@ export default function EnterpriseTimelineActivities({
                 engagement_count: 0,
                 cross_posted: true,
                 target_user: friend,
-                album_id: albumId,
+                album_id: null, // No album for cross-posts
                 image_count: imageUrls.length
               }
             }
@@ -1366,33 +1126,10 @@ export default function EnterpriseTimelineActivities({
       toast({
         title: "Cross-Posted Successfully!",
         description: imageUrls.length > 1 
-          ? `Your post with ${imageUrls.length} images has been shared to ${friends.length} friends' timelines and added to your Posts album!`
+          ? `Your post with ${imageUrls.length} images has been shared to ${friends.length} friends' timelines`
           : `Your post has been shared to ${friends.length} friends' timelines`,
         duration: 3000
       })
-      
-      // Now that cross-posts are created successfully, add images to album if needed
-      if (imageUrls.length > 1 && albumId) {
-        try {
-          console.log('Adding images to Posts album for cross-posting:', { albumId, imageCount: imageUrls.length })
-          
-          // Add each image to the album
-          for (const imageUrl of imageUrls) {
-            await addImageToPostsAlbum(albumId, imageUrl, userId)
-          }
-          
-          console.log('Successfully added all images to Posts album for cross-posting')
-        } catch (albumError) {
-          console.error('Error adding images to album for cross-posting:', albumError)
-          // Don't fail the entire cross-posting, just log the error
-          toast({
-            title: "Images Organized",
-            description: `Your cross-posts were created, but there was an issue organizing the images in the album.`,
-            variant: "destructive",
-            duration: 5000
-          })
-        }
-      }
       
       // Reset form
       setPostForm({

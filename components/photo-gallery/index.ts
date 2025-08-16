@@ -1,4 +1,5 @@
 export { PhotoGallery } from './photo-gallery-enterprise'
+export { SophisticatedPhotoGrid } from './sophisticated-photo-grid'
 export type { 
   AlbumImageLegacy as AlbumImage, 
   Album, 

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
+import { SophisticatedPhotoGrid } from "@/components/photo-gallery/sophisticated-photo-grid"
 import {
   BookOpen,
   Users,
@@ -202,25 +203,83 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
     { id: "103", name: "David Chen", avatar: "/placeholder.svg?height=100&width=100", mutualFriends: 5 },
   ]
 
-  // Mock photos tab data
+  // Mock photos tab data - enhanced for Facebook-style grid
   const mockPhotosTabData = [
-    { id: "1", title: "Reading at the park", date: "June 15, 2023", url: "/placeholder.svg?height=300&width=300" },
-    { id: "2", title: "My bookshelf", date: "May 22, 2023", url: "/placeholder.svg?height=300&width=300" },
-    { id: "3", title: "Book haul!", date: "April 10, 2023", url: "/placeholder.svg?height=300&width=300" },
-    { id: "4", title: "Author signing event", date: "March 5, 2023", url: "/placeholder.svg?height=300&width=300" },
-    { id: "5", title: "Reading nook", date: "February 18, 2023", url: "/placeholder.svg?height=300&width=300" },
-    { id: "6", title: "Book club meeting", date: "January 30, 2023", url: "/placeholder.svg?height=300&width=300" },
-    { id: "7", title: "Visiting the library", date: "December 12, 2022", url: "/placeholder.svg?height=300&width=300" },
-    { id: "8", title: "New bookmarks", date: "November 5, 2022", url: "/placeholder.svg?height=300&width=300" },
-    {
-      id: "9",
-      title: "Reading by the fireplace",
-      date: "October 22, 2022",
-      url: "/placeholder.svg?height=300&width=300",
+    { 
+      id: "1", 
+      title: "Reading at the park", 
+      date: "June 15, 2023", 
+      url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
+      thumbnail_url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
+      created_at: "2023-06-15T10:00:00Z",
+      likes: [{ id: "1", photo_id: "1", user_id: "user1", created_at: "2023-06-15T10:00:00Z", user: { name: "John Doe" } }],
+      comments: [{ id: "1", photo_id: "1", user_id: "user2", content: "Beautiful spot!", created_at: "2023-06-15T10:00:00Z", user: { name: "Jane Smith" } }],
+      shares: [],
+      tags: [],
+      analytics: { views: 45, unique_views: 38, downloads: 2, shares: 1, engagement_rate: 6.7 },
+      is_cover: false,
+      is_featured: true
     },
-    { id: "10", title: "Book festival", date: "September 17, 2022", url: "/placeholder.svg?height=300&width=300" },
-    { id: "11", title: "Author panel", date: "August 8, 2022", url: "/placeholder.svg?height=300&width=300" },
-    { id: "12", title: "Book-themed cafe", date: "July 24, 2022", url: "/placeholder.svg?height=300&width=300" },
+    { 
+      id: "2", 
+      title: "My bookshelf", 
+      date: "May 22, 2023", 
+      url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=600&fit=crop",
+      thumbnail_url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop",
+      created_at: "2023-05-22T11:00:00Z",
+      likes: [],
+      comments: [],
+      shares: [],
+      tags: [],
+      analytics: { views: 23, unique_views: 20, downloads: 1, shares: 0, engagement_rate: 4.3 },
+      is_cover: false,
+      is_featured: false
+    },
+    { 
+      id: "3", 
+      title: "Book haul!", 
+      date: "April 10, 2023", 
+      url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop",
+      thumbnail_url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop",
+      created_at: "2023-04-10T12:00:00Z",
+      likes: [{ id: "2", photo_id: "3", user_id: "user3", created_at: "2023-04-10T12:00:00Z", user: { name: "Bob Wilson" } }],
+      comments: [],
+      shares: [],
+      tags: [],
+      analytics: { views: 67, unique_views: 55, downloads: 3, shares: 2, engagement_rate: 7.5 },
+      is_cover: true,
+      is_featured: false
+    },
+    { 
+      id: "4", 
+      title: "Author signing event", 
+      date: "March 5, 2023", 
+      url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=600&fit=crop",
+      thumbnail_url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop",
+      created_at: "2023-03-05T13:00:00Z",
+      likes: [],
+      comments: [],
+      shares: [],
+      tags: [],
+      analytics: { views: 34, unique_views: 28, downloads: 1, shares: 0, engagement_rate: 2.9 },
+      is_cover: false,
+      is_featured: false
+    },
+    { 
+      id: "5", 
+      title: "Reading nook", 
+      date: "February 18, 2023", 
+      url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop",
+      thumbnail_url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop",
+      created_at: "2023-02-18T14:00:00Z",
+      likes: [],
+      comments: [],
+      shares: [],
+      tags: [],
+      analytics: { views: 28, unique_views: 24, downloads: 1, shares: 0, engagement_rate: 3.6 },
+      is_cover: false,
+      is_featured: false
+    }
   ]
 
   return (
@@ -444,17 +503,17 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                         </Link>
                       </div>
                       <CardContent className="p-6 pt-0">
-                        <div className="grid grid-cols-3 gap-2">
-                          {mockPhotos.map((photoUrl, index) => (
-                            <div key={index} className="aspect-square relative rounded overflow-hidden">
-                              <img
-                                src={photoUrl || "/placeholder.svg"}
-                                alt={`Photo ${index + 1}`}
-                                className="object-cover hover:scale-105 transition-transform absolute inset-0 w-full h-full"
-                              />
-                            </div>
-                          ))}
-                        </div>
+                        <SophisticatedPhotoGrid
+                          photos={mockPhotosTabData.slice(0, 4)}
+                          onPhotoClick={(photo, index) => {
+                            console.log('Timeline photo clicked:', photo, 'at index:', index)
+                            // Navigate to photos tab or open photo viewer
+                          }}
+                          showActions={false}
+                          showStats={false}
+                          className="w-full"
+                          maxHeight="200px"
+                        />
                       </CardContent>
                     </Card>
 
@@ -1224,25 +1283,32 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                       </div>
                     </div>
                     <CardContent className="p-6 pt-0">
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {mockPhotosTabData.map((photo) => (
-                          <div key={photo.id} className="group relative">
-                            <div className="aspect-square relative rounded-lg overflow-hidden">
-                              <img
-                                alt={photo.title}
-                                src={photo.url || "/placeholder.svg"}
-                                className="object-cover group-hover:scale-105 transition-transform absolute inset-0 w-full h-full"
-                              />
-                            </div>
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-end">
-                              <div className="p-3 text-white w-full">
-                                <p className="text-sm truncate">{photo.title}</p>
-                                <p className="text-xs opacity-80">{photo.date}</p>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                                    <SophisticatedPhotoGrid
+                photos={mockPhotosTabData}
+                onPhotoClick={(photo, index) => {
+                  console.log('Photo clicked:', photo, 'at index:', index)
+                  // Here you would typically open a photo viewer modal
+                }}
+                onPhotoLike={(photoId) => {
+                  console.log('Photo liked:', photoId)
+                  // Here you would typically update the like count in your database
+                }}
+                onPhotoComment={(photoId) => {
+                  console.log('Photo comment:', photoId)
+                  // Here you would typically open a comment dialog
+                }}
+                onPhotoShare={(photoId) => {
+                  console.log('Photo share:', photoId)
+                  // Here you would typically open a share dialog
+                }}
+                onPhotoDownload={(photoId) => {
+                  console.log('Photo download:', photoId)
+                  // Here you would typically trigger a download
+                }}
+                showActions={true}
+                showStats={true}
+                className="max-w-4xl"
+              />
                     </CardContent>
                   </Card>
                 </div>

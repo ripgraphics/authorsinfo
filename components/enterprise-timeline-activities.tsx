@@ -84,6 +84,7 @@ import {
   Check
 } from 'lucide-react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { SophisticatedPhotoGrid } from '@/components/photo-gallery/sophisticated-photo-grid'
 
 // Enhanced interfaces for cutting-edge enterprise features
 interface EnterpriseActivity {
@@ -936,60 +937,125 @@ export default function EnterpriseTimelineActivities({
         
         // Note: Images will be stored in the user's existing photo albums
         // Users can organize them using the existing photo album system
-        console.log('Post has images:', imageUrls.length)
+        console.log('Post has images:', { count: imageUrls.length, urls: imageUrls })
+      } else {
+        console.log('No imageUrl in postForm:', postForm.imageUrl)
       }
       
+      console.log('Form state before post creation:', {
+        imageUrl: postForm.imageUrl,
+        imageUrls,
+        content: postForm.content,
+        contentType: postForm.contentType
+      })
+      
       // Create the actual post in the database
+      const postData = {
+        user_id: userId,
+        activity_type: 'post_created',
+        visibility: postForm.visibility,
+        content_type: imageUrls.length > 0 ? 'image' : postForm.contentType,
+        text: postForm.content,
+        content_summary: postForm.content.substring(0, 100) + (postForm.content.length > 100 ? '...' : ''),
+        image_url: postForm.imageUrl || null,
+        link_url: postForm.linkUrl || null,
+        hashtags: postForm.hashtags ? postForm.hashtags.split(',').map(tag => tag.trim()).filter(tag => tag) : [],
+        data: {
+          content: postForm.content,
+          content_type: imageUrls.length > 0 ? 'image' : postForm.contentType,
+          content_summary: postForm.content.substring(0, 100) + (postForm.content.length > 100 ? '...' : ''),
+          // Store additional metadata for the image
+          ...(imageUrls.length > 0 && {
+            image_metadata: {
+              uploaded_at: new Date().toISOString(),
+              storage_provider: 'cloudinary',
+              content_type: 'image',
+              image_count: imageUrls.length,
+              is_multi_image: imageUrls.length > 1
+            }
+          })
+        },
+        entity_type: 'user',
+        entity_id: userId,
+        metadata: {
+          privacy_level: postForm.visibility,
+          engagement_count: 0,
+          image_count: imageUrls.length
+        }
+      }
+      
+      console.log('About to insert post:', postData)
+      
       const { data, error } = await supabase
         .from('activities')
-        .insert([
-          {
-            user_id: userId,
-            activity_type: 'post_created',
-            visibility: postForm.visibility,
-            content_type: postForm.imageUrl ? 'image' : postForm.contentType,
-            text: postForm.content,
-            content_summary: postForm.content.substring(0, 100) + (postForm.content.length > 100 ? '...' : ''),
-            image_url: postForm.imageUrl || null,
-            link_url: postForm.linkUrl || null,
-            hashtags: postForm.hashtags ? postForm.hashtags.split(',').map(tag => tag.trim()).filter(tag => tag) : [],
-            data: {
-              content: postForm.content,
-              content_type: postForm.imageUrl ? 'image' : postForm.contentType,
-              content_summary: postForm.content.substring(0, 100) + (postForm.content.length > 100 ? '...' : ''),
-              // Store additional metadata for the image
-              ...(postForm.imageUrl && {
-                image_metadata: {
-                  uploaded_at: new Date().toISOString(),
-                  storage_provider: 'cloudinary',
-                  content_type: 'image',
-                  image_count: imageUrls.length,
-                  is_multi_image: imageUrls.length > 1
-                }
-              })
-            },
-            entity_type: 'user',
-            entity_id: userId,
-            metadata: {
-              privacy_level: postForm.visibility,
-              engagement_count: 0,
-              image_count: imageUrls.length
-            }
-          }
-        ])
+        .insert([postData])
         .select()
 
       if (error) {
         throw new Error(`Failed to create post: ${error.message}`)
       }
 
+      console.log('Post created successfully:', data)
+      console.log('Image URLs in post:', imageUrls)
+      console.log('PostForm imageUrl:', postForm.imageUrl)
+
       // Images are now handled by the existing photo album system
       // Users can organize them using their photo albums after posting
+      
+      // Add images to user's photo album system
+      if (imageUrls.length > 0) {
+        try {
+          console.log('Adding post images to photo album system...')
+          
+          // Use the existing entity-images API to add images to albums
+          for (let i = 0; i < imageUrls.length; i++) {
+            const imageUrl = imageUrls[i]
+            
+            // Add image to user's post album
+            const response = await fetch('/api/entity-images', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                entityId: userId,
+                entityType: 'user',
+                albumType: 'user_gallery_album', // Use existing gallery album
+                imageUrl: imageUrl,
+                altText: `Post image ${i + 1} by ${user?.user_metadata?.full_name || 'User'}`,
+                displayOrder: i + 1,
+                isCover: false,
+                isFeatured: false,
+                metadata: {
+                  source: 'timeline_post',
+                  uploaded_at: new Date().toISOString(),
+                  post_type: 'user_post',
+                  image_index: i + 1,
+                  total_images: imageUrls.length
+                }
+              })
+            })
+            
+            if (!response.ok) {
+              console.warn(`Failed to add image ${i + 1} to album:`, await response.text())
+            } else {
+              console.log(`Image ${i + 1} added to album successfully`)
+            }
+          }
+          
+          console.log('All post images added to photo album system')
+        } catch (albumError) {
+          console.error('Error adding images to photo album system:', albumError)
+          // Don't fail the post creation, just log the error
+        }
+      }
 
       toast({
         title: "Post Created Successfully!",
         description: imageUrls.length > 1 
-          ? `Your post with ${imageUrls.length} images has been created and added to your Posts album!`
+          ? `Your post with ${imageUrls.length} images has been created! Images are being added to your photo albums.`
+          : imageUrls.length === 1
+          ? "Your image post has been created and is now visible on your timeline! The image is being added to your photo albums."
           : "Your post has been created and is now visible on your timeline",
         duration: 3000
       })
@@ -999,7 +1065,7 @@ export default function EnterpriseTimelineActivities({
         setTimeout(() => {
           toast({
             title: "Images Organized",
-            description: `Your ${imageUrls.length} images are now available in your Posts album. Click "View Posts Album" to see them all organized together!`,
+            description: `Your ${imageUrls.length} images are now part of your post and are being organized in your photo albums. Check your photo albums to see them all together!`,
             duration: 5000
           })
         }, 1000)
@@ -1028,13 +1094,19 @@ export default function EnterpriseTimelineActivities({
     } finally {
       setIsPosting(false)
     }
-  }, [postForm.content, postForm.contentType, postForm.visibility, userId, supabase, fetchActivities, toast])
+  }, [postForm.content, postForm.contentType, postForm.visibility, postForm.imageUrl, userId, supabase, fetchActivities, toast, user])
 
   // Note: Photo album management is handled by the existing EntityPhotoAlbums component
   // Users can organize their post images using their existing photo album system
 
-
-
+  // Debug form state changes
+  useEffect(() => {
+    console.log('Form state changed:', {
+      imageUrl: postForm.imageUrl,
+      content: postForm.content,
+      contentType: postForm.contentType
+    })
+  }, [postForm.imageUrl, postForm.content, postForm.contentType])
 
 
   // Helper function to validate image URLs
@@ -1198,10 +1270,20 @@ export default function EnterpriseTimelineActivities({
         // Update form with all uploaded URLs
         const currentUrls = postForm.imageUrl ? postForm.imageUrl.split(',').map(url => url.trim()).filter(url => url) : []
         const allUrls = [...currentUrls, ...uploadedUrls]
+        
+        console.log('Photo upload - updating form:', {
+          currentUrls,
+          uploadedUrls,
+          allUrls,
+          currentFormImageUrl: postForm.imageUrl
+        })
+        
         setPostForm(prev => ({
           ...prev,
           imageUrl: allUrls.join(', ')
         }))
+        
+        console.log('Form updated, new imageUrl should be:', allUrls.join(', '))
 
         toast({
           title: "Photos Uploaded Successfully!",
@@ -1575,31 +1657,56 @@ export default function EnterpriseTimelineActivities({
                         Clear all
                       </Button>
                     </div>
-                    <div className="grid grid-cols-3 gap-2">
-                      {postForm.imageUrl.split(',').map(url => url.trim()).filter(url => url).map((imageUrl, index) => (
-                        <div key={index} className="relative w-24 h-24 rounded-md overflow-hidden border border-gray-300">
-                          <img 
-                            src={imageUrl} 
-                            alt={`Post photo ${index + 1}`} 
-                            className="w-full h-full object-cover"
-                          />
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="absolute top-1 right-1 bg-white/80 hover:bg-white text-red-600 hover:text-red-700"
-                            onClick={() => {
-                              const newUrls = postForm.imageUrl.split(',').map(u => u.trim()).filter(u => u !== imageUrl);
-                              setPostForm(prev => ({ ...prev, imageUrl: newUrls.join(', ') }));
-                            }}
-                          >
-                            ✕
-                          </Button>
-                          {/* Validation indicator */}
-                          <div className={`absolute bottom-1 left-1 w-3 h-3 rounded-full ${
-                            validateImageUrl(imageUrl) ? 'bg-green-500' : 'bg-red-500'
-                          }`} title={validateImageUrl(imageUrl) ? 'Valid image URL' : 'Invalid image URL'} />
-                        </div>
-                      ))}
+                    <div className="photo-preview-container">
+                      <SophisticatedPhotoGrid
+                        photos={postForm.imageUrl.split(',').map(url => url.trim()).filter(url => url).map((imageUrl, index) => ({
+                          id: `preview-${index}`,
+                          url: imageUrl,
+                          thumbnail_url: imageUrl,
+                          alt_text: `Post photo ${index + 1}`,
+                          description: `Photo ${index + 1} for your post`,
+                          created_at: new Date().toISOString(),
+                          likes: [],
+                          comments: [],
+                          shares: [],
+                          analytics: { views: 0, downloads: 0, engagement_rate: 0 },
+                          is_cover: false,
+                          is_featured: false
+                        }))}
+                        onPhotoClick={(photo: any, index: number) => {
+                          // Open photo in full view or modal
+                          console.log('Preview photo clicked:', photo, 'at index:', index)
+                        }}
+                        showActions={false}
+                        showStats={false}
+                        className="w-full"
+                        maxHeight="300px"
+                      />
+                      
+                      {/* Individual photo remove buttons */}
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {postForm.imageUrl.split(',').map(url => url.trim()).filter(url => url).map((imageUrl, index) => (
+                          <div key={index} className="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2">
+                            <img 
+                              src={imageUrl} 
+                              alt={`Post photo ${index + 1}`} 
+                              className="w-8 h-8 rounded object-cover"
+                            />
+                            <span className="text-sm text-gray-700">Photo {index + 1}</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-6 w-6"
+                              onClick={() => {
+                                const newUrls = postForm.imageUrl.split(',').map(u => u.trim()).filter(u => u !== imageUrl);
+                                setPostForm(prev => ({ ...prev, imageUrl: newUrls.join(', ') }));
+                              }}
+                            >
+                              ✕
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                     {/* Image count info */}
                     {getImageCount(postForm.imageUrl) > 1 && (

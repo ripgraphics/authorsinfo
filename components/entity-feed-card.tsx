@@ -53,7 +53,8 @@ import { cn } from '@/lib/utils'
 import { BookCover } from '@/components/book-cover'
 import { EntityHoverCard } from '@/components/entity-hover-cards'
 import { EngagementActions } from '@/components/enterprise/engagement-actions'
-import { PhotoViewerModal } from '@/components/photo-viewer-modal'
+import { SimplePhotoViewer } from '@/components/photo-gallery/simple-photo-viewer'
+import { SophisticatedPhotoGrid } from '@/components/photo-gallery/sophisticated-photo-grid'
 
 export interface EntityFeedCardProps {
   post: any
@@ -119,6 +120,7 @@ export default function EntityFeedCard({
   // Image modal state
   const [selectedImage, setSelectedImage] = useState<{url: string, index: number} | null>(null)
   const [showImageModal, setShowImageModal] = useState(false)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
   // Content type configurations
   const contentTypeConfigs = {
@@ -236,6 +238,7 @@ export default function EntityFeedCard({
   // Handle image click for modal
   const handleImageClick = (url: string, index: number) => {
     setSelectedImage({ url, index });
+    setCurrentImageIndex(index); // Set current index for SimplePhotoViewer
     setShowImageModal(true);
   };
 
@@ -243,6 +246,7 @@ export default function EntityFeedCard({
   const closeImageModal = () => {
     setShowImageModal(false);
     setSelectedImage(null);
+    setCurrentImageIndex(0); // Reset current index
   };
 
   // Load engagement data
@@ -366,42 +370,35 @@ export default function EntityFeedCard({
         const imageUrls = post.image_url ? post.image_url.split(',').map((url: string) => url.trim()).filter((url: string) => url) : []
         const isMultiImage = imageUrls.length > 1
         
+        // Convert image URLs to photo objects for SophisticatedPhotoGrid
+        const photos = imageUrls.map((url: string, index: number) => ({
+          id: `post-${post.id}-${index}`,
+          url: url,
+          thumbnail_url: url,
+          alt_text: `Post image ${index + 1}`,
+          description: content.text || `Image ${index + 1} from post`,
+          created_at: post.created_at || new Date().toISOString(),
+          likes: [],
+          comments: [],
+          shares: [],
+          analytics: { views: 0, downloads: 0, engagement_rate: 0 },
+          is_cover: false,
+          is_featured: false
+        }))
+        
         return (
           <div className="enterprise-feed-card-photo-content">
-            {/* Check for image_url field first (from activities table) */}
-            {imageUrls.length > 0 && (
-              <div className={`enterprise-feed-card-photo-grid ${isMultiImage ? 'grid-cols-2 gap-2' : ''}`}>
-                {imageUrls.map((imageUrl: string, index: number) => (
-                  <div key={index} className="enterprise-feed-card-photo-item">
-                    {isMultiImage ? (
-                      // Multiple images - show in grid
-                      <img
-                        src={imageUrl}
-                        alt={`Post image ${index + 1}`}
-                        className="enterprise-feed-card-photo w-full h-auto rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                        onClick={() => handleImageClick(imageUrl, index)}
-                      />
-                    ) : (
-                      // Single image - show full size with click to expand
-                      <div className="relative group">
-                        <img
-                          src={imageUrl}
-                          alt="Post image"
-                          className="enterprise-feed-card-photo w-full h-auto rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                          onClick={() => handleImageClick(imageUrl, 0)}
-                        />
-                        {/* Click indicator for single images */}
-                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200 rounded-lg flex items-center justify-center">
-                          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white bg-opacity-80 rounded-full p-2">
-                            <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                            </svg>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
+            {/* Use SophisticatedPhotoGrid for photo display */}
+            {photos.length > 0 && (
+              <div className="enterprise-feed-card-photo-grid">
+                <SophisticatedPhotoGrid
+                  photos={photos}
+                  onPhotoClick={(photo: any, index: number) => handleImageClick(photo.url, index)}
+                  showActions={false}
+                  showStats={false}
+                  className="w-full"
+                  maxHeight="400px"
+                />
               </div>
             )}
             
@@ -417,16 +414,6 @@ export default function EntityFeedCard({
                     />
                   </div>
                 ))}
-              </div>
-            )}
-            
-            {/* Image count indicator for multi-image posts */}
-            {isMultiImage && (
-              <div className="mt-2 text-sm text-muted-foreground flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                {imageUrls.length} images • Click to view full size
               </div>
             )}
             
@@ -919,15 +906,22 @@ export default function EntityFeedCard({
       
       {/* Image Modal */}
       {showImageModal && selectedImage && (
-        <PhotoViewerModal
+        <SimplePhotoViewer
           isOpen={showImageModal}
           onClose={closeImageModal}
-          photos={(post.image_url ? post.image_url.split(',').map((url: string) => url.trim()).filter((url: string) => url) : []).map((url: string, index: number) => ({
+          photos={(post.image_url ? post.image_url.split(',').map((url: string, index: number) => ({
             id: `image-${index}`,
             url: url,
-            alt: `Post image ${index + 1}`
+            alt_text: `Post image ${index + 1}`
+          })) : []).map((photo: any) => ({
+            id: photo.id,
+            url: photo.url,
+            alt_text: photo.alt_text,
+            description: photo.description,
+            created_at: new Date().toISOString()
           }))}
-          initialPhotoIndex={selectedImage.index}
+          currentIndex={currentImageIndex}
+          onIndexChange={setCurrentImageIndex}
         />
       )}
     </div>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { 
   X, 
@@ -86,6 +86,7 @@ export function SimplePhotoViewer({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden bg-black/95">
+        <DialogTitle className="sr-only">Photo Viewer</DialogTitle>
         <div className="flex h-[95vh] items-center justify-center relative">
           {/* Navigation Buttons */}
           <Button

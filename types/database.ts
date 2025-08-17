@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -17,54 +17,105 @@ export type Database = {
       activities: {
         Row: {
           activity_type: string
+          ai_enhanced: boolean | null
+          ai_enhanced_performance: number | null
+          ai_enhanced_text: string | null
           author_id: string | null
           book_id: string | null
+          collaboration_type: string | null
+          comment_count: number | null
+          content_summary: string | null
+          content_type: string | null
           created_at: string | null
+          cross_posted_to: string[] | null
           data: Json | null
+          engagement_score: number | null
           entity_id: string | null
           entity_type: string | null
           event_id: string | null
           group_id: string | null
+          hashtags: string[] | null
           id: string
+          image_url: string | null
+          like_count: number | null
+          link_url: string | null
           list_id: string | null
           metadata: Json | null
           review_id: string | null
+          share_count: number | null
+          text: string | null
           user_id: string
           user_profile_id: string | null
+          view_count: number | null
+          visibility: string | null
         }
         Insert: {
           activity_type: string
+          ai_enhanced?: boolean | null
+          ai_enhanced_performance?: number | null
+          ai_enhanced_text?: string | null
           author_id?: string | null
           book_id?: string | null
+          collaboration_type?: string | null
+          comment_count?: number | null
+          content_summary?: string | null
+          content_type?: string | null
           created_at?: string | null
+          cross_posted_to?: string[] | null
           data?: Json | null
+          engagement_score?: number | null
           entity_id?: string | null
           entity_type?: string | null
           event_id?: string | null
           group_id?: string | null
+          hashtags?: string[] | null
           id?: string
+          image_url?: string | null
+          like_count?: number | null
+          link_url?: string | null
           list_id?: string | null
           metadata?: Json | null
           review_id?: string | null
+          share_count?: number | null
+          text?: string | null
           user_id: string
           user_profile_id?: string | null
+          view_count?: number | null
+          visibility?: string | null
         }
         Update: {
           activity_type?: string
+          ai_enhanced?: boolean | null
+          ai_enhanced_performance?: number | null
+          ai_enhanced_text?: string | null
           author_id?: string | null
           book_id?: string | null
+          collaboration_type?: string | null
+          comment_count?: number | null
+          content_summary?: string | null
+          content_type?: string | null
           created_at?: string | null
+          cross_posted_to?: string[] | null
           data?: Json | null
+          engagement_score?: number | null
           entity_id?: string | null
           entity_type?: string | null
           event_id?: string | null
           group_id?: string | null
+          hashtags?: string[] | null
           id?: string
+          image_url?: string | null
+          like_count?: number | null
+          link_url?: string | null
           list_id?: string | null
           metadata?: Json | null
           review_id?: string | null
+          share_count?: number | null
+          text?: string | null
           user_id?: string
           user_profile_id?: string | null
+          view_count?: number | null
+          visibility?: string | null
         }
         Relationships: [
           {
@@ -150,6 +201,84 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "user_privacy_overview"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      activity_comments: {
+        Row: {
+          activity_id: string
+          comment_text: string
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          activity_id: string
+          comment_text: string
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          activity_id?: string
+          comment_text?: string
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_comments_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      activity_likes: {
+        Row: {
+          activity_id: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          activity_id: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          activity_id?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_likes_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -11202,13 +11331,21 @@ export type Database = {
       }
     }
     Functions: {
+      add_activity_comment: {
+        Args: {
+          p_activity_id: string
+          p_comment_text: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       add_entity_comment: {
         Args: {
-          p_user_id: string
-          p_entity_type: string
-          p_entity_id: string
           p_content: string
+          p_entity_id: string
+          p_entity_type: string
           p_parent_id?: string
+          p_user_id: string
         }
         Returns: string
       }
@@ -11216,22 +11353,31 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: boolean
       }
+      calculate_engagement_score: {
+        Args: {
+          p_comment_count: number
+          p_like_count: number
+          p_share_count: number
+          p_view_count: number
+        }
+        Returns: number
+      }
       check_data_health: {
         Args: Record<PropertyKey, never>
         Returns: {
           health_check: string
           issue_count: number
-          severity: string
           recommendation: string
+          severity: string
         }[]
       }
       check_data_integrity_health: {
         Args: Record<PropertyKey, never>
         Returns: {
-          issue_type: string
           issue_count: number
-          severity: string
+          issue_type: string
           recommendation: string
+          severity: string
         }[]
       }
       check_data_quality_issues_enhanced: {
@@ -11259,28 +11405,28 @@ export type Database = {
         }[]
       }
       check_permalink_availability: {
-        Args: { permalink: string; entity_type: string; exclude_id?: string }
+        Args: { entity_type: string; exclude_id?: string; permalink: string }
         Returns: boolean
       }
       check_publisher_data_health: {
         Args: Record<PropertyKey, never>
         Returns: {
-          metric_name: string
           current_value: number
+          metric_name: string
           status: string
         }[]
       }
       check_rate_limit_enhanced: {
         Args: {
-          p_user_id: string
           p_action: string
           p_max_attempts?: number
+          p_user_id: string
           p_window_minutes?: number
         }
         Returns: boolean
       }
       check_reading_privacy_access: {
-        Args: { target_user_id: string; requesting_user_id?: string }
+        Args: { requesting_user_id?: string; target_user_id: string }
         Returns: boolean
       }
       cleanup_old_audit_trail: {
@@ -11294,10 +11440,10 @@ export type Database = {
       cleanup_orphaned_records: {
         Args: Record<PropertyKey, never>
         Returns: {
-          table_name: string
-          records_deleted: number
           cleanup_type: string
+          records_deleted: number
           status: string
+          table_name: string
         }[]
       }
       comprehensive_system_health_check_enhanced: {
@@ -11306,20 +11452,20 @@ export type Database = {
       }
       create_data_version: {
         Args: {
-          p_table_name: string
-          p_record_id: string
           p_change_reason?: string
+          p_record_id: string
+          p_table_name: string
         }
         Returns: number
       }
       create_entity_album: {
         Args: {
-          p_name: string
-          p_entity_type: string
-          p_entity_id: string
           p_description?: string
+          p_entity_id: string
+          p_entity_type: string
           p_is_public?: boolean
           p_metadata?: Json
+          p_name: string
         }
         Returns: string
       }
@@ -11334,8 +11480,8 @@ export type Database = {
           p_target_type_id: string
         }
         Returns: {
-          success: boolean
           error_message: string
+          success: boolean
         }[]
       }
       encrypt_sensitive_data_enhanced: {
@@ -11353,31 +11499,31 @@ export type Database = {
       fix_missing_publisher_relationships: {
         Args: Record<PropertyKey, never>
         Returns: {
+          action_taken: string
           book_id: string
           book_title: string
-          action_taken: string
           publisher_id: string
           status: string
         }[]
       }
       flag_content: {
         Args: {
-          p_flagged_by: string
-          p_content_type: string
           p_content_id: string
-          p_flag_reason: string
+          p_content_type: string
           p_flag_details?: string
+          p_flag_reason: string
+          p_flagged_by: string
         }
         Returns: string
       }
       generate_data_health_report: {
         Args: Record<PropertyKey, never>
         Returns: {
-          report_section: string
           metric_name: string
           metric_value: string
-          status: string
           recommendation: string
+          report_section: string
+          status: string
         }[]
       }
       generate_friend_suggestions: {
@@ -11387,8 +11533,8 @@ export type Database = {
       generate_intelligent_content: {
         Args: { p_content_type: string; p_input_data: Json; p_user_id?: string }
         Returns: {
-          generated_content: string
           confidence_score: number
+          generated_content: string
           metadata: Json
         }[]
       }
@@ -11397,14 +11543,14 @@ export type Database = {
         Returns: Json
       }
       generate_permalink: {
-        Args: { input_text: string; entity_type?: string }
+        Args: { entity_type?: string; input_text: string }
         Returns: string
       }
       generate_smart_notification: {
         Args: {
-          p_user_id: string
-          p_notification_type: string
           p_context_data?: Json
+          p_notification_type: string
+          p_user_id: string
         }
         Returns: string
       }
@@ -11413,88 +11559,88 @@ export type Database = {
         Returns: Json
       }
       get_ai_book_recommendations: {
-        Args: { p_user_id: string; p_limit?: number }
+        Args: { p_limit?: number; p_user_id: string }
         Returns: {
-          book_id: string
-          title: string
           author_name: string
-          recommendation_score: number
+          book_id: string
           recommendation_reason: string
+          recommendation_score: number
+          title: string
         }[]
       }
       get_data_lineage: {
         Args: { p_table_name: string }
         Returns: {
-          source_table: string
-          source_column: string
-          target_table: string
-          target_column: string
-          transformation_type: string
           data_flow_description: string
+          source_column: string
+          source_table: string
+          target_column: string
+          target_table: string
+          transformation_type: string
         }[]
       }
       get_data_quality_report: {
         Args: { p_table_name?: string }
         Returns: {
+          critical_issues: number
+          failed_rules: number
+          overall_score: number
+          passed_rules: number
           table_name: string
           total_rules: number
-          passed_rules: number
-          failed_rules: number
-          critical_issues: number
-          overall_score: number
         }[]
       }
       get_entity_albums: {
-        Args: { p_entity_type: string; p_entity_id: string; p_user_id?: string }
+        Args: { p_entity_id: string; p_entity_type: string; p_user_id?: string }
         Returns: {
+          album_description: string
           album_id: string
           album_name: string
-          album_description: string
-          is_public: boolean
-          photo_count: number
-          created_at: string
-          owner_id: string
           can_edit: boolean
+          created_at: string
+          is_public: boolean
+          owner_id: string
+          photo_count: number
         }[]
       }
       get_entity_by_permalink: {
-        Args: { permalink: string; entity_type: string }
+        Args: { entity_type: string; permalink: string }
         Returns: string
       }
       get_entity_images: {
-        Args: { p_entity_type: string; p_entity_id: string }
+        Args: { p_entity_id: string; p_entity_type: string }
         Returns: {
+          album_id: string
+          album_name: string
+          alt_text: string
+          created_at: string
+          file_size: number
           image_id: string
           image_url: string
           thumbnail_url: string
-          alt_text: string
-          file_size: number
-          created_at: string
-          album_name: string
-          album_id: string
         }[]
       }
       get_entity_social_stats: {
-        Args: { p_entity_type: string; p_entity_id: string; p_user_id?: string }
+        Args: { p_entity_id: string; p_entity_type: string; p_user_id?: string }
         Returns: {
-          like_count: number
-          comment_count: number
-          share_count: number
           bookmark_count: number
-          tag_count: number
-          is_liked: boolean
+          comment_count: number
           is_bookmarked: boolean
+          is_liked: boolean
+          like_count: number
+          share_count: number
+          tag_count: number
           user_reaction_type: string
         }[]
       }
       get_moderation_stats: {
         Args: { p_days_back?: number }
         Returns: {
-          total_flags: number
+          avg_resolution_time_hours: number
           pending_flags: number
           resolved_flags: number
-          avg_resolution_time_hours: number
           top_flag_reasons: Json
+          total_flags: number
         }[]
       }
       get_mutual_friends_count: {
@@ -11504,10 +11650,10 @@ export type Database = {
       get_performance_recommendations: {
         Args: Record<PropertyKey, never>
         Returns: {
-          recommendation_type: string
-          priority: string
           description: string
           estimated_impact: string
+          priority: string
+          recommendation_type: string
         }[]
       }
       get_privacy_audit_summary: {
@@ -11519,46 +11665,57 @@ export type Database = {
         }[]
       }
       get_user_feed_activities: {
-        Args: { p_user_id: string; p_limit?: number; p_offset?: number }
+        Args: { p_limit?: number; p_offset?: number; p_user_id: string }
         Returns: {
-          id: string
-          user_id: string
           activity_type: string
-          entity_type: string
-          entity_id: string
-          is_public: boolean
-          metadata: Json
-          created_at: string
-          user_name: string
-          user_avatar_url: string
-          like_count: number
           comment_count: number
+          content_summary: string
+          content_type: string
+          created_at: string
+          data: Json
+          engagement_score: number
+          entity_id: string
+          entity_type: string
+          hashtags: string[]
+          id: string
+          image_url: string
           is_liked: boolean
+          is_public: boolean
+          like_count: number
+          link_url: string
+          metadata: Json
+          share_count: number
+          text: string
+          user_avatar_url: string
+          user_id: string
+          user_name: string
+          view_count: number
+          visibility: string
         }[]
       }
       get_user_privacy_settings: {
         Args: { user_id_param?: string }
         Returns: {
-          default_privacy_level: string
-          allow_friends_to_see_reading: boolean
           allow_followers_to_see_reading: boolean
+          allow_friends_to_see_reading: boolean
           allow_public_reading_profile: boolean
-          show_reading_stats_publicly: boolean
+          default_privacy_level: string
           show_currently_reading_publicly: boolean
-          show_reading_history_publicly: boolean
           show_reading_goals_publicly: boolean
+          show_reading_history_publicly: boolean
+          show_reading_stats_publicly: boolean
         }[]
       }
       grant_reading_permission: {
         Args: {
-          target_user_id: string
-          permission_type?: string
           expires_at?: string
+          permission_type?: string
+          target_user_id: string
         }
         Returns: boolean
       }
       has_user_liked_entity: {
-        Args: { p_user_id: string; p_entity_type: string; p_entity_id: string }
+        Args: { p_entity_id: string; p_entity_type: string; p_user_id: string }
         Returns: boolean
       }
       insert_follow_record: {
@@ -11568,44 +11725,44 @@ export type Database = {
           p_target_type_id: string
         }
         Returns: {
-          success: boolean
           error_message: string
+          success: boolean
         }[]
       }
       log_sensitive_operation_enhanced: {
         Args: {
-          p_operation_type: string
-          p_table_name: string
-          p_record_id: string
-          p_user_id?: string
           p_details?: Json
+          p_operation_type: string
+          p_record_id: string
+          p_table_name: string
+          p_user_id?: string
         }
         Returns: string
       }
       log_social_action: {
         Args: {
-          p_user_id: string
-          p_action_type: string
-          p_entity_type: string
-          p_entity_id: string
-          p_target_id?: string
           p_action_details?: Json
+          p_action_type: string
+          p_entity_id: string
+          p_entity_type: string
           p_ip_address?: unknown
-          p_user_agent?: string
           p_session_id?: string
+          p_target_id?: string
+          p_user_agent?: string
+          p_user_id: string
         }
         Returns: string
       }
       log_user_activity: {
         Args: {
-          p_user_id: string
-          p_activity_type: string
           p_activity_details?: Json
+          p_activity_type: string
           p_ip_address?: unknown
-          p_user_agent?: string
-          p_session_id?: string
           p_response_time_ms?: number
+          p_session_id?: string
           p_status_code?: number
+          p_user_agent?: string
+          p_user_id: string
         }
         Returns: string
       }
@@ -11624,11 +11781,11 @@ export type Database = {
       monitor_data_health: {
         Args: Record<PropertyKey, never>
         Returns: {
-          health_metric: string
           current_value: number
-          threshold_value: number
-          status: string
+          health_metric: string
           last_check: string
+          status: string
+          threshold_value: number
         }[]
       }
       monitor_database_performance_enhanced: {
@@ -11638,20 +11795,20 @@ export type Database = {
       monitor_entity_storage_usage: {
         Args: Record<PropertyKey, never>
         Returns: {
-          entity_type: string
           entity_id: string
-          storage_usage_mb: number
+          entity_type: string
           image_count: number
+          storage_usage_mb: number
           warning_level: string
         }[]
       }
       monitor_query_performance: {
         Args: Record<PropertyKey, never>
         Returns: {
-          query_pattern: string
           avg_execution_time: number
-          total_calls: number
           performance_status: string
+          query_pattern: string
+          total_calls: number
         }[]
       }
       perform_database_maintenance_enhanced: {
@@ -11661,10 +11818,10 @@ export type Database = {
       perform_system_health_check: {
         Args: {
           p_check_name: string
-          p_status: string
           p_details?: Json
-          p_response_time_ms?: number
           p_error_message?: string
+          p_response_time_ms?: number
+          p_status: string
         }
         Returns: string
       }
@@ -11689,7 +11846,7 @@ export type Database = {
         Returns: undefined
       }
       process_image_with_ai: {
-        Args: { p_image_id: string; p_analysis_types?: string[] }
+        Args: { p_analysis_types?: string[]; p_image_id: string }
         Returns: Json
       }
       process_other_isbns: {
@@ -11702,24 +11859,24 @@ export type Database = {
       }
       record_performance_metric: {
         Args: {
-          p_metric_name: string
-          p_metric_value: number
-          p_metric_unit?: string
-          p_category?: string
           p_additional_data?: Json
+          p_category?: string
+          p_metric_name: string
+          p_metric_unit?: string
+          p_metric_value: number
         }
         Returns: string
       }
       refresh_materialized_views: {
         Args: Record<PropertyKey, never>
         Returns: {
-          view_name: string
           refresh_status: string
           refresh_time: string
+          view_name: string
         }[]
       }
       revoke_reading_permission: {
-        Args: { target_user_id: string; permission_type?: string }
+        Args: { permission_type?: string; target_user_id: string }
         Returns: boolean
       }
       run_data_maintenance: {
@@ -11734,24 +11891,24 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: {
           maintenance_step: string
-          records_processed: number
           performance_improvement: string
+          records_processed: number
         }[]
       }
       safe_cleanup_orphaned_records: {
         Args: Record<PropertyKey, never>
         Returns: {
-          table_name: string
-          orphaned_count: number
           action_taken: string
+          orphaned_count: number
+          table_name: string
         }[]
       }
       safe_fix_missing_publishers: {
         Args: Record<PropertyKey, never>
         Returns: {
+          action_taken: string
           book_id: string
           book_title: string
-          action_taken: string
           publisher_id: string
           status: string
         }[]
@@ -11759,17 +11916,17 @@ export type Database = {
       simple_check_publisher_health: {
         Args: Record<PropertyKey, never>
         Returns: {
-          metric_name: string
           current_value: number
+          metric_name: string
           status: string
         }[]
       }
       simple_fix_missing_publishers: {
         Args: Record<PropertyKey, never>
         Returns: {
+          action_taken: string
           book_id: string
           book_title: string
-          action_taken: string
           publisher_id: string
           status: string
         }[]
@@ -11777,21 +11934,25 @@ export type Database = {
       standardize_reading_status_mappings: {
         Args: Record<PropertyKey, never>
         Returns: {
-          old_status: string
           new_status: string
+          old_status: string
           updated_count: number
         }[]
       }
       standardize_reading_statuses: {
         Args: Record<PropertyKey, never>
         Returns: {
-          old_status: string
           new_status: string
+          old_status: string
           updated_count: number
         }[]
       }
+      toggle_activity_like: {
+        Args: { p_activity_id: string; p_user_id: string }
+        Returns: boolean
+      }
       toggle_entity_like: {
-        Args: { p_user_id: string; p_entity_type: string; p_entity_id: string }
+        Args: { p_entity_id: string; p_entity_type: string; p_user_id: string }
         Returns: boolean
       }
       track_photo_analytics_event: {
@@ -11799,8 +11960,8 @@ export type Database = {
           p_album_id: string
           p_event_type: string
           p_image_id?: string
-          p_user_id?: string
           p_metadata?: Json
+          p_user_id?: string
         }
         Returns: string
       }
@@ -11810,34 +11971,34 @@ export type Database = {
       }
       update_user_privacy_settings: {
         Args: {
-          default_privacy_level?: string
-          allow_friends_to_see_reading?: boolean
           allow_followers_to_see_reading?: boolean
+          allow_friends_to_see_reading?: boolean
           allow_public_reading_profile?: boolean
-          show_reading_stats_publicly?: boolean
+          default_privacy_level?: string
           show_currently_reading_publicly?: boolean
-          show_reading_history_publicly?: boolean
           show_reading_goals_publicly?: boolean
+          show_reading_history_publicly?: boolean
+          show_reading_stats_publicly?: boolean
         }
         Returns: boolean
       }
       upsert_reading_progress: {
         Args: {
-          p_user_id: string
           p_book_id: string
-          p_status: string
-          p_progress_percentage?: number
           p_privacy_level?: string
+          p_progress_percentage?: number
+          p_status: string
+          p_user_id: string
         }
         Returns: Json
       }
       validate_and_repair_data: {
         Args: Record<PropertyKey, never>
         Returns: {
-          validation_type: string
-          issue_count: number
           fixed_count: number
+          issue_count: number
           status: string
+          validation_type: string
         }[]
       }
       validate_book_data: {
@@ -11846,23 +12007,23 @@ export type Database = {
       }
       validate_book_data_enhanced: {
         Args: {
-          p_title: string
           p_author: string
           p_isbn?: string
           p_publication_year?: number
+          p_title: string
         }
         Returns: Json
       }
       validate_enterprise_data_quality: {
         Args: { p_table_name?: string }
         Returns: {
-          rule_name: string
-          table_name: string
           column_name: string
-          rule_type: string
-          validation_result: string
           error_count: number
+          rule_name: string
+          rule_type: string
           severity: string
+          table_name: string
+          validation_result: string
         }[]
       }
       validate_follow_entity: {

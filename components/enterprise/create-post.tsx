@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
 import { MessageSquare, Image as ImageIcon, Link as LinkIcon, Globe, Lock, Users, BookOpen, User, Building, Calendar } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth' // Add this import
 
 interface CreatePostProps {
   entityType?: string
@@ -25,19 +26,32 @@ export default function CreatePost({
   className = ''
 }: CreatePostProps) {
   const { toast } = useToast()
+  const { user } = useAuth() // Get current user
   const [content, setContent] = useState('')
   const [imageUrl, setImageUrl] = useState('')
   const [linkUrl, setLinkUrl] = useState('')
   const [visibility, setVisibility] = useState('public')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!content.trim()) {
+    if (!content.trim() && (!imageUrl || !linkUrl)) {
       toast({
         title: 'Error',
-        description: 'Please enter some content for your post',
+        description: 'Please enter some content or add an image/link for your post',
+        variant: 'destructive'
+      })
+      return
+    }
+
+    // Check if user is authenticated
+    if (!user?.id) {
+      toast({
+        title: 'Authentication Error',
+        description: 'You must be logged in to create posts',
         variant: 'destructive'
       })
       return
@@ -69,6 +83,8 @@ export default function CreatePost({
       }
 
       const result = await response.json()
+      
+
       
       toast({
         title: 'Success!',

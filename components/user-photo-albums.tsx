@@ -45,11 +45,10 @@ interface Album {
   photo_count: number
   created_at: string
   updated_at: string
-  metadata?: {
-    privacy_level?: string
-    show_in_feed?: boolean
-    allowed_viewers?: string[]
-  }
+  metadata?: any
+  allowed_viewers?: string[]
+  is_post_album?: boolean
+  album_type?: 'regular' | 'posts' | 'post'
 }
 
 export function EntityPhotoAlbums({ 
@@ -86,6 +85,7 @@ export function EntityPhotoAlbums({
         actualEntityId = userUUID
       }
 
+      // Load regular albums
       let query = supabase
         .from('photo_albums')
         .select(`
@@ -96,9 +96,11 @@ export function EntityPhotoAlbums({
           cover_image_id,
           created_at,
           updated_at,
-          metadata
+          metadata,
+          entity_type
         `)
         .eq('owner_id', actualEntityId)
+        .not('entity_type', 'like', '%_posts') // Exclude post albums for now
         .order('created_at', { ascending: false })
 
       // If not own profile, only show public albums or albums shared with current user
@@ -106,12 +108,41 @@ export function EntityPhotoAlbums({
         query = query.or(`is_public.eq.true,album_shares.shared_with.eq.${user.id}`)
       }
 
-      const { data, error } = await query
+      const { data: regularAlbums, error: regularError } = await query
+      if (regularError) throw regularError
 
-      if (error) throw error
+      // Load post albums for this entity
+      const postAlbumType = `${entityType}_posts`
+      let postAlbumsQuery = supabase
+        .from('photo_albums')
+        .select(`
+          id,
+          name,
+          description,
+          is_public,
+          cover_image_id,
+          created_at,
+          updated_at,
+          metadata,
+          entity_type
+        `)
+        .eq('entity_type', postAlbumType)
+        .eq('entity_id', actualEntityId)
+        .order('created_at', { ascending: false })
+
+      // If not own profile, only show public post albums
+      if (!isOwnEntity && user) {
+        postAlbumsQuery = postAlbumsQuery.eq('is_public', true)
+      }
+
+      const { data: postAlbums, error: postError } = await postAlbumsQuery
+      if (postError) throw postError
+
+      // Combine regular albums and post albums
+      const allAlbums = [...(regularAlbums || []), ...(postAlbums || [])]
 
       // Get album image counts separately to avoid complex joins
-      const albumIds = (data || []).map(album => album.id)
+      const albumIds = allAlbums.map(album => album.id)
       let albumImageCounts: { [key: string]: number } = {}
       let albumCoverImages: { [key: string]: string } = {}
 
@@ -136,7 +167,7 @@ export function EntityPhotoAlbums({
         }
       }
 
-      const formattedAlbums: Album[] = (data || []).map((album: any) => ({
+      const formattedAlbums: Album[] = allAlbums.map((album: any) => ({
         id: album.id,
         name: album.name,
         description: album.description,
@@ -146,7 +177,9 @@ export function EntityPhotoAlbums({
         photo_count: albumImageCounts[album.id] || 0,
         created_at: album.created_at,
         updated_at: album.updated_at,
-        metadata: album.metadata
+        metadata: album.metadata,
+        is_post_album: album.entity_type?.includes('_posts') || false,
+        album_type: album.metadata?.album_type || 'regular'
       }))
 
       setAlbums(formattedAlbums)
@@ -178,38 +211,22 @@ export function EntityPhotoAlbums({
     loadAlbums()
   }
 
+  const handleAlbumClick = (album: Album) => {
+    setSelectedAlbum(album)
+  }
+
   const getPrivacyIcon = (album: Album) => {
-    const privacyLevel = album.metadata?.privacy_level || (album.is_public ? 'public' : 'private')
-    
-    switch (privacyLevel) {
-      case 'public':
-        return <Globe className="h-4 w-4" />
-      case 'friends':
-        return <Users className="h-4 w-4" />
-      case 'private':
-        return <Lock className="h-4 w-4" />
-      case 'custom':
-        return <Eye className="h-4 w-4" />
-      default:
-        return album.is_public ? <Globe className="h-4 w-4" /> : <Lock className="h-4 w-4" />
+    if (album.is_public) {
+      return <Globe className="h-3 w-3" />
     }
+    return <Lock className="h-3 w-3" />
   }
 
   const getPrivacyLabel = (album: Album) => {
-    const privacyLevel = album.metadata?.privacy_level || (album.is_public ? 'public' : 'private')
-    
-    switch (privacyLevel) {
-      case 'public':
-        return 'Public'
-      case 'friends':
-        return 'Friends Only'
-      case 'private':
-        return 'Private'
-      case 'custom':
-        return 'Custom'
-      default:
-        return album.is_public ? 'Public' : 'Private'
+    if (album.is_public) {
+      return 'Public'
     }
+    return 'Private'
   }
 
   const formatDate = (dateString: string) => {
@@ -311,102 +328,77 @@ export function EntityPhotoAlbums({
       ) : (
         <div className="user-photo-albums-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {albums.map((album) => (
-            <Card key={album.id} className="user-photo-album-card overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
-              <div 
-                className="user-photo-album-cover aspect-video relative overflow-hidden cursor-pointer group"
-                onClick={() => setSelectedAlbum(album)}
-              >
+            <Card
+              key={album.id}
+              className="group cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] relative overflow-hidden"
+              onClick={() => handleAlbumClick(album)}
+            >
+              {/* Album Cover Image */}
+              <div className="aspect-square overflow-hidden">
                 {album.cover_image_url ? (
-                  <Image
+                  <img
                     src={album.cover_image_url}
                     alt={album.name}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    className="user-photo-album-cover-image object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                   />
                 ) : (
-                  <div className="user-photo-album-placeholder w-full h-full bg-muted flex items-center justify-center">
-                    <ImageIcon className="h-12 w-12 text-muted-foreground" />
+                  <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
+                    <ImageIcon className="h-12 w-12 text-gray-400" />
                   </div>
                 )}
-                
-                {/* Privacy Badge */}
-                <div className="user-photo-album-privacy-badge absolute top-2 left-2">
-                  <Badge variant="secondary" className="user-photo-album-privacy-indicator flex items-center gap-1">
-                    {getPrivacyIcon(album)}
-                    {getPrivacyLabel(album)}
-                  </Badge>
-                </div>
+              </div>
 
-                {/* Photo Count */}
-                <div className="user-photo-album-count-badge absolute bottom-2 right-2">
-                  <Badge variant="default" className="user-photo-album-count-indicator bg-black/70 text-white">
-                    {album.photo_count} {album.photo_count === 1 ? 'photo' : 'photos'}
-                  </Badge>
-                </div>
-
-                {/* Hover overlay */}
-                <div className="user-photo-album-hover-overlay absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                  <div className="user-photo-album-hover-content opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="user-photo-album-view-button bg-white/90 text-black hover:bg-white"
-                    >
-                      View Album
-                    </Button>
+              {/* Album Info Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                  <h3 className="font-semibold text-sm mb-1 truncate">{album.name}</h3>
+                  <p className="text-xs text-gray-200 mb-2 line-clamp-2">{album.description}</p>
+                  
+                  {/* Album Type Badge */}
+                  {album.is_post_album && (
+                    <div className="flex gap-2 mb-2">
+                      <Badge 
+                        variant="secondary" 
+                        className={`text-xs ${
+                          album.album_type === 'posts' 
+                            ? 'bg-blue-500 text-white' 
+                            : 'bg-green-500 text-white'
+                        }`}
+                      >
+                        {album.album_type === 'posts' ? 'Posts Album' : 'Post Album'}
+                      </Badge>
+                    </div>
+                  )}
+                  
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="flex items-center gap-1">
+                      <ImageIcon className="h-3 w-3" />
+                      {album.photo_count} photo{album.photo_count !== 1 ? 's' : ''}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      {getPrivacyIcon(album)}
+                      {album.is_public ? 'Public' : 'Private'}
+                    </span>
                   </div>
                 </div>
               </div>
 
-              <CardContent className="user-photo-album-content p-4 flex flex-col flex-1">
-                <div className="user-photo-album-info space-y-2 flex-1">
-                  <h3 className="user-photo-album-name font-semibold text-lg truncate">{album.name}</h3>
-                  {album.description && (
-                    <p className="user-photo-album-description text-sm text-muted-foreground line-clamp-2">
-                      {album.description}
-                    </p>
-                  )}
+              {/* Quick Actions */}
+              {isOwnEntity && (
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 bg-white/20 hover:bg-white/30 text-white"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleAlbumSettings(album)
+                    }}
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
                 </div>
-
-                {/* Footer - Always at bottom */}
-                <div className="user-photo-album-footer mt-4 space-y-3">
-                  <div className="user-photo-album-metadata flex items-center justify-between text-xs text-muted-foreground">
-                    <div className="user-photo-album-created-date flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      {formatDate(album.created_at)}
-                    </div>
-                    
-                    {album.metadata?.show_in_feed && (
-                      <Badge variant="outline" className="user-photo-album-feed-badge text-xs">
-                        In Feed
-                      </Badge>
-                    )}
-                  </div>
-
-                  <div className="user-photo-album-actions flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="user-photo-album-view-action flex-1"
-                      onClick={() => setSelectedAlbum(album)}
-                    >
-                      View Album
-                    </Button>
-                    
-                    {isOwnEntity && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleAlbumSettings(album)}
-                        className="user-photo-album-settings-button"
-                      >
-                        <Settings className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
+              )}
             </Card>
           ))}
         </div>

@@ -55,20 +55,22 @@ import { EntityHoverCard } from '@/components/entity-hover-cards'
 import { EngagementActions } from '@/components/enterprise/engagement-actions'
 import { SophisticatedPhotoGrid } from '@/components/photo-gallery/sophisticated-photo-grid'
 import { EnterprisePhotoViewer } from '@/components/photo-gallery/enterprise-photo-viewer'
+import { Post, PostContent, PostContentType, PostVisibility, PostPublishStatus } from '@/types/post'
 
 export interface EntityFeedCardProps {
-  post: any
+  post: Post
   entityDetails?: any
   userDetails?: any
   showActions?: boolean
   showComments?: boolean
   showEngagement?: boolean
   className?: string
-  onPostUpdated?: (post: any) => void
+  onPostUpdated?: (post: Post) => void
   onPostDeleted?: (postId: string) => void
 }
 
-export interface PostContent {
+// Legacy PostContent interface for backward compatibility
+export interface LegacyPostContent {
   text?: string
   book_title?: string
   book_author?: string
@@ -223,14 +225,14 @@ export default function EntityFeedCard({
     if (contentType === 'text' && content.text) {
       return content.text.length > 200 ? content.text.substring(0, 200) + '...' : content.text
     }
-    if (contentType === 'review' && content.review) {
-      return content.review.length > 200 ? content.review.substring(0, 300) + '...' : content.review
+    if (contentType === 'book' && content.book_details?.review) {
+      return content.book_details.review.length > 200 ? content.book_details.review.substring(0, 300) + '...' : content.book_details.review
     }
     if (contentType === 'poll' && content.poll_question) {
       return `Poll: ${content.poll_question}`
     }
-    if (contentType === 'link' && content.link_title) {
-      return `Link: ${content.link_title}`
+    if (contentType === 'link' && content.links?.[0]?.title) {
+      return `Link: ${content.links[0].title}`
     }
     return 'Content post'
   }
@@ -358,7 +360,6 @@ export default function EntityFeedCard({
           </div>
         )
 
-      case 'photo':
       case 'image':
         console.log('Rendering image content:', { 
           postId: post.id,
@@ -382,7 +383,7 @@ export default function EntityFeedCard({
           likes: [],
           comments: [],
           shares: [],
-          analytics: { views: 0, downloads: 0, engagement_rate: 0 },
+          analytics: { views: 0, unique_views: 0, downloads: 0, shares: 0, engagement_rate: 0 },
           is_cover: false,
           is_featured: false
         }))
@@ -403,14 +404,14 @@ export default function EntityFeedCard({
               </div>
             )}
             
-            {/* Fallback to media_files for posts table */}
-            {!post.image_url && post.media_files && post.media_files.length > 0 && (
+            {/* Fallback to content.media_files for posts table */}
+            {!post.image_url && content.media_files && content.media_files.length > 0 && (
               <div className="enterprise-feed-card-photo-grid">
-                {post.media_files.map((media: any, index: number) => (
+                {content.media_files.map((media: any, index: number) => (
                   <div key={index} className="enterprise-feed-card-photo-item">
                     <img
                       src={media.url}
-                      alt={media.name || 'Photo'}
+                      alt={media.filename || 'Photo'}
                       className="enterprise-feed-card-photo w-full h-auto rounded-lg"
                     />
                   </div>
@@ -429,9 +430,9 @@ export default function EntityFeedCard({
       case 'video':
         return (
           <div className="enterprise-feed-card-video-content">
-            {post.video_url && (
+            {content.media_files && content.media_files.find(m => m.type === 'video') && (
               <video
-                src={post.video_url}
+                src={content.media_files.find(m => m.type === 'video')?.url}
                 controls
                 className="enterprise-feed-card-video w-full rounded-lg"
               />
@@ -444,44 +445,44 @@ export default function EntityFeedCard({
           </div>
         )
 
-      case 'review':
+      case 'book':
         return (
           <div className="enterprise-feed-card-review-content">
             <div className="enterprise-feed-card-review-header flex items-center gap-3 mb-3">
-              {content.book_title && (
+              {content.book_details?.title && (
                 <div className="enterprise-feed-card-book-info">
-                  <h4 className="font-semibold text-lg">{content.book_title}</h4>
-                  {content.book_author && (
-                    <p className="text-sm text-muted-foreground">by {content.book_author}</p>
+                  <h4 className="font-semibold text-lg">{content.book_details.title}</h4>
+                  {content.book_details.author && (
+                    <p className="text-sm text-muted-foreground">by {content.book_details.author}</p>
                   )}
                 </div>
               )}
-              {content.rating && (
+              {content.book_details?.rating && (
                 <div className="enterprise-feed-card-rating flex items-center gap-1">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <StarIcon
                       key={star}
                       className={cn(
                         "h-4 w-4",
-                        star <= (content.rating || 0) ? "text-yellow-500 fill-current" : "text-gray-300"
+                        star <= (content.book_details!.rating || 0) ? "text-yellow-500 fill-current" : "text-gray-300"
                       )}
                     />
                   ))}
                   <span className="text-sm text-muted-foreground ml-1">
-                    ({content.rating}/5)
+                    ({content.book_details!.rating}/5)
                   </span>
                 </div>
               )}
             </div>
-            {content.review && (
+            {content.book_details?.review && (
               <div className="enterprise-feed-card-review-text prose prose-sm max-w-none">
                 {showFullContent ? (
-                  <div dangerouslySetInnerHTML={{ __html: content.review }} />
+                  <div dangerouslySetInnerHTML={{ __html: content.book_details.review }} />
                 ) : (
                   <div className="enterprise-feed-card-review-preview">
-                    {content.review.length > 300 ? (
+                    {content.book_details.review.length > 300 ? (
                       <>
-                        <div dangerouslySetInnerHTML={{ __html: content.review.substring(0, 300) }} />
+                        <div dangerouslySetInnerHTML={{ __html: content.book_details.review.substring(0, 300) }} />
                         <Button
                           variant="ghost"
                           size="sm"
@@ -492,7 +493,7 @@ export default function EntityFeedCard({
                         </Button>
                       </>
                     ) : (
-                      <div dangerouslySetInnerHTML={{ __html: content.review }} />
+                      <div dangerouslySetInnerHTML={{ __html: content.book_details.review }} />
                     )}
                   </div>
                 )}

@@ -97,8 +97,9 @@ export function SophisticatedPhotoGrid({
           <img
             src={photos[0].thumbnail_url || photos[0].url}
             alt={photos[0].alt_text || photos[0].description || 'Photo 1'}
-            className="w-full max-h-[1200px] object-cover rounded-lg"
+            className="w-full max-h-[1200px] object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
             loading="lazy"
+            onClick={() => onPhotoClick?.(photos[0], 0)}
           />
         </div>
       </div>
@@ -120,16 +121,18 @@ export function SophisticatedPhotoGrid({
             <img
               src={photos[0].thumbnail_url || photos[0].url}
               alt={photos[0].alt_text || photos[0].description || 'Photo 1'}
-              className="w-full h-64 object-cover rounded-lg"
+              className="w-full h-64 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
               loading="lazy"
+              onClick={() => onPhotoClick?.(photos[0], 0)}
             />
           </div>
           <div className="flex-1">
             <img
               src={photos[1].thumbnail_url || photos[1].url}
               alt={photos[1].alt_text || photos[1].description || 'Photo 2'}
-              className="w-full h-64 object-cover rounded-lg"
+              className="w-full h-64 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
               loading="lazy"
+              onClick={() => onPhotoClick?.(photos[1], 1)}
             />
           </div>
         </div>
@@ -153,8 +156,9 @@ export function SophisticatedPhotoGrid({
               <img
                 src={photos[0].thumbnail_url || photos[0].url}
                 alt={photos[0].alt_text || photos[0].description || 'Photo 1'}
-                className="w-full h-full object-cover rounded-lg"
+                className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                 loading="lazy"
+                onClick={() => onPhotoClick?.(photos[0], 0)}
               />
             </div>
           </div>
@@ -164,16 +168,18 @@ export function SophisticatedPhotoGrid({
                 <img
                   src={photos[1].thumbnail_url || photos[1].url}
                   alt={photos[1].alt_text || photos[1].description || 'Photo 2'}
-                  className="w-full h-full object-cover rounded-lg"
+                  className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                   loading="lazy"
+                  onClick={() => onPhotoClick?.(photos[1], 1)}
                 />
               </div>
               <div className="aspect-square">
                 <img
                   src={photos[2].thumbnail_url || photos[2].url}
                   alt={photos[2].alt_text || photos[2].description || 'Photo 3'}
-                  className="w-full h-full object-cover rounded-lg"
+                  className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                   loading="lazy"
+                  onClick={() => onPhotoClick?.(photos[2], 2)}
                 />
               </div>
             </div>
@@ -199,8 +205,9 @@ export function SophisticatedPhotoGrid({
               <img
                 src={photo.thumbnail_url || photo.url}
                 alt={photo.alt_text || photo.description || `Photo ${index + 1}`}
-                className="w-full h-full object-cover rounded-lg"
+                className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                 loading="lazy"
+                onClick={() => onPhotoClick?.(photo, index)}
               />
             </div>
           ))}
@@ -226,8 +233,9 @@ export function SophisticatedPhotoGrid({
               <img
                 src={photos[0].thumbnail_url || photos[0].url}
                 alt={photos[0].alt_text || photos[0].description || 'Photo 1'}
-                className="w-full h-full object-cover rounded-lg"
+                className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                 loading="lazy"
+                onClick={() => onPhotoClick?.(photos[0], 0)}
               />
             </div>
           </div>
@@ -237,16 +245,18 @@ export function SophisticatedPhotoGrid({
                 <img
                   src={photos[1].thumbnail_url || photos[1].url}
                   alt={photos[1].alt_text || photos[1].description || 'Photo 2'}
-                  className="w-full h-full object-cover rounded-lg"
+                  className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                   loading="lazy"
+                  onClick={() => onPhotoClick?.(photos[1], 1)}
                 />
               </div>
               <div className="aspect-square">
                 <img
                   src={photos[2].thumbnail_url || photos[2].url}
                   alt={photos[2].alt_text || photos[2].description || 'Photo 3'}
-                  className="w-full h-full object-cover rounded-lg"
+                  className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                   loading="lazy"
+                  onClick={() => onPhotoClick?.(photos[2], 2)}
                 />
               </div>
             </div>
@@ -259,16 +269,18 @@ export function SophisticatedPhotoGrid({
             <img
               src={photos[3].thumbnail_url || photos[3].url}
               alt={photos[3].alt_text || photos[3].description || 'Photo 4'}
-              className="w-full h-full object-cover rounded-lg"
+              className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
               loading="lazy"
+              onClick={() => onPhotoClick?.(photos[3], 3)}
             />
           </div>
           <div className="aspect-square w-full">
             <img
               src={photos[4].thumbnail_url || photos[4].url}
               alt={photos[4].alt_text || photos[4].description || 'Photo 5'}
-              className="w-full h-full object-cover rounded-lg"
+              className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
               loading="lazy"
+              onClick={() => onPhotoClick?.(photos[4], 4)}
             />
           </div>
         </div>
@@ -293,8 +305,9 @@ export function SophisticatedPhotoGrid({
               <img
                 src={photos[0].thumbnail_url || photos[0].url}
                 alt={photos[0].alt_text || photos[0].description || 'Photo 1'}
-                className="w-full h-full object-cover rounded-lg"
+                className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                 loading="lazy"
+                onClick={() => onPhotoClick?.(photos[0], 0)}
               />
             </div>
           </div>
@@ -304,16 +317,18 @@ export function SophisticatedPhotoGrid({
                 <img
                   src={photos[1].thumbnail_url || photos[1].url}
                   alt={photos[1].alt_text || photos[1].description || 'Photo 2'}
-                  className="w-full h-full object-cover rounded-lg"
+                  className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                   loading="lazy"
+                  onClick={() => onPhotoClick?.(photos[1], 1)}
                 />
               </div>
               <div className="aspect-square">
                 <img
                   src={photos[2].thumbnail_url || photos[2].url}
                   alt={photos[2].alt_text || photos[2].description || 'Photo 3'}
-                  className="w-full h-full object-cover rounded-lg"
+                  className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                   loading="lazy"
+                  onClick={() => onPhotoClick?.(photos[2], 2)}
                 />
               </div>
             </div>
@@ -328,16 +343,18 @@ export function SophisticatedPhotoGrid({
                 <img
                   src={photos[3].thumbnail_url || photos[3].url}
                   alt={photos[3].alt_text || photos[3].description || 'Photo 4'}
-                  className="w-full h-full object-cover rounded-lg"
+                  className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                   loading="lazy"
+                  onClick={() => onPhotoClick?.(photos[3], 3)}
                 />
               </div>
               <div className="aspect-square">
                 <img
                   src={photos[4].thumbnail_url || photos[4].url}
                   alt={photos[4].alt_text || photos[4].description || 'Photo 5'}
-                  className="w-full h-full object-cover rounded-lg"
+                  className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                   loading="lazy"
+                  onClick={() => onPhotoClick?.(photos[4], 4)}
                 />
               </div>
             </div>
@@ -347,8 +364,9 @@ export function SophisticatedPhotoGrid({
               <img
                 src={photos[5].thumbnail_url || photos[5].url}
                 alt={photos[5].alt_text || photos[5].description || 'Photo 6'}
-                className="w-full h-full object-cover rounded-lg"
+                className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                 loading="lazy"
+                onClick={() => onPhotoClick?.(photos[5], 5)}
               />
             </div>
           </div>
@@ -374,8 +392,9 @@ export function SophisticatedPhotoGrid({
               <img
                 src={photos[0].thumbnail_url || photos[0].url}
                 alt={photos[0].alt_text || photos[0].description || 'Photo 1'}
-                className="w-full h-full object-cover rounded-lg"
+                className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                 loading="lazy"
+                onClick={() => onPhotoClick?.(photos[0], 0)}
               />
             </div>
           </div>
@@ -385,16 +404,18 @@ export function SophisticatedPhotoGrid({
                 <img
                   src={photos[1].thumbnail_url || photos[1].url}
                   alt={photos[1].alt_text || photos[1].description || 'Photo 2'}
-                  className="w-full h-full object-cover rounded-lg"
+                  className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                   loading="lazy"
+                  onClick={() => onPhotoClick?.(photos[1], 1)}
                 />
               </div>
               <div className="aspect-square">
                 <img
                   src={photos[2].thumbnail_url || photos[2].url}
                   alt={photos[2].alt_text || photos[2].description || 'Photo 3'}
-                  className="w-full h-full object-cover rounded-lg"
+                  className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                   loading="lazy"
+                  onClick={() => onPhotoClick?.(photos[2], 2)}
                 />
               </div>
             </div>
@@ -409,16 +430,18 @@ export function SophisticatedPhotoGrid({
                 <img
                   src={photos[3].thumbnail_url || photos[3].url}
                   alt={photos[3].alt_text || photos[3].description || 'Photo 4'}
-                  className="w-full h-full object-cover rounded-lg"
+                  className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                   loading="lazy"
+                  onClick={() => onPhotoClick?.(photos[3], 3)}
                 />
               </div>
               <div className="aspect-square">
                 <img
                   src={photos[4].thumbnail_url || photos[4].url}
                   alt={photos[4].alt_text || photos[4].description || 'Photo 5'}
-                  className="w-full h-full object-cover rounded-lg"
+                  className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                   loading="lazy"
+                  onClick={() => onPhotoClick?.(photos[4], 4)}
                 />
               </div>
             </div>
@@ -428,8 +451,9 @@ export function SophisticatedPhotoGrid({
               <img
                 src={photos[5].thumbnail_url || photos[5].url}
                 alt={photos[5].alt_text || photos[5].description || 'Photo 6'}
-                className="w-full h-full object-cover rounded-lg"
+                className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                 loading="lazy"
+                onClick={() => onPhotoClick?.(photos[5], 5)}
               />
             </div>
           </div>

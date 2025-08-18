@@ -271,7 +271,20 @@ export function EnterprisePhotoViewer({
 
   const loadPhotoData = async (photoId: string) => {
     try {
-      // Load photo with tags, likes, comments, and user information
+      // Check if this is a timeline photo (generated ID) or a real database photo
+      const isTimelinePhoto = photoId.startsWith('post-') || photoId.startsWith('preview-')
+      
+      if (isTimelinePhoto) {
+        // For timeline photos, use the existing photo data from props
+        const currentPhoto = photos[currentIndex]
+        if (currentPhoto) {
+          setPhoto(currentPhoto)
+          setIsPhotoDataLoaded(true)
+        }
+        return
+      }
+
+      // Load photo with tags, likes, comments, and user information from database
       const { data: photoData, error } = await supabase
         .from('images')
         .select(`
@@ -365,11 +378,13 @@ export function EnterprisePhotoViewer({
       setPhoto(photoWithData)
       setIsPhotoDataLoaded(true)
       
-      // Track view by updating view count
-      await supabase
-        .from('images')
-        .update({ view_count: (photoData.view_count || 0) + 1 })
-        .eq('id', photoId)
+      // Track view by updating view count (only for real database photos)
+      if (!isTimelinePhoto) {
+        await supabase
+          .from('images')
+          .update({ view_count: (photoData.view_count || 0) + 1 })
+          .eq('id', photoId)
+      }
       
       // Check if current user liked this photo
       // TODO: Add current user check
@@ -381,6 +396,15 @@ export function EnterprisePhotoViewer({
 
   const trackAnalytics = async (photoId: string, eventType: string) => {
     try {
+      // Check if this is a timeline photo (generated ID) or a real database photo
+      const isTimelinePhoto = photoId.startsWith('post-') || photoId.startsWith('preview-')
+      
+      if (isTimelinePhoto) {
+        // For timeline photos, analytics are handled differently
+        console.log(`Timeline photo ${eventType} tracked for ${photoId}`)
+        return
+      }
+
       // Simple tracking by updating counters in images table
       if (eventType === 'view') {
         await supabase.rpc('increment', { 

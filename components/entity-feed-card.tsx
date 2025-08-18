@@ -53,8 +53,8 @@ import { cn } from '@/lib/utils'
 import { BookCover } from '@/components/book-cover'
 import { EntityHoverCard } from '@/components/entity-hover-cards'
 import { EngagementActions } from '@/components/enterprise/engagement-actions'
-import { SimplePhotoViewer } from '@/components/photo-gallery/simple-photo-viewer'
 import { SophisticatedPhotoGrid } from '@/components/photo-gallery/sophisticated-photo-grid'
+import { EnterprisePhotoViewer } from '@/components/photo-gallery/enterprise-photo-viewer'
 
 export interface EntityFeedCardProps {
   post: any
@@ -237,8 +237,9 @@ export default function EntityFeedCard({
 
   // Handle image click for modal
   const handleImageClick = (url: string, index: number) => {
+    console.log('Image clicked:', { url, index, postId: post.id });
     setSelectedImage({ url, index });
-    setCurrentImageIndex(index); // Set current index for SimplePhotoViewer
+    setCurrentImageIndex(index); // Set current index for EnterprisePhotoViewer
     setShowImageModal(true);
   };
 
@@ -906,22 +907,38 @@ export default function EntityFeedCard({
       
       {/* Image Modal */}
       {showImageModal && selectedImage && (
-        <SimplePhotoViewer
+        <EnterprisePhotoViewer
           isOpen={showImageModal}
           onClose={closeImageModal}
           photos={(post.image_url ? post.image_url.split(',').map((url: string, index: number) => ({
-            id: `image-${index}`,
+            id: `post-${post.id}-${index}`,
             url: url,
-            alt_text: `Post image ${index + 1}`
-          })) : []).map((photo: any) => ({
-            id: photo.id,
-            url: photo.url,
-            alt_text: photo.alt_text,
-            description: photo.description,
-            created_at: new Date().toISOString()
-          }))}
+            thumbnail_url: url,
+            alt_text: `Post image ${index + 1}`,
+            description: post.content?.text || `Image ${index + 1} from post`,
+            created_at: post.created_at || new Date().toISOString(),
+            metadata: {
+              source: 'timeline_post',
+              post_id: post.id,
+              user_id: post.user_id,
+              user_name: post.user_name
+            },
+            tags: [],
+            likes: [],
+            comments: [],
+            shares: [],
+            analytics: { views: 0, unique_views: 0, downloads: 0, shares: 0, engagement_rate: 0 },
+            is_featured: false,
+            user: {
+              name: post.user_name || 'User',
+              avatar_url: post.user_avatar_url
+            }
+          })) : [])}
           currentIndex={currentImageIndex}
           onIndexChange={setCurrentImageIndex}
+          entityId={post.user_id || post.entity_id || 'unknown'}
+          entityType={post.entity_type || 'user'}
+          isOwner={false}
         />
       )}
     </div>

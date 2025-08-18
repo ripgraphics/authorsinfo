@@ -203,6 +203,16 @@ export default function EntityComments({
     try {
       setIsLoading(true)
       
+      // Check if this is a timeline photo (generated ID) or a real database entity
+      const isTimelinePhoto = entityId.startsWith('post-') || entityId.startsWith('preview-')
+      
+      if (isTimelinePhoto) {
+        // For timeline photos, we can't load comments since they don't exist in the database
+        // Set empty comments and show a message
+        setComments([])
+        return
+      }
+      
       // Load top-level comments
       const { data: topLevelComments, error: commentsError } = await supabase
         .from('comments')
@@ -301,6 +311,19 @@ export default function EntityComments({
   // Load social stats for the entity
   const loadSocialStats = useCallback(async () => {
     try {
+      // Check if this is a timeline photo (generated ID) or a real database entity
+      const isTimelinePhoto = entityId.startsWith('post-') || entityId.startsWith('preview-')
+      
+      if (isTimelinePhoto) {
+        // For timeline photos, set default values since they don't exist in the database
+        setLikeCount(0)
+        setIsLiked(false)
+        setShareCount(0)
+        setBookmarkCount(0)
+        setIsBookmarked(false)
+        return
+      }
+      
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
@@ -354,6 +377,18 @@ export default function EntityComments({
   // Handle like/unlike
   const handleLike = useCallback(async () => {
     try {
+      // Check if this is a timeline photo (generated ID) or a real database entity
+      const isTimelinePhoto = entityId.startsWith('post-') || entityId.startsWith('preview-')
+      
+      if (isTimelinePhoto) {
+        toast({
+          title: "Info",
+          description: "Likes are not available for timeline photos",
+          variant: "default"
+        })
+        return
+      }
+      
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         toast({
@@ -402,6 +437,19 @@ export default function EntityComments({
   const handleComment = useCallback(async (content: string, parentId?: string) => {
     try {
       setIsSubmitting(true)
+      
+      // Check if this is a timeline photo (generated ID) or a real database entity
+      const isTimelinePhoto = entityId.startsWith('post-') || entityId.startsWith('preview-')
+      
+      if (isTimelinePhoto) {
+        toast({
+          title: "Info",
+          description: "Comments are not available for timeline photos",
+          variant: "default"
+        })
+        return
+      }
+      
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         toast({
@@ -472,6 +520,18 @@ export default function EntityComments({
   // Handle share
   const handleShare = useCallback(async () => {
     try {
+      // Check if this is a timeline photo (generated ID) or a real database entity
+      const isTimelinePhoto = entityId.startsWith('post-') || entityId.startsWith('preview-')
+      
+      if (isTimelinePhoto) {
+        toast({
+          title: "Info",
+          description: "Sharing is not available for timeline photos",
+          variant: "default"
+        })
+        return
+      }
+      
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         toast({
@@ -510,6 +570,18 @@ export default function EntityComments({
   // Handle bookmark
   const handleBookmark = useCallback(async () => {
     try {
+      // Check if this is a timeline photo (generated ID) or a real database entity
+      const isTimelinePhoto = entityId.startsWith('post-') || entityId.startsWith('preview-')
+      
+      if (isTimelinePhoto) {
+        toast({
+          title: "Info",
+          description: "Bookmarking is not available for timeline photos",
+          variant: "default"
+        })
+        return
+      }
+      
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         toast({
@@ -612,7 +684,8 @@ export default function EntityComments({
             variant="ghost"
             size="sm"
             onClick={handleLike}
-            className={`flex items-center gap-2 ${isLiked ? 'text-red-500' : 'text-gray-600'}`}
+            disabled={entityId.startsWith('post-') || entityId.startsWith('preview-')}
+            className={`flex items-center gap-2 ${isLiked ? 'text-red-500' : 'text-gray-600'} ${(entityId.startsWith('post-') || entityId.startsWith('preview-')) ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
             <span className="text-sm">{likeCount}</span>
@@ -622,7 +695,8 @@ export default function EntityComments({
             variant="ghost"
             size="sm"
             onClick={handleShare}
-            className="flex items-center gap-2 text-gray-600"
+            disabled={entityId.startsWith('post-') || entityId.startsWith('preview-')}
+            className={`flex items-center gap-2 text-gray-600 ${(entityId.startsWith('post-') || entityId.startsWith('preview-')) ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <Share2 className="w-4 h-4" />
             <span className="text-sm">{shareCount}</span>
@@ -632,7 +706,8 @@ export default function EntityComments({
             variant="ghost"
             size="sm"
             onClick={handleBookmark}
-            className={`flex items-center gap-2 ${isBookmarked ? 'text-blue-500' : 'text-gray-600'}`}
+            disabled={entityId.startsWith('post-') || entityId.startsWith('preview-')}
+            className={`flex items-center gap-2 ${isBookmarked ? 'text-blue-500' : 'text-gray-600'} ${(entityId.startsWith('post-') || entityId.startsWith('preview-')) ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <Download className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
             <span className="text-sm">{bookmarkCount}</span>
@@ -642,7 +717,11 @@ export default function EntityComments({
 
       {/* Comments Section */}
       <div className="flex-1 overflow-y-auto p-4">
-        {comments.length === 0 ? (
+        {entityId.startsWith('post-') || entityId.startsWith('preview-') ? (
+          <div className="text-center text-gray-500 py-8">
+            Comments are not available for timeline photos
+          </div>
+        ) : comments.length === 0 ? (
           <div className="text-center text-gray-500 py-8">
             No comments yet. Be the first to comment!
           </div>
@@ -667,48 +746,54 @@ export default function EntityComments({
 
       {/* Comment Input */}
       <div className="p-4 border-t">
-        <div className="flex items-start gap-3">
-          <Avatar 
-            src={currentUser?.avatar_url} 
-            name={currentUser?.name}
-            className="w-10 h-10 flex-shrink-0"
-          />
-          <div className="flex-1">
-            <div
-              ref={commentInputRef}
-              contentEditable
-              className="min-h-[40px] max-h-[120px] px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              data-placeholder="Write a comment..."
-              onInput={(e) => {
-                const text = e.currentTarget.innerText || ''
-                setNewComment(text)
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault()
-                  if (newComment.trim()) {
-                    handleComment(newComment)
-                  }
-                }
-              }}
-              suppressContentEditableWarning
+        {entityId.startsWith('post-') || entityId.startsWith('preview-') ? (
+          <div className="text-center text-gray-500 py-4">
+            Comments are not available for timeline photos
+          </div>
+        ) : (
+          <div className="flex items-start gap-3">
+            <Avatar 
+              src={currentUser?.avatar_url} 
+              name={currentUser?.name}
+              className="w-10 h-10 flex-shrink-0"
             />
-            <div className="flex items-center justify-between mt-2">
-              <div className="text-xs text-gray-500">
-                Comment as {currentUser?.name || "User"}
+            <div className="flex-1">
+              <div
+                ref={commentInputRef}
+                contentEditable
+                className="min-h-[40px] max-h-[120px] px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                data-placeholder="Write a comment..."
+                onInput={(e) => {
+                  const text = e.currentTarget.innerText || ''
+                  setNewComment(text)
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    if (newComment.trim()) {
+                      handleComment(newComment)
+                    }
+                  }
+                }}
+                suppressContentEditableWarning
+              />
+              <div className="flex items-center justify-between mt-2">
+                <div className="text-xs text-gray-500">
+                  Comment as {currentUser?.name || "User"}
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => handleComment(newComment)}
+                  disabled={!newComment.trim() || isSubmitting}
+                  className="flex items-center gap-2"
+                >
+                  <Send className="w-4 h-4" />
+                  Post
+                </Button>
               </div>
-              <Button
-                size="sm"
-                onClick={() => handleComment(newComment)}
-                disabled={!newComment.trim() || isSubmitting}
-                className="flex items-center gap-2"
-              >
-                <Send className="w-4 h-4" />
-                Post
-              </Button>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )

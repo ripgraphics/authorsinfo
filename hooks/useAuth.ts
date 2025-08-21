@@ -20,12 +20,20 @@ export function useAuth() {
         if (session?.user) {
           // Fetch user data with role from API endpoint
           try {
+            // Add timeout and better error handling
+            const controller = new AbortController()
+            const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+            
             const response = await fetch('/api/auth-users', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               },
+              signal: controller.signal
             })
+            
+            clearTimeout(timeoutId)
+            
             if (response.ok) {
               const data = await response.json()
               if (data.user) {
@@ -61,12 +69,20 @@ export function useAuth() {
           if (session?.user) {
             // Fetch user data with role from API endpoint
             try {
+              // Add timeout and better error handling
+              const controller = new AbortController()
+              const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+              
               const response = await fetch('/api/auth-users', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
                 },
+                signal: controller.signal
               })
+              
+              clearTimeout(timeoutId)
+              
               if (response.ok) {
                 const data = await response.json()
                 if (data.user) {

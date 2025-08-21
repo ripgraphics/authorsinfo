@@ -1,0 +1,175 @@
+// Unified FeedPost interface for the feed system
+// This interface works with both old and new post structures from the activities table
+
+export interface FeedPost {
+  // Core activity fields
+  id: string
+  user_id: string
+  activity_type: string
+  entity_type: string
+  entity_id: string
+  is_public: boolean
+  metadata: any
+  created_at: string
+  
+  // User information
+  user_name?: string
+  user_avatar_url?: string
+  
+  // Engagement data
+  like_count: number
+  comment_count: number
+  share_count?: number
+  is_liked: boolean
+  
+  // Post content fields (new structure)
+  text?: string
+  image_url?: string
+  link_url?: string
+  visibility?: string
+  content_type?: string
+  updated_at?: string
+  
+  // Legacy fields for backward compatibility
+  content?: PostContent
+  content_type_legacy?: string
+  
+  // Content safety and restrictions
+  content_safety_score?: number
+  age_restriction?: string
+  sensitive_content?: boolean
+  
+  // User interaction state
+  user_has_reacted?: boolean
+  user_has_commented?: boolean
+  user_has_shared?: boolean
+  
+  // Additional fields for backward compatibility
+  view_count?: number
+  share_count?: number
+  tags?: string[]
+  
+  // Post metadata fields
+  scheduled_at?: string
+  is_featured?: boolean
+  is_pinned?: boolean
+  is_verified?: boolean
+  engagement_score?: number
+}
+
+export interface PostContent {
+  text?: string
+  media_files?: PostMediaFile[]
+  links?: PostLink[]
+  metadata?: PostMetadata
+  // Legacy fields for backward compatibility
+  book_details?: {
+    book_id?: string
+    title?: string
+    author?: string
+    rating?: number
+    review?: string
+    reading_status?: string
+  }
+  poll_question?: string
+  poll_options?: string[]
+  poll_results?: Record<string, number>
+  content_safety_score?: number
+  sentiment_analysis?: string
+}
+
+export interface PostMediaFile {
+  id: string
+  url: string
+  thumbnail_url?: string
+  filename?: string
+  type: 'image' | 'video' | 'audio' | 'document'
+  size?: number
+  mime_type?: string
+  alt_text?: string
+  description?: string
+}
+
+export interface PostLink {
+  id: string
+  url: string
+  title?: string
+  description?: string
+  thumbnail_url?: string
+  domain?: string
+}
+
+export interface PostMetadata {
+  tags?: string[]
+  categories?: string[]
+  location?: {
+    latitude?: number
+    longitude?: number
+    address?: string
+    city?: string
+    country?: string
+  }
+  mentions?: string[]
+  hashtags?: string[]
+  custom_fields?: Record<string, any>
+}
+
+export interface PostVisibility {
+  type: 'public' | 'private' | 'friends' | 'followers' | 'custom'
+  custom_users?: string[]
+  custom_groups?: string[]
+}
+
+export interface PostPublishStatus {
+  status: 'draft' | 'published' | 'scheduled' | 'archived'
+  scheduled_at?: string
+  published_at?: string
+  archived_at?: string
+}
+
+// Type guards for checking post structure
+export function isNewPostStructure(post: FeedPost): post is FeedPost & { text: string; content_type: string } {
+  return post.text !== undefined && post.content_type !== undefined
+}
+
+export function isOldPostStructure(post: FeedPost): post is FeedPost & { content: PostContent } {
+  return post.content !== undefined && post.content.text !== undefined
+}
+
+export function hasImageContent(post: FeedPost): boolean {
+  return !!(post.image_url || (post.content?.media_files && post.content.media_files.length > 0))
+}
+
+export function hasTextContent(post: FeedPost): boolean {
+  return !!(post.text || post.content?.text)
+}
+
+export function getPostText(post: FeedPost): string {
+  if (post.text) return post.text
+  if (post.content?.text) return post.content.text
+  return 'Post content'
+}
+
+export function getPostImages(post: FeedPost): string[] {
+  if (post.image_url) {
+    return post.image_url.split(',').map(url => url.trim()).filter(Boolean)
+  }
+  if (post.content?.media_files) {
+    return post.content.media_files
+      .filter(file => file.type === 'image')
+      .map(file => file.url)
+  }
+  return []
+}
+
+export function getPostContentType(post: FeedPost): string {
+  if (post.content_type) return post.content_type
+  if (post.content_type_legacy) return post.content_type_legacy
+  
+  // Infer from content
+  if (hasImageContent(post)) return 'image'
+  if (post.content?.media_files?.some(f => f.type === 'video')) return 'video'
+  if (post.content?.links && post.content.links.length > 0) return 'link'
+  
+  return 'text'
+}

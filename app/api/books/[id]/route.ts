@@ -28,10 +28,17 @@ export async function GET(
 
     if (error) {
       console.error('Database error:', error);
+      console.error('Error details:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     console.log('Book fetched successfully');
+    console.log('Book data:', data);
     return NextResponse.json({ success: true, data });
 
   } catch (error) {

@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Camera, BookOpen, Users, MapPin, Globe, User, MoreHorizontal, MessageSquare, UserPlus, Settings, Crop, Loader2 } from "lucide-react"
@@ -152,6 +152,14 @@ export function EntityHeader({
   isMember = false,
   bookId,
 }: EntityHeaderProps) {
+  
+  console.log('🏗️ EntityHeader component mounted with props:', {
+    entityType,
+    entityId,
+    name,
+    coverImageUrl
+  });
+  
   const { user } = useAuth()
   const groupPermissions = useGroupPermissions(group?.id || null, user?.id)
   const { isMember: isGroupMember, isAdmin } = groupPermissions
@@ -164,6 +172,10 @@ export function EntityHeader({
   const [avatarImage, setAvatarImage] = useState<string | undefined>(profileImageUrl)
   const [isProcessing, setIsProcessing] = useState(false)
   const [imageVersion, setImageVersion] = useState(0)
+  const [entityImages, setEntityImages] = useState<{
+    header?: string
+    avatar?: string
+  }>({})
   const { toast } = useToast()
 
   useEffect(() => {
@@ -186,6 +198,142 @@ export function EntityHeader({
 
     fetchGroupMemberData();
   }, [creator, group?.id]);
+
+  // Function to fetch entity images (moved outside useEffect for reuse)
+  const fetchEntityImages = useCallback(async () => {
+    console.log('🔍 fetchEntityImages called with:', { entityId, entityType });
+    
+    if (!entityId || !entityType) {
+      console.log('❌ Missing entityId or entityType, skipping fetch');
+      return;
+    }
+    
+    try {
+      console.log('📡 Fetching entity header images...');
+      // Fetch entity header images
+      const headerResponse = await fetch(`/api/entity-images?entityId=${entityId}&entityType=${entityType}&albumPurpose=entity_header`);
+      console.log('📡 Header response status:', headerResponse.status);
+      
+      if (headerResponse.ok) {
+        const headerData = await headerResponse.json();
+        console.log('📡 Header response data:', headerData);
+        console.log('📡 Header albums array:', headerData.albums);
+        console.log('📡 Header albums length:', headerData.albums?.length);
+        console.log('📡 Header success:', headerData.success);
+        
+        if (headerData.success && headerData.albums && headerData.albums.length > 0) {
+          const headerAlbum = headerData.albums[0];
+          console.log('📡 Header album found:', headerAlbum);
+          
+          if (headerAlbum.images && headerAlbum.images.length > 0) {
+            // Get the cover image or MOST RECENT image (by created_at)
+            let headerImage = headerAlbum.images.find((img: any) => img.is_cover);
+            
+            if (!headerImage) {
+              // If no cover image, get the most recent image by creation date
+              headerImage = headerAlbum.images.reduce((latest: any, current: any) => {
+                if (!latest) return current;
+                const latestDate = new Date(latest.image?.created_at || 0);
+                const currentDate = new Date(current.image?.created_at || 0);
+                return currentDate > latestDate ? current : latest;
+              });
+            }
+            
+            console.log('📡 Header image found:', headerImage);
+            
+            if (headerImage && headerImage.image) {
+              console.log('✅ Setting header image:', headerImage.image.url);
+              // Image URL is now included directly in the API response
+              setEntityImages(prev => ({ ...prev, header: headerImage.image.url }));
+              setCoverImage(headerImage.image.url);
+            } else {
+              console.log('❌ Header image missing image details');
+            }
+          } else {
+            console.log('❌ Header album has no images');
+          }
+        } else {
+          console.log('❌ No header albums found or API not successful');
+        }
+      } else {
+        console.log('❌ Header response not ok:', headerResponse.status);
+      }
+      
+      console.log('📡 Fetching entity avatar images...');
+      // Fetch entity avatar images
+      const avatarResponse = await fetch(`/api/entity-images?entityId=${entityId}&entityType=${entityType}&albumPurpose=avatar`);
+      console.log('📡 Avatar response status:', avatarResponse.status);
+      
+      if (avatarResponse.ok) {
+        const avatarData = await avatarResponse.json();
+        console.log('📡 Avatar response data:', avatarData);
+        console.log('📡 Avatar albums array:', avatarData.albums);
+        console.log('📡 Avatar albums length:', avatarData.albums?.length);
+        console.log('📡 Avatar success:', avatarData.success);
+        
+        if (avatarData.success && avatarData.albums && avatarData.albums.length > 0) {
+          const avatarAlbum = avatarData.albums[0];
+          console.log('📡 Avatar album found:', avatarAlbum);
+          
+          if (avatarAlbum.images && avatarAlbum.images.length > 0) {
+            // Get the cover image or MOST RECENT image (by created_at)
+            let avatarImage = avatarAlbum.images.find((img: any) => img.is_cover);
+            
+            if (!avatarImage) {
+              // If no cover image, get the most recent image by creation date
+              avatarImage = avatarAlbum.images.reduce((latest: any, current: any) => {
+                if (!latest) return current;
+                const latestDate = new Date(latest.image?.created_at || 0);
+                const currentDate = new Date(current.image?.created_at || 0);
+                return currentDate > latestDate ? current : latest;
+              });
+            }
+            
+            console.log('📡 Avatar image found:', avatarImage);
+            
+            if (avatarImage && avatarImage.image) {
+              console.log('✅ Setting avatar image:', avatarImage.image.url);
+              // Image URL is now included directly in the API response
+              setEntityImages(prev => ({ ...prev, avatar: avatarImage.image.url }));
+              setAvatarImage(avatarImage.image.url);
+            } else {
+              console.log('❌ Avatar image missing image details');
+            }
+          } else {
+            console.log('❌ Avatar album has no images');
+          }
+        } else {
+          console.log('❌ No avatar albums found or API not successful');
+        }
+      } else {
+        console.log('❌ Avatar response not ok:', avatarResponse.status);
+      }
+    } catch (error) {
+      console.error('❌ Error fetching entity images:', error);
+    }
+  }, [entityId, entityType]);
+
+  // Fetch entity images from photo albums when component mounts
+  useEffect(() => {
+    console.log('🚀 useEffect triggered, calling fetchEntityImages');
+    fetchEntityImages();
+  }, [fetchEntityImages]);
+
+  // Listen for entity image changes (when user sets new cover in photos tab)
+  useEffect(() => {
+    const handleEntityImageChanged = () => {
+      console.log('🔄 Entity image changed event received, refreshing images...');
+      fetchEntityImages();
+    };
+
+    window.addEventListener('entityImageChanged', handleEntityImageChanged);
+    
+    return () => {
+      window.removeEventListener('entityImageChanged', handleEntityImageChanged);
+    };
+  }, [fetchEntityImages]);
+
+  console.log('🔍 EntityHeader useEffect dependencies changed:', { entityId, entityType });
 
   const handleCropCover = async (croppedImageBlob: Blob) => {
     setIsProcessing(true)
@@ -285,11 +433,20 @@ export function EntityHeader({
       const imageData = imageInsertResult.data
 
       // Add image to entity album
-      const albumType = entityType === 'book' ? 'book_entity_header_album' : 
-                       entityType === 'author' ? 'author_entity_header_album' :
-                       entityType === 'publisher' ? 'publisher_entity_header_album' :
-                       entityType === 'event' ? 'event_entity_header_album' :
-                       'user_gallery_album'
+      const albumPurpose = 'entity_header'
+      
+      console.log('DEBUG - entityId value:', entityId)
+      console.log('DEBUG - entityId type:', typeof entityId)
+      console.log('DEBUG - entityId truthy check:', !!entityId)
+      
+      console.log('Calling entity-images API with:', {
+        entityId: entityId || '',
+        entityType: entityType,
+        albumPurpose: albumPurpose,
+        imageId: imageData.id,
+        isCover: true,
+        isFeatured: true
+      })
 
       const albumResponse = await fetch('/api/entity-images', {
         method: 'POST',
@@ -299,7 +456,7 @@ export function EntityHeader({
         body: JSON.stringify({
           entityId: entityId || '',
           entityType: entityType,
-          albumType: albumType,
+          albumPurpose: albumPurpose,
           imageId: imageData.id,
           isCover: true,
           isFeatured: true,
@@ -312,10 +469,18 @@ export function EntityHeader({
         })
       })
 
+      console.log('Album response status:', albumResponse.status)
+      console.log('Album response ok:', albumResponse.ok)
+
       if (!albumResponse.ok) {
         const errorText = await albumResponse.text()
         console.error('Failed to add image to album:', errorText)
+        console.error('Album response status:', albumResponse.status)
+        console.error('Album response headers:', Object.fromEntries(albumResponse.headers.entries()))
         // Don't throw error here, just log it
+      } else {
+        const albumResult = await albumResponse.json()
+        console.log('Successfully added image to album:', albumResult)
       }
 
       // Update local state with the new image URL
@@ -449,9 +614,20 @@ export function EntityHeader({
       const imageData = imageInsertResult.data
 
       // Add image to entity album
-      const albumType = entityType === 'book' ? 'book_avatar_album' : 
-                       entityType === 'author' ? 'author_avatar_album' :
-                       entityType === 'publisher' ? 'publisher_avatar_album' : 'user_avatar_album'
+      const albumPurpose = 'avatar'
+      
+      console.log('DEBUG - entityId value for avatar:', entityId)
+      console.log('DEBUG - entityId type for avatar:', typeof entityId)
+      console.log('DEBUG - entityId truthy check for avatar:', !!entityId)
+      
+      console.log('Calling entity-images API for avatar with:', {
+        entityId: entityId || '',
+        entityType: entityType,
+        albumPurpose: albumPurpose,
+        imageId: imageData.id,
+        isCover: true,
+        isFeatured: true
+      })
 
       const albumResponse = await fetch('/api/entity-images', {
         method: 'POST',
@@ -461,7 +637,7 @@ export function EntityHeader({
         body: JSON.stringify({
           entityId: entityId || '',
           entityType: entityType,
-          albumType: albumType,
+          albumPurpose: albumPurpose,
           imageId: imageData.id,
           isCover: true,
           isFeatured: true,
@@ -474,10 +650,18 @@ export function EntityHeader({
         })
       })
 
+      console.log('Avatar album response status:', albumResponse.status)
+      console.log('Avatar album response ok:', albumResponse.ok)
+
       if (!albumResponse.ok) {
         const errorText = await albumResponse.text()
-        console.error('Failed to add image to album:', errorText)
+        console.error('Failed to add avatar to album:', errorText)
+        console.error('Avatar album response status:', albumResponse.status)
+        console.error('Avatar album response headers:', Object.fromEntries(albumResponse.headers.entries()))
         // Don't throw error here, just log it
+      } else {
+        const albumResult = await albumResponse.json()
+        console.log('Successfully added avatar to album:', albumResult)
       }
 
       // Update local state with the new image URL

@@ -125,6 +125,44 @@ export function ClientBookPage({
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false)
   const [canEdit, setCanEdit] = useState(false)
   const [moreBooks, setMoreBooks] = useState<any[]>([]);
+  const [bookData, setBookData] = useState(book)
+
+  // Determine if current user can edit this book
+  useEffect(() => {
+    const checkEditPermissions = async () => {
+      if (!user) {
+        setCanEdit(false)
+        return
+      }
+      
+      try {
+        // Check if user is admin
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('user_id', user.id)
+          .single()
+        
+        if (profile?.role === 'admin') {
+          setCanEdit(true)
+          return
+        }
+        
+        // Check if user created the book
+        if (book.created_by === user.id) {
+          setCanEdit(true)
+          return
+        }
+        
+        setCanEdit(false)
+      } catch (error) {
+        console.error('Error checking edit permissions:', error)
+        setCanEdit(false)
+      }
+    }
+    
+    checkEditPermissions()
+  }, [user, book.created_by])
 
   // Mock photos for the Photos tab
   const mockPhotosTabData = [
@@ -402,6 +440,17 @@ export function ClientBookPage({
     }
   }
 
+  // Entity images are now completely separate from book data
+  // No need to refresh book data when entity images are uploaded
+  const handleCoverImageChange = () => {
+    // Entity images are stored in photo albums and displayed directly
+    // Book cover images remain unchanged and separate
+    toast({
+      title: "Success!",
+      description: "Entity image uploaded successfully",
+    })
+  }
+
   // Configure tabs for the EntityHeader
   const tabs: TabConfig[] = [
     { id: "details", label: "Details" },
@@ -449,7 +498,7 @@ export function ClientBookPage({
     <div className="book-page">
         <EntityHeader
           entityType="book"
-          name={book.title}
+          name={bookData.title}
           bookId={params.id}
           entityId={params.id}
           targetType="book"
@@ -466,40 +515,41 @@ export function ClientBookPage({
             <span className="text-muted-foreground">{authors[0].name}</span>
             </EntityHoverCard>
           ) : undefined}
-          coverImageUrl={book.cover_image?.url || "/placeholder.svg?height=400&width=1200"}
-        profileImageUrl={book.cover_image?.url || "/placeholder.svg?height=200&width=200"}
-        stats={[
-          { 
-            icon: <BookOpen className="h-4 w-4 mr-1" />, 
-            text: `${book.pages || book.page_count || 0} pages` 
-          },
-          { 
-            icon: <Users className="h-4 w-4 mr-1" />, 
-            text: `${followersCount} followers` 
-          }
-        ]}
-        location={book.language}
-        website={book.website}
+          coverImageUrl={bookData.cover_image?.url || "/placeholder.svg?height=400&width=1200"}
+          profileImageUrl={bookData.cover_image?.url || "/placeholder.svg?height=200&width=200"}
+          stats={[
+            { 
+              icon: <BookOpen className="h-4 w-4 mr-1" />, 
+              text: `${bookData.pages || bookData.page_count || 0} pages` 
+            },
+            { 
+              icon: <Users className="h-4 w-4 mr-1" />, 
+              text: `${followersCount} followers` 
+            }
+          ]}
+          location={bookData.language}
+          website={bookData.website}
           tabs={tabs}
           activeTab={activeTab}
           onTabChange={setActiveTab}
-        author={authors && authors.length > 0 ? {
-          id: authors[0].id,
-          name: authors[0].name,
-          author_image: authors[0].author_image
-          } : undefined}
-        authorBookCount={authors && authors.length > 0 ? authorBookCounts[authors[0].id] : 0}
+          author={authors && authors.length > 0 ? {
+            id: authors[0].id,
+            name: authors[0].name,
+            author_image: authors[0].author_image
+            } : undefined}
+          authorBookCount={authors && authors.length > 0 ? authorBookCounts[authors[0].id] : 0}
           publisher={publisher ? {
-          id: publisher.id,
-            name: publisher.name,
-            publisher_image: publisher.publisher_image,
-            logo_url: publisher.publisher_image?.url
-          } : undefined}
+            id: publisher.id,
+              name: publisher.name,
+              publisher_image: publisher.publisher_image,
+              logo_url: publisher.publisher_image?.url
+            } : undefined}
           publisherBookCount={publisherBooksCount}
-        isMessageable={false}
-        isEditable={canEdit}
-        isFollowing={isFollowing}
-        onFollow={handleFollow}
+          isMessageable={false}
+          isEditable={canEdit}
+          isFollowing={isFollowing}
+          onFollow={handleFollow}
+          onCoverImageChange={handleCoverImageChange}
         />
 
       <div className="book-page__content">
@@ -1298,7 +1348,7 @@ export function ClientBookPage({
               <EntityPhotoAlbums
                 entityId={params.id}
                 entityType="book"
-                isOwnEntity={false}
+                isOwnEntity={canEdit}
               />
             </div>
           </div>

@@ -21,26 +21,10 @@ import {
 import { formatDistanceToNow } from 'date-fns'
 import Link from 'next/link'
 import { ProfileLink } from '@/components/profile-link'
-
-interface Activity {
-  id: string
-  user_id: string
-  activity_type: string
-  entity_type: string
-  entity_id: string
-  is_public: boolean
-  metadata: any
-  created_at: string
-  user_name: string
-  user_avatar_url?: string
-  like_count: number
-  comment_count: number
-  is_liked: boolean
-}
+import { FeedPost } from '@/types/feed'
 
 export function FeedContent() {
-  const [activities, setActivities] = useState<Activity[]>([])
-  const [posts, setPosts] = useState<any[]>([])
+  const [activities, setActivities] = useState<FeedPost[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(true)
@@ -50,7 +34,6 @@ export function FeedContent() {
 
   useEffect(() => {
     loadActivities()
-    loadPosts()
   }, [])
 
   const loadActivities = async (pageNum = 0) => {
@@ -64,26 +47,77 @@ export function FeedContent() {
         return
       }
 
-      // Use the fixed database function to get feed activities
-      const { data, error } = await supabase
+      // Get activities from activities table
+      const { data: activitiesData, error: activitiesError } = await supabase
         .rpc('get_user_feed_activities', {
           p_user_id: user.id,
           p_limit: 10,
           p_offset: pageNum * 10
         })
 
-      if (error) {
-        console.error('Database function error:', error)
-        throw new Error(`Failed to load activities: ${error.message}`)
+      if (activitiesError) {
+        console.error('Activities error:', activitiesError)
       }
+
+      // Get posts from posts table (for backward compatibility)
+      const { data: postsData, error: postsError } = await supabase
+        .from('posts')
+        .select(`
+          id, user_id, content, image_url, link_url, created_at, updated_at, 
+          visibility, content_type, publish_status, view_count, like_count, 
+          comment_count, share_count, tags, metadata
+        `)
+        .eq('user_id', user.id)
+        .eq('is_deleted', false)
+        .order('created_at', { ascending: false })
+        .limit(10)
+        .range(pageNum * 10, (pageNum * 10) + 9)
+
+      if (postsError) {
+        console.error('Posts error:', postsError)
+      }
+
+      // Combine and process both data sources
+      const activities = activitiesData || []
+      const posts = postsData || []
+      
+      // Convert posts to FeedPost format
+      const convertedPosts = posts.map(post => ({
+        id: post.id,
+        user_id: post.user_id,
+        activity_type: 'post_created',
+        entity_type: 'user',
+        entity_id: post.id,
+        is_public: post.visibility === 'public',
+        metadata: post.metadata || {},
+        created_at: post.created_at,
+        user_name: 'User', // Will be populated by the function
+        user_avatar_url: undefined,
+        like_count: post.like_count || 0,
+        comment_count: post.comment_count || 0,
+        is_liked: false,
+        text: post.content?.text || post.content?.content || 'Post content',
+        image_url: post.image_url,
+        link_url: post.link_url,
+        visibility: post.visibility || 'public',
+        content_type: post.content_type || 'text',
+        updated_at: post.updated_at || post.created_at,
+        share_count: post.share_count || 0,
+        view_count: post.view_count || 0,
+        tags: post.tags || []
+      }))
+
+      // Combine and sort by creation date
+      const allActivities = [...activities, ...convertedPosts]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
 
       if (pageNum === 0) {
-        setActivities(data || [])
+        setActivities(allActivities)
       } else {
-        setActivities(prev => [...prev, ...(data || [])])
+        setActivities(prev => [...prev, ...allActivities])
       }
 
-      setHasMore((data || []).length === 10)
+      setHasMore(allActivities.length === 10)
       setPage(pageNum)
     } catch (err) {
       console.error('Error loading activities:', err)
@@ -93,50 +127,11 @@ export function FeedContent() {
     }
   }
 
-  const loadPosts = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
 
-      // Fetch public posts from the posts table
-      const { data, error } = await supabase
-        .from('posts')
-        .select(`
-          *,
-          user:user_id(id, email, raw_user_meta_data)
-        `)
-        .eq('visibility', 'public')
-        .eq('is_deleted', false)
-        .eq('publish_status', 'published')
-        .order('created_at', { ascending: false })
-        .limit(20)
-
-      if (error) {
-        console.error('Error loading posts:', error)
-        return
-      }
-
-      // Process posts to include user details
-      const processedPosts = data?.map(post => ({
-        ...post,
-        user_name: post.user?.raw_user_meta_data?.name || post.user?.email || 'Unknown User',
-        user_avatar_url: post.user?.raw_user_meta_data?.avatar_url,
-        like_count: post.like_count || 0,
-        comment_count: post.comment_count || 0,
-        share_count: post.share_count || 0,
-        user_has_reacted: false // TODO: Check if user has reacted
-      })) || []
-
-      setPosts(processedPosts)
-    } catch (err) {
-      console.error('Error loading posts:', err)
-    }
-  }
 
   const handleRefresh = () => {
     setError(null)
     loadActivities(0)
-    loadPosts()
   }
 
   const handleLoadMore = () => {
@@ -193,7 +188,12 @@ export function FeedContent() {
     console.log('Comment on activity:', activityId)
   }
 
-  const renderActivity = (activity: Activity) => {
+  const renderActivity = (activity: FeedPost) => {
+    // Handle post deletion for activities
+    const handleActivityDelete = (activityId: string) => {
+      setActivities(prev => prev.filter(a => a.id !== activityId))
+    }
+
     switch (activity.activity_type) {
       case 'album_created':
         return (
@@ -277,6 +277,31 @@ export function FeedContent() {
               </div>
             </CardContent>
           </Card>
+        )
+
+      case 'post_created':
+        // Render post activities using EntityFeedCard for consistency
+        return (
+          <EntityFeedCard
+            key={activity.id}
+            post={activity}
+            userDetails={{
+              id: activity.user_id,
+              name: activity.user_name,
+              avatar_url: activity.user_avatar_url
+            }}
+            showActions={true}
+            showComments={true}
+            showEngagement={true}
+            onPostUpdated={(updatedPost) => {
+              // Update the activity in local state
+              setActivities(prev => prev.map(a => a.id === updatedPost.id ? { ...a, ...updatedPost } : a))
+            }}
+            onPostDeleted={(postId) => {
+              // Remove the activity from local state
+              setActivities(prev => prev.filter(a => a.id !== postId))
+            }}
+          />
         )
 
       case 'profile_updated':
@@ -419,30 +444,7 @@ export function FeedContent() {
     }
   }
 
-  const renderPost = (post: any) => {
-    return (
-      <EntityFeedCard
-        key={post.id}
-        post={post}
-        userDetails={{
-          id: post.user_id,
-          name: post.user_name,
-          avatar_url: post.user_avatar_url
-        }}
-        showActions={true}
-        showComments={true}
-        showEngagement={true}
-        onPostUpdated={(updatedPost) => {
-          // Update the post in local state
-          setPosts(prev => prev.map(p => p.id === updatedPost.id ? updatedPost : p))
-        }}
-        onPostDeleted={(postId) => {
-          // Remove the post from local state
-          setPosts(prev => prev.filter(p => p.id !== postId))
-        }}
-      />
-    )
-  }
+
 
   if (error) {
     return (
@@ -488,15 +490,7 @@ export function FeedContent() {
         </Card>
       ) : null}
 
-      {/* Posts */}
-      {posts.length > 0 && (
-        <>
-          <h2 className="text-2xl font-bold mt-8">Community Posts</h2>
-          <div className="space-y-4">
-            {posts.map(renderPost)}
-          </div>
-        </>
-      )}
+      {/* Posts are now handled through activities above */}
 
       {/* Load More Button */}
       {hasMore && activities.length > 0 && (

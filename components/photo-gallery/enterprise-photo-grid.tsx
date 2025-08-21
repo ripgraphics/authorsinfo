@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { supabaseClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Checkbox } from '@/components/ui/checkbox'
+import { useToast } from '@/hooks/use-toast'
 import { EnterprisePhotoViewer } from './enterprise-photo-viewer'
 import { 
   Grid3X3, 
@@ -29,7 +30,8 @@ import {
   Eye,
   Calendar,
   User,
-  ImageIcon
+  ImageIcon,
+  Star
 } from 'lucide-react'
 
 interface Photo {
@@ -111,7 +113,9 @@ interface EnterprisePhotoGridProps {
   showHeader?: boolean
   enableSelection?: boolean
   onSelectionChange?: (selectedIds: string[]) => void
+  onCoverImageChange?: () => void
   maxHeight?: string
+  enhancedAlbumData?: any // Enhanced album data from /api/entity-images
 }
 
 export function EnterprisePhotoGrid({
@@ -122,8 +126,25 @@ export function EnterprisePhotoGrid({
   showHeader = true,
   enableSelection = false,
   onSelectionChange,
-  maxHeight = '70vh'
+  onCoverImageChange,
+  maxHeight = '70vh',
+  enhancedAlbumData
 }: EnterprisePhotoGridProps) {
+  
+
+  
+  console.log('🖼️ EnterprisePhotoGrid mounted with props:', {
+    albumId,
+    entityId,
+    entityType,
+    isOwner,
+    enhancedAlbumData: enhancedAlbumData ? {
+      id: enhancedAlbumData.id,
+      name: enhancedAlbumData.name,
+      imageCount: enhancedAlbumData.images?.length || 0,
+      hasEnhancedData: !!enhancedAlbumData.images
+    } : null
+  })
   const [photos, setPhotos] = useState<Photo[]>([])
   const [loading, setLoading] = useState(true)
   const [hasMore, setHasMore] = useState(true)
@@ -137,17 +158,70 @@ export function EnterprisePhotoGrid({
   const [viewerOpen, setViewerOpen] = useState(false)
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
   
-  const supabase = createClientComponentClient()
+  const supabase = supabaseClient
+  const { toast } = useToast()
   const observerRef = useRef<IntersectionObserver | null>(null)
   const loadingRef = useRef<HTMLDivElement>(null)
 
   const loadPhotos = useCallback(async (pageNum: number = 0, reset: boolean = false) => {
+    console.log('🖼️ loadPhotos called with:', { pageNum, reset, enhancedAlbumData: !!enhancedAlbumData })
     try {
       setLoading(true)
       
+      // If we have enhanced album data, use it directly instead of querying the database
+      if (enhancedAlbumData && enhancedAlbumData.images && pageNum === 0) {
+        console.log('🖼️ Using enhanced album data for photos:', enhancedAlbumData.images.length)
+        console.log('🖼️ Enhanced album data sample:', enhancedAlbumData.images[0])
+        
+        const processedPhotos: Photo[] = enhancedAlbumData.images.map((item: any) => {
+          const image = item.image
+          
+          return {
+            id: image.id,
+            url: image.url,
+            thumbnail_url: image.url, // Use full URL as thumbnail for now
+            alt_text: item.alt_text || image.alt_text,
+            description: item.description || image.description || image.caption,
+            created_at: image.created_at,
+            metadata: image.metadata,
+            is_cover: item.is_cover,
+            is_featured: item.is_featured,
+            tags: [],
+            likes: [],
+            comments: [],
+            shares: [],
+            analytics: {
+              views: 0,
+              unique_views: 0,
+              downloads: 0,
+              shares: 0,
+              engagement_rate: 0
+            }
+          }
+        })
+        
+        setPhotos(processedPhotos)
+        setLoading(false)
+        return
+      }
+      
+      // Fallback to database query if no enhanced data
+      console.log('🖼️ No enhanced data, falling back to database query')
       let query = supabase
         .from('album_images')
         .select(`
+          id,
+          image_id,
+          alt_text,
+          description,
+          is_cover,
+          is_featured,
+          caption,
+          view_count,
+          like_count,
+          comment_count,
+          share_count,
+          created_at,
           images (
             id,
             url,
@@ -192,15 +266,7 @@ export function EnterprisePhotoGrid({
               share_type,
               created_at
             )
-          ),
-          is_cover,
-          is_featured,
-          caption,
-          view_count,
-          like_count,
-          comment_count,
-          share_count,
-          created_at
+          )
         `)
         .eq('album_id', albumId)
         .range(pageNum * 20, (pageNum + 1) * 20 - 1)
@@ -217,15 +283,29 @@ export function EnterprisePhotoGrid({
       const processedPhotos: Photo[] = (data || []).map((item: any) => {
         const image = item.images
         
-        return {
+        // If we have enhanced album data, use it to get the correct is_cover status
+        let isCover = item.is_cover
+        if (enhancedAlbumData && enhancedAlbumData.images) {
+          const enhancedImage = enhancedAlbumData.images.find((img: any) => img.image?.id === image.id)
+          if (enhancedImage) {
+            isCover = enhancedImage.is_cover
+            console.log(`🖼️ Photo ${image.id} is_cover set to ${isCover} from enhanced data`)
+          } else {
+            console.log(`🖼️ Photo ${image.id} not found in enhanced data, using default is_cover: ${isCover}`)
+          }
+        } else {
+          console.log(`🖼️ No enhanced album data available, using default is_cover: ${isCover}`)
+        }
+        
+        const processedPhoto = {
           id: image.id,
           url: image.url,
           thumbnail_url: image.thumbnail_url,
-          alt_text: image.alt_text,
-          description: image.description || item.caption,
+          alt_text: item.alt_text || image.alt_text,
+          description: item.description || image.description || item.caption,
           created_at: image.created_at,
           metadata: image.metadata,
-          is_cover: item.is_cover,
+          is_cover: isCover,
           is_featured: item.is_featured || image.is_featured,
           // Full enterprise data
           tags: image.photo_tags || [],
@@ -241,6 +321,10 @@ export function EnterprisePhotoGrid({
               ((image.like_count || 0) + (image.comment_count || 0) + (image.share_count || 0)) / image.view_count * 100 : 0
           }
         }
+        
+
+        
+        return processedPhoto
       })
 
       // Apply client-side filtering and sorting
@@ -339,6 +423,40 @@ export function EnterprisePhotoGrid({
   useEffect(() => {
     setPage(0)
     loadPhotos(0, true)
+  }, [loadPhotos, enhancedAlbumData]) // Also reload when enhanced data changes
+  
+  // Listen for cover image changes from other components
+  useEffect(() => {
+    const handleCoverImageChange = () => {
+      console.log('🖼️ Cover image changed event received, refreshing photos')
+      // Force a complete refresh by clearing photos first, then reloading
+      setPhotos([])
+      // Small delay to ensure state is cleared before reloading
+      setTimeout(() => {
+        loadPhotos(0, true)
+      }, 50)
+    }
+    
+    // Listen for photo updates (when photo metadata is edited)
+    const handlePhotoUpdated = () => {
+      console.log('📸 Photo updated event received, refreshing photos')
+      console.log('📸 Current photos before refresh:', photos)
+      // Force a complete refresh by clearing photos first, then reloading
+      setPhotos([])
+      // Small delay to ensure state is cleared before reloading
+      setTimeout(() => {
+        console.log('📸 Reloading photos after update...')
+        loadPhotos(0, true)
+      }, 100) // Increased delay to ensure database changes are committed
+    }
+    
+    window.addEventListener('entityImageChanged', handleCoverImageChange)
+    window.addEventListener('photoUpdated', handlePhotoUpdated)
+    
+    return () => {
+      window.removeEventListener('entityImageChanged', handleCoverImageChange)
+      window.removeEventListener('photoUpdated', handlePhotoUpdated)
+    }
   }, [loadPhotos])
 
   // Handle photo selection
@@ -368,6 +486,59 @@ export function EnterprisePhotoGrid({
     } else {
       setCurrentPhotoIndex(index)
       setViewerOpen(true)
+    }
+  }
+
+  // Handle setting an image as cover
+  const handleSetAsCover = async (photoId: string) => {
+    try {
+      // First, unset all other images as cover in this album
+      await supabase
+        .from('album_images')
+        .update({ is_cover: false })
+        .eq('album_id', albumId)
+      
+      // Then set this image as cover
+      const { error } = await supabase
+        .from('album_images')
+        .update({ is_cover: true })
+        .eq('album_id', albumId)
+        .eq('image_id', photoId)
+      
+      if (error) {
+        console.error('Error setting image as cover:', error)
+        return
+      }
+      
+      // Show success message
+      toast({
+        title: "Success!",
+        description: "Cover image updated",
+      })
+      
+      // If this is an entity header or avatar album, refresh the entity header
+      if (onCoverImageChange) {
+        onCoverImageChange()
+      }
+      
+      // Update local state immediately for instant visual feedback
+      setPhotos(prevPhotos => 
+        prevPhotos.map(photo => ({
+          ...photo,
+          is_cover: photo.id === photoId
+        }))
+      )
+      
+      // Trigger the entity image changed event to refresh the grid completely
+      window.dispatchEvent(new CustomEvent('entityImageChanged'))
+      
+    } catch (error) {
+      console.error('Error setting image as cover:', error)
+      toast({
+        title: "Error",
+        description: "Failed to update cover image",
+        variant: "destructive"
+      })
     }
   }
 
@@ -434,7 +605,7 @@ export function EnterprisePhotoGrid({
           <div className="absolute top-2 right-2 flex flex-col gap-1">
             {photo.is_cover && (
               <Badge variant="secondary" className="text-xs bg-blue-600 text-white">
-                Cover
+                Cover Image
               </Badge>
             )}
             {photo.is_featured && (
@@ -446,19 +617,40 @@ export function EnterprisePhotoGrid({
 
           {/* Hover Overlay */}
           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-            <div className="flex items-center gap-2 text-white">
-              <div className="flex items-center gap-1 text-xs">
-                <Eye className="h-3 w-3" />
-                {photo.analytics?.views || 0}
+            <div className="flex flex-col items-center gap-2 text-white">
+              {/* Stats Row */}
+              <div className="flex items-center gap-2 text-xs">
+                <div className="flex items-center gap-1">
+                  <Eye className="h-3 w-3" />
+                  {photo.analytics?.views || 0}
+                </div>
+                <div className="flex items-center gap-1">
+                  <Heart className="h-3 w-3" />
+                  {photo.likes?.length || 0}
+                </div>
+                <div className="flex items-center gap-1">
+                  <MessageCircle className="h-3 w-3" />
+                  {photo.comments?.length || 0}
+                </div>
               </div>
-              <div className="flex items-center gap-1 text-xs">
-                <Heart className="h-3 w-3" />
-                {photo.likes?.length || 0}
-              </div>
-              <div className="flex items-center gap-1 text-xs">
-                <MessageCircle className="h-3 w-3" />
-                {photo.comments?.length || 0}
-              </div>
+              
+              {/* Set as Cover Button - Only show if not already cover and owner */}
+              {isOwner && !photo.is_cover && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="text-xs h-7 px-2 bg-white/20 hover:bg-white/30 text-white border-white/30"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleSetAsCover(photo.id)
+                  }}
+                >
+                  <Star className="h-3 w-3 mr-1" />
+                  Set as Cover
+                </Button>
+              )}
+              
+
             </div>
           </div>
 

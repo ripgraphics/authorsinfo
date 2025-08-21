@@ -114,105 +114,62 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = createServerActionClient({ cookies })
     
-    // Get current user
+    // Get the current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    
-    // Parse request body
-    const body: CreatePostData = await request.json()
-    
-    // Validate required fields
-    if (!body.content?.text || body.content.text.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'Post content is required' },
-        { status: 400 }
-      )
-    }
-    
-    if (body.content.text.length > 5000) {
-      return NextResponse.json(
-        { error: 'Post content exceeds maximum length of 5000 characters' },
-        { status: 400 }
-      )
-    }
-    
-    // Prepare post data
-    const postData = {
-      user_id: user.id,
-      content: {
-        text: body.content.text.trim(),
-        type: body.content.type || 'text',
-        summary: body.content.summary,
-        hashtags: body.content.hashtags || [],
-        mentions: body.content.mentions || []
-      },
-      image_url: body.image_url,
-      link_url: body.link_url,
-      visibility: body.visibility || 'public',
-      content_type: body.content_type || 'text',
-      content_summary: body.content_summary || body.content.text.substring(0, 200),
-      tags: body.tags || body.content.hashtags || [],
-      metadata: body.metadata || {},
-      entity_type: body.entity_type || 'user',
-      entity_id: body.entity_id || user.id,
-      publish_status: body.publish_status || 'published',
-      is_deleted: false,
-      is_hidden: false,
-      like_count: 0,
-      comment_count: 0,
-      share_count: 0,
-      view_count: 0,
-      engagement_score: 0,
-      is_featured: false,
-      is_pinned: false,
-      is_verified: false,
-      last_activity_at: new Date().toISOString(),
-      enterprise_features: {
-        created_at: new Date().toISOString(),
-        content_moderation: {
-          status: 'pending'
-        }
-      }
-    }
-    
-    // Insert post
-    const { data: post, error: insertError } = await supabase
-      .from('posts')
-      .insert(postData)
+
+    const body = await request.json()
+    const { content, visibility = 'public', scheduled_at, tags, category, location } = body
+
+    // Create the post in the activities table instead of posts table
+    const { data: activity, error } = await supabase
+      .from('activities')
+      .insert({
+        user_id: user.id,
+        activity_type: 'post_created',
+        entity_type: 'user',
+        entity_id: user.id,
+        is_public: visibility === 'public',
+        metadata: {
+          title: content?.title,
+          tags,
+          category,
+          location,
+          scheduled_at,
+          published_at: new Date().toISOString(),
+          is_featured: false,
+          is_pinned: false,
+          is_verified: false,
+          engagement_score: 0,
+          content_safety_score: 1.0,
+          age_restriction: 'all',
+          sensitive_content: false
+        },
+        text: content?.text || content?.content || content?.body || 'Post content',
+        image_url: content?.image_url || content?.images || content?.media_url,
+        link_url: content?.link_url || content?.url,
+        visibility,
+        content_type: content?.image_url ? 'image' : 'text',
+        updated_at: new Date().toISOString()
+      })
       .select()
       .single()
-    
-    if (insertError) {
-      console.error('Error inserting post:', insertError)
-      return NextResponse.json(
-        { error: 'Failed to create post' },
-        { status: 500 }
-      )
+
+    if (error) {
+      console.error('Error creating post in activities:', error)
+      return NextResponse.json({ error: 'Failed to create post' }, { status: 500 })
     }
-    
-    // Update user's last activity
-    await supabase
-      .from('users')
-      .update({ last_activity_at: new Date().toISOString() })
-      .eq('id', user.id)
-    
-    return NextResponse.json({
-      success: true,
-      post,
-      message: 'Post created successfully'
-    }, { status: 201 })
-    
+
+    return NextResponse.json({ 
+      success: true, 
+      activity,
+      message: 'Post created successfully in activities table'
+    })
+
   } catch (error) {
     console.error('Error in POST /api/posts:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -163,3 +163,158 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+// PUT /api/activities/[id] - Update activity
+export async function PUT(request: NextRequest) {
+  try {
+    const supabase = createServerActionClient({ cookies })
+    
+    // Check authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
+    const body = await request.json()
+    const { id, text, image_url, link_url, visibility } = body
+
+    // Check if activity exists and user owns it
+    const { data: existingActivity, error: fetchError } = await supabase
+      .from('activities')
+      .select('user_id, activity_type')
+      .eq('id', id)
+      .single()
+
+    if (fetchError) {
+      return NextResponse.json(
+        { error: 'Activity not found' },
+        { status: 404 }
+      )
+    }
+
+    if (existingActivity.user_id !== user.id) {
+      return NextResponse.json(
+        { error: 'You can only edit your own activities' },
+        { status: 403 }
+      )
+    }
+
+    if (existingActivity.activity_type !== 'post_created') {
+      return NextResponse.json(
+        { error: 'Only posts can be edited' },
+        { status: 400 }
+      )
+    }
+
+    // Update the activity
+    const { data: updatedActivity, error: updateError } = await supabase
+      .from('activities')
+      .update({
+        text: text || existingActivity.text,
+        image_url: image_url !== undefined ? image_url : existingActivity.image_url,
+        link_url: link_url !== undefined ? link_url : existingActivity.link_url,
+        visibility: visibility || existingActivity.visibility,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (updateError) {
+      console.error('Error updating activity:', updateError)
+      return NextResponse.json(
+        { error: 'Failed to update activity' },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({
+      success: true,
+      activity: updatedActivity,
+      message: 'Activity updated successfully'
+    })
+
+  } catch (error) {
+    console.error('Error updating activity:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+// DELETE /api/activities/[id] - Delete activity
+export async function DELETE(request: NextRequest) {
+  try {
+    const supabase = createServerActionClient({ cookies })
+    
+    // Check authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
+    const body = await request.json()
+    const { id } = body
+
+    // Check if activity exists and user owns it
+    const { data: existingActivity, error: fetchError } = await supabase
+      .from('activities')
+      .select('user_id, activity_type')
+      .eq('id', id)
+      .single()
+
+    if (fetchError) {
+      return NextResponse.json(
+        { error: 'Activity not found' },
+        { status: 404 }
+      )
+    }
+
+    if (existingActivity.user_id !== user.id) {
+      return NextResponse.json(
+        { error: 'You can only delete your own activities' },
+        { status: 403 }
+      )
+    }
+
+    if (existingActivity.activity_type !== 'post_created') {
+      return NextResponse.json(
+        { error: 'Only posts can be deleted' },
+        { status: 400 }
+      )
+    }
+
+    // Hard delete the activity (activities table doesn't have is_deleted column)
+    const { error: deleteError } = await supabase
+      .from('activities')
+      .delete()
+      .eq('id', id)
+
+    if (deleteError) {
+      console.error('Error deleting activity:', deleteError)
+      return NextResponse.json(
+        { error: 'Failed to delete activity' },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Activity deleted successfully'
+    })
+
+  } catch (error) {
+    console.error('Error deleting activity:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}

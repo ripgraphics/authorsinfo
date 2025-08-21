@@ -1,4 +1,4 @@
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { supabaseClient } from '@/lib/supabase/client'
 
 export interface UserWithRole {
   id: string
@@ -14,30 +14,9 @@ export async function isUserAdmin(userId?: string): Promise<boolean> {
   if (!userId) return false
 
   try {
-    const supabase = createClientComponentClient()
+    const supabase = supabaseClient
     
-    // First check auth.users for admin/super_admin role
-    const { data: authUser, error: authUserError } = await supabase
-      .from('auth.users')
-      .select(`
-        id,
-        email,
-        role,
-        is_super_admin
-      `)
-      .eq('id', userId)
-      .single()
-
-    if (!authUserError && authUser) {
-      // Check if user is super admin first
-      if (authUser.is_super_admin) {
-        return true
-      } else if (authUser.role === 'admin') {
-        return true
-      }
-    }
-
-    // If not admin in auth.users, check public.profiles
+    // Check public.profiles table for admin role (auth.users doesn't exist in current schema)
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('role')
@@ -62,16 +41,17 @@ export async function isUserSuperAdmin(userId?: string): Promise<boolean> {
   if (!userId) return false
 
   try {
-    const supabase = createClientComponentClient()
+    const supabase = supabaseClient
     
-    const { data: authUser, error: authUserError } = await supabase
-      .from('auth.users')
-      .select('is_super_admin')
-      .eq('id', userId)
+    // Check public.profiles table for super admin role (auth.users doesn't exist in current schema)
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('user_id', userId)
       .single()
 
-    if (!authUserError && authUser) {
-      return authUser.is_super_admin === true
+    if (!profileError && profile) {
+      return profile.role === 'super_admin'
     }
 
     return false
@@ -88,30 +68,9 @@ export async function getUserRole(userId?: string): Promise<string> {
   if (!userId) return 'user'
 
   try {
-    const supabase = createClientComponentClient()
+    const supabase = supabaseClient
     
-    // First check auth.users for admin/super_admin role
-    const { data: authUser, error: authUserError } = await supabase
-      .from('auth.users')
-      .select(`
-        id,
-        email,
-        role,
-        is_super_admin
-      `)
-      .eq('id', userId)
-      .single()
-
-    if (!authUserError && authUser) {
-      // Check if user is super admin first
-      if (authUser.is_super_admin) {
-        return 'super_admin'
-      } else if (authUser.role === 'admin') {
-        return 'admin'
-      }
-    }
-
-    // If not admin in auth.users, check public.profiles
+    // Check public.profiles table for user role (auth.users doesn't exist in current schema)
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('role')

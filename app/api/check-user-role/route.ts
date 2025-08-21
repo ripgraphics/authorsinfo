@@ -14,21 +14,7 @@ export async function GET(request: Request) {
 
     console.log(`🔍 Checking role for user: ${userId}`)
 
-    // Check auth.users table (using RPC function since direct access might not work)
-    let authUser = null
-    let authUserError = null
-    try {
-      const { data, error } = await supabaseAdmin.rpc('get_user_role', { user_id: userId })
-      if (!error && data) {
-        authUser = data
-      } else {
-        authUserError = error
-      }
-    } catch (error) {
-      authUserError = error
-    }
-
-    console.log('Auth user data:', { authUser, error: authUserError?.message })
+    // Note: auth.users table doesn't exist in current schema, using public.profiles instead
 
     // Check public.profiles table
     const { data: profile, error: profileError } = await supabaseAdmin
@@ -84,22 +70,13 @@ export async function GET(request: Request) {
     let effectiveRole = 'user'
     let roleSource = 'default'
 
-    if (!authUserError && authUser) {
-      if (authUser.is_super_admin) {
-        effectiveRole = 'super_admin'
-        roleSource = 'auth.users.is_super_admin'
-      } else if (authUser.role === 'admin') {
-        effectiveRole = 'admin'
-        roleSource = 'auth.users.role'
-      }
-    }
-
-    if (effectiveRole === 'user' && !profileError && profile && profile.role) {
+    // Check public.profiles table first
+    if (!profileError && profile && profile.role) {
       effectiveRole = profile.role
       roleSource = 'public.profiles.role'
     }
 
-    // Check role from roles table
+    // Check role from roles table if still default
     if (effectiveRole === 'user' && roleName) {
       effectiveRole = roleName
       roleSource = 'public.roles.name'

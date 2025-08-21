@@ -1020,7 +1020,7 @@ export default function EnterpriseTimelineActivities({
               body: JSON.stringify({
                 entityId: userId,
                 entityType: 'user',
-                albumType: 'user_gallery_album', // Use existing gallery album
+                albumPurpose: 'gallery', // Use existing gallery album
                 imageUrl: imageUrl,
                 altText: `Post image ${i + 1} by ${user?.user_metadata?.full_name || 'User'}`,
                 displayOrder: i + 1,

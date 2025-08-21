@@ -312,7 +312,7 @@ export function EntityImageUpload({
                 }
 
                 // Add image to entity album
-                const albumType = `${entityType}_${type}_album`
+                const albumPurpose = type
                 try {
                   const albumResponse = await fetch('/api/entity-images', {
                     method: 'POST',
@@ -322,7 +322,7 @@ export function EntityImageUpload({
                     body: JSON.stringify({
                       entityId: entityId,
                       entityType: entityType,
-                      albumType: albumType,
+                      albumPurpose: albumPurpose,
                       imageId: imageData.id,
                       isCover: true,
                       isFeatured: true,

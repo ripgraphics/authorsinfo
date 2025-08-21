@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase-client';
+import { supabaseClient } from '@/lib/supabase-client';
 import { toast } from 'react-hot-toast';
 import StartDiscussionModal from './StartDiscussionModal';
 
@@ -17,27 +17,20 @@ interface User {
   name: string;
 }
 
-interface Participant {
-  user_id: string;
-  role: 'participant' | 'moderator';
-  last_read_at: string;
-}
+
 
 interface BookDiscussion {
   id: string;
   group_id: string;
-  book_id: number;
+  book_id: string;
   title: string;
-  description: string | null;
-  created_by: string;
+  content: string;
+  user_id: string;
   created_at: string;
   updated_at: string;
-  status: 'active' | 'archived' | 'closed';
   is_pinned: boolean;
-  last_activity_at: string;
   books: Book;
   users: User;
-  book_discussion_participants: Participant[];
 }
 
 interface Props {
@@ -48,7 +41,7 @@ interface Props {
 export default function BookDiscussionsClient({ initialDiscussions, groupId }: Props) {
   const [discussions, setDiscussions] = useState<BookDiscussion[]>(initialDiscussions);
   const [isStartModalOpen, setIsStartModalOpen] = useState(false);
-  const supabase = createClient();
+  const supabase = supabaseClient;
 
   useEffect(() => {
     // Subscribe to real-time updates
@@ -59,10 +52,10 @@ export default function BookDiscussionsClient({ initialDiscussions, groupId }: P
         {
           event: '*',
           schema: 'public',
-          table: 'book_discussions',
+          table: 'discussions',
           filter: `group_id=eq.${groupId}`
         },
-        (payload) => {
+        (payload: any) => {
           if (payload.eventType === 'INSERT') {
             setDiscussions(prev => [payload.new as BookDiscussion, ...prev]);
             toast.success('New discussion started!');
@@ -88,7 +81,7 @@ export default function BookDiscussionsClient({ initialDiscussions, groupId }: P
 
   const handleDeleteDiscussion = async (discussionId: string) => {
     const { error } = await supabase
-      .from('book_discussions')
+      .from('discussions')
       .delete()
       .eq('id', discussionId);
 
@@ -128,8 +121,8 @@ export default function BookDiscussionsClient({ initialDiscussions, groupId }: P
                   <h3 className="text-xl font-semibold">{discussion.title}</h3>
                   <p className="text-gray-600">Book: {discussion.books.title}</p>
                   <p className="text-gray-600">by {discussion.books.author}</p>
-                  {discussion.description && (
-                    <p className="mt-2 text-gray-700">{discussion.description}</p>
+                  {discussion.content && (
+                    <p className="mt-2 text-gray-700">{discussion.content}</p>
                   )}
                 </div>
               </div>
@@ -141,24 +134,15 @@ export default function BookDiscussionsClient({ initialDiscussions, groupId }: P
                   {formatDate(discussion.created_at)}
                 </p>
                 <p className="text-sm text-gray-500">
-                  Last activity: {formatDate(discussion.last_activity_at)}
+                  Last updated: {formatDate(discussion.updated_at || discussion.created_at)}
                 </p>
-                <div className="mt-2">
-                  <span className={`inline-block px-2 py-1 text-xs rounded-full ${
-                    discussion.status === 'active' ? 'bg-green-100 text-green-800' :
-                    discussion.status === 'archived' ? 'bg-gray-100 text-gray-800' :
-                    'bg-red-100 text-red-800'
-                  }`}>
-                    {discussion.status.charAt(0).toUpperCase() + discussion.status.slice(1)}
-                  </span>
-                </div>
               </div>
             </div>
 
             <div className="flex justify-between items-center mt-4">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600">
-                  {discussion.book_discussion_participants.length} participants
+                  Discussion
                 </span>
               </div>
               <div className="flex gap-2">

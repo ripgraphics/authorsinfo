@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { supabaseClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
 import { useToast } from '@/hooks/use-toast'
@@ -56,7 +56,7 @@ export default function EntityComments({
   entityCreatedAt,
   isOwner
 }: EntityCommentsProps) {
-  const supabase = createClientComponentClient()
+  const supabase = supabaseClient
   const { toast } = useToast()
   
   const [comments, setComments] = useState<Comment[]>([])
@@ -327,7 +327,7 @@ export default function EntityComments({
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      // Get like count and status
+      // Get like count and status - using the current schema structure
       const { count: likeCount } = await supabase
         .from('likes')
         .select('*', { count: 'exact', head: true })
@@ -400,7 +400,7 @@ export default function EntityComments({
       }
 
       if (isLiked) {
-        // Unlike
+        // Unlike - using the current schema structure
         await supabase
           .from('likes')
           .delete()
@@ -411,7 +411,7 @@ export default function EntityComments({
         setLikeCount(prev => prev - 1)
         setIsLiked(false)
       } else {
-        // Like
+        // Like - using the current schema structure
         await supabase
           .from('likes')
           .insert({

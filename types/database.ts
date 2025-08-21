@@ -44,6 +44,7 @@ export type Database = {
           review_id: string | null
           share_count: number | null
           text: string | null
+          updated_at: string | null
           user_id: string
           user_profile_id: string | null
           view_count: number | null
@@ -78,6 +79,7 @@ export type Database = {
           review_id?: string | null
           share_count?: number | null
           text?: string | null
+          updated_at?: string | null
           user_id: string
           user_profile_id?: string | null
           view_count?: number | null
@@ -112,6 +114,7 @@ export type Database = {
           review_id?: string | null
           share_count?: number | null
           text?: string | null
+          updated_at?: string | null
           user_id?: string
           user_profile_id?: string | null
           view_count?: number | null
@@ -9009,7 +9012,29 @@ export type Database = {
           view_count?: number | null
           visibility?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "posts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_activity_summary"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "posts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_engagement_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "posts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_privacy_overview"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       prices: {
         Row: {
@@ -11706,6 +11731,26 @@ export type Database = {
           show_reading_stats_publicly: boolean
         }[]
       }
+      get_user_timeline_posts: {
+        Args: {
+          limit_count?: number
+          offset_count?: number
+          target_user_id: string
+        }
+        Returns: {
+          comment_count: number
+          content: string
+          content_type: string
+          created_at: string
+          engagement_score: number
+          id: string
+          like_count: number
+          share_count: number
+          user_id: string
+          view_count: number
+          visibility: string
+        }[]
+      }
       grant_reading_permission: {
         Args: {
           expires_at?: string
@@ -11717,6 +11762,10 @@ export type Database = {
       has_user_liked_entity: {
         Args: { p_entity_id: string; p_entity_type: string; p_user_id: string }
         Returns: boolean
+      }
+      increment_post_view_count: {
+        Args: { post_id: string }
+        Returns: undefined
       }
       insert_follow_record: {
         Args: {
@@ -11967,6 +12016,10 @@ export type Database = {
       }
       update_book_popularity_metrics: {
         Args: { p_book_id: string }
+        Returns: undefined
+      }
+      update_post_engagement_score: {
+        Args: { post_id: string }
         Returns: undefined
       }
       update_user_privacy_settings: {

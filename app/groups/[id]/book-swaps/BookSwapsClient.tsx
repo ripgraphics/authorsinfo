@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase-client';
+import { supabaseClient } from '@/lib/supabase-client';
 import { toast } from 'react-hot-toast';
 import OfferBookModal from './OfferBookModal';
 
@@ -32,7 +32,7 @@ interface Props {
 export default function BookSwapsClient({ initialBookSwaps, groupId }: Props) {
   const [bookSwaps, setBookSwaps] = useState<BookSwap[]>(initialBookSwaps);
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
-  const supabase = createClient();
+  const supabase = supabaseClient;
 
   useEffect(() => {
     // Subscribe to real-time updates
@@ -46,7 +46,7 @@ export default function BookSwapsClient({ initialBookSwaps, groupId }: Props) {
           table: 'group_book_swaps',
           filter: `group_id=eq.${groupId}`
         },
-        (payload) => {
+        (payload: any) => {
           if (payload.eventType === 'INSERT') {
             setBookSwaps(prev => [payload.new as BookSwap, ...prev]);
             toast.success('New book swap offer available!');

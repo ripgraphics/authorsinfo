@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { supabaseClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -49,6 +49,7 @@ interface Album {
   allowed_viewers?: string[]
   is_post_album?: boolean
   album_type?: 'regular' | 'posts' | 'post'
+  enhancedData?: any // Store the full enhanced data from /api/entity-images
 }
 
 export function EntityPhotoAlbums({ 
@@ -64,11 +65,50 @@ export function EntityPhotoAlbums({
   
   const { user } = useAuth()
   const { toast } = useToast()
-  const supabase = createClientComponentClient()
+  const supabase = supabaseClient
 
   useEffect(() => {
     loadAlbums()
   }, [entityId])
+  
+  // Listen for cover image changes to refresh albums
+  useEffect(() => {
+    const handleCoverImageChange = () => {
+      console.log('🖼️ Cover image changed event received, refreshing albums')
+      loadAlbums()
+    }
+    
+    window.addEventListener('entityImageChanged', handleCoverImageChange)
+    
+    return () => {
+      window.removeEventListener('entityImageChanged', handleCoverImageChange)
+    }
+  }, [])
+  
+  // Listen for album refresh events (when photos are updated)
+  useEffect(() => {
+    const handleAlbumRefresh = () => {
+      console.log('🔄 Album refresh event received, reloading albums...')
+      loadAlbums()
+    }
+    
+    window.addEventListener('albumRefresh', handleAlbumRefresh)
+    
+    return () => {
+      window.removeEventListener('albumRefresh', handleAlbumRefresh)
+    }
+  }, [])
+  
+  // Update selectedAlbum when albums are refreshed
+  useEffect(() => {
+    if (selectedAlbum && albums.length > 0) {
+      const updatedAlbum = albums.find(album => album.id === selectedAlbum.id)
+      if (updatedAlbum) {
+        console.log('🔄 Updating selectedAlbum with refreshed data')
+        setSelectedAlbum(updatedAlbum)
+      }
+    }
+  }, [albums, selectedAlbum])
 
   const loadAlbums = async () => {
     setIsLoading(true)
@@ -85,7 +125,54 @@ export function EntityPhotoAlbums({
         actualEntityId = userUUID
       }
 
-      // Load regular albums
+      // For non-user entities, use the enhanced /api/entity-images endpoint
+      if (entityType !== 'user') {
+        try {
+          console.log('🖼️ Loading albums via /api/entity-images for entity:', { entityId: actualEntityId, entityType })
+          
+          // Load entity_header albums
+          const headerResponse = await fetch(`/api/entity-images?entityId=${actualEntityId}&entityType=${entityType}&albumPurpose=entity_header`)
+          const headerData = await headerResponse.json()
+          
+          // Load avatar albums  
+          const avatarResponse = await fetch(`/api/entity-images?entityId=${actualEntityId}&entityType=${entityType}&albumPurpose=avatar`)
+          const avatarData = await avatarResponse.json()
+          
+          console.log('🖼️ Header albums response:', headerData)
+          console.log('🖼️ Avatar albums response:', avatarData)
+          
+          const allAlbums = [...(headerData.albums || []), ...(avatarData.albums || [])]
+          
+          // Transform the enhanced album data to match our Album interface
+          const formattedAlbums: Album[] = allAlbums.map((album: any) => ({
+            id: album.id,
+            name: album.name,
+            description: album.description,
+            is_public: album.is_public,
+            cover_image_id: album.cover_image_id,
+            cover_image_url: album.images?.find((img: any) => img.is_cover)?.image?.url || 
+                             album.images?.[0]?.image?.url,
+            photo_count: album.images?.length || 0,
+            created_at: album.created_at,
+            updated_at: album.updated_at,
+            metadata: album.metadata,
+            entity_type: album.entity_type,
+            // Store the full enhanced data for the photo grid
+            enhancedData: album
+          }))
+          
+          console.log('🖼️ Formatted albums:', formattedAlbums)
+          setAlbums(formattedAlbums)
+          setIsLoading(false)
+          return
+          
+        } catch (apiError) {
+          console.error('❌ Error loading albums via API, falling back to direct query:', apiError)
+          // Fall back to direct query if API fails
+        }
+      }
+
+      // Fallback: Load regular albums via direct Supabase query (for user entities or API failures)
       let query = supabase
         .from('photo_albums')
         .select(`
@@ -99,8 +186,15 @@ export function EntityPhotoAlbums({
           metadata,
           entity_type
         `)
-        .eq('owner_id', actualEntityId)
-        .not('entity_type', 'like', '%_posts') // Exclude post albums for now
+      
+      // For user entities, query by owner_id; for other entities, query by entity_id
+      if (entityType === 'user') {
+        query = query.eq('owner_id', actualEntityId)
+      } else {
+        query = query.eq('entity_id', actualEntityId).eq('entity_type', entityType)
+      }
+      
+      query = query.not('entity_type', 'like', '%_posts') // Exclude post albums for now
         .order('created_at', { ascending: false })
 
       // If not own profile, only show public albums or albums shared with current user
@@ -450,7 +544,13 @@ export function EntityPhotoAlbums({
                 entityId={entityId}
                 entityType={entityType}
                 isOwner={isOwnEntity}
+                onCoverImageChange={() => {
+                  // Refresh the entity header when cover image changes
+                  // This will trigger a re-render of the entity header
+                  window.dispatchEvent(new CustomEvent('entityImageChanged'))
+                }}
                 maxHeight="100%"
+                enhancedAlbumData={selectedAlbum.enhancedData}
               />
             </div>
           </div>

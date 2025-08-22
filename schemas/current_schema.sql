@@ -176,6 +176,39 @@ COMMENT ON FUNCTION "public"."calculate_engagement_score"("p_like_count" integer
 
 
 
+CREATE OR REPLACE FUNCTION "public"."calculate_profile_completion"("user_profile_id" "uuid") RETURNS integer
+    LANGUAGE "plpgsql"
+    AS $$
+DECLARE
+    completion_score INTEGER := 0;
+    total_fields INTEGER := 0;
+    filled_fields INTEGER := 0;
+BEGIN
+    -- Count total profile fields
+    SELECT 
+        CASE WHEN avatar_url IS NOT NULL THEN 1 ELSE 0 END +
+        CASE WHEN cover_image_url IS NOT NULL THEN 1 ELSE 0 END +
+        CASE WHEN bio IS NOT NULL AND bio != '' THEN 1 ELSE 0 END +
+        CASE WHEN occupation IS NOT NULL THEN 1 ELSE 0 END +
+        CASE WHEN education IS NOT NULL THEN 1 ELSE 0 END +
+        CASE WHEN interests IS NOT NULL AND array_length(interests, 1) > 0 THEN 1 ELSE 0 END +
+        CASE WHEN social_links IS NOT NULL THEN 1 ELSE 0 END +
+        CASE WHEN phone IS NOT NULL THEN 1 ELSE 0 END
+    INTO filled_fields
+    FROM profiles 
+    WHERE id = user_profile_id;
+    
+    total_fields := 8; -- Total number of profile fields
+    completion_score := ROUND((filled_fields::NUMERIC / total_fields) * 100);
+    
+    RETURN LEAST(completion_score, 100);
+END;
+$$;
+
+
+ALTER FUNCTION "public"."calculate_profile_completion"("user_profile_id" "uuid") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."check_data_health"() RETURNS TABLE("health_check" "text", "issue_count" bigint, "severity" "text", "recommendation" "text")
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
@@ -2182,46 +2215,39 @@ COMMENT ON FUNCTION "public"."get_privacy_audit_summary"("days_back" integer) IS
 
 
 
-CREATE OR REPLACE FUNCTION "public"."get_user_activities_simple"("p_user_id" "uuid", "p_limit" integer DEFAULT 50, "p_offset" integer DEFAULT 0) RETURNS TABLE("id" "text", "user_id" "text", "user_name" "text", "user_avatar_url" "text", "activity_type" "text", "data" "jsonb", "created_at" "text", "is_public" boolean, "like_count" integer, "comment_count" integer, "is_liked" boolean, "entity_type" "text", "entity_id" "text")
-    LANGUAGE "plpgsql" SECURITY DEFINER
-    SET "search_path" TO 'public'
-    AS $$
-BEGIN
-    RETURN QUERY
-    SELECT 
-        act.id::text as id,
-        act.user_id::text as user_id,
-        COALESCE(usr.name, 'Unknown User') as user_name,
-        '/placeholder.svg?height=200&width=200' as user_avatar_url,
-        act.activity_type,
-        COALESCE(act.data, '{}'::jsonb) as data,
-        act.created_at::text as created_at,
-        true as is_public,
-        COALESCE(act.like_count, 0) as like_count,
-        COALESCE(act.comment_count, 0) as comment_count,
-        false as is_liked,
-        COALESCE(act.entity_type, 'user') as entity_type,
-        COALESCE(act.entity_id::text, act.user_id::text) as entity_id
-    FROM public.activities act
-    LEFT JOIN public.users usr ON act.user_id = usr.id
-    WHERE act.user_id = p_user_id
-    ORDER BY act.created_at DESC
-    LIMIT p_limit
-    OFFSET p_offset;
-END;
-$$;
-
-
-ALTER FUNCTION "public"."get_user_activities_simple"("p_user_id" "uuid", "p_limit" integer, "p_offset" integer) OWNER TO "postgres";
-
-
 CREATE OR REPLACE FUNCTION "public"."get_user_feed_activities"("p_user_id" "uuid", "p_limit" integer DEFAULT 50, "p_offset" integer DEFAULT 0) RETURNS TABLE("id" "text", "user_id" "text", "user_name" "text", "user_avatar_url" "text", "activity_type" "text", "data" "jsonb", "created_at" "text", "is_public" boolean, "like_count" integer, "comment_count" integer, "is_liked" boolean, "entity_type" "text", "entity_id" "text")
     LANGUAGE "plpgsql" SECURITY DEFINER
-    SET "search_path" TO 'public'
     AS $$
 BEGIN
+    -- Return activities from the actual activities table
+    -- Users table has: id, email, name, created_at, updated_at, role_id, permalink, location, website
+    -- NO avatar_url column exists!
     RETURN QUERY
-    SELECT * FROM public.get_user_activities_simple(p_user_id, p_limit, p_offset);
+    SELECT 
+        a.id::text,
+        a.user_id::text,
+        COALESCE(u.name, u.email, 'Unknown User')::text as user_name,
+        '/placeholder.svg?height=200&width=200'::text as user_avatar_url, -- Fixed: no avatar_url column
+        a.activity_type::text,
+        COALESCE(a.data, '{}'::jsonb) as data,
+        a.created_at::text,
+        (COALESCE(a.visibility, 'public') = 'public')::boolean as is_public,
+        COALESCE(a.like_count, 0)::integer as like_count,
+        COALESCE(a.comment_count, 0)::integer as comment_count,
+        false::boolean as is_liked,
+        COALESCE(a.entity_type, 'user')::text as entity_type,
+        COALESCE(a.entity_id::text, a.user_id::text) as entity_id
+    FROM public.activities a
+    LEFT JOIN public.users u ON a.user_id = u.id
+    WHERE a.user_id = p_user_id
+      AND COALESCE(a.visibility, 'public') IN ('public', 'friends', 'followers')
+    ORDER BY a.created_at DESC
+    LIMIT p_limit OFFSET p_offset;
+    
+    -- If no activities found, return empty result
+    IF NOT FOUND THEN
+        RETURN;
+    END IF;
 END;
 $$;
 
@@ -2250,6 +2276,73 @@ $$;
 
 
 ALTER FUNCTION "public"."get_user_privacy_settings"("user_id_param" "uuid") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."get_user_profile_stats"("user_uuid" "uuid") RETURNS TABLE("total_books_read" bigint, "total_reviews" bigint, "total_friends" bigint, "total_followers" bigint, "total_following" bigint, "profile_completion" integer, "last_activity" timestamp with time zone, "reading_streak_days" integer)
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        COALESCE(books_read.count, 0)::BIGINT as total_books_read,
+        COALESCE(reviews.count, 0)::BIGINT as total_reviews,
+        COALESCE(friends.count, 0)::BIGINT as total_friends,
+        COALESCE(followers.count, 0)::BIGINT as total_followers,
+        COALESCE(following.count, 0)::BIGINT as total_following,
+        COALESCE(prof.profile_completion_percentage, 0) as profile_completion,
+        COALESCE(activity.last_activity, u.created_at) as last_activity,
+        COALESCE(streak.streak_days, 0) as reading_streak_days
+    FROM users u
+    LEFT JOIN profiles prof ON u.id = prof.user_id
+    LEFT JOIN (
+        SELECT user_id, COUNT(*) as count
+        FROM reading_progress 
+        WHERE status = 'completed' AND user_id = user_uuid
+        GROUP BY user_id
+    ) books_read ON u.id = books_read.user_id
+    LEFT JOIN (
+        SELECT user_id, COUNT(*) as count
+        FROM book_reviews 
+        WHERE user_id = user_uuid
+        GROUP BY user_id
+    ) reviews ON u.id = reviews.user_id
+    LEFT JOIN (
+        SELECT user_id, COUNT(*) as count
+        FROM user_friends 
+        WHERE (user_id = user_uuid OR friend_id = user_uuid) AND status = 'accepted'
+        GROUP BY user_id
+    ) friends ON u.id = friends.user_id
+    LEFT JOIN (
+        SELECT target_id, COUNT(*) as count
+        FROM follows 
+        WHERE target_type = 'user' AND target_id = user_uuid
+        GROUP BY target_id
+    ) followers ON u.id = followers.target_id
+    LEFT JOIN (
+        SELECT follower_id, COUNT(*) as count
+        FROM follows 
+        WHERE target_type = 'user' AND follower_id = user_uuid
+        GROUP BY follower_id
+    ) following ON u.id = following.follower_id
+    LEFT JOIN (
+        SELECT user_id, MAX(created_at) as last_activity
+        FROM user_activity_log 
+        WHERE user_id = user_uuid
+        GROUP BY user_id
+    ) activity ON u.id = activity.user_id
+    LEFT JOIN (
+        SELECT user_id, COUNT(DISTINCT DATE(created_at)) as streak_days
+        FROM user_activity_log 
+        WHERE user_id = user_uuid 
+        AND created_at >= CURRENT_DATE - INTERVAL '30 days'
+        GROUP BY user_id
+    ) streak ON u.id = streak.user_id
+    WHERE u.id = user_uuid;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_user_profile_stats"("user_uuid" "uuid") OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."get_user_timeline_posts"("target_user_id" "uuid", "limit_count" integer DEFAULT 20, "offset_count" integer DEFAULT 0) RETURNS TABLE("id" "uuid", "user_id" "uuid", "content" "text", "content_type" "text", "visibility" "text", "created_at" timestamp with time zone, "engagement_score" numeric, "like_count" integer, "comment_count" integer, "share_count" integer, "view_count" integer)
@@ -4241,6 +4334,20 @@ $$;
 ALTER FUNCTION "public"."update_post_updated_at"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."update_profile_completion"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    NEW.profile_completion_percentage := calculate_profile_completion(NEW.id);
+    NEW.last_profile_update := NOW();
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_profile_completion"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."update_updated_at_column"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$
@@ -6055,6 +6162,186 @@ CREATE TABLE IF NOT EXISTS "public"."engagement_analytics" (
 
 
 ALTER TABLE "public"."engagement_analytics" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."profiles" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "bio" "text",
+    "created_at" timestamp with time zone DEFAULT "now"(),
+    "updated_at" timestamp with time zone DEFAULT "now"(),
+    "role" character varying(50) DEFAULT 'user'::character varying NOT NULL,
+    "avatar_url" "text",
+    "cover_image_url" "text",
+    "birth_date" "date",
+    "gender" "text",
+    "occupation" "text",
+    "education" "text",
+    "interests" "text"[],
+    "social_links" "jsonb",
+    "phone" "text",
+    "timezone" "text",
+    "language_preference" "text" DEFAULT 'en'::"text",
+    "profile_completion_percentage" integer DEFAULT 0,
+    "last_profile_update" timestamp with time zone,
+    "profile_visibility" "text" DEFAULT 'public'::"text",
+    CONSTRAINT "profiles_profile_visibility_check" CHECK (("profile_visibility" = ANY (ARRAY['private'::"text", 'friends'::"text", 'followers'::"text", 'public'::"text"])))
+);
+
+
+ALTER TABLE "public"."profiles" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."profiles" IS 'Extended user profile information';
+
+
+
+COMMENT ON COLUMN "public"."profiles"."user_id" IS 'Reference to user account';
+
+
+
+COMMENT ON COLUMN "public"."profiles"."bio" IS 'User biography text';
+
+
+
+COMMENT ON COLUMN "public"."profiles"."role" IS 'User role (user, admin, moderator)';
+
+
+
+COMMENT ON COLUMN "public"."profiles"."avatar_url" IS 'User profile avatar image URL';
+
+
+
+COMMENT ON COLUMN "public"."profiles"."cover_image_url" IS 'User profile cover image URL';
+
+
+
+COMMENT ON COLUMN "public"."profiles"."birth_date" IS 'User birth date for age calculation';
+
+
+
+COMMENT ON COLUMN "public"."profiles"."gender" IS 'User gender identity';
+
+
+
+COMMENT ON COLUMN "public"."profiles"."occupation" IS 'User professional occupation';
+
+
+
+COMMENT ON COLUMN "public"."profiles"."education" IS 'User educational background';
+
+
+
+COMMENT ON COLUMN "public"."profiles"."interests" IS 'Array of user interests and hobbies';
+
+
+
+COMMENT ON COLUMN "public"."profiles"."social_links" IS 'JSON object containing social media links';
+
+
+
+COMMENT ON COLUMN "public"."profiles"."phone" IS 'User phone number (optional)';
+
+
+
+COMMENT ON COLUMN "public"."profiles"."timezone" IS 'User timezone for localized content';
+
+
+
+COMMENT ON COLUMN "public"."profiles"."language_preference" IS 'User preferred language for content';
+
+
+
+COMMENT ON COLUMN "public"."profiles"."profile_completion_percentage" IS 'Percentage of profile completion (0-100)';
+
+
+
+COMMENT ON COLUMN "public"."profiles"."last_profile_update" IS 'Timestamp of last profile update';
+
+
+
+COMMENT ON COLUMN "public"."profiles"."profile_visibility" IS 'Profile visibility level for privacy control';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."users" (
+    "id" "uuid" NOT NULL,
+    "email" character varying(255),
+    "name" character varying(255),
+    "created_at" timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    "role_id" "uuid",
+    "permalink" character varying(100),
+    "location" character varying(255),
+    "website" character varying(255)
+);
+
+
+ALTER TABLE "public"."users" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."users" IS 'User accounts and basic information';
+
+
+
+COMMENT ON COLUMN "public"."users"."email" IS 'User email address for authentication';
+
+
+
+COMMENT ON COLUMN "public"."users"."name" IS 'User display name';
+
+
+
+COMMENT ON COLUMN "public"."users"."role_id" IS 'Reference to user role for permissions';
+
+
+
+COMMENT ON COLUMN "public"."users"."permalink" IS 'User permalink for profile URLs';
+
+
+
+COMMENT ON COLUMN "public"."users"."location" IS 'User location/city';
+
+
+
+COMMENT ON COLUMN "public"."users"."website" IS 'User website URL';
+
+
+
+CREATE OR REPLACE VIEW "public"."enhanced_user_profiles" AS
+ SELECT "u"."id",
+    "u"."email",
+    "u"."name",
+    "u"."created_at",
+    "u"."updated_at",
+    "u"."permalink",
+    "u"."location",
+    "u"."website",
+    "p"."bio",
+    "p"."role",
+    "p"."avatar_url",
+    "p"."cover_image_url",
+    "p"."birth_date",
+    "p"."gender",
+    "p"."occupation",
+    "p"."education",
+    "p"."interests",
+    "p"."social_links",
+    "p"."phone",
+    "p"."timezone",
+    "p"."language_preference",
+    "p"."profile_completion_percentage",
+    "p"."last_profile_update",
+    "p"."profile_visibility",
+        CASE
+            WHEN ("p"."birth_date" IS NOT NULL) THEN EXTRACT(year FROM "age"(("p"."birth_date")::timestamp with time zone))
+            ELSE NULL::numeric
+        END AS "age"
+   FROM ("public"."users" "u"
+     LEFT JOIN "public"."profiles" "p" ON (("u"."id" = "p"."user_id")));
+
+
+ALTER TABLE "public"."enhanced_user_profiles" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."enterprise_audit_trail" (
@@ -8202,50 +8489,6 @@ CREATE TABLE IF NOT EXISTS "public"."image_tags" (
 ALTER TABLE "public"."image_tags" OWNER TO "postgres";
 
 
-CREATE TABLE IF NOT EXISTS "public"."users" (
-    "id" "uuid" NOT NULL,
-    "email" character varying(255),
-    "name" character varying(255),
-    "created_at" timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-    "role_id" "uuid",
-    "permalink" character varying(100),
-    "location" character varying(255),
-    "website" character varying(255)
-);
-
-
-ALTER TABLE "public"."users" OWNER TO "postgres";
-
-
-COMMENT ON TABLE "public"."users" IS 'User accounts and basic information';
-
-
-
-COMMENT ON COLUMN "public"."users"."email" IS 'User email address for authentication';
-
-
-
-COMMENT ON COLUMN "public"."users"."name" IS 'User display name';
-
-
-
-COMMENT ON COLUMN "public"."users"."role_id" IS 'Reference to user role for permissions';
-
-
-
-COMMENT ON COLUMN "public"."users"."permalink" IS 'User permalink for profile URLs';
-
-
-
-COMMENT ON COLUMN "public"."users"."location" IS 'User location/city';
-
-
-
-COMMENT ON COLUMN "public"."users"."website" IS 'User website URL';
-
-
-
 CREATE OR REPLACE VIEW "public"."image_uploaders" AS
  SELECT "i"."id" AS "image_id",
     "i"."url",
@@ -9014,35 +9257,6 @@ ALTER TABLE "public"."privacy_audit_log" OWNER TO "postgres";
 
 
 COMMENT ON TABLE "public"."privacy_audit_log" IS 'Audit trail for all privacy-related actions and changes';
-
-
-
-CREATE TABLE IF NOT EXISTS "public"."profiles" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "user_id" "uuid" NOT NULL,
-    "bio" "text",
-    "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"(),
-    "role" character varying(50) DEFAULT 'user'::character varying NOT NULL
-);
-
-
-ALTER TABLE "public"."profiles" OWNER TO "postgres";
-
-
-COMMENT ON TABLE "public"."profiles" IS 'Extended user profile information';
-
-
-
-COMMENT ON COLUMN "public"."profiles"."user_id" IS 'Reference to user account';
-
-
-
-COMMENT ON COLUMN "public"."profiles"."bio" IS 'User biography text';
-
-
-
-COMMENT ON COLUMN "public"."profiles"."role" IS 'User role (user, admin, moderator)';
 
 
 
@@ -12314,11 +12528,19 @@ CREATE INDEX "idx_privacy_audit_log_user_action" ON "public"."privacy_audit_log"
 
 
 
+CREATE INDEX "idx_profiles_completion" ON "public"."profiles" USING "btree" ("profile_completion_percentage");
+
+
+
 CREATE INDEX "idx_profiles_role" ON "public"."profiles" USING "btree" ("role");
 
 
 
 CREATE INDEX "idx_profiles_user_id" ON "public"."profiles" USING "btree" ("user_id");
+
+
+
+CREATE INDEX "idx_profiles_visibility" ON "public"."profiles" USING "btree" ("profile_visibility");
 
 
 
@@ -12699,6 +12921,10 @@ CREATE OR REPLACE TRIGGER "trigger_update_friend_analytics" AFTER INSERT OR UPDA
 
 
 CREATE OR REPLACE TRIGGER "trigger_update_like_counters" AFTER INSERT OR DELETE ON "public"."photo_likes" FOR EACH ROW EXECUTE FUNCTION "public"."update_photo_counters"();
+
+
+
+CREATE OR REPLACE TRIGGER "trigger_update_profile_completion" BEFORE UPDATE ON "public"."profiles" FOR EACH ROW EXECUTE FUNCTION "public"."update_profile_completion"();
 
 
 
@@ -15954,6 +16180,12 @@ GRANT ALL ON FUNCTION "public"."calculate_engagement_score"("p_like_count" integ
 
 
 
+GRANT ALL ON FUNCTION "public"."calculate_profile_completion"("user_profile_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."calculate_profile_completion"("user_profile_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."calculate_profile_completion"("user_profile_id" "uuid") TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."check_data_health"() TO "anon";
 GRANT ALL ON FUNCTION "public"."check_data_health"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."check_data_health"() TO "service_role";
@@ -16206,12 +16438,6 @@ GRANT ALL ON FUNCTION "public"."get_privacy_audit_summary"("days_back" integer) 
 
 
 
-GRANT ALL ON FUNCTION "public"."get_user_activities_simple"("p_user_id" "uuid", "p_limit" integer, "p_offset" integer) TO "anon";
-GRANT ALL ON FUNCTION "public"."get_user_activities_simple"("p_user_id" "uuid", "p_limit" integer, "p_offset" integer) TO "authenticated";
-GRANT ALL ON FUNCTION "public"."get_user_activities_simple"("p_user_id" "uuid", "p_limit" integer, "p_offset" integer) TO "service_role";
-
-
-
 GRANT ALL ON FUNCTION "public"."get_user_feed_activities"("p_user_id" "uuid", "p_limit" integer, "p_offset" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."get_user_feed_activities"("p_user_id" "uuid", "p_limit" integer, "p_offset" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_user_feed_activities"("p_user_id" "uuid", "p_limit" integer, "p_offset" integer) TO "service_role";
@@ -16221,6 +16447,12 @@ GRANT ALL ON FUNCTION "public"."get_user_feed_activities"("p_user_id" "uuid", "p
 GRANT ALL ON FUNCTION "public"."get_user_privacy_settings"("user_id_param" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_user_privacy_settings"("user_id_param" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_user_privacy_settings"("user_id_param" "uuid") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."get_user_profile_stats"("user_uuid" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."get_user_profile_stats"("user_uuid" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_user_profile_stats"("user_uuid" "uuid") TO "service_role";
 
 
 
@@ -16563,6 +16795,12 @@ GRANT ALL ON FUNCTION "public"."update_post_engagement_score"("post_id" "uuid") 
 GRANT ALL ON FUNCTION "public"."update_post_updated_at"() TO "anon";
 GRANT ALL ON FUNCTION "public"."update_post_updated_at"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_post_updated_at"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."update_profile_completion"() TO "anon";
+GRANT ALL ON FUNCTION "public"."update_profile_completion"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_profile_completion"() TO "service_role";
 
 
 
@@ -16995,6 +17233,24 @@ GRANT ALL ON TABLE "public"."discussions" TO "service_role";
 GRANT ALL ON TABLE "public"."engagement_analytics" TO "anon";
 GRANT ALL ON TABLE "public"."engagement_analytics" TO "authenticated";
 GRANT ALL ON TABLE "public"."engagement_analytics" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."profiles" TO "anon";
+GRANT ALL ON TABLE "public"."profiles" TO "authenticated";
+GRANT ALL ON TABLE "public"."profiles" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."users" TO "anon";
+GRANT ALL ON TABLE "public"."users" TO "authenticated";
+GRANT ALL ON TABLE "public"."users" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."enhanced_user_profiles" TO "anon";
+GRANT ALL ON TABLE "public"."enhanced_user_profiles" TO "authenticated";
+GRANT ALL ON TABLE "public"."enhanced_user_profiles" TO "service_role";
 
 
 
@@ -17688,12 +17944,6 @@ GRANT ALL ON TABLE "public"."image_tags" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."users" TO "anon";
-GRANT ALL ON TABLE "public"."users" TO "authenticated";
-GRANT ALL ON TABLE "public"."users" TO "service_role";
-
-
-
 GRANT ALL ON TABLE "public"."image_uploaders" TO "anon";
 GRANT ALL ON TABLE "public"."image_uploaders" TO "authenticated";
 GRANT ALL ON TABLE "public"."image_uploaders" TO "service_role";
@@ -17877,12 +18127,6 @@ GRANT ALL ON TABLE "public"."prices" TO "service_role";
 GRANT ALL ON TABLE "public"."privacy_audit_log" TO "anon";
 GRANT ALL ON TABLE "public"."privacy_audit_log" TO "authenticated";
 GRANT ALL ON TABLE "public"."privacy_audit_log" TO "service_role";
-
-
-
-GRANT ALL ON TABLE "public"."profiles" TO "anon";
-GRANT ALL ON TABLE "public"."profiles" TO "authenticated";
-GRANT ALL ON TABLE "public"."profiles" TO "service_role";
 
 
 

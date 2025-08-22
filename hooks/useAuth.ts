@@ -55,7 +55,13 @@ export function useAuth() {
               setUser(userWithRole)
             }
           } catch (apiError) {
-            console.error('Error fetching user from API:', apiError)
+            // Check if this is a timeout abort error
+            if (apiError instanceof Error && apiError.name === 'AbortError') {
+              console.warn('API request timed out, using fallback user data')
+            } else {
+              console.error('Error fetching user from API:', apiError)
+            }
+            
             // Fallback to user without role
             const userWithRole = {
               ...session.user,
@@ -104,7 +110,13 @@ export function useAuth() {
                 setUser(userWithRole)
               }
             } catch (apiError) {
-              console.error('Error fetching user from API:', apiError)
+              // Check if this is a timeout abort error
+              if (apiError instanceof Error && apiError.name === 'AbortError') {
+                console.warn('API request timed out, using fallback user data')
+              } else {
+                console.error('Error fetching user from API:', apiError)
+              }
+              
               // Fallback to user without role
               const userWithRole = {
                 ...session.user,

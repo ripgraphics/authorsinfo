@@ -1,9 +1,10 @@
 import type React from "react"
+import { useState } from "react"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
+import { Avatar } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { UserPlus, MessageCircle, MoreHorizontal, X, BookOpen, Users, Calendar } from "lucide-react"
-import Link from "next/link"
+import { CloseButton } from "@/components/ui/close-button"
+import { Users, MapPin, Globe, Calendar, BookOpen, UserPlus, MessageCircle, MoreHorizontal } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 // Enterprise-grade type definitions
@@ -19,8 +20,12 @@ interface UserEntity extends BaseEntity {
   avatar_url?: string
   email?: string
   friend_count?: number
+  followers_count?: number
+  books_read_count?: number
   mutual_friends?: number
   permalink?: string
+  location?: string
+  website?: string
 }
 
 interface AuthorEntity extends BaseEntity {
@@ -72,26 +77,53 @@ interface EntityHoverCardProps {
   entity: Entity
   children: React.ReactNode
   showActions?: boolean
+  userStats?: {
+    booksRead: number
+    friendsCount: number
+    followersCount: number
+    location: string | null
+    website: string | null
+    joinedDate: string
+  }
 }
 
-export function EntityHoverCard({ type, entity, children, showActions = true }: EntityHoverCardProps) {
+export function EntityHoverCard({ type, entity, children, showActions = true, userStats }: EntityHoverCardProps) {
   const router = useRouter()
+  const [isOpen, setIsOpen] = useState(false)
+
+  const handleClose = () => {
+    setIsOpen(false)
+  }
+
+  const handleClick = () => {
+    const info = getEntityInfo()
+    if (info.href) {
+      router.push(info.href)
+    }
+    setIsOpen(false)
+  }
 
   const getEntityInfo = () => {
     switch (type) {
       case 'user':
         const userEntity = entity as UserEntity
+        const joinDate = userEntity.created_at ? new Date(userEntity.created_at).toLocaleDateString('en-US', { 
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        }) : undefined
+        
         return {
           icon: <Users className="mr-1 h-3 w-3" />,
-          countText: userEntity.friend_count ? `${userEntity.friend_count} friends` : 'New user',
+          countText: userEntity.friend_count ? `${userEntity.friend_count} friends` : (joinDate ? `Joined ${joinDate}` : ''),
           href: userEntity.permalink ? `/profile/${userEntity.permalink}` : `/profile/${entity.id}`,
           imageUrl: userEntity.avatar_url || `/api/avatar/${entity.id}`,
-          subtitle: userEntity.created_at ? `Joined ${new Date(userEntity.created_at).toLocaleDateString('en-US', { 
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          })}` : undefined
-        }
+          subtitle: joinDate ? `Joined ${joinDate}` : undefined,
+          // Additional user stats - only show if we have real data
+          friendsCount: userEntity.friend_count || 0,
+          followersCount: userEntity.followers_count || 0,
+          booksReadCount: userEntity.books_read_count || 0
+        } as const
       case 'author':
         const authorEntity = entity as AuthorEntity
         return {
@@ -143,11 +175,6 @@ export function EntityHoverCard({ type, entity, children, showActions = true }: 
     }
   }
 
-  const handleClick = () => {
-    const info = getEntityInfo()
-    router.push(info.href)
-  }
-
   const handleAddFriend = (e: React.MouseEvent) => {
     e.stopPropagation()
     // TODO: Implement add friend functionality using the new API
@@ -170,10 +197,46 @@ export function EntityHoverCard({ type, entity, children, showActions = true }: 
   const info = getEntityInfo()
   const imageUrl = info.imageUrl || "/placeholder.svg"
 
+  // Use userStats prop if available, otherwise use entity data
+  const displayStats = userStats || {
+    booksRead: (entity as UserEntity).books_read_count || 0,
+    friendsCount: (entity as UserEntity).friend_count || 0,
+    followersCount: (entity as UserEntity).followers_count || 0,
+    location: (entity as UserEntity).location || null,
+    website: (entity as UserEntity).website || null,
+    joinedDate: (entity as UserEntity).created_at || null
+  }
+
+  // Temporary debug logging to see what data we're getting
+  console.log('🔍 Hover Card Debug:', {
+    entityId: entity.id,
+    entityName: entity.name,
+    userStats: userStats,
+    displayStats: displayStats,
+    hasUserStats: !!userStats,
+    entityData: {
+      books_read_count: (entity as UserEntity).books_read_count,
+      friend_count: (entity as UserEntity).friend_count,
+      followers_count: (entity as UserEntity).followers_count
+    }
+  })
+
+  // Format join date
+  const formatJoinDate = (dateString: string | null) => {
+    if (!dateString) return null
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  }
+
+  const joinDate = formatJoinDate(displayStats.joinedDate)
+
   return (
-    <HoverCard openOnClick>
+    <HoverCard open={isOpen} onOpenChange={setIsOpen}>
       <HoverCardTrigger asChild>
-        <span 
+        <span
           className="hover:underline cursor-pointer text-muted-foreground"
           onClick={handleClick}
         >
@@ -181,28 +244,34 @@ export function EntityHoverCard({ type, entity, children, showActions = true }: 
         </span>
       </HoverCardTrigger>
       <HoverCardContent className="p-0 bg-white border border-gray-200 shadow-xl">
-        {/* Header with close button */}
         <div className="relative p-4">
-          <button className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-100 transition-colors">
-            <X className="h-4 w-4 text-gray-500" />
-          </button>
-          
-          {/* Horizontal Layout: Avatar on left, Entity info on right */}
+          <CloseButton
+            onClick={handleClose}
+            variant="primary"
+            className="absolute top-2 right-2"
+          />
+
           <div className="flex items-start gap-4">
-            {/* Avatar on the left */}
-            <Avatar className="h-20 w-20 flex-shrink-0">
-              <AvatarImage 
-                src={imageUrl} 
-                alt={entity.name} 
+            <div
+              className="h-24 w-24 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={handleClick}
+            >
+              <Avatar
+                src={imageUrl}
+                alt={entity.name}
+                name={entity.name}
+                size="md"
+                className="!w-24 !h-24"
               />
-              <AvatarFallback className="text-xl font-semibold">
-                {entity.name.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            
-            {/* Entity info on the right */}
+            </div>
+
             <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">{entity.name}</h3>
+              <h3
+                className="text-lg font-semibold text-gray-900 mb-1 cursor-pointer hover:text-primary transition-colors"
+                onClick={handleClick}
+              >
+                {entity.name}
+              </h3>
               {info.subtitle && (
                 <p className="text-sm text-gray-500 mb-2">{info.subtitle}</p>
               )}
@@ -210,10 +279,42 @@ export function EntityHoverCard({ type, entity, children, showActions = true }: 
                 {info.icon}
                 <span>{info.countText}</span>
               </div>
+
+              {/* User stats - only the 4 items you specified in correct order */}
+              {type === 'user' && (
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <div className="space-y-1">
+                    {/* 1. Join Date (first, replacing "New user") */}
+                    {joinDate && (
+                      <div className="text-sm text-gray-500">
+                        <span>Joined: </span>
+                        <span className="font-semibold text-gray-900">{joinDate}</span>
+                      </div>
+                    )}
+                    
+                    {/* 2. Total Friends - show even if 0 */}
+                    <div className="text-sm text-gray-500">
+                      <span>Friends: </span>
+                      <span className="font-semibold text-gray-900">{displayStats.friendsCount}</span>
+                    </div>
+                    
+                    {/* 3. Followers - show even if 0 */}
+                    <div className="text-sm text-gray-500">
+                      <span>Followers: </span>
+                      <span className="font-semibold text-gray-900">{displayStats.followersCount}</span>
+                    </div>
+                    
+                    {/* 4. Books Read - show even if 0 */}
+                    <div className="text-sm text-gray-500">
+                      <span>Books: </span>
+                      <span className="font-semibold text-gray-900">{displayStats.booksRead}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
-
         {/* Action Buttons - Only show for users */}
         {showActions && type === 'user' && (
           <div className="px-4 pb-4">
@@ -257,14 +358,23 @@ interface UserHoverCardProps {
   user: UserEntity
   children: React.ReactNode
   showActions?: boolean
+  userStats?: {
+    booksRead: number
+    friendsCount: number
+    followersCount: number
+    location: string | null
+    website: string | null
+    joinedDate: string
+  }
 }
 
-export function UserHoverCard({ user, children, showActions = true }: UserHoverCardProps) {
+export function UserHoverCard({ user, children, showActions = true, userStats }: UserHoverCardProps) {
   return (
     <EntityHoverCard
       type="user"
       entity={user}
       showActions={showActions}
+      userStats={userStats}
     >
       {children}
     </EntityHoverCard>

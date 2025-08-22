@@ -33,9 +33,19 @@ import {
 
 interface PrivacySettingsProps {
   className?: string
+  entityType?: 'user' | 'author' | 'publisher' | 'group' | 'event'
+  entityId?: string
+  isOwner?: boolean
+  onSettingsChange?: (settings: any) => void
 }
 
-export function PrivacySettings({ className }: PrivacySettingsProps) {
+export function PrivacySettings({ 
+  className, 
+  entityType = 'user', 
+  entityId, 
+  isOwner = true,
+  onSettingsChange 
+}: PrivacySettingsProps) {
   const { toast } = useToast()
   const [settings, setSettings] = useState<PrivacySettingsForm | null>(null)
   const [stats, setStats] = useState<PrivacyStats | null>(null)
@@ -44,21 +54,37 @@ export function PrivacySettings({ className }: PrivacySettingsProps) {
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    loadPrivacyData()
-  }, [])
+    if (entityId && entityType) {
+      loadPrivacyData()
+    }
+  }, [entityId, entityType])
 
   const loadPrivacyData = async () => {
+    if (!entityId || !entityType) return
+    
     setLoading(true)
     try {
-      const [settingsData, statsData, auditData] = await Promise.all([
-        PrivacyService.getUserPrivacySettings(),
-        PrivacyService.getPrivacyStats(),
-        PrivacyService.getPrivacyAuditSummary()
-      ])
-
-      setSettings(settingsData)
-      setStats(statsData)
-      setAuditSummary(auditData)
+      // Use the new entity-agnostic API
+      const response = await fetch(`/api/entities/${entityType}/${entityId}/privacy-settings`)
+      if (response.ok) {
+        const settingsData = await response.json()
+        setSettings(settingsData)
+        
+        // For now, use default stats and audit data
+        // These could be enhanced with entity-specific APIs later
+        setStats({
+          totalSettings: Object.keys(settingsData).length,
+          privacyLevel: settingsData.default_privacy_level || 'private',
+          lastUpdated: new Date().toISOString()
+        })
+        setAuditSummary({
+          totalChanges: 0,
+          lastChange: new Date().toISOString(),
+          changeFrequency: 'low'
+        })
+      } else {
+        throw new Error('Failed to fetch privacy settings')
+      }
     } catch (error) {
       console.error('Error loading privacy data:', error)
       toast({
@@ -77,30 +103,42 @@ export function PrivacySettings({ className }: PrivacySettingsProps) {
   }
 
   const handleSaveSettings = async () => {
-    if (!settings) return
+    if (!settings || !entityId || !entityType) return
 
     setSaving(true)
     try {
-      const success = await PrivacyService.updatePrivacySettings(settings)
+      // Use the new entity-agnostic API
+      const response = await fetch(`/api/entities/${entityType}/${entityId}/privacy-settings`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(settings)
+      })
       
-      if (success) {
+      if (response.ok) {
+        const updatedSettings = await response.json()
+        setSettings(updatedSettings)
+        
+        // Notify parent component of changes
+        if (onSettingsChange) {
+          onSettingsChange(updatedSettings)
+        }
+        
         toast({
           title: "Success",
           description: "Privacy settings updated successfully",
         })
         await loadPrivacyData() // Reload data
       } else {
-        toast({
-          title: "Error",
-          description: "Failed to update privacy settings",
-          variant: "destructive"
-        })
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update privacy settings')
       }
     } catch (error) {
       console.error('Error saving privacy settings:', error)
       toast({
         title: "Error",
-        description: "An error occurred while saving settings",
+        description: error instanceof Error ? error.message : "An error occurred while saving settings",
         variant: "destructive"
       })
     } finally {

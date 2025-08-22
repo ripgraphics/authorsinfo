@@ -54,7 +54,8 @@ import { getContactInfo, upsertContactInfo } from '@/utils/contactInfo'
 import { useAuth } from '@/hooks/useAuth'
 import { FollowButton } from '@/components/follow-button'
 import { canUserEditEntity } from '@/lib/auth-utils'
-import { EntityTabs, EntityTab } from '@/components/ui/entity-tabs';
+import { EntityTabs, EntityTab } from '@/components/ui/entity-tabs'
+import EnterpriseTimelineActivities from '@/components/enterprise-timeline-activities'
 
 interface ClientAuthorPageProps {
   author: Author
@@ -136,7 +137,6 @@ export function ClientAuthorPage({
   followersCount = 0, 
   books = [], 
   booksCount = 0,
-  activities = [],
   photos = [],
   photosCount = 0,
   albums = []
@@ -644,34 +644,12 @@ export function ClientAuthorPage({
             </Card>
 
               {/* Timeline Feed */}
-              <Timeline
-                items={(activities.length > 0 ? activities : mockActivities).map((activity) => ({
-                  id: activity.id,
-                  avatarUrl: authorImageUrl,
-                  name: author?.name || "Author",
-                  profileUrl: `/authors/${author?.id}`,
-                  timestamp: activity.timeAgo,
-                  content: (() => {
-                    switch (activity.type) {
-                      case "rating":
-                        return <span>Rated <Link href={`/books/${activity.books?.id || '#'}`} className="text-primary hover:underline font-medium">{activity.bookTitle}</Link> by {activity.bookAuthor} {activity.rating} stars</span>;
-                      case "finished":
-                        return <span>Finished reading <Link href={`/books/${activity.books?.id || '#'}`} className="text-primary hover:underline font-medium">{activity.bookTitle}</Link> by {activity.bookAuthor}</span>;
-                      case "added":
-                        return <span>Added <Link href={`/books/${activity.books?.id || '#'}`} className="text-primary hover:underline font-medium">{activity.bookTitle}</Link> by {activity.bookAuthor} to {activity.shelf}</span>;
-                      case "reviewed":
-                        return <span>Reviewed <Link href={`/books/${activity.books?.id || '#'}`} className="text-primary hover:underline font-medium">{activity.bookTitle}</Link> by {activity.bookAuthor}</span>;
-                      case "book_added":
-                        return <span>New book added: <Link href={`/books/${activity.books?.id || '#'}`} className="text-primary hover:underline font-medium">{activity.bookTitle}</Link> by {activity.bookAuthor}</span>;
-                      case "author_created":
-                        return <span>Author profile was created</span>;
-                      case "author_profile_updated":
-                        return <span>Author profile was updated</span>;
-                      default:
-                        return <span>Activity with <Link href={`/books/${activity.books?.id || '#'}`} className="text-primary hover:underline font-medium">{activity.bookTitle}</Link> by {activity.bookAuthor}</span>;
-                    }
-                  })(),
-                }))}
+              <EnterpriseTimelineActivities
+                userId={params.id}
+                entityType="author"
+                entityId={params.id}
+                enableReadingProgress={true}
+                enablePrivacyControls={true}
               />
             </div>
                       </div>

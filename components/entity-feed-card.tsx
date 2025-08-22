@@ -255,8 +255,11 @@ export default function EntityFeedCard({
     console.log('Post.text:', post.text)
     console.log('========================')
     
-    // Try to get text from various possible locations
+    // NEW: Check for direct columns first (from updated database function)
     if (post.text) return post.text
+    if (post.content_type === 'text' && post.text) return post.text
+    
+    // Try to get text from various possible locations
     if (post.content?.text) return post.content.text
     if (post.content?.content) return post.content.content
     if (post.content?.body) return post.content.body
@@ -291,10 +294,15 @@ export default function EntityFeedCard({
       dataImages: post.data?.images
     })
     
-    // Try to get images from various possible locations
+    // NEW: Check for direct image_url column first (from updated database function)
     if (post.image_url) {
       return post.image_url.split(',').map((url: string) => url.trim()).filter(Boolean)
     }
+    if (post.content_type === 'image' && post.image_url) {
+      return post.image_url.split(',').map((url: string) => url.trim()).filter(Boolean)
+    }
+    
+    // Try to get images from various possible locations
     if (post.content?.image_url) {
       return post.content.image_url.split(',').map((url: string) => url.trim()).filter(Boolean)
     }
@@ -322,7 +330,7 @@ export default function EntityFeedCard({
       return post.data.data.image_url.split(',').map((url: string) => url.trim()).filter(Boolean)
     }
     if (post.data?.data?.images) {
-      return Array.isArray(post.data.data.images) ? post.data.data.images : [post.data.data.images]
+      return post.data.data.images.split(',').map((url: string) => url.trim()).filter(Boolean)
     }
     
     console.log('getPostImages - No images found, returning empty array')

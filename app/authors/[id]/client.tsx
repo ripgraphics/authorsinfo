@@ -1016,6 +1016,13 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
               entityId={params.id}
               entityType="author"
               isOwnEntity={canEdit}
+              entityDisplayInfo={{
+                id: params.id,
+                name: author.name,
+                type: 'author' as const,
+                author_image: author.author_image,
+                bookCount: booksCount || 0
+              }}
             />
           </div>
         </div>

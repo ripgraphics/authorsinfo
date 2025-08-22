@@ -440,10 +440,12 @@ export type Database = {
         Row: {
           ai_tags: string[] | null
           album_id: string
+          alt_text: string | null
           caption: string | null
           comment_count: number | null
           community_engagement: number | null
           created_at: string | null
+          description: string | null
           display_order: number
           entity_id: string | null
           entity_type_id: string | null
@@ -463,10 +465,12 @@ export type Database = {
         Insert: {
           ai_tags?: string[] | null
           album_id: string
+          alt_text?: string | null
           caption?: string | null
           comment_count?: number | null
           community_engagement?: number | null
           created_at?: string | null
+          description?: string | null
           display_order: number
           entity_id?: string | null
           entity_type_id?: string | null
@@ -486,10 +490,12 @@ export type Database = {
         Update: {
           ai_tags?: string[] | null
           album_id?: string
+          alt_text?: string | null
           caption?: string | null
           comment_count?: number | null
           community_engagement?: number | null
           created_at?: string | null
+          description?: string | null
           display_order?: number
           entity_id?: string | null
           entity_type_id?: string | null
@@ -11689,33 +11695,40 @@ export type Database = {
           last_occurrence: string
         }[]
       }
+      get_user_activities_simple: {
+        Args: { p_limit?: number; p_offset?: number; p_user_id: string }
+        Returns: {
+          activity_type: string
+          comment_count: number
+          created_at: string
+          data: Json
+          entity_id: string
+          entity_type: string
+          id: string
+          is_liked: boolean
+          is_public: boolean
+          like_count: number
+          user_avatar_url: string
+          user_id: string
+          user_name: string
+        }[]
+      }
       get_user_feed_activities: {
         Args: { p_limit?: number; p_offset?: number; p_user_id: string }
         Returns: {
           activity_type: string
           comment_count: number
-          content_summary: string
-          content_type: string
           created_at: string
           data: Json
-          engagement_score: number
           entity_id: string
           entity_type: string
-          hashtags: string[]
           id: string
-          image_url: string
           is_liked: boolean
           is_public: boolean
           like_count: number
-          link_url: string
-          metadata: Json
-          share_count: number
-          text: string
           user_avatar_url: string
           user_id: string
           user_name: string
-          view_count: number
-          visibility: string
         }[]
       }
       get_user_privacy_settings: {

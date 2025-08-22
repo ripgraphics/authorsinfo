@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
 import { useToast } from '@/hooks/use-toast'
 import { UserHoverCard } from '@/components/entity-hover-cards'
+import { EntityHoverCard } from '@/components/entity-hover-cards'
 import { 
   Heart, 
   MessageCircle, 
@@ -46,6 +47,17 @@ interface EntityCommentsProps {
   entityAvatar?: string
   entityCreatedAt: string
   isOwner: boolean
+  entityDisplayInfo?: {
+    id: string
+    name: string
+    type: 'user' | 'author' | 'publisher' | 'group' | 'event' | 'book'
+    author_image?: { url: string }
+    publisher_image?: { url: string }
+    bookCount?: number
+    member_count?: number
+    location?: string
+    bio?: string
+  } // Optional override for entity display with hover card functionality
 }
 
 export default function EntityComments({
@@ -54,7 +66,8 @@ export default function EntityComments({
   entityName,
   entityAvatar,
   entityCreatedAt,
-  isOwner
+  isOwner,
+  entityDisplayInfo
 }: EntityCommentsProps) {
   const supabase = supabaseClient
   const { toast } = useToast()
@@ -667,9 +680,27 @@ export default function EntityComments({
           {entityUser ? (
             <UserHoverCard user={entityUser}>
               <div className="font-medium text-sm hover:underline cursor-pointer">
-                {entityUser.name}
+                {entityDisplayInfo?.name || entityUser.name}
               </div>
             </UserHoverCard>
+          ) : entityDisplayInfo ? (
+            <EntityHoverCard
+              type={entityDisplayInfo.type}
+              entity={{
+                id: entityDisplayInfo.id,
+                name: entityDisplayInfo.name,
+                author_image: entityDisplayInfo.author_image,
+                publisher_image: entityDisplayInfo.publisher_image,
+                bookCount: entityDisplayInfo.bookCount,
+                member_count: entityDisplayInfo.member_count,
+                location: entityDisplayInfo.location,
+                bio: entityDisplayInfo.bio
+              }}
+            >
+              <div className="font-medium text-sm hover:underline cursor-pointer">
+                {entityDisplayInfo.name}
+              </div>
+            </EntityHoverCard>
           ) : (
             <div className="font-medium text-sm">{entityName}</div>
           )}

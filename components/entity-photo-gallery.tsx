@@ -80,6 +80,18 @@ interface EntityPhotoGalleryProps {
   showUploadButtons?: boolean
   showAlbumManagement?: boolean
   maxImagesPerAlbum?: number
+  // Enhanced profile integration
+  enhancedProfile?: {
+    avatarUrl?: string
+    coverImageUrl?: string
+    photoAlbums?: any[]
+    privacySettings?: {
+      allowPublicPhotos?: boolean
+      allowFriendsToSeePhotos?: boolean
+      allowFollowersToSeePhotos?: boolean
+    }
+  }
+  onProfileUpdate?: (updates: any) => void
 }
 
 export function EntityPhotoGallery({
@@ -90,7 +102,9 @@ export function EntityPhotoGallery({
   className = '',
   showUploadButtons = true,
   showAlbumManagement = true,
-  maxImagesPerAlbum = 100
+  maxImagesPerAlbum = 100,
+  enhancedProfile,
+  onProfileUpdate
 }: EntityPhotoGalleryProps) {
   const { user } = useAuth()
   const { toast } = useToast()

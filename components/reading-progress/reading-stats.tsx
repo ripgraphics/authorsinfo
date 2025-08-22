@@ -8,25 +8,45 @@ import { BookOpen, BookMarked, Clock, CheckCircle, PauseCircle, XCircle, Trophy 
 
 interface ReadingStatsProps {
   className?: string
+  entityType?: 'user' | 'author' | 'publisher' | 'group' | 'event'
+  entityId?: string
+  showDetailedStats?: boolean
+  onStatsChange?: (stats: any) => void
 }
 
-export function ReadingStats({ className }: ReadingStatsProps) {
+export function ReadingStats({ 
+  className, 
+  entityType = 'user', 
+  entityId, 
+  showDetailedStats = false,
+  onStatsChange 
+}: ReadingStatsProps) {
   const [stats, setStats] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     async function fetchStats() {
+      if (!entityId || !entityType) return
+      
       setLoading(true)
       setError(null)
 
       try {
-        const result = await getReadingStats()
-
-        if (result.error) {
-          setError(result.error)
+        // Use the new entity-agnostic API
+        const response = await fetch(`/api/entities/${entityType}/${entityId}/reading-progress`)
+        
+        if (response.ok) {
+          const data = await response.json()
+          setStats(data)
+          
+          // Notify parent component of stats
+          if (onStatsChange) {
+            onStatsChange(data)
+          }
         } else {
-          setStats(result.stats)
+          const errorData = await response.json()
+          setError(errorData.error || 'Failed to load reading statistics')
         }
       } catch (err) {
         console.error("Error fetching reading stats:", err)
@@ -36,8 +56,10 @@ export function ReadingStats({ className }: ReadingStatsProps) {
       }
     }
 
-    fetchStats()
-  }, [])
+    if (entityId && entityType) {
+      fetchStats()
+    }
+  }, [entityId, entityType, onStatsChange])
 
   if (loading) {
     return (

@@ -114,6 +114,59 @@ export interface EntityHeaderProps {
   creatorJoinedAt?: string
   isMember?: boolean
   bookId?: string
+  // Enhanced profile fields for enterprise-grade profiles
+  enhancedProfile?: {
+    bio?: string
+    birthDate?: string
+    gender?: string
+    occupation?: string
+    education?: string
+    interests?: string[]
+    socialLinks?: {
+      twitter?: string
+      linkedin?: string
+      instagram?: string
+      facebook?: string
+      website?: string
+    }
+    phone?: string
+    email?: string
+    timezone?: string
+    languages?: string[]
+    readingPreferences?: {
+      favoriteGenres?: string[]
+      readingGoals?: {
+        booksPerYear?: number
+        pagesPerDay?: number
+        currentStreak?: number
+      }
+      readingStats?: {
+        totalBooksRead?: number
+        totalPagesRead?: number
+        averageRating?: number
+        favoriteAuthors?: string[]
+      }
+    }
+    privacySettings?: {
+      defaultPrivacyLevel?: 'private' | 'friends' | 'followers' | 'public'
+      allowPublicReadingProfile?: boolean
+      allowFriendsToSeeReading?: boolean
+      allowFollowersToSeeReading?: boolean
+      showReadingStatsPublicly?: boolean
+      showCurrentlyReadingPublicly?: boolean
+      showReadingHistoryPublicly?: boolean
+      showReadingGoalsPublicly?: boolean
+    }
+  }
+  // Add userStats for hover card
+  userStats?: {
+    booksRead: number
+    friendsCount: number
+    followersCount: number
+    location: string | null
+    website: string | null
+    joinedDate: string
+  }
 }
 
 export function EntityHeader({
@@ -151,6 +204,8 @@ export function EntityHeader({
   creatorJoinedAt,
   isMember = false,
   bookId,
+  enhancedProfile,
+  userStats,
 }: EntityHeaderProps) {
   
   console.log('🏗️ EntityHeader component mounted with props:', {
@@ -703,6 +758,34 @@ export function EntityHeader({
     )
 
     switch (entityType) {
+      case 'user':
+        // Debug logging
+        console.log('🔍 EntityHeader Debug:', {
+          entityId: entityId,
+          name: name,
+          userStats: userStats,
+          hasUserStats: !!userStats
+        })
+        
+        return (
+          <EntityHoverCard
+            type="user"
+            entity={{
+              id: entityId || '',
+              name: name,
+              avatar_url: profileImageUrl,
+              created_at: creatorJoinedAt,
+              location: location, // Pass the location prop
+              website: website,   // Pass the website prop
+              // Add any other user data that might be available
+              friend_count: parseInt(stats?.find(s => s.text.includes('friends'))?.text.match(/\d+/)?.[0] || '0'),
+              books_read_count: parseInt(stats?.find(s => s.text.includes('books'))?.text.match(/\d+/)?.[0] || '0')
+            }}
+            userStats={userStats}
+          >
+            <h1 className="entity-header__title text-base sm:text-[1.1rem] font-bold truncate cursor-pointer hover:text-primary transition-colors">{name}</h1>
+          </EntityHoverCard>
+        )
       case 'author':
         return author ? (
           <EntityHoverCard

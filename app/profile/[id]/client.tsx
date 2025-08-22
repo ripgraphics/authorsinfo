@@ -271,6 +271,7 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, p
         onFollow={handleFollow}
         entityId={user.id === authUser?.id ? undefined : params.id}
         targetType={user.id === authUser?.id ? undefined : "user"}
+        userStats={userStats}
       />
       
       <div className="profile-page__content">
@@ -380,10 +381,14 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, p
                 {/* Enterprise Timeline Activities */}
                 <EnterpriseTimelineActivities 
                   userId={user.id}
+                  entityType="user"
+                  entityId={user.id}
                   showAnalytics={true}
                   enableModeration={false}
                   enableAI={false}
                   enableAudit={false}
+                  enableReadingProgress={true}
+                  enablePrivacyControls={true}
                 />
               </div>
             </div>

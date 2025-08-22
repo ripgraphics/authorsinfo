@@ -314,6 +314,8 @@ interface AISettings {
 
 export default function EnterpriseTimelineActivities({ 
   userId, 
+  entityType = 'user',
+  entityId,
   showAnalytics = true,
   enableModeration = true,
   enableAI = true,
@@ -323,9 +325,13 @@ export default function EnterpriseTimelineActivities({
   enableCollaboration = true,
   enableAICreation = true,
   enableSocialNetworking = true,
-  enableMonetization = true
+  enableMonetization = true,
+  enableReadingProgress = true,
+  enablePrivacyControls = true
 }: {
   userId: string
+  entityType?: 'user' | 'author' | 'publisher' | 'group' | 'event'
+  entityId?: string
   showAnalytics?: boolean
   enableModeration?: boolean
   enableAI?: boolean
@@ -336,6 +342,8 @@ export default function EnterpriseTimelineActivities({
   enableAICreation?: boolean
   enableSocialNetworking?: boolean
   enableMonetization?: boolean
+  enableReadingProgress?: boolean
+  enablePrivacyControls?: boolean
 }) {
   const { user } = useAuth()
   const { toast } = useToast()
@@ -350,6 +358,43 @@ export default function EnterpriseTimelineActivities({
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [retryCount, setRetryCount] = useState(0)
   const [lastFetchTime, setLastFetchTime] = useState<Date | null>(null)
+
+  // Enhanced reading progress and privacy API integration
+  const fetchReadingProgress = useCallback(async () => {
+    if (!enableReadingProgress || !entityId || !entityType) return
+    
+    setReadingProgressLoading(true)
+    try {
+      const response = await fetch(`/api/entities/${entityType}/${entityId}/reading-progress`)
+      if (response.ok) {
+        const data = await response.json()
+        setReadingProgress(data)
+      }
+    } catch (error) {
+      console.error('Error fetching reading progress:', error)
+    } finally {
+      setReadingProgressLoading(false)
+    }
+  }, [enableReadingProgress, entityId, entityType])
+
+  const fetchPrivacySettings = useCallback(async () => {
+    if (!enablePrivacyControls || !entityId || !entityType) return
+    
+    setPrivacySettingsLoading(true)
+    try {
+      const response = await fetch(`/api/entities/${entityType}/${entityId}/privacy-settings`)
+      if (response.ok) {
+        const data = await response.json()
+        setPrivacySettings(data)
+      }
+    } catch (error) {
+      console.error('Error fetching privacy settings:', error)
+    } finally {
+      setPrivacySettingsLoading(false)
+    }
+  }, [enablePrivacyControls, entityId, entityType])
+
+
   
   // New enterprise features state
   const [showCreatePost, setShowCreatePost] = useState(false)
@@ -387,6 +432,12 @@ export default function EnterpriseTimelineActivities({
     content_rights_enforcement: true,
     brand_safety_monitoring: true
   })
+
+  // Enhanced reading progress and privacy state
+  const [readingProgress, setReadingProgress] = useState<any>(null)
+  const [privacySettings, setPrivacySettings] = useState<any>(null)
+  const [readingProgressLoading, setReadingProgressLoading] = useState(false)
+  const [privacySettingsLoading, setPrivacySettingsLoading] = useState(false)
   
   const [crossPostingSettings, setCrossPostingSettings] = useState<CrossPostingSettings>({
     enabled: true,
@@ -1338,6 +1389,14 @@ export default function EnterpriseTimelineActivities({
     setPage(1)
     fetchActivities(1, false)
   }, [fetchActivities])
+
+  // Enhanced useEffect to fetch reading progress and privacy settings
+  useEffect(() => {
+    if (entityId && entityType) {
+      fetchReadingProgress()
+      fetchPrivacySettings()
+    }
+  }, [entityId, entityType, fetchReadingProgress, fetchPrivacySettings])
   
   // Enhanced activity processing with enterprise features
   const processedActivities = useMemo(() => {

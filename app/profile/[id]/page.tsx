@@ -23,7 +23,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       // Try to find by UUID first
       const { data: uuidUser, error: uuidError } = await supabaseAdmin
         .from('users')
-        .select('id, name, email, created_at, permalink')
+        .select('id, name, email, created_at, permalink, location, website')
         .eq('id', id)
         .single()
 
@@ -33,7 +33,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         // If not found by UUID, try by permalink
         const { data: permalinkUser, error: permalinkError } = await supabaseAdmin
           .from('users')
-          .select('id, name, email, created_at, permalink')
+          .select('id, name, email, created_at, permalink, location, website')
           .eq('permalink', id)
           .single()
 
@@ -47,7 +47,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       // Try to find by permalink
       const { data: permalinkUser, error: permalinkError } = await supabaseAdmin
         .from('users')
-        .select('id, name, email, created_at, permalink')
+        .select('id, name, email, created_at, permalink, location, website')
         .eq('permalink', id)
         .single()
 
@@ -67,8 +67,9 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     let userStats = {
       booksRead: 0,
       friendsCount: 0,
-      location: null, // Not available in current schema
-      website: null, // Not available in current schema
+      followersCount: 0, // Added missing followersCount
+      location: user.location, // Now available from the users table
+      website: user.website, // Now available from the users table
       joinedDate: user.created_at
     }
 
@@ -82,6 +83,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
       if (!booksError) {
         userStats.booksRead = booksRead?.length || 0
+        console.log('📚 Books Read Query:', { booksRead: booksRead?.length, error: booksError })
       }
 
       // Get friends count
@@ -99,6 +101,15 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
       if (!friendsError && !reverseFriendsError) {
         userStats.friendsCount = (friends?.length || 0) + (reverseFriends?.length || 0)
+        // Calculate followers count (users who have this user as a friend)
+        userStats.followersCount = reverseFriends?.length || 0
+        
+        console.log('👥 Friends Query:', { 
+          friends: friends?.length, 
+          reverseFriends: reverseFriends?.length,
+          totalFriends: userStats.friendsCount,
+          followers: userStats.followersCount
+        })
       }
     } catch (statsError) {
       console.error("Error fetching user stats:", statsError)
@@ -108,6 +119,15 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     // Use placeholders for avatar/cover since we're mocking most of the data
     const avatarUrl = "/placeholder.svg?height=200&width=200"
     const coverImageUrl = "/placeholder.svg?height=400&width=1200"
+
+    // Temporary debug logging
+    console.log('🔍 Profile Page Debug:', {
+      user: user,
+      userStats: userStats,
+      booksRead: userStats.booksRead,
+      friendsCount: userStats.friendsCount,
+      followersCount: userStats.followersCount
+    })
 
     return (
       <ClientProfilePage

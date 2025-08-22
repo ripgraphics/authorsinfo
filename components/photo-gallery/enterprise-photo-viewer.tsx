@@ -129,9 +129,20 @@ interface EnterprisePhotoViewerProps {
   currentIndex: number
   onIndexChange: (index: number) => void
   albumId?: string
-  entityId: string
-  entityType: string
+  entityId?: string
+  entityType?: string
   isOwner?: boolean
+  entityDisplayInfo?: {
+    id: string
+    name: string
+    type: 'user' | 'author' | 'publisher' | 'group' | 'event' | 'book'
+    author_image?: { url: string }
+    publisher_image?: { url: string }
+    bookCount?: number
+    member_count?: number
+    location?: string
+    bio?: string
+  } // Optional override for entity display with hover card functionality
 }
 
 export function EnterprisePhotoViewer({
@@ -143,7 +154,8 @@ export function EnterprisePhotoViewer({
   albumId,
   entityId,
   entityType,
-  isOwner = false
+  isOwner = false,
+  entityDisplayInfo
 }: EnterprisePhotoViewerProps) {
   const [photo, setPhoto] = useState<Photo | null>(null)
   const [zoom, setZoom] = useState(1)
@@ -1081,6 +1093,7 @@ export function EnterprisePhotoViewer({
                 entityAvatar={photo.user?.avatar_url}
                 entityCreatedAt={photo.created_at}
                 isOwner={isOwner}
+                entityDisplayInfo={entityDisplayInfo}
               />
             ) : (
               <div className="flex items-center justify-center h-full bg-gray-50">

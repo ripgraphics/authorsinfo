@@ -1349,6 +1349,13 @@ export function ClientBookPage({
                 entityId={params.id}
                 entityType="book"
                 isOwnEntity={canEdit}
+                entityDisplayInfo={authors && authors.length > 0 ? {
+                  id: authors[0].id,
+                  name: authors[0].name,
+                  type: 'author' as const,
+                  author_image: authors[0].author_image,
+                  bookCount: authorBookCounts[authors[0].id] || 0
+                } : undefined}
               />
             </div>
           </div>

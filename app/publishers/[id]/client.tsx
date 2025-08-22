@@ -570,6 +570,13 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
             entityId={params.id}
             entityType="publisher"
             isOwnEntity={user && user.role === "admin"}
+            entityDisplayInfo={publisher ? {
+              id: params.id,
+              name: publisher.name,
+              type: 'publisher' as const,
+              publisher_image: publisher.publisher_image,
+              bookCount: booksCount || 0
+            } : undefined}
           />
         </div>
       )}

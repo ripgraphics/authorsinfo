@@ -33,6 +33,17 @@ interface EntityPhotoAlbumsProps {
   entityId: string
   entityType: 'user' | 'publisher' | 'author' | 'group' | 'book' | 'event' | 'content'
   isOwnEntity?: boolean
+  entityDisplayInfo?: {
+    id: string
+    name: string
+    type: 'user' | 'author' | 'publisher' | 'group' | 'event' | 'book'
+    author_image?: { url: string }
+    publisher_image?: { url: string }
+    bookCount?: number
+    member_count?: number
+    location?: string
+    bio?: string
+  } // Optional override for entity display with hover card functionality
 }
 
 interface Album {
@@ -55,7 +66,8 @@ interface Album {
 export function EntityPhotoAlbums({ 
   entityId, 
   entityType = 'user',
-  isOwnEntity = false 
+  isOwnEntity = false,
+  entityDisplayInfo 
 }: EntityPhotoAlbumsProps) {
   const [albums, setAlbums] = useState<Album[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -551,6 +563,7 @@ export function EntityPhotoAlbums({
                 }}
                 maxHeight="100%"
                 enhancedAlbumData={selectedAlbum.enhancedData}
+                entityDisplayInfo={entityDisplayInfo}
               />
             </div>
           </div>

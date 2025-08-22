@@ -107,15 +107,23 @@ interface PhotoAnalytics {
 
 interface EnterprisePhotoGridProps {
   albumId?: string
-  entityId: string
-  entityType: string
+  entityId?: string
+  entityType?: string
   isOwner?: boolean
-  showHeader?: boolean
-  enableSelection?: boolean
-  onSelectionChange?: (selectedIds: string[]) => void
   onCoverImageChange?: () => void
   maxHeight?: string
-  enhancedAlbumData?: any // Enhanced album data from /api/entity-images
+  enhancedAlbumData?: any
+  entityDisplayInfo?: {
+    id: string
+    name: string
+    type: 'user' | 'author' | 'publisher' | 'group' | 'event' | 'book'
+    author_image?: { url: string }
+    publisher_image?: { url: string }
+    bookCount?: number
+    member_count?: number
+    location?: string
+    bio?: string
+  } // Optional override for entity display with hover card functionality
 }
 
 export function EnterprisePhotoGrid({
@@ -128,7 +136,8 @@ export function EnterprisePhotoGrid({
   onSelectionChange,
   onCoverImageChange,
   maxHeight = '70vh',
-  enhancedAlbumData
+  enhancedAlbumData,
+  entityDisplayInfo
 }: EnterprisePhotoGridProps) {
   
 
@@ -892,6 +901,7 @@ export function EnterprisePhotoGrid({
         entityId={entityId}
         entityType={entityType}
         isOwner={isOwner}
+        entityDisplayInfo={entityDisplayInfo}
       />
     </div>
   )

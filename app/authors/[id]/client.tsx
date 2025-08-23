@@ -33,7 +33,7 @@ import {
 import { BookCard } from "@/components/book-card"
 import { Avatar } from "@/components/ui/avatar"
 import { useToast } from "@/components/ui/use-toast"
-import type { Author } from "@/types/database"
+import type { Author } from "@/types/book"
 import { Timeline, TimelineItem } from "@/components/timeline"
 import { FollowersList } from "@/components/followers-list"
 import { FollowersListTab } from "@/components/followers-list-tab"
@@ -162,7 +162,10 @@ export function ClientAuthorPage({
   const [editedBio, setEditedBio] = useState(initialAuthor?.bio || "")
   const [showFullBio, setShowFullBio] = useState(false)
   const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null)
-  const [editedContact, setEditedContact] = useState<ContactInfoInput>({})
+  const [editedContact, setEditedContact] = useState<ContactInfoInput>({
+    entity_type: 'author',
+    entity_id: params.id
+  })
   const [saving, setSaving] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
@@ -248,6 +251,8 @@ export function ClientAuthorPage({
         if (info) {
           setContactInfo(info);
           setEditedContact({
+            entity_type: 'author',
+            entity_id: params.id,
             email: info.email,
             phone: info.phone,
             website: info.website,
@@ -261,7 +266,10 @@ export function ClientAuthorPage({
         } else {
           // Initialize with empty values if no contact info exists
           setContactInfo(null);
-          setEditedContact({});
+          setEditedContact({
+            entity_type: 'author',
+            entity_id: params.id
+          });
         }
       } catch (error) {
         console.error('Error in fetchContactInfo:', {
@@ -340,7 +348,7 @@ export function ClientAuthorPage({
       }
 
       // Update local state
-      setAuthor(prev => prev ? { ...prev, bio: editedBio } : null)
+      setAuthor((prev: any) => prev ? { ...prev, bio: editedBio } : null)
       setBioDialogOpen(false)
       
       toast({
@@ -396,7 +404,7 @@ export function ClientAuthorPage({
 
   // Toggle bio display
   const toggleBioDisplay = () => {
-    setShowFullBio(prev => !prev);
+    setShowFullBio((prev: boolean) => !prev);
   }
 
   // Keep activeTab in sync with URL

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { UserPlus, UserMinus, Loader2 } from 'lucide-react'
 import { followEntity, unfollowEntity } from '@/app/actions/follow'
 import { useToast } from '@/hooks/use-toast'
+import { deduplicatedRequest } from '@/lib/request-utils'
 
 interface FollowButtonProps {
   entityId: string | number
@@ -61,11 +62,14 @@ export default function FollowButton({
       }
 
       try {
-        // Use the faster API route instead of server action
-        const response = await fetch(`/api/follow?entityId=${entityId}&targetType=${targetType}`)
-        const data = await response.json()
+        // Use deduplicated request for better performance
+        const data = await deduplicatedRequest(
+          `follow-status-${targetType}-${entityId}`,
+          () => fetch(`/api/follow?entityId=${entityId}&targetType=${targetType}`).then(r => r.json()),
+          1 * 60 * 1000 // 1 minute cache for follow status
+        )
         
-        if (response.ok) {
+        if (data.isFollowing !== undefined) {
           setIsFollowingState(data.isFollowing || false)
         } else {
           console.error('Error checking follow status:', data.error)

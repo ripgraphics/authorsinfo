@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
 import { EntityTabs } from "@/components/ui/entity-tabs"
+import { deduplicatedRequest } from '@/lib/request-utils'
 
 export type EntityType = 'author' | 'publisher' | 'book' | 'group' | 'user' | 'event' | 'photo'
 
@@ -254,115 +255,78 @@ export function EntityHeader({
     fetchGroupMemberData();
   }, [creator, group?.id]);
 
-  // Function to fetch entity images (moved outside useEffect for reuse)
+  // Fetch entity images with optimization
   const fetchEntityImages = useCallback(async () => {
-    console.log('🔍 fetchEntityImages called with:', { entityId, entityType });
-    
     if (!entityId || !entityType) {
       console.log('❌ Missing entityId or entityType, skipping fetch');
       return;
     }
     
     try {
-      console.log('📡 Fetching entity header images...');
-      // Fetch entity header images
-      const headerResponse = await fetch(`/api/entity-images?entityId=${entityId}&entityType=${entityType}&albumPurpose=entity_header`);
-      console.log('📡 Header response status:', headerResponse.status);
+      console.log('📡 Fetching entity images with optimization...');
       
-      if (headerResponse.ok) {
-        const headerData = await headerResponse.json();
-        console.log('📡 Header response data:', headerData);
-        console.log('📡 Header albums array:', headerData.albums);
-        console.log('📡 Header albums length:', headerData.albums?.length);
-        console.log('📡 Header success:', headerData.success);
+      // Use deduplicated requests for better performance
+      const [headerData, avatarData] = await Promise.all([
+        deduplicatedRequest(
+          `entity-header-${entityType}-${entityId}`,
+          () => fetch(`/api/entity-images?entityId=${entityId}&entityType=${entityType}&albumPurpose=entity_header`).then(r => r.json()),
+          5 * 60 * 1000 // 5 minutes cache
+        ),
+        deduplicatedRequest(
+          `entity-avatar-${entityType}-${entityId}`,
+          () => fetch(`/api/entity-images?entityId=${entityId}&entityType=${entityType}&albumPurpose=avatar`).then(r => r.json()),
+          5 * 60 * 1000 // 5 minutes cache
+        )
+      ]);
+
+      // Process header images
+      if (headerData.success && headerData.albums && headerData.albums.length > 0) {
+        const headerAlbum = headerData.albums[0];
         
-        if (headerData.success && headerData.albums && headerData.albums.length > 0) {
-          const headerAlbum = headerData.albums[0];
-          console.log('📡 Header album found:', headerAlbum);
+        if (headerAlbum.images && headerAlbum.images.length > 0) {
+          let headerImage = headerAlbum.images.find((img: any) => img.is_cover);
           
-          if (headerAlbum.images && headerAlbum.images.length > 0) {
-            // Get the cover image or MOST RECENT image (by created_at)
-            let headerImage = headerAlbum.images.find((img: any) => img.is_cover);
-            
-            if (!headerImage) {
-              // If no cover image, get the most recent image by creation date
-              headerImage = headerAlbum.images.reduce((latest: any, current: any) => {
-                if (!latest) return current;
-                const latestDate = new Date(latest.image?.created_at || 0);
-                const currentDate = new Date(current.image?.created_at || 0);
-                return currentDate > latestDate ? current : latest;
-              });
-            }
-            
-            console.log('📡 Header image found:', headerImage);
-            
-            if (headerImage && headerImage.image) {
-              console.log('✅ Setting header image:', headerImage.image.url);
-              // Image URL is now included directly in the API response
-              setEntityImages(prev => ({ ...prev, header: headerImage.image.url }));
-              setCoverImage(headerImage.image.url);
-            } else {
-              console.log('❌ Header image missing image details');
-            }
-          } else {
-            console.log('❌ Header album has no images');
+          if (!headerImage) {
+            headerImage = headerAlbum.images.reduce((latest: any, current: any) => {
+              if (!latest) return current;
+              const latestDate = new Date(latest.image?.created_at || 0);
+              const currentDate = new Date(current.image?.created_at || 0);
+              return currentDate > latestDate ? current : latest;
+            });
           }
-        } else {
-          console.log('❌ No header albums found or API not successful');
+          
+          if (headerImage && headerImage.image) {
+            console.log('✅ Setting header image:', headerImage.image.url);
+            setEntityImages(prev => ({ ...prev, header: headerImage.image.url }));
+            setCoverImage(headerImage.image.url);
+          }
         }
-      } else {
-        console.log('❌ Header response not ok:', headerResponse.status);
       }
       
-      console.log('📡 Fetching entity avatar images...');
-      // Fetch entity avatar images
-      const avatarResponse = await fetch(`/api/entity-images?entityId=${entityId}&entityType=${entityType}&albumPurpose=avatar`);
-      console.log('📡 Avatar response status:', avatarResponse.status);
-      
-      if (avatarResponse.ok) {
-        const avatarData = await avatarResponse.json();
-        console.log('📡 Avatar response data:', avatarData);
-        console.log('📡 Avatar albums array:', avatarData.albums);
-        console.log('📡 Avatar albums length:', avatarData.albums?.length);
-        console.log('📡 Avatar success:', avatarData.success);
+      // Process avatar images
+      if (avatarData.success && avatarData.albums && avatarData.albums.length > 0) {
+        const avatarAlbum = avatarData.albums[0];
         
-        if (avatarData.success && avatarData.albums && avatarData.albums.length > 0) {
-          const avatarAlbum = avatarData.albums[0];
-          console.log('📡 Avatar album found:', avatarAlbum);
+        if (avatarAlbum.images && avatarAlbum.images.length > 0) {
+          let avatarImage = avatarAlbum.images.find((img: any) => img.is_cover);
           
-          if (avatarAlbum.images && avatarAlbum.images.length > 0) {
-            // Get the cover image or MOST RECENT image (by created_at)
-            let avatarImage = avatarAlbum.images.find((img: any) => img.is_cover);
-            
-            if (!avatarImage) {
-              // If no cover image, get the most recent image by creation date
-              avatarImage = avatarAlbum.images.reduce((latest: any, current: any) => {
-                if (!latest) return current;
-                const latestDate = new Date(latest.image?.created_at || 0);
-                const currentDate = new Date(current.image?.created_at || 0);
-                return currentDate > latestDate ? current : latest;
-              });
-            }
-            
-            console.log('📡 Avatar image found:', avatarImage);
-            
-            if (avatarImage && avatarImage.image) {
-              console.log('✅ Setting avatar image:', avatarImage.image.url);
-              // Image URL is now included directly in the API response
-              setEntityImages(prev => ({ ...prev, avatar: avatarImage.image.url }));
-              setAvatarImage(avatarImage.image.url);
-            } else {
-              console.log('❌ Avatar image missing image details');
-            }
-          } else {
-            console.log('❌ Avatar album has no images');
+          if (!avatarImage) {
+            avatarImage = avatarAlbum.images.reduce((latest: any, current: any) => {
+              if (!latest) return current;
+              const latestDate = new Date(latest.image?.created_at || 0);
+              const currentDate = new Date(current.image?.created_at || 0);
+              return currentDate > latestDate ? current : latest;
+            });
           }
-        } else {
-          console.log('❌ No avatar albums found or API not successful');
+          
+          if (avatarImage && avatarImage.image) {
+            console.log('✅ Setting avatar image:', avatarImage.image.url);
+            setEntityImages(prev => ({ ...prev, avatar: avatarImage.image.url }));
+            setAvatarImage(avatarImage.image.url);
+          }
         }
-      } else {
-        console.log('❌ Avatar response not ok:', avatarResponse.status);
       }
+      
     } catch (error) {
       console.error('❌ Error fetching entity images:', error);
     }

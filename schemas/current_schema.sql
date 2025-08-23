@@ -1056,6 +1056,20 @@ COMMENT ON FUNCTION "public"."create_entity_album"("p_name" "text", "p_entity_ty
 
 
 
+CREATE OR REPLACE FUNCTION "public"."decrement_activity_like_count"("p_activity_id" "uuid") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    UPDATE public.activities 
+    SET like_count = GREATEST(COALESCE(like_count, 0) - 1, 0)
+    WHERE id = p_activity_id;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."decrement_activity_like_count"("p_activity_id" "uuid") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."decrypt_sensitive_data_enhanced"("p_encrypted_data" "text", "p_key" "text" DEFAULT 'default_key'::"text") RETURNS "text"
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
@@ -1800,6 +1814,226 @@ COMMENT ON FUNCTION "public"."generate_system_alerts_enhanced"() IS 'Enhanced sy
 
 
 
+CREATE OR REPLACE FUNCTION "public"."get_aggregated_like_activities"("p_entity_type" "text", "p_entity_id" "uuid", "p_limit" integer DEFAULT 50, "p_offset" integer DEFAULT 0) RETURNS TABLE("id" "text", "user_id" "text", "user_name" "text", "user_avatar_url" "text", "activity_type" "text", "data" "jsonb", "created_at" "text", "is_public" boolean, "like_count" integer, "comment_count" integer, "share_count" integer, "view_count" integer, "is_liked" boolean, "entity_type" "text", "entity_id" "text", "content_type" "text", "text" "text", "image_url" "text", "link_url" "text", "content_summary" "text", "hashtags" "text"[], "visibility" "text", "engagement_score" numeric, "updated_at" "text", "cross_posted_to" "text"[], "collaboration_type" "text", "ai_enhanced" boolean, "ai_enhanced_text" "text", "ai_enhanced_performance" numeric, "metadata" "jsonb", "aggregated_likes_count" integer, "recent_likers" "text"[])
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    -- Return aggregated like activities for better timeline performance
+    RETURN QUERY
+    SELECT 
+        a.id::text,
+        a.user_id::text,
+        COALESCE(u.name, u.email, 'Unknown User')::text as user_name,
+        '/placeholder.svg?height=200&width=200'::text as user_avatar_url,
+        a.activity_type::text,
+        a.data,
+        a.created_at::text,
+        (COALESCE(a.visibility, 'public') = 'public')::boolean as is_public,
+        COALESCE(a.like_count, 0)::integer as like_count,
+        COALESCE(a.comment_count, 0)::integer as comment_count,
+        COALESCE(a.share_count, 0)::integer as share_count,
+        COALESCE(a.view_count, 0)::integer as view_count,
+        false::boolean as is_liked,
+        COALESCE(a.entity_type, 'user')::text as entity_type,
+        COALESCE(a.entity_id::text, a.user_id::text) as entity_id,
+        'like'::text as content_type,
+        COALESCE(u.name, u.email, 'User') || ' and others liked a post'::text as text,
+        COALESCE(a.data->>'liked_activity_image', '')::text as image_url,
+        ''::text as link_url,
+        COALESCE(u.name, u.email, 'User') || ' and others liked a post'::text as content_summary,
+        '{}'::text[] as hashtags,
+        COALESCE(a.visibility, 'public')::text as visibility,
+        COALESCE(a.engagement_score, 0)::numeric as engagement_score,
+        COALESCE(a.updated_at, a.created_at)::text as updated_at,
+        '{}'::text[] as cross_posted_to,
+        a.collaboration_type,
+        a.ai_enhanced,
+        a.ai_enhanced_text,
+        a.ai_enhanced_performance,
+        a.metadata,
+        COUNT(al.id)::integer as aggregated_likes_count,
+        ARRAY_AGG(DISTINCT COALESCE(u2.name, u2.email, 'User'))::text[] as recent_likers
+    FROM (
+        -- Get unique liked activities for this entity
+        SELECT DISTINCT
+            a.data->>'liked_activity_id' as liked_activity_id,
+            a.data->>'liked_entity_type' as liked_entity_type,
+            a.data->>'liked_entity_id' as liked_entity_id,
+            a.data->>'liked_activity_content' as liked_activity_content,
+            a.data->>'liked_activity_image' as liked_activity_image,
+            MIN(a.created_at) as created_at,
+            MAX(a.updated_at) as updated_at,
+            a.visibility,
+            a.engagement_score,
+            a.collaboration_type,
+            a.ai_enhanced,
+            a.ai_enhanced_text,
+            a.ai_enhanced_performance,
+            a.metadata
+        FROM public.activities a
+        WHERE a.activity_type = 'like'
+        AND a.data->>'liked_entity_type' = p_entity_type
+        AND a.data->>'liked_entity_id' = p_entity_id::text
+        GROUP BY 
+            a.data->>'liked_activity_id',
+            a.data->>'liked_entity_type',
+            a.data->>'liked_entity_id',
+            a.data->>'liked_activity_content',
+            a.data->>'liked_activity_image',
+            a.visibility,
+            a.engagement_score,
+            a.collaboration_type,
+            a.ai_enhanced,
+            a.ai_enhanced_text,
+            a.ai_enhanced_performance,
+            a.metadata
+    ) a
+    LEFT JOIN public.activity_likes al ON al.activity_id = a.liked_activity_id::uuid
+    LEFT JOIN public.users u2 ON al.user_id = u2.id
+    LEFT JOIN public.users u ON u.id = (
+        SELECT user_id FROM public.activities 
+        WHERE activity_type = 'like' 
+        AND data->>'liked_activity_id' = a.liked_activity_id
+        ORDER BY created_at ASC 
+        LIMIT 1
+    )
+    GROUP BY 
+        a.liked_activity_id,
+        a.liked_entity_type,
+        a.liked_entity_id,
+        a.liked_activity_content,
+        a.liked_activity_image,
+        a.created_at,
+        a.updated_at,
+        a.visibility,
+        a.engagement_score,
+        a.collaboration_type,
+        a.ai_enhanced,
+        a.ai_enhanced_text,
+        a.ai_enhanced_performance,
+        a.metadata,
+        u.name,
+        u.email
+    ORDER BY a.created_at DESC
+    LIMIT p_limit
+    OFFSET p_offset;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_aggregated_like_activities"("p_entity_type" "text", "p_entity_id" "uuid", "p_limit" integer, "p_offset" integer) OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."get_aggregated_user_feed_likes"("p_user_id" "uuid", "p_limit" integer DEFAULT 50, "p_offset" integer DEFAULT 0) RETURNS TABLE("id" "text", "user_id" "text", "user_name" "text", "user_avatar_url" "text", "activity_type" "text", "data" "jsonb", "created_at" "text", "is_public" boolean, "like_count" integer, "comment_count" integer, "share_count" integer, "view_count" integer, "is_liked" boolean, "entity_type" "text", "entity_id" "text", "content_type" "text", "text" "text", "image_url" "text", "link_url" "text", "content_summary" "text", "hashtags" "text"[], "visibility" "text", "engagement_score" numeric, "updated_at" "text", "cross_posted_to" "text"[], "collaboration_type" "text", "ai_enhanced" boolean, "ai_enhanced_text" "text", "ai_enhanced_performance" numeric, "metadata" "jsonb", "aggregated_likes_count" integer, "recent_likers" "text"[])
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    -- Return aggregated like activities for user feeds
+    RETURN QUERY
+    SELECT 
+        a.id::text,
+        a.user_id::text,
+        COALESCE(u.user_metadata->>'full_name', u.email, 'Unknown User')::text as user_name,
+        COALESCE(u.user_metadata->>'avatar_url', '/placeholder.svg?height=200&width=200')::text as user_avatar_url,
+        a.activity_type::text,
+        a.data,
+        a.created_at::text,
+        (COALESCE(a.visibility, 'public') = 'public')::boolean as is_public,
+        COALESCE(a.like_count, 0)::integer as like_count,
+        COALESCE(a.comment_count, 0)::integer as comment_count,
+        COALESCE(a.share_count, 0)::integer as share_count,
+        COALESCE(a.view_count, 0)::integer as view_count,
+        EXISTS (SELECT 1 FROM public.activity_likes l WHERE l.activity_id = a.id::uuid AND l.user_id = p_user_id)::boolean as is_liked,
+        COALESCE(a.entity_type, 'user')::text as entity_type,
+        COALESCE(a.entity_id::text, a.user_id::text) as entity_id,
+        'like'::text as content_type,
+        a.user_name || ' and others liked a post'::text as text,
+        COALESCE(a.data->>'liked_activity_image', '')::text as image_url,
+        ''::text as link_url,
+        a.user_name || ' and others liked a post'::text as content_summary,
+        '{}'::text[] as hashtags,
+        COALESCE(a.visibility, 'public')::text as visibility,
+        COALESCE(a.engagement_score, 0)::numeric as engagement_score,
+        COALESCE(a.updated_at, a.created_at)::text as updated_at,
+        '{}'::text[] as cross_posted_to,
+        a.collaboration_type,
+        a.ai_enhanced,
+        a.ai_enhanced_text,
+        a.ai_enhanced_performance,
+        a.metadata,
+        COUNT(al.id)::integer as aggregated_likes_count,
+        ARRAY_AGG(DISTINCT COALESCE(u2.user_metadata->>'full_name', u2.email, 'User'))::text[] as recent_likers
+    FROM (
+        -- Get unique liked activities from followed users
+        SELECT DISTINCT
+            a.data->>'liked_activity_id' as liked_activity_id,
+            a.data->>'liked_entity_type' as liked_entity_type,
+            a.data->>'liked_entity_id' as liked_entity_id,
+            a.data->>'liked_activity_content' as liked_activity_content,
+            a.data->>'liked_activity_image' as liked_activity_image,
+            MIN(a.created_at) as created_at,
+            MAX(a.updated_at) as updated_at,
+            a.visibility,
+            a.engagement_score,
+            a.collaboration_type,
+            a.ai_enhanced,
+            a.ai_enhanced_text,
+            a.ai_enhanced_performance,
+            a.metadata
+        FROM public.activities a
+        INNER JOIN public.follows f ON f.follower_id = p_user_id AND f.following_id = a.user_id
+        WHERE a.activity_type = 'like'
+        AND a.user_id != p_user_id
+        AND a.is_public = true
+        GROUP BY 
+            a.data->>'liked_activity_id',
+            a.data->>'liked_entity_type',
+            a.data->>'liked_entity_id',
+            a.data->>'liked_activity_content',
+            a.data->>'liked_activity_image',
+            a.visibility,
+            a.engagement_score,
+            a.collaboration_type,
+            a.ai_enhanced,
+            a.ai_enhanced_text,
+            a.ai_enhanced_performance,
+            a.metadata
+    ) a
+    LEFT JOIN public.activity_likes al ON al.activity_id = a.liked_activity_id::uuid
+    LEFT JOIN public.users u2 ON al.user_id = u2.id
+    LEFT JOIN public.users u ON u.id = (
+        SELECT user_id FROM public.activities 
+        WHERE activity_type = 'like' 
+        AND data->>'liked_activity_id' = a.liked_activity_id
+        ORDER BY created_at ASC 
+        LIMIT 1
+    )
+    GROUP BY 
+        a.liked_activity_id,
+        a.liked_entity_type,
+        a.liked_entity_id,
+        a.liked_activity_content,
+        a.liked_activity_image,
+        a.created_at,
+        a.updated_at,
+        a.visibility,
+        a.engagement_score,
+        a.collaboration_type,
+        a.ai_enhanced,
+        a.ai_enhanced_text,
+        a.ai_enhanced_performance,
+        a.metadata,
+        u.user_metadata
+    ORDER BY a.created_at DESC
+    LIMIT p_limit
+    OFFSET p_offset;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_aggregated_user_feed_likes"("p_user_id" "uuid", "p_limit" integer, "p_offset" integer) OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."get_ai_book_recommendations"("p_user_id" "uuid", "p_limit" integer DEFAULT 10) RETURNS TABLE("book_id" "uuid", "title" "text", "author_name" "text", "recommendation_score" numeric, "recommendation_reason" "text")
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
@@ -2057,6 +2291,114 @@ COMMENT ON FUNCTION "public"."get_entity_social_stats"("p_entity_type" character
 
 
 
+CREATE OR REPLACE FUNCTION "public"."get_entity_timeline_activities"("p_entity_type" "text", "p_entity_id" "uuid", "p_limit" integer DEFAULT 50, "p_offset" integer DEFAULT 0) RETURNS TABLE("id" "text", "user_id" "text", "user_name" "text", "user_avatar_url" "text", "activity_type" "text", "data" "jsonb", "created_at" "text", "is_public" boolean, "like_count" integer, "comment_count" integer, "share_count" integer, "view_count" integer, "is_liked" boolean, "entity_type" "text", "entity_id" "text", "content_type" "text", "text" "text", "image_url" "text", "link_url" "text", "content_summary" "text", "hashtags" "text"[], "visibility" "text", "engagement_score" numeric, "updated_at" "text", "cross_posted_to" "text"[], "collaboration_type" "text", "ai_enhanced" boolean, "ai_enhanced_text" "text", "ai_enhanced_performance" numeric, "metadata" "jsonb")
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    -- Return activities related to the specified entity, including likes
+    RETURN QUERY
+    SELECT 
+        a.id::text,
+        a.user_id::text,
+        COALESCE(u.name, u.email, 'Unknown User')::text as user_name,
+        '/placeholder.svg?height=200&width=200'::text as user_avatar_url,
+        a.activity_type::text,
+        COALESCE(a.data, '{}'::jsonb) as data,
+        a.created_at::text,
+        (COALESCE(a.visibility, 'public') = 'public')::boolean as is_public,
+        COALESCE(a.like_count, 0)::integer as like_count,
+        COALESCE(a.comment_count, 0)::integer as comment_count,
+        COALESCE(a.share_count, 0)::integer as share_count,
+        COALESCE(a.view_count, 0)::integer as view_count,
+        false::boolean as is_liked, -- Will be calculated per user
+        COALESCE(a.entity_type, 'user')::text as entity_type,
+        COALESCE(a.entity_id::text, a.user_id::text) as entity_id,
+        -- Enhanced columns with like activity support
+        CASE 
+            WHEN a.activity_type = 'like' THEN 'like'
+            ELSE COALESCE(a.content_type, 'text')
+        END::text as content_type,
+        CASE 
+            WHEN a.activity_type = 'like' THEN 
+                COALESCE(u.name, u.email, 'User') || ' liked ' || COALESCE(a.data->>'liked_activity_content', 'a post')
+            ELSE COALESCE(a.text, a.data->>'content', a.data->>'text', '')
+        END::text as text,
+        CASE 
+            WHEN a.activity_type = 'like' THEN 
+                -- For likes, show the original post's image if available
+                COALESCE(a.data->>'liked_activity_image', '')
+            ELSE COALESCE(a.image_url, a.data->>'image_url', a.data->>'images', '')
+        END::text as image_url,
+        COALESCE(a.link_url, a.data->>'link_url', a.data->>'url', '')::text as link_url,
+        CASE 
+            WHEN a.activity_type = 'like' THEN 
+                COALESCE(u.name, u.email, 'User') || ' liked a post'
+            ELSE COALESCE(a.content_summary, a.data->>'content_summary', a.data->>'summary', '')
+        END::text as content_summary,
+        -- Handle hashtags array properly
+        CASE 
+            WHEN a.hashtags IS NOT NULL THEN a.hashtags
+            WHEN a.data->>'hashtags' IS NOT NULL THEN 
+                CASE 
+                    WHEN a.data->>'hashtags' = '[]' THEN '{}'::text[]
+                    WHEN a.data->>'hashtags' LIKE '[%]' THEN 
+                        string_to_array(trim(both '[]' from a.data->>'hashtags'), ',')::text[]
+                    ELSE ARRAY[a.data->>'hashtags']::text[]
+                END
+            ELSE '{}'::text[]
+        END as hashtags,
+        COALESCE(a.visibility, 'public')::text as visibility,
+        COALESCE(a.engagement_score, 0)::numeric as engagement_score,
+        COALESCE(a.updated_at, a.created_at)::text as updated_at,
+        -- Enterprise features
+        CASE 
+            WHEN a.cross_posted_to IS NOT NULL THEN a.cross_posted_to
+            WHEN a.data->>'cross_posted_to' IS NOT NULL THEN 
+                CASE 
+                    WHEN a.data->>'cross_posted_to' = '[]' THEN '{}'::text[]
+                    WHEN a.data->>'cross_posted_to' LIKE '[%]' THEN 
+                        string_to_array(trim(both '[]' from a.data->>'cross_posted_to'), ',')::text[]
+                    ELSE ARRAY[a.data->>'cross_posted_to']::text[]
+                END
+            ELSE '{}'::text[]
+        END as cross_posted_to,
+        a.collaboration_type,
+        a.ai_enhanced,
+        a.ai_enhanced_text,
+        a.ai_enhanced_performance,
+        a.metadata
+    FROM (
+        -- Get regular activities for the entity
+        SELECT a.*
+        FROM public.activities a
+        WHERE a.entity_type = p_entity_type 
+        AND a.entity_id = p_entity_id
+        AND a.activity_type != 'like'
+        
+        UNION ALL
+        
+        -- Get like activities that reference this entity
+        SELECT a.*
+        FROM public.activities a
+        WHERE a.activity_type = 'like'
+        AND a.data->>'liked_entity_type' = p_entity_type
+        AND a.data->>'liked_entity_id' = p_entity_id::text
+    ) a
+    LEFT JOIN public.users u ON a.user_id = u.id
+    ORDER BY a.created_at DESC
+    LIMIT p_limit
+    OFFSET p_offset;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_entity_timeline_activities"("p_entity_type" "text", "p_entity_id" "uuid", "p_limit" integer, "p_offset" integer) OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."get_entity_timeline_activities"("p_entity_type" "text", "p_entity_id" "uuid", "p_limit" integer, "p_offset" integer) IS 'Get timeline activities for any entity type (user, author, book, publisher, group). Returns activities by, about, or related to the specified entity.';
+
+
+
 CREATE OR REPLACE FUNCTION "public"."get_moderation_stats"("p_days_back" integer DEFAULT 30) RETURNS TABLE("total_flags" bigint, "pending_flags" bigint, "resolved_flags" bigint, "avg_resolution_time_hours" numeric, "top_flag_reasons" "jsonb")
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
@@ -2215,44 +2557,120 @@ COMMENT ON FUNCTION "public"."get_privacy_audit_summary"("days_back" integer) IS
 
 
 
-CREATE OR REPLACE FUNCTION "public"."get_user_feed_activities"("p_user_id" "uuid", "p_limit" integer DEFAULT 50, "p_offset" integer DEFAULT 0) RETURNS TABLE("id" "text", "user_id" "text", "user_name" "text", "user_avatar_url" "text", "activity_type" "text", "data" "jsonb", "created_at" "text", "is_public" boolean, "like_count" integer, "comment_count" integer, "is_liked" boolean, "entity_type" "text", "entity_id" "text")
+CREATE OR REPLACE FUNCTION "public"."get_user_feed_activities"("p_user_id" "uuid", "p_limit" integer DEFAULT 50, "p_offset" integer DEFAULT 0) RETURNS TABLE("id" "text", "user_id" "text", "user_name" "text", "user_avatar_url" "text", "activity_type" "text", "data" "jsonb", "created_at" "text", "is_public" boolean, "like_count" integer, "comment_count" integer, "share_count" integer, "view_count" integer, "is_liked" boolean, "entity_type" "text", "entity_id" "text", "content_type" "text", "text" "text", "image_url" "text", "link_url" "text", "content_summary" "text", "hashtags" "text"[], "visibility" "text", "engagement_score" numeric, "updated_at" "text", "cross_posted_to" "text"[], "collaboration_type" "text", "ai_enhanced" boolean, "ai_enhanced_text" "text", "ai_enhanced_performance" numeric, "metadata" "jsonb")
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
 BEGIN
-    -- Return activities from the actual activities table
-    -- Users table has: id, email, name, created_at, updated_at, role_id, permalink, location, website
-    -- NO avatar_url column exists!
+    -- Return activities for the user's feed, including likes from followed entities
     RETURN QUERY
     SELECT 
         a.id::text,
         a.user_id::text,
         COALESCE(u.name, u.email, 'Unknown User')::text as user_name,
-        '/placeholder.svg?height=200&width=200'::text as user_avatar_url, -- Fixed: no avatar_url column
+        '/placeholder.svg?height=200&width=200'::text as user_avatar_url,
         a.activity_type::text,
         COALESCE(a.data, '{}'::jsonb) as data,
         a.created_at::text,
         (COALESCE(a.visibility, 'public') = 'public')::boolean as is_public,
         COALESCE(a.like_count, 0)::integer as like_count,
         COALESCE(a.comment_count, 0)::integer as comment_count,
-        false::boolean as is_liked,
+        COALESCE(a.share_count, 0)::integer as share_count,
+        COALESCE(a.view_count, 0)::integer as view_count,
+        EXISTS (SELECT 1 FROM public.activity_likes l WHERE l.activity_id = a.id::uuid AND l.user_id = p_user_id)::boolean as is_liked,
         COALESCE(a.entity_type, 'user')::text as entity_type,
-        COALESCE(a.entity_id::text, a.user_id::text) as entity_id
-    FROM public.activities a
+        COALESCE(a.entity_id::text, a.user_id::text) as entity_id,
+        -- Enhanced columns with like activity support
+        CASE 
+            WHEN a.activity_type = 'like' THEN 'like'
+            ELSE COALESCE(a.content_type, 'text')
+        END::text as content_type,
+        CASE 
+            WHEN a.activity_type = 'like' THEN 
+                COALESCE(u.name, u.email, 'User') || ' liked ' || COALESCE(a.data->>'liked_activity_content', 'a post')
+            ELSE COALESCE(a.text, a.data->>'content', a.data->>'text', '')
+        END::text as text,
+        CASE 
+            WHEN a.activity_type = 'like' THEN 
+                -- For likes, show the original post's image if available
+                COALESCE(a.data->>'liked_activity_image', '')
+            ELSE COALESCE(a.image_url, a.data->>'image_url', a.data->>'images', '')
+        END::text as image_url,
+        COALESCE(a.link_url, a.data->>'link_url', a.data->>'url', '')::text as link_url,
+        CASE 
+            WHEN a.activity_type = 'like' THEN 
+                COALESCE(u.name, u.email, 'User') || ' liked a post'
+            ELSE COALESCE(a.content_summary, a.data->>'content_summary', a.data->>'summary', '')
+        END::text as content_summary,
+        -- Handle hashtags array properly
+        CASE 
+            WHEN a.hashtags IS NOT NULL THEN a.hashtags
+            WHEN a.data->>'hashtags' IS NOT NULL THEN 
+                CASE 
+                    WHEN a.data->>'hashtags' = '[]' THEN '{}'::text[]
+                    WHEN a.data->>'hashtags' LIKE '[%]' THEN 
+                        string_to_array(trim(both '[]' from a.data->>'hashtags'), ',')::text[]
+                    ELSE ARRAY[a.data->>'hashtags']::text[]
+                END
+            ELSE '{}'::text[]
+        END as hashtags,
+        COALESCE(a.visibility, 'public')::text as visibility,
+        COALESCE(a.engagement_score, 0)::numeric as engagement_score,
+        COALESCE(a.updated_at, a.created_at)::text as updated_at,
+        -- Enterprise features
+        CASE 
+            WHEN a.cross_posted_to IS NOT NULL THEN a.cross_posted_to
+            WHEN a.data->>'cross_posted_to' IS NOT NULL THEN 
+                CASE 
+                    WHEN a.data->>'cross_posted_to' = '[]' THEN '{}'::text[]
+                    WHEN a.data->>'cross_posted_to' LIKE '[%]' THEN 
+                        string_to_array(trim(both '[]' from a.data->>'cross_posted_to'), ',')::text[]
+                    ELSE ARRAY[a.data->>'cross_posted_to']::text[]
+                END
+            ELSE '{}'::text[]
+        END as cross_posted_to,
+        a.collaboration_type,
+        a.ai_enhanced,
+        a.ai_enhanced_text,
+        a.ai_enhanced_performance,
+        a.metadata
+    FROM (
+        -- Get user's own activities
+        SELECT a.*
+        FROM public.activities a
+        WHERE a.user_id = p_user_id
+        
+        UNION ALL
+        
+        -- Get activities from followed users (simplified - just user-to-user follows)
+        SELECT a.*
+        FROM public.activities a
+        INNER JOIN public.follows f ON f.follower_id = p_user_id AND f.following_id = a.user_id
+        WHERE a.user_id != p_user_id
+        AND a.visibility = 'public'
+        
+        UNION ALL
+        
+        -- Get like activities from followed users
+        SELECT a.*
+        FROM public.activities a
+        INNER JOIN public.follows f ON f.follower_id = p_user_id AND f.following_id = a.user_id
+        WHERE a.activity_type = 'like'
+        AND a.user_id != p_user_id
+        AND a.visibility = 'public'
+    ) a
     LEFT JOIN public.users u ON a.user_id = u.id
-    WHERE a.user_id = p_user_id
-      AND COALESCE(a.visibility, 'public') IN ('public', 'friends', 'followers')
     ORDER BY a.created_at DESC
-    LIMIT p_limit OFFSET p_offset;
-    
-    -- If no activities found, return empty result
-    IF NOT FOUND THEN
-        RETURN;
-    END IF;
+    LIMIT p_limit
+    OFFSET p_offset;
 END;
 $$;
 
 
 ALTER FUNCTION "public"."get_user_feed_activities"("p_user_id" "uuid", "p_limit" integer, "p_offset" integer) OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."get_user_feed_activities"("p_user_id" "uuid", "p_limit" integer, "p_offset" integer) IS 'Fixed function to get user-specific activities with proper type handling for arrays and text fields. Resolves COALESCE type mismatch errors while maintaining all enhanced features.';
+
 
 
 CREATE OR REPLACE FUNCTION "public"."get_user_privacy_settings"("user_id_param" "uuid" DEFAULT "auth"."uid"()) RETURNS TABLE("default_privacy_level" "text", "allow_friends_to_see_reading" boolean, "allow_followers_to_see_reading" boolean, "allow_public_reading_profile" boolean, "show_reading_stats_publicly" boolean, "show_currently_reading_publicly" boolean, "show_reading_history_publicly" boolean, "show_reading_goals_publicly" boolean)
@@ -2504,6 +2922,20 @@ ALTER FUNCTION "public"."has_user_liked_entity"("p_user_id" "uuid", "p_entity_ty
 
 COMMENT ON FUNCTION "public"."has_user_liked_entity"("p_user_id" "uuid", "p_entity_type" character varying, "p_entity_id" "uuid") IS 'Check if user has liked a specific entity';
 
+
+
+CREATE OR REPLACE FUNCTION "public"."increment_activity_like_count"("p_activity_id" "uuid") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    UPDATE public.activities 
+    SET like_count = COALESCE(like_count, 0) + 1
+    WHERE id = p_activity_id;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."increment_activity_like_count"("p_activity_id" "uuid") OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."increment_post_view_count"("post_id" "uuid") RETURNS "void"
@@ -11332,6 +11764,10 @@ CREATE INDEX "idx_activities_engagement_score" ON "public"."activities" USING "b
 
 
 
+CREATE INDEX "idx_activities_entity_type_entity_id" ON "public"."activities" USING "btree" ("entity_type", "entity_id");
+
+
+
 CREATE INDEX "idx_activities_event_id" ON "public"."activities" USING "btree" ("event_id");
 
 
@@ -11380,6 +11816,10 @@ CREATE INDEX "idx_activities_user_id" ON "public"."activities" USING "btree" ("u
 
 
 
+CREATE INDEX "idx_activities_user_id_created_at" ON "public"."activities" USING "btree" ("user_id", "created_at");
+
+
+
 CREATE INDEX "idx_activities_visibility" ON "public"."activities" USING "btree" ("visibility");
 
 
@@ -11393,6 +11833,10 @@ CREATE INDEX "idx_activity_comments_user_id" ON "public"."activity_comments" USI
 
 
 CREATE INDEX "idx_activity_likes_activity_id" ON "public"."activity_likes" USING "btree" ("activity_id");
+
+
+
+CREATE INDEX "idx_activity_likes_created_at" ON "public"."activity_likes" USING "btree" ("created_at");
 
 
 
@@ -16282,6 +16726,12 @@ GRANT ALL ON FUNCTION "public"."create_entity_album"("p_name" "text", "p_entity_
 
 
 
+GRANT ALL ON FUNCTION "public"."decrement_activity_like_count"("p_activity_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."decrement_activity_like_count"("p_activity_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."decrement_activity_like_count"("p_activity_id" "uuid") TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."decrypt_sensitive_data_enhanced"("p_encrypted_data" "text", "p_key" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."decrypt_sensitive_data_enhanced"("p_encrypted_data" "text", "p_key" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."decrypt_sensitive_data_enhanced"("p_encrypted_data" "text", "p_key" "text") TO "service_role";
@@ -16372,6 +16822,18 @@ GRANT ALL ON FUNCTION "public"."generate_system_alerts_enhanced"() TO "service_r
 
 
 
+GRANT ALL ON FUNCTION "public"."get_aggregated_like_activities"("p_entity_type" "text", "p_entity_id" "uuid", "p_limit" integer, "p_offset" integer) TO "anon";
+GRANT ALL ON FUNCTION "public"."get_aggregated_like_activities"("p_entity_type" "text", "p_entity_id" "uuid", "p_limit" integer, "p_offset" integer) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_aggregated_like_activities"("p_entity_type" "text", "p_entity_id" "uuid", "p_limit" integer, "p_offset" integer) TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."get_aggregated_user_feed_likes"("p_user_id" "uuid", "p_limit" integer, "p_offset" integer) TO "anon";
+GRANT ALL ON FUNCTION "public"."get_aggregated_user_feed_likes"("p_user_id" "uuid", "p_limit" integer, "p_offset" integer) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_aggregated_user_feed_likes"("p_user_id" "uuid", "p_limit" integer, "p_offset" integer) TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."get_ai_book_recommendations"("p_user_id" "uuid", "p_limit" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."get_ai_book_recommendations"("p_user_id" "uuid", "p_limit" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_ai_book_recommendations"("p_user_id" "uuid", "p_limit" integer) TO "service_role";
@@ -16411,6 +16873,12 @@ GRANT ALL ON FUNCTION "public"."get_entity_images"("p_entity_type" "text", "p_en
 GRANT ALL ON FUNCTION "public"."get_entity_social_stats"("p_entity_type" character varying, "p_entity_id" "uuid", "p_user_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_entity_social_stats"("p_entity_type" character varying, "p_entity_id" "uuid", "p_user_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_entity_social_stats"("p_entity_type" character varying, "p_entity_id" "uuid", "p_user_id" "uuid") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."get_entity_timeline_activities"("p_entity_type" "text", "p_entity_id" "uuid", "p_limit" integer, "p_offset" integer) TO "anon";
+GRANT ALL ON FUNCTION "public"."get_entity_timeline_activities"("p_entity_type" "text", "p_entity_id" "uuid", "p_limit" integer, "p_offset" integer) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_entity_timeline_activities"("p_entity_type" "text", "p_entity_id" "uuid", "p_limit" integer, "p_offset" integer) TO "service_role";
 
 
 
@@ -16489,6 +16957,12 @@ GRANT ALL ON FUNCTION "public"."handle_public_album_creation"() TO "service_role
 GRANT ALL ON FUNCTION "public"."has_user_liked_entity"("p_user_id" "uuid", "p_entity_type" character varying, "p_entity_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."has_user_liked_entity"("p_user_id" "uuid", "p_entity_type" character varying, "p_entity_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."has_user_liked_entity"("p_user_id" "uuid", "p_entity_type" character varying, "p_entity_id" "uuid") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."increment_activity_like_count"("p_activity_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."increment_activity_like_count"("p_activity_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."increment_activity_like_count"("p_activity_id" "uuid") TO "service_role";
 
 
 

@@ -57,10 +57,12 @@ import { cn } from '@/lib/utils'
 import { BookCover } from '@/components/book-cover'
 import { EntityHoverCard } from '@/components/entity-hover-cards'
 import { EngagementActions } from '@/components/enterprise/engagement-actions'
+import { NestedCommentThread } from '@/components/enterprise/nested-comment-thread'
 import { SophisticatedPhotoGrid } from '@/components/photo-gallery/sophisticated-photo-grid'
 import { EnterprisePhotoViewer } from '@/components/photo-gallery/enterprise-photo-viewer'
 import { FeedPost, PostContent, PostVisibility, PostPublishStatus, getPostText, getPostImages, getPostContentType, hasImageContent, hasTextContent } from '@/types/feed'
 import { useAuth } from '@/hooks/useAuth'
+import { deduplicatedRequest } from '@/lib/request-utils'
 
 export interface EntityFeedCardProps {
   post: FeedPost
@@ -114,6 +116,19 @@ export default function EntityFeedCard({
     console.warn('EntityFeedCard: post prop is undefined')
     return null
   }
+
+  // Debug: Log the complete post structure when component mounts
+  console.log('🔍 EntityFeedCard received post:', {
+    id: post.id,
+    user_id: post.user_id,
+    activity_type: post.activity_type,
+    entity_type: post.entity_type,
+    content_type: post.content_type,
+    hasContent: !!post.content,
+    hasData: !!(post as any).data,
+    allKeys: Object.keys(post),
+    fullPost: post
+  })
 
   const { toast } = useToast()
   const { user } = useAuth()
@@ -564,14 +579,53 @@ export default function EntityFeedCard({
     }
 
     try {
-      const response = await fetch(`/api/activities`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: post.id })
-      })
+      // Enhanced logging to debug the post structure
+      console.log('=== DELETE DEBUG ===')
+      console.log('Post ID:', post.id)
+      console.log('Post keys:', Object.keys(post))
+      console.log('Post activity_type:', post.activity_type)
+      console.log('Post entity_type:', post.entity_type)
+      console.log('Post content_type:', post.content_type)
+      console.log('Post has content field:', !!post.content)
+      console.log('Post has data field:', !!(post as any).data)
+      console.log('========================')
+
+      // Determine the appropriate deletion endpoint based on post structure
+      let response: Response
+      let endpoint: string
+      
+      // Use activity_type as the primary indicator since FeedContent sets this explicitly
+      // Posts with activity_type='post_created' from the posts table should use /api/posts
+      // Posts with activity_type='post_created' from the activities table should use /api/activities
+      // The presence of a nested 'content' field indicates posts table structure
+      const hasNestedContent = post.content && typeof post.content === 'object' && 
+                              Object.keys(post.content).length > 0
+      
+      if (post.activity_type === 'post_created' && hasNestedContent) {
+        // This is a posts table post converted to FeedPost format
+        endpoint = `/api/posts/${post.id}`
+        console.log('Deleting posts table post from posts table')
+        response = await fetch(endpoint, {
+          method: 'DELETE'
+        })
+      } else {
+        // This is an activity-based post or other activity type
+        endpoint = `/api/activities`
+        console.log('Deleting activity-based post from activities table')
+        response = await fetch(endpoint, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: post.id })
+        })
+      }
+
+      console.log('Delete response status:', response.status)
+      console.log('Delete response ok:', response.ok)
 
       if (!response.ok) {
-        throw new Error('Failed to delete post')
+        const errorData = await response.json().catch(() => ({}))
+        console.error('Delete error response:', errorData)
+        throw new Error(errorData.error || `Failed to delete post (${response.status})`)
       }
 
       if (onPostDeleted) {
@@ -586,29 +640,41 @@ export default function EntityFeedCard({
       console.error('Error deleting post:', error)
       toast({
         title: "Error",
-        description: "Failed to delete post",
+        description: error instanceof Error ? error.message : "Failed to delete post",
         variant: "destructive"
       })
     }
   }
 
-  // Load engagement data
+  // Load engagement data with optimization
   const loadEngagementData = useCallback(async () => {
     if (!showEngagement || !post?.id) return
 
     setIsLoadingEngagement(true)
     try {
-      const [reactionsRes, commentsRes, sharesRes, bookmarksRes] = await Promise.all([
-        fetch(`/api/posts/engagement?post_id=${post.id}&action_type=reactions`),
-        fetch(`/api/posts/engagement?post_id=${post.id}&action_type=comments`),
-        fetch(`/api/posts/engagement?post_id=${post.id}&action_type=shares`),
-        fetch(`/api/posts/engagement?post_id=${post.id}&action_type=bookmarks`)
+      // Use deduplicated requests for better performance
+      const [reactions, comments, shares, bookmarks] = await Promise.all([
+        deduplicatedRequest(
+          `engagement-reactions-${post.id}`,
+          () => fetch(`/api/posts/engagement?post_id=${post.id}&action_type=reactions`).then(r => r.json()),
+          2 * 60 * 1000 // 2 minutes cache
+        ),
+        deduplicatedRequest(
+          `engagement-comments-${post.id}`,
+          () => fetch(`/api/posts/engagement?post_id=${post.id}&action_type=comments`).then(r => r.json()),
+          2 * 60 * 1000 // 2 minutes cache
+        ),
+        deduplicatedRequest(
+          `engagement-shares-${post.id}`,
+          () => fetch(`/api/posts/engagement?post_id=${post.id}&action_type=shares`).then(r => r.json()),
+          2 * 60 * 1000 // 2 minutes cache
+        ),
+        deduplicatedRequest(
+          `engagement-bookmarks-${post.id}`,
+          () => fetch(`/api/posts/engagement?post_id=${post.id}&action_type=bookmarks`).then(r => r.json()),
+          2 * 60 * 1000 // 2 minutes cache
+        )
       ])
-
-      const reactions = await reactionsRes.json()
-      const comments = await commentsRes.json()
-      const shares = await sharesRes.json()
-      const bookmarks = await bookmarksRes.json()
 
       setEngagementData({
         reactions: reactions.data || [],
@@ -997,7 +1063,7 @@ export default function EntityFeedCard({
                 {post.metadata?.recent_likers && post.metadata.recent_likers.length > 1 && (
                   <div className="flex items-center gap-1 mb-2">
                     <span className="text-xs text-muted-foreground">Recent likers:</span>
-                    {post.metadata.recent_likers.slice(0, 3).map((liker, index) => (
+                    {post.metadata.recent_likers.slice(0, 3).map((liker: string, index: number) => (
                       <span key={index} className="text-xs font-medium text-blue-600">
                         {liker}{index < Math.min(2, post.metadata.recent_likers.length - 1) ? ', ' : ''}
                       </span>
@@ -1449,6 +1515,7 @@ export default function EntityFeedCard({
               entityId={post.id}
               entityType={post.entity_type as 'user' | 'book' | 'author' | 'publisher' | 'group'}
               initialEngagementCount={post.like_count + post.comment_count + (post.share_count || 0)}
+              commentCount={post.comment_count || 0}
               isLiked={post.user_has_reacted}
               isCommented={false}
               isShared={false}
@@ -1463,7 +1530,7 @@ export default function EntityFeedCard({
               }}
               onCommentAdded={async (newComment) => {
                 // Add the new comment to the local state
-                setEngagementData(prev => ({
+                setEngagementData((prev: any) => ({
                   ...prev,
                   comments: [newComment, ...prev.comments]
                 }))
@@ -1485,28 +1552,37 @@ export default function EntityFeedCard({
             <div className="enterprise-feed-card-comments-header">
               <h4 className="text-sm font-semibold mb-2">Comments ({engagementData.comments.length})</h4>
             </div>
-            <div className="enterprise-feed-card-comments-list space-y-3">
-              {engagementData.comments.slice(0, 3).map((comment: any) => (
-                <div key={comment.id} className="enterprise-feed-card-comment flex gap-3">
-                  <Avatar
-                    src={comment.user?.avatar_url}
-                    alt={comment.user?.name || 'User'}
-                    name={comment.user?.name}
-                    size="sm"
-                    className="enterprise-feed-card-comment-avatar"
-                  />
-                  <div className="enterprise-feed-card-comment-content flex-1">
-                    <div className="enterprise-feed-card-comment-header flex items-center gap-2 mb-1">
-                      <span className="font-semibold text-sm">{comment.user?.name || 'User'}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {formatTimestamp(comment.created_at)}
-                      </span>
-                    </div>
-                    <p className="text-sm">{comment.content}</p>
-                  </div>
-                </div>
+            <div className="enterprise-feed-card-comments-list space-y-4">
+              {engagementData.comments.slice(0, 5).map((comment: any) => (
+                <NestedCommentThread
+                  key={comment.id}
+                  comment={{
+                    id: comment.id,
+                    content: comment.content,
+                    created_at: comment.created_at,
+                    updated_at: comment.updated_at,
+                    user: comment.user,
+                    parent_comment_id: comment.parent_comment_id,
+                    comment_depth: comment.comment_depth || 0,
+                    thread_id: comment.thread_id,
+                    reply_count: comment.reply_count || 0,
+                    replies: comment.replies || []
+                  }}
+                  entityType={post.entity_type || 'post'}
+                  entityId={post.entity_id || post.id}
+                  postId={post.id}
+                  onCommentUpdated={(updatedComment) => {
+                    // Update the comment in the local state
+                    setEngagementData((prev: any) => ({
+                      ...prev,
+                      comments: prev.comments.map((c: any) => 
+                        c.id === updatedComment.id ? updatedComment : c
+                      )
+                    }))
+                  }}
+                />
               ))}
-              {engagementData.comments.length > 3 && (
+              {engagementData.comments.length > 5 && (
                 <Button variant="ghost" size="sm" className="w-full">
                   View all {engagementData.comments.length} comments
                 </Button>

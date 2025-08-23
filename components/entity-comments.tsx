@@ -16,8 +16,15 @@ import {
   MoreVertical,
   Reply,
   Flag,
-  Trash2
+  Trash2,
+  ChevronDown,
+  Users
 } from 'lucide-react'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 
 interface Comment {
   id: string
@@ -43,21 +50,15 @@ interface Comment {
 interface EntityCommentsProps {
   entityId: string
   entityType: string
-  entityName: string
+  entityName?: string
   entityAvatar?: string
-  entityCreatedAt: string
-  isOwner: boolean
+  entityCreatedAt?: string
+  isOwner?: boolean
   entityDisplayInfo?: {
-    id: string
     name: string
-    type: 'user' | 'author' | 'publisher' | 'group' | 'event' | 'book'
-    author_image?: { url: string }
-    publisher_image?: { url: string }
-    bookCount?: number
-    member_count?: number
-    location?: string
-    bio?: string
-  } // Optional override for entity display with hover card functionality
+    avatar?: string
+    type: string
+  }
 }
 
 export default function EntityComments({
@@ -69,341 +70,176 @@ export default function EntityComments({
   isOwner,
   entityDisplayInfo
 }: EntityCommentsProps) {
-  const supabase = supabaseClient
-  const { toast } = useToast()
-  
   const [comments, setComments] = useState<Comment[]>([])
+  const [isLoading, setIsLoading] = useState(false)
   const [newComment, setNewComment] = useState('')
-  const [replyingTo, setReplyingTo] = useState<string | null>(null)
-  const [replyContent, setReplyContent] = useState('')
-  const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [currentUser, setCurrentUser] = useState<any>(null)
-  const [likeCount, setLikeCount] = useState(0)
   const [isLiked, setIsLiked] = useState(false)
+  const [likeCount, setLikeCount] = useState(0)
   const [shareCount, setShareCount] = useState(0)
   const [bookmarkCount, setBookmarkCount] = useState(0)
-  const [isBookmarked, setIsBookmarked] = useState(false)
-  const [entityUser, setEntityUser] = useState<any>(null)
-  
-  // Refs for contentEditable elements
-  const commentInputRef = useRef<HTMLDivElement>(null)
+  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [replyingTo, setReplyingTo] = useState<string | null>(null)
+  const [replyContent, setReplyContent] = useState('')
+  const [commentInputRef] = useState(useRef<HTMLDivElement>(null))
+  const [supabase] = useState(() => supabaseClient)
+  const { toast } = useToast()
 
-  // Format date as "Jul 30, 2025"
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    })
-  }
-
-  // Get entity user data for hover card
-  const getEntityUserData = useCallback(async () => {
-    try {
-      // If entityType is 'user', we need to get the user data
-      if (entityType === 'user' || entityType === 'photo') {
-        // For photos, we need to get the user who uploaded the photo
-        if (entityType === 'photo') {
-          // First try to get from the new uploader_id field if it exists
-          let imageData: any = null;
-          try {
-            const { data } = await supabase
-              .from('images')
-              .select('uploader_id, metadata')
-              .eq('id', entityId)
-              .single();
-            imageData = data;
-
-          } catch (error) {
-            // If uploader_id column doesn't exist yet, fall back to metadata
-            const { data } = await supabase
-              .from('images')
-              .select('metadata, entity_id, entity_type_id')
-              .eq('id', entityId)
-              .single();
-            imageData = data;
-          }
-          
-          if (imageData) {
-            let userId = null;
-            
-            // Try uploader_id first (if migration has been run)
-            if (imageData.uploader_id) {
-              userId = imageData.uploader_id;
-            }
-            // Fall back to metadata.user_id
-            else if (imageData.metadata?.user_id) {
-              userId = imageData.metadata.user_id;
-            }
-            
-            if (userId) {
-              const { data: userData } = await supabase
-                .from('users')
-                .select('id, name, email, created_at')
-                .eq('id', userId)
-                .single();
-              if (userData) {
-                setEntityUser({
-                  id: userData.id,
-                  name: userData.name || userData.email || entityName,
-                  created_at: userData.created_at
-                });
-                return;
-              }
-            }
-          }
-
-
-        } else {
-          // For user entities, use the entityId as the user ID
-          const { data: userData } = await supabase
-            .from('users')
-            .select('id, name, email, created_at')
-            .eq('id', entityId)
-            .single();
-          
-          if (userData) {
-            setEntityUser({
-              id: userData.id,
-              name: userData.name || userData.email || entityName,
-              created_at: userData.created_at
-            });
-            return;
-          }
-        }
-      }
-      
-      // If we couldn't get user data, set a fallback with the provided entityName
-      if (entityName && entityName !== 'User') {
-        setEntityUser({
-          id: entityId,
-          name: entityName,
-          created_at: entityCreatedAt
-        });
-      }
-    } catch (error) {
-      console.error('Error getting entity user data:', error);
-      // Set fallback if we have a meaningful entityName
-      if (entityName && entityName !== 'User') {
-        setEntityUser({
-          id: entityId,
-          name: entityName,
-          created_at: entityCreatedAt
-        });
-      }
-    }
-  }, [entityType, entityId, entityName, entityCreatedAt, supabase]);
-
-  // Get current user data
-  const getCurrentUser = useCallback(async () => {
+  // Get current user
+  const getCurrentUser = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
+        // Get user data from the users table
+        const { data: userData } = await supabase
+          .from('users')
+          .select('name, email')
+          .eq('id', user.id)
+          .single()
+        
         setCurrentUser({
           id: user.id,
-          name: user.user_metadata?.full_name || user.user_metadata?.name || 'User',
-          avatar_url: user.user_metadata?.avatar_url
+          email: user.email,
+          name: userData?.name || user.email?.split('@')[0] || 'User',
+          avatar_url: undefined // We'll handle avatars separately if needed
         })
       }
     } catch (error) {
       console.error('Error getting current user:', error)
     }
-  }, [supabase])
+  }
 
   // Load comments for the entity
   const loadComments = useCallback(async () => {
     try {
       setIsLoading(true)
       
-      // Check if this is a timeline photo (generated ID) or a real database entity
-      const isTimelinePhoto = entityId.startsWith('post-') || entityId.startsWith('preview-')
-      
-      if (isTimelinePhoto) {
-        // For timeline photos, we can't load comments since they don't exist in the database
-        // Set empty comments and show a message
-        setComments([])
-        return
-      }
-      
-      // Load top-level comments
-      const { data: topLevelComments, error: commentsError } = await supabase
+      // Load comments from the unified comments table
+      const { data: commentsData, error: commentsError } = await supabase
         .from('comments')
-        .select('*')
+        .select(`
+          *,
+          user:users!comments_user_id_fkey(
+            id,
+            name,
+            email
+          )
+        `)
         .eq('entity_type', entityType)
         .eq('entity_id', entityId)
-        .is('parent_id', null)
         .eq('is_deleted', false)
         .eq('is_hidden', false)
-        .order('created_at', { ascending: true })
+        .is('parent_id', null) // Only top-level comments
+        .order('created_at', { ascending: false })
 
       if (commentsError) {
         console.error('Error loading comments:', commentsError)
-        toast({
-          title: "Error",
-          description: "Failed to load comments",
-          variant: "destructive"
-        })
         return
       }
 
-      // Load user data for each comment
-      const commentsWithUsers = await Promise.all(
-        (topLevelComments || []).map(async (comment) => {
-          // Get user data
-          const { data: userData } = await supabase
-            .from('users')
-            .select('id, name, email')
-            .eq('id', comment.user_id)
-            .single()
-          
-
-
-          // Get replies for this comment
+      // Load replies for each comment
+      const commentsWithReplies = await Promise.all(
+        (commentsData || []).map(async (comment: any) => {
           const { data: replies } = await supabase
             .from('comments')
-            .select('*')
+            .select(`
+              *,
+              user:users!comments_user_id_fkey(
+                id,
+                name,
+                email
+              )
+            `)
             .eq('parent_id', comment.id)
             .eq('is_deleted', false)
             .eq('is_hidden', false)
             .order('created_at', { ascending: true })
 
-          // Get user data for replies
-          const repliesWithUsers = await Promise.all(
-            (replies || []).map(async (reply) => {
-              const { data: replyUserData } = await supabase
-                .from('users')
-                .select('id, name, email')
-                .eq('id', reply.user_id)
-                .single()
-
-              return {
-                ...reply,
-                user: replyUserData ? {
-                  id: replyUserData.id,
-                  name: replyUserData.name || replyUserData.email || 'Unknown User',
-                  avatar_url: undefined
-                } : {
-                  id: reply.user_id,
-                  name: 'Unknown User',
-                  avatar_url: undefined
-                }
-              }
-            })
-          )
-
-          return {
-            ...comment,
-            user: userData ? {
-              id: userData.id,
-              name: userData.name || userData.email || 'Unknown User',
-              avatar_url: undefined
-            } : {
-              id: comment.user_id,
-              name: 'Unknown User',
-              avatar_url: undefined
+          // Transform the comment data to match the Comment interface
+          const transformedComment: Comment = {
+            id: comment.id,
+            user_id: comment.user_id,
+            entity_type: comment.entity_type || entityType,
+            entity_id: comment.entity_id || entityId,
+            content: comment.content,
+            parent_id: comment.parent_id,
+            created_at: comment.created_at,
+            updated_at: comment.updated_at,
+            is_hidden: comment.is_hidden,
+            is_deleted: comment.is_deleted,
+            user: {
+              id: comment.user?.id || comment.user_id,
+              name: comment.user?.name || comment.user?.email || 'Unknown User',
+              avatar_url: undefined // We'll get this from profiles table if needed
             },
-            replies: repliesWithUsers
+            replies: (replies || []).map((reply: any) => ({
+              id: reply.id,
+              user_id: reply.user_id,
+              entity_type: reply.entity_type || entityType,
+              entity_id: reply.entity_id || entityId,
+              content: reply.content,
+              parent_id: reply.parent_id,
+              created_at: reply.created_at,
+              updated_at: reply.updated_at,
+              is_hidden: reply.is_hidden,
+              is_deleted: reply.is_deleted,
+              user: {
+                id: reply.user?.id || reply.user_id,
+                name: reply.user?.name || reply.user?.email || 'Unknown User',
+                avatar_url: undefined
+              }
+            }))
           }
+
+          return transformedComment
         })
       )
 
-      setComments(commentsWithUsers)
+      setComments(commentsWithReplies)
     } catch (error) {
-      console.error('Error in loadComments:', error)
-      toast({
-        title: "Error",
-        description: "Failed to load comments",
-        variant: "destructive"
-      })
+      console.error('Error loading comments:', error)
     } finally {
       setIsLoading(false)
     }
-  }, [entityType, entityId, supabase, toast])
-
-  // Load social stats for the entity
-  const loadSocialStats = useCallback(async () => {
-    try {
-      // Check if this is a timeline photo (generated ID) or a real database entity
-      const isTimelinePhoto = entityId.startsWith('post-') || entityId.startsWith('preview-')
-      
-      if (isTimelinePhoto) {
-        // For timeline photos, set default values since they don't exist in the database
-        setLikeCount(0)
-        setIsLiked(false)
-        setShareCount(0)
-        setBookmarkCount(0)
-        setIsBookmarked(false)
-        return
-      }
-      
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      // Get like count and status - using the current schema structure
-      const { count: likeCount } = await supabase
-        .from('likes')
-        .select('*', { count: 'exact', head: true })
-        .eq('entity_type', entityType)
-        .eq('entity_id', entityId)
-
-      const { data: userLike } = await supabase
-        .from('likes')
-        .select('id')
-        .eq('entity_type', entityType)
-        .eq('entity_id', entityId)
-        .eq('user_id', user.id)
-        .single()
-
-      // Get share count
-      const { count: shareCount } = await supabase
-        .from('shares')
-        .select('*', { count: 'exact', head: true })
-        .eq('entity_type', entityType)
-        .eq('entity_id', entityId)
-
-      // Get bookmark count and status
-      const { count: bookmarkCount } = await supabase
-        .from('bookmarks')
-        .select('*', { count: 'exact', head: true })
-        .eq('entity_type', entityType)
-        .eq('entity_id', entityId)
-
-      const { data: userBookmark } = await supabase
-        .from('bookmarks')
-        .select('id')
-        .eq('entity_type', entityType)
-        .eq('entity_id', entityId)
-        .eq('user_id', user.id)
-        .single()
-
-      setLikeCount(likeCount || 0)
-      setIsLiked(!!userLike)
-      setShareCount(shareCount || 0)
-      setBookmarkCount(bookmarkCount || 0)
-      setIsBookmarked(!!userBookmark)
-    } catch (error) {
-      console.error('Error loading social stats:', error)
-    }
   }, [entityType, entityId, supabase])
 
-  // Handle like/unlike
-  const handleLike = useCallback(async () => {
+  // Load like status and count
+  const loadLikeStatus = useCallback(async () => {
     try {
-      // Check if this is a timeline photo (generated ID) or a real database entity
-      const isTimelinePhoto = entityId.startsWith('post-') || entityId.startsWith('preview-')
-      
-      if (isTimelinePhoto) {
-        toast({
-          title: "Info",
-          description: "Likes are not available for timeline photos",
-          variant: "default"
-        })
-        return
+      if (!currentUser) return
+
+      // Check if user liked this entity
+      const { data: likeData, error: likeError } = await supabase
+        .from('likes')
+        .select('id')
+        .eq('entity_type', entityType)
+        .eq('entity_id', entityId)
+        .eq('user_id', currentUser.id)
+        .single()
+
+      if (!likeError && likeData) {
+        setIsLiked(true)
       }
-      
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
+
+      // Get like count
+      const { count: likeCountData, error: countError } = await supabase
+        .from('likes')
+        .select('*', { count: 'exact', head: true })
+        .eq('entity_type', entityType)
+        .eq('entity_id', entityId)
+
+      if (!countError) {
+        setLikeCount(likeCountData || 0)
+      }
+    } catch (error) {
+      console.error('Error loading like status:', error)
+    }
+  }, [entityType, entityId, currentUser, supabase])
+
+  // Handle like toggle
+  const handleLike = async () => {
+    try {
+      if (!currentUser) {
         toast({
           title: "Error",
           description: "You must be logged in to like",
@@ -413,28 +249,32 @@ export default function EntityComments({
       }
 
       if (isLiked) {
-        // Unlike - using the current schema structure
-        await supabase
+        // Unlike
+        const { error } = await supabase
           .from('likes')
           .delete()
-          .eq('user_id', user.id)
           .eq('entity_type', entityType)
           .eq('entity_id', entityId)
-        
-        setLikeCount(prev => prev - 1)
+          .eq('user_id', currentUser.id)
+
+        if (error) throw error
+
         setIsLiked(false)
+        setLikeCount(prev => Math.max(0, prev - 1))
       } else {
-        // Like - using the current schema structure
-        await supabase
+        // Like
+        const { error } = await supabase
           .from('likes')
           .insert({
-            user_id: user.id,
             entity_type: entityType,
-            entity_id: entityId
+            entity_id: entityId,
+            user_id: currentUser.id
           })
-        
-        setLikeCount(prev => prev + 1)
+
+        if (error) throw error
+
         setIsLiked(true)
+        setLikeCount(prev => prev + 1)
       }
     } catch (error) {
       console.error('Error toggling like:', error)
@@ -444,7 +284,7 @@ export default function EntityComments({
         variant: "destructive"
       })
     }
-  }, [isLiked, entityType, entityId, supabase, toast])
+  }
 
   // Handle comment submission
   const handleComment = useCallback(async (content: string, parentId?: string) => {
@@ -513,7 +353,7 @@ export default function EntityComments({
         description: "Comment added successfully"
       })
     } catch (error) {
-      console.error('Error in handleComment:', error)
+      console.error('Error adding comment:', error)
       toast({
         title: "Error",
         description: "Failed to add comment",
@@ -522,189 +362,103 @@ export default function EntityComments({
     } finally {
       setIsSubmitting(false)
     }
-  }, [entityType, entityId, supabase, toast, loadComments])
-
-  // Handle reply submission
-  const handleReply = useCallback(async (commentId: string) => {
-    if (!replyContent.trim()) return
-    await handleComment(replyContent, commentId)
-  }, [replyContent, handleComment])
+  }, [entityType, entityId, supabase, toast, commentInputRef, loadComments])
 
   // Handle share
-  const handleShare = useCallback(async () => {
-    try {
-      // Check if this is a timeline photo (generated ID) or a real database entity
-      const isTimelinePhoto = entityId.startsWith('post-') || entityId.startsWith('preview-')
-      
-      if (isTimelinePhoto) {
-        toast({
-          title: "Info",
-          description: "Sharing is not available for timeline photos",
-          variant: "default"
-        })
-        return
-      }
-      
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        toast({
-          title: "Error",
-          description: "You must be logged in to share",
-          variant: "destructive"
-        })
-        return
-      }
-
-      await supabase
-        .from('shares')
-        .insert({
-          user_id: user.id,
-          entity_type: entityType,
-          entity_id: entityId,
-          share_type: 'standard',
-          is_public: true
-        })
-
-      setShareCount(prev => prev + 1)
-      toast({
-        title: "Success",
-        description: "Shared successfully"
-      })
-    } catch (error) {
-      console.error('Error sharing:', error)
-      toast({
-        title: "Error",
-        description: "Failed to share",
-        variant: "destructive"
-      })
-    }
-  }, [entityType, entityId, supabase, toast])
-
-  // Handle bookmark
-  const handleBookmark = useCallback(async () => {
-    try {
-      // Check if this is a timeline photo (generated ID) or a real database entity
-      const isTimelinePhoto = entityId.startsWith('post-') || entityId.startsWith('preview-')
-      
-      if (isTimelinePhoto) {
-        toast({
-          title: "Info",
-          description: "Bookmarking is not available for timeline photos",
-          variant: "default"
-        })
-        return
-      }
-      
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        toast({
-          title: "Error",
-          description: "You must be logged in to bookmark",
-          variant: "destructive"
-        })
-        return
-      }
-
-      if (isBookmarked) {
-        // Remove bookmark
-        await supabase
-          .from('bookmarks')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('entity_type', entityType)
-          .eq('entity_id', entityId)
-        
-        setBookmarkCount(prev => prev - 1)
-        setIsBookmarked(false)
-      } else {
-        // Add bookmark
-        await supabase
-          .from('bookmarks')
-          .insert({
-            user_id: user.id,
-            entity_type: entityType,
-            entity_id: entityId,
-            bookmark_folder: 'default',
-            is_private: false
-          })
-        
-        setBookmarkCount(prev => prev + 1)
-        setIsBookmarked(true)
-      }
-    } catch (error) {
-      console.error('Error toggling bookmark:', error)
-      toast({
-        title: "Error",
-        description: "Failed to update bookmark",
-        variant: "destructive"
-      })
-    }
-  }, [isBookmarked, entityType, entityId, supabase, toast])
-
-  // Initialize component
-  useEffect(() => {
-    getCurrentUser()
-    getEntityUserData()
-    loadComments()
-    loadSocialStats()
-  }, [getCurrentUser, getEntityUserData, loadComments, loadSocialStats])
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-sm text-gray-500">Loading comments...</div>
-      </div>
-    )
+  const handleShare = () => {
+    toast({
+      title: "Info",
+      description: "Share functionality coming soon",
+      variant: "default"
+    })
   }
 
+  // Handle bookmark
+  const handleBookmark = () => {
+    toast({
+      title: "Info",
+      description: "Bookmark functionality coming soon",
+      variant: "default"
+    })
+  }
+
+  // Load data on mount
+  useEffect(() => {
+    getCurrentUser()
+  }, [supabase])
+
+  useEffect(() => {
+    if (currentUser) {
+      loadComments()
+      loadLikeStatus()
+    }
+  }, [currentUser, loadComments, loadLikeStatus])
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    })
+  }
+
+  // Get unique commenters for the comment count display
+  const uniqueCommenters = comments.reduce((acc, comment) => {
+    if (!acc.find(u => u.id === comment.user.id)) {
+      acc.push(comment.user)
+    }
+    comment.replies?.forEach(reply => {
+      if (!acc.find(u => u.id === reply.user.id)) {
+        acc.push(reply.user)
+      }
+    })
+    return acc
+  }, [] as any[])
+
+  // Get all likers for the like count display
+  const [likers, setLikers] = useState<any[]>([])
+  
+  const loadLikers = useCallback(async () => {
+    try {
+      const { data: likesData, error } = await supabase
+        .from('likes')
+        .select(`
+          user_id,
+          created_at,
+          user:users!likes_user_id_fkey(
+            id,
+            name,
+            email
+          )
+        `)
+        .eq('entity_type', entityType)
+        .eq('entity_id', entityId)
+        .order('created_at', { ascending: false })
+
+      if (!error && likesData) {
+        setLikers(likesData.map(like => like.user).filter(Boolean))
+      }
+    } catch (error) {
+      console.error('Error loading likers:', error)
+    }
+  }, [entityType, entityId, supabase])
+
+  useEffect(() => {
+    loadLikers()
+  }, [loadLikers])
+
   return (
-    <div className="flex flex-col h-full bg-white">
-      {/* Header */}
+    <div className="bg-white rounded-lg border shadow-sm">
+      {/* Entity Header */}
       <div className="flex items-center gap-3 p-4 border-b">
-        {entityUser ? (
-          <UserHoverCard user={entityUser}>
-            <Avatar 
-              src={entityAvatar} 
-              name={entityUser.name}
-              className="w-10 h-10"
-            />
-          </UserHoverCard>
-        ) : (
-          <Avatar 
-            src={entityAvatar} 
-            name={entityName}
-            className="w-10 h-10"
-          />
-        )}
+        <Avatar 
+          src={entityAvatar || entityDisplayInfo?.avatar} 
+          name={entityName || entityDisplayInfo?.name || 'Entity'}
+          className="w-10 h-10 flex-shrink-0"
+        />
         <div className="flex-1">
-          {entityUser ? (
-            <UserHoverCard user={entityUser}>
-              <div className="font-medium text-sm hover:underline cursor-pointer">
-                {entityDisplayInfo?.name || entityUser.name}
-              </div>
-            </UserHoverCard>
-          ) : entityDisplayInfo ? (
-            <EntityHoverCard
-              type={entityDisplayInfo.type}
-              entity={{
-                id: entityDisplayInfo.id,
-                name: entityDisplayInfo.name,
-                author_image: entityDisplayInfo.author_image,
-                publisher_image: entityDisplayInfo.publisher_image,
-                bookCount: entityDisplayInfo.bookCount,
-                member_count: entityDisplayInfo.member_count,
-                location: entityDisplayInfo.location,
-                bio: entityDisplayInfo.bio
-              }}
-            >
-              <div className="font-medium text-sm hover:underline cursor-pointer">
-                {entityDisplayInfo.name}
-              </div>
-            </EntityHoverCard>
-          ) : (
-            <div className="font-medium text-sm">{entityName}</div>
-          )}
-          <div className="text-xs text-gray-500">{formatDate(entityCreatedAt)}</div>
+          <div className="font-medium text-sm">{entityName || entityDisplayInfo?.name || 'Entity'}</div>
+          <div className="text-xs text-gray-500">{formatDate(entityCreatedAt || new Date().toISOString())}</div>
         </div>
       </div>
 
@@ -738,24 +492,89 @@ export default function EntityComments({
             size="sm"
             onClick={handleBookmark}
             disabled={entityId.startsWith('post-') || entityId.startsWith('preview-')}
-            className={`flex items-center gap-2 ${isBookmarked ? 'text-blue-500' : 'text-gray-600'} ${(entityId.startsWith('post-') || entityId.startsWith('preview-')) ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`flex items-center gap-2 text-gray-600 ${(entityId.startsWith('post-') || entityId.startsWith('preview-')) ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            <Download className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
+            <Download className={`w-4 h-4`} />
             <span className="text-sm">{bookmarkCount}</span>
           </Button>
         </div>
       </div>
 
+      {/* Engagement Summary - Facebook Style */}
+      <div className="px-4 py-2 border-b bg-gray-50">
+        <div className="flex items-center gap-4 text-sm text-gray-600">
+          {/* Like Count with Hover Dropdown */}
+          {likeCount > 0 && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-auto p-0 text-sm text-gray-600 hover:text-gray-900">
+                  <Heart className="w-4 h-4 mr-1 fill-current text-red-500" />
+                  {likeCount} {likeCount === 1 ? 'person' : 'people'} liked this
+                  <ChevronDown className="w-3 h-3 ml-1" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0" align="start">
+                <div className="p-3 border-b">
+                  <h4 className="font-medium text-sm">People who liked this</h4>
+                </div>
+                <div className="max-h-60 overflow-y-auto">
+                  {likers.map((liker) => (
+                    <div key={liker.id} className="flex items-center gap-3 p-3 hover:bg-gray-50">
+                      <Avatar 
+                        src={liker.avatar_url} 
+                        name={liker.name}
+                        className="w-8 h-8"
+                      />
+                      <div className="flex-1">
+                        <div className="font-medium text-sm">{liker.name}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
+
+          {/* Comment Count with Hover Dropdown */}
+          {comments.length > 0 && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-auto p-0 text-sm text-gray-600 hover:text-gray-900">
+                  <MessageCircle className="w-4 h-4 mr-1" />
+                  {comments.length} {comments.length === 1 ? 'comment' : 'comments'}
+                  <ChevronDown className="w-3 h-3 ml-1" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0" align="start">
+                <div className="p-3 border-b">
+                  <h4 className="font-medium text-sm">People who commented</h4>
+                </div>
+                <div className="max-h-60 overflow-y-auto">
+                  {uniqueCommenters.map((commenter) => (
+                    <div key={commenter.id} className="flex items-center gap-3 p-3 hover:bg-gray-50">
+                      <Avatar 
+                        src={commenter.avatar_url} 
+                        name={commenter.name}
+                        className="w-8 h-8"
+                      />
+                      <div className="flex-1">
+                        <div className="font-medium text-sm">{commenter.name}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
+        </div>
+      </div>
+
       {/* Comments Section */}
       <div className="flex-1 overflow-y-auto p-4">
-        {entityId.startsWith('post-') || entityId.startsWith('preview-') ? (
-          <div className="text-center text-gray-500 py-8">
-            Comments are not available for timeline photos
-          </div>
+        {isLoading ? (
+          <div className="text-center text-gray-500 py-4">Loading comments...</div>
         ) : comments.length === 0 ? (
-          <div className="text-center text-gray-500 py-8">
-            No comments yet. Be the first to comment!
-          </div>
+          <div className="text-center text-gray-500 py-4">No comments yet. Be the first to comment!</div>
         ) : (
           <div className="space-y-4">
             {comments.map((comment) => (
@@ -763,8 +582,8 @@ export default function EntityComments({
                 key={comment.id}
                 comment={comment}
                 currentUser={currentUser}
-                onReply={setReplyingTo}
-                onSubmitReply={handleReply}
+                onReply={(commentId) => setReplyingTo(commentId)}
+                onSubmitReply={(commentId) => handleComment(replyContent, commentId)}
                 replyContent={replyContent}
                 setReplyContent={setReplyContent}
                 isReplying={replyingTo === comment.id}
@@ -977,11 +796,11 @@ function CommentItem({
           {comment.replies.map((reply) => (
             <div key={reply.id} className="flex items-start gap-3">
               <UserHoverCard user={reply.user}>
-                              <Avatar 
-                src={reply.user.avatar_url} 
-                name={reply.user.name}
-                className="w-8 h-8 flex-shrink-0"
-              />
+                <Avatar 
+                  src={reply.user.avatar_url} 
+                  name={reply.user.name}
+                  className="w-8 h-8 flex-shrink-0"
+                />
               </UserHoverCard>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">

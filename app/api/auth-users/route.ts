@@ -3,6 +3,9 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
+// Cache duration for user data (5 minutes)
+const CACHE_DURATION = 300
+
 export async function GET(request: Request) {
   try {
     const cookieStore = await cookies()
@@ -58,7 +61,9 @@ export async function GET(request: Request) {
         role: profile?.role || 'user'
       }
       
-      return NextResponse.json({ user: transformedUser })
+      const response = NextResponse.json({ user: transformedUser })
+      response.headers.set('Cache-Control', `public, max-age=${CACHE_DURATION}`)
+      return response
     }
     
     // Get all users from the public.users table using admin client
@@ -115,7 +120,9 @@ export async function GET(request: Request) {
       }
     }) || []
     
-    return NextResponse.json(transformedUsers)
+    const response = NextResponse.json(transformedUsers)
+    response.headers.set('Cache-Control', `public, max-age=${CACHE_DURATION}`)
+    return response
   } catch (error) {
     console.error('Error in auth-users route:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -138,26 +145,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No authenticated user' }, { status: 401 })
     }
     
-    // Check public.profiles for role
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select(`
-        id,
-        user_id,
-        role,
-        created_at
-      `)
-      .eq('user_id', session.user.id)
-      .single()
-    
-    let userRole = 'user'
-    
-    if (!profileError && profile && profile.role) {
-      userRole = profile.role
-    }
-    
-    // Get user data from users table
-    const { data: user, error: userError } = await supabase
+    // Optimize: Use a single query with JOIN instead of separate queries
+    const { data: userWithProfile, error: userError } = await supabase
       .from('users')
       .select(`
         id,
@@ -166,26 +155,86 @@ export async function POST(request: Request) {
         created_at,
         updated_at,
         role_id,
-        permalink
+        permalink,
+        profiles!inner(
+          id,
+          role
+        )
       `)
       .eq('id', session.user.id)
       .single()
     
     if (userError) {
-      console.error('Error fetching user:', userError)
-      return NextResponse.json({ error: 'Failed to fetch user' }, { status: 500 })
+      // Fallback to separate queries if JOIN fails
+      console.log('JOIN query failed, falling back to separate queries')
+      
+      // Check public.profiles for role
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select(`
+          id,
+          user_id,
+          role,
+          created_at
+        `)
+        .eq('user_id', session.user.id)
+        .single()
+      
+      let userRole = 'user'
+      
+      if (!profileError && profile && profile.role) {
+        userRole = profile.role
+      }
+      
+      // Get user data from users table
+      const { data: user, error: userError2 } = await supabase
+        .from('users')
+        .select(`
+          id,
+          email,
+          name,
+          created_at,
+          updated_at,
+          role_id,
+          permalink
+        `)
+        .eq('id', session.user.id)
+        .single()
+      
+      if (userError2) {
+        console.error('Error fetching user:', userError2)
+        return NextResponse.json({ error: 'Failed to fetch user' }, { status: 500 })
+      }
+      
+      const transformedUser = {
+        id: user.id,
+        email: user.email || 'No email',
+        name: user.name || 'Unknown User',
+        created_at: user.created_at,
+        role: userRole,
+        permalink: user.permalink
+      }
+      
+      const response = NextResponse.json({ user: transformedUser })
+      response.headers.set('Cache-Control', `private, max-age=${CACHE_DURATION}`)
+      return response
     }
+    
+    // Use the JOIN result
+    const userRole = userWithProfile.profiles?.role || 'user'
     
     const transformedUser = {
-      id: user.id,
-      email: user.email || 'No email',
-      name: user.name || 'Unknown User',
-      created_at: user.created_at,
+      id: userWithProfile.id,
+      email: userWithProfile.email || 'No email',
+      name: userWithProfile.name || 'Unknown User',
+      created_at: userWithProfile.created_at,
       role: userRole,
-      permalink: user.permalink
+      permalink: userWithProfile.permalink
     }
     
-    return NextResponse.json({ user: transformedUser })
+    const response = NextResponse.json({ user: transformedUser })
+    response.headers.set('Cache-Control', `private, max-age=${CACHE_DURATION}`)
+    return response
   } catch (error) {
     console.error('Error in auth-users POST route:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

@@ -165,7 +165,8 @@ export async function POST(request: Request) {
         name,
         created_at,
         updated_at,
-        role_id
+        role_id,
+        permalink
       `)
       .eq('id', session.user.id)
       .single()
@@ -180,7 +181,8 @@ export async function POST(request: Request) {
       email: user.email || 'No email',
       name: user.name || 'Unknown User',
       created_at: user.created_at,
-      role: userRole
+      role: userRole,
+      permalink: user.permalink
     }
     
     return NextResponse.json({ user: transformedUser })

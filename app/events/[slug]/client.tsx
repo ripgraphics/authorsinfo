@@ -9,6 +9,7 @@ import { EntityPhotoAlbums } from "@/components/user-photo-albums"
 import { FollowersListTab } from "@/components/followers-list-tab"
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter, useSearchParams } from "next/navigation"
+import EnterpriseTimelineActivities from '@/components/enterprise-timeline-activities'
 import { 
   Calendar,
   Clock,
@@ -256,58 +257,22 @@ export function ClientEventPage({
               </Card>
             </div>
 
-            {/* MAIN CONTENT - 2 Columns */}
+            {/* MAIN CONTENT - Timeline */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Event Description */}
-              <Card>
-                <CardContent className="p-6">
-                  <div className="prose prose-blue max-w-none">
-                    {event.description ? (
-                      <div dangerouslySetInnerHTML={{ __html: event.description }} />
-                    ) : event.summary ? (
-                      <p>{event.summary}</p>
-                    ) : (
-                      <p>No description available for this event.</p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Featured Books */}
-              {books && books.length > 0 && (
-                <Card>
-                  <div className="space-y-1.5 p-6">
-                    <div className="text-2xl font-semibold leading-none tracking-tight">Featured Books</div>
-                  </div>
-                  <CardContent className="p-6 pt-0">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                      {books.map((book) => (
-                        <Link href={`/books/${book.id}`} key={book.id} className="group">
-                          <div className="bg-gray-50 rounded-lg p-4 transition-all hover:shadow-md">
-                            <div className="flex items-center space-x-3">
-                              {book.cover_image_url && (
-                                <div className="flex-shrink-0 w-16">
-                                  <img
-                                    src={book.cover_image_url}
-                                    alt={book.title}
-                                    className="object-cover rounded-sm w-16 h-24"
-                                  />
-                                </div>
-                              )}
-                              <div>
-                                <h3 className="text-sm font-medium group-hover:text-blue-600 line-clamp-2">{book.title}</h3>
-                                {book.author_name && (
-                                  <p className="text-xs text-gray-600 mt-1">by {book.author_name}</p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+              <EnterpriseTimelineActivities
+                entityId={params.slug}
+                entityType="event"
+                isOwnEntity={user && user.role === "admin"}
+                entityDisplayInfo={{
+                  id: params.slug,
+                  name: event.title,
+                  type: 'event' as const,
+                  event_image: coverImageUrl ? { url: coverImageUrl } : undefined,
+                  start_date: event.start_date,
+                  end_date: event.end_date,
+                  location: event.location?.name
+                }}
+              />
             </div>
           </div>
         </div>

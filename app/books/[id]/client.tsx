@@ -61,6 +61,7 @@ import { supabase } from '@/lib/supabase/client';
 import { EntityTabs, EntityTab } from '@/components/ui/entity-tabs'
 import { EntityPhotoAlbums } from '@/components/user-photo-albums'
 import { useSearchParams } from 'next/navigation'
+import EnterpriseTimelineActivities from '@/components/enterprise-timeline-activities'
 
 interface Follower {
   id: string
@@ -695,89 +696,20 @@ export function ClientBookPage({
                 </ContentSection>
               </div>
 
-              {/* Main Content Area */}
+              {/* Main Content Area - Timeline */}
               <div className="book-page__main-content lg:col-span-2 space-y-6">
-                {/* Activity Feed */}
-                <div className="book-page__activity-feed space-y-6">
-                  {mockActivities.map((activity) => (
-                    <Card key={activity.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                      <div className="flex flex-col space-y-1.5 p-6 pb-3">
-                        <div className="flex justify-between">
-                          <div className="flex items-center gap-3">
-                            <span className="relative flex shrink-0 overflow-hidden rounded-full h-10 w-10">
-                              <img
-                                src="/placeholder.svg?height=200&width=200"
-                                alt="User"
-                                className="aspect-square h-full w-full"
-                              />
-                            </span>
-                            <div>
-                              <div className="font-medium">User</div>
-                              <div className="text-xs text-muted-foreground">{activity.timeAgo}</div>
-                            </div>
-                          </div>
-                          <Button variant="ghost" size="icon">
-                            <Ellipsis className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="p-6 pt-0 pb-3">
-                        {activity.type === "rating" && (
-                          <p>
-                            Rated{" "}
-                            <Link href="#" className="text-primary hover:underline font-medium">
-                              {activity.bookTitle}
-                            </Link>{" "}
-                            by {activity.bookAuthor} {activity.rating} stars
-                          </p>
-                        )}
-                        {activity.type === "finished" && (
-                          <p>
-                            Finished reading{" "}
-                            <Link href="#" className="text-primary hover:underline font-medium">
-                              {activity.bookTitle}
-                            </Link>{" "}
-                            by {activity.bookAuthor}
-                          </p>
-                        )}
-                        {activity.type === "added" && (
-                          <p>
-                            Added{" "}
-                            <Link href="#" className="text-primary hover:underline font-medium">
-                              {activity.bookTitle}
-                            </Link>{" "}
-                            by {activity.bookAuthor} to {activity.shelf}
-                          </p>
-                        )}
-                        {activity.type === "reviewed" && (
-                          <p>
-                            Reviewed{" "}
-                            <Link href="#" className="text-primary hover:underline font-medium">
-                              {activity.bookTitle}
-                            </Link>{" "}
-                            by {activity.bookAuthor}
-                          </p>
-                        )}
-                      </div>
-                      <div className="p-6 flex items-center justify-between py-3">
-                        <div className="flex items-center gap-6">
-                          <Button variant="ghost" size="sm" className="gap-1">
-                            <Heart className="h-4 w-4" />
-                            <span>Like</span>
-                          </Button>
-                          <Button variant="ghost" size="sm" className="gap-1">
-                            <MessageSquare className="h-4 w-4" />
-                            <span>Comment</span>
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Share2 className="h-4 w-4" />
-                            <span className="ml-1">Share</span>
-                          </Button>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
+                <EnterpriseTimelineActivities
+                  entityId={params.id}
+                  entityType="book"
+                  isOwnEntity={canEdit}
+                  entityDisplayInfo={authors && authors.length > 0 ? {
+                    id: authors[0].id,
+                    name: authors[0].name,
+                    type: 'author' as const,
+                    author_image: authors[0].author_image,
+                    bookCount: authorBookCounts[authors[0].id] || 0
+                  } : undefined}
+                />
               </div>
             </div>
           </div>

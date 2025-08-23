@@ -43,6 +43,7 @@ import {
   Activity
 } from "lucide-react"
 import { EntityPhotoAlbums } from '@/components/user-photo-albums'
+import EnterpriseTimelineActivities from '@/components/enterprise-timeline-activities'
 
 interface Follower {
   id: string
@@ -242,7 +243,23 @@ export function ClientGroupPage({
   const renderContent = () => {
     switch (activeTab) {
       case 'timeline':
-        return <GroupTimeline activities={activities} />
+        return (
+          <div className="space-y-6">
+            <EnterpriseTimelineActivities
+              entityId={group.id}
+              entityType="group"
+              isOwnEntity={canEdit}
+              entityDisplayInfo={{
+                id: group.id,
+                name: group.name,
+                type: 'group' as const,
+                group_image: groupImageUrl ? { url: groupImageUrl } : undefined,
+                member_count: membersCount,
+                is_private: group.is_private
+              }}
+            />
+          </div>
+        )
       case 'about':
         return <AboutSection group={group} />
       case 'books':
@@ -264,7 +281,23 @@ export function ClientGroupPage({
           </div>
         )
       default:
-        return <GroupTimeline activities={activities} />
+        return (
+          <div className="space-y-6">
+            <EnterpriseTimelineActivities
+              entityId={group.id}
+              entityType="group"
+              isOwnEntity={canEdit}
+              entityDisplayInfo={{
+                id: group.id,
+                name: group.name,
+                type: 'group' as const,
+                group_image: groupImageUrl ? { url: groupImageUrl } : undefined,
+                member_count: membersCount,
+                is_private: group.is_private
+              }}
+            />
+          </div>
+        )
     }
   }
 

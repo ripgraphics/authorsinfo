@@ -112,6 +112,8 @@ export interface PostMetadata {
   mentions?: string[]
   hashtags?: string[]
   custom_fields?: Record<string, any>
+  liked_activity_image?: string // Added for like activities
+  liked_activity_content?: string // Added for like activities
 }
 
 export interface PostVisibility {
@@ -145,12 +147,29 @@ export function hasTextContent(post: FeedPost): boolean {
 }
 
 export function getPostText(post: FeedPost): string {
+  // Handle like activities specifically
+  if (post.activity_type === 'like') {
+    return post.text || 'liked a post'
+  }
+  
   if (post.text) return post.text
   if (post.content?.text) return post.content.text
   return 'Post content'
 }
 
 export function getPostImages(post: FeedPost): string[] {
+  // Handle like activities - show the original post's image if available
+  if (post.activity_type === 'like') {
+    if (post.image_url) {
+      return post.image_url.split(',').map(url => url.trim()).filter(Boolean)
+    }
+    // Fallback to data field for like activities
+    if (post.metadata?.liked_activity_image) {
+      return [post.metadata.liked_activity_image]
+    }
+    return []
+  }
+  
   if (post.image_url) {
     return post.image_url.split(',').map(url => url.trim()).filter(Boolean)
   }
@@ -163,6 +182,11 @@ export function getPostImages(post: FeedPost): string[] {
 }
 
 export function getPostContentType(post: FeedPost): string {
+  // Handle like activities
+  if (post.activity_type === 'like') {
+    return 'like'
+  }
+  
   if (post.content_type) return post.content_type
   if (post.content_type_legacy) return post.content_type_legacy
   
@@ -172,4 +196,18 @@ export function getPostContentType(post: FeedPost): string {
   if (post.content?.links && post.content.links.length > 0) return 'link'
   
   return 'text'
+}
+
+// New utility function for like activities
+export function isLikeActivity(post: FeedPost): boolean {
+  return post.activity_type === 'like'
+}
+
+export function getLikeActivitySummary(post: FeedPost): string {
+  if (!isLikeActivity(post)) return ''
+  
+  const userName = post.user_name || 'User'
+  const likedContent = post.text || post.metadata?.liked_activity_content || 'a post'
+  
+  return `${userName} liked ${likedContent}`
 }

@@ -4,6 +4,7 @@ import { User } from '@supabase/supabase-js'
 
 interface UserWithRole extends User {
   role?: string
+  permalink?: string | null
 }
 
 export function useAuth() {
@@ -39,18 +40,20 @@ export function useAuth() {
               if (data.user) {
                 setUser(data.user)
               } else {
-                // Fallback to user without role
+                // Fallback to user without role and permalink
                 const userWithRole = {
                   ...session.user,
-                  role: 'user'
+                  role: 'user',
+                  permalink: null
                 }
                 setUser(userWithRole)
               }
             } else {
-              // Fallback to user without role
+              // Fallback to user without role and permalink
               const userWithRole = {
                 ...session.user,
-                role: 'user'
+                role: 'user',
+                permalink: null
               }
               setUser(userWithRole)
             }
@@ -62,10 +65,11 @@ export function useAuth() {
               console.error('Error fetching user from API:', apiError)
             }
             
-            // Fallback to user without role
+            // Fallback to user without role and permalink
             const userWithRole = {
               ...session.user,
-              role: 'user'
+              role: 'user',
+              permalink: null
             }
             setUser(userWithRole)
           }
@@ -94,18 +98,20 @@ export function useAuth() {
                 if (data.user) {
                   setUser(data.user)
                 } else {
-                  // Fallback to user without role
+                  // Fallback to user without role and permalink
                   const userWithRole = {
                     ...session.user,
-                    role: 'user'
+                    role: 'user',
+                    permalink: null
                   }
                   setUser(userWithRole)
                 }
               } else {
-                // Fallback to user without role
+                // Fallback to user without role and permalink
                 const userWithRole = {
                   ...session.user,
-                  role: 'user'
+                  role: 'user',
+                  permalink: null
                 }
                 setUser(userWithRole)
               }
@@ -117,10 +123,11 @@ export function useAuth() {
                 console.error('Error fetching user from API:', apiError)
               }
               
-              // Fallback to user without role
+              // Fallback to user without role and permalink
               const userWithRole = {
                 ...session.user,
-                role: 'user'
+                role: 'user',
+                permalink: null
               }
               setUser(userWithRole)
             }

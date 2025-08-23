@@ -350,6 +350,11 @@ export default function EntityFeedCard({
       dataContentType: post.data?.content_type
     })
     
+    // Handle like activities specifically
+    if (post.activity_type === 'like') {
+      return 'like'
+    }
+    
     // Try to get content type from various possible locations
     if (post.content_type) return post.content_type
     if (post.content?.type) return post.content.type
@@ -958,6 +963,74 @@ export default function EntityFeedCard({
                 <p className="text-sm text-muted-foreground">{content.text}</p>
               </div>
             )}
+          </div>
+        )
+
+      case 'like':
+        return (
+          <div className="enterprise-feed-card-like-content">
+            <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex-shrink-0">
+                <Heart className="h-6 w-6 text-red-500 fill-current" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <Avatar
+                    src={post.user_avatar_url}
+                    alt={post.user_name || 'User'}
+                    name={post.user_name}
+                    size="sm"
+                    className="h-8 w-8"
+                  />
+                  <div>
+                    <span className="font-semibold text-sm">{post.user_name || 'User'}</span>
+                    <span className="text-sm text-muted-foreground ml-2">
+                      {post.metadata?.aggregated_likes_count > 1 
+                        ? `and ${post.metadata.aggregated_likes_count - 1} others liked a post`
+                        : 'liked a post'
+                      }
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Show recent likers if aggregated */}
+                {post.metadata?.recent_likers && post.metadata.recent_likers.length > 1 && (
+                  <div className="flex items-center gap-1 mb-2">
+                    <span className="text-xs text-muted-foreground">Recent likers:</span>
+                    {post.metadata.recent_likers.slice(0, 3).map((liker, index) => (
+                      <span key={index} className="text-xs font-medium text-blue-600">
+                        {liker}{index < Math.min(2, post.metadata.recent_likers.length - 1) ? ', ' : ''}
+                      </span>
+                    ))}
+                    {post.metadata.recent_likers.length > 3 && (
+                      <span className="text-xs text-muted-foreground">
+                        and {post.metadata.recent_likers.length - 3} more
+                      </span>
+                    )}
+                  </div>
+                )}
+                
+                {/* Show the original post content if available */}
+                {post.metadata?.liked_activity_content && (
+                  <div className="bg-white p-3 rounded border-l-4 border-blue-300">
+                    <p className="text-sm text-gray-700">
+                      "{post.metadata.liked_activity_content}"
+                    </p>
+                  </div>
+                )}
+                
+                {/* Show the original post image if available */}
+                {post.metadata?.liked_activity_image && (
+                  <div className="mt-2">
+                    <img
+                      src={post.metadata.liked_activity_image}
+                      alt="Liked post content"
+                      className="w-16 h-16 object-cover rounded border"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )
 

@@ -49,6 +49,7 @@ import { ViewFullDetailsButton } from "@/components/ui/ViewFullDetailsButton"
 import { TimelineAboutSection } from "@/components/author/TimelineAboutSection"
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter, useSearchParams } from "next/navigation"
+import EnterpriseTimelineActivities from '@/components/enterprise-timeline-activities'
 
 interface ClientPublisherPageProps {
   publisher: any
@@ -417,84 +418,18 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
                   <div className="lg:col-span-2 space-y-6">
                     {/* Activity Feed */}
                     <div className="space-y-6">
-                      {mockActivities.map((activity) => (
-                        <Card key={activity.id}>
-                          <div className="flex flex-col space-y-1.5 p-6 pb-3">
-                            <div className="flex justify-between">
-                              <div className="flex items-center gap-3">
-                                <span className="relative flex shrink-0 overflow-hidden rounded-full h-10 w-10">
-                                  <img
-                                    src={publisherImageUrl || "/placeholder.svg?height=200&width=200"}
-                              alt={publisher?.name || "Publisher Name"}
-                                    className="aspect-square h-full w-full"
-                                  />
-                                </span>
-                                <div>
-                            <div className="font-medium">{publisher?.name || "Publisher Name"}</div>
-                                  <div className="text-xs text-muted-foreground">{activity.timeAgo}</div>
-                                </div>
-                              </div>
-                              <Button variant="ghost" size="icon">
-                                <Ellipsis className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                          <div className="p-6 pt-0 pb-3">
-                            {activity.type === "rating" && (
-                              <p>
-                                Rated{" "}
-                                <Link href="#" className="text-primary hover:underline font-medium">
-                                  {activity.bookTitle}
-                                </Link>{" "}
-                                by {activity.bookAuthor} {activity.rating} stars
-                              </p>
-                            )}
-                            {activity.type === "finished" && (
-                              <p>
-                                Finished reading{" "}
-                                <Link href="#" className="text-primary hover:underline font-medium">
-                                  {activity.bookTitle}
-                                </Link>{" "}
-                                by {activity.bookAuthor}
-                              </p>
-                            )}
-                            {activity.type === "added" && (
-                              <p>
-                                Added{" "}
-                                <Link href="#" className="text-primary hover:underline font-medium">
-                                  {activity.bookTitle}
-                                </Link>{" "}
-                                by {activity.bookAuthor} to {activity.shelf}
-                              </p>
-                            )}
-                            {activity.type === "reviewed" && (
-                              <p>
-                                Reviewed{" "}
-                                <Link href="#" className="text-primary hover:underline font-medium">
-                                  {activity.bookTitle}
-                                </Link>{" "}
-                                by {activity.bookAuthor}
-                              </p>
-                            )}
-                          </div>
-                          <div className="p-6 flex items-center justify-between py-3">
-                            <div className="flex items-center gap-6">
-                              <Button variant="ghost" size="sm" className="gap-1">
-                                <Heart className="h-4 w-4" />
-                                <span>Like</span>
-                              </Button>
-                              <Button variant="ghost" size="sm" className="gap-1">
-                                <MessageSquare className="h-4 w-4" />
-                                <span>Comment</span>
-                              </Button>
-                              <Button variant="ghost" size="sm">
-                                <Share2 className="h-4 w-4" />
-                                <span className="ml-1">Share</span>
-                              </Button>
-                            </div>
-                          </div>
-                        </Card>
-                      ))}
+                      <EnterpriseTimelineActivities
+                        entityId={params.id}
+                        entityType="publisher"
+                        isOwnEntity={user && user.role === "admin"}
+                        entityDisplayInfo={publisher ? {
+                          id: params.id,
+                          name: publisher.name,
+                          type: 'publisher' as const,
+                          publisher_image: publisher.publisher_image,
+                          bookCount: booksCount || 0
+                        } : undefined}
+                      />
                     </div>
                   </div>
                 </div>

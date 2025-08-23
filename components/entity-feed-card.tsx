@@ -1388,6 +1388,19 @@ export default function EntityFeedCard({
                   onPostUpdated(updatedPost)
                 }
               }}
+              onCommentAdded={async (newComment) => {
+                // Add the new comment to the local state
+                setEngagementData(prev => ({
+                  ...prev,
+                  comments: [newComment, ...prev.comments]
+                }))
+                
+                // Update the post's comment count
+                if (onPostUpdated) {
+                  const updatedPost = { ...post, comment_count: (post.comment_count || 0) + 1 }
+                  onPostUpdated(updatedPost)
+                }
+              }}
             />
           </div>
         )}

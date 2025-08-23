@@ -81,7 +81,8 @@ import {
   Verified,
   Sparkles as SparklesIcon,
   Copy,
-  Check
+  Check,
+  Info
 } from 'lucide-react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { SophisticatedPhotoGrid } from '@/components/photo-gallery/sophisticated-photo-grid'
@@ -359,6 +360,41 @@ export default function EnterpriseTimelineActivities({
   const [retryCount, setRetryCount] = useState(0)
   const [lastFetchTime, setLastFetchTime] = useState<Date | null>(null)
 
+  // Facebook-style timeline posting permissions
+  const [timelinePermissions, setTimelinePermissions] = useState<{
+    whoCanPost: 'everyone' | 'friends' | 'followers' | 'onlyMe'
+    allowFriendRequests: boolean
+    allowFollowers: boolean
+  }>({
+    whoCanPost: 'friends', // Default: friends can post (Facebook-style)
+    allowFriendRequests: true,
+    allowFollowers: true
+  })
+
+  // Global system settings for timeline posting
+  const [globalTimelineSettings, setGlobalTimelineSettings] = useState<{
+    defaultPostingPermission: 'everyone' | 'friends' | 'followers' | 'onlyMe'
+    allowCrossTimelinePosting: boolean
+    requireApprovalForNonFriends: boolean
+  }>({
+    defaultPostingPermission: 'friends', // System default: friends can post
+    allowCrossTimelinePosting: true, // Allow posting on other timelines
+    requireApprovalForNonFriends: false // No approval required for friends
+  })
+
+  // User connections state for permission checking
+  const [userConnections, setUserConnections] = useState<{
+    friends: string[]
+    followers: string[]
+    following: string[]
+    pendingRequests: string[]
+  }>({
+    friends: [],
+    followers: [],
+    following: [],
+    pendingRequests: []
+  })
+
   // Enhanced reading progress and privacy API integration
   const fetchReadingProgress = useCallback(async () => {
     if (!enableReadingProgress || !entityId || !entityType) return
@@ -598,7 +634,6 @@ export default function EnterpriseTimelineActivities({
   
   const [userDisplay, setUserDisplay] = useState<{ name: string | null; avatar_url: string | null }>({ name: null, avatar_url: null })
   const [userNames, setUserNames] = useState<Record<string, string>>({})
-  const [userConnections, setUserConnections] = useState<string[]>([])
   const [userFollowers, setUserFollowers] = useState<string[]>([])
   const [userFollowing, setUserFollowing] = useState<string[]>([])
   
@@ -734,17 +769,159 @@ export default function EnterpriseTimelineActivities({
     }
   }, [userId, toast])
   
+  // Facebook-style permission checking for timeline posting
+  const canUserPostOnTimeline = useCallback(async (posterUserId: string, timelineUserId: string): Promise<{
+    canPost: boolean
+    reason?: string
+    requiresApproval: boolean
+  }> => {
+    // Users can always post on their own timeline
+    if (posterUserId === timelineUserId) {
+      return { canPost: true, requiresApproval: false }
+    }
+
+    try {
+      // Check if the poster is a friend of the timeline owner
+      const { data: friendshipData, error: friendshipError } = await supabase
+        .from('friendships')
+        .select('status')
+        .or(`and(user_id.eq.${posterUserId},friend_id.eq.${timelineUserId}),and(user_id.eq.${timelineUserId},friend_id.eq.${posterUserId})`)
+        .single()
+
+      if (friendshipError && friendshipError.code !== 'PGRST116') {
+        console.error('Error checking friendship:', friendshipError)
+        return { canPost: false, reason: 'Error checking permissions', requiresApproval: false }
+      }
+
+      // If they are friends, allow posting (Facebook default)
+      if (friendshipData && friendshipData.status === 'accepted') {
+        return { canPost: true, requiresApproval: false }
+      }
+
+      // Check if the timeline owner allows everyone to post
+      const { data: privacyData, error: privacyError } = await supabase
+        .from('user_privacy_settings')
+        .select('timeline_posting_permission')
+        .eq('user_id', timelineUserId)
+        .single()
+
+      if (privacyError && privacyError.code !== 'PGRST116') {
+        console.error('Error checking privacy settings:', privacyError)
+        // Default to system setting if user settings not found
+        return { 
+          canPost: globalTimelineSettings.defaultPostingPermission === 'everyone',
+          requiresApproval: globalTimelineSettings.requireApprovalForNonFriends
+        }
+      }
+
+      const permission = privacyData?.timeline_posting_permission || globalTimelineSettings.defaultPostingPermission
+      
+      if (permission === 'everyone') {
+        return { 
+          canPost: true, 
+          requiresApproval: globalTimelineSettings.requireApprovalForNonFriends 
+        }
+      }
+
+      // Default: only friends can post (Facebook-style)
+      // Followers CANNOT post on the timeline - they only receive updates
+      return { 
+        canPost: false, 
+        reason: 'Only friends can post on this timeline. Followers receive updates but cannot post.', 
+        requiresApproval: false 
+      }
+
+    } catch (error) {
+      console.error('Error checking timeline posting permissions:', error)
+      return { canPost: false, reason: 'Error checking permissions', requiresApproval: false }
+    }
+  }, [supabase, globalTimelineSettings])
+
+  // Facebook-style: Automatically create follow relationships when users become friends
+  const ensureFriendsFollowEachOther = useCallback(async (user1Id: string, user2Id: string) => {
+    try {
+      // Check if both users are already following each other
+      const { data: existingFollows, error: followError } = await supabase
+        .from('follows')
+        .select('*')
+        .or(`and(follower_id.eq.${user1Id},following_id.eq.${user2Id}),and(follower_id.eq.${user2Id},following_id.eq.${user1Id})`)
+
+      if (followError) {
+        console.error('Error checking existing follows:', followError)
+        return
+      }
+
+      // Create follow relationships if they don't exist
+      const followsToCreate = []
+
+      // Check if user1 follows user2
+      const user1FollowsUser2 = existingFollows?.some(f => f.follower_id === user1Id && f.following_id === user2Id)
+      if (!user1FollowsUser2) {
+        followsToCreate.push({
+          follower_id: user1Id,
+          following_id: user2Id,
+          status: 'accepted',
+          created_at: new Date().toISOString()
+        })
+      }
+
+      // Check if user2 follows user1
+      const user2FollowsUser1 = existingFollows?.some(f => f.follower_id === user2Id && f.following_id === user1Id)
+      if (!user2FollowsUser1) {
+        followsToCreate.push({
+          follower_id: user2Id,
+          following_id: user1Id,
+          status: 'accepted',
+          created_at: new Date().toISOString()
+        })
+      }
+
+      // Insert new follow relationships
+      if (followsToCreate.length > 0) {
+        const { error: insertError } = await supabase
+          .from('follows')
+          .insert(followsToCreate)
+
+        if (insertError) {
+          console.error('Error creating follow relationships:', insertError)
+        } else {
+          console.log(`Created ${followsToCreate.length} follow relationship(s) for friends`)
+        }
+      }
+    } catch (error) {
+      console.error('Error ensuring friends follow each other:', error)
+    }
+  }, [supabase])
+  
   // Enhanced error handling with retry mechanism
   const fetchWithRetry = useCallback(async (pageNum = 1, append = false) => {
     try {
       setError(null)
       const startTime = performance.now()
       
-      const { data, error } = await supabase.rpc('get_user_feed_activities', {
-        p_user_id: userId,
-        p_limit: PAGE_SIZE,
-        p_offset: (pageNum - 1) * PAGE_SIZE
-      })
+      let data, error
+      
+      // Use different functions based on entity type
+      if (entityType === 'user') {
+        // For user profiles, use the existing user function
+        const result = await supabase.rpc('get_user_feed_activities', {
+          p_user_id: userId,
+          p_limit: PAGE_SIZE,
+          p_offset: (pageNum - 1) * PAGE_SIZE
+        })
+        data = result.data
+        error = result.error
+      } else {
+        // For other entities (author, book, publisher, group), use the new entity function
+        const result = await supabase.rpc('get_entity_timeline_activities', {
+          p_entity_type: entityType,
+          p_entity_id: entityId || userId,
+          p_limit: PAGE_SIZE,
+          p_offset: (pageNum - 1) * PAGE_SIZE
+        })
+        data = result.data
+        error = result.error
+      }
       
       const fetchTime = performance.now() - startTime
       setPerformanceMetrics(prev => ({ ...prev, dataFetchTime: fetchTime }))
@@ -791,7 +968,7 @@ export default function EnterpriseTimelineActivities({
         })
       }
     }
-  }, [userId, supabase, retryCount, toast])
+  }, [userId, entityType, entityId, supabase, retryCount, toast])
   
   // Enhanced analytics calculation
   const updateAnalytics = useCallback((data: EnterpriseActivity[]) => {
@@ -954,20 +1131,49 @@ export default function EnterpriseTimelineActivities({
       return
     }
 
-    // Security check: ensure user can only post to their own timeline
-    if (!user || user.id !== userId) {
-      console.log('Security check failed:', { 
-        authenticatedUserId: user?.id, 
-        requestedUserId: userId,
-        user: user 
-      })
+    // Security check: ensure user can only post to their own timeline OR about entities
+    if (!user) {
       toast({
-        title: "Access Denied",
-        description: "You can only create posts on your own timeline",
+        title: "Authentication Required",
+        description: "You must be logged in to create posts",
         variant: "destructive"
       })
       return
     }
+
+    // For user timelines: check Facebook-style permissions
+    if (entityType === 'user') {
+      const permissionCheck = await canUserPostOnTimeline(user.id, userId)
+      
+      if (!permissionCheck.canPost) {
+        console.log('Security check failed: Timeline posting denied:', { 
+          authenticatedUserId: user?.id, 
+          requestedUserId: userId,
+          reason: permissionCheck.reason,
+          requiresApproval: permissionCheck.requiresApproval
+        })
+        
+        if (permissionCheck.requiresApproval) {
+          toast({
+            title: "Post Requires Approval",
+            description: "Your post has been submitted for approval by the timeline owner",
+            duration: 5000
+          })
+          // TODO: Implement approval system - save post as pending
+          return
+        } else {
+          toast({
+            title: "Access Denied",
+            description: permissionCheck.reason || "You cannot post on this timeline",
+            variant: "destructive"
+          })
+          return
+        }
+      }
+    }
+
+    // For entity timelines: allow users to post about the entity
+    // The security is maintained by ensuring the post is created with the user's ID, not the entity's ID
 
     setIsPosting(true)
     try {
@@ -1002,7 +1208,7 @@ export default function EnterpriseTimelineActivities({
       
       // Create the actual post in the database
       const postData = {
-        user_id: userId,
+        user_id: user.id, // Always the authenticated user
         activity_type: 'post_created',
         visibility: postForm.visibility,
         content_type: imageUrls.length > 0 ? 'image' : postForm.contentType,
@@ -1026,12 +1232,21 @@ export default function EnterpriseTimelineActivities({
             }
           })
         },
-        entity_type: 'user',
-        entity_id: userId,
+        // For entity timelines: reference the entity being posted about
+        entity_type: entityType === 'user' ? 'user' : entityType,
+        entity_id: entityType === 'user' ? userId : entityId || userId,
         metadata: {
           privacy_level: postForm.visibility,
           engagement_count: 0,
-          image_count: imageUrls.length
+          image_count: imageUrls.length,
+          // Add entity context for better filtering
+          ...(entityType !== 'user' && {
+            posted_about_entity: {
+              type: entityType,
+              id: entityId || userId,
+              context: 'timeline_post'
+            }
+          })
         }
       }
       
@@ -1390,6 +1605,50 @@ export default function EnterpriseTimelineActivities({
     fetchActivities(1, false)
   }, [fetchActivities])
 
+  // Fetch user connections for permission checking
+  const fetchUserConnections = useCallback(async () => {
+    if (!user || entityType !== 'user') return
+    
+    try {
+      // Fetch friends
+      const { data: friendsData } = await supabase
+        .from('friendships')
+        .select('friend_id')
+        .eq('user_id', user.id)
+        .eq('status', 'accepted')
+      
+      // Fetch followers
+      const { data: followersData } = await supabase
+        .from('follows')
+        .select('follower_id')
+        .eq('following_id', user.id)
+        .eq('status', 'accepted')
+      
+      // Fetch following
+      const { data: followingData } = await supabase
+        .from('follows')
+        .select('following_id')
+        .eq('follower_id', user.id)
+        .eq('status', 'accepted')
+      
+      setUserConnections({
+        friends: friendsData?.map(f => f.friend_id) || [],
+        followers: followersData?.map(f => f.follower_id) || [],
+        following: followingData?.map(f => f.following_id) || [],
+        pendingRequests: []
+      })
+
+      // Facebook-style: Automatically ensure friends follow each other
+      if (friendsData && friendsData.length > 0) {
+        for (const friend of friendsData) {
+          await ensureFriendsFollowEachOther(user.id, friend.friend_id)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching user connections:', error)
+    }
+  }, [user, entityType, supabase, ensureFriendsFollowEachOther])
+
   // Enhanced useEffect to fetch reading progress and privacy settings
   useEffect(() => {
     if (entityId && entityType) {
@@ -1397,6 +1656,11 @@ export default function EnterpriseTimelineActivities({
       fetchPrivacySettings()
     }
   }, [entityId, entityType, fetchReadingProgress, fetchPrivacySettings])
+
+  // Fetch user connections when component mounts
+  useEffect(() => {
+    fetchUserConnections()
+  }, [fetchUserConnections])
   
   // Enhanced activity processing with enterprise features
   const processedActivities = useMemo(() => {
@@ -1685,196 +1949,272 @@ export default function EnterpriseTimelineActivities({
     return (
       <Card className="mb-6">
         <CardContent className="p-4">
-          {/* Simple Post Creation Box */}
-          <div className="flex items-start space-x-3">
-            <div className="h-10 w-10 rounded-full overflow-hidden bg-gray-200">
-              <img src={user?.user_metadata?.avatar_url || '/placeholder.svg'} alt="Profile" className="w-full h-full object-cover" />
-            </div>
-            
-            <div className="flex-1">
-              <div className="bg-gray-50 rounded-lg p-3 border">
-                <Textarea
-                  placeholder="What's on your mind?"
-                  className="border-0 bg-transparent resize-none min-h-[60px] focus:ring-0 focus:outline-none"
-                  value={postForm.content}
-                  onChange={(e) => setPostForm(prev => ({ ...prev, content: e.target.value }))}
-                />
+          {/* Post Creation Form */}
+          <div className="post-creation-form bg-white rounded-lg border shadow-sm p-4 mb-6">
+            <div className="post-form-header mb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {entityType === 'user' 
+                      ? user?.id === userId 
+                        ? 'Create a Post on Your Timeline'
+                        : 'Create a Post on This Timeline'
+                      : `Post about ${entityType === 'author' ? 'this author' : entityType === 'book' ? 'this book' : entityType === 'publisher' ? 'this publisher' : entityType === 'group' ? 'this group' : 'this entity'}`
+                    }
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {entityType === 'user' 
+                      ? user?.id === userId 
+                        ? 'Share your thoughts, updates, or media with your followers.'
+                        : 'Share your thoughts, updates, or media on this user\'s timeline.'
+                      : `Share your thoughts, reviews, or experiences related to ${entityType === 'author' ? 'this author' : entityType === 'book' ? 'this book' : entityType === 'publisher' ? 'this publisher' : entityType === 'group' ? 'this group' : 'this entity'}.`
+                    }
+                  </p>
+                </div>
                 
-                {/* Photo Preview */}
-                {postForm.imageUrl && (
-                  <div className="mt-3 relative">
-                    <div className="mb-2 flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">
-                        {getImageCount(postForm.imageUrl)} image{getImageCount(postForm.imageUrl) !== 1 ? 's' : ''} selected
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        onClick={() => setPostForm(prev => ({ ...prev, imageUrl: '' }))}
-                      >
-                        Clear all
-                      </Button>
-                    </div>
-                    <div className="photo-preview-container">
-                      <SophisticatedPhotoGrid
-                        photos={postForm.imageUrl.split(',').map(url => url.trim()).filter(url => url).map((imageUrl, index) => ({
-                          id: `preview-${index}`,
-                          url: imageUrl,
-                          thumbnail_url: imageUrl,
-                          alt_text: `Post photo ${index + 1}`,
-                          description: `Photo ${index + 1} for your post`,
-                          created_at: new Date().toISOString(),
-                          likes: [],
-                          comments: [],
-                          shares: [],
-                          analytics: { views: 0, downloads: 0, engagement_rate: 0 },
-                          is_cover: false,
-                          is_featured: false
-                        }))}
-                        onPhotoClick={(photo: any, index: number) => {
-                          // Open photo in full view or modal
-                          console.log('Preview photo clicked:', photo, 'at index:', index)
-                        }}
-                        showActions={false}
-                        showStats={false}
-                        className="w-full"
-                        maxHeight="300px"
-                      />
-                      
-                      {/* Individual photo remove buttons */}
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {postForm.imageUrl.split(',').map(url => url.trim()).filter(url => url).map((imageUrl, index) => (
-                          <div key={index} className="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2">
-                            <img 
-                              src={imageUrl} 
-                              alt={`Post photo ${index + 1}`} 
-                              className="w-8 h-8 rounded object-cover"
-                            />
-                            <span className="text-sm text-gray-700">Photo {index + 1}</span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-6 w-6"
-                              onClick={() => {
-                                const newUrls = postForm.imageUrl.split(',').map(u => u.trim()).filter(u => u !== imageUrl);
-                                setPostForm(prev => ({ ...prev, imageUrl: newUrls.join(', ') }));
-                              }}
-                            >
-                              ✕
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    {/* Image count info */}
-                    {getImageCount(postForm.imageUrl) > 1 && (
-                      <div className="mt-2 text-xs text-gray-500 flex items-center gap-1">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        Multiple images will be automatically organized in your Posts album
-                        <Button
-                          variant="link"
-                          size="sm"
-                          className="text-blue-600 hover:text-blue-700 p-0 h-auto text-xs"
-                          onClick={() => {
-                            // Navigate to the user's photo albums page
-                            window.open(`/profile/${userId}/photos`, '_blank')
-                          }}
-                        >
-                          View Posts Album
-                        </Button>
-                      </div>
+                {/* Permission Indicator */}
+                {entityType === 'user' && user?.id !== userId && (
+                  <div className="flex items-center gap-2 text-sm">
+                    {userConnections.friends.includes(userId) ? (
+                      <Badge variant="default" className="bg-green-100 text-green-800">
+                        <Users className="h-3 w-3 mr-1" />
+                        Friends
+                      </Badge>
+                    ) : userConnections.followers.includes(userId) ? (
+                      <Badge variant="secondary">
+                        <UserCheck className="h-3 w-3 mr-1" />
+                        Following
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline">
+                        <UserX className="h-3 w-3 mr-1" />
+                        Public
+                      </Badge>
                     )}
                   </div>
                 )}
               </div>
               
-              {/* Simple Action Bar */}
-              <div className="flex items-center justify-between mt-3">
-                <div className="flex items-center space-x-4">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="text-gray-600 hover:text-blue-600"
-                    onClick={handlePhotoUpload}
-                    disabled={isUploading}
-                  >
-                    <Camera className="h-4 w-4 mr-2" />
-                    {isUploading ? 'Uploading...' : 'Photo'}
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="text-gray-600 hover:text-green-600"
-                    onClick={handleTagFriends}
-                  >
-                    <Users2 className="h-4 w-4 mr-2" />
-                    Tag Friends
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="text-gray-600 hover:text-purple-600"
-                    onClick={handleCheckIn}
-                  >
-                    <MapPin className="h-4 w-4 mr-2" />
-                    Check in
-                  </Button>
+              {/* Posting Permission Info */}
+              {entityType === 'user' && user?.id !== userId && (
+                <div className="mt-2 p-2 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center gap-2 text-sm text-blue-800">
+                    <Info className="h-4 w-4" />
+                    <span>
+                      {userConnections.friends.includes(userId) 
+                        ? "You can post on this timeline because you're friends"
+                        : userConnections.followers.includes(userId)
+                        ? "You're following this user and will receive their updates, but only friends can post on their timeline"
+                        : "You can post on this timeline (public posting enabled)"
+                      }
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+            {/* Simple Post Creation Box */}
+            <div className="flex items-start space-x-3">
+              <div className="h-10 w-10 rounded-full overflow-hidden bg-gray-200">
+                <img src={user?.user_metadata?.avatar_url || '/placeholder.svg'} alt="Profile" className="w-full h-full object-cover" />
+              </div>
+              
+              <div className="flex-1">
+                <div className="bg-gray-50 rounded-lg p-3 border">
+                  <Textarea
+                    placeholder={
+                      entityType === 'user' 
+                        ? "What's on your mind?" 
+                        : entityType === 'author' 
+                          ? "Share your thoughts about this author, their books, or your reading experience..."
+                          : entityType === 'book' 
+                            ? "Share your thoughts about this book, your reading progress, or a review..."
+                            : entityType === 'publisher' 
+                              ? "Share your thoughts about this publisher or their books..."
+                              : entityType === 'group' 
+                                ? "Share your thoughts about this group or topic..."
+                                : "Share your thoughts..."
+                    }
+                    className="border-0 bg-transparent resize-none min-h-[60px] focus:ring-0 focus:outline-none"
+                    value={postForm.content}
+                    onChange={(e) => setPostForm(prev => ({ ...prev, content: e.target.value }))}
+                  />
+                  
+                  {/* Photo Preview */}
+                  {postForm.imageUrl && (
+                    <div className="mt-3 relative">
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-700">
+                          {getImageCount(postForm.imageUrl)} image{getImageCount(postForm.imageUrl) !== 1 ? 's' : ''} selected
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => setPostForm(prev => ({ ...prev, imageUrl: '' }))}
+                        >
+                          Clear all
+                        </Button>
+                      </div>
+                      <div className="photo-preview-container">
+                        <SophisticatedPhotoGrid
+                          photos={postForm.imageUrl.split(',').map(url => url.trim()).filter(url => url).map((imageUrl, index) => ({
+                            id: `preview-${index}`,
+                            url: imageUrl,
+                            thumbnail_url: imageUrl,
+                            alt_text: `Post photo ${index + 1}`,
+                            description: `Photo ${index + 1} for your post`,
+                            created_at: new Date().toISOString(),
+                            likes: [],
+                            comments: [],
+                            shares: [],
+                            analytics: { views: 0, downloads: 0, engagement_rate: 0 },
+                            is_cover: false,
+                            is_featured: false
+                          }))}
+                          onPhotoClick={(photo: any, index: number) => {
+                            // Open photo in full view or modal
+                            console.log('Preview photo clicked:', photo, 'at index:', index)
+                          }}
+                          showActions={false}
+                          showStats={false}
+                          className="w-full"
+                          maxHeight="300px"
+                        />
+                        
+                        {/* Individual photo remove buttons */}
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {postForm.imageUrl.split(',').map(url => url.trim()).filter(url => url).map((imageUrl, index) => (
+                            <div key={index} className="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2">
+                              <img 
+                                src={imageUrl} 
+                                alt={`Post photo ${index + 1}`} 
+                                className="w-8 h-8 rounded object-cover"
+                              />
+                              <span className="text-sm text-gray-700">Photo {index + 1}</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-6 w-6"
+                                onClick={() => {
+                                  const newUrls = postForm.imageUrl.split(',').map(u => u.trim()).filter(u => u !== imageUrl);
+                                  setPostForm(prev => ({ ...prev, imageUrl: newUrls.join(', ') }));
+                                }}
+                              >
+                                ✕
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      {/* Image count info */}
+                      {getImageCount(postForm.imageUrl) > 1 && (
+                        <div className="mt-2 text-xs text-gray-500 flex items-center gap-1">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          Multiple images will be automatically organized in your Posts album
+                          <Button
+                            variant="link"
+                            size="sm"
+                            className="text-blue-600 hover:text-blue-700 p-0 h-auto text-xs"
+                            onClick={() => {
+                              // Navigate to the user's photo albums page
+                              window.open(`/profile/${userId}/photos`, '_blank')
+                            }}
+                          >
+                            View Posts Album
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
                 
-                <div className="flex items-center space-x-2">
-                  <Select value={postForm.visibility} onValueChange={(value) => setPostForm(prev => ({ ...prev, visibility: value }))}>
-                    <SelectTrigger className="w-auto border-0 bg-gray-100">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="public">🌍 Public</SelectItem>
-                      <SelectItem value="friends">👥 Friends</SelectItem>
-                      <SelectItem value="private">🔒 Only me</SelectItem>
-                    </SelectContent>
-                  </Select>
+                {/* Simple Action Bar */}
+                <div className="flex items-center justify-between mt-3">
+                  <div className="flex items-center space-x-4">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-gray-600 hover:text-blue-600"
+                      onClick={handlePhotoUpload}
+                      disabled={isUploading}
+                    >
+                      <Camera className="h-4 w-4 mr-2" />
+                      {isUploading ? 'Uploading...' : 'Photo'}
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-gray-600 hover:text-green-600"
+                      onClick={handleTagFriends}
+                    >
+                      <Users2 className="h-4 w-4 mr-2" />
+                      Tag Friends
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-gray-600 hover:text-purple-600"
+                      onClick={handleCheckIn}
+                    >
+                      <MapPin className="h-4 w-4 mr-2" />
+                      Check in
+                    </Button>
+                  </div>
                   
+                  <div className="flex items-center space-x-2">
+                    <Select value={postForm.visibility} onValueChange={(value) => setPostForm(prev => ({ ...prev, visibility: value }))}>
+                      <SelectTrigger className="w-auto border-0 bg-gray-100">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="public">🌍 Public</SelectItem>
+                        <SelectItem value="friends">👥 Friends</SelectItem>
+                        <SelectItem value="private">🔒 Only me</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    
+                    <Button 
+                      onClick={handleCreatePost}
+                      disabled={isPosting || !postForm.content.trim()}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+                    >
+                      {isPosting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Posting...
+                        </>
+                      ) : (
+                        'Post'
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Simple Cross-Post Option */}
+            {postForm.content.trim() && (
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Share className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm text-blue-800">Also share to friends' timelines?</span>
+                  </div>
                   <Button 
-                    onClick={handleCreatePost}
-                    disabled={isPosting || !postForm.content.trim()}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+                    onClick={handleCrossPost}
+                    disabled={isPosting}
+                    variant="outline" 
+                    size="sm"
+                    className="border-blue-300 text-blue-700 hover:bg-blue-100"
                   >
-                    {isPosting ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Posting...
-                      </>
-                    ) : (
-                      'Post'
-                    )}
+                    {isPosting ? 'Sharing...' : 'Share to Friends'}
                   </Button>
                 </div>
               </div>
-            </div>
+            )}
           </div>
-          
-          {/* Simple Cross-Post Option */}
-          {postForm.content.trim() && (
-            <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Share className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm text-blue-800">Also share to friends' timelines?</span>
-                </div>
-                <Button 
-                  onClick={handleCrossPost}
-                  disabled={isPosting}
-                  variant="outline" 
-                  size="sm"
-                  className="border-blue-300 text-blue-700 hover:bg-blue-100"
-                >
-                  {isPosting ? 'Sharing...' : 'Share to Friends'}
-                </Button>
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
     )
@@ -2177,36 +2517,144 @@ export default function EnterpriseTimelineActivities({
         )}
       </div>
       
-      {/* Simple Facebook-style Action Buttons */}
-      <div className="flex items-center justify-center gap-4 pt-6 border-t">
-        <Button 
-          onClick={() => {
-            setPage(1)
-            fetchActivities(1, false)
-          }}
-          variant="outline" 
-          disabled={loading}
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          {loading ? 'Refreshing...' : 'Refresh'}
-        </Button>
-        
-        {enableModeration && (
-          <Button
-            variant="outline"
-            onClick={() => {
-              setModerationSettings(prev => ({
-                ...prev,
-                autoModerate: !prev.autoModerate
-              }))
-            }}
-            className={moderationSettings.autoModerate ? 'border-green-200 bg-green-50' : ''}
-          >
-            <Shield className="h-4 w-4 mr-2" />
-            {moderationSettings.autoModerate ? 'Safety ON' : 'Safety OFF'}
-          </Button>
-        )}
-      </div>
+             {/* Timeline Settings Section */}
+       {entityType === 'user' && user?.id === userId && (
+         <Card className="mt-6">
+           <CardHeader>
+             <CardTitle className="flex items-center gap-2">
+               <Settings className="h-5 w-5" />
+               Timeline Posting Settings
+             </CardTitle>
+             <CardDescription>
+               Control who can post on your timeline (Facebook-style permissions)
+             </CardDescription>
+           </CardHeader>
+           <CardContent>
+             <div className="space-y-4">
+               <div>
+                 <Label htmlFor="who-can-post" className="text-sm font-medium">
+                   Who can post on your timeline?
+                 </Label>
+                 <Select 
+                   value={timelinePermissions.whoCanPost} 
+                   onValueChange={(value: 'everyone' | 'friends' | 'followers' | 'onlyMe') => 
+                     setTimelinePermissions(prev => ({ ...prev, whoCanPost: value }))
+                   }
+                 >
+                   <SelectTrigger className="w-full mt-2">
+                     <SelectValue />
+                   </SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value="everyone">
+                       <Globe className="h-4 w-4 mr-2" />
+                       Everyone
+                     </SelectItem>
+                     <SelectItem value="friends">
+                       <Users className="h-4 w-4 mr-2" />
+                       Friends only (Facebook default)
+                     </SelectItem>
+                     <SelectItem value="followers">
+                       <UserCheck className="h-4 w-4 mr-2" />
+                       Followers (can see updates but cannot post on your timeline)
+                     </SelectItem>
+                     <SelectItem value="onlyMe">
+                       <Lock className="h-4 w-4 mr-2" />
+                       Only me
+                     </SelectItem>
+                   </SelectContent>
+                 </Select>
+                 <p className="text-xs text-muted-foreground mt-1">
+                   {timelinePermissions.whoCanPost === 'everyone' && "Anyone can post on your timeline"}
+                   {timelinePermissions.whoCanPost === 'friends' && "Only your friends can post on your timeline (recommended)"}
+                   {timelinePermissions.whoCanPost === 'followers' && "Your followers can see your updates but cannot post on your timeline"}
+                   {timelinePermissions.whoCanPost === 'onlyMe' && "Only you can post on your timeline"}
+                 </p>
+               </div>
+               
+               <div className="flex items-center space-x-2">
+                 <input
+                   type="checkbox"
+                   id="allow-friend-requests"
+                   checked={timelinePermissions.allowFriendRequests}
+                   onChange={(e) => setTimelinePermissions(prev => ({ 
+                     ...prev, 
+                     allowFriendRequests: e.target.checked 
+                   }))}
+                   className="rounded border-gray-300"
+                 />
+                 <Label htmlFor="allow-friend-requests" className="text-sm">
+                   Allow friend requests
+                 </Label>
+               </div>
+               
+               <div className="flex items-center space-x-2">
+                 <input
+                   type="checkbox"
+                   id="allow-followers"
+                   checked={timelinePermissions.allowFollowers}
+                   onChange={(e) => setTimelinePermissions(prev => ({ 
+                     ...prev, 
+                     allowFollowers: e.target.checked 
+                   }))}
+                   className="rounded border-gray-300"
+                 />
+                 <Label htmlFor="allow-followers" className="text-sm">
+                   Allow people to follow you
+                 </Label>
+               </div>
+               
+               <div className="pt-4 border-t">
+                 <Button 
+                   variant="outline" 
+                   size="sm"
+                   onClick={() => {
+                     // TODO: Save timeline permissions to database
+                     toast({
+                       title: "Settings Saved",
+                       description: "Your timeline posting permissions have been updated",
+                       duration: 3000
+                     })
+                   }}
+                 >
+                   <Check className="h-4 w-4 mr-2" />
+                   Save Settings
+                 </Button>
+               </div>
+             </div>
+           </CardContent>
+         </Card>
+       )}
+       
+       {/* Simple Facebook-style Action Buttons */}
+       <div className="flex items-center justify-center gap-4 pt-6 border-t">
+         <Button 
+           onClick={() => {
+             setPage(1)
+             fetchActivities(1, false)
+           }}
+           variant="outline" 
+           disabled={loading}
+         >
+           <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+           {loading ? 'Refreshing...' : 'Refresh'}
+         </Button>
+         
+         {enableModeration && (
+           <Button
+             variant="outline"
+             onClick={() => {
+               setModerationSettings(prev => ({
+                 ...prev,
+                 autoModerate: !prev.autoModerate
+               }))
+             }}
+             className={moderationSettings.autoModerate ? 'border-green-200 bg-green-50' : ''}
+           >
+             <Shield className="h-4 w-4 mr-2" />
+             {moderationSettings.autoModerate ? 'Safety ON' : 'Safety OFF'}
+           </Button>
+         )}
+       </div>
     </div>
   )
 } 

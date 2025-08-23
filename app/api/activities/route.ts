@@ -263,14 +263,35 @@ export async function DELETE(request: NextRequest) {
     const body = await request.json()
     const { id } = body
 
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Missing activity ID' },
+        { status: 400 }
+      )
+    }
+
     // Check if activity exists and user owns it
     const { data: existingActivity, error: fetchError } = await supabase
       .from('activities')
-      .select('user_id, activity_type')
+      .select('user_id, activity_type, entity_type, content_type')
       .eq('id', id)
       .single()
 
     if (fetchError) {
+      console.error('Error fetching activity for deletion:', fetchError)
+      if (fetchError.code === 'PGRST116') {
+        return NextResponse.json(
+          { error: 'Activity not found' },
+          { status: 404 }
+        )
+      }
+      return NextResponse.json(
+        { error: 'Failed to fetch activity' },
+        { status: 500 }
+      )
+    }
+
+    if (!existingActivity) {
       return NextResponse.json(
         { error: 'Activity not found' },
         { status: 404 }
@@ -284,9 +305,21 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    if (existingActivity.activity_type !== 'post_created') {
+    // More flexible validation - allow deletion of various activity types
+    const allowedActivityTypes = ['post_created', 'book_added', 'review_created', 'list_created']
+    const isDeletableActivity = allowedActivityTypes.includes(existingActivity.activity_type) ||
+                               existingActivity.content_type === 'text' ||
+                               existingActivity.content_type === 'image' ||
+                               existingActivity.content_type === 'video'
+
+    if (!isDeletableActivity) {
+      console.log('Activity type not allowed for deletion:', {
+        activityType: existingActivity.activity_type,
+        contentType: existingActivity.content_type,
+        entityType: existingActivity.entity_type
+      })
       return NextResponse.json(
-        { error: 'Only posts can be deleted' },
+        { error: `Activity type '${existingActivity.activity_type}' cannot be deleted` },
         { status: 400 }
       )
     }

@@ -20,9 +20,9 @@ export async function POST(request: NextRequest) {
     console.log('User authenticated:', { id: user.id, email: user.email })
 
     const body = await request.json()
-    const { post_id, user_id, content, entity_type, entity_id } = body
+    const { post_id, user_id, content, entity_type, entity_id, parent_comment_id } = body
 
-    console.log('Comment submission data:', { post_id, user_id, content, entity_type, entity_id })
+    console.log('Comment submission data:', { post_id, user_id, content, entity_type, entity_id, parent_comment_id })
 
     // Validate required fields
     if (!post_id || !user_id || !content || !entity_type || !entity_id) {
@@ -49,6 +49,71 @@ export async function POST(request: NextRequest) {
       }, { status: 403 })
     }
 
+    // If this is a reply, validate the parent comment exists
+    if (parent_comment_id) {
+      // Check if parent comment exists in the appropriate table
+      let parentComment;
+      switch (entity_type) {
+        case 'event':
+          const { data: eventParent } = await supabase
+            .from('event_comments')
+            .select('id')
+            .eq('id', parent_comment_id)
+            .single();
+          parentComment = eventParent;
+          break;
+        case 'photo':
+          const { data: photoParent } = await supabase
+            .from('photo_comments')
+            .select('id')
+            .eq('id', parent_comment_id)
+            .single();
+          parentComment = photoParent;
+          break;
+        case 'activity':
+          const { data: activityParent } = await supabase
+            .from('activity_comments')
+            .select('id')
+            .eq('id', parent_comment_id)
+            .single();
+          parentComment = activityParent;
+          break;
+        case 'book_club_discussion':
+          const { data: bookClubParent } = await supabase
+            .from('book_club_discussion_comments')
+            .select('id')
+            .eq('id', parent_comment_id)
+            .single();
+          parentComment = bookClubParent;
+          break;
+        case 'discussion':
+          const { data: discussionParent } = await supabase
+            .from('discussion_comments')
+            .select('id')
+            .eq('id', parent_comment_id)
+            .single();
+          parentComment = discussionParent;
+          break;
+        case 'post':
+        default:
+          const { data: postParent } = await supabase
+            .from('post_comments')
+            .select('id')
+            .eq('id', parent_comment_id)
+            .single();
+          parentComment = postParent;
+          break;
+      }
+
+      if (!parentComment) {
+        console.error('Parent comment not found:', parent_comment_id)
+        return NextResponse.json({ 
+          error: 'Parent comment not found',
+          details: 'The comment you are replying to does not exist'
+        }, { status: 404 })
+      }
+    }
+
     let comment;
     let insertError;
 
@@ -62,6 +127,7 @@ export async function POST(request: NextRequest) {
             event_id: entity_id,
             user_id,
             content: content.trim(),
+            parent_comment_id,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           }])
@@ -87,6 +153,7 @@ export async function POST(request: NextRequest) {
             photo_id: entity_id,
             user_id,
             content: content.trim(),
+            parent_comment_id,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           }])
@@ -112,6 +179,7 @@ export async function POST(request: NextRequest) {
             post_id: entity_id,
             user_id,
             content: content.trim(),
+            parent_comment_id,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           }])
@@ -127,6 +195,84 @@ export async function POST(request: NextRequest) {
         
         comment = postComment;
         insertError = postError;
+        break;
+
+      case 'activity':
+        // Use activity_comments table
+        const { data: activityComment, error: activityError } = await supabase
+          .from('activity_comments')
+          .insert([{
+            activity_id: entity_id,
+            user_id,
+            content: content.trim(),
+            parent_comment_id,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }])
+          .select(`
+            *,
+            user:users!activity_comments_user_id_fkey(
+              id,
+              email,
+              name
+            )
+          `)
+          .single()
+        
+        comment = activityComment;
+        insertError = activityError;
+        break;
+
+      case 'book_club_discussion':
+        // Use book_club_discussion_comments table
+        const { data: bookClubComment, error: bookClubError } = await supabase
+          .from('book_club_discussion_comments')
+          .insert([{
+            discussion_id: entity_id,
+            user_id,
+            content: content.trim(),
+            parent_comment_id,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }])
+          .select(`
+            *,
+            user:users!book_club_discussion_comments_user_id_fkey(
+              id,
+              email,
+              name
+            )
+          `)
+          .single()
+        
+        comment = bookClubComment;
+        insertError = bookClubError;
+        break;
+
+      case 'discussion':
+        // Use discussion_comments table
+        const { data: discussionComment, error: discussionError } = await supabase
+          .from('discussion_comments')
+          .insert([{
+            discussion_id: entity_id,
+            user_id,
+            content: content.trim(),
+            parent_comment_id,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }])
+          .select(`
+            *,
+            user:users!discussion_comments_user_id_fkey(
+              id,
+              email,
+              name
+            )
+          `)
+          .single()
+        
+        comment = discussionComment;
+        insertError = discussionError;
         break;
 
       default:
@@ -438,6 +584,7 @@ export async function GET(request: NextRequest) {
       error = result.error;
       count = result.count;
     } else if (entity_type === 'post') {
+      // Fetch comments with nested replies support
       const result = await supabase
         .from('post_comments')
         .select(`
@@ -446,11 +593,27 @@ export async function GET(request: NextRequest) {
             id,
             email,
             name
+          ),
+          replies:post_comments!post_comments_parent_comment_id_fkey(
+            id,
+            content,
+            created_at,
+            updated_at,
+            parent_comment_id,
+            comment_depth,
+            thread_id,
+            reply_count,
+            user:users!post_comments_user_id_fkey(
+              id,
+              email,
+              name
+            )
           )
         `, { count: 'exact' })
         .eq('post_id', post_id)
         .eq('is_hidden', false)
         .eq('is_deleted', false)
+        .is('parent_comment_id', null) // Only top-level comments
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1)
       

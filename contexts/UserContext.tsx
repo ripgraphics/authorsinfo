@@ -1,4 +1,6 @@
-import { useEffect, useState, useMemo, useRef } from 'react'
+'use client'
+
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { User } from '@supabase/supabase-js'
 import { deduplicatedRequest, debounce } from '@/lib/request-utils'
@@ -8,14 +10,22 @@ interface UserWithRole extends User {
   permalink?: string | null
 }
 
-export function useAuth() {
+interface UserContextType {
+  user: UserWithRole | null
+  loading: boolean
+  refreshUser: () => Promise<void>
+}
+
+const UserContext = createContext<UserContextType | undefined>(undefined)
+
+export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserWithRole | null>(null)
   const [loading, setLoading] = useState(true)
   const supabase = createClientComponentClient()
-  const isInitialized = useRef(false)
+  const isInitialized = React.useRef(false)
 
   // Debounced setUser to reduce state updates
-  const debouncedSetUser = useMemo(
+  const debouncedSetUser = React.useMemo(
     () => debounce(setUser, 100),
     []
   )
@@ -62,6 +72,15 @@ export function useAuth() {
       },
       5 * 60 * 1000 // 5 minutes cache
     )
+  }
+
+  // Refresh user data (for manual refresh)
+  const refreshUser = async () => {
+    // Clear cache to force fresh fetch
+    const userData = await fetchUserData()
+    if (userData) {
+      debouncedSetUser(userData)
+    }
   }
 
   // Initialize user data
@@ -122,5 +141,29 @@ export function useAuth() {
     }
   }, [])
 
+  const value: UserContextType = {
+    user,
+    loading,
+    refreshUser
+  }
+
+  return (
+    <UserContext.Provider value={value}>
+      {children}
+    </UserContext.Provider>
+  )
+}
+
+export function useUser() {
+  const context = useContext(UserContext)
+  if (context === undefined) {
+    throw new Error('useUser must be used within a UserProvider')
+  }
+  return context
+}
+
+// Backward compatibility hook
+export function useAuth() {
+  const { user, loading } = useUser()
   return { user, loading }
-} 
+}

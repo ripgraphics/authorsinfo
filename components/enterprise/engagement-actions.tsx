@@ -13,15 +13,18 @@ import {
   TrendingUp,
   Zap,
   Send,
-  X
+  X,
+  ChevronDown
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/useAuth"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 interface EngagementActionsProps {
   entityId: string
   entityType: 'user' | 'book' | 'author' | 'publisher' | 'group'
   initialEngagementCount?: number
+  commentCount?: number
   isLiked?: boolean
   isCommented?: boolean
   isShared?: boolean
@@ -40,6 +43,7 @@ export function EngagementActions({
   entityId,
   entityType,
   initialEngagementCount = 0,
+  commentCount = 0,
   isLiked = false,
   isCommented = false,
   isShared = false,
@@ -155,88 +159,6 @@ export function EngagementActions({
       setLoading(null)
     }
   }, [loading, liked, shared, entityId, entityType, onEngagement, showCommentInput, toast])
-
-  const testCommentSubmission = async () => {
-    try {
-      console.log('Testing comment submission...')
-      
-      const testData = {
-        post_id: entityId,
-        user_id: user?.id,
-        content: 'Test comment for debugging',
-        entity_type: entityType,
-        entity_id: entityId
-      }
-      
-      console.log('Test comment data:', testData)
-      
-      const response = await fetch('/api/comments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(testData)
-      })
-      
-      const data = await response.json()
-      console.log('Test comment response:', { status: response.status, data })
-      
-      if (response.ok) {
-        toast({
-          title: "Test Comment Successful",
-          description: "Comment submission is working",
-          duration: 3000
-        })
-      } else {
-        toast({
-          title: "Test Comment Failed",
-          description: data.error || data.details || "Unknown error",
-          variant: "destructive",
-          duration: 3000
-        })
-      }
-    } catch (error) {
-      console.error('Test comment failed:', error)
-      toast({
-        title: "Test Comment Failed",
-        description: "Could not submit test comment",
-        variant: "destructive",
-        duration: 3000
-      })
-    }
-  }
-
-  const testAPI = async () => {
-    try {
-      console.log('Testing API connection...')
-      const response = await fetch('/api/comments?test=true')
-      const data = await response.json()
-      console.log('API test response:', data)
-      
-      if (data.success) {
-        toast({
-          title: "API Test Successful",
-          description: `API is working. User: ${data.user.email}`,
-          duration: 3000
-        })
-      } else {
-        toast({
-          title: "API Test Failed",
-          description: data.error || "Unknown error",
-          variant: "destructive",
-          duration: 3000
-        })
-      }
-    } catch (error) {
-      console.error('API test failed:', error)
-      toast({
-        title: "API Test Failed",
-        description: "Could not connect to API",
-        variant: "destructive",
-        duration: 3000
-      })
-    }
-  }
 
   const handleSubmitComment = useCallback(async () => {
     if (!user) {
@@ -427,26 +349,64 @@ export function EngagementActions({
         </Badge>
         )}
 
-        {/* Debug Test Button - Remove in production */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={testAPI}
-          className="ml-auto text-xs text-gray-500 hover:text-gray-700"
-        >
-          Test API
-        </Button>
-
-        {/* Debug Test Comment Button - Remove in production */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={testCommentSubmission}
-          className="ml-auto text-xs text-gray-500 hover:text-gray-700"
-        >
-          Test Comment
-        </Button>
       </div>
+
+      {/* Facebook-Style Engagement Summary with Hover Dropdowns */}
+      {(engagementCount > 0 || commentCount > 0) && (
+        <div className="px-0 py-2 border-b border-gray-100">
+          <div className="flex items-center gap-4 text-sm text-gray-600">
+            {/* Like Count with Hover Dropdown */}
+            {engagementCount > 0 && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-auto p-0 text-sm text-gray-600 hover:text-gray-900">
+                    <Heart className="w-4 h-4 mr-1 fill-current text-blue-600" />
+                    {engagementCount} {engagementCount === 1 ? 'person' : 'people'} liked this
+                    <ChevronDown className="w-3 h-3 ml-1" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-0" align="start">
+                  <div className="p-3 border-b">
+                    <h4 className="font-medium text-sm">People who liked this</h4>
+                  </div>
+                  <div className="max-h-60 overflow-y-auto">
+                    {/* This would be populated with actual likers data */}
+                    <div className="p-3 text-center text-gray-500">
+                      <div className="w-8 h-8 rounded-full bg-gray-200 mx-auto mb-2"></div>
+                      <div className="text-sm">Loading likers...</div>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
+
+            {/* Comment Count with Hover Dropdown */}
+            {commentCount > 0 && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-auto p-0 text-sm text-gray-600 hover:text-gray-900">
+                    <MessageSquare className="w-4 h-4 mr-1" />
+                    {commentCount} {commentCount === 1 ? 'comment' : 'comments'}
+                    <ChevronDown className="w-3 h-3 ml-1" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-0" align="start">
+                  <div className="p-3 border-b">
+                    <h4 className="font-medium text-sm">People who commented</h4>
+                  </div>
+                  <div className="max-h-60 overflow-y-auto">
+                    {/* This would be populated with actual commenters data */}
+                    <div className="p-3 text-center text-gray-500">
+                      <div className="w-8 h-8 rounded-full bg-gray-200 mx-auto mb-2"></div>
+                      <div className="text-sm">Loading commenters...</div>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Comment Input Section */}
       {showCommentInput && (

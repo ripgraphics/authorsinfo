@@ -46,7 +46,7 @@ button[class*="close-button"] {
 [class*="close-button"]:hover,
 button[class*="close"]:hover,
 button[class*="close-button"]:hover {
-  background-color: #40A3D8 !important;
+  background-color: hsl(var(--secondary)) !important;
 }
 
 .close-button:focus,
@@ -56,7 +56,11 @@ button[class*="close-button"]:focus {
   outline: none !important;
 }
 
-
+/* Global button hover behavior - default to secondary color on hover */
+button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([class*="destructive"]):not([class*="secondary"]):hover {
+  background-color: hsl(var(--secondary)) !important;
+  transition: background-color 0.2s ease-in-out !important;
+}
 
 /* Ensure close buttons in hover cards use primary styling with secondary hover */
 [data-radix-hover-card-content] button[class*="close"],
@@ -67,7 +71,7 @@ button[class*="close-button"]:focus {
 
 [data-radix-hover-card-content] button[class*="close"]:hover,
 [data-radix-hover-card-content] .close-button:hover {
-  background-color: #40A3D8 !important;
+  background-color: hsl(var(--secondary)) !important;
 }
 
 [data-radix-hover-card-content] * {
@@ -177,7 +181,7 @@ button[class*="close-button"]:focus {
     --popover-foreground: 222.2 84% 4.9%;
     --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
+    --secondary: 210 100% 67%;
     --secondary-foreground: 222.2 84% 4.9%;
     --muted: 210 40% 96%;
     --muted-foreground: 215.4 16.3% 46.9%;
@@ -212,7 +216,7 @@ button[class*="close-button"]:focus {
     --popover-foreground: 210 40% 98%;
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 210 100% 67%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;

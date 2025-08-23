@@ -76,12 +76,49 @@ export function EngagementActions({
 
     setLoading(action)
     try {
-      // Optimistic update
+      // For likes, call the API first, then update UI
+      if (action === 'like') {
+        const response = await fetch('/api/likes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            activity_id: entityId,
+            entity_type: entityType,
+            entity_id: entityId
+          })
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Failed to update like')
+        }
+
+        const result = await response.json()
+        
+        // Update UI based on API response
+        if (result.action === 'liked') {
+          setLiked(true)
+          setEngagementCount(prev => prev + 1)
+        } else if (result.action === 'unliked') {
+          setLiked(false)
+          setEngagementCount(prev => Math.max(0, prev - 1))
+        }
+
+        // Call the engagement handler if provided
+        if (onEngagement) {
+          await onEngagement(action, entityId, entityType)
+        }
+
+        // Track analytics
+        await trackEngagementAnalytics(action, entityId, entityType)
+        
+        return
+      }
+
+      // For other actions, use optimistic updates
       switch (action) {
-        case 'like':
-          setLiked(!liked)
-          setEngagementCount(prev => liked ? prev - 1 : prev + 1)
-          break
         case 'share':
           setShared(!shared)
           setEngagementCount(prev => shared ? prev - 1 : prev + 1)
@@ -97,27 +134,115 @@ export function EngagementActions({
       await trackEngagementAnalytics(action, entityId, entityType)
     } catch (error) {
       console.error(`Error handling ${action}:`, error)
-      // Revert optimistic update on error
-      switch (action) {
-        case 'like':
-          setLiked(liked)
-          setEngagementCount(prev => liked ? prev + 1 : prev - 1)
-          break
-        case 'share':
-          setShared(shared)
-          setEngagementCount(prev => shared ? prev + 1 : prev - 1)
-          break
+      
+      // Show error toast
+      toast({
+        title: `Failed to ${action}`,
+        description: error instanceof Error ? error.message : 'An error occurred',
+        variant: "destructive"
+      })
+      
+      // Revert optimistic update on error for non-like actions
+      if (action !== 'like') {
+        switch (action) {
+          case 'share':
+            setShared(shared)
+            setEngagementCount(prev => shared ? prev + 1 : prev - 1)
+            break
+        }
       }
     } finally {
       setLoading(null)
     }
-  }, [loading, liked, shared, entityId, entityType, onEngagement, showCommentInput])
+  }, [loading, liked, shared, entityId, entityType, onEngagement, showCommentInput, toast])
+
+  const testCommentSubmission = async () => {
+    try {
+      console.log('Testing comment submission...')
+      
+      const testData = {
+        post_id: entityId,
+        user_id: user?.id,
+        content: 'Test comment for debugging',
+        entity_type: entityType,
+        entity_id: entityId
+      }
+      
+      console.log('Test comment data:', testData)
+      
+      const response = await fetch('/api/comments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(testData)
+      })
+      
+      const data = await response.json()
+      console.log('Test comment response:', { status: response.status, data })
+      
+      if (response.ok) {
+        toast({
+          title: "Test Comment Successful",
+          description: "Comment submission is working",
+          duration: 3000
+        })
+      } else {
+        toast({
+          title: "Test Comment Failed",
+          description: data.error || data.details || "Unknown error",
+          variant: "destructive",
+          duration: 3000
+        })
+      }
+    } catch (error) {
+      console.error('Test comment failed:', error)
+      toast({
+        title: "Test Comment Failed",
+        description: "Could not submit test comment",
+        variant: "destructive",
+        duration: 3000
+      })
+    }
+  }
+
+  const testAPI = async () => {
+    try {
+      console.log('Testing API connection...')
+      const response = await fetch('/api/comments?test=true')
+      const data = await response.json()
+      console.log('API test response:', data)
+      
+      if (data.success) {
+        toast({
+          title: "API Test Successful",
+          description: `API is working. User: ${data.user.email}`,
+          duration: 3000
+        })
+      } else {
+        toast({
+          title: "API Test Failed",
+          description: data.error || "Unknown error",
+          variant: "destructive",
+          duration: 3000
+        })
+      }
+    } catch (error) {
+      console.error('API test failed:', error)
+      toast({
+        title: "API Test Failed",
+        description: "Could not connect to API",
+        variant: "destructive",
+        duration: 3000
+      })
+    }
+  }
 
   const handleSubmitComment = useCallback(async () => {
     if (!user) {
       toast({
         title: "Authentication Required",
-        description: "You must be logged in to comment",
+        description: "Please log in to comment",
         variant: "destructive"
       })
       return
@@ -144,6 +269,10 @@ export function EngagementActions({
         created_at: new Date().toISOString()
       }
 
+      console.log('Submitting comment with data:', commentData)
+      console.log('User object:', { id: user?.id, email: user?.email })
+      console.log('Entity details:', { entityId, entityType })
+
       // Submit comment to API
       const response = await fetch('/api/comments', {
         method: 'POST',
@@ -153,11 +282,32 @@ export function EngagementActions({
         body: JSON.stringify(commentData)
       })
 
+      console.log('Comment submission response status:', response.status)
+      console.log('Comment submission response headers:', Object.fromEntries(response.headers.entries()))
+
       if (!response.ok) {
-        throw new Error('Failed to submit comment')
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`
+        
+        try {
+          const errorData = await response.json()
+          if (errorData && errorData.error) {
+            errorMessage = errorData.error
+          } else if (errorData && errorData.details) {
+            errorMessage = errorData.details
+          } else if (errorData && Object.keys(errorData).length > 0) {
+            errorMessage = JSON.stringify(errorData)
+          }
+        } catch (parseError) {
+          console.warn('Could not parse error response:', parseError)
+          // Keep the default error message if parsing fails
+        }
+        
+        console.error('Comment submission failed:', { status: response.status, statusText: response.statusText, errorMessage })
+        throw new Error(`Comment submission failed: ${errorMessage}`)
       }
 
       const result = await response.json()
+      console.log('Comment submission successful:', result)
       
       // Update engagement count
       setEngagementCount(prev => prev + 1)
@@ -182,7 +332,7 @@ export function EngagementActions({
       console.error('Error submitting comment:', error)
       toast({
         title: "Comment Failed",
-        description: "Failed to submit comment. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to submit comment. Please try again.",
         variant: "destructive"
       })
     } finally {
@@ -211,71 +361,91 @@ export function EngagementActions({
     <div className={`enterprise-engagement-actions flex flex-col gap-3 pt-3 border-t border-gray-100 ${className}`}>
       {/* Main Action Buttons */}
       <div className="flex items-center gap-4">
-        {/* Like Button */}
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className={`enterprise-engagement-like-button gap-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 ${
-            liked ? 'text-blue-600 bg-blue-50' : ''
-          }`}
-          onClick={() => handleEngagement('like')}
-          disabled={loading === 'like'}
-        >
-          <Heart className={`enterprise-engagement-like-icon h-4 w-4 ${
-            liked ? 'fill-current' : ''
-          }`} />
-          <span className="enterprise-engagement-like-text">Like</span>
-        </Button>
+      {/* Like Button */}
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        className={`enterprise-engagement-like-button gap-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 ${
+          liked ? 'text-blue-600 bg-blue-50' : ''
+        }`}
+        onClick={() => handleEngagement('like')}
+        disabled={loading === 'like'}
+      >
+        <Heart className={`enterprise-engagement-like-icon h-4 w-4 ${
+          liked ? 'fill-current' : ''
+        }`} />
+        <span className="enterprise-engagement-like-text">Like</span>
+      </Button>
 
-        {/* Comment Button */}
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className={`enterprise-engagement-comment-button gap-2 text-gray-600 hover:text-green-600 hover:bg-green-50 ${
-            commented ? 'text-green-600 bg-green-50' : ''
-          }`}
-          onClick={() => handleEngagement('comment')}
-          disabled={loading === 'comment'}
-        >
-          <MessageSquare className={`enterprise-engagement-comment-icon h-4 w-4 ${
-            commented ? 'fill-current' : ''
-          }`} />
-          <span className="enterprise-engagement-comment-text">Comment</span>
-        </Button>
+      {/* Comment Button */}
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        className={`enterprise-engagement-comment-button gap-2 text-gray-600 hover:text-green-600 hover:bg-green-50 ${
+          commented ? 'text-green-600 bg-green-50' : ''
+        }`}
+        onClick={() => handleEngagement('comment')}
+        disabled={loading === 'comment'}
+      >
+        <MessageSquare className={`enterprise-engagement-comment-icon h-4 w-4 ${
+          commented ? 'fill-current' : ''
+        }`} />
+        <span className="enterprise-engagement-comment-text">Comment</span>
+      </Button>
 
-        {/* Share Button */}
-        <Button 
-          variant="ghost" 
+      {/* Share Button */}
+      <Button 
+        variant="ghost" 
+        size="sm"
+        className={`enterprise-engagement-share-button gap-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 ${
+          shared ? 'text-purple-600 bg-purple-50' : ''
+        }`}
+        onClick={() => handleEngagement('share')}
+        disabled={loading === 'share'}
+      >
+        <Share2 className={`enterprise-engagement-share-icon h-4 w-4 ${
+          shared ? 'fill-current' : ''
+        }`} />
+        <span className="enterprise-engagement-share-text">
+          {shared ? 'Shared' : 'Share'}
+        </span>
+      </Button>
+
+      {/* Engagement Count Badge */}
+      {engagementCount > 0 && (
+        <Badge variant="secondary" className="enterprise-engagement-count-badge text-xs ml-auto">
+          <Eye className="enterprise-engagement-count-icon h-3 w-3 mr-1" />
+          {engagementCount}
+        </Badge>
+      )}
+
+      {/* Premium Monetization Badge */}
+      {isPremium && monetization && (
+        <Badge variant="default" className="enterprise-engagement-premium-badge bg-yellow-500 text-white ml-auto">
+          <Zap className="enterprise-engagement-premium-icon h-3 w-3 mr-1" />
+          ${monetization.price}
+        </Badge>
+        )}
+
+        {/* Debug Test Button - Remove in production */}
+        <Button
+          variant="outline"
           size="sm"
-          className={`enterprise-engagement-share-button gap-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 ${
-            shared ? 'text-purple-600 bg-purple-50' : ''
-          }`}
-          onClick={() => handleEngagement('share')}
-          disabled={loading === 'share'}
+          onClick={testAPI}
+          className="ml-auto text-xs text-gray-500 hover:text-gray-700"
         >
-          <Share2 className={`enterprise-engagement-share-icon h-4 w-4 ${
-            shared ? 'fill-current' : ''
-          }`} />
-          <span className="enterprise-engagement-share-text">
-            {shared ? 'Shared' : 'Share'}
-          </span>
+          Test API
         </Button>
 
-        {/* Engagement Count Badge */}
-        {engagementCount > 0 && (
-          <Badge variant="secondary" className="enterprise-engagement-count-badge text-xs ml-auto">
-            <Eye className="enterprise-engagement-count-icon h-3 w-3 mr-1" />
-            {engagementCount}
-          </Badge>
-        )}
-
-        {/* Premium Monetization Badge */}
-        {isPremium && monetization && (
-          <Badge variant="default" className="enterprise-engagement-premium-badge bg-yellow-500 text-white ml-auto">
-            <Zap className="enterprise-engagement-premium-icon h-3 w-3 mr-1" />
-            ${monetization.price}
-          </Badge>
-        )}
+        {/* Debug Test Comment Button - Remove in production */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={testCommentSubmission}
+          className="ml-auto text-xs text-gray-500 hover:text-gray-700"
+        >
+          Test Comment
+        </Button>
       </div>
 
       {/* Comment Input Section */}
@@ -306,7 +476,7 @@ export function EngagementActions({
                     setCommentText("")
                   }}
                   disabled={isSubmittingComment}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-500 hover:text-gray-700 hover:bg-secondary"
                 >
                   <X className="h-4 w-4 mr-1" />
                   Cancel
@@ -315,7 +485,7 @@ export function EngagementActions({
                   size="sm"
                   onClick={handleSubmitComment}
                   disabled={!commentText.trim() || isSubmittingComment}
-                  className="bg-green-600 hover:bg-green-700 text-white"
+                  className="bg-primary hover:bg-secondary text-primary-foreground"
                 >
                   {isSubmittingComment ? (
                     <>

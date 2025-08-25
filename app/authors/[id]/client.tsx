@@ -56,6 +56,8 @@ import { FollowButton } from '@/components/follow-button'
 import { canUserEditEntity } from '@/lib/auth-utils'
 import { EntityTabs, EntityTab } from '@/components/ui/entity-tabs'
 import EnterpriseTimelineActivities from '@/components/enterprise-timeline-activities'
+import { CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import EntityComments from "@/components/entity-comments"
 
 interface ClientAuthorPageProps {
   author: Author
@@ -598,9 +600,9 @@ export function ClientAuthorPage({
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
                     <div key={num} className="aspect-square relative rounded overflow-hidden">
                       <img 
-                        src={`/placeholder.svg?height=300&width=300`}
+                        src={`/placeholder.svg?height=100&width=100&text=${num}`}
                         alt={`Photo ${num}`}
-                        className="object-cover hover:scale-105 transition-transform absolute inset-0 w-full h-full"
+                        className="object-cover w-full h-full"
                       />
                     </div>
                   ))}
@@ -619,47 +621,39 @@ export function ClientAuthorPage({
 
           {/* MAIN CONTENT - 2 Columns */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Post Form */}
+            {/* Comments Section */}
             <Card>
-              <div className="p-6 pt-6">
-                <form>
-                  <div className="flex gap-3">
-                      <Avatar src={authorImageUrl || "/placeholder.svg?height=200&width=200"} alt={author?.name || "Author"} name={author?.name} size="sm" id={author?.id} />
-                    <Textarea 
-                      className="flex-1 resize-none"
-                      placeholder={`What are you reading, ${author?.name?.split(' ')[0] || "Author"}?`}
-                    />
-                  </div>
-                  <div className="flex justify-between mt-4">
-                    <div className="flex gap-2">
-                      <Button type="button" variant="ghost" className="h-9 rounded-md px-3">
-                        <ImageIcon className="h-4 w-4 mr-2" />
-                        Photo
-                      </Button>
-                      <Button type="button" variant="ghost" className="h-9 rounded-md px-3">
-                        <Book className="h-4 w-4 mr-2" />
-                        Book
-                      </Button>
-                      <Button type="button" variant="ghost" className="h-9 rounded-md px-3">
-                        <Star className="h-4 w-4 mr-2" />
-                        Review
-                      </Button>
-                    </div>
-                    <Button type="submit" disabled>Post</Button>
-                  </div>
-                </form>
-              </div>
+              <CardHeader>
+                <CardTitle>Comments & Discussion</CardTitle>
+                <CardDescription>Join the conversation about this author</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <EntityComments
+                  entityId={params.id}
+                  entityType="author"
+                  entityName={author?.name || "Author"}
+                  entityAvatar={authorImageUrl}
+                  entityCreatedAt={author?.created_at}
+                  isOwner={canEdit}
+                  entityDisplayInfo={{
+                    id: params.id,
+                    name: author?.name || "Author",
+                    type: 'author' as const,
+                    author_image: author?.author_image,
+                    bookCount: booksCount || 0
+                  }}
+                />
+              </CardContent>
             </Card>
-
-              {/* Timeline Feed */}
-              <EnterpriseTimelineActivities
-                userId={params.id}
-                entityType="author"
-                entityId={params.id}
-                enableReadingProgress={true}
-                enablePrivacyControls={true}
-              />
-            </div>
+            {/* Timeline Feed - This has full posting functionality */}
+            <EnterpriseTimelineActivities
+              userId={params.id}
+              entityType="author"
+              entityId={params.id}
+              enableReadingProgress={true}
+              enablePrivacyControls={true}
+            />
+          </div>
                       </div>
                     </div>
       )}

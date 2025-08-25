@@ -55,8 +55,8 @@ export default function PostEditor({
     try {
       const postData: CreatePostData = {
         user_id: user.id,
-        content: {
-          text: content,
+        text: content,  // Store text directly in the text column
+        data: {
           type: 'text',
           hashtags: hashtags
         },
@@ -68,7 +68,7 @@ export default function PostEditor({
       }
       
       const { data, error } = await supabase
-        .from('posts')
+        .from('activities')
         .insert(postData)
         .select()
         .single()

@@ -20,6 +20,16 @@ export type Author = {
     alt_text?: string;
     img_type_id?: number;
   } | null;
+  nationality?: string | null;
+  website?: string | null;
+  permalink?: string | null;
+  facebook_handle?: string | null;
+  instagram_handle?: string | null;
+  twitter_handle?: string | null;
+  goodreads_url?: string | null;
+  birth_date?: string | null;
+  featured?: boolean | null;
+  author_gallery_id?: string | null;
 };
 
 export type Review = {

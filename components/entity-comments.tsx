@@ -114,127 +114,79 @@ export default function EntityComments({
     try {
       setIsLoading(true)
       
-      // Load comments from the unified comments table
-      const { data: commentsData, error: commentsError } = await supabase
-        .from('comments')
-        .select(`
-          *,
-          user:users!comments_user_id_fkey(
-            id,
-            name,
-            email
-          )
-        `)
-        .eq('entity_type', entityType)
-        .eq('entity_id', entityId)
-        .eq('is_deleted', false)
-        .eq('is_hidden', false)
-        .is('parent_id', null) // Only top-level comments
-        .order('created_at', { ascending: false })
-
-      if (commentsError) {
-        console.error('Error loading comments:', commentsError)
-        return
+      console.log('🔍 EntityComments: Loading comments for entity:', { entityId, entityType })
+      
+      // Use the correct engagement system - call the get_entity_engagement function
+      const response = await fetch(`/api/engagement?entity_type=${entityType}&entity_id=${entityId}`)
+      
+      if (!response.ok) {
+        throw new Error(`Failed to load comments: ${response.status}`)
       }
+      
+      const data = await response.json()
+      console.log('🔍 EntityComments: Raw API response:', data)
+      
+      const commentsData = data.recent_comments || []
+      console.log('🔍 EntityComments: Comments data from API:', commentsData)
+      
+      // Transform the comment data to match the Comment interface
+      const transformedComments: Comment[] = commentsData.map((comment: any) => ({
+        id: comment.id,
+        user_id: comment.user_id,
+        entity_type: entityType,
+        entity_id: entityId,
+        content: comment.comment_text || comment.content || '',
+        parent_id: comment.parent_comment_id || comment.parent_id || null,
+        created_at: comment.created_at,
+        updated_at: comment.updated_at,
+        is_hidden: comment.is_hidden || false,
+        is_deleted: comment.is_deleted || false,
+        user: {
+          id: comment.user?.id || comment.user_id,
+          name: comment.user?.name || comment.user?.email || 'Unknown User',
+          avatar_url: comment.user?.avatar_url || undefined
+        },
+        replies: comment.replies || [] // Handle nested replies if available
+      }))
 
-      // Load replies for each comment
-      const commentsWithReplies = await Promise.all(
-        (commentsData || []).map(async (comment: any) => {
-          const { data: replies } = await supabase
-            .from('comments')
-            .select(`
-              *,
-              user:users!comments_user_id_fkey(
-                id,
-                name,
-                email
-              )
-            `)
-            .eq('parent_id', comment.id)
-            .eq('is_deleted', false)
-            .eq('is_hidden', false)
-            .order('created_at', { ascending: true })
-
-          // Transform the comment data to match the Comment interface
-          const transformedComment: Comment = {
-            id: comment.id,
-            user_id: comment.user_id,
-            entity_type: comment.entity_type || entityType,
-            entity_id: comment.entity_id || entityId,
-            content: comment.content,
-            parent_id: comment.parent_id,
-            created_at: comment.created_at,
-            updated_at: comment.updated_at,
-            is_hidden: comment.is_hidden,
-            is_deleted: comment.is_deleted,
-            user: {
-              id: comment.user?.id || comment.user_id,
-              name: comment.user?.name || comment.user?.email || 'Unknown User',
-              avatar_url: undefined // We'll get this from profiles table if needed
-            },
-            replies: (replies || []).map((reply: any) => ({
-              id: reply.id,
-              user_id: reply.user_id,
-              entity_type: reply.entity_type || entityType,
-              entity_id: reply.entity_id || entityId,
-              content: reply.content,
-              parent_id: reply.parent_id,
-              created_at: reply.created_at,
-              updated_at: reply.updated_at,
-              is_hidden: reply.is_hidden,
-              is_deleted: reply.is_deleted,
-              user: {
-                id: reply.user?.id || reply.user_id,
-                name: reply.user?.name || reply.user?.email || 'Unknown User',
-                avatar_url: undefined
-              }
-            }))
-          }
-
-          return transformedComment
-        })
-      )
-
-      setComments(commentsWithReplies)
+      console.log('🔍 EntityComments: Transformed comments:', transformedComments)
+      setComments(transformedComments)
     } catch (error) {
       console.error('Error loading comments:', error)
+      // Set empty comments array on error to prevent UI issues
+      setComments([])
     } finally {
       setIsLoading(false)
     }
-  }, [entityType, entityId, supabase])
+  }, [entityType, entityId])
 
   // Load like status and count
   const loadLikeStatus = useCallback(async () => {
     try {
       if (!currentUser) return
 
-      // Check if user liked this entity
-      const { data: likeData, error: likeError } = await supabase
-        .from('likes')
-        .select('id')
-        .eq('entity_type', entityType)
-        .eq('entity_id', entityId)
-        .eq('user_id', currentUser.id)
-        .single()
-
-      if (!likeError && likeData) {
-        setIsLiked(true)
+      // Use the correct engagement system - call the get_entity_engagement function
+      const response = await fetch(`/api/engagement?entity_type=${entityType}&entity_id=${entityId}`)
+      
+      if (!response.ok) {
+        throw new Error(`Failed to load like status: ${response.status}`)
       }
-
-      // Get like count
-      const { count: likeCountData, error: countError } = await supabase
-        .from('likes')
-        .select('*', { count: 'exact', head: true })
-        .eq('entity_type', entityType)
-        .eq('entity_id', entityId)
-
-      if (!countError) {
-        setLikeCount(likeCountData || 0)
-      }
+      
+      const data = await response.json()
+      
+      // Check if current user liked this entity
+      const userLike = data.recent_likes?.find((like: any) => like.user_id === currentUser.id)
+      setIsLiked(!!userLike)
+      
+      // Set like count
+      setLikeCount(data.likes_count || 0)
     } catch (error) {
       console.error('Error loading like status:', error)
+      // Set default values on error
+      setIsLiked(false)
+      setLikeCount(0)
     }
-  }, [entityType, entityId, currentUser, supabase])
+  }, [entityType, entityId, currentUser])
 
   // Handle like toggle
   const handleLike = async () => {
@@ -248,34 +200,26 @@ export default function EntityComments({
         return
       }
 
-      if (isLiked) {
-        // Unlike
-        const { error } = await supabase
-          .from('likes')
-          .delete()
-          .eq('entity_type', entityType)
-          .eq('entity_id', entityId)
-          .eq('user_id', currentUser.id)
+      // Use the correct engagement system - call the toggle_entity_like function
+      const response = await fetch(`/api/engagement/like`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          entity_type: entityType,
+          entity_id: entityId
+        })
+      })
 
-        if (error) throw error
-
-        setIsLiked(false)
-        setLikeCount(prev => Math.max(0, prev - 1))
-      } else {
-        // Like
-        const { error } = await supabase
-          .from('likes')
-          .insert({
-            entity_type: entityType,
-            entity_id: entityId,
-            user_id: currentUser.id
-          })
-
-        if (error) throw error
-
-        setIsLiked(true)
-        setLikeCount(prev => prev + 1)
+      if (!response.ok) {
+        throw new Error(`Failed to toggle like: ${response.status}`)
       }
+
+      // Toggle local state
+      setIsLiked(!isLiked)
+      setLikeCount(prev => isLiked ? Math.max(0, prev - 1) : prev + 1)
+      
+      // Reload like status to ensure consistency
+      await loadLikeStatus()
     } catch (error) {
       console.error('Error toggling like:', error)
       toast({
@@ -303,34 +247,20 @@ export default function EntityComments({
         return
       }
       
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        toast({
-          title: "Error",
-          description: "You must be logged in to comment",
-          variant: "destructive"
-        })
-        return
-      }
-
-      const { error } = await supabase
-        .from('comments')
-        .insert({
-          user_id: user.id,
+      // Use the correct engagement system - call the add_engagement_comment function
+      const response = await fetch(`/api/engagement/comment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           entity_type: entityType,
           entity_id: entityId,
-          content: content.trim(),
-          parent_id: parentId || null
+          comment_text: content.trim(),
+          parent_comment_id: parentId || null
         })
+      })
 
-      if (error) {
-        console.error('Error adding comment:', error)
-        toast({
-          title: "Error",
-          description: "Failed to add comment",
-          variant: "destructive"
-        })
-        return
+      if (!response.ok) {
+        throw new Error(`Failed to add comment: ${response.status}`)
       }
 
       // Clear form
@@ -362,7 +292,7 @@ export default function EntityComments({
     } finally {
       setIsSubmitting(false)
     }
-  }, [entityType, entityId, supabase, toast, commentInputRef, loadComments])
+  }, [entityType, entityId, commentInputRef, loadComments])
 
   // Handle share
   const handleShare = () => {
@@ -385,7 +315,7 @@ export default function EntityComments({
   // Load data on mount
   useEffect(() => {
     getCurrentUser()
-  }, [supabase])
+  }, [])
 
   useEffect(() => {
     if (currentUser) {
@@ -393,6 +323,18 @@ export default function EntityComments({
       loadLikeStatus()
     }
   }, [currentUser, loadComments, loadLikeStatus])
+
+  // Debug logging
+  useEffect(() => {
+    console.log('🔍 EntityComments: Component state:', { 
+      isLoading, 
+      commentsCount: comments.length, 
+      comments,
+      entityId,
+      entityType,
+      currentUser: !!currentUser
+    })
+  }, [isLoading, comments, entityId, entityType, currentUser])
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -420,28 +362,29 @@ export default function EntityComments({
   
   const loadLikers = useCallback(async () => {
     try {
-      const { data: likesData, error } = await supabase
-        .from('likes')
-        .select(`
-          user_id,
-          created_at,
-          user:users!likes_user_id_fkey(
-            id,
-            name,
-            email
-          )
-        `)
-        .eq('entity_type', entityType)
-        .eq('entity_id', entityId)
-        .order('created_at', { ascending: false })
-
-      if (!error && likesData) {
-        setLikers(likesData.map(like => like.user).filter(Boolean))
+      // Use the correct engagement system - call the get_entity_engagement function
+      const response = await fetch(`/api/engagement?entity_type=${entityType}&entity_id=${entityId}`)
+      
+      if (!response.ok) {
+        throw new Error(`Failed to load likers: ${response.status}`)
       }
+      
+      const data = await response.json()
+      const likesData = data.recent_likes || []
+      
+      // Transform the data to match the expected format
+      const transformedLikers = likesData.map((like: any) => ({
+        id: like.user_id,
+        name: like.user_name || 'Unknown User',
+        email: like.user_email
+      })).filter(Boolean)
+      
+      setLikers(transformedLikers)
     } catch (error) {
       console.error('Error loading likers:', error)
+      setLikers([])
     }
-  }, [entityType, entityId, supabase])
+  }, [entityType, entityId])
 
   useEffect(() => {
     loadLikers()

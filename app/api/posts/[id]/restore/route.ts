@@ -23,9 +23,10 @@ export async function POST(
     
     // Check if post exists and user owns it
     const { data: existingPost, error: fetchError } = await supabase
-      .from('posts')
-      .select('user_id, is_deleted, publish_status')
+      .from('activities')
+      .select('user_id, publish_status')
       .eq('id', postId)
+      .eq('activity_type', 'post_created')
       .single()
     
     if (fetchError) {
@@ -49,7 +50,7 @@ export async function POST(
       )
     }
     
-    if (!existingPost.is_deleted) {
+    if (existingPost.publish_status !== 'deleted') {
       return NextResponse.json(
         { error: 'Post is not deleted' },
         { status: 400 }
@@ -58,12 +59,10 @@ export async function POST(
     
     // Restore post
     const { data: restoredPost, error: restoreError } = await supabase
-      .from('posts')
+      .from('activities')
       .update({
-        is_deleted: false,
         publish_status: 'published',
-        updated_at: new Date().toISOString(),
-        last_activity_at: new Date().toISOString()
+        updated_at: new Date().toISOString()
       })
       .eq('id', postId)
       .select()

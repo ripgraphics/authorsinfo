@@ -21,11 +21,12 @@ export async function GET(
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    // Use the same database function that works for profiles
-    // This ensures consistent data structure across all entities
+    // Use the entity timeline function for author timelines
+    // This gets posts ABOUT the author, not BY the author
     const { data: activities, error } = await supabaseAdmin
-      .rpc('get_user_feed_activities', {
-        p_user_id: authorId,
+      .rpc('get_entity_timeline_activities', {
+        p_entity_type: 'author',
+        p_entity_id: authorId,
         p_limit: limit,
         p_offset: offset
       });
@@ -38,8 +39,57 @@ export async function GET(
       }, { status: 500 });
     }
 
+    // Debug: Log what we got from the database
+    console.log('=== AUTHOR TIMELINE API DEBUG ===');
+    console.log('Author ID:', authorId);
+    console.log('Raw activities from DB:', activities);
+    console.log('Number of activities:', activities?.length || 0);
+    if (activities && activities.length > 0) {
+      console.log('First activity sample:', activities[0]);
+      console.log('First activity text field:', activities[0]?.text);
+      console.log('First activity data field:', activities[0]?.data);
+      console.log('First activity content_type:', activities[0]?.content_type);
+      console.log('First activity activity_type:', activities[0]?.activity_type);
+      console.log('First activity ALL fields:', Object.keys(activities[0]).map(key => `${key}: ${activities[0][key]}`));
+    }
+    console.log('================================');
+
+    // FALLBACK: If RPC function returns no data, try direct query
+    let fallbackActivities = null;
+    if (!activities || activities.length === 0) {
+      console.log('⚠️ RPC function returned no data, trying direct query...');
+      
+      const { data: directData, error: directError } = await supabaseAdmin
+        .from('activities')
+        .select('*')
+        .eq('entity_type', 'author')
+        .eq('entity_id', authorId)
+        .order('created_at', { ascending: false })
+        .limit(limit)
+        .offset(offset);
+      
+      if (directError) {
+        console.error('Direct query error:', directError);
+      } else {
+        fallbackActivities = directData;
+        console.log('✅ Direct query returned:', fallbackActivities?.length || 0, 'activities');
+        if (fallbackActivities && fallbackActivities.length > 0) {
+          console.log('First direct query activity:', fallbackActivities[0]);
+          console.log('First direct query text field:', fallbackActivities[0]?.text);
+          console.log('First direct query ALL fields:', Object.keys(fallbackActivities[0]).map(key => `${key}: ${fallbackActivities[0][key]}`));
+        }
+      }
+    }
+
+    // Use fallback data if RPC function failed
+    const finalActivities = activities || fallbackActivities || [];
+    console.log('🔍 Final activities to transform:', finalActivities?.length || 0);
+    if (finalActivities && finalActivities.length > 0) {
+      console.log('🔍 First final activity before transform:', finalActivities[0]);
+    }
+
     // Transform the data to match the expected structure
-    const transformedActivities = activities?.map((activity: any) => ({
+    const transformedActivities = finalActivities?.map((activity: any) => ({
       id: activity.id,
       user_id: activity.user_id,
       user_name: activity.user_name,
@@ -73,6 +123,16 @@ export async function GET(
       ai_enhanced_performance: activity.ai_enhanced_performance,
       metadata: activity.metadata
     })) || [];
+
+    // Debug: Log the transformed data
+    console.log('=== TRANSFORMED DATA DEBUG ===');
+    console.log('Transformed activities count:', transformedActivities.length);
+    if (transformedActivities.length > 0) {
+      console.log('First transformed activity:', transformedActivities[0]);
+      console.log('First transformed text field:', transformedActivities[0]?.text);
+      console.log('First transformed data field:', transformedActivities[0]?.data);
+    }
+    console.log('================================');
 
     return NextResponse.json({
       activities: transformedActivities,

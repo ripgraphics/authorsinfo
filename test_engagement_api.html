@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Engagement API Test</title>
+</head>
+<body>
+    <h1>Engagement API Test</h1>
+    
+    <div>
+        <h2>Test GET /api/engagement</h2>
+        <button onclick="testGetEngagement()">Test GET Engagement</button>
+        <div id="getResult"></div>
+    </div>
+    
+    <div>
+        <h2>Test POST /api/engagement/like</h2>
+        <button onclick="testPostLike()">Test POST Like</button>
+        <div id="postResult"></div>
+    </div>
+    
+    <div>
+        <h2>Test POST /api/engagement/comment</h2>
+        <button onclick="testPostComment()">Test POST Comment</button>
+        <div id="commentResult"></div>
+    </div>
+
+    <script>
+        const entityType = 'author';
+        const entityId = 'e31e061d-a4a8-4cc8-af18-754786ad5ee3';
+        
+        async function testGetEngagement() {
+            try {
+                const response = await fetch(`/api/engagement?entity_type=${entityType}&entity_id=${entityId}`);
+                const data = await response.json();
+                document.getElementById('getResult').innerHTML = `
+                    <h3>Response Status: ${response.status}</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                document.getElementById('getResult').innerHTML = `
+                    <h3>Error:</h3>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        }
+        
+        async function testPostLike() {
+            try {
+                const response = await fetch('/api/engagement/like', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        entity_type: entityType,
+                        entity_id: entityId
+                    })
+                });
+                const data = await response.json();
+                document.getElementById('postResult').innerHTML = `
+                    <h3>Response Status: ${response.status}</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                document.getElementById('postResult').innerHTML = `
+                    <h3>Error:</h3>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        }
+        
+        async function testPostComment() {
+            try {
+                const response = await fetch('/api/engagement/comment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        entity_type: entityType,
+                        entity_id: entityId,
+                        comment_text: 'Test comment from API test page'
+                    })
+                });
+                const data = await response.json();
+                document.getElementById('commentResult').innerHTML = `
+                    <h3>Response Status: ${response.status}</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                document.getElementById('commentResult').innerHTML = `
+                    <h3>Error:</h3>
+                    <pre>${error.message}</pre>
+                `;
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

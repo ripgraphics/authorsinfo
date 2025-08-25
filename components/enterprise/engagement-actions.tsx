@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useCallback } from "react"
+import React, { useState, useCallback, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -8,7 +8,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { 
   Heart, 
   MessageSquare, 
-  Share2, 
   Eye,
   TrendingUp,
   Zap,
@@ -22,17 +21,16 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 
 interface EngagementActionsProps {
   entityId: string
-  entityType: 'user' | 'book' | 'author' | 'publisher' | 'group'
+  entityType: 'user' | 'book' | 'author' | 'publisher' | 'group' | 'activity'
   initialEngagementCount?: number
   commentCount?: number
   isLiked?: boolean
   isCommented?: boolean
-  isShared?: boolean
   isPremium?: boolean
   monetization?: {
+    type: 'subscription' | 'pay_per_view' | 'freemium'
     price?: number
     currency?: string
-    revenue_share?: number
   }
   onEngagement?: (action: 'like' | 'comment' | 'share', entityId: string, entityType: string) => Promise<void>
   onCommentAdded?: (comment: any) => void
@@ -46,7 +44,6 @@ export function EngagementActions({
   commentCount = 0,
   isLiked = false,
   isCommented = false,
-  isShared = false,
   isPremium = false,
   monetization,
   onEngagement,
@@ -55,362 +52,491 @@ export function EngagementActions({
 }: EngagementActionsProps) {
   const { user } = useAuth()
   const { toast } = useToast()
-  const [engagementCount, setEngagementCount] = useState(initialEngagementCount)
-  const [liked, setLiked] = useState(isLiked)
-  const [commented, setCommented] = useState(isCommented)
-  const [shared, setShared] = useState(isShared)
-  const [loading, setLoading] = useState<string | null>(null)
   
-  // Comment functionality
+  // State for engagement data
+  const [engagementCount, setEngagementCount] = useState(initialEngagementCount)
+  const [commentCountState, setCommentCountState] = useState(commentCount)
+  const [isLikedState, setLikedState] = useState(isLiked)
+  const [isCommentedState, setCommentedState] = useState(isCommented)
+  const [loading, setLoading] = useState<'like' | 'comment' | null>(null)
   const [showCommentInput, setShowCommentInput] = useState(false)
   const [commentText, setCommentText] = useState("")
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
+  
+  // State for dropdown data
+  const [likers, setLikers] = useState<any[]>([])
+  const [commenters, setCommenters] = useState<any[]>([])
+  const [isLoadingLikers, setIsLoadingLikers] = useState(false)
+  const [isLoadingCommenters, setIsLoadingCommenters] = useState(false)
+  
+  // Fetch engagement data function - REMOVED - using built-in counts from activities table
+  const fetchEngagementData = useCallback(async () => {
+    // Since engagement counts are now built into the activities table,
+    // we don't need to make a separate API call
+    console.log('✅ Using built-in engagement counts from activities table')
+    
+    // The engagement counts should come from the parent component
+    // This function is now a no-op since we're using direct data
+  }, [entityId, entityType])
 
-  const handleEngagement = useCallback(async (action: 'like' | 'comment' | 'share') => {
-    if (loading) return
+  // Use engagement counts directly from props instead of API calls
+  useEffect(() => {
+    // If we have engagement counts passed as props, use them
+    if (engagementCount !== undefined && commentCount !== undefined) {
+      console.log('✅ Using engagement counts from props:', { engagementCount, commentCount })
+      return
+    }
+    
+    // Otherwise, try to get them from the parent component's data
+    // This is a fallback for when the component is used standalone
+    console.log('ℹ️ No engagement counts provided, component will show 0 counts')
+  }, [engagementCount, commentCount])
 
-    if (action === 'comment') {
-      // Toggle comment input instead of just updating state
-      setShowCommentInput(!showCommentInput)
-      if (showCommentInput) {
-        setCommentText("") // Clear comment text when hiding
-      }
+  // Update state when props change (important for page refresh)
+  useEffect(() => {
+    console.log('🔄 Props updated - updating component state:', {
+      initialEngagementCount,
+      commentCount,
+      isLiked
+    })
+    
+    // Update engagement count state
+    if (initialEngagementCount !== undefined) {
+      setEngagementCount(initialEngagementCount)
+    }
+    
+    // Update comment count state
+    if (commentCount !== undefined) {
+      setCommentCountState(commentCount)
+    }
+    
+    // Update liked state
+    if (isLiked !== undefined) {
+      setLikedState(isLiked)
+    }
+  }, [initialEngagementCount, commentCount, isLiked])
+
+  // Remove the separate API call - engagement data comes from the parent
+  useEffect(() => {
+    // No need to fetch engagement data separately anymore
+    // The parent component should provide this data
+  }, [])
+  
+  // Debug logging
+  useEffect(() => {
+    console.log('🔧 EngagementActions mounted with:', {
+      entityId,
+      entityType,
+      user: user ? { id: user.id, email: user.email } : null,
+      initialEngagementCount,
+      commentCount,
+      isLiked,
+      isCommented
+    })
+  }, [entityId, entityType, user, initialEngagementCount, commentCount, isLiked, isCommented])
+
+  // Debug comment input state changes
+  useEffect(() => {
+    console.log('🔍 Comment input state changed - showCommentInput:', showCommentInput)
+  }, [showCommentInput])
+  
+  // Test API connectivity - REMOVED - no longer needed with consolidated system
+  const testAPI = useCallback(async () => {
+    console.log('🧪 API testing removed - using consolidated engagement system')
+    toast({
+      title: "API Test Info",
+      description: "Engagement system now uses consolidated data from props",
+      variant: "default"
+    })
+  }, [toast])
+
+  // Fetch likers function - REMOVED - using consolidated data from props
+  const fetchLikers = useCallback(async () => {
+    console.log('✅ Likers data comes from props - no API call needed')
+    // Individual likers not stored separately in new system
+    setLikers([])
+  }, [])
+
+  // Fetch commenters function - REMOVED - using consolidated data from props  
+  const fetchCommenters = useCallback(async () => {
+    console.log('✅ Commenters data comes from props - no API call needed')
+    // Individual commenters not stored separately in new system
+    setCommenters([])
+  }, [])
+
+  // Load data when popovers are opened
+  const handleLikersPopoverOpen = useCallback((open: boolean) => {
+    if (open && likers.length === 0) {
+      fetchLikers()
+    }
+  }, [likers.length, fetchLikers])
+
+  const handleCommentersPopoverOpen = useCallback((open: boolean) => {
+    if (open && commenters.length === 0) {
+      fetchCommenters()
+    }
+  }, [commenters.length, fetchCommenters])
+
+  // Handle engagement actions - FIXED to actually call API endpoints
+  const handleEngagement = useCallback(async (action: 'like' | 'comment') => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to engage with posts",
+        variant: "destructive"
+      })
       return
     }
 
-    setLoading(action)
     try {
-      // For likes, call the API first, then update UI
+      console.log('🚀 Handling engagement with API calls:', { action, entityId, entityType, user: user.id })
+
       if (action === 'like') {
-        const response = await fetch('/api/likes', {
+        console.log('🔍 About to call /api/engagement/like with:', { entity_type: entityType, entity_id: entityId })
+        
+        // Actually call the engagement API
+        const response = await fetch('/api/engagement/like', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            activity_id: entityId,
             entity_type: entityType,
             entity_id: entityId
           })
         })
 
+        console.log('📡 Like API response status:', response.status)
+
         if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.error || 'Failed to update like')
+          throw new Error(`Failed to ${isLikedState ? 'unlike' : 'like'}: ${response.status}`)
         }
 
         const result = await response.json()
+        console.log('✅ Like API response:', result)
+
+        // Update local state based on API response
+        const newLikedState = result.liked
+        setLikedState(newLikedState)
         
-        // Update UI based on API response
-        if (result.action === 'liked') {
-          setLiked(true)
+        // Update count based on API response
+        if (newLikedState) {
           setEngagementCount(prev => prev + 1)
-        } else if (result.action === 'unliked') {
-          setLiked(false)
+        } else {
           setEngagementCount(prev => Math.max(0, prev - 1))
         }
 
-        // Call the engagement handler if provided
+        // Notify parent component about the engagement change
         if (onEngagement) {
           await onEngagement(action, entityId, entityType)
         }
 
-        // Track analytics
-        await trackEngagementAnalytics(action, entityId, entityType)
-        
-        return
+        toast({
+          title: newLikedState ? "Liked!" : "Unliked",
+          description: newLikedState ? "Post liked successfully" : "Post unliked successfully",
+        })
+      } else if (action === 'comment') {
+        // Show the comment input when comment button is clicked
+        setShowCommentInput(true)
+        console.log('💬 Comment button clicked - showing comment input')
       }
-
-      // For other actions, use optimistic updates
-      switch (action) {
-        case 'share':
-          setShared(!shared)
-          setEngagementCount(prev => shared ? prev - 1 : prev + 1)
-          break
-      }
-
-      // Call the engagement handler
-      if (onEngagement) {
-        await onEngagement(action, entityId, entityType)
-      }
-
-      // Track analytics
-      await trackEngagementAnalytics(action, entityId, entityType)
     } catch (error) {
-      console.error(`Error handling ${action}:`, error)
-      
-      // Show error toast
+      console.error('❌ Engagement error:', error)
       toast({
-        title: `Failed to ${action}`,
-        description: error instanceof Error ? error.message : 'An error occurred',
+        title: "Error",
+        description: "Failed to process engagement",
         variant: "destructive"
       })
-      
-      // Revert optimistic update on error for non-like actions
-      if (action !== 'like') {
-        switch (action) {
-          case 'share':
-            setShared(shared)
-            setEngagementCount(prev => shared ? prev + 1 : prev - 1)
-            break
-        }
-      }
-    } finally {
-      setLoading(null)
     }
-  }, [loading, liked, shared, entityId, entityType, onEngagement, showCommentInput, toast])
+  }, [entityId, entityType, user, isLikedState, onEngagement, toast])
 
+  // Handle comment submission - FIXED to actually call API endpoint
   const handleSubmitComment = useCallback(async () => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to comment",
-        variant: "destructive"
-      })
-      return
-    }
+    if (!commentText.trim() || !user) return
 
-    if (!commentText.trim()) {
-      toast({
-        title: "Comment Required",
-        description: "Please enter a comment",
-        variant: "destructive"
-      })
-      return
-    }
-
-    setIsSubmittingComment(true)
     try {
-      // Create comment data
-      const commentData = {
-        post_id: entityId,
-        user_id: user.id,
-        content: commentText.trim(),
-        entity_type: entityType,
-        entity_id: entityId,
-        created_at: new Date().toISOString()
-      }
+      setIsSubmittingComment(true)
+      console.log('💬 Submitting comment with API call:', { commentText, entityId, entityType })
 
-      console.log('Submitting comment with data:', commentData)
-      console.log('User object:', { id: user?.id, email: user?.email })
-      console.log('Entity details:', { entityId, entityType })
-
-      // Submit comment to API
-      const response = await fetch('/api/comments', {
+      // Actually call the engagement API
+      const response = await fetch('/api/engagement/comment', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(commentData)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          entity_type: entityType,
+          entity_id: entityId,
+          comment_text: commentText.trim()
+        })
       })
-
-      console.log('Comment submission response status:', response.status)
-      console.log('Comment submission response headers:', Object.fromEntries(response.headers.entries()))
 
       if (!response.ok) {
-        let errorMessage = `HTTP ${response.status}: ${response.statusText}`
-        
-        try {
-          const errorData = await response.json()
-          if (errorData && errorData.error) {
-            errorMessage = errorData.error
-          } else if (errorData && errorData.details) {
-            errorMessage = errorData.details
-          } else if (errorData && Object.keys(errorData).length > 0) {
-            errorMessage = JSON.stringify(errorData)
-          }
-        } catch (parseError) {
-          console.warn('Could not parse error response:', parseError)
-          // Keep the default error message if parsing fails
-        }
-        
-        console.error('Comment submission failed:', { status: response.status, statusText: response.statusText, errorMessage })
-        throw new Error(`Comment submission failed: ${errorMessage}`)
+        throw new Error(`Failed to post comment: ${response.status}`)
       }
 
       const result = await response.json()
-      console.log('Comment submission successful:', result)
+      console.log('✅ Comment API response:', result)
+
+      // Create comment object from API response
+      const newComment = {
+        id: result.comment_id || `comment-${Date.now()}`,
+        content: commentText.trim(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        user: {
+          id: user.id,
+          name: user.user_metadata?.name || user.email || 'You',
+          avatar_url: user.user_metadata?.avatar_url || ''
+        },
+        parent_comment_id: null
+      }
       
-      // Update engagement count
-      setEngagementCount(prev => prev + 1)
-      setCommented(true)
-      
-      // Clear comment input and hide it
-      setCommentText("")
+      // Update local state
+      setCommenters(prev => [newComment, ...prev])
+      setCommentCountState(prev => prev + 1)
+      setCommentedState(true)
+      setCommentText('')
       setShowCommentInput(false)
-      
-      // Notify parent component about new comment
-      if (onCommentAdded) {
-        onCommentAdded(result.comment)
+
+      // Notify parent component about the engagement change
+      if (onEngagement) {
+        await onEngagement('comment', entityId, entityType)
       }
 
       toast({
-        title: "Comment Added!",
-        description: "Your comment has been posted successfully",
-        duration: 3000
+        title: "Comment Posted!",
+        description: "Your comment has been added successfully",
       })
-
     } catch (error) {
-      console.error('Error submitting comment:', error)
+      console.error('❌ Comment submission error:', error)
       toast({
-        title: "Comment Failed",
-        description: error instanceof Error ? error.message : "Failed to submit comment. Please try again.",
+        title: "Error",
+        description: "Failed to post comment",
         variant: "destructive"
       })
     } finally {
       setIsSubmittingComment(false)
     }
-  }, [commentText, user, entityId, entityType, onCommentAdded, toast])
-
-  const trackEngagementAnalytics = async (action: string, entityId: string, entityType: string) => {
-    try {
-      await fetch('/api/analytics/engagement', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action,
-          entity_id: entityId,
-          entity_type: entityType,
-          timestamp: new Date().toISOString()
-        })
-      })
-    } catch (error) {
-      console.error('Error tracking engagement analytics:', error)
-    }
-  }
+  }, [commentText, entityId, entityType, user, onEngagement, toast])
 
   return (
     <div className={`enterprise-engagement-actions flex flex-col gap-3 pt-3 border-t border-gray-100 ${className}`}>
       {/* Main Action Buttons */}
       <div className="flex items-center gap-4">
-      {/* Like Button */}
-      <Button 
-        variant="ghost" 
-        size="sm" 
-        className={`enterprise-engagement-like-button gap-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 ${
-          liked ? 'text-blue-600 bg-blue-50' : ''
-        }`}
-        onClick={() => handleEngagement('like')}
-        disabled={loading === 'like'}
-      >
-        <Heart className={`enterprise-engagement-like-icon h-4 w-4 ${
-          liked ? 'fill-current' : ''
-        }`} />
-        <span className="enterprise-engagement-like-text">Like</span>
-      </Button>
+        
 
-      {/* Comment Button */}
-      <Button 
-        variant="ghost" 
-        size="sm" 
-        className={`enterprise-engagement-comment-button gap-2 text-gray-600 hover:text-green-600 hover:bg-green-50 ${
-          commented ? 'text-green-600 bg-green-50' : ''
-        }`}
-        onClick={() => handleEngagement('comment')}
-        disabled={loading === 'comment'}
-      >
-        <MessageSquare className={`enterprise-engagement-comment-icon h-4 w-4 ${
-          commented ? 'fill-current' : ''
-        }`} />
-        <span className="enterprise-engagement-comment-text">Comment</span>
-      </Button>
+        {/* Engagement Actions */}
+        <div className="flex items-center gap-2">
+          {/* Like Button */}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className={`enterprise-engagement-like-button gap-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 ${
+              isLikedState ? 'text-blue-600 bg-blue-50' : ''
+            }`}
+            onClick={() => handleEngagement('like')}
+            disabled={loading === 'like'}
+          >
+            <Heart className={`enterprise-engagement-like-icon h-4 w-4 ${
+              isLikedState ? 'fill-current' : ''
+            }`} />
+            <span className="enterprise-engagement-like-text">Like</span>
+          </Button>
 
-      {/* Share Button */}
-      <Button 
-        variant="ghost" 
-        size="sm"
-        className={`enterprise-engagement-share-button gap-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 ${
-          shared ? 'text-purple-600 bg-purple-50' : ''
-        }`}
-        onClick={() => handleEngagement('share')}
-        disabled={loading === 'share'}
-      >
-        <Share2 className={`enterprise-engagement-share-icon h-4 w-4 ${
-          shared ? 'fill-current' : ''
-        }`} />
-        <span className="enterprise-engagement-share-text">
-          {shared ? 'Shared' : 'Share'}
-        </span>
-      </Button>
+          {/* Comment Button */}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className={`enterprise-engagement-comment-button gap-2 text-gray-600 hover:text-green-600 hover:bg-green-50 ${
+              isCommentedState ? 'text-green-600 bg-green-50' : ''
+            }`}
+            onClick={() => {
+              console.log('💬 Comment button clicked - current showCommentInput:', showCommentInput)
+              handleEngagement('comment')
+              console.log('💬 After handleEngagement - showCommentInput should be true')
+            }}
+            disabled={loading === 'comment'}
+          >
+            <MessageSquare className={`enterprise-engagement-comment-icon h-4 w-4 ${
+              isCommentedState ? 'fill-current' : ''
+            }`} />
+            <span className="enterprise-engagement-comment-text">Comment</span>
+          </Button>
 
-      {/* Engagement Count Badge */}
-      {engagementCount > 0 && (
-        <Badge variant="secondary" className="enterprise-engagement-count-badge text-xs ml-auto">
-          <Eye className="enterprise-engagement-count-icon h-3 w-3 mr-1" />
-          {engagementCount}
-        </Badge>
-      )}
+          {/* Engagement Count Badge */}
+          {engagementCount > 0 && (
+            <Badge variant="secondary" className="enterprise-engagement-count-badge text-xs ml-auto">
+              <Eye className="enterprise-engagement-count-icon h-3 w-3 mr-1" />
+              {engagementCount}
+            </Badge>
+          )}
 
-      {/* Premium Monetization Badge */}
-      {isPremium && monetization && (
-        <Badge variant="default" className="enterprise-engagement-premium-badge bg-yellow-500 text-white ml-auto">
-          <Zap className="enterprise-engagement-premium-icon h-3 w-3 mr-1" />
-          ${monetization.price}
-        </Badge>
-        )}
-
+          {/* Premium Monetization Badge */}
+          {isPremium && monetization && (
+            <Badge variant="default" className="enterprise-engagement-premium-badge bg-yellow-500 text-white ml-auto">
+              <Zap className="enterprise-engagement-premium-icon h-3 w-3 mr-1" />
+              ${monetization.price}
+            </Badge>
+          )}
+        </div>
       </div>
 
-      {/* Facebook-Style Engagement Summary with Hover Dropdowns */}
-      {(engagementCount > 0 || commentCount > 0) && (
-        <div className="px-0 py-2 border-b border-gray-100">
-          <div className="flex items-center gap-4 text-sm text-gray-600">
-            {/* Like Count with Hover Dropdown */}
-            {engagementCount > 0 && (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-auto p-0 text-sm text-gray-600 hover:text-gray-900">
-                    <Heart className="w-4 h-4 mr-1 fill-current text-blue-600" />
-                    {engagementCount} {engagementCount === 1 ? 'person' : 'people'} liked this
-                    <ChevronDown className="w-3 h-3 ml-1" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80 p-0" align="start">
-                  <div className="p-3 border-b">
-                    <h4 className="font-medium text-sm">People who liked this</h4>
-                  </div>
-                  <div className="max-h-60 overflow-y-auto">
-                    {/* This would be populated with actual likers data */}
-                    <div className="p-3 text-center text-gray-500">
-                      <div className="w-8 h-8 rounded-full bg-gray-200 mx-auto mb-2"></div>
-                      <div className="text-sm">Loading likers...</div>
+      {/* Engagement Summary Row - Facebook Style */}
+      <div className="flex items-center justify-between text-sm text-gray-600 border-b border-gray-100 pb-3">
+        {/* Left Side - Likes with Dropdown */}
+        <div className="flex items-center gap-2">
+          {engagementCount > 0 && (
+            <Popover onOpenChange={handleLikersPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-auto p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="flex -space-x-1">
+                      {/* Like Icons with different colors */}
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-sm">
+                        <Heart className="h-3 w-3 text-white fill-current" />
+                      </div>
+                      {engagementCount > 1 && (
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center shadow-sm">
+                          <Heart className="h-3 w-3 text-white fill-current" />
+                        </div>
+                      )}
+                      {engagementCount > 2 && (
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center shadow-sm">
+                          <Heart className="h-3 w-3 text-white fill-current" />
+                        </div>
+                      )}
                     </div>
+                    <span className="ml-1 hover:underline cursor-pointer font-medium text-gray-700">
+                      {engagementCount} {engagementCount === 1 ? 'like' : 'likes'}
+                    </span>
                   </div>
-                </PopoverContent>
-              </Popover>
-            )}
-
-            {/* Comment Count with Hover Dropdown */}
-            {commentCount > 0 && (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-auto p-0 text-sm text-gray-600 hover:text-gray-900">
-                    <MessageSquare className="w-4 h-4 mr-1" />
-                    {commentCount} {commentCount === 1 ? 'comment' : 'comments'}
-                    <ChevronDown className="w-3 h-3 ml-1" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80 p-0" align="start">
-                  <div className="p-3 border-b">
-                    <h4 className="font-medium text-sm">People who commented</h4>
-                  </div>
-                  <div className="max-h-60 overflow-y-auto">
-                    {/* This would be populated with actual commenters data */}
-                    <div className="p-3 text-center text-gray-500">
-                      <div className="w-8 h-8 rounded-full bg-gray-200 mx-auto mb-2"></div>
-                      <div className="text-sm">Loading commenters...</div>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0 shadow-xl border-0" align="start">
+                <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+                  <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <Heart className="h-4 w-4 text-blue-600 fill-current" />
+                    People who liked this
+                  </h4>
+                </div>
+                <div className="max-h-60 overflow-y-auto">
+                  {isLoadingLikers ? (
+                    <div className="p-6 text-center text-gray-500">
+                      <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                      Loading...
                     </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            )}
-          </div>
+                  ) : likers.length > 0 ? (
+                    <div className="divide-y divide-gray-100">
+                      {likers.map((liker: any) => (
+                        <div key={liker.user_id} className="flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors duration-150">
+                          <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0 ring-2 ring-gray-100">
+                            <img 
+                              src={liker.user_avatar_url || '/placeholder.svg'} 
+                              alt={liker.user_name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-gray-900 truncate">{liker.user_name}</p>
+                            <p className="text-sm text-gray-500">
+                              {new Date(liker.created_at).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-6 text-center text-gray-500">
+                      <Heart className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                      <p>No likes yet</p>
+                      <p className="text-xs">Be the first to like this!</p>
+                    </div>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
         </div>
-      )}
+
+        {/* Right Side - Comments with Dropdown */}
+        <div className="flex items-center gap-2">
+          {commentCountState > 0 && (
+            <Popover onOpenChange={handleCommentersPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-auto p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                >
+                  <span className="hover:underline cursor-pointer font-medium text-gray-700">
+                    {commentCountState} {commentCountState === 1 ? 'comment' : 'comments'}
+                  </span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0 shadow-xl border-0" align="end">
+                <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-green-50 to-emerald-50">
+                  <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4 text-green-600" />
+                    Comments
+                  </h4>
+                </div>
+                <div className="max-h-60 overflow-y-auto">
+                  {isLoadingCommenters ? (
+                    <div className="p-6 text-center text-gray-500">
+                      <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                      Loading...
+                    </div>
+                  ) : commenters.length > 0 ? (
+                    <div className="divide-y divide-gray-100">
+                      {commenters.map((commenter: any) => (
+                        <div key={commenter.id} className="p-4 hover:bg-gray-50 transition-colors duration-150">
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0 ring-2 ring-gray-100">
+                              <img 
+                                src={commenter.user_avatar_url || '/placeholder.svg'} 
+                                alt={commenter.user_name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-2">
+                                <p className="font-medium text-gray-900">{commenter.user_name}</p>
+                                <span className="text-xs text-gray-500">
+                                  {new Date(commenter.created_at).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                  })}
+                                </span>
+                              </div>
+                              <p className="text-sm text-gray-700 leading-relaxed">{commenter.comment_text}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-6 text-center text-gray-500">
+                      <MessageSquare className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                      <p>No comments yet</p>
+                      <p className="text-xs">Be the first to comment!</p>
+                    </div>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
+        </div>
+      </div>
 
       {/* Comment Input Section */}
       {showCommentInput && (
-        <div className="enterprise-engagement-comment-input bg-gray-50 rounded-lg p-3 border">
+        <div className="enterprise-engagement-comment-input bg-gray-50 rounded-lg p-3 border border-2 border-green-300 shadow-lg">
           <div className="flex items-start gap-3">
             <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
               <img 

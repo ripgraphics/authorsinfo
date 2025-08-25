@@ -1,0 +1,56 @@
+{
+  "timestamp": "20250823_224330",
+  "started_at": "2025-08-23T22:43:30.786784",
+  "operations": [
+    {
+      "command": "npx supabase db dump",
+      "description": "Downloading schema structure",
+      "status": "success",
+      "timestamp": "2025-08-23T22:44:04.521841"
+    },
+    {
+      "command": "npx supabase db dump",
+      "description": "Getting schema part for complete backup",
+      "status": "success",
+      "timestamp": "2025-08-23T22:44:35.241642"
+    },
+    {
+      "command": "npx supabase db dump --data-only",
+      "description": "Getting data part for complete backup",
+      "status": "success",
+      "timestamp": "2025-08-23T22:45:20.793706"
+    }
+  ],
+  "statistics": {
+    "schema": {
+      "lines": 18024,
+      "size_kb": 579.54,
+      "files_created": [
+        "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\schemas\\current_schema.sql",
+        "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\current_schema.sql",
+        "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\schemas\\schema_20250823_224330.sql"
+      ]
+    },
+    "complete_backup": {
+      "lines": 21275,
+      "size_kb": 1290.47,
+      "file": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\complete_backup_20250823_224330.sql",
+      "main_file": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\complete_backup.sql"
+    }
+  },
+  "errors": [
+    {
+      "command": "npx supabase db dump --data-only",
+      "error": "Command 'npx supabase db dump --data-only' returned non-zero exit status 1.",
+      "stderr": "Initialising cli_login_postgres role...\nDumping data from remote database...\npg_dump: error: connection to server at \"aws-0-us-east-2.pooler.supabase.com\" (3.139.14.59), port 5432 failed: error received from server in SCRAM exchange: Wrong password\nerror running container: exit 1\nTry rerunning the command with --debug to troubleshoot the error.\n",
+      "timestamp": "2025-08-23T22:45:30.830326"
+    },
+    {
+      "operation": "full_backup",
+      "error": "Command 'npx supabase db dump --data-only' returned non-zero exit status 1.",
+      "timestamp": "2025-08-23T22:45:30.830355"
+    }
+  ],
+  "completed_at": "2025-08-23T22:45:30.830961",
+  "status": "failed"
+}

@@ -202,9 +202,16 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    if (existingActivity.activity_type !== 'post_created') {
+    // Allow editing of various post-like activity types
+    const editableActivityTypes = ['post_created', 'book_review', 'book_share', 'reading_progress', 'book_added', 'author_follow', 'book_recommendation']
+    const isEditableActivity = editableActivityTypes.includes(existingActivity.activity_type) ||
+                               existingActivity.content_type === 'text' ||
+                               existingActivity.content_type === 'image' ||
+                               existingActivity.content_type === 'video'
+
+    if (!isEditableActivity) {
       return NextResponse.json(
-        { error: 'Only posts can be edited' },
+        { error: `Activity type '${existingActivity.activity_type}' cannot be edited` },
         { status: 400 }
       )
     }

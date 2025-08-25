@@ -17,11 +17,10 @@ export async function GET(
     
     // Fetch post
     const { data: post, error } = await supabase
-      .from('posts')
+      .from('activities')
       .select('*')
       .eq('id', postId)
-      .eq('is_deleted', false)
-      .eq('is_hidden', false)
+      .eq('activity_type', 'post_created')
       .single()
     
     if (error) {
@@ -53,10 +52,10 @@ export async function GET(
     
     // Increment view count
     await supabase
-      .from('posts')
+      .from('activities')
       .update({ 
         view_count: (post.view_count || 0) + 1,
-        last_activity_at: new Date().toISOString()
+        updated_at: new Date().toISOString()
       })
       .eq('id', postId)
     
@@ -92,9 +91,10 @@ export async function PUT(
     
     // Check if post exists and user owns it
     const { data: existingPost, error: fetchError } = await supabase
-      .from('posts')
-      .select('user_id, publish_status, is_deleted, content')
+      .from('activities')
+      .select('user_id, publish_status, text, data')
       .eq('id', postId)
+      .eq('activity_type', 'post_created')
       .single()
     
     if (fetchError) {
@@ -152,10 +152,15 @@ export async function PUT(
     }
     
     if (body.content) {
-      updateData.content = {
-        ...(existingPost.content || {}),
+      // Save text to the correct 'text' column (not nested in content)
+      if (body.content.text !== undefined) {
+        updateData.text = body.content.text.trim() || ''
+      }
+      
+      // Save other content fields to the data JSONB field
+      updateData.data = {
+        ...(existingPost.data || {}),
         ...body.content,
-        text: body.content.text?.trim() || existingPost.content?.text || '',
         updated_at: new Date().toISOString()
       }
     }
@@ -205,7 +210,7 @@ export async function PUT(
     
     // Update post
     const { data: updatedPost, error: updateError } = await supabase
-      .from('posts')
+      .from('activities')
       .update(updateData)
       .eq('id', postId)
       .select()
@@ -255,9 +260,10 @@ export async function DELETE(
     
     // Check if post exists and user owns it
     const { data: existingPost, error: fetchError } = await supabase
-      .from('posts')
-      .select('user_id, is_deleted')
+      .from('activities')
+      .select('user_id, publish_status')
       .eq('id', postId)
+      .eq('activity_type', 'post_created')
       .single()
     
     if (fetchError) {
@@ -290,12 +296,10 @@ export async function DELETE(
     
     // Soft delete post
     const { error: deleteError } = await supabase
-      .from('posts')
+      .from('activities')
       .update({
-        is_deleted: true,
         publish_status: 'deleted',
-        updated_at: new Date().toISOString(),
-        last_activity_at: new Date().toISOString()
+        updated_at: new Date().toISOString()
       })
       .eq('id', postId)
     

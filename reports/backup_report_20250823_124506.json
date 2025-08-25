@@ -1,0 +1,84 @@
+{
+  "timestamp": "20250823_124506",
+  "started_at": "2025-08-23T12:45:06.727906",
+  "operations": [
+    {
+      "command": "npx supabase db dump",
+      "description": "Downloading schema structure",
+      "status": "success",
+      "timestamp": "2025-08-23T12:45:45.403026"
+    },
+    {
+      "command": "npx supabase db dump",
+      "description": "Getting schema part for complete backup",
+      "status": "success",
+      "timestamp": "2025-08-23T12:46:21.860482"
+    },
+    {
+      "command": "npx supabase db dump --data-only",
+      "description": "Getting data part for complete backup",
+      "status": "success",
+      "timestamp": "2025-08-23T12:47:18.428767"
+    },
+    {
+      "command": "npx supabase db dump --data-only",
+      "description": "Creating data-only backup",
+      "status": "success",
+      "timestamp": "2025-08-23T12:48:18.402977"
+    },
+    {
+      "command": "npx supabase db dump",
+      "description": "Getting schema for function extraction",
+      "status": "success",
+      "timestamp": "2025-08-23T12:48:56.931004"
+    }
+  ],
+  "statistics": {
+    "schema": {
+      "lines": 19017,
+      "size_kb": 610.32,
+      "files_created": [
+        "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\schemas\\current_schema.sql",
+        "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\current_schema.sql",
+        "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\schemas\\schema_20250823_124506.sql"
+      ]
+    },
+    "complete_backup": {
+      "lines": 22530,
+      "size_kb": 1439.57,
+      "file": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\complete_backup_20250823_124506.sql",
+      "main_file": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\complete_backup.sql"
+    },
+    "data_backup": {
+      "lines": 3509,
+      "size_kb": 829.23,
+      "file": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\data_only_20250823_124506.sql",
+      "main_file": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\data_only_backup.sql"
+    },
+    "functions_backup": {
+      "lines": 1736,
+      "size_kb": 74.53,
+      "file": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\functions_triggers_20250823_124506.sql",
+      "main_file": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\functions_triggers.sql"
+    },
+    "compression": {
+      "original_size_kb": 832.66,
+      "compressed_size_kb": 113.95,
+      "compression_ratio_percent": 86.3
+    },
+    "cleanup": {
+      "files_removed": [],
+      "cutoff_date": "2025-06-24T12:48:57.379868"
+    }
+  },
+  "errors": [
+    {
+      "command": "npx supabase db dump | grep -A 1000 'CREATE.*FUNCTION\\|CREATE.*TRIGGER'",
+      "error": "Command 'npx supabase db dump | grep -A 1000 'CREATE.*FUNCTION\\|CREATE.*TRIGGER'' returned non-zero exit status 255.",
+      "stderr": "'grep' is not recognized as an internal or external command,\noperable program or batch file.\n",
+      "timestamp": "2025-08-23T12:48:18.459739"
+    }
+  ],
+  "completed_at": "2025-08-23T12:48:57.389014",
+  "duration_seconds": 230.661108
+}

@@ -124,7 +124,7 @@ export default function EntityFeedCard({
     activity_type: post.activity_type,
     entity_type: post.entity_type,
     content_type: post.content_type,
-    hasContent: !!post.content,
+    hasContent: !!(post.text || post.data),
     hasData: !!(post as any).data,
     allKeys: Object.keys(post),
     fullPost: post
@@ -172,6 +172,20 @@ export default function EntityFeedCard({
     setEditContent(getPostText(post))
     setEditImages(getPostImages(post))
   }, [post])
+
+  // Debug post data changes
+  useEffect(() => {
+    if (post) {
+      console.log('🔍 Post data updated in EntityFeedCard:', {
+        postId: post.id,
+        like_count: post.like_count,
+        comment_count: post.comment_count,
+        share_count: post.share_count,
+        user_has_reacted: post.user_has_reacted,
+        calculatedEngagement: (post.like_count || 0) + (post.comment_count || 0) + (post.share_count || 0)
+      })
+    }
+  }, [post?.like_count, post?.comment_count, post?.share_count, post?.user_has_reacted])
 
   // Content type configurations
   const contentTypeConfigs = {
@@ -249,104 +263,136 @@ export default function EntityFeedCard({
     // Debug: Log the actual post structure directly
     console.log('=== POST DATA DEBUG ===')
     console.log('Post ID:', post.id)
-    console.log('Post type:', typeof post)
-    console.log('Post keys:', Object.keys(post))
-    console.log('Post.data:', post.data)
-    console.log('Post.data type:', typeof post.data)
-    if (post.data) {
-      console.log('Post.data keys:', Object.keys(post.data))
-      console.log('Post.data.content:', post.data.content)
-      if (post.data.content) {
-        console.log('Post.data.content keys:', Object.keys(post.data.content))
-      }
-    }
-    console.log('Post.content:', post.content)
-    if (post.content) {
-      console.log('Post.content keys:', Object.keys(post.content))
-      console.log('Post.content.text:', post.content.text)
-      console.log('Post.content.content:', post.content.content)
-      console.log('Post.content.body:', post.content.body)
-    }
-    console.log('Post.text:', post.text)
+    console.log('Post.text (direct column):', post.text)
+    console.log('Post.data (JSONB field):', post.data)
+    console.log('Post.content_type:', post.content_type)
+    console.log('Post.activity_type:', post.activity_type)
     console.log('========================')
     
-    // NEW: Check for direct columns first (from updated database function)
-    if (post.text) return post.text
-    if (post.content_type === 'text' && post.text) return post.text
+    // PRIORITY 1: Check for direct columns first (from updated database function)
+    if (post.text && post.text.trim() !== '') {
+      console.log('getPostText - Found text in post.text:', post.text)
+      return post.text
+    }
     
-    // Try to get text from various possible locations
-    if (post.content?.text) return post.content.text
-    if (post.content?.content) return post.content.content
-    if (post.content?.body) return post.content.body
-    if (post.data?.text) return post.data.text
-    if (post.data?.content?.text) return post.data.content.text
-    if (post.data?.content?.content) return post.data.content.content
-    if (post.data?.content?.body) return post.data.content.body
-    if (post.data?.body) return post.data.body
-    if (post.data?.message) return post.data.message
-    if (post.data?.description) return post.data.description
+    // PRIORITY 2: Check for content in the data JSONB field (old structure)
+    if (post.data) {
+      if (post.data.text && post.data.text.trim() !== '') {
+        console.log('getPostText - Found text in post.data.text:', post.data.text)
+        return post.data.text
+      }
+      if (post.data.content && post.data.content.trim() !== '') {
+        console.log('getPostText - Found text in post.data.content:', post.data.content)
+        return post.data.content
+      }
+      if (post.data.body && post.data.body.trim() !== '') {
+        console.log('getPostText - Found text in post.data.body:', post.data.body)
+        return post.data.body
+      }
+      if (post.data.message && post.data.message.trim() !== '') {
+        console.log('getPostText - Found text in post.data.message:', post.data.message)
+        return post.data.message
+      }
+      if (post.data.description && post.data.description.trim() !== '') {
+        console.log('getPostText - Found text in post.data.description:', post.data.description)
+        return post.data.description
+      }
+    }
     
-    // Try deeper nesting
-    if (post.data?.data?.text) return post.data.data.text
-    if (post.data?.data?.content) return post.data.data.content
-    if (post.data?.data?.body) return post.data.data.body
+    // PRIORITY 3: Check for content in metadata field (if it exists)
+    if (post.metadata) {
+      if (post.metadata.text && post.metadata.text.trim() !== '') {
+        console.log('getPostText - Found text in post.metadata.text:', post.metadata.text)
+        return post.metadata.text
+      }
+      if (post.metadata.content && post.metadata.content.trim() !== '') {
+        console.log('getPostText - Found text in post.metadata.content:', post.metadata.content)
+        return post.metadata.content
+      }
+    }
     
-    console.log('getPostText - No text found, returning default')
-    return 'Post content'
+    // PRIORITY 4: Check for content_summary field
+    if (post.content_summary && post.content_summary.trim() !== '') {
+      console.log('getPostText - Found text in post.content_summary:', post.content_summary)
+      return post.content_summary
+    }
+    
+      // FINAL FALLBACK: Provide meaningful fallback based on activity type and content type
+  if (post.content_type === 'image') {
+    return post.image_url ? 'Shared an image' : 'Shared an image'
+  } else if (post.content_type === 'video') {
+    return 'Shared a video'
+  } else if (post.content_type === 'link') {
+    return post.link_url ? 'Shared a link' : 'Shared a link'
+  } else if (post.content_type === 'book') {
+    return 'Shared a book'
+  } else if (post.content_type === 'author') {
+    return 'Shared an author'
+  } else if (post.content_type === 'text') {
+    return 'Shared an update'
+  } else if (post.activity_type === 'book_review') {
+    return 'Shared a book review'
+  } else if (post.activity_type === 'book_share') {
+    return 'Shared a book'
+  } else if (post.activity_type === 'reading_progress') {
+    return 'Updated reading progress'
+  } else if (post.activity_type === 'book_added') {
+    return 'Added a book to their library'
+  } else if (post.activity_type === 'author_follow') {
+    return 'Started following an author'
+  } else if (post.activity_type === 'book_recommendation') {
+    return 'Recommended a book'
+  } else if (post.activity_type) {
+    return `Shared a ${post.activity_type.replace('_', ' ')}`
+  }
+  
+  console.log('getPostText - No text found, returning default')
+  return 'Shared an update'
   }
 
   const getPostImages = (post: any): string[] => {
     // Debug: Log the actual post structure for images
     console.log('getPostImages - Post image structure:', {
       hasImageUrl: !!post.image_url,
-      hasContent: !!post.content,
-      hasData: !!post.data,
-      contentKeys: post.content ? Object.keys(post.content) : [],
-      dataKeys: post.data ? Object.keys(post.data) : [],
-      contentImageUrl: post.content?.image_url,
-      contentImages: post.content?.images,
-      dataImageUrl: post.data?.image_url,
-      dataImages: post.data?.images
+          hasContent: !!(post.text || post.data),
+    contentImageUrl: post.image_url
     })
     
-    // NEW: Check for direct image_url column first (from updated database function)
-    if (post.image_url) {
-      return post.image_url.split(',').map((url: string) => url.trim()).filter(Boolean)
-    }
-    if (post.content_type === 'image' && post.image_url) {
+    // PRIORITY 1: Check for direct image_url column (from current schema)
+    if (post.image_url && post.image_url.trim() !== '') {
+      console.log('getPostImages - Found image_url in direct column:', post.image_url)
       return post.image_url.split(',').map((url: string) => url.trim()).filter(Boolean)
     }
     
-    // Try to get images from various possible locations
-    if (post.content?.image_url) {
-      return post.content.image_url.split(',').map((url: string) => url.trim()).filter(Boolean)
-    }
-    if (post.content?.images) {
-      return Array.isArray(post.content.images) ? post.content.images : [post.content.images]
-    }
-    if (post.data?.image_url) {
-      return post.data.image_url.split(',').map((url: string) => url.trim()).filter(Boolean)
-    }
+    // PRIORITY 2: Check for images in data JSONB field
     if (post.data?.images) {
+      console.log('getPostImages - Found images in data.images:', post.data.images)
       return Array.isArray(post.data.images) ? post.data.images : [post.data.images]
     }
-    if (post.data?.media_url) {
+    
+    if (post.data?.image_url && post.data.image_url.trim() !== '') {
+      console.log('getPostImages - Found image_url in data.image_url:', post.data.image_url)
+      return post.data.image_url.split(',').map((url: string) => url.trim()).filter(Boolean)
+    }
+    
+    // PRIORITY 3: Check for media_url in data
+    if (post.data?.media_url && post.data.media_url.trim() !== '') {
+      console.log('getPostImages - Found media_url in data.media_url:', post.data.media_url)
       return post.data.media_url.split(',').map((url: string) => url.trim()).filter(Boolean)
     }
-    if (post.data?.content?.image_url) {
+    
+    // PRIORITY 4: Check for nested content structure
+    if (post.data?.content?.image_url && post.data.content.image_url.trim() !== '') {
+      console.log('getPostImages - Found image_url in data.content.image_url:', post.data.content.image_url)
       return post.data.content.image_url.split(',').map((url: string) => url.trim()).filter(Boolean)
     }
+    
     if (post.data?.content?.images) {
+      console.log('getPostImages - Found images in data.content.images:', post.data.content.images)
       return Array.isArray(post.data.content.images) ? post.data.content.images : [post.data.content.images]
     }
     
-    // Try deeper nesting
-    if (post.data?.data?.image_url) {
-      return post.data.data.image_url.split(',').map((url: string) => url.trim()).filter(Boolean)
-    }
-    if (post.data?.data?.images) {
-      return post.data.data.images.split(',').map((url: string) => url.trim()).filter(Boolean)
-    }
+    // Note: post.data.data nesting doesn't exist in current schema, removed these checks
     
     console.log('getPostImages - No images found, returning empty array')
     return []
@@ -355,36 +401,55 @@ export default function EntityFeedCard({
   const getPostContentType = (post: any): string => {
     // Debug: Log the actual post structure for content type
     console.log('getPostContentType - Post content type structure:', {
-      hasContentType: !!post.content_type,
-      hasContent: !!post.content,
-      hasData: !!post.data,
-      contentKeys: post.content ? Object.keys(post.content) : [],
-      dataKeys: post.data ? Object.keys(post.data) : [],
-      contentType: post.content?.type,
-      dataType: post.data?.type,
-      dataContentType: post.data?.content_type
+          hasContentType: !!post.content_type,
+    hasContent: !!(post.text || post.data),
+    contentType: post.content_type,
+      postId: post.id,
+      activityType: post.activity_type,
+      hasText: !!(post.text || post.data?.text),
+      hasImages: getPostImages(post).length > 0
     })
     
     // Handle like activities specifically
     if (post.activity_type === 'like') {
+      console.log('getPostContentType - Returning like for like activity')
       return 'like'
     }
     
     // Try to get content type from various possible locations
-    if (post.content_type) return post.content_type
-    if (post.content?.type) return post.content.type
-    if (post.data?.content_type) return post.data.content_type
-    if (post.data?.type) return post.data.type
-    if (post.data?.content?.type) return post.data.content.type
+    if (post.content_type) {
+      console.log('getPostContentType - Found post.content_type:', post.content_type)
+      return post.content_type
+    }
+    // Note: post.content doesn't exist in current schema, removed this check
+    if (post.data?.content_type) {
+      console.log('getPostContentType - Found post.data.content_type:', post.data.content_type)
+      return post.data.content_type
+    }
+    if (post.data?.type) {
+      console.log('getPostContentType - Found post.data.type:', post.data.type)
+      return post.data.type
+    }
+    // Note: post.data.content doesn't exist in current schema, removed this check
     
-    // Try deeper nesting
-    if (post.data?.data?.type) return post.data.data.type
-    if (post.data?.data?.content_type) return post.data.data.content_type
+    // Note: post.data.data nesting doesn't exist in current schema, removed these checks
     
     // Infer from content
     const images = getPostImages(post)
-    if (images.length > 0) return 'image'
-    if (post.content?.link_url || post.data?.link_url || post.data?.url) return 'link'
+    if (images.length > 0) {
+      console.log('getPostContentType - Inferring image from images array')
+      return 'image'
+    }
+    if (post.link_url || post.data?.link_url || post.data?.url) {
+      console.log('getPostContentType - Inferring link from link URLs')
+      return 'link'
+    }
+    
+    // If we have text content, default to text
+    if (post.text || post.data?.text) {
+      console.log('getPostContentType - Inferring text from text content')
+      return 'text'
+    }
     
     console.log('getPostContentType - No content type found, defaulting to text')
     return 'text'
@@ -396,13 +461,32 @@ export default function EntityFeedCard({
 
   const hasTextContent = (post: any): boolean => {
     const text = getPostText(post)
-    return typeof text === 'string' && text !== 'Post content' && text.trim().length > 0
+    const result = typeof text === 'string' && text.trim().length > 0
+    console.log('hasTextContent function:', {
+      postId: post.id,
+      text,
+      textType: typeof text,
+      textLength: text?.length,
+      trimmedLength: text?.trim()?.length,
+      result
+    })
+    return result
   }
 
-  // Get display values using helper functions
-  const displayText = getPostText(post)
-  const displayImageUrl = getPostImages(post).join(',')
-  const displayContentType = getPostContentType(post)
+      // Get display values using helper functions
+    const displayText = getPostText(post)
+    const displayImageUrl = getPostImages(post).join(',')
+    const displayContentType = getPostContentType(post)
+    
+    // Debug: Log what we got from the helper functions
+    console.log('EntityFeedCard - Helper function results:', {
+      postId: post.id,
+      displayText,
+      displayImageUrl,
+      displayContentType,
+      hasTextContent: hasTextContent(post),
+      hasImageContent: hasImageContent(post)
+    })
 
   // Handle image click for modal
   const handleImageClick = (url: string, index: number) => {
@@ -422,13 +506,23 @@ export default function EntityFeedCard({
   // Handle inline editing
   const handleEditToggle = () => {
     console.log('Edit button clicked!')
+    console.log('Current isEditing state:', isEditing)
+    console.log('Current post content:', getPostText(post))
+    
     if (isEditing) {
       // Cancel editing - reset content and images
-      setEditContent(displayText)
+      console.log('Canceling edit, resetting content')
+      setEditContent(getPostText(post))
+      setEditImages(getPostImages(post))
+    } else {
+      // Start editing - set content and images to current post values
+      console.log('Starting edit, setting content to:', getPostText(post))
+      setEditContent(getPostText(post))
       setEditImages(getPostImages(post))
     }
     setIsEditing(!isEditing)
     setShowActionsMenu(false)
+    console.log('New isEditing state will be:', !isEditing)
   }
 
   // Handle image upload
@@ -499,7 +593,7 @@ export default function EntityFeedCard({
       console.log('Post user_id:', post.user_id)
       console.log('Current user:', user)
       console.log('Update data:', {
-        content: { ...post.content, text: editContent.trim() },
+        content: { text: editContent.trim() },
         image_url: editImages.join(',')
       })
       console.log('API URL:', `/api/posts/${post.id}`)
@@ -586,38 +680,18 @@ export default function EntityFeedCard({
       console.log('Post activity_type:', post.activity_type)
       console.log('Post entity_type:', post.entity_type)
       console.log('Post content_type:', post.content_type)
-      console.log('Post has content field:', !!post.content)
+      console.log('Post has text field:', !!post.text)
       console.log('Post has data field:', !!(post as any).data)
       console.log('========================')
 
-      // Determine the appropriate deletion endpoint based on post structure
-      let response: Response
-      let endpoint: string
-      
-      // Use activity_type as the primary indicator since FeedContent sets this explicitly
-      // Posts with activity_type='post_created' from the posts table should use /api/posts
-      // Posts with activity_type='post_created' from the activities table should use /api/activities
-      // The presence of a nested 'content' field indicates posts table structure
-      const hasNestedContent = post.content && typeof post.content === 'object' && 
-                              Object.keys(post.content).length > 0
-      
-      if (post.activity_type === 'post_created' && hasNestedContent) {
-        // This is a posts table post converted to FeedPost format
-        endpoint = `/api/posts/${post.id}`
-        console.log('Deleting posts table post from posts table')
-        response = await fetch(endpoint, {
-          method: 'DELETE'
-        })
-      } else {
-        // This is an activity-based post or other activity type
-        endpoint = `/api/activities`
-        console.log('Deleting activity-based post from activities table')
-        response = await fetch(endpoint, {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: post.id })
-        })
-      }
+      // All posts now use the unified activities table system
+      const endpoint = '/api/activities'
+      console.log('Deleting post from unified activities table')
+      const response = await fetch(endpoint, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: post.id })
+      })
 
       console.log('Delete response status:', response.status)
       console.log('Delete response ok:', response.ok)
@@ -646,44 +720,29 @@ export default function EntityFeedCard({
     }
   }
 
-  // Load engagement data with optimization
+  // Load engagement data with optimization - UPDATED to use built-in data
   const loadEngagementData = useCallback(async () => {
     if (!showEngagement || !post?.id) return
 
     setIsLoadingEngagement(true)
     try {
-      // Use deduplicated requests for better performance
-      const [reactions, comments, shares, bookmarks] = await Promise.all([
-        deduplicatedRequest(
-          `engagement-reactions-${post.id}`,
-          () => fetch(`/api/posts/engagement?post_id=${post.id}&action_type=reactions`).then(r => r.json()),
-          2 * 60 * 1000 // 2 minutes cache
-        ),
-        deduplicatedRequest(
-          `engagement-comments-${post.id}`,
-          () => fetch(`/api/posts/engagement?post_id=${post.id}&action_type=comments`).then(r => r.json()),
-          2 * 60 * 1000 // 2 minutes cache
-        ),
-        deduplicatedRequest(
-          `engagement-shares-${post.id}`,
-          () => fetch(`/api/posts/engagement?post_id=${post.id}&action_type=shares`).then(r => r.json()),
-          2 * 60 * 1000 // 2 minutes cache
-        ),
-        deduplicatedRequest(
-          `engagement-bookmarks-${post.id}`,
-          () => fetch(`/api/posts/engagement?post_id=${post.id}&action_type=bookmarks`).then(r => r.json()),
-          2 * 60 * 1000 // 2 minutes cache
-        )
-      ])
+      // Since engagement data is now built into the activities table,
+      // we don't need to make separate API calls
+      console.log('✅ Using built-in engagement data from post:', {
+        like_count: post.like_count,
+        comment_count: post.comment_count,
+        share_count: post.share_count
+      })
 
+      // Use the engagement data directly from the post
       setEngagementData({
-        reactions: reactions.data || [],
-        comments: comments.data || [],
-        shares: shares.data || [],
-        bookmarks: bookmarks.data || []
+        likes: [], // Individual likes not stored separately anymore
+        comments: [], // Individual comments not stored separately anymore  
+        shares: [],
+        bookmarks: []
       })
     } catch (error) {
-      console.error('Error loading engagement data:', error)
+      console.error('Error setting engagement data:', error)
     } finally {
       setIsLoadingEngagement(false)
     }
@@ -745,7 +804,9 @@ export default function EntityFeedCard({
 
   // Render main content
   const renderContent = () => {
+    console.log('renderContent called, isEditing:', isEditing)
     if (isEditing) {
+      console.log('Rendering edit form with content:', editContent)
       return (
         <div className="space-y-4">
           <Textarea
@@ -892,9 +953,9 @@ export default function EntityFeedCard({
       postId: post.id,
       contentType: post.content_type, 
       imageUrl: post.image_url,
-      hasContent: !!post.content,
-      contentText: post.content?.text,
-      fullPost: JSON.stringify(post, null, 2)
+      hasText: !!post.text,
+      hasData: !!post.data,
+      contentText: post.text || post.data?.text
     })
     
     // Handle both old and new post structures
@@ -908,7 +969,9 @@ export default function EntityFeedCard({
       console.log('No content available for post:', { 
         postId: post.id,
         hasText: hasTextContent(post),
-        hasImage: hasImageContent(post)
+        hasImage: hasImageContent(post),
+        displayText,
+        displayImageUrl
       })
       return (
         <div className="enterprise-feed-card-no-content">
@@ -927,12 +990,22 @@ export default function EntityFeedCard({
       })
     }
 
-    const content = post.content as PostContent
+    const content = { text: post.text || post.data?.text || '' } as PostContent
 
-    console.log('Content type switch:', { contentType: displayContentType, postId: post.id })
+    console.log('Content type switch:', { 
+      contentType: displayContentType, 
+      postId: post.id,
+      postContentType: post.content_type,
+      postContent: { text: post.text || post.data?.text || '' }
+    })
     
     switch (displayContentType) {
       case 'text':
+        console.log('Rendering text content case:', {
+          postId: post.id,
+          displayText,
+          hasDisplayText: !!displayText
+        })
         return (
           <div className="enterprise-feed-card-text-content">
             <div className="enterprise-feed-card-text prose prose-sm max-w-none">
@@ -951,8 +1024,7 @@ export default function EntityFeedCard({
         console.log('Rendering image content:', { 
           postId: post.id,
           imageUrl: post.image_url,
-          hasImageUrl: !!post.image_url,
-          fullPost: JSON.stringify(post, null, 2)
+          hasImageUrl: !!post.image_url
         })
         
         // Handle multiple images using the new helper function
@@ -1252,16 +1324,120 @@ export default function EntityFeedCard({
           </span>
         )}
         {post.like_count > 0 && (
-          <span className="enterprise-feed-card-likes flex items-center gap-1">
-            <Heart className="h-4 w-4" />
-            {post.like_count} likes
-          </span>
+          <div className="enterprise-feed-card-likes-container relative group">
+            <span className="enterprise-feed-card-likes flex items-center gap-1 cursor-pointer hover:text-blue-600 transition-colors">
+              <Heart className="h-4 w-4" />
+              {post.like_count} likes
+            </span>
+            {/* Hover dropdown for likes */}
+            <div className="absolute bottom-full left-0 mb-2 px-3 py-2 bg-white border rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto z-50 min-w-48">
+              <div className="text-xs font-semibold text-gray-700 mb-2 border-b pb-1">
+                People who liked this
+              </div>
+              {/* Engagement data is now directly available in post.metadata */}
+              {post.metadata?.recent_likers && post.metadata.recent_likers.length > 0 ? (
+                <div className="space-y-1">
+                  {post.metadata.recent_likers.map((liker: string, index: number) => (
+                    <div key={index} className="flex items-center gap-2 text-xs">
+                      <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
+                        {liker.includes('@') ? (
+                          <EntityHoverCard
+                            type="user"
+                            entity={{ id: liker.substring(1), name: liker.substring(1).split(' ')[0] }}
+                          >
+                            <Avatar
+                              src={`/api/users/${liker.substring(1)}/avatar`}
+                              alt={liker.substring(1).split(' ')[0]}
+                              name={liker.substring(1).split(' ')[0]}
+                              size="sm"
+                              className="object-cover rounded-full"
+                            />
+                          </EntityHoverCard>
+                        ) : (
+                          <Avatar
+                            src={`/api/users/${liker}/avatar`}
+                            alt={liker}
+                            name={liker}
+                            size="sm"
+                            className="object-cover rounded-full"
+                          />
+                        )}
+                      </div>
+                      <span className="text-gray-700">{liker}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-xs text-gray-500">No recent likers</div>
+              )}
+            </div>
+          </div>
         )}
         {post.comment_count > 0 && (
-          <span className="enterprise-feed-card-comments flex items-center gap-1">
-            <MessageCircle className="h-4 w-4" />
-            {post.comment_count} comments
-          </span>
+          <div className="enterprise-feed-card-comments-container relative group">
+            <span className="enterprise-feed-card-comments flex items-center gap-1 cursor-pointer hover:text-green-600 transition-colors">
+              <MessageCircle className="h-4 w-4" />
+              {post.comment_count} comments
+            </span>
+            {/* Hover dropdown for comments */}
+            <div className="absolute bottom-full left-0 mb-2 px-3 py-2 bg-white border rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto z-50 min-w-80 max-h-64 overflow-y-auto">
+              <div className="text-xs font-semibold text-gray-700 mb-2 border-b pb-1">
+                Comments
+              </div>
+              {/* Engagement data is now directly available in post.metadata */}
+              {post.metadata?.recent_comments && post.metadata.recent_comments.length > 0 ? (
+                <div className="space-y-2">
+                  {post.metadata.recent_comments.map((comment: string, index: number) => {
+                    const commentParts = comment.split('|');
+                    const userName = commentParts[0];
+                    const commentText = commentParts[1];
+                    return (
+                      <div key={index} className="text-xs border-b border-gray-100 pb-2 last:border-b-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center">
+                            {userName.includes('@') ? (
+                              <EntityHoverCard
+                                type="user"
+                                entity={{ id: userName.substring(1), name: userName.substring(1).split(' ')[0] }}
+                              >
+                                <Avatar
+                                  src={`/api/users/${userName.substring(1)}/avatar`}
+                                  alt={userName.substring(1).split(' ')[0]}
+                                  name={userName.substring(1).split(' ')[0]}
+                                  size="sm"
+                                  className="object-cover rounded-full"
+                                />
+                              </EntityHoverCard>
+                            ) : (
+                              <Avatar
+                                src={`/api/users/${userName}/avatar`}
+                                alt={userName}
+                                name={userName}
+                                size="sm"
+                                className="object-cover rounded-full"
+                              />
+                            )}
+                          </div>
+                          <span className="font-medium text-gray-700">{userName}</span>
+                          <span className="text-gray-400 text-xs">
+                            {new Date(comment.split('|')[2]).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </span>
+                        </div>
+                        <div className="text-gray-600 ml-7">
+                          {commentText}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-xs text-gray-500">No recent comments</div>
+              )}
+            </div>
+          </div>
         )}
         {(post.share_count || 0) > 0 && (
           <span className="enterprise-feed-card-shares flex items-center gap-1">
@@ -1269,7 +1445,6 @@ export default function EntityFeedCard({
             {post.share_count} shares
           </span>
         )}
-
       </div>
     )
   }
@@ -1508,17 +1683,16 @@ export default function EntityFeedCard({
         {/* Engagement Stats */}
         {renderEngagementStats()}
 
-        {/* Engagement Actions */}
+        {/* Engagement Actions - Keep only the action buttons, remove duplicate stats */}
         {showActions && (
           <div className="enterprise-feed-card-engagement-actions mt-4">
             <EngagementActions
               entityId={post.id}
-              entityType={post.entity_type as 'user' | 'book' | 'author' | 'publisher' | 'group'}
+              entityType="activity"
               initialEngagementCount={post.like_count + post.comment_count + (post.share_count || 0)}
               commentCount={post.comment_count || 0}
               isLiked={post.user_has_reacted}
               isCommented={false}
-              isShared={false}
               onEngagement={async (action, entityId, entityType) => {
                 // Handle engagement
                 console.log('Engagement action:', action, entityId, entityType)
@@ -1546,48 +1720,51 @@ export default function EntityFeedCard({
         )}
 
         {/* Comments Section */}
-        {showComments && engagementData.comments.length > 0 && (
+        {showComments && (
           <div className="enterprise-feed-card-comments mt-4">
             <Separator className="mb-3" />
-            <div className="enterprise-feed-card-comments-header">
-              <h4 className="text-sm font-semibold mb-2">Comments ({engagementData.comments.length})</h4>
-            </div>
-            <div className="enterprise-feed-card-comments-list space-y-4">
-              {engagementData.comments.slice(0, 5).map((comment: any) => (
-                <NestedCommentThread
-                  key={comment.id}
-                  comment={{
-                    id: comment.id,
-                    content: comment.content,
-                    created_at: comment.created_at,
-                    updated_at: comment.updated_at,
-                    user: comment.user,
-                    parent_comment_id: comment.parent_comment_id,
-                    comment_depth: comment.comment_depth || 0,
-                    thread_id: comment.thread_id,
-                    reply_count: comment.reply_count || 0,
-                    replies: comment.replies || []
-                  }}
-                  entityType={post.entity_type || 'post'}
-                  entityId={post.entity_id || post.id}
-                  postId={post.id}
-                  onCommentUpdated={(updatedComment) => {
-                    // Update the comment in the local state
-                    setEngagementData((prev: any) => ({
-                      ...prev,
-                      comments: prev.comments.map((c: any) => 
-                        c.id === updatedComment.id ? updatedComment : c
-                      )
-                    }))
-                  }}
-                />
-              ))}
-              {engagementData.comments.length > 5 && (
-                <Button variant="ghost" size="sm" className="w-full">
-                  View all {engagementData.comments.length} comments
-                </Button>
-              )}
-            </div>
+            {/* Engagement data is now directly available in post.metadata */}
+            {post.metadata?.recent_comments && post.metadata.recent_comments.length > 0 && (
+              <>
+                <div className="enterprise-feed-card-comments-header">
+                  <h4 className="text-sm font-semibold mb-2">Comments ({post.metadata.recent_comments.length})</h4>
+                </div>
+                <div className="enterprise-feed-card-comments-list space-y-4">
+                  {post.metadata.recent_comments.map((comment: string, index: number) => {
+                    const commentParts = comment.split('|');
+                    const userName = commentParts[0];
+                    const commentText = commentParts[1];
+                    return (
+                      <NestedCommentThread
+                        key={index}
+                        comment={{
+                          id: `comment-${index}`, // Unique ID for each comment in the list
+                          content: commentText,
+                          created_at: commentParts[2],
+                          updated_at: commentParts[2], // Assuming no update for recent comments
+                          user: {
+                            id: userName.includes('@') ? userName.substring(1) : userName,
+                            name: userName.includes('@') ? userName.substring(1).split(' ')[0] : userName,
+                            avatar_url: userName.includes('@') ? `/api/users/${userName.substring(1)}/avatar` : `/api/users/${userName}/avatar`
+                          },
+                          parent_comment_id: null, // No parent for recent comments
+                          comment_depth: 0,
+                          thread_id: `thread-${index}`, // Generate a unique thread ID
+                          reply_count: 0,
+                          replies: []
+                        }}
+                        entityType={post.entity_type || 'post'}
+                        entityId={post.entity_id || post.id}
+                        postId={post.id}
+                        onCommentUpdated={(updatedComment) => {
+                          // No-op for recent comments as they are not editable
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -1602,7 +1779,7 @@ export default function EntityFeedCard({
             url: url,
             thumbnail_url: url,
             alt_text: `Post image ${index + 1}`,
-            description: post.content?.text || `Image ${index + 1} from post`,
+            description: post.text || post.data?.text || `Image ${index + 1} from post`,
             created_at: post.created_at || new Date().toISOString(),
             metadata: {
               source: 'timeline_post',

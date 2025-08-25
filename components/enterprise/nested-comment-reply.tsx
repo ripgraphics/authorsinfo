@@ -21,13 +21,44 @@ interface NestedCommentReplyProps {
     created_at: string
     comment_depth: number
     reply_count: number
+    thread_id?: string
   }
   entityType: string
   entityId: string
   postId: string
-  onReplyAdded: (newReply: any) => void
+  onReplyAdded: (newReply: CommentReply) => void
   onCancel: () => void
   className?: string
+}
+
+// Define the expected comment response type from the API
+interface CommentResponse {
+  id: string
+  comment_text?: string
+  content?: string
+  created_at: string
+  updated_at?: string
+  user_id: string
+  parent_comment_id?: string | null
+  thread_id?: string
+}
+
+// Define the reply object type to match what onReplyAdded expects
+interface CommentReply {
+  id: string
+  content: string
+  created_at: string
+  updated_at?: string
+  user: {
+    id: string
+    name: string
+    avatar_url?: string | null
+  }
+  parent_comment_id?: string | null
+  comment_depth: number
+  thread_id: string
+  reply_count: number
+  replies?: any[]
 }
 
 export function NestedCommentReply({
@@ -66,17 +97,15 @@ export function NestedCommentReply({
     setIsSubmitting(true)
 
     try {
-      const response = await fetch('/api/comments', {
+      // Use the engagement API since that's what the rest of the system uses
+      const response = await fetch(`/api/activities/${entityId}/engagement`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          post_id: postId,
-          user_id: user.id,
-          content: replyContent.trim(),
-          entity_type: entityType,
-          entity_id: entityId,
+          action: 'comment',
+          comment_text: replyContent.trim(),
           parent_comment_id: parentComment.id
         }),
       })
@@ -89,8 +118,27 @@ export function NestedCommentReply({
           description: 'Your reply has been added to the conversation',
         })
         
+        // Transform the response to match the expected comment format
+        const comment = data.comment as CommentResponse
+        const newReply: CommentReply = {
+          id: comment.id,
+          content: comment.comment_text || comment.content || '',
+          created_at: comment.created_at,
+          updated_at: comment.updated_at,
+          user: {
+            id: comment.user_id || user.id,
+            name: user.user_metadata?.full_name || user.email || 'Unknown User',
+            avatar_url: user.user_metadata?.avatar_url
+          },
+          parent_comment_id: comment.parent_comment_id,
+          comment_depth: (parentComment.comment_depth || 0) + 1,
+          thread_id: comment.thread_id || parentComment.thread_id || parentComment.id,
+          reply_count: 0,
+          replies: []
+        }
+        
         // Call the callback with the new reply
-        onReplyAdded(data.comment)
+        onReplyAdded(newReply)
         
         // Reset form
         setReplyContent('')
@@ -108,7 +156,7 @@ export function NestedCommentReply({
     } finally {
       setIsSubmitting(false)
     }
-  }, [replyContent, user, postId, entityType, entityId, parentComment.id, onReplyAdded, onCancel, toast])
+  }, [replyContent, user, entityId, parentComment, onReplyAdded, onCancel, toast])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {

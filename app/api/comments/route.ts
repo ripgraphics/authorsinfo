@@ -275,6 +275,35 @@ export async function POST(request: NextRequest) {
         insertError = discussionError;
         break;
 
+      case 'author':
+        // Use engagement_comments table for author comments
+        const { data: authorComment, error: authorError } = await supabase
+          .from('engagement_comments')
+          .insert([{
+            user_id,
+            entity_type: 'author',
+            entity_id,
+            comment_text: content.trim(),
+            parent_comment_id,
+            comment_depth: parent_comment_id ? 1 : 0,
+            thread_id: parent_comment_id ? null : crypto.randomUUID(),
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }])
+          .select(`
+            *,
+            user:users!engagement_comments_user_id_fkey(
+              id,
+              email,
+              name
+            )
+          `)
+          .single()
+        
+        comment = authorComment;
+        insertError = authorError;
+        break;
+
       default:
         // For other entity types, create a feed entry first, then use the generic comments table
         console.log('Creating feed entry for entity type:', entity_type)
@@ -600,9 +629,6 @@ export async function GET(request: NextRequest) {
             created_at,
             updated_at,
             parent_comment_id,
-            comment_depth,
-            thread_id,
-            reply_count,
             user:users!post_comments_user_id_fkey(
               id,
               email,
@@ -611,6 +637,29 @@ export async function GET(request: NextRequest) {
           )
         `, { count: 'exact' })
         .eq('post_id', post_id)
+        .eq('is_hidden', false)
+        .eq('is_deleted', false)
+        .is('parent_comment_id', null) // Only top-level comments
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1)
+      
+      comments = result.data;
+      error = result.error;
+      count = result.count;
+    } else if (entity_type === 'author') {
+      // Fetch comments for author entities using the engagement_comments table
+      const result = await supabase
+        .from('engagement_comments')
+        .select(`
+          *,
+          user:users!engagement_comments_user_id_fkey(
+            id,
+            email,
+            name
+          )
+        `, { count: 'exact' })
+        .eq('entity_id', post_id)
+        .eq('entity_type', 'author')
         .eq('is_hidden', false)
         .eq('is_deleted', false)
         .is('parent_comment_id', null) // Only top-level comments
@@ -701,7 +750,46 @@ export async function GET(request: NextRequest) {
         },
         post_id: comment.post_id,
         entity_type: 'post',
-        entity_id: comment.post_id
+        entity_id: comment.post_id,
+        // Add missing fields with default values for backward compatibility
+        parent_comment_id: comment.parent_comment_id || null,
+        comment_depth: comment.comment_depth || 0,
+        thread_id: comment.thread_id || comment.id, // Use comment ID as fallback thread ID
+        reply_count: comment.replies?.length || 0,
+        replies: comment.replies?.map((reply: any) => ({
+          id: reply.id,
+          content: reply.content,
+          created_at: reply.created_at,
+          updated_at: reply.updated_at,
+          user: {
+            id: reply.user?.id,
+            name: reply.user?.name || reply.user?.email || 'User',
+            avatar_url: null
+          },
+          parent_comment_id: reply.parent_comment_id || null,
+          comment_depth: reply.comment_depth || 1,
+          thread_id: reply.thread_id || comment.id,
+          reply_count: 0
+        })) || []
+      })) || []
+    } else if (entity_type === 'author') {
+      formattedComments = comments?.map(comment => ({
+        id: comment.id,
+        content: comment.comment_text,
+        created_at: comment.created_at,
+        updated_at: comment.updated_at,
+        user: {
+          id: comment.user?.id,
+          name: comment.user?.name || comment.user?.email || 'User',
+          avatar_url: null
+        },
+        post_id: comment.entity_id,
+        entity_type: 'author',
+        entity_id: comment.entity_id,
+        parent_comment_id: comment.parent_comment_id || null,
+        comment_depth: comment.comment_depth || 0,
+        thread_id: comment.thread_id || comment.id,
+        reply_count: comment.reply_count || 0
       })) || []
     } else {
       // Generic comment format

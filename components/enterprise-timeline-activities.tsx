@@ -314,9 +314,10 @@ interface AISettings {
 }
 
 export default function EnterpriseTimelineActivities({ 
-  userId, 
-  entityType = 'user',
   entityId,
+  entityType = 'user',
+  isOwnEntity = false,
+  entityDisplayInfo,
   showAnalytics = true,
   enableModeration = true,
   enableAI = true,
@@ -330,9 +331,16 @@ export default function EnterpriseTimelineActivities({
   enableReadingProgress = true,
   enablePrivacyControls = true
 }: {
-  userId: string
-  entityType?: 'user' | 'author' | 'publisher' | 'group' | 'event'
-  entityId?: string
+  entityId: string
+  entityType?: 'user' | 'author' | 'publisher' | 'group' | 'event' | 'book'
+  isOwnEntity?: boolean
+  entityDisplayInfo?: {
+    id: string
+    name: string
+    type: string
+    author_image?: string
+    bookCount?: number
+  }
   showAnalytics?: boolean
   enableModeration?: boolean
   enableAI?: boolean
@@ -359,6 +367,9 @@ export default function EnterpriseTimelineActivities({
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [retryCount, setRetryCount] = useState(0)
   const [lastFetchTime, setLastFetchTime] = useState<Date | null>(null)
+  
+  // Add userId state for backward compatibility
+  const [userId, setUserId] = useState<string>(entityId)
 
   // Facebook-style timeline posting permissions
   const [timelinePermissions, setTimelinePermissions] = useState<{
@@ -399,7 +410,6 @@ export default function EnterpriseTimelineActivities({
   const fetchReadingProgress = useCallback(async () => {
     if (!enableReadingProgress || !entityId || !entityType) return
     
-    setReadingProgressLoading(true)
     try {
       const response = await fetch(`/api/entities/${entityType}/${entityId}/reading-progress`)
       if (response.ok) {
@@ -408,8 +418,6 @@ export default function EnterpriseTimelineActivities({
       }
     } catch (error) {
       console.error('Error fetching reading progress:', error)
-    } finally {
-      setReadingProgressLoading(false)
     }
   }, [enableReadingProgress, entityId, entityType])
 
@@ -704,7 +712,7 @@ export default function EnterpriseTimelineActivities({
         target_user_ids: targetUserIds,
         custom_message: customMessage,
         cross_posted_at: new Date().toISOString(),
-        cross_posted_by: userId
+        cross_posted_by: entityId
       }
       
       // Simulate cross-posting
@@ -730,7 +738,7 @@ export default function EnterpriseTimelineActivities({
         variant: "destructive"
       })
     }
-  }, [userId, toast])
+  }, [entityId, toast])
   
   // Collaboration Creation
   const createCollaboration = useCallback(async (activityId: string, memberIds: string[], collaborationType: string) => {
@@ -741,7 +749,7 @@ export default function EnterpriseTimelineActivities({
         member_ids: memberIds,
         collaboration_type: collaborationType,
         created_at: new Date().toISOString(),
-        created_by: userId,
+        created_by: entityId,
         status: 'active'
       }
       
@@ -767,7 +775,7 @@ export default function EnterpriseTimelineActivities({
         variant: "destructive"
       })
     }
-  }, [userId, toast])
+  }, [entityId, toast])
   
   // Facebook-style permission checking for timeline posting
   const canUserPostOnTimeline = useCallback(async (posterUserId: string, timelineUserId: string): Promise<{
@@ -904,23 +912,61 @@ export default function EnterpriseTimelineActivities({
       // Use different functions based on entity type
       if (entityType === 'user') {
         // For user profiles, use the existing user function
+        console.log('🔍 Fetching user activities for entityId:', entityId)
         const result = await supabase.rpc('get_user_feed_activities', {
-          p_user_id: userId,
+          p_user_id: entityId,
           p_limit: PAGE_SIZE,
           p_offset: (pageNum - 1) * PAGE_SIZE
         })
+        console.log('🔍 User activities result:', result)
         data = result.data
         error = result.error
       } else {
         // For other entities (author, book, publisher, group), use the new entity function
-        const result = await supabase.rpc('get_entity_timeline_activities', {
+        console.log('🔍 Fetching entity activities for:', { entityType, entityId })
+        console.log('🔍 Calling RPC function with params:', {
           p_entity_type: entityType,
-          p_entity_id: entityId || userId,
+          p_entity_id: entityId,
           p_limit: PAGE_SIZE,
           p_offset: (pageNum - 1) * PAGE_SIZE
         })
+        
+        const result = await supabase.rpc('get_entity_timeline_activities', {
+          p_entity_type: entityType,
+          p_entity_id: entityId,
+          p_limit: PAGE_SIZE,
+          p_offset: (pageNum - 1) * PAGE_SIZE
+        })
+        
+        console.log('🔍 RPC function result:', result)
+        console.log('🔍 RPC function error:', result.error)
+        console.log('🔍 RPC function data:', result.data)
+        console.log('🔍 RPC function count:', result.count)
+        
+        if (result.error) {
+          console.error('❌ RPC function error:', result.error)
+          throw new Error(`RPC function error: ${result.error.message}`)
+        }
+        
         data = result.data
         error = result.error
+      }
+      
+      // Debug: Log what we got from the database
+      console.log('🔍 Raw data from database:', data)
+      console.log('🔍 Data length:', data?.length || 0)
+      if (data && data.length > 0) {
+        console.log('🔍 First activity sample:', data[0])
+        console.log('🔍 First activity text field:', data[0]?.text)
+        console.log('🔍 First activity data field:', data[0]?.data)
+        console.log('🔍 First activity content_type field:', data[0]?.content_type)
+        console.log('🔍 First activity activity_type field:', data[0]?.activity_type)
+        console.log('🔍 First activity ALL fields:', Object.keys(data[0]).map(key => `${key}: ${data[0][key]}`))
+        
+        // Check if the text field is actually there
+        console.log('🔍 Text field exists:', 'text' in data[0])
+        console.log('🔍 Text field value:', data[0].text)
+        console.log('🔍 Text field type:', typeof data[0].text)
       }
       
       const fetchTime = performance.now() - startTime
@@ -968,7 +1014,7 @@ export default function EnterpriseTimelineActivities({
         })
       }
     }
-  }, [userId, entityType, entityId, supabase, retryCount, toast])
+  }, [entityType, entityId, supabase, retryCount, toast])
   
   // Enhanced analytics calculation
   const updateAnalytics = useCallback((data: EnterpriseActivity[]) => {
@@ -1699,6 +1745,12 @@ export default function EnterpriseTimelineActivities({
           content_safety_score: contentSafetyScore,
           sentiment_analysis: activity.sentiment || 'neutral'
         },
+        // Add the direct text field that EntityFeedCard expects
+        text: postContent,
+        // Add the data field that EntityFeedCard expects for fallback text extraction
+        data: activity.data || {},
+        // Add the activity_type field that EntityFeedCard expects
+        activity_type: activity.activity_type,
         content_type: contentType,
         image_url: imageUrl,
         link_url: linkUrl,
@@ -2655,6 +2707,6 @@ export default function EnterpriseTimelineActivities({
            </Button>
          )}
        </div>
-    </div>
-  )
-} 
+     </div>
+   )
+}

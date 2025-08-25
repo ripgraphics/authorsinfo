@@ -5,10 +5,11 @@
   "packageManager": "npm@10",
   "scripts": {
     "dev": "next dev -p 3034",
+    "dev:3000": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "types:generate": "supabase gen types typescript --project-id nmrohtlcfqujtfgcyqhw --schema public > types/database.ts",
+    "types:generate": "supabase gen types typescript --local > types/supabase.ts",
     "types:check": "supabase gen types typescript --project-id nmrohtlcfqujtfgcyqhw --schema public",
     "db:types": "npm run types:generate",
     "schema:download": "python download_schema.py && npm run types:generate",

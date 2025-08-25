@@ -43,8 +43,8 @@ export default function PostManager({
   
   // Edit form state
   const [editForm, setEditForm] = useState({
-    content: post.content?.text || '',
-    hashtags: post.content?.hashtags || [],
+    content: post.text || post.data?.text || '',
+    hashtags: post.hashtags || [],
     visibility: post.visibility || 'public',
     tags: post.tags || []
   })
@@ -59,8 +59,8 @@ export default function PostManager({
     if (isEditing) {
       // Reset form to original values
       setEditForm({
-        content: post.content?.text || '',
-        hashtags: post.content?.hashtags || [],
+        content: post.text || post.data?.text || '',
+        hashtags: post.hashtags || [],
         visibility: post.visibility || 'public',
         tags: post.tags || []
       })
@@ -365,11 +365,11 @@ export default function PostManager({
           /* View Mode */
           <div className="space-y-4">
             <div className="p-4 bg-muted/30 rounded-md">
-              <p className="whitespace-pre-wrap">{post.content?.text}</p>
+              <p className="whitespace-pre-wrap">{post.text || post.data?.text || 'Shared an update'}</p>
               
-              {post.content?.hashtags && post.content.hashtags.length > 0 && (
+              {post.hashtags && post.hashtags.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-3">
-                  {post.content.hashtags.map((tag, index) => (
+                  {post.hashtags.map((tag, index) => (
                     <Badge key={index} variant="secondary">
                       #{tag}
                     </Badge>

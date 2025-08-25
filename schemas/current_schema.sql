@@ -65,57 +65,100 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA "extensions";
 
 
 
-CREATE OR REPLACE FUNCTION "public"."add_activity_comment"("p_activity_id" "uuid", "p_user_id" "uuid", "p_comment_text" "text") RETURNS "uuid"
+CREATE OR REPLACE FUNCTION "public"."add_engagement_comment"("p_user_id" "uuid", "p_entity_type" "text", "p_entity_id" "uuid", "p_comment_text" "text", "p_parent_comment_id" "uuid" DEFAULT NULL::"uuid") RETURNS "uuid"
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
 DECLARE
-    v_comment_id uuid;
+  new_comment_id uuid;
+  parent_depth integer := 0;
+  thread_id uuid;
 BEGIN
-    INSERT INTO public.activity_comments (activity_id, user_id, comment_text)
-    VALUES (p_activity_id, p_user_id, p_comment_text)
-    RETURNING id INTO v_comment_id;
+  -- Generate new comment ID
+  new_comment_id := gen_random_uuid();
+  
+  -- Handle parent comment logic
+  IF p_parent_comment_id IS NOT NULL THEN
+    -- Get parent comment depth and thread_id
+    SELECT comment_depth + 1, thread_id
+    INTO parent_depth, thread_id
+    FROM public.engagement_comments
+    WHERE id = p_parent_comment_id;
     
-    RETURN v_comment_id;
+    -- Increment reply count on parent comment
+    UPDATE public.engagement_comments
+    SET reply_count = reply_count + 1
+    WHERE id = p_parent_comment_id;
+  ELSE
+    -- Top-level comment
+    parent_depth := 0;
+    thread_id := new_comment_id;
+  END IF;
+  
+  -- Insert the comment
+  INSERT INTO public.engagement_comments (
+    id, user_id, entity_type, entity_id, comment_text,
+    parent_comment_id, comment_depth, thread_id
+  ) VALUES (
+    new_comment_id, p_user_id, p_entity_type, p_entity_id, p_comment_text,
+    p_parent_comment_id, parent_depth, thread_id
+  );
+  
+  RETURN new_comment_id;
 END;
 $$;
 
 
-ALTER FUNCTION "public"."add_activity_comment"("p_activity_id" "uuid", "p_user_id" "uuid", "p_comment_text" "text") OWNER TO "postgres";
+ALTER FUNCTION "public"."add_engagement_comment"("p_user_id" "uuid", "p_entity_type" "text", "p_entity_id" "uuid", "p_comment_text" "text", "p_parent_comment_id" "uuid") OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."add_activity_comment"("p_activity_id" "uuid", "p_user_id" "uuid", "p_comment_text" "text") IS 'Add a comment to an activity';
+COMMENT ON FUNCTION "public"."add_engagement_comment"("p_user_id" "uuid", "p_entity_type" "text", "p_entity_id" "uuid", "p_comment_text" "text", "p_parent_comment_id" "uuid") IS 'Clean function to add comments to the engagement system';
 
 
 
-CREATE OR REPLACE FUNCTION "public"."add_entity_comment"("p_user_id" "uuid", "p_entity_type" character varying, "p_entity_id" "uuid", "p_content" "text", "p_parent_id" "uuid" DEFAULT NULL::"uuid") RETURNS "uuid"
+CREATE OR REPLACE FUNCTION "public"."add_entity_comment"("p_user_id" "uuid", "p_entity_type" "text", "p_entity_id" "uuid", "p_comment_text" "text", "p_parent_comment_id" "uuid" DEFAULT NULL::"uuid") RETURNS "uuid"
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
 DECLARE
-    v_comment_id UUID;
+    "new_comment_id" "uuid";
+    "parent_depth" integer := 0;
+    "thread_id" "uuid";
 BEGIN
-    INSERT INTO "public"."comments" (
-        user_id, 
-        entity_type, 
-        entity_id, 
-        content, 
-        parent_id
+    -- Generate new comment ID
+    "new_comment_id" := gen_random_uuid();
+    
+    -- Handle parent comment logic
+    IF p_parent_comment_id IS NOT NULL THEN
+        SELECT "comment_depth" + 1, "thread_id" 
+        INTO "parent_depth", "thread_id"
+        FROM "public"."engagement_comments" 
+        WHERE "id" = p_parent_comment_id;
+        
+        -- Update parent's reply count
+        UPDATE "public"."engagement_comments" 
+        SET "reply_count" = "reply_count" + 1
+        WHERE "id" = p_parent_comment_id;
+    ELSE
+        "thread_id" := gen_random_uuid();
+    END IF;
+    
+    -- Insert the comment
+    INSERT INTO "public"."engagement_comments" (
+        "id", "user_id", "entity_type", "entity_id", "comment_text", 
+        "parent_comment_id", "comment_depth", "thread_id"
     ) VALUES (
-        p_user_id, 
-        p_entity_type, 
-        p_entity_id, 
-        p_content, 
-        p_parent_id
-    ) RETURNING id INTO v_comment_id;
+        "new_comment_id", p_user_id, p_entity_type, p_entity_id, p_comment_text,
+        p_parent_comment_id, "parent_depth", "thread_id"
+    );
     
-    RETURN v_comment_id;
+    RETURN "new_comment_id";
 END;
 $$;
 
 
-ALTER FUNCTION "public"."add_entity_comment"("p_user_id" "uuid", "p_entity_type" character varying, "p_entity_id" "uuid", "p_content" "text", "p_parent_id" "uuid") OWNER TO "postgres";
+ALTER FUNCTION "public"."add_entity_comment"("p_user_id" "uuid", "p_entity_type" "text", "p_entity_id" "uuid", "p_comment_text" "text", "p_parent_comment_id" "uuid") OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."add_entity_comment"("p_user_id" "uuid", "p_entity_type" character varying, "p_entity_id" "uuid", "p_content" "text", "p_parent_id" "uuid") IS 'Add comment to any entity with parent support';
+COMMENT ON FUNCTION "public"."add_entity_comment"("p_user_id" "uuid", "p_entity_type" "text", "p_entity_id" "uuid", "p_comment_text" "text", "p_parent_comment_id" "uuid") IS 'Add comment for any entity type';
 
 
 
@@ -2127,6 +2170,60 @@ COMMENT ON FUNCTION "public"."get_data_quality_report"("p_table_name" "text") IS
 
 
 
+CREATE OR REPLACE FUNCTION "public"."get_engagement_stats"("p_entity_type" "text", "p_entity_id" "uuid") RETURNS TABLE("likes_count" bigint, "comments_count" bigint, "recent_likes" "jsonb", "recent_comments" "jsonb")
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    (SELECT COUNT(*) FROM public.engagement_likes
+     WHERE entity_type = p_entity_type AND entity_id = p_entity_id) as likes_count,
+    (SELECT COUNT(*) FROM public.engagement_comments
+     WHERE entity_type = p_entity_type AND entity_id = p_entity_id
+     AND is_deleted = false AND is_hidden = false) as comments_count,
+    (SELECT jsonb_agg(
+      jsonb_build_object(
+        'id', el.id,
+        'user_id', el.user_id,
+        'created_at', el.created_at
+      )
+    ) FROM (
+      SELECT el.id, el.user_id, el.created_at
+      FROM public.engagement_likes el
+      WHERE el.entity_type = p_entity_type AND el.entity_id = p_entity_id
+      ORDER BY el.created_at DESC
+      LIMIT 5
+    ) el) as recent_likes,
+    (SELECT jsonb_agg(
+      jsonb_build_object(
+        'id', ec.id,
+        'user_id', ec.user_id,
+        'comment_text', ec.comment_text,
+        'created_at', ec.created_at,
+        'parent_comment_id', ec.parent_comment_id,
+        'comment_depth', ec.comment_depth,
+        'thread_id', ec.thread_id
+      )
+    ) FROM (
+      SELECT ec.id, ec.user_id, ec.comment_text, ec.created_at, 
+             ec.parent_comment_id, ec.comment_depth, ec.thread_id
+      FROM public.engagement_comments ec
+      WHERE ec.entity_type = p_entity_type AND ec.entity_id = p_entity_id
+      AND ec.is_deleted = false AND ec.is_hidden = false
+      ORDER BY ec.created_at DESC
+      LIMIT 5
+    ) ec) as recent_comments;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_engagement_stats"("p_entity_type" "text", "p_entity_id" "uuid") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."get_engagement_stats"("p_entity_type" "text", "p_entity_id" "uuid") IS 'Get engagement statistics using only the engagement system tables';
+
+
+
 CREATE OR REPLACE FUNCTION "public"."get_entity_albums"("p_entity_type" "text", "p_entity_id" "uuid", "p_user_id" "uuid" DEFAULT "auth"."uid"()) RETURNS TABLE("album_id" "uuid", "album_name" "text", "album_description" "text", "is_public" boolean, "photo_count" bigint, "created_at" timestamp with time zone, "owner_id" "uuid", "can_edit" boolean)
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
@@ -2204,6 +2301,58 @@ ALTER FUNCTION "public"."get_entity_by_permalink"("permalink" "text", "entity_ty
 
 
 COMMENT ON FUNCTION "public"."get_entity_by_permalink"("permalink" "text", "entity_type" "text") IS 'Gets entity ID by permalink and entity type';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."get_entity_engagement"("p_entity_type" "text", "p_entity_id" "uuid") RETURNS TABLE("likes_count" bigint, "comments_count" bigint, "recent_likes" "jsonb", "recent_comments" "jsonb")
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        (SELECT COUNT(*) FROM "public"."engagement_likes" 
+         WHERE "entity_type" = p_entity_type AND "entity_id" = p_entity_id) as "likes_count",
+        
+        (SELECT COUNT(*) FROM "public"."engagement_comments" 
+         WHERE "entity_type" = p_entity_type AND "entity_id" = p_entity_id 
+         AND "is_deleted" = false AND "is_hidden" = false) as "comments_count",
+        
+        (SELECT COALESCE(jsonb_agg(
+            jsonb_build_object(
+                'user_id', el.user_id,
+                'created_at', el.created_at
+            )
+        ), '[]'::jsonb) FROM (
+            SELECT el.user_id, el.created_at
+            FROM "public"."engagement_likes" el
+            WHERE el.entity_type = p_entity_type AND el.entity_id = p_entity_id
+            ORDER BY el.created_at DESC
+            LIMIT 5
+        ) el) as "recent_likes",
+        
+        (SELECT COALESCE(jsonb_agg(
+            jsonb_build_object(
+                'id', ec.id,
+                'user_id', ec.user_id,
+                'comment_text', ec.comment_text,
+                'created_at', ec.created_at
+            )
+        ), '[]'::jsonb) FROM (
+            SELECT ec.id, ec.user_id, ec.comment_text, ec.created_at
+            FROM "public"."engagement_comments" ec
+            WHERE ec.entity_type = p_entity_type AND ec.entity_id = p_entity_id
+            AND ec.is_deleted = false AND ec.is_hidden = false
+            ORDER BY ec.created_at DESC
+            LIMIT 5
+        ) ec) as "recent_comments";
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_entity_engagement"("p_entity_type" "text", "p_entity_id" "uuid") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."get_entity_engagement"("p_entity_type" "text", "p_entity_id" "uuid") IS 'Get engagement data for any entity type';
 
 
 
@@ -2291,101 +2440,86 @@ COMMENT ON FUNCTION "public"."get_entity_social_stats"("p_entity_type" character
 
 
 
-CREATE OR REPLACE FUNCTION "public"."get_entity_timeline_activities"("p_entity_type" "text", "p_entity_id" "uuid", "p_limit" integer DEFAULT 50, "p_offset" integer DEFAULT 0) RETURNS TABLE("id" "text", "user_id" "text", "user_name" "text", "user_avatar_url" "text", "activity_type" "text", "data" "jsonb", "created_at" "text", "is_public" boolean, "like_count" integer, "comment_count" integer, "share_count" integer, "view_count" integer, "is_liked" boolean, "entity_type" "text", "entity_id" "text", "content_type" "text", "text" "text", "image_url" "text", "link_url" "text", "content_summary" "text", "hashtags" "text"[], "visibility" "text", "engagement_score" numeric, "updated_at" "text", "cross_posted_to" "text"[], "collaboration_type" "text", "ai_enhanced" boolean, "ai_enhanced_text" "text", "ai_enhanced_performance" numeric, "metadata" "jsonb")
+CREATE OR REPLACE FUNCTION "public"."get_entity_timeline_activities"("p_entity_type" "text", "p_entity_id" "uuid", "p_limit" integer DEFAULT 50, "p_offset" integer DEFAULT 0) RETURNS TABLE("id" "text", "user_id" "text", "user_name" "text", "user_avatar_url" "text", "activity_type" "text", "data" "jsonb", "created_at" "text", "is_public" boolean, "like_count" integer, "comment_count" integer, "share_count" integer, "view_count" integer, "is_liked" boolean, "entity_type" "text", "entity_id" "text", "content_type" "text", "text" "text", "image_url" "text", "link_url" "text", "content_summary" "text", "hashtags" "text"[], "visibility" "text", "engagement_score" numeric, "updated_at" "text", "cross_posted_to" "text"[], "collaboration_type" "text", "ai_enhanced" boolean, "ai_enhanced_text" "text", "ai_enhanced_performance" numeric, "metadata" "jsonb", "publish_status" "text", "published_at" "text", "is_featured" boolean, "is_pinned" boolean, "bookmark_count" integer, "trending_score" numeric)
     LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
     AS $$
 BEGIN
-    -- Return activities related to the specified entity, including likes
     RETURN QUERY
     SELECT 
-        a.id::text,
-        a.user_id::text,
-        COALESCE(u.name, u.email, 'Unknown User')::text as user_name,
-        '/placeholder.svg?height=200&width=200'::text as user_avatar_url,
-        a.activity_type::text,
-        COALESCE(a.data, '{}'::jsonb) as data,
-        a.created_at::text,
-        (COALESCE(a.visibility, 'public') = 'public')::boolean as is_public,
-        COALESCE(a.like_count, 0)::integer as like_count,
-        COALESCE(a.comment_count, 0)::integer as comment_count,
-        COALESCE(a.share_count, 0)::integer as share_count,
-        COALESCE(a.view_count, 0)::integer as view_count,
-        false::boolean as is_liked, -- Will be calculated per user
-        COALESCE(a.entity_type, 'user')::text as entity_type,
-        COALESCE(a.entity_id::text, a.user_id::text) as entity_id,
-        -- Enhanced columns with like activity support
+        act.id::text as id,
+        act.user_id::text as user_id,
+        COALESCE(usr.name::text, 'Unknown User') as user_name,
+        '/placeholder.svg?height=200&width=200' as user_avatar_url,
+        act.activity_type,
+        COALESCE(act.data, '{}'::jsonb) as data,
+        act.created_at::text as created_at,
+        COALESCE(act.visibility = 'public', true) as is_public,
+        COALESCE(act.like_count, 0) as like_count,
+        COALESCE(act.comment_count, 0) as comment_count,
+        COALESCE(act.share_count, 0) as share_count,
+        COALESCE(act.view_count, 0) as view_count,
+        false as is_liked,
+        COALESCE(act.entity_type, 'user') as entity_type,
+        COALESCE(act.entity_id::text, act.user_id::text) as entity_id,
+        COALESCE(act.content_type, 'text') as content_type,
+        -- Improved text content with better fallbacks
         CASE 
-            WHEN a.activity_type = 'like' THEN 'like'
-            ELSE COALESCE(a.content_type, 'text')
-        END::text as content_type,
-        CASE 
-            WHEN a.activity_type = 'like' THEN 
-                COALESCE(u.name, u.email, 'User') || ' liked ' || COALESCE(a.data->>'liked_activity_content', 'a post')
-            ELSE COALESCE(a.text, a.data->>'content', a.data->>'text', '')
-        END::text as text,
-        CASE 
-            WHEN a.activity_type = 'like' THEN 
-                -- For likes, show the original post's image if available
-                COALESCE(a.data->>'liked_activity_image', '')
-            ELSE COALESCE(a.image_url, a.data->>'image_url', a.data->>'images', '')
-        END::text as image_url,
-        COALESCE(a.link_url, a.data->>'link_url', a.data->>'url', '')::text as link_url,
-        CASE 
-            WHEN a.activity_type = 'like' THEN 
-                COALESCE(u.name, u.email, 'User') || ' liked a post'
-            ELSE COALESCE(a.content_summary, a.data->>'content_summary', a.data->>'summary', '')
-        END::text as content_summary,
-        -- Handle hashtags array properly
-        CASE 
-            WHEN a.hashtags IS NOT NULL THEN a.hashtags
-            WHEN a.data->>'hashtags' IS NOT NULL THEN 
-                CASE 
-                    WHEN a.data->>'hashtags' = '[]' THEN '{}'::text[]
-                    WHEN a.data->>'hashtags' LIKE '[%]' THEN 
-                        string_to_array(trim(both '[]' from a.data->>'hashtags'), ',')::text[]
-                    ELSE ARRAY[a.data->>'hashtags']::text[]
+            WHEN act.text IS NOT NULL AND act.text != '' THEN act.text
+            WHEN act.data IS NOT NULL AND act.data != '{}'::jsonb THEN
+                COALESCE(
+                    act.data->>'content',
+                    act.data->>'text',
+                    act.data->>'description',
+                    act.data->>'summary',
+                    CASE act.activity_type
+                        WHEN 'post' THEN 'Shared a post'
+                        WHEN 'book_review' THEN 'Shared a book review'
+                        WHEN 'book_share' THEN 'Shared a book'
+                        WHEN 'reading_progress' THEN 'Updated reading progress'
+                        WHEN 'book_added' THEN 'Added a book to their library'
+                        WHEN 'author_follow' THEN 'Started following an author'
+                        WHEN 'book_recommendation' THEN 'Recommended a book'
+                        ELSE 'Shared an update'
+                    END
+                )
+            ELSE
+                CASE act.activity_type
+                    WHEN 'post' THEN 'Shared a post'
+                    WHEN 'book_review' THEN 'Shared a book review'
+                    WHEN 'book_share' THEN 'Shared a book'
+                    WHEN 'reading_progress' THEN 'Updated reading progress'
+                    WHEN 'book_added' THEN 'Added a book to their library'
+                    WHEN 'author_follow' THEN 'Started following an author'
+                    WHEN 'book_recommendation' THEN 'Recommended a book'
+                    ELSE 'Shared an update'
                 END
-            ELSE '{}'::text[]
-        END as hashtags,
-        COALESCE(a.visibility, 'public')::text as visibility,
-        COALESCE(a.engagement_score, 0)::numeric as engagement_score,
-        COALESCE(a.updated_at, a.created_at)::text as updated_at,
-        -- Enterprise features
-        CASE 
-            WHEN a.cross_posted_to IS NOT NULL THEN a.cross_posted_to
-            WHEN a.data->>'cross_posted_to' IS NOT NULL THEN 
-                CASE 
-                    WHEN a.data->>'cross_posted_to' = '[]' THEN '{}'::text[]
-                    WHEN a.data->>'cross_posted_to' LIKE '[%]' THEN 
-                        string_to_array(trim(both '[]' from a.data->>'cross_posted_to'), ',')::text[]
-                    ELSE ARRAY[a.data->>'cross_posted_to']::text[]
-                END
-            ELSE '{}'::text[]
-        END as cross_posted_to,
-        a.collaboration_type,
-        a.ai_enhanced,
-        a.ai_enhanced_text,
-        a.ai_enhanced_performance,
-        a.metadata
-    FROM (
-        -- Get regular activities for the entity
-        SELECT a.*
-        FROM public.activities a
-        WHERE a.entity_type = p_entity_type 
-        AND a.entity_id = p_entity_id
-        AND a.activity_type != 'like'
-        
-        UNION ALL
-        
-        -- Get like activities that reference this entity
-        SELECT a.*
-        FROM public.activities a
-        WHERE a.activity_type = 'like'
-        AND a.data->>'liked_entity_type' = p_entity_type
-        AND a.data->>'liked_entity_id' = p_entity_id::text
-    ) a
-    LEFT JOIN public.users u ON a.user_id = u.id
-    ORDER BY a.created_at DESC
+        END as text,
+        COALESCE(act.image_url, '') as image_url,
+        COALESCE(act.link_url, '') as link_url,
+        COALESCE(act.content_summary, '') as content_summary,
+        COALESCE(act.hashtags, '{}'::text[]) as hashtags,
+        COALESCE(act.visibility, 'public') as visibility,
+        COALESCE(act.engagement_score, 0) as engagement_score,
+        act.updated_at::text as updated_at,
+        COALESCE(act.cross_posted_to, '{}'::text[]) as cross_posted_to,
+        COALESCE(act.collaboration_type, '') as collaboration_type,
+        COALESCE(act.ai_enhanced, false) as ai_enhanced,
+        COALESCE(act.ai_enhanced_text, '') as ai_enhanced_text,
+        COALESCE(act.ai_enhanced_performance, 0) as ai_enhanced_performance,
+        COALESCE(act.metadata, '{}'::jsonb) as metadata,
+        COALESCE(act.publish_status, 'published') as publish_status,
+        COALESCE(act.published_at, act.created_at)::text as published_at,
+        COALESCE(act.is_featured, false) as is_featured,
+        COALESCE(act.is_pinned, false) as is_pinned,
+        COALESCE(act.bookmark_count, 0) as bookmark_count,
+        COALESCE(act.trending_score, 0) as trending_score
+    FROM activities act
+    LEFT JOIN users usr ON act.user_id = usr.id
+    WHERE (act.entity_type = p_entity_type AND act.entity_id = p_entity_id)
+    OR (act.user_id = p_entity_id AND p_entity_type = 'user')
+    AND (act.visibility = 'public' OR act.visibility IS NULL)
+    ORDER BY act.created_at DESC
     LIMIT p_limit
     OFFSET p_offset;
 END;
@@ -2393,10 +2527,6 @@ $$;
 
 
 ALTER FUNCTION "public"."get_entity_timeline_activities"("p_entity_type" "text", "p_entity_id" "uuid", "p_limit" integer, "p_offset" integer) OWNER TO "postgres";
-
-
-COMMENT ON FUNCTION "public"."get_entity_timeline_activities"("p_entity_type" "text", "p_entity_id" "uuid", "p_limit" integer, "p_offset" integer) IS 'Get timeline activities for any entity type (user, author, book, publisher, group). Returns activities by, about, or related to the specified entity.';
-
 
 
 CREATE OR REPLACE FUNCTION "public"."get_moderation_stats"("p_days_back" integer DEFAULT 30) RETURNS TABLE("total_flags" bigint, "pending_flags" bigint, "resolved_flags" bigint, "avg_resolution_time_hours" numeric, "top_flag_reasons" "jsonb")
@@ -2557,109 +2687,85 @@ COMMENT ON FUNCTION "public"."get_privacy_audit_summary"("days_back" integer) IS
 
 
 
-CREATE OR REPLACE FUNCTION "public"."get_user_feed_activities"("p_user_id" "uuid", "p_limit" integer DEFAULT 50, "p_offset" integer DEFAULT 0) RETURNS TABLE("id" "text", "user_id" "text", "user_name" "text", "user_avatar_url" "text", "activity_type" "text", "data" "jsonb", "created_at" "text", "is_public" boolean, "like_count" integer, "comment_count" integer, "share_count" integer, "view_count" integer, "is_liked" boolean, "entity_type" "text", "entity_id" "text", "content_type" "text", "text" "text", "image_url" "text", "link_url" "text", "content_summary" "text", "hashtags" "text"[], "visibility" "text", "engagement_score" numeric, "updated_at" "text", "cross_posted_to" "text"[], "collaboration_type" "text", "ai_enhanced" boolean, "ai_enhanced_text" "text", "ai_enhanced_performance" numeric, "metadata" "jsonb")
+CREATE OR REPLACE FUNCTION "public"."get_user_feed_activities"("p_user_id" "uuid", "p_limit" integer DEFAULT 50, "p_offset" integer DEFAULT 0) RETURNS TABLE("id" "text", "user_id" "text", "user_name" "text", "user_avatar_url" "text", "activity_type" "text", "data" "jsonb", "created_at" "text", "is_public" boolean, "like_count" integer, "comment_count" integer, "share_count" integer, "view_count" integer, "is_liked" boolean, "entity_type" "text", "entity_id" "text", "content_type" "text", "text" "text", "image_url" "text", "link_url" "text", "content_summary" "text", "hashtags" "text"[], "visibility" "text", "engagement_score" numeric, "updated_at" "text", "cross_posted_to" "text"[], "collaboration_type" "text", "ai_enhanced" boolean, "ai_enhanced_text" "text", "ai_enhanced_performance" numeric, "metadata" "jsonb", "publish_status" "text", "published_at" "text", "is_featured" boolean, "is_pinned" boolean, "bookmark_count" integer, "trending_score" numeric)
     LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
     AS $$
 BEGIN
-    -- Return activities for the user's feed, including likes from followed entities
     RETURN QUERY
     SELECT 
-        a.id::text,
-        a.user_id::text,
-        COALESCE(u.name, u.email, 'Unknown User')::text as user_name,
-        '/placeholder.svg?height=200&width=200'::text as user_avatar_url,
-        a.activity_type::text,
-        COALESCE(a.data, '{}'::jsonb) as data,
-        a.created_at::text,
-        (COALESCE(a.visibility, 'public') = 'public')::boolean as is_public,
-        COALESCE(a.like_count, 0)::integer as like_count,
-        COALESCE(a.comment_count, 0)::integer as comment_count,
-        COALESCE(a.share_count, 0)::integer as share_count,
-        COALESCE(a.view_count, 0)::integer as view_count,
-        EXISTS (SELECT 1 FROM public.activity_likes l WHERE l.activity_id = a.id::uuid AND l.user_id = p_user_id)::boolean as is_liked,
-        COALESCE(a.entity_type, 'user')::text as entity_type,
-        COALESCE(a.entity_id::text, a.user_id::text) as entity_id,
-        -- Enhanced columns with like activity support
+        act.id::text as id,
+        act.user_id::text as user_id,
+        COALESCE(usr.name::text, 'Unknown User') as user_name,
+        '/placeholder.svg?height=200&width=200' as user_avatar_url,
+        act.activity_type,
+        COALESCE(act.data, '{}'::jsonb) as data,
+        act.created_at::text as created_at,
+        COALESCE(act.visibility = 'public', true) as is_public,
+        COALESCE(act.like_count, 0) as like_count,
+        COALESCE(act.comment_count, 0) as comment_count,
+        COALESCE(act.share_count, 0) as share_count,
+        COALESCE(act.view_count, 0) as view_count,
+        false as is_liked,
+        COALESCE(act.entity_type, 'user') as entity_type,
+        COALESCE(act.entity_id::text, act.user_id::text) as entity_id,
+        COALESCE(act.content_type, 'text') as content_type,
+        -- Improved text content with better fallbacks
         CASE 
-            WHEN a.activity_type = 'like' THEN 'like'
-            ELSE COALESCE(a.content_type, 'text')
-        END::text as content_type,
-        CASE 
-            WHEN a.activity_type = 'like' THEN 
-                COALESCE(u.name, u.email, 'User') || ' liked ' || COALESCE(a.data->>'liked_activity_content', 'a post')
-            ELSE COALESCE(a.text, a.data->>'content', a.data->>'text', '')
-        END::text as text,
-        CASE 
-            WHEN a.activity_type = 'like' THEN 
-                -- For likes, show the original post's image if available
-                COALESCE(a.data->>'liked_activity_image', '')
-            ELSE COALESCE(a.image_url, a.data->>'image_url', a.data->>'images', '')
-        END::text as image_url,
-        COALESCE(a.link_url, a.data->>'link_url', a.data->>'url', '')::text as link_url,
-        CASE 
-            WHEN a.activity_type = 'like' THEN 
-                COALESCE(u.name, u.email, 'User') || ' liked a post'
-            ELSE COALESCE(a.content_summary, a.data->>'content_summary', a.data->>'summary', '')
-        END::text as content_summary,
-        -- Handle hashtags array properly
-        CASE 
-            WHEN a.hashtags IS NOT NULL THEN a.hashtags
-            WHEN a.data->>'hashtags' IS NOT NULL THEN 
-                CASE 
-                    WHEN a.data->>'hashtags' = '[]' THEN '{}'::text[]
-                    WHEN a.data->>'hashtags' LIKE '[%]' THEN 
-                        string_to_array(trim(both '[]' from a.data->>'hashtags'), ',')::text[]
-                    ELSE ARRAY[a.data->>'hashtags']::text[]
+            WHEN act.text IS NOT NULL AND act.text != '' THEN act.text
+            WHEN act.data IS NOT NULL AND act.data != '{}'::jsonb THEN
+                COALESCE(
+                    act.data->>'content',
+                    act.data->>'text',
+                    act.data->>'description',
+                    act.data->>'summary',
+                    CASE act.activity_type
+                        WHEN 'post' THEN 'Shared a post'
+                        WHEN 'book_review' THEN 'Shared a book review'
+                        WHEN 'book_share' THEN 'Shared a book'
+                        WHEN 'reading_progress' THEN 'Updated reading progress'
+                        WHEN 'book_added' THEN 'Added a book to their library'
+                        WHEN 'author_follow' THEN 'Started following an author'
+                        WHEN 'book_recommendation' THEN 'Recommended a book'
+                        ELSE 'Shared an update'
+                    END
+                )
+            ELSE
+                CASE act.activity_type
+                    WHEN 'post' THEN 'Shared a post'
+                    WHEN 'book_review' THEN 'Shared a book review'
+                    WHEN 'book_share' THEN 'Shared a book'
+                    WHEN 'reading_progress' THEN 'Updated reading progress'
+                    WHEN 'book_added' THEN 'Added a book to their library'
+                    WHEN 'author_follow' THEN 'Started following an author'
+                    WHEN 'book_recommendation' THEN 'Recommended a book'
+                    ELSE 'Shared an update'
                 END
-            ELSE '{}'::text[]
-        END as hashtags,
-        COALESCE(a.visibility, 'public')::text as visibility,
-        COALESCE(a.engagement_score, 0)::numeric as engagement_score,
-        COALESCE(a.updated_at, a.created_at)::text as updated_at,
-        -- Enterprise features
-        CASE 
-            WHEN a.cross_posted_to IS NOT NULL THEN a.cross_posted_to
-            WHEN a.data->>'cross_posted_to' IS NOT NULL THEN 
-                CASE 
-                    WHEN a.data->>'cross_posted_to' = '[]' THEN '{}'::text[]
-                    WHEN a.data->>'cross_posted_to' LIKE '[%]' THEN 
-                        string_to_array(trim(both '[]' from a.data->>'cross_posted_to'), ',')::text[]
-                    ELSE ARRAY[a.data->>'cross_posted_to']::text[]
-                END
-            ELSE '{}'::text[]
-        END as cross_posted_to,
-        a.collaboration_type,
-        a.ai_enhanced,
-        a.ai_enhanced_text,
-        a.ai_enhanced_performance,
-        a.metadata
-    FROM (
-        -- Get user's own activities
-        SELECT a.*
-        FROM public.activities a
-        WHERE a.user_id = p_user_id
-        
-        UNION ALL
-        
-        -- Get activities from followed users (simplified - just user-to-user follows)
-        SELECT a.*
-        FROM public.activities a
-        INNER JOIN public.follows f ON f.follower_id = p_user_id AND f.following_id = a.user_id
-        WHERE a.user_id != p_user_id
-        AND a.visibility = 'public'
-        
-        UNION ALL
-        
-        -- Get like activities from followed users
-        SELECT a.*
-        FROM public.activities a
-        INNER JOIN public.follows f ON f.follower_id = p_user_id AND f.following_id = a.user_id
-        WHERE a.activity_type = 'like'
-        AND a.user_id != p_user_id
-        AND a.visibility = 'public'
-    ) a
-    LEFT JOIN public.users u ON a.user_id = u.id
-    ORDER BY a.created_at DESC
+        END as text,
+        COALESCE(act.image_url, '') as image_url,
+        COALESCE(act.link_url, '') as link_url,
+        COALESCE(act.content_summary, '') as content_summary,
+        COALESCE(act.hashtags, '{}'::text[]) as hashtags,
+        COALESCE(act.visibility, 'public') as visibility,
+        COALESCE(act.engagement_score, 0) as engagement_score,
+        act.updated_at::text as updated_at,
+        COALESCE(act.cross_posted_to, '{}'::text[]) as cross_posted_to,
+        COALESCE(act.collaboration_type, '') as collaboration_type,
+        COALESCE(act.ai_enhanced, false) as ai_enhanced,
+        COALESCE(act.ai_enhanced_text, '') as ai_enhanced_text,
+        COALESCE(act.ai_enhanced_performance, 0) as ai_enhanced_performance,
+        COALESCE(act.metadata, '{}'::jsonb) as metadata,
+        COALESCE(act.publish_status, 'published') as publish_status,
+        COALESCE(act.published_at, act.created_at)::text as published_at,
+        COALESCE(act.is_featured, false) as is_featured,
+        COALESCE(act.is_pinned, false) as is_pinned,
+        COALESCE(act.bookmark_count, 0) as bookmark_count,
+        COALESCE(act.trending_score, 0) as trending_score
+    FROM activities act
+    LEFT JOIN users usr ON act.user_id = usr.id
+    WHERE act.user_id = p_user_id
+    AND (act.visibility = 'public' OR act.visibility IS NULL)
+    ORDER BY act.created_at DESC
     LIMIT p_limit
     OFFSET p_offset;
 END;
@@ -2667,10 +2773,6 @@ $$;
 
 
 ALTER FUNCTION "public"."get_user_feed_activities"("p_user_id" "uuid", "p_limit" integer, "p_offset" integer) OWNER TO "postgres";
-
-
-COMMENT ON FUNCTION "public"."get_user_feed_activities"("p_user_id" "uuid", "p_limit" integer, "p_offset" integer) IS 'Fixed function to get user-specific activities with proper type handling for arrays and text fields. Resolves COALESCE type mismatch errors while maintaining all enhanced features.';
-
 
 
 CREATE OR REPLACE FUNCTION "public"."get_user_privacy_settings"("user_id_param" "uuid" DEFAULT "auth"."uid"()) RETURNS TABLE("default_privacy_level" "text", "allow_friends_to_see_reading" boolean, "allow_followers_to_see_reading" boolean, "allow_public_reading_profile" boolean, "show_reading_stats_publicly" boolean, "show_currently_reading_publicly" boolean, "show_reading_history_publicly" boolean, "show_reading_goals_publicly" boolean)
@@ -4283,37 +4385,41 @@ COMMENT ON FUNCTION "public"."standardize_reading_statuses"() IS 'Standardize re
 
 
 
-CREATE OR REPLACE FUNCTION "public"."toggle_activity_like"("p_activity_id" "uuid", "p_user_id" "uuid") RETURNS boolean
+CREATE OR REPLACE FUNCTION "public"."toggle_entity_like"("p_user_id" "uuid", "p_entity_type" "text", "p_entity_id" "uuid") RETURNS boolean
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
 DECLARE
-    v_exists boolean;
+    "like_exists" boolean;
 BEGIN
-    -- Check if like already exists
+    -- Check if like exists
     SELECT EXISTS(
-        SELECT 1 FROM public.activity_likes 
-        WHERE activity_id = p_activity_id AND user_id = p_user_id
-    ) INTO v_exists;
+        SELECT 1 FROM "public"."engagement_likes" 
+        WHERE "user_id" = p_user_id 
+        AND "entity_type" = p_entity_type 
+        AND "entity_id" = p_entity_id
+    ) INTO "like_exists";
     
-    IF v_exists THEN
+    IF "like_exists" THEN
         -- Remove like
-        DELETE FROM public.activity_likes 
-        WHERE activity_id = p_activity_id AND user_id = p_user_id;
+        DELETE FROM "public"."engagement_likes" 
+        WHERE "user_id" = p_user_id 
+        AND "entity_type" = p_entity_type 
+        AND "entity_id" = p_entity_id;
         RETURN false;
     ELSE
         -- Add like
-        INSERT INTO public.activity_likes (activity_id, user_id)
-        VALUES (p_activity_id, p_user_id);
+        INSERT INTO "public"."engagement_likes" ("user_id", "entity_type", "entity_id")
+        VALUES (p_user_id, p_entity_type, p_entity_id);
         RETURN true;
     END IF;
 END;
 $$;
 
 
-ALTER FUNCTION "public"."toggle_activity_like"("p_activity_id" "uuid", "p_user_id" "uuid") OWNER TO "postgres";
+ALTER FUNCTION "public"."toggle_entity_like"("p_user_id" "uuid", "p_entity_type" "text", "p_entity_id" "uuid") OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."toggle_activity_like"("p_activity_id" "uuid", "p_user_id" "uuid") IS 'Toggle like status for an activity';
+COMMENT ON FUNCTION "public"."toggle_entity_like"("p_user_id" "uuid", "p_entity_type" "text", "p_entity_id" "uuid") IS 'Toggle like for any entity type';
 
 
 
@@ -4623,6 +4729,34 @@ ALTER FUNCTION "public"."update_book_popularity_metrics"("p_book_id" "uuid") OWN
 
 
 COMMENT ON FUNCTION "public"."update_book_popularity_metrics"("p_book_id" "uuid") IS 'Updates book popularity metrics based on user interactions';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."update_engagement_reply_count"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+  IF TG_OP = 'INSERT' AND NEW.parent_comment_id IS NOT NULL THEN
+    -- Increment reply count on parent comment
+    UPDATE public.engagement_comments 
+    SET reply_count = reply_count + 1 
+    WHERE id = NEW.parent_comment_id;
+  ELSIF TG_OP = 'DELETE' AND OLD.parent_comment_id IS NOT NULL THEN
+    -- Decrement reply count on parent comment
+    UPDATE public.engagement_comments 
+    SET reply_count = GREATEST(reply_count - 1, 0) 
+    WHERE id = OLD.parent_comment_id;
+  END IF;
+  
+  RETURN COALESCE(NEW, OLD);
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_engagement_reply_count"() OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."update_engagement_reply_count"() IS 'Automatically updates reply counts for engagement comments';
 
 
 
@@ -5335,9 +5469,6 @@ CREATE TABLE IF NOT EXISTS "public"."activities" (
     "entity_type" "text",
     "entity_id" "uuid",
     "metadata" "jsonb" DEFAULT '{}'::"jsonb",
-    "like_count" integer DEFAULT 0,
-    "comment_count" integer DEFAULT 0,
-    "share_count" integer DEFAULT 0,
     "view_count" integer DEFAULT 0,
     "cross_posted_to" "text"[] DEFAULT '{}'::"text"[],
     "collaboration_type" "text" DEFAULT 'individual'::"text",
@@ -5353,12 +5484,22 @@ CREATE TABLE IF NOT EXISTS "public"."activities" (
     "link_url" "text",
     "engagement_score" numeric(5,2) DEFAULT 0,
     "updated_at" timestamp with time zone DEFAULT "now"(),
+    "publish_status" "text" DEFAULT 'published'::"text",
+    "scheduled_at" timestamp with time zone,
+    "published_at" timestamp with time zone,
+    "is_featured" boolean DEFAULT false,
+    "is_pinned" boolean DEFAULT false,
+    "trending_score" numeric DEFAULT 0,
+    "like_count" integer DEFAULT 0,
+    "comment_count" integer DEFAULT 0,
+    "share_count" integer DEFAULT 0,
+    "bookmark_count" integer DEFAULT 0,
+    "user_has_reacted" boolean DEFAULT false,
     CONSTRAINT "check_collaboration_type_values" CHECK (("collaboration_type" = ANY (ARRAY['individual'::"text", 'collaborative'::"text", 'team'::"text"]))),
-    CONSTRAINT "check_comment_count_positive" CHECK (("comment_count" >= 0)),
     CONSTRAINT "check_content_type_values" CHECK (("content_type" = ANY (ARRAY['text'::"text", 'image'::"text", 'video'::"text", 'link'::"text", 'poll'::"text", 'event'::"text", 'book'::"text", 'author'::"text"]))),
     CONSTRAINT "check_engagement_score_range" CHECK ((("engagement_score" >= (0)::numeric) AND ("engagement_score" <= (100)::numeric))),
-    CONSTRAINT "check_like_count_positive" CHECK (("like_count" >= 0)),
-    CONSTRAINT "check_share_count_positive" CHECK (("share_count" >= 0)),
+    CONSTRAINT "check_publish_status_values" CHECK (("publish_status" = ANY (ARRAY['draft'::"text", 'scheduled'::"text", 'published'::"text", 'archived'::"text", 'deleted'::"text"]))),
+    CONSTRAINT "check_trending_score_range" CHECK ((("trending_score" >= (0)::numeric) AND ("trending_score" <= (100)::numeric))),
     CONSTRAINT "check_view_count_positive" CHECK (("view_count" >= 0)),
     CONSTRAINT "check_visibility_values" CHECK (("visibility" = ANY (ARRAY['public'::"text", 'friends'::"text", 'private'::"text", 'group'::"text"])))
 );
@@ -5403,18 +5544,6 @@ COMMENT ON COLUMN "public"."activities"."metadata" IS 'JSONB field containing en
 
 
 
-COMMENT ON COLUMN "public"."activities"."like_count" IS 'Number of likes on this activity/post';
-
-
-
-COMMENT ON COLUMN "public"."activities"."comment_count" IS 'Number of comments on this activity/post';
-
-
-
-COMMENT ON COLUMN "public"."activities"."share_count" IS 'Number of shares of this activity/post';
-
-
-
 COMMENT ON COLUMN "public"."activities"."view_count" IS 'Number of views of this activity/post';
 
 
@@ -5447,7 +5576,7 @@ COMMENT ON COLUMN "public"."activities"."visibility" IS 'Visibility setting for 
 
 
 
-COMMENT ON COLUMN "public"."activities"."content_summary" IS 'Short summary of the activity content for previews';
+COMMENT ON COLUMN "public"."activities"."content_summary" IS 'Auto-generated or manual summary of activity content';
 
 
 
@@ -5475,35 +5604,27 @@ COMMENT ON COLUMN "public"."activities"."updated_at" IS 'Timestamp when the acti
 
 
 
-CREATE TABLE IF NOT EXISTS "public"."activity_comments" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "activity_id" "uuid" NOT NULL,
-    "user_id" "uuid" NOT NULL,
-    "comment_text" "text" NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"()
-);
-
-
-ALTER TABLE "public"."activity_comments" OWNER TO "postgres";
-
-
-COMMENT ON TABLE "public"."activity_comments" IS 'Stores user comments for activities';
+COMMENT ON COLUMN "public"."activities"."publish_status" IS 'Publication status: draft, published, scheduled, archived';
 
 
 
-CREATE TABLE IF NOT EXISTS "public"."activity_likes" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "activity_id" "uuid" NOT NULL,
-    "user_id" "uuid" NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"()
-);
+COMMENT ON COLUMN "public"."activities"."scheduled_at" IS 'When the activity is scheduled to be published';
 
 
-ALTER TABLE "public"."activity_likes" OWNER TO "postgres";
+
+COMMENT ON COLUMN "public"."activities"."published_at" IS 'When the activity was published';
 
 
-COMMENT ON TABLE "public"."activity_likes" IS 'Stores user likes for activities';
+
+COMMENT ON COLUMN "public"."activities"."is_featured" IS 'Whether this activity is featured';
+
+
+
+COMMENT ON COLUMN "public"."activities"."is_pinned" IS 'Whether this activity is pinned';
+
+
+
+COMMENT ON COLUMN "public"."activities"."trending_score" IS 'Trending score for ranking activities';
 
 
 
@@ -5986,19 +6107,6 @@ CREATE TABLE IF NOT EXISTS "public"."book_club_books" (
 ALTER TABLE "public"."book_club_books" OWNER TO "postgres";
 
 
-CREATE TABLE IF NOT EXISTS "public"."book_club_discussion_comments" (
-    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
-    "discussion_id" "uuid" NOT NULL,
-    "content" "text" NOT NULL,
-    "created_by" "uuid" NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"()
-);
-
-
-ALTER TABLE "public"."book_club_discussion_comments" OWNER TO "postgres";
-
-
 CREATE TABLE IF NOT EXISTS "public"."book_club_discussions" (
     "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
     "book_club_id" "uuid" NOT NULL,
@@ -6278,64 +6386,6 @@ COMMENT ON TABLE "public"."collaborative_filtering_data" IS 'User interaction da
 
 
 
-CREATE TABLE IF NOT EXISTS "public"."comment_likes" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "comment_id" "uuid" NOT NULL,
-    "user_id" "uuid" NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"()
-);
-
-
-ALTER TABLE "public"."comment_likes" OWNER TO "postgres";
-
-
-CREATE TABLE IF NOT EXISTS "public"."comment_reactions" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "comment_id" "uuid" NOT NULL,
-    "user_id" "uuid" NOT NULL,
-    "reaction_type" character varying(20) NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    CONSTRAINT "comment_reactions_reaction_type_check" CHECK ((("reaction_type")::"text" = ANY ((ARRAY['like'::character varying, 'love'::character varying, 'haha'::character varying, 'wow'::character varying, 'sad'::character varying, 'angry'::character varying, 'care'::character varying])::"text"[])))
-);
-
-
-ALTER TABLE "public"."comment_reactions" OWNER TO "postgres";
-
-
-COMMENT ON TABLE "public"."comment_reactions" IS 'Enterprise comment reaction system';
-
-
-
-CREATE TABLE IF NOT EXISTS "public"."comments" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "user_id" "uuid" NOT NULL,
-    "feed_entry_id" "uuid",
-    "content" "text" NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "is_hidden" boolean DEFAULT false NOT NULL,
-    "is_deleted" boolean DEFAULT false NOT NULL,
-    "entity_type" character varying(50) DEFAULT 'feed_entry'::character varying,
-    "entity_id" "uuid",
-    "parent_id" "uuid"
-);
-
-
-ALTER TABLE "public"."comments" OWNER TO "postgres";
-
-
-COMMENT ON TABLE "public"."comments" IS 'Comments on feed entries';
-
-
-
-COMMENT ON COLUMN "public"."comments"."user_id" IS 'User who made the comment';
-
-
-
-COMMENT ON COLUMN "public"."comments"."feed_entry_id" IS 'Feed entry being commented on';
-
-
-
 CREATE TABLE IF NOT EXISTS "public"."contact_info" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "entity_type" "text" NOT NULL,
@@ -6552,19 +6602,6 @@ COMMENT ON TABLE "public"."dewey_decimal_classifications" IS 'Dewey Decimal Clas
 
 
 
-CREATE TABLE IF NOT EXISTS "public"."discussion_comments" (
-    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
-    "discussion_id" "uuid" NOT NULL,
-    "user_id" "uuid" NOT NULL,
-    "content" "text" NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"()
-);
-
-
-ALTER TABLE "public"."discussion_comments" OWNER TO "postgres";
-
-
 CREATE TABLE IF NOT EXISTS "public"."discussions" (
     "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
     "user_id" "uuid" NOT NULL,
@@ -6594,6 +6631,47 @@ CREATE TABLE IF NOT EXISTS "public"."engagement_analytics" (
 
 
 ALTER TABLE "public"."engagement_analytics" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."engagement_comments" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "entity_type" "text" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "comment_text" "text" NOT NULL,
+    "parent_comment_id" "uuid",
+    "comment_depth" integer DEFAULT 0,
+    "thread_id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "reply_count" integer DEFAULT 0,
+    "is_hidden" boolean DEFAULT false,
+    "is_deleted" boolean DEFAULT false,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."engagement_comments" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."engagement_comments" IS 'Enterprise-grade consolidated comments table - replaces all fragmented comment tables';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."engagement_likes" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "entity_type" "text" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."engagement_likes" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."engagement_likes" IS 'Enterprise-grade consolidated likes table - replaces all fragmented like tables';
+
 
 
 CREATE TABLE IF NOT EXISTS "public"."profiles" (
@@ -6816,6 +6894,47 @@ CREATE OR REPLACE VIEW "public"."enterprise_audit_summary" AS
 
 
 ALTER TABLE "public"."enterprise_audit_summary" OWNER TO "postgres";
+
+
+CREATE OR REPLACE VIEW "public"."enterprise_content_monitoring" AS
+ SELECT "a"."id",
+    "a"."user_id",
+    "a"."activity_type",
+    "a"."content_type",
+    "a"."text",
+    "a"."content_summary",
+    "a"."image_url",
+    ("a"."data" ->> 'text'::"text") AS "data_text",
+    ("a"."data" ->> 'content_quality_score'::"text") AS "quality_score",
+    ("a"."data" ->> 'seo_optimized'::"text") AS "seo_optimized",
+    ("a"."data" ->> 'content_safety_score'::"text") AS "safety_score",
+    ("a"."metadata" ->> 'enterprise_grade'::"text") AS "enterprise_grade",
+    "a"."created_at",
+    "a"."updated_at",
+        CASE
+            WHEN (("a"."text" IS NOT NULL) AND ("a"."text" <> ''::"text")) THEN 'Has Text'::"text"
+            ELSE 'Missing Text'::"text"
+        END AS "text_status",
+        CASE
+            WHEN (("a"."data" ->> 'enterprise_grade'::"text") = 'true'::"text") THEN 'Enterprise Optimized'::"text"
+            ELSE 'Needs Optimization'::"text"
+        END AS "optimization_status",
+        CASE
+            WHEN (("a"."content_type" = 'image'::"text") AND ("a"."image_url" IS NOT NULL)) THEN 'Has Images'::"text"
+            WHEN (("a"."content_type" = 'image'::"text") AND (("a"."image_url" IS NULL) OR ("a"."image_url" = ''::"text"))) THEN 'Missing Images'::"text"
+            ELSE 'Not Image Post'::"text"
+        END AS "image_status",
+    "a"."engagement_score",
+    "a"."view_count",
+    "a"."like_count",
+    "a"."comment_count",
+    "a"."share_count"
+   FROM "public"."activities" "a"
+  WHERE ("a"."content_type" IS NOT NULL)
+  ORDER BY "a"."created_at" DESC;
+
+
+ALTER TABLE "public"."enterprise_content_monitoring" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."enterprise_data_lineage" (
@@ -7339,103 +7458,6 @@ COMMENT ON TABLE "public"."entity_tags" IS 'Enterprise unified tagging system fo
 
 
 
-CREATE TABLE IF NOT EXISTS "public"."likes" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "user_id" "uuid" NOT NULL,
-    "feed_entry_id" "uuid",
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "updated_at" timestamp with time zone DEFAULT "now"(),
-    "entity_type" character varying(50) DEFAULT 'feed_entry'::character varying,
-    "entity_id" "uuid"
-);
-
-
-ALTER TABLE "public"."likes" OWNER TO "postgres";
-
-
-COMMENT ON TABLE "public"."likes" IS 'User likes on feed entries';
-
-
-
-COMMENT ON COLUMN "public"."likes"."user_id" IS 'User who liked the feed entry';
-
-
-
-COMMENT ON COLUMN "public"."likes"."feed_entry_id" IS 'Feed entry being liked';
-
-
-
-CREATE TABLE IF NOT EXISTS "public"."shares" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "user_id" "uuid" NOT NULL,
-    "entity_type" character varying(50) NOT NULL,
-    "entity_id" "uuid" NOT NULL,
-    "share_type" character varying(50) DEFAULT 'standard'::character varying,
-    "share_platform" character varying(50),
-    "share_url" "text",
-    "share_text" "text",
-    "is_public" boolean DEFAULT true,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    CONSTRAINT "shares_entity_type_check" CHECK ((("entity_type")::"text" = ANY ((ARRAY['photo'::character varying, 'book'::character varying, 'author'::character varying, 'publisher'::character varying, 'group'::character varying, 'event'::character varying, 'feed_entry'::character varying, 'album'::character varying, 'image'::character varying, 'discussion'::character varying, 'review'::character varying])::"text"[]))),
-    CONSTRAINT "shares_share_type_check" CHECK ((("share_type")::"text" = ANY ((ARRAY['standard'::character varying, 'story'::character varying, 'repost'::character varying, 'quote'::character varying])::"text"[])))
-);
-
-
-ALTER TABLE "public"."shares" OWNER TO "postgres";
-
-
-COMMENT ON TABLE "public"."shares" IS 'Enterprise unified sharing system for all entities';
-
-
-
-CREATE OR REPLACE VIEW "public"."entity_social_analytics" AS
- SELECT "entities"."entity_type",
-    "entities"."entity_id",
-    "count"(DISTINCT "l"."user_id") AS "unique_likers",
-    "count"(DISTINCT "c"."user_id") AS "unique_commenters",
-    "count"(DISTINCT "s"."user_id") AS "unique_sharers",
-    "count"(DISTINCT "b"."user_id") AS "unique_bookmarkers",
-    "count"("l"."id") AS "total_likes",
-    "count"("c"."id") AS "total_comments",
-    "count"("s"."id") AS "total_shares",
-    "count"("b"."id") AS "total_bookmarks",
-    "count"("et"."id") AS "total_tags",
-    "avg"(
-        CASE
-            WHEN ("c"."created_at" >= ("now"() - '7 days'::interval)) THEN 1
-            ELSE 0
-        END) AS "recent_engagement_score"
-   FROM (((((( SELECT DISTINCT "likes"."entity_type",
-            "likes"."entity_id"
-           FROM "public"."likes"
-        UNION
-         SELECT DISTINCT "comments"."entity_type",
-            "comments"."entity_id"
-           FROM "public"."comments"
-        UNION
-         SELECT DISTINCT "shares"."entity_type",
-            "shares"."entity_id"
-           FROM "public"."shares"
-        UNION
-         SELECT DISTINCT "bookmarks"."entity_type",
-            "bookmarks"."entity_id"
-           FROM "public"."bookmarks"
-        UNION
-         SELECT DISTINCT "entity_tags"."entity_type",
-            "entity_tags"."entity_id"
-           FROM "public"."entity_tags") "entities"
-     LEFT JOIN "public"."likes" "l" ON (((("entities"."entity_type")::"text" = ("l"."entity_type")::"text") AND ("entities"."entity_id" = "l"."entity_id"))))
-     LEFT JOIN "public"."comments" "c" ON (((("entities"."entity_type")::"text" = ("c"."entity_type")::"text") AND ("entities"."entity_id" = "c"."entity_id") AND ("c"."is_deleted" = false))))
-     LEFT JOIN "public"."shares" "s" ON (((("entities"."entity_type")::"text" = ("s"."entity_type")::"text") AND ("entities"."entity_id" = "s"."entity_id"))))
-     LEFT JOIN "public"."bookmarks" "b" ON (((("entities"."entity_type")::"text" = ("b"."entity_type")::"text") AND ("entities"."entity_id" = "b"."entity_id"))))
-     LEFT JOIN "public"."entity_tags" "et" ON (((("entities"."entity_type")::"text" = ("et"."entity_type")::"text") AND ("entities"."entity_id" = "et"."entity_id"))))
-  GROUP BY "entities"."entity_type", "entities"."entity_id";
-
-
-ALTER TABLE "public"."entity_social_analytics" OWNER TO "postgres";
-
-
 CREATE TABLE IF NOT EXISTS "public"."event_analytics" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "event_id" "uuid" NOT NULL,
@@ -7548,22 +7570,6 @@ CREATE TABLE IF NOT EXISTS "public"."event_chat_rooms" (
 ALTER TABLE "public"."event_chat_rooms" OWNER TO "postgres";
 
 
-CREATE TABLE IF NOT EXISTS "public"."event_comments" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "event_id" "uuid" NOT NULL,
-    "user_id" "uuid" NOT NULL,
-    "parent_id" "uuid",
-    "content" "text" NOT NULL,
-    "is_pinned" boolean DEFAULT false,
-    "is_hidden" boolean DEFAULT false,
-    "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"()
-);
-
-
-ALTER TABLE "public"."event_comments" OWNER TO "postgres";
-
-
 CREATE TABLE IF NOT EXISTS "public"."event_creator_permissions" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "user_id" "uuid" NOT NULL,
@@ -7614,17 +7620,6 @@ CREATE TABLE IF NOT EXISTS "public"."event_interests" (
 
 
 ALTER TABLE "public"."event_interests" OWNER TO "postgres";
-
-
-CREATE TABLE IF NOT EXISTS "public"."event_likes" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "event_id" "uuid" NOT NULL,
-    "user_id" "uuid" NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"()
-);
-
-
-ALTER TABLE "public"."event_likes" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."event_livestreams" (
@@ -9319,47 +9314,6 @@ CREATE TABLE IF NOT EXISTS "public"."photo_bookmarks" (
 ALTER TABLE "public"."photo_bookmarks" OWNER TO "postgres";
 
 
-CREATE TABLE IF NOT EXISTS "public"."photo_comments" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "photo_id" "uuid" NOT NULL,
-    "user_id" "uuid" NOT NULL,
-    "parent_id" "uuid",
-    "content" "text" NOT NULL,
-    "content_html" "text",
-    "mentions" "uuid"[],
-    "like_count" integer DEFAULT 0,
-    "reply_count" integer DEFAULT 0,
-    "is_edited" boolean DEFAULT false,
-    "is_pinned" boolean DEFAULT false,
-    "is_hidden" boolean DEFAULT false,
-    "moderation_status" character varying(20) DEFAULT 'approved'::character varying,
-    "sentiment_score" numeric(3,2),
-    "language" character varying(10),
-    "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"(),
-    "edited_at" timestamp with time zone,
-    "ip_address" "inet",
-    "user_agent" "text"
-);
-
-
-ALTER TABLE "public"."photo_comments" OWNER TO "postgres";
-
-
-CREATE TABLE IF NOT EXISTS "public"."photo_likes" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "photo_id" "uuid" NOT NULL,
-    "user_id" "uuid" NOT NULL,
-    "like_type" character varying(20) DEFAULT 'like'::character varying,
-    "created_at" timestamp with time zone DEFAULT "now"(),
-    "ip_address" "inet",
-    "user_agent" "text"
-);
-
-
-ALTER TABLE "public"."photo_likes" OWNER TO "postgres";
-
-
 CREATE TABLE IF NOT EXISTS "public"."photo_shares" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "photo_id" "uuid" NOT NULL,
@@ -9416,27 +9370,6 @@ COMMENT ON TABLE "public"."post_bookmarks" IS 'User bookmarks of posts';
 
 
 
-CREATE TABLE IF NOT EXISTS "public"."post_comments" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "post_id" "uuid" NOT NULL,
-    "user_id" "uuid" NOT NULL,
-    "parent_comment_id" "uuid",
-    "content" "text" NOT NULL,
-    "is_edited" boolean DEFAULT false,
-    "is_hidden" boolean DEFAULT false,
-    "is_deleted" boolean DEFAULT false,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
-);
-
-
-ALTER TABLE "public"."post_comments" OWNER TO "postgres";
-
-
-COMMENT ON TABLE "public"."post_comments" IS 'Comments on posts with support for nested replies';
-
-
-
 CREATE TABLE IF NOT EXISTS "public"."post_reactions" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "post_id" "uuid" NOT NULL,
@@ -9471,186 +9404,82 @@ COMMENT ON TABLE "public"."post_shares" IS 'Post sharing activity (reposts, shar
 
 
 
-CREATE TABLE IF NOT EXISTS "public"."posts" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "user_id" "uuid" NOT NULL,
-    "content" "jsonb" NOT NULL,
-    "image_url" "text",
-    "link_url" "text",
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "visibility" "text" DEFAULT 'public'::"text" NOT NULL,
-    "allowed_user_ids" "uuid"[],
-    "is_hidden" boolean DEFAULT false NOT NULL,
-    "is_deleted" boolean DEFAULT false NOT NULL,
-    "entity_type" "text",
-    "entity_id" "uuid",
-    "content_type" "text" DEFAULT 'text'::"text",
-    "metadata" "jsonb" DEFAULT '{}'::"jsonb",
-    "content_summary" "text",
-    "media_files" "jsonb" DEFAULT '[]'::"jsonb",
-    "scheduled_at" timestamp with time zone,
-    "published_at" timestamp with time zone,
-    "tags" "text"[] DEFAULT '{}'::"text"[],
-    "categories" "text"[] DEFAULT '{}'::"text"[],
-    "languages" "text"[] DEFAULT '{}'::"text"[],
-    "regions" "text"[] DEFAULT '{}'::"text"[],
-    "content_warnings" "text"[] DEFAULT '{}'::"text"[],
-    "sensitive_content" boolean DEFAULT false,
-    "age_restriction" "text",
-    "seo_title" "text",
-    "seo_description" "text",
-    "seo_keywords" "text"[] DEFAULT '{}'::"text"[],
-    "publish_status" "text" DEFAULT 'published'::"text",
-    "view_count" integer DEFAULT 0,
-    "like_count" integer DEFAULT 0,
-    "comment_count" integer DEFAULT 0,
-    "share_count" integer DEFAULT 0,
-    "bookmark_count" integer DEFAULT 0,
-    "engagement_score" numeric DEFAULT 0,
-    "trending_score" numeric DEFAULT 0,
-    "is_featured" boolean DEFAULT false,
-    "is_pinned" boolean DEFAULT false,
-    "is_verified" boolean DEFAULT false,
-    "last_activity_at" timestamp with time zone DEFAULT "now"(),
-    "enterprise_features" "jsonb" DEFAULT '{}'::"jsonb",
-    CONSTRAINT "posts_content_type_check" CHECK (("content_type" = ANY (ARRAY['text'::"text", 'image'::"text", 'video'::"text", 'link'::"text", 'book'::"text", 'event'::"text", 'review'::"text", 'poll'::"text"]))),
-    CONSTRAINT "posts_counts_check" CHECK ((("like_count" >= 0) AND ("comment_count" >= 0) AND ("share_count" >= 0) AND ("view_count" >= 0))),
-    CONSTRAINT "posts_engagement_score_check" CHECK (("engagement_score" >= (0)::numeric)),
-    CONSTRAINT "posts_publish_status_check" CHECK (("publish_status" = ANY (ARRAY['draft'::"text", 'scheduled'::"text", 'published'::"text", 'archived'::"text", 'deleted'::"text"]))),
-    CONSTRAINT "posts_visibility_check" CHECK (("visibility" = ANY (ARRAY['public'::"text", 'friends'::"text", 'private'::"text", 'followers'::"text"])))
-);
-
-
-ALTER TABLE "public"."posts" OWNER TO "postgres";
-
-
-COMMENT ON TABLE "public"."posts" IS 'Enterprise-grade posts table with comprehensive CRUD operations, analytics tracking, and content management features';
-
-
-
-COMMENT ON COLUMN "public"."posts"."entity_type" IS 'Type of entity this post belongs to (user, group, publisher, event, book, author)';
-
-
-
-COMMENT ON COLUMN "public"."posts"."entity_id" IS 'ID of the entity this post belongs to';
-
-
-
-COMMENT ON COLUMN "public"."posts"."content_type" IS 'Type of post content (text, image, video, link, book, event, review, poll)';
-
-
-
-COMMENT ON COLUMN "public"."posts"."metadata" IS 'Additional metadata for the post (JSON format)';
-
-
-
-COMMENT ON COLUMN "public"."posts"."content_summary" IS 'Auto-generated or manual summary of post content';
-
-
-
-COMMENT ON COLUMN "public"."posts"."media_files" IS 'Array of media file URLs and metadata';
-
-
-
-COMMENT ON COLUMN "public"."posts"."scheduled_at" IS 'When the post is scheduled to be published';
-
-
-
-COMMENT ON COLUMN "public"."posts"."published_at" IS 'When the post was actually published';
-
-
-
-COMMENT ON COLUMN "public"."posts"."tags" IS 'Array of hashtags and tags for categorization';
-
-
-
-COMMENT ON COLUMN "public"."posts"."categories" IS 'Array of categories for organization';
-
-
-
-COMMENT ON COLUMN "public"."posts"."languages" IS 'Languages this post is available in';
-
-
-
-COMMENT ON COLUMN "public"."posts"."regions" IS 'Geographic regions this post is relevant to';
-
-
-
-COMMENT ON COLUMN "public"."posts"."content_warnings" IS 'Content warnings for sensitive material';
-
-
-
-COMMENT ON COLUMN "public"."posts"."sensitive_content" IS 'Whether this post contains sensitive content';
-
-
-
-COMMENT ON COLUMN "public"."posts"."age_restriction" IS 'Age restriction level for this post';
-
-
-
-COMMENT ON COLUMN "public"."posts"."seo_title" IS 'SEO-optimized title for search engines';
-
-
-
-COMMENT ON COLUMN "public"."posts"."seo_description" IS 'SEO-optimized description for search engines';
-
-
-
-COMMENT ON COLUMN "public"."posts"."seo_keywords" IS 'SEO keywords for search optimization';
-
-
-
-COMMENT ON COLUMN "public"."posts"."publish_status" IS 'Current publication status (draft, scheduled, published, archived, deleted)';
-
-
-
-COMMENT ON COLUMN "public"."posts"."view_count" IS 'Number of times this post has been viewed';
-
-
-
-COMMENT ON COLUMN "public"."posts"."like_count" IS 'Number of likes on this post';
-
-
-
-COMMENT ON COLUMN "public"."posts"."comment_count" IS 'Number of comments on this post';
-
-
-
-COMMENT ON COLUMN "public"."posts"."share_count" IS 'Number of times this post has been shared';
-
-
-
-COMMENT ON COLUMN "public"."posts"."bookmark_count" IS 'Number of times this post has been bookmarked';
-
-
-
-COMMENT ON COLUMN "public"."posts"."engagement_score" IS 'Calculated engagement score based on likes, comments, shares, and views';
-
-
-
-COMMENT ON COLUMN "public"."posts"."trending_score" IS 'Calculated trending score based on recent activity';
-
-
-
-COMMENT ON COLUMN "public"."posts"."is_featured" IS 'Whether this post is featured/promoted';
-
-
-
-COMMENT ON COLUMN "public"."posts"."is_pinned" IS 'Whether this post is pinned to the top';
-
-
-
-COMMENT ON COLUMN "public"."posts"."is_verified" IS 'Whether this post is from a verified source';
-
-
-
-COMMENT ON COLUMN "public"."posts"."last_activity_at" IS 'Last time the post had any engagement activity';
-
-
-
-COMMENT ON COLUMN "public"."posts"."enterprise_features" IS 'Enterprise-specific features and configurations (JSON format)';
-
+CREATE OR REPLACE VIEW "public"."posts_content_monitoring" AS
+ SELECT "a"."id",
+    "a"."user_id",
+    "a"."activity_type",
+    "a"."content_type",
+    "a"."text",
+    ("a"."data" ->> 'text'::"text") AS "data_text",
+    ("a"."data" ->> 'type'::"text") AS "data_type",
+    "a"."content_summary",
+    "a"."image_url",
+    "a"."created_at",
+    "a"."updated_at",
+        CASE
+            WHEN (("a"."text" IS NOT NULL) AND ("a"."text" <> ''::"text")) THEN 'Has Text'::"text"
+            ELSE 'Missing Text'::"text"
+        END AS "text_status",
+        CASE
+            WHEN (("a"."data" IS NOT NULL) AND ("a"."data" <> '{}'::"jsonb")) THEN 'Has Data'::"text"
+            ELSE 'Missing Data'::"text"
+        END AS "data_status",
+        CASE
+            WHEN (("a"."content_summary" IS NOT NULL) AND ("a"."content_summary" <> ''::"text")) THEN 'Has Summary'::"text"
+            ELSE 'Missing Summary'::"text"
+        END AS "summary_status",
+        CASE
+            WHEN (("a"."metadata" ->> 'fix_applied'::"text") = 'true'::"text") THEN 'Fixed'::"text"
+            ELSE 'Not Fixed'::"text"
+        END AS "fix_status",
+    "a"."engagement_score",
+    "a"."view_count",
+    "a"."like_count",
+    "a"."comment_count",
+    "a"."share_count"
+   FROM "public"."activities" "a"
+  WHERE ("a"."content_type" IS NOT NULL)
+  ORDER BY "a"."created_at" DESC;
+
+
+ALTER TABLE "public"."posts_content_monitoring" OWNER TO "postgres";
+
+
+CREATE OR REPLACE VIEW "public"."posts_structure_monitoring" AS
+ SELECT "a"."id",
+    "a"."user_id",
+    "a"."activity_type",
+    "a"."content_type",
+    "a"."text",
+    "a"."content_summary",
+    "a"."image_url",
+    ("a"."data" ->> 'text'::"text") AS "data_text",
+    ("a"."data" ->> 'type'::"text") AS "data_type",
+    "a"."created_at",
+    "a"."updated_at",
+        CASE
+            WHEN (("a"."text" IS NOT NULL) AND ("a"."text" <> ''::"text")) THEN 'Has Text'::"text"
+            ELSE 'Missing Text'::"text"
+        END AS "text_status",
+        CASE
+            WHEN (("a"."content_summary" IS NOT NULL) AND ("a"."content_summary" <> ''::"text")) THEN 'Has Summary'::"text"
+            ELSE 'Missing Summary'::"text"
+        END AS "summary_status",
+        CASE
+            WHEN (("a"."data" IS NOT NULL) AND ("a"."data" <> '{}'::"jsonb")) THEN 'Has Data'::"text"
+            ELSE 'Missing Data'::"text"
+        END AS "data_status",
+        CASE
+            WHEN (("a"."content_type" = 'image'::"text") AND ("a"."image_url" IS NOT NULL)) THEN 'Has Images'::"text"
+            WHEN (("a"."content_type" = 'image'::"text") AND (("a"."image_url" IS NULL) OR ("a"."image_url" = ''::"text"))) THEN 'Missing Images'::"text"
+            ELSE 'Not Image Post'::"text"
+        END AS "image_status"
+   FROM "public"."activities" "a"
+  WHERE ("a"."content_type" IS NOT NULL)
+  ORDER BY "a"."created_at" DESC;
+
+
+ALTER TABLE "public"."posts_structure_monitoring" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."prices" (
@@ -9897,18 +9726,6 @@ CREATE TABLE IF NOT EXISTS "public"."reading_streaks" (
 ALTER TABLE "public"."reading_streaks" OWNER TO "postgres";
 
 
-CREATE TABLE IF NOT EXISTS "public"."review_likes" (
-    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
-    "user_id" "uuid" NOT NULL,
-    "review_id" "uuid" NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"()
-);
-
-
-ALTER TABLE "public"."review_likes" OWNER TO "postgres";
-
-
 CREATE TABLE IF NOT EXISTS "public"."reviews" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "user_id" "uuid" NOT NULL,
@@ -9958,6 +9775,30 @@ CREATE TABLE IF NOT EXISTS "public"."session_registrations" (
 
 
 ALTER TABLE "public"."session_registrations" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."shares" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "entity_type" character varying(50) NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "share_type" character varying(50) DEFAULT 'standard'::character varying,
+    "share_platform" character varying(50),
+    "share_url" "text",
+    "share_text" "text",
+    "is_public" boolean DEFAULT true,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "shares_entity_type_check" CHECK ((("entity_type")::"text" = ANY ((ARRAY['photo'::character varying, 'book'::character varying, 'author'::character varying, 'publisher'::character varying, 'group'::character varying, 'event'::character varying, 'feed_entry'::character varying, 'album'::character varying, 'image'::character varying, 'discussion'::character varying, 'review'::character varying])::"text"[]))),
+    CONSTRAINT "shares_share_type_check" CHECK ((("share_type")::"text" = ANY ((ARRAY['standard'::character varying, 'story'::character varying, 'repost'::character varying, 'quote'::character varying])::"text"[])))
+);
+
+
+ALTER TABLE "public"."shares" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."shares" IS 'Enterprise unified sharing system for all entities';
+
 
 
 CREATE TABLE IF NOT EXISTS "public"."similar_books" (
@@ -10471,21 +10312,6 @@ ALTER TABLE ONLY "public"."activities"
 
 
 
-ALTER TABLE ONLY "public"."activity_comments"
-    ADD CONSTRAINT "activity_comments_pkey" PRIMARY KEY ("id");
-
-
-
-ALTER TABLE ONLY "public"."activity_likes"
-    ADD CONSTRAINT "activity_likes_activity_id_user_id_key" UNIQUE ("activity_id", "user_id");
-
-
-
-ALTER TABLE ONLY "public"."activity_likes"
-    ADD CONSTRAINT "activity_likes_pkey" PRIMARY KEY ("id");
-
-
-
 ALTER TABLE ONLY "public"."activity_log"
     ADD CONSTRAINT "activity_log_pkey" PRIMARY KEY ("id");
 
@@ -10548,11 +10374,6 @@ ALTER TABLE ONLY "public"."book_authors"
 
 ALTER TABLE ONLY "public"."book_club_books"
     ADD CONSTRAINT "book_club_books_pkey" PRIMARY KEY ("id");
-
-
-
-ALTER TABLE ONLY "public"."book_club_discussion_comments"
-    ADD CONSTRAINT "book_club_discussion_comments_pkey" PRIMARY KEY ("id");
 
 
 
@@ -10681,31 +10502,6 @@ ALTER TABLE ONLY "public"."collaborative_filtering_data"
 
 
 
-ALTER TABLE ONLY "public"."comment_likes"
-    ADD CONSTRAINT "comment_likes_comment_id_user_id_key" UNIQUE ("comment_id", "user_id");
-
-
-
-ALTER TABLE ONLY "public"."comment_likes"
-    ADD CONSTRAINT "comment_likes_pkey" PRIMARY KEY ("id");
-
-
-
-ALTER TABLE ONLY "public"."comment_reactions"
-    ADD CONSTRAINT "comment_reactions_comment_id_user_id_reaction_type_key" UNIQUE ("comment_id", "user_id", "reaction_type");
-
-
-
-ALTER TABLE ONLY "public"."comment_reactions"
-    ADD CONSTRAINT "comment_reactions_pkey" PRIMARY KEY ("id");
-
-
-
-ALTER TABLE ONLY "public"."comments"
-    ADD CONSTRAINT "comments_pkey" PRIMARY KEY ("id");
-
-
-
 ALTER TABLE ONLY "public"."contact_info"
     ADD CONSTRAINT "contact_info_pkey" PRIMARY KEY ("id");
 
@@ -10766,11 +10562,6 @@ ALTER TABLE ONLY "public"."dewey_decimal_classifications"
 
 
 
-ALTER TABLE ONLY "public"."discussion_comments"
-    ADD CONSTRAINT "discussion_comments_pkey" PRIMARY KEY ("id");
-
-
-
 ALTER TABLE ONLY "public"."discussions"
     ADD CONSTRAINT "discussions_pkey" PRIMARY KEY ("id");
 
@@ -10778,6 +10569,21 @@ ALTER TABLE ONLY "public"."discussions"
 
 ALTER TABLE ONLY "public"."engagement_analytics"
     ADD CONSTRAINT "engagement_analytics_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."engagement_comments"
+    ADD CONSTRAINT "engagement_comments_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."engagement_likes"
+    ADD CONSTRAINT "engagement_likes_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."engagement_likes"
+    ADD CONSTRAINT "engagement_likes_user_entity_unique" UNIQUE ("user_id", "entity_type", "entity_id");
 
 
 
@@ -10876,11 +10682,6 @@ ALTER TABLE ONLY "public"."event_chat_rooms"
 
 
 
-ALTER TABLE ONLY "public"."event_comments"
-    ADD CONSTRAINT "event_comments_pkey" PRIMARY KEY ("id");
-
-
-
 ALTER TABLE ONLY "public"."event_creator_permissions"
     ADD CONSTRAINT "event_creator_permissions_pkey" PRIMARY KEY ("id");
 
@@ -10893,11 +10694,6 @@ ALTER TABLE ONLY "public"."event_financials"
 
 ALTER TABLE ONLY "public"."event_interests"
     ADD CONSTRAINT "event_interests_pkey" PRIMARY KEY ("id");
-
-
-
-ALTER TABLE ONLY "public"."event_likes"
-    ADD CONSTRAINT "event_likes_pkey" PRIMARY KEY ("id");
 
 
 
@@ -11321,11 +11117,6 @@ ALTER TABLE ONLY "public"."invoices"
 
 
 
-ALTER TABLE ONLY "public"."likes"
-    ADD CONSTRAINT "likes_pkey" PRIMARY KEY ("id");
-
-
-
 ALTER TABLE ONLY "public"."list_followers"
     ADD CONSTRAINT "list_followers_pkey" PRIMARY KEY ("id");
 
@@ -11426,21 +11217,6 @@ ALTER TABLE ONLY "public"."photo_bookmarks"
 
 
 
-ALTER TABLE ONLY "public"."photo_comments"
-    ADD CONSTRAINT "photo_comments_pkey" PRIMARY KEY ("id");
-
-
-
-ALTER TABLE ONLY "public"."photo_likes"
-    ADD CONSTRAINT "photo_likes_photo_id_user_id_like_type_key" UNIQUE ("photo_id", "user_id", "like_type");
-
-
-
-ALTER TABLE ONLY "public"."photo_likes"
-    ADD CONSTRAINT "photo_likes_pkey" PRIMARY KEY ("id");
-
-
-
 ALTER TABLE ONLY "public"."photo_shares"
     ADD CONSTRAINT "photo_shares_pkey" PRIMARY KEY ("id");
 
@@ -11461,11 +11237,6 @@ ALTER TABLE ONLY "public"."post_bookmarks"
 
 
 
-ALTER TABLE ONLY "public"."post_comments"
-    ADD CONSTRAINT "post_comments_pkey" PRIMARY KEY ("id");
-
-
-
 ALTER TABLE ONLY "public"."post_reactions"
     ADD CONSTRAINT "post_reactions_pkey" PRIMARY KEY ("id");
 
@@ -11478,11 +11249,6 @@ ALTER TABLE ONLY "public"."post_reactions"
 
 ALTER TABLE ONLY "public"."post_shares"
     ADD CONSTRAINT "post_shares_pkey" PRIMARY KEY ("id");
-
-
-
-ALTER TABLE ONLY "public"."posts"
-    ADD CONSTRAINT "posts_pkey" PRIMARY KEY ("id");
 
 
 
@@ -11563,11 +11329,6 @@ ALTER TABLE ONLY "public"."reading_stats_daily"
 
 ALTER TABLE ONLY "public"."reading_streaks"
     ADD CONSTRAINT "reading_streaks_pkey" PRIMARY KEY ("id");
-
-
-
-ALTER TABLE ONLY "public"."review_likes"
-    ADD CONSTRAINT "review_likes_pkey" PRIMARY KEY ("id");
 
 
 
@@ -11744,11 +11505,15 @@ CREATE INDEX "idx_activities_book_id" ON "public"."activities" USING "btree" ("b
 
 
 
+CREATE INDEX "idx_activities_bookmark_count" ON "public"."activities" USING "btree" ("bookmark_count");
+
+
+
 CREATE INDEX "idx_activities_collaboration_type" ON "public"."activities" USING "btree" ("collaboration_type");
 
 
 
-CREATE INDEX "idx_activities_comment_count" ON "public"."activities" USING "btree" ("comment_count" DESC);
+CREATE INDEX "idx_activities_comment_count" ON "public"."activities" USING "btree" ("comment_count");
 
 
 
@@ -11761,6 +11526,18 @@ CREATE INDEX "idx_activities_created_at" ON "public"."activities" USING "btree" 
 
 
 CREATE INDEX "idx_activities_engagement_score" ON "public"."activities" USING "btree" ("engagement_score" DESC);
+
+
+
+CREATE INDEX "idx_activities_entity_lookup" ON "public"."activities" USING "btree" ("entity_type", "entity_id", "activity_type");
+
+
+
+CREATE INDEX "idx_activities_entity_published" ON "public"."activities" USING "btree" ("entity_type", "entity_id", "publish_status", "activity_type", "created_at" DESC);
+
+
+
+CREATE INDEX "idx_activities_entity_timeline" ON "public"."activities" USING "btree" ("entity_type", "entity_id", "created_at" DESC);
 
 
 
@@ -11780,7 +11557,15 @@ CREATE INDEX "idx_activities_hashtags" ON "public"."activities" USING "gin" ("ha
 
 
 
-CREATE INDEX "idx_activities_like_count" ON "public"."activities" USING "btree" ("like_count" DESC);
+CREATE INDEX "idx_activities_is_featured" ON "public"."activities" USING "btree" ("is_featured");
+
+
+
+CREATE INDEX "idx_activities_is_pinned" ON "public"."activities" USING "btree" ("is_pinned");
+
+
+
+CREATE INDEX "idx_activities_like_count" ON "public"."activities" USING "btree" ("like_count");
 
 
 
@@ -11792,7 +11577,23 @@ CREATE INDEX "idx_activities_metadata" ON "public"."activities" USING "gin" ("me
 
 
 
+CREATE INDEX "idx_activities_post_created" ON "public"."activities" USING "btree" ("activity_type", "created_at" DESC) WHERE ("activity_type" = 'post_created'::"text");
+
+
+
+CREATE INDEX "idx_activities_publish_status" ON "public"."activities" USING "btree" ("publish_status");
+
+
+
 CREATE INDEX "idx_activities_review_id" ON "public"."activities" USING "btree" ("review_id");
+
+
+
+CREATE INDEX "idx_activities_scheduled_at" ON "public"."activities" USING "btree" ("scheduled_at");
+
+
+
+CREATE INDEX "idx_activities_share_count" ON "public"."activities" USING "btree" ("share_count");
 
 
 
@@ -11800,7 +11601,15 @@ CREATE INDEX "idx_activities_text" ON "public"."activities" USING "gin" ("to_tsv
 
 
 
+CREATE INDEX "idx_activities_text_content" ON "public"."activities" USING "btree" ("text") WHERE (("text" IS NOT NULL) AND ("text" <> ''::"text"));
+
+
+
 CREATE INDEX "idx_activities_text_search" ON "public"."activities" USING "gin" ("to_tsvector"('"english"'::"regconfig", "text"));
+
+
+
+CREATE INDEX "idx_activities_trending_score" ON "public"."activities" USING "btree" ("trending_score" DESC);
 
 
 
@@ -11812,6 +11621,10 @@ CREATE INDEX "idx_activities_user_activity" ON "public"."activities" USING "btre
 
 
 
+CREATE INDEX "idx_activities_user_activity_type" ON "public"."activities" USING "btree" ("user_id", "activity_type");
+
+
+
 CREATE INDEX "idx_activities_user_id" ON "public"."activities" USING "btree" ("user_id");
 
 
@@ -11820,27 +11633,11 @@ CREATE INDEX "idx_activities_user_id_created_at" ON "public"."activities" USING 
 
 
 
+CREATE INDEX "idx_activities_user_published" ON "public"."activities" USING "btree" ("user_id", "publish_status", "activity_type", "created_at" DESC);
+
+
+
 CREATE INDEX "idx_activities_visibility" ON "public"."activities" USING "btree" ("visibility");
-
-
-
-CREATE INDEX "idx_activity_comments_activity_id" ON "public"."activity_comments" USING "btree" ("activity_id");
-
-
-
-CREATE INDEX "idx_activity_comments_user_id" ON "public"."activity_comments" USING "btree" ("user_id");
-
-
-
-CREATE INDEX "idx_activity_likes_activity_id" ON "public"."activity_likes" USING "btree" ("activity_id");
-
-
-
-CREATE INDEX "idx_activity_likes_created_at" ON "public"."activity_likes" USING "btree" ("created_at");
-
-
-
-CREATE INDEX "idx_activity_likes_user_id" ON "public"."activity_likes" USING "btree" ("user_id");
 
 
 
@@ -11969,14 +11766,6 @@ CREATE INDEX "idx_book_club_books_book_id" ON "public"."book_club_books" USING "
 
 
 CREATE INDEX "idx_book_club_books_created_by" ON "public"."book_club_books" USING "btree" ("created_by");
-
-
-
-CREATE INDEX "idx_book_club_discussion_comments_created_by" ON "public"."book_club_discussion_comments" USING "btree" ("created_by");
-
-
-
-CREATE INDEX "idx_book_club_discussion_comments_discussion_id" ON "public"."book_club_discussion_comments" USING "btree" ("discussion_id");
 
 
 
@@ -12180,38 +11969,6 @@ CREATE INDEX "idx_collaborative_filtering_user" ON "public"."collaborative_filte
 
 
 
-CREATE INDEX "idx_comment_reactions_comment" ON "public"."comment_reactions" USING "btree" ("comment_id");
-
-
-
-CREATE INDEX "idx_comment_reactions_type" ON "public"."comment_reactions" USING "btree" ("reaction_type");
-
-
-
-CREATE INDEX "idx_comment_reactions_user" ON "public"."comment_reactions" USING "btree" ("user_id");
-
-
-
-CREATE INDEX "idx_comments_entity_lookup" ON "public"."comments" USING "btree" ("entity_type", "entity_id");
-
-
-
-CREATE INDEX "idx_comments_feed_entry_id" ON "public"."comments" USING "btree" ("feed_entry_id");
-
-
-
-CREATE INDEX "idx_comments_parent_id" ON "public"."comments" USING "btree" ("parent_id") WHERE ("parent_id" IS NOT NULL);
-
-
-
-CREATE INDEX "idx_comments_user_created" ON "public"."comments" USING "btree" ("user_id", "created_at");
-
-
-
-CREATE INDEX "idx_comments_user_id" ON "public"."comments" USING "btree" ("user_id");
-
-
-
 CREATE INDEX "idx_content_flags_content" ON "public"."content_flags" USING "btree" ("content_type", "content_id");
 
 
@@ -12260,19 +12017,43 @@ CREATE INDEX "idx_dewey_decimal_classifications_parent_code" ON "public"."dewey_
 
 
 
-CREATE INDEX "idx_discussion_comments_discussion_id" ON "public"."discussion_comments" USING "btree" ("discussion_id");
-
-
-
-CREATE INDEX "idx_discussion_comments_user_id" ON "public"."discussion_comments" USING "btree" ("user_id");
-
-
-
 CREATE INDEX "idx_discussions_book_id" ON "public"."discussions" USING "btree" ("book_id");
 
 
 
 CREATE INDEX "idx_discussions_user_id" ON "public"."discussions" USING "btree" ("user_id");
+
+
+
+CREATE INDEX "idx_engagement_comments_created" ON "public"."engagement_comments" USING "btree" ("created_at");
+
+
+
+CREATE INDEX "idx_engagement_comments_entity" ON "public"."engagement_comments" USING "btree" ("entity_type", "entity_id");
+
+
+
+CREATE INDEX "idx_engagement_comments_parent" ON "public"."engagement_comments" USING "btree" ("parent_comment_id");
+
+
+
+CREATE INDEX "idx_engagement_comments_thread" ON "public"."engagement_comments" USING "btree" ("thread_id");
+
+
+
+CREATE INDEX "idx_engagement_comments_user" ON "public"."engagement_comments" USING "btree" ("user_id");
+
+
+
+CREATE INDEX "idx_engagement_likes_created" ON "public"."engagement_likes" USING "btree" ("created_at");
+
+
+
+CREATE INDEX "idx_engagement_likes_entity" ON "public"."engagement_likes" USING "btree" ("entity_type", "entity_id");
+
+
+
+CREATE INDEX "idx_engagement_likes_user" ON "public"."engagement_likes" USING "btree" ("user_id");
 
 
 
@@ -12344,18 +12125,6 @@ CREATE INDEX "idx_event_chat_rooms_event_id" ON "public"."event_chat_rooms" USIN
 
 
 
-CREATE INDEX "idx_event_comments_event_id" ON "public"."event_comments" USING "btree" ("event_id");
-
-
-
-CREATE INDEX "idx_event_comments_parent_id" ON "public"."event_comments" USING "btree" ("parent_id");
-
-
-
-CREATE INDEX "idx_event_comments_user_id" ON "public"."event_comments" USING "btree" ("user_id");
-
-
-
 CREATE INDEX "idx_event_creator_permissions_user_id" ON "public"."event_creator_permissions" USING "btree" ("user_id");
 
 
@@ -12369,14 +12138,6 @@ CREATE INDEX "idx_event_interests_event_id" ON "public"."event_interests" USING 
 
 
 CREATE INDEX "idx_event_interests_user_id" ON "public"."event_interests" USING "btree" ("user_id");
-
-
-
-CREATE INDEX "idx_event_likes_event_id" ON "public"."event_likes" USING "btree" ("event_id");
-
-
-
-CREATE INDEX "idx_event_likes_user_id" ON "public"."event_likes" USING "btree" ("user_id");
 
 
 
@@ -12692,22 +12453,6 @@ CREATE INDEX "idx_images_view_count" ON "public"."images" USING "btree" ("view_c
 
 
 
-CREATE INDEX "idx_likes_entity_lookup" ON "public"."likes" USING "btree" ("entity_type", "entity_id");
-
-
-
-CREATE INDEX "idx_likes_feed_entry_id" ON "public"."likes" USING "btree" ("feed_entry_id");
-
-
-
-CREATE INDEX "idx_likes_user_created" ON "public"."likes" USING "btree" ("user_id", "created_at");
-
-
-
-CREATE INDEX "idx_likes_user_id" ON "public"."likes" USING "btree" ("user_id");
-
-
-
 CREATE INDEX "idx_ml_models_active" ON "public"."ml_models" USING "btree" ("is_active");
 
 
@@ -12844,18 +12589,6 @@ CREATE INDEX "idx_photo_analytics_user_id" ON "public"."photo_analytics" USING "
 
 
 
-CREATE INDEX "idx_photo_comments_parent" ON "public"."photo_comments" USING "btree" ("parent_id") WHERE ("parent_id" IS NOT NULL);
-
-
-
-CREATE INDEX "idx_photo_comments_photo" ON "public"."photo_comments" USING "btree" ("photo_id", "created_at");
-
-
-
-CREATE INDEX "idx_photo_comments_user" ON "public"."photo_comments" USING "btree" ("user_id", "created_at");
-
-
-
 CREATE INDEX "idx_photo_community_album_id" ON "public"."photo_community" USING "btree" ("album_id");
 
 
@@ -12873,14 +12606,6 @@ CREATE INDEX "idx_photo_community_interaction_type" ON "public"."photo_community
 
 
 CREATE INDEX "idx_photo_community_user_id" ON "public"."photo_community" USING "btree" ("user_id");
-
-
-
-CREATE INDEX "idx_photo_likes_photo" ON "public"."photo_likes" USING "btree" ("photo_id", "created_at");
-
-
-
-CREATE INDEX "idx_photo_likes_user" ON "public"."photo_likes" USING "btree" ("user_id", "created_at");
 
 
 
@@ -12917,54 +12642,6 @@ CREATE INDEX "idx_photo_tags_entity" ON "public"."photo_tags" USING "btree" ("en
 
 
 CREATE INDEX "idx_photo_tags_photo" ON "public"."photo_tags" USING "btree" ("photo_id");
-
-
-
-CREATE INDEX "idx_posts_content_type" ON "public"."posts" USING "btree" ("content_type");
-
-
-
-CREATE INDEX "idx_posts_created_at" ON "public"."posts" USING "btree" ("created_at" DESC);
-
-
-
-CREATE INDEX "idx_posts_engagement_score" ON "public"."posts" USING "btree" ("engagement_score" DESC);
-
-
-
-CREATE INDEX "idx_posts_enterprise_features" ON "public"."posts" USING "gin" ("enterprise_features");
-
-
-
-CREATE INDEX "idx_posts_entity_type_entity_id" ON "public"."posts" USING "btree" ("entity_type", "entity_id");
-
-
-
-CREATE INDEX "idx_posts_last_activity" ON "public"."posts" USING "btree" ("last_activity_at" DESC);
-
-
-
-CREATE INDEX "idx_posts_metadata" ON "public"."posts" USING "gin" ("metadata");
-
-
-
-CREATE INDEX "idx_posts_publish_status" ON "public"."posts" USING "btree" ("publish_status");
-
-
-
-CREATE INDEX "idx_posts_tags" ON "public"."posts" USING "gin" ("tags");
-
-
-
-CREATE INDEX "idx_posts_updated_at" ON "public"."posts" USING "btree" ("updated_at" DESC);
-
-
-
-CREATE INDEX "idx_posts_user_id" ON "public"."posts" USING "btree" ("user_id");
-
-
-
-CREATE INDEX "idx_posts_visibility" ON "public"."posts" USING "btree" ("visibility");
 
 
 
@@ -13192,22 +12869,6 @@ CREATE INDEX "post_bookmarks_user_id_idx" ON "public"."post_bookmarks" USING "bt
 
 
 
-CREATE INDEX "post_comments_created_at_idx" ON "public"."post_comments" USING "btree" ("created_at" DESC);
-
-
-
-CREATE INDEX "post_comments_parent_comment_id_idx" ON "public"."post_comments" USING "btree" ("parent_comment_id");
-
-
-
-CREATE INDEX "post_comments_post_id_idx" ON "public"."post_comments" USING "btree" ("post_id");
-
-
-
-CREATE INDEX "post_comments_user_id_idx" ON "public"."post_comments" USING "btree" ("user_id");
-
-
-
 CREATE INDEX "post_reactions_post_id_idx" ON "public"."post_reactions" USING "btree" ("post_id");
 
 
@@ -13229,30 +12890,6 @@ CREATE INDEX "post_shares_share_type_idx" ON "public"."post_shares" USING "btree
 
 
 CREATE INDEX "post_shares_user_id_idx" ON "public"."post_shares" USING "btree" ("user_id");
-
-
-
-CREATE INDEX "posts_content_type_idx" ON "public"."posts" USING "btree" ("content_type");
-
-
-
-CREATE INDEX "posts_created_at_idx" ON "public"."posts" USING "btree" ("created_at" DESC);
-
-
-
-CREATE INDEX "posts_engagement_score_idx" ON "public"."posts" USING "btree" ("engagement_score" DESC);
-
-
-
-CREATE INDEX "posts_entity_type_entity_id_idx" ON "public"."posts" USING "btree" ("entity_type", "entity_id");
-
-
-
-CREATE INDEX "posts_publish_status_idx" ON "public"."posts" USING "btree" ("publish_status");
-
-
-
-CREATE INDEX "posts_trending_score_idx" ON "public"."posts" USING "btree" ("trending_score" DESC);
 
 
 
@@ -13292,10 +12929,6 @@ CREATE OR REPLACE TRIGGER "audit_trail_users" AFTER INSERT OR DELETE OR UPDATE O
 
 
 
-CREATE OR REPLACE TRIGGER "posts_updated_at_trigger" BEFORE UPDATE ON "public"."posts" FOR EACH ROW EXECUTE FUNCTION "public"."update_post_updated_at"();
-
-
-
 CREATE OR REPLACE TRIGGER "set_image_uploader_trigger" BEFORE INSERT ON "public"."images" FOR EACH ROW EXECUTE FUNCTION "public"."set_image_uploader"();
 
 
@@ -13316,19 +12949,7 @@ CREATE OR REPLACE TRIGGER "trigger_bookmarks_audit" AFTER INSERT OR DELETE ON "p
 
 
 
-CREATE OR REPLACE TRIGGER "trigger_comment_reactions_audit" AFTER INSERT OR DELETE ON "public"."comment_reactions" FOR EACH ROW EXECUTE FUNCTION "public"."trigger_social_audit_log"();
-
-
-
-CREATE OR REPLACE TRIGGER "trigger_comments_audit" AFTER INSERT OR DELETE OR UPDATE ON "public"."comments" FOR EACH ROW EXECUTE FUNCTION "public"."trigger_social_audit_log"();
-
-
-
 CREATE OR REPLACE TRIGGER "trigger_handle_privacy_level_update" BEFORE INSERT OR UPDATE ON "public"."reading_progress" FOR EACH ROW EXECUTE FUNCTION "public"."handle_privacy_level_update"();
-
-
-
-CREATE OR REPLACE TRIGGER "trigger_likes_audit" AFTER INSERT OR DELETE ON "public"."likes" FOR EACH ROW EXECUTE FUNCTION "public"."trigger_social_audit_log"();
 
 
 
@@ -13352,7 +12973,7 @@ CREATE OR REPLACE TRIGGER "trigger_update_album_statistics_from_analytics" AFTER
 
 
 
-CREATE OR REPLACE TRIGGER "trigger_update_comment_counters" AFTER INSERT OR DELETE ON "public"."photo_comments" FOR EACH ROW EXECUTE FUNCTION "public"."update_photo_counters"();
+CREATE OR REPLACE TRIGGER "trigger_update_engagement_reply_count" AFTER INSERT OR DELETE ON "public"."engagement_comments" FOR EACH ROW EXECUTE FUNCTION "public"."update_engagement_reply_count"();
 
 
 
@@ -13361,10 +12982,6 @@ CREATE OR REPLACE TRIGGER "trigger_update_engagement_score" BEFORE INSERT OR UPD
 
 
 CREATE OR REPLACE TRIGGER "trigger_update_friend_analytics" AFTER INSERT OR UPDATE ON "public"."friends" FOR EACH ROW EXECUTE FUNCTION "public"."update_friend_analytics"();
-
-
-
-CREATE OR REPLACE TRIGGER "trigger_update_like_counters" AFTER INSERT OR DELETE ON "public"."photo_likes" FOR EACH ROW EXECUTE FUNCTION "public"."update_photo_counters"();
 
 
 
@@ -13428,26 +13045,6 @@ ALTER TABLE ONLY "public"."activities"
 
 ALTER TABLE ONLY "public"."activities"
     ADD CONSTRAINT "activities_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."activity_comments"
-    ADD CONSTRAINT "activity_comments_activity_id_fkey" FOREIGN KEY ("activity_id") REFERENCES "public"."activities"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."activity_comments"
-    ADD CONSTRAINT "activity_comments_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."activity_likes"
-    ADD CONSTRAINT "activity_likes_activity_id_fkey" FOREIGN KEY ("activity_id") REFERENCES "public"."activities"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."activity_likes"
-    ADD CONSTRAINT "activity_likes_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
 
 
 
@@ -13543,16 +13140,6 @@ ALTER TABLE ONLY "public"."book_club_books"
 
 ALTER TABLE ONLY "public"."book_club_books"
     ADD CONSTRAINT "book_club_books_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id") ON DELETE SET NULL;
-
-
-
-ALTER TABLE ONLY "public"."book_club_discussion_comments"
-    ADD CONSTRAINT "book_club_discussion_comments_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."book_club_discussion_comments"
-    ADD CONSTRAINT "book_club_discussion_comments_discussion_id_fkey" FOREIGN KEY ("discussion_id") REFERENCES "public"."book_club_discussions"("id") ON DELETE CASCADE;
 
 
 
@@ -13716,31 +13303,6 @@ ALTER TABLE ONLY "public"."collaborative_filtering_data"
 
 
 
-ALTER TABLE ONLY "public"."comment_likes"
-    ADD CONSTRAINT "comment_likes_comment_id_fkey" FOREIGN KEY ("comment_id") REFERENCES "public"."photo_comments"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."comment_reactions"
-    ADD CONSTRAINT "comment_reactions_comment_id_fkey" FOREIGN KEY ("comment_id") REFERENCES "public"."comments"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."comment_reactions"
-    ADD CONSTRAINT "comment_reactions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."comments"
-    ADD CONSTRAINT "comments_feed_entry_id_fkey" FOREIGN KEY ("feed_entry_id") REFERENCES "public"."feed_entries"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."comments"
-    ADD CONSTRAINT "comments_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
-
-
-
 ALTER TABLE ONLY "public"."content_flags"
     ADD CONSTRAINT "content_flags_flagged_by_fkey" FOREIGN KEY ("flagged_by") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 
@@ -13773,16 +13335,6 @@ ALTER TABLE ONLY "public"."data_enrichment_jobs"
 
 ALTER TABLE ONLY "public"."dewey_decimal_classifications"
     ADD CONSTRAINT "dewey_decimal_classifications_parent_code_fkey" FOREIGN KEY ("parent_code") REFERENCES "public"."dewey_decimal_classifications"("code");
-
-
-
-ALTER TABLE ONLY "public"."discussion_comments"
-    ADD CONSTRAINT "discussion_comments_discussion_id_fkey" FOREIGN KEY ("discussion_id") REFERENCES "public"."discussions"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."discussion_comments"
-    ADD CONSTRAINT "discussion_comments_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
 
 
 
@@ -13831,21 +13383,6 @@ ALTER TABLE ONLY "public"."event_chat_rooms"
 
 
 
-ALTER TABLE ONLY "public"."event_comments"
-    ADD CONSTRAINT "event_comments_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."event_comments"
-    ADD CONSTRAINT "event_comments_parent_id_fkey" FOREIGN KEY ("parent_id") REFERENCES "public"."event_comments"("id") ON DELETE SET NULL;
-
-
-
-ALTER TABLE ONLY "public"."event_comments"
-    ADD CONSTRAINT "event_comments_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
-
-
-
 ALTER TABLE ONLY "public"."event_creator_permissions"
     ADD CONSTRAINT "event_creator_permissions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
 
@@ -13863,16 +13400,6 @@ ALTER TABLE ONLY "public"."event_interests"
 
 ALTER TABLE ONLY "public"."event_interests"
     ADD CONSTRAINT "event_interests_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."event_likes"
-    ADD CONSTRAINT "event_likes_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "public"."events"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."event_likes"
-    ADD CONSTRAINT "event_likes_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
 
 
 
@@ -14196,16 +13723,6 @@ ALTER TABLE ONLY "public"."photo_bookmarks"
 
 
 
-ALTER TABLE ONLY "public"."photo_comments"
-    ADD CONSTRAINT "photo_comments_parent_id_fkey" FOREIGN KEY ("parent_id") REFERENCES "public"."photo_comments"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."photo_comments"
-    ADD CONSTRAINT "photo_comments_photo_id_fkey" FOREIGN KEY ("photo_id") REFERENCES "public"."images"("id") ON DELETE CASCADE;
-
-
-
 ALTER TABLE ONLY "public"."photo_community"
     ADD CONSTRAINT "photo_community_album_id_fkey" FOREIGN KEY ("album_id") REFERENCES "public"."photo_albums"("id") ON DELETE CASCADE;
 
@@ -14218,11 +13735,6 @@ ALTER TABLE ONLY "public"."photo_community"
 
 ALTER TABLE ONLY "public"."photo_community"
     ADD CONSTRAINT "photo_community_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."photo_likes"
-    ADD CONSTRAINT "photo_likes_photo_id_fkey" FOREIGN KEY ("photo_id") REFERENCES "public"."images"("id") ON DELETE CASCADE;
 
 
 
@@ -14252,32 +13764,7 @@ ALTER TABLE ONLY "public"."photo_tags"
 
 
 ALTER TABLE ONLY "public"."post_bookmarks"
-    ADD CONSTRAINT "post_bookmarks_post_id_fkey" FOREIGN KEY ("post_id") REFERENCES "public"."posts"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."post_bookmarks"
     ADD CONSTRAINT "post_bookmarks_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."post_comments"
-    ADD CONSTRAINT "post_comments_parent_comment_id_fkey" FOREIGN KEY ("parent_comment_id") REFERENCES "public"."post_comments"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."post_comments"
-    ADD CONSTRAINT "post_comments_post_id_fkey" FOREIGN KEY ("post_id") REFERENCES "public"."posts"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."post_comments"
-    ADD CONSTRAINT "post_comments_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."post_reactions"
-    ADD CONSTRAINT "post_reactions_post_id_fkey" FOREIGN KEY ("post_id") REFERENCES "public"."posts"("id") ON DELETE CASCADE;
 
 
 
@@ -14287,17 +13774,7 @@ ALTER TABLE ONLY "public"."post_reactions"
 
 
 ALTER TABLE ONLY "public"."post_shares"
-    ADD CONSTRAINT "post_shares_post_id_fkey" FOREIGN KEY ("post_id") REFERENCES "public"."posts"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."post_shares"
     ADD CONSTRAINT "post_shares_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."posts"
-    ADD CONSTRAINT "posts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 
 
 
@@ -14404,10 +13881,6 @@ CREATE POLICY "Allow public read" ON "public"."book_club_books" FOR SELECT USING
 
 
 
-CREATE POLICY "Allow public read" ON "public"."book_club_discussion_comments" FOR SELECT USING (true);
-
-
-
 CREATE POLICY "Allow public read" ON "public"."book_club_discussions" FOR SELECT USING (true);
 
 
@@ -14460,10 +13933,6 @@ CREATE POLICY "Allow public read" ON "public"."contact_info" FOR SELECT USING (t
 
 
 
-CREATE POLICY "Allow public read" ON "public"."discussion_comments" FOR SELECT USING (true);
-
-
-
 CREATE POLICY "Allow public read" ON "public"."discussions" FOR SELECT USING (true);
 
 
@@ -14500,10 +13969,6 @@ CREATE POLICY "Allow public read" ON "public"."event_chat_rooms" FOR SELECT USIN
 
 
 
-CREATE POLICY "Allow public read" ON "public"."event_comments" FOR SELECT USING (true);
-
-
-
 CREATE POLICY "Allow public read" ON "public"."event_creator_permissions" FOR SELECT USING (true);
 
 
@@ -14513,10 +13978,6 @@ CREATE POLICY "Allow public read" ON "public"."event_financials" FOR SELECT USIN
 
 
 CREATE POLICY "Allow public read" ON "public"."event_interests" FOR SELECT USING (true);
-
-
-
-CREATE POLICY "Allow public read" ON "public"."event_likes" FOR SELECT USING (true);
 
 
 
@@ -14872,10 +14333,6 @@ CREATE POLICY "Allow public read" ON "public"."reading_streaks" FOR SELECT USING
 
 
 
-CREATE POLICY "Allow public read" ON "public"."review_likes" FOR SELECT USING (true);
-
-
-
 CREATE POLICY "Allow public read" ON "public"."reviews" FOR SELECT USING (true);
 
 
@@ -14966,12 +14423,6 @@ CREATE POLICY "Users can bookmark photos they can view" ON "public"."photo_bookm
 
 
 
-CREATE POLICY "Users can comment on photos they can view" ON "public"."photo_comments" USING ((EXISTS ( SELECT 1
-   FROM "public"."images" "i"
-  WHERE (("i"."id" = "photo_comments"."photo_id") AND ((("i"."metadata" ->> 'visibility'::"text") = 'public'::"text") OR (("i"."metadata" ->> 'owner_id'::"text") = ("auth"."uid"())::"text"))))));
-
-
-
 CREATE POLICY "Users can create content jobs" ON "public"."content_generation_jobs" FOR INSERT WITH CHECK (("created_by" = "auth"."uid"()));
 
 
@@ -14992,11 +14443,15 @@ CREATE POLICY "Users can delete their own albums" ON "public"."photo_albums" FOR
 
 
 
+CREATE POLICY "Users can delete their own comments" ON "public"."engagement_comments" FOR DELETE USING (("auth"."uid"() = "user_id"));
+
+
+
 CREATE POLICY "Users can delete their own friends" ON "public"."user_friends" FOR DELETE USING ((("auth"."uid"() = "user_id") OR ("auth"."uid"() = "friend_id")));
 
 
 
-CREATE POLICY "Users can delete their own posts" ON "public"."posts" FOR DELETE USING (("auth"."uid"() = "user_id"));
+CREATE POLICY "Users can delete their own likes" ON "public"."engagement_likes" FOR DELETE USING (("auth"."uid"() = "user_id"));
 
 
 
@@ -15008,29 +14463,19 @@ CREATE POLICY "Users can insert images" ON "public"."images" FOR INSERT WITH CHE
 
 
 
+CREATE POLICY "Users can insert their own comments" ON "public"."engagement_comments" FOR INSERT WITH CHECK (("auth"."uid"() = "user_id"));
+
+
+
 CREATE POLICY "Users can insert their own engagement analytics" ON "public"."engagement_analytics" FOR INSERT WITH CHECK (("auth"."uid"() = "user_id"));
 
 
 
-CREATE POLICY "Users can insert their own posts" ON "public"."posts" FOR INSERT WITH CHECK (("auth"."uid"() = "user_id"));
+CREATE POLICY "Users can insert their own likes" ON "public"."engagement_likes" FOR INSERT WITH CHECK (("auth"."uid"() = "user_id"));
 
 
 
 CREATE POLICY "Users can insert their own predictions" ON "public"."ml_predictions" FOR INSERT WITH CHECK (("user_id" = "auth"."uid"()));
-
-
-
-CREATE POLICY "Users can like photos they can view" ON "public"."photo_likes" USING ((EXISTS ( SELECT 1
-   FROM "public"."images" "i"
-  WHERE (("i"."id" = "photo_likes"."photo_id") AND ((("i"."metadata" ->> 'visibility'::"text") = 'public'::"text") OR (("i"."metadata" ->> 'owner_id'::"text") = ("auth"."uid"())::"text"))))));
-
-
-
-CREATE POLICY "Users can manage own comments" ON "public"."comments" USING (("auth"."uid"() = "user_id"));
-
-
-
-CREATE POLICY "Users can manage own likes" ON "public"."likes" USING (("auth"."uid"() = "user_id"));
 
 
 
@@ -15047,10 +14492,6 @@ CREATE POLICY "Users can read basic user info for follows" ON "public"."users" F
 
 
 CREATE POLICY "Users can read entities" ON "public"."entities" FOR SELECT USING (true);
-
-
-
-CREATE POLICY "Users can read posts" ON "public"."posts" FOR SELECT USING (true);
 
 
 
@@ -15090,6 +14531,10 @@ CREATE POLICY "Users can update their own albums" ON "public"."photo_albums" FOR
 
 
 
+CREATE POLICY "Users can update their own comments" ON "public"."engagement_comments" FOR UPDATE USING (("auth"."uid"() = "user_id"));
+
+
+
 CREATE POLICY "Users can update their own friends" ON "public"."user_friends" FOR UPDATE USING ((("auth"."uid"() = "user_id") OR ("auth"."uid"() = "friend_id")));
 
 
@@ -15098,15 +14543,19 @@ CREATE POLICY "Users can update their own notifications" ON "public"."smart_noti
 
 
 
-CREATE POLICY "Users can update their own posts" ON "public"."posts" FOR UPDATE USING (("auth"."uid"() = "user_id"));
-
-
-
 CREATE POLICY "Users can view active ML models" ON "public"."ml_models" FOR SELECT USING (("is_active" = true));
 
 
 
+CREATE POLICY "Users can view all comments" ON "public"."engagement_comments" FOR SELECT USING (true);
+
+
+
 CREATE POLICY "Users can view all images" ON "public"."images" FOR SELECT USING (true);
+
+
+
+CREATE POLICY "Users can view all likes" ON "public"."engagement_likes" FOR SELECT USING (true);
 
 
 
@@ -15282,9 +14731,6 @@ ALTER TABLE "public"."book_authors" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."book_club_books" ENABLE ROW LEVEL SECURITY;
 
 
-ALTER TABLE "public"."book_club_discussion_comments" ENABLE ROW LEVEL SECURITY;
-
-
 ALTER TABLE "public"."book_club_discussions" ENABLE ROW LEVEL SECURITY;
 
 
@@ -15382,44 +14828,6 @@ ALTER TABLE "public"."carousel_images" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."collaborative_filtering_data" ENABLE ROW LEVEL SECURITY;
 
 
-ALTER TABLE "public"."comment_reactions" ENABLE ROW LEVEL SECURITY;
-
-
-CREATE POLICY "comment_reactions_delete_policy" ON "public"."comment_reactions" FOR DELETE USING (("auth"."uid"() = "user_id"));
-
-
-
-CREATE POLICY "comment_reactions_insert_policy" ON "public"."comment_reactions" FOR INSERT WITH CHECK (("auth"."uid"() = "user_id"));
-
-
-
-CREATE POLICY "comment_reactions_select_policy" ON "public"."comment_reactions" FOR SELECT USING (("auth"."uid"() IS NOT NULL));
-
-
-
-CREATE POLICY "comment_reactions_update_policy" ON "public"."comment_reactions" FOR UPDATE USING (("auth"."uid"() = "user_id"));
-
-
-
-ALTER TABLE "public"."comments" ENABLE ROW LEVEL SECURITY;
-
-
-CREATE POLICY "comments_delete_policy" ON "public"."comments" FOR DELETE USING (("auth"."uid"() = "user_id"));
-
-
-
-CREATE POLICY "comments_insert_policy" ON "public"."comments" FOR INSERT WITH CHECK (("auth"."uid"() = "user_id"));
-
-
-
-CREATE POLICY "comments_select_policy" ON "public"."comments" FOR SELECT USING (("auth"."uid"() IS NOT NULL));
-
-
-
-CREATE POLICY "comments_update_policy" ON "public"."comments" FOR UPDATE USING (("auth"."uid"() = "user_id"));
-
-
-
 ALTER TABLE "public"."contact_info" ENABLE ROW LEVEL SECURITY;
 
 
@@ -15482,13 +14890,48 @@ CREATE POLICY "data_versions_admin_access" ON "public"."enterprise_data_versions
 ALTER TABLE "public"."dewey_decimal_classifications" ENABLE ROW LEVEL SECURITY;
 
 
-ALTER TABLE "public"."discussion_comments" ENABLE ROW LEVEL SECURITY;
-
-
 ALTER TABLE "public"."discussions" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."engagement_analytics" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."engagement_comments" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "engagement_comments_delete_policy" ON "public"."engagement_comments" FOR DELETE USING (("auth"."uid"() = "user_id"));
+
+
+
+CREATE POLICY "engagement_comments_insert_policy" ON "public"."engagement_comments" FOR INSERT WITH CHECK (("auth"."uid"() = "user_id"));
+
+
+
+CREATE POLICY "engagement_comments_select_policy" ON "public"."engagement_comments" FOR SELECT USING ((EXISTS ( SELECT 1
+   FROM "public"."activities" "a"
+  WHERE (("a"."id" = "engagement_comments"."entity_id") AND ("a"."entity_type" = "engagement_comments"."entity_type")))));
+
+
+
+CREATE POLICY "engagement_comments_update_policy" ON "public"."engagement_comments" FOR UPDATE USING (("auth"."uid"() = "user_id"));
+
+
+
+ALTER TABLE "public"."engagement_likes" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "engagement_likes_delete_policy" ON "public"."engagement_likes" FOR DELETE USING (("auth"."uid"() = "user_id"));
+
+
+
+CREATE POLICY "engagement_likes_insert_policy" ON "public"."engagement_likes" FOR INSERT WITH CHECK (("auth"."uid"() = "user_id"));
+
+
+
+CREATE POLICY "engagement_likes_select_policy" ON "public"."engagement_likes" FOR SELECT USING ((EXISTS ( SELECT 1
+   FROM "public"."activities" "a"
+  WHERE (("a"."id" = "engagement_likes"."entity_id") AND ("a"."entity_type" = "engagement_likes"."entity_type")))));
+
 
 
 ALTER TABLE "public"."enterprise_audit_trail" ENABLE ROW LEVEL SECURITY;
@@ -15549,9 +14992,6 @@ ALTER TABLE "public"."event_chat_messages" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."event_chat_rooms" ENABLE ROW LEVEL SECURITY;
 
 
-ALTER TABLE "public"."event_comments" ENABLE ROW LEVEL SECURITY;
-
-
 ALTER TABLE "public"."event_creator_permissions" ENABLE ROW LEVEL SECURITY;
 
 
@@ -15559,9 +14999,6 @@ ALTER TABLE "public"."event_financials" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."event_interests" ENABLE ROW LEVEL SECURITY;
-
-
-ALTER TABLE "public"."event_likes" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."event_livestreams" ENABLE ROW LEVEL SECURITY;
@@ -15886,21 +15323,6 @@ ALTER TABLE "public"."images" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."invoices" ENABLE ROW LEVEL SECURITY;
 
 
-ALTER TABLE "public"."likes" ENABLE ROW LEVEL SECURITY;
-
-
-CREATE POLICY "likes_delete_policy" ON "public"."likes" FOR DELETE USING (("auth"."uid"() = "user_id"));
-
-
-
-CREATE POLICY "likes_insert_policy" ON "public"."likes" FOR INSERT WITH CHECK (("auth"."uid"() = "user_id"));
-
-
-
-CREATE POLICY "likes_select_policy" ON "public"."likes" FOR SELECT USING (("auth"."uid"() IS NOT NULL));
-
-
-
 ALTER TABLE "public"."list_followers" ENABLE ROW LEVEL SECURITY;
 
 
@@ -16023,9 +15445,6 @@ CREATE POLICY "photo_analytics_select_policy" ON "public"."photo_analytics" FOR 
 ALTER TABLE "public"."photo_bookmarks" ENABLE ROW LEVEL SECURITY;
 
 
-ALTER TABLE "public"."photo_comments" ENABLE ROW LEVEL SECURITY;
-
-
 ALTER TABLE "public"."photo_community" ENABLE ROW LEVEL SECURITY;
 
 
@@ -16045,9 +15464,6 @@ CREATE POLICY "photo_community_select_policy" ON "public"."photo_community" FOR 
 
 CREATE POLICY "photo_community_update_policy" ON "public"."photo_community" FOR UPDATE USING (("user_id" = "auth"."uid"()));
 
-
-
-ALTER TABLE "public"."photo_likes" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."photo_monetization" ENABLE ROW LEVEL SECURITY;
@@ -16088,25 +15504,6 @@ CREATE POLICY "post_bookmarks_update_policy" ON "public"."post_bookmarks" FOR UP
 
 
 
-ALTER TABLE "public"."post_comments" ENABLE ROW LEVEL SECURITY;
-
-
-CREATE POLICY "post_comments_delete_policy" ON "public"."post_comments" FOR DELETE USING (("auth"."uid"() = "user_id"));
-
-
-
-CREATE POLICY "post_comments_insert_policy" ON "public"."post_comments" FOR INSERT WITH CHECK (("auth"."uid"() = "user_id"));
-
-
-
-CREATE POLICY "post_comments_select_policy" ON "public"."post_comments" FOR SELECT USING (true);
-
-
-
-CREATE POLICY "post_comments_update_policy" ON "public"."post_comments" FOR UPDATE USING (("auth"."uid"() = "user_id"));
-
-
-
 ALTER TABLE "public"."post_reactions" ENABLE ROW LEVEL SECURITY;
 
 
@@ -16134,57 +15531,6 @@ CREATE POLICY "post_shares_insert_policy" ON "public"."post_shares" FOR INSERT W
 
 
 CREATE POLICY "post_shares_select_policy" ON "public"."post_shares" FOR SELECT USING (true);
-
-
-
-ALTER TABLE "public"."posts" ENABLE ROW LEVEL SECURITY;
-
-
-CREATE POLICY "posts_delete_own" ON "public"."posts" FOR DELETE USING (("auth"."uid"() = "user_id"));
-
-
-
-CREATE POLICY "posts_delete_policy" ON "public"."posts" FOR DELETE USING (("auth"."uid"() = "user_id"));
-
-
-
-CREATE POLICY "posts_insert_own" ON "public"."posts" FOR INSERT WITH CHECK (("auth"."uid"() = "user_id"));
-
-
-
-CREATE POLICY "posts_insert_policy" ON "public"."posts" FOR INSERT WITH CHECK (("auth"."uid"() = "user_id"));
-
-
-
-CREATE POLICY "posts_select_followers" ON "public"."posts" FOR SELECT USING ((("visibility" = 'followers'::"text") AND ("publish_status" = 'published'::"text") AND (NOT "is_deleted") AND (EXISTS ( SELECT 1
-   FROM "public"."follows" "f"
-  WHERE (("f"."follower_id" = "auth"."uid"()) AND ("f"."following_id" = "posts"."user_id"))))));
-
-
-
-CREATE POLICY "posts_select_friends" ON "public"."posts" FOR SELECT USING ((("visibility" = 'friends'::"text") AND ("publish_status" = 'published'::"text") AND (NOT "is_deleted") AND (EXISTS ( SELECT 1
-   FROM "public"."friends" "f"
-  WHERE ((("f"."user_id" = "auth"."uid"()) AND ("f"."friend_id" = "posts"."user_id") AND ("f"."status" = 'accepted'::"text")) OR (("f"."friend_id" = "auth"."uid"()) AND ("f"."user_id" = "posts"."user_id") AND ("f"."status" = 'accepted'::"text")))))));
-
-
-
-CREATE POLICY "posts_select_own" ON "public"."posts" FOR SELECT USING (("auth"."uid"() = "user_id"));
-
-
-
-CREATE POLICY "posts_select_policy" ON "public"."posts" FOR SELECT USING ((("is_deleted" = false) AND (("visibility" = 'public'::"text") OR (("visibility" = 'private'::"text") AND ("auth"."uid"() = "user_id")) OR (("visibility" = 'friends'::"text") AND ("auth"."uid"() = ANY ("allowed_user_ids"))))));
-
-
-
-CREATE POLICY "posts_select_public" ON "public"."posts" FOR SELECT USING ((("visibility" = 'public'::"text") AND ("publish_status" = 'published'::"text") AND (NOT "is_deleted")));
-
-
-
-CREATE POLICY "posts_update_own" ON "public"."posts" FOR UPDATE USING (("auth"."uid"() = "user_id"));
-
-
-
-CREATE POLICY "posts_update_policy" ON "public"."posts" FOR UPDATE USING (("auth"."uid"() = "user_id"));
 
 
 
@@ -16267,9 +15613,6 @@ ALTER TABLE "public"."reading_stats_daily" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."reading_streaks" ENABLE ROW LEVEL SECURITY;
-
-
-ALTER TABLE "public"."review_likes" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."reviews" ENABLE ROW LEVEL SECURITY;
@@ -16600,15 +15943,15 @@ GRANT USAGE ON SCHEMA "public" TO "service_role";
 
 
 
-GRANT ALL ON FUNCTION "public"."add_activity_comment"("p_activity_id" "uuid", "p_user_id" "uuid", "p_comment_text" "text") TO "anon";
-GRANT ALL ON FUNCTION "public"."add_activity_comment"("p_activity_id" "uuid", "p_user_id" "uuid", "p_comment_text" "text") TO "authenticated";
-GRANT ALL ON FUNCTION "public"."add_activity_comment"("p_activity_id" "uuid", "p_user_id" "uuid", "p_comment_text" "text") TO "service_role";
+GRANT ALL ON FUNCTION "public"."add_engagement_comment"("p_user_id" "uuid", "p_entity_type" "text", "p_entity_id" "uuid", "p_comment_text" "text", "p_parent_comment_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."add_engagement_comment"("p_user_id" "uuid", "p_entity_type" "text", "p_entity_id" "uuid", "p_comment_text" "text", "p_parent_comment_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."add_engagement_comment"("p_user_id" "uuid", "p_entity_type" "text", "p_entity_id" "uuid", "p_comment_text" "text", "p_parent_comment_id" "uuid") TO "service_role";
 
 
 
-GRANT ALL ON FUNCTION "public"."add_entity_comment"("p_user_id" "uuid", "p_entity_type" character varying, "p_entity_id" "uuid", "p_content" "text", "p_parent_id" "uuid") TO "anon";
-GRANT ALL ON FUNCTION "public"."add_entity_comment"("p_user_id" "uuid", "p_entity_type" character varying, "p_entity_id" "uuid", "p_content" "text", "p_parent_id" "uuid") TO "authenticated";
-GRANT ALL ON FUNCTION "public"."add_entity_comment"("p_user_id" "uuid", "p_entity_type" character varying, "p_entity_id" "uuid", "p_content" "text", "p_parent_id" "uuid") TO "service_role";
+GRANT ALL ON FUNCTION "public"."add_entity_comment"("p_user_id" "uuid", "p_entity_type" "text", "p_entity_id" "uuid", "p_comment_text" "text", "p_parent_comment_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."add_entity_comment"("p_user_id" "uuid", "p_entity_type" "text", "p_entity_id" "uuid", "p_comment_text" "text", "p_parent_comment_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."add_entity_comment"("p_user_id" "uuid", "p_entity_type" "text", "p_entity_id" "uuid", "p_comment_text" "text", "p_parent_comment_id" "uuid") TO "service_role";
 
 
 
@@ -16852,6 +16195,12 @@ GRANT ALL ON FUNCTION "public"."get_data_quality_report"("p_table_name" "text") 
 
 
 
+GRANT ALL ON FUNCTION "public"."get_engagement_stats"("p_entity_type" "text", "p_entity_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."get_engagement_stats"("p_entity_type" "text", "p_entity_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_engagement_stats"("p_entity_type" "text", "p_entity_id" "uuid") TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."get_entity_albums"("p_entity_type" "text", "p_entity_id" "uuid", "p_user_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_entity_albums"("p_entity_type" "text", "p_entity_id" "uuid", "p_user_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_entity_albums"("p_entity_type" "text", "p_entity_id" "uuid", "p_user_id" "uuid") TO "service_role";
@@ -16861,6 +16210,12 @@ GRANT ALL ON FUNCTION "public"."get_entity_albums"("p_entity_type" "text", "p_en
 GRANT ALL ON FUNCTION "public"."get_entity_by_permalink"("permalink" "text", "entity_type" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."get_entity_by_permalink"("permalink" "text", "entity_type" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."get_entity_by_permalink"("permalink" "text", "entity_type" "text") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."get_entity_engagement"("p_entity_type" "text", "p_entity_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."get_entity_engagement"("p_entity_type" "text", "p_entity_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."get_entity_engagement"("p_entity_type" "text", "p_entity_id" "uuid") TO "service_role";
 
 
 
@@ -17176,9 +16531,9 @@ GRANT ALL ON FUNCTION "public"."standardize_reading_statuses"() TO "service_role
 
 
 
-GRANT ALL ON FUNCTION "public"."toggle_activity_like"("p_activity_id" "uuid", "p_user_id" "uuid") TO "anon";
-GRANT ALL ON FUNCTION "public"."toggle_activity_like"("p_activity_id" "uuid", "p_user_id" "uuid") TO "authenticated";
-GRANT ALL ON FUNCTION "public"."toggle_activity_like"("p_activity_id" "uuid", "p_user_id" "uuid") TO "service_role";
+GRANT ALL ON FUNCTION "public"."toggle_entity_like"("p_user_id" "uuid", "p_entity_type" "text", "p_entity_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."toggle_entity_like"("p_user_id" "uuid", "p_entity_type" "text", "p_entity_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."toggle_entity_like"("p_user_id" "uuid", "p_entity_type" "text", "p_entity_id" "uuid") TO "service_role";
 
 
 
@@ -17233,6 +16588,12 @@ GRANT ALL ON FUNCTION "public"."update_album_statistics_from_analytics"() TO "se
 GRANT ALL ON FUNCTION "public"."update_book_popularity_metrics"("p_book_id" "uuid") TO "anon";
 GRANT ALL ON FUNCTION "public"."update_book_popularity_metrics"("p_book_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_book_popularity_metrics"("p_book_id" "uuid") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."update_engagement_reply_count"() TO "anon";
+GRANT ALL ON FUNCTION "public"."update_engagement_reply_count"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_engagement_reply_count"() TO "service_role";
 
 
 
@@ -17374,18 +16735,6 @@ GRANT ALL ON TABLE "public"."activities" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."activity_comments" TO "anon";
-GRANT ALL ON TABLE "public"."activity_comments" TO "authenticated";
-GRANT ALL ON TABLE "public"."activity_comments" TO "service_role";
-
-
-
-GRANT ALL ON TABLE "public"."activity_likes" TO "anon";
-GRANT ALL ON TABLE "public"."activity_likes" TO "authenticated";
-GRANT ALL ON TABLE "public"."activity_likes" TO "service_role";
-
-
-
 GRANT ALL ON TABLE "public"."activity_log" TO "anon";
 GRANT ALL ON TABLE "public"."activity_log" TO "authenticated";
 GRANT ALL ON TABLE "public"."activity_log" TO "service_role";
@@ -17506,12 +16855,6 @@ GRANT ALL ON TABLE "public"."book_club_books" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."book_club_discussion_comments" TO "anon";
-GRANT ALL ON TABLE "public"."book_club_discussion_comments" TO "authenticated";
-GRANT ALL ON TABLE "public"."book_club_discussion_comments" TO "service_role";
-
-
-
 GRANT ALL ON TABLE "public"."book_club_discussions" TO "anon";
 GRANT ALL ON TABLE "public"."book_club_discussions" TO "authenticated";
 GRANT ALL ON TABLE "public"."book_club_discussions" TO "service_role";
@@ -17620,24 +16963,6 @@ GRANT ALL ON TABLE "public"."collaborative_filtering_data" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."comment_likes" TO "anon";
-GRANT ALL ON TABLE "public"."comment_likes" TO "authenticated";
-GRANT ALL ON TABLE "public"."comment_likes" TO "service_role";
-
-
-
-GRANT ALL ON TABLE "public"."comment_reactions" TO "anon";
-GRANT ALL ON TABLE "public"."comment_reactions" TO "authenticated";
-GRANT ALL ON TABLE "public"."comment_reactions" TO "service_role";
-
-
-
-GRANT ALL ON TABLE "public"."comments" TO "anon";
-GRANT ALL ON TABLE "public"."comments" TO "authenticated";
-GRANT ALL ON TABLE "public"."comments" TO "service_role";
-
-
-
 GRANT ALL ON TABLE "public"."contact_info" TO "anon";
 GRANT ALL ON TABLE "public"."contact_info" TO "authenticated";
 GRANT ALL ON TABLE "public"."contact_info" TO "service_role";
@@ -17692,12 +17017,6 @@ GRANT ALL ON TABLE "public"."dewey_decimal_classifications" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."discussion_comments" TO "anon";
-GRANT ALL ON TABLE "public"."discussion_comments" TO "authenticated";
-GRANT ALL ON TABLE "public"."discussion_comments" TO "service_role";
-
-
-
 GRANT ALL ON TABLE "public"."discussions" TO "anon";
 GRANT ALL ON TABLE "public"."discussions" TO "authenticated";
 GRANT ALL ON TABLE "public"."discussions" TO "service_role";
@@ -17707,6 +17026,18 @@ GRANT ALL ON TABLE "public"."discussions" TO "service_role";
 GRANT ALL ON TABLE "public"."engagement_analytics" TO "anon";
 GRANT ALL ON TABLE "public"."engagement_analytics" TO "authenticated";
 GRANT ALL ON TABLE "public"."engagement_analytics" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."engagement_comments" TO "anon";
+GRANT ALL ON TABLE "public"."engagement_comments" TO "authenticated";
+GRANT ALL ON TABLE "public"."engagement_comments" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."engagement_likes" TO "anon";
+GRANT ALL ON TABLE "public"."engagement_likes" TO "authenticated";
+GRANT ALL ON TABLE "public"."engagement_likes" TO "service_role";
 
 
 
@@ -17737,6 +17068,12 @@ GRANT ALL ON TABLE "public"."enterprise_audit_trail" TO "service_role";
 GRANT ALL ON TABLE "public"."enterprise_audit_summary" TO "anon";
 GRANT ALL ON TABLE "public"."enterprise_audit_summary" TO "authenticated";
 GRANT ALL ON TABLE "public"."enterprise_audit_summary" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."enterprise_content_monitoring" TO "anon";
+GRANT ALL ON TABLE "public"."enterprise_content_monitoring" TO "authenticated";
+GRANT ALL ON TABLE "public"."enterprise_content_monitoring" TO "service_role";
 
 
 
@@ -17842,24 +17179,6 @@ GRANT ALL ON TABLE "public"."entity_tags" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."likes" TO "anon";
-GRANT ALL ON TABLE "public"."likes" TO "authenticated";
-GRANT ALL ON TABLE "public"."likes" TO "service_role";
-
-
-
-GRANT ALL ON TABLE "public"."shares" TO "anon";
-GRANT ALL ON TABLE "public"."shares" TO "authenticated";
-GRANT ALL ON TABLE "public"."shares" TO "service_role";
-
-
-
-GRANT ALL ON TABLE "public"."entity_social_analytics" TO "anon";
-GRANT ALL ON TABLE "public"."entity_social_analytics" TO "authenticated";
-GRANT ALL ON TABLE "public"."entity_social_analytics" TO "service_role";
-
-
-
 GRANT ALL ON TABLE "public"."event_analytics" TO "anon";
 GRANT ALL ON TABLE "public"."event_analytics" TO "authenticated";
 GRANT ALL ON TABLE "public"."event_analytics" TO "service_role";
@@ -17902,12 +17221,6 @@ GRANT ALL ON TABLE "public"."event_chat_rooms" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."event_comments" TO "anon";
-GRANT ALL ON TABLE "public"."event_comments" TO "authenticated";
-GRANT ALL ON TABLE "public"."event_comments" TO "service_role";
-
-
-
 GRANT ALL ON TABLE "public"."event_creator_permissions" TO "anon";
 GRANT ALL ON TABLE "public"."event_creator_permissions" TO "authenticated";
 GRANT ALL ON TABLE "public"."event_creator_permissions" TO "service_role";
@@ -17923,12 +17236,6 @@ GRANT ALL ON TABLE "public"."event_financials" TO "service_role";
 GRANT ALL ON TABLE "public"."event_interests" TO "anon";
 GRANT ALL ON TABLE "public"."event_interests" TO "authenticated";
 GRANT ALL ON TABLE "public"."event_interests" TO "service_role";
-
-
-
-GRANT ALL ON TABLE "public"."event_likes" TO "anon";
-GRANT ALL ON TABLE "public"."event_likes" TO "authenticated";
-GRANT ALL ON TABLE "public"."event_likes" TO "service_role";
 
 
 
@@ -18538,18 +17845,6 @@ GRANT ALL ON TABLE "public"."photo_bookmarks" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."photo_comments" TO "anon";
-GRANT ALL ON TABLE "public"."photo_comments" TO "authenticated";
-GRANT ALL ON TABLE "public"."photo_comments" TO "service_role";
-
-
-
-GRANT ALL ON TABLE "public"."photo_likes" TO "anon";
-GRANT ALL ON TABLE "public"."photo_likes" TO "authenticated";
-GRANT ALL ON TABLE "public"."photo_likes" TO "service_role";
-
-
-
 GRANT ALL ON TABLE "public"."photo_shares" TO "anon";
 GRANT ALL ON TABLE "public"."photo_shares" TO "authenticated";
 GRANT ALL ON TABLE "public"."photo_shares" TO "service_role";
@@ -18568,12 +17863,6 @@ GRANT ALL ON TABLE "public"."post_bookmarks" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."post_comments" TO "anon";
-GRANT ALL ON TABLE "public"."post_comments" TO "authenticated";
-GRANT ALL ON TABLE "public"."post_comments" TO "service_role";
-
-
-
 GRANT ALL ON TABLE "public"."post_reactions" TO "anon";
 GRANT ALL ON TABLE "public"."post_reactions" TO "authenticated";
 GRANT ALL ON TABLE "public"."post_reactions" TO "service_role";
@@ -18586,9 +17875,15 @@ GRANT ALL ON TABLE "public"."post_shares" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."posts" TO "anon";
-GRANT ALL ON TABLE "public"."posts" TO "authenticated";
-GRANT ALL ON TABLE "public"."posts" TO "service_role";
+GRANT ALL ON TABLE "public"."posts_content_monitoring" TO "anon";
+GRANT ALL ON TABLE "public"."posts_content_monitoring" TO "authenticated";
+GRANT ALL ON TABLE "public"."posts_content_monitoring" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."posts_structure_monitoring" TO "anon";
+GRANT ALL ON TABLE "public"."posts_structure_monitoring" TO "authenticated";
+GRANT ALL ON TABLE "public"."posts_structure_monitoring" TO "service_role";
 
 
 
@@ -18670,12 +17965,6 @@ GRANT ALL ON TABLE "public"."reading_streaks" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."review_likes" TO "anon";
-GRANT ALL ON TABLE "public"."review_likes" TO "authenticated";
-GRANT ALL ON TABLE "public"."review_likes" TO "service_role";
-
-
-
 GRANT ALL ON TABLE "public"."reviews" TO "anon";
 GRANT ALL ON TABLE "public"."reviews" TO "authenticated";
 GRANT ALL ON TABLE "public"."reviews" TO "service_role";
@@ -18697,6 +17986,12 @@ GRANT ALL ON TABLE "public"."series_events" TO "service_role";
 GRANT ALL ON TABLE "public"."session_registrations" TO "anon";
 GRANT ALL ON TABLE "public"."session_registrations" TO "authenticated";
 GRANT ALL ON TABLE "public"."session_registrations" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."shares" TO "anon";
+GRANT ALL ON TABLE "public"."shares" TO "authenticated";
+GRANT ALL ON TABLE "public"."shares" TO "service_role";
 
 
 

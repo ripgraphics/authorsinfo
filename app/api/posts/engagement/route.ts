@@ -47,10 +47,10 @@ export async function POST(request: NextRequest) {
 
     // Verify post exists
     const { data: post, error: postError } = await supabase
-      .from('posts')
+      .from('activities')
       .select('*')
       .eq('id', post_id)
-      .eq('is_deleted', false)
+      .eq('activity_type', 'post_created')
       .single()
 
     if (postError || !post) {
@@ -292,9 +292,9 @@ async function handleView(supabase: any, userId: string, postId: string, actionD
   try {
     // For views, we just update the post view count
     const { error: updateError } = await supabase
-      .from('posts')
+      .from('activities')
       .update({
-        view_count: supabase.sql`view_count + 1`
+        view_count: supabase.sql`COALESCE(view_count, 0) + 1`
       })
       .eq('id', postId)
 
@@ -330,14 +330,14 @@ async function updatePostEngagementCounts(supabase: any, postId: string) {
 
     // Update post with new counts
     const { error: updateError } = await supabase
-      .from('posts')
+      .from('activities')
       .update({
         like_count: likeCount,
         comment_count: commentCount,
         share_count: shareCount,
         bookmark_count: bookmarkCount,
         engagement_score: likeCount + commentCount + shareCount + bookmarkCount,
-        last_activity_at: new Date().toISOString()
+        updated_at: new Date().toISOString()
       })
       .eq('id', postId)
 

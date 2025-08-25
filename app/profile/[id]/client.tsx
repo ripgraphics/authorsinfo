@@ -378,18 +378,27 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, p
               <div className="profile-page__main-content lg:col-span-2 space-y-6">
 
                 
-                {/* Enterprise Timeline Activities */}
-                <EnterpriseTimelineActivities 
-                  userId={user.id}
-                  entityType="user"
-                  entityId={user.id}
-                  showAnalytics={true}
-                  enableModeration={false}
-                  enableAI={false}
-                  enableAudit={false}
-                  enableReadingProgress={true}
-                  enablePrivacyControls={true}
-                />
+                {/* Enterprise Timeline Activities - Only render when we have a valid UUID */}
+                {/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(user.id) ? (
+                  <EnterpriseTimelineActivities 
+                    userId={user.id}
+                    entityType="user"
+                    entityId={user.id}
+                    showAnalytics={true}
+                    enableModeration={false}
+                    enableAI={false}
+                    enableAudit={false}
+                    enableReadingProgress={true}
+                    enablePrivacyControls={true}
+                  />
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="text-muted-foreground">
+                      <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p>Loading timeline...</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

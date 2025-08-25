@@ -47,7 +47,7 @@ export function FeedContent() {
         return
       }
 
-      // Get activities from activities table
+      // Get activities from activities table (unified system with enterprise features)
       const { data: activitiesData, error: activitiesError } = await supabase
         .rpc('get_user_feed_activities', {
           p_user_id: user.id,
@@ -57,67 +57,20 @@ export function FeedContent() {
 
       if (activitiesError) {
         console.error('Activities error:', activitiesError)
+        setError(activitiesError.message)
+        return
       }
 
-      // Get posts from posts table (for backward compatibility)
-      const { data: postsData, error: postsError } = await supabase
-        .from('posts')
-        .select(`
-          id, user_id, content, image_url, link_url, created_at, updated_at, 
-          visibility, content_type, publish_status, view_count, like_count, 
-          comment_count, share_count, tags, metadata
-        `)
-        .eq('user_id', user.id)
-        .eq('is_deleted', false)
-        .order('created_at', { ascending: false })
-        .limit(10)
-        .range(pageNum * 10, (pageNum * 10) + 9)
-
-      if (postsError) {
-        console.error('Posts error:', postsError)
-      }
-
-      // Combine and process both data sources
+      // Process activities data (now includes all posts and enterprise features)
       const activities = activitiesData || []
-      const posts = postsData || []
-      
-      // Convert posts to FeedPost format
-      const convertedPosts = posts.map(post => ({
-        id: post.id,
-        user_id: post.user_id,
-        activity_type: 'post_created',
-        entity_type: 'user',
-        entity_id: post.id,
-        is_public: post.visibility === 'public',
-        metadata: post.metadata || {},
-        created_at: post.created_at,
-        user_name: 'User', // Will be populated by the function
-        user_avatar_url: undefined,
-        like_count: post.like_count || 0,
-        comment_count: post.comment_count || 0,
-        is_liked: false,
-        text: post.content?.text || post.content?.content || 'Post content',
-        image_url: post.image_url,
-        link_url: post.link_url,
-        visibility: post.visibility || 'public',
-        content_type: post.content_type || 'text',
-        updated_at: post.updated_at || post.created_at,
-        share_count: post.share_count || 0,
-        view_count: post.view_count || 0,
-        tags: post.tags || []
-      }))
-
-      // Combine and sort by creation date
-      const allActivities = [...activities, ...convertedPosts]
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
 
       if (pageNum === 0) {
-        setActivities(allActivities)
+        setActivities(activities)
       } else {
-        setActivities(prev => [...prev, ...allActivities])
+        setActivities(prev => [...prev, ...activities])
       }
 
-      setHasMore(allActivities.length === 10)
+      setHasMore(activities.length === 10)
       setPage(pageNum)
     } catch (err) {
       console.error('Error loading activities:', err)

@@ -1086,15 +1086,9 @@ export function EnterprisePhotoViewer({
           <div className="w-96 bg-white border-l border-gray-200 flex flex-col">
             {/* Sidebar */}
             {isPhotoDataLoaded ? (
-              <EntityComments
-                entityId={photo.id}
-                entityType="photo"
-                entityName={photo.user?.name || "User"}
-                entityAvatar={photo.user?.avatar_url}
-                entityCreatedAt={photo.created_at}
-                isOwner={isOwner}
-                entityDisplayInfo={entityDisplayInfo}
-              />
+              <div className="p-4 text-center text-gray-500">
+                Comments are now displayed inline with the post
+              </div>
             ) : (
               <div className="flex items-center justify-center h-full bg-gray-50">
                 <div className="text-center">
@@ -1103,6 +1097,15 @@ export function EnterprisePhotoViewer({
                 </div>
               </div>
             )}
+            {/* <EntityComments
+              entityId={photo.id}
+              entityType="photo"
+              entityName={photo.user?.name || "User"}
+              entityAvatar={photo.user?.avatar_url}
+              entityCreatedAt={photo.created_at}
+              isOwner={isOwner}
+              entityDisplayInfo={entityDisplayInfo}
+            /> */}
           </div>
         </div>
 

@@ -4,6 +4,9 @@
 import { Post, ActivityPost, isPost, isActivityPost } from '@/types/post'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
+// Performance optimization: Define only the columns we actually need
+const ACTIVITIES_SELECT_COLUMNS = 'id, user_id, text, image_url, link_url, created_at, updated_at, visibility, content_type, hashtags, entity_type, entity_id, like_count, comment_count, share_count, view_count, engagement_score, publish_status, activity_type'
+
 export interface UnifiedPost {
   id: string
   user_id: string
@@ -86,7 +89,7 @@ export class PostCompatibilityLayer {
       content_type: activity.content_type || 'text',
       content_summary: activity.content_summary,
       hashtags: activity.hashtags,
-      metadata: activity.metadata,
+      metadata: activity.data,
       entity_type: activity.entity_type,
       entity_id: activity.entity_id,
       like_count: activity.like_count || 0,
@@ -108,25 +111,10 @@ export class PostCompatibilityLayer {
     offset: number = 0
   ): Promise<UnifiedPost[]> {
     try {
-      // First, try to get posts from the new posts table
-      const { data: postsData, error: postsError } = await this.supabase
-        .from('posts')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('publish_status', 'published')
-        .eq('is_deleted', false)
-        .eq('is_hidden', false)
-        .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1)
-
-      if (postsError) {
-        console.warn('Error fetching from posts table:', postsError)
-      }
-
-      // Then, get posts from the activities table (for backward compatibility)
+      // Performance optimization: Use specific columns instead of select('*')
       const { data: activitiesData, error: activitiesError } = await this.supabase
         .from('activities')
-        .select('*')
+        .select(ACTIVITIES_SELECT_COLUMNS)
         .eq('user_id', userId)
         .eq('activity_type', 'post_created')
         .not('text', 'is', null)
@@ -141,24 +129,10 @@ export class PostCompatibilityLayer {
       // Convert to unified format
       const unifiedPosts: UnifiedPost[] = []
 
-      // Add posts from posts table
-      if (postsData) {
-        postsData.forEach(post => {
-          unifiedPosts.push(PostCompatibilityLayer.postToUnified(post))
-        })
-      }
-
-      // Add activities that haven't been migrated yet
+      // Add activities data
       if (activitiesData) {
         activitiesData.forEach(activity => {
-          // Check if this activity has already been migrated
-          const isMigrated = unifiedPosts.some(
-            post => post.original_activity_id === activity.id
-          )
-          
-          if (!isMigrated) {
-            unifiedPosts.push(PostCompatibilityLayer.activityToUnified(activity))
-          }
+          unifiedPosts.push(PostCompatibilityLayer.activityToUnified(activity))
         })
       }
 
@@ -184,30 +158,13 @@ export class PostCompatibilityLayer {
     offset: number = 0
   ): Promise<UnifiedPost[]> {
     try {
-      // Get posts from posts table
-      const { data: postsData, error: postsError } = await this.supabase
-        .from('posts')
-        .select('*')
-        .eq('entity_type', entityType)
-        .eq('entity_id', entityId)
-        .eq('publish_status', 'published')
-        .eq('is_deleted', false)
-        .eq('is_hidden', false)
-        .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1)
-
-      if (postsError) {
-        console.warn('Error fetching entity posts from posts table:', postsError)
-      }
-
-      // Get posts from activities table
+      // Performance optimization: Use specific columns instead of select('*')
       const { data: activitiesData, error: activitiesError } = await this.supabase
         .from('activities')
-        .select('*')
+        .select(ACTIVITIES_SELECT_COLUMNS)
         .eq('entity_type', entityType)
         .eq('entity_id', entityId)
         .eq('activity_type', 'post_created')
-        .not('text', 'is', null)
         .not('text', 'eq', '')
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1)
@@ -219,21 +176,9 @@ export class PostCompatibilityLayer {
       // Convert to unified format
       const unifiedPosts: UnifiedPost[] = []
 
-      if (postsData) {
-        postsData.forEach(post => {
-          unifiedPosts.push(PostCompatibilityLayer.postToUnified(post))
-        })
-      }
-
       if (activitiesData) {
         activitiesData.forEach(activity => {
-          const isMigrated = unifiedPosts.some(
-            post => post.original_activity_id === activity.id
-          )
-          
-          if (!isMigrated) {
-            unifiedPosts.push(PostCompatibilityLayer.activityToUnified(activity))
-          }
+          unifiedPosts.push(PostCompatibilityLayer.activityToUnified(activity))
         })
       }
 
@@ -273,34 +218,15 @@ export class PostCompatibilityLayer {
     post?: UnifiedPost
   }> {
     try {
-      // Check posts table
-      const { data: postData, error: postError } = await this.supabase
-        .from('posts')
-        .select('*')
-        .eq('id', postId)
-        .single()
-
-      // Check activities table
+      // Performance optimization: Use specific columns instead of select('*')
       const { data: activityData, error: activityError } = await this.supabase
         .from('activities')
-        .select('*')
+        .select(ACTIVITIES_SELECT_COLUMNS)
         .eq('id', postId)
         .eq('activity_type', 'post_created')
         .single()
 
-      if (postData && activityData) {
-        return {
-          exists: true,
-          source: 'both',
-          post: PostCompatibilityLayer.postToUnified(postData)
-        }
-      } else if (postData) {
-        return {
-          exists: true,
-          source: 'posts',
-          post: PostCompatibilityLayer.postToUnified(postData)
-        }
-      } else if (activityData) {
+      if (activityData) {
         return {
           exists: true,
           source: 'activities',
@@ -416,7 +342,7 @@ export function convertToUnifiedPost(post: any): UnifiedPost {
       share_count: post.share_count || post.shares || 0,
       view_count: post.view_count || post.views || 0,
       engagement_score: post.engagement_score || 0,
-      source: 'legacy'
+      source: 'activities'
     }
   }
 }

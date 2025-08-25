@@ -15,22 +15,28 @@ export async function POST(request: NextRequest) {
     const userId = session.user.id
 
     // 2. Get request data
-    const { content } = await request.json()
+    const { content, entity_type, entity_id, visibility = 'public' } = await request.json()
     
     if (!content || !content.text || content.text.trim().length === 0) {
       return NextResponse.json({ error: 'Post content is required' }, { status: 400 })
     }
 
-    // 3. Create simple post - just the essentials
+    // 3. Create post in activities table
     const postData = {
       user_id: userId,
-      content: content.text.trim(),
+      text: content.text.trim(),
+      activity_type: 'post_created',
+      content_type: 'text',
+      visibility: visibility,
+      publish_status: 'published',
+      entity_type: entity_type || 'user',
+      entity_id: entity_id || userId,
       created_at: new Date().toISOString()
     }
 
-    // 4. Insert the post
+    // 4. Insert the post into activities table
     const { data: post, error: postError } = await supabase
-      .from('posts')
+      .from('activities')
       .insert(postData)
       .select()
       .single()
@@ -40,23 +46,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to create post' }, { status: 500 })
     }
 
-    // 5. Create activity record
-    const activityData = {
-      user_id: userId,
-      activity_type: 'post_created',
-      entity_type: 'user',
-      entity_id: userId,
-      data: {
-        post_id: post.id,
-        content: content.text.trim()
-      }
-    }
-
-    await supabase.from('activities').insert(activityData)
-
     return NextResponse.json({
       success: true,
-      post: { id: post.id, content: post.content },
+      post: { id: post.id, text: post.text },
       message: 'Post created successfully'
     })
 

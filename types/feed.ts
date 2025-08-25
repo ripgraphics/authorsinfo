@@ -9,7 +9,7 @@ export interface FeedPost {
   entity_type: string
   entity_id: string
   is_public: boolean
-  metadata: any
+  metadata?: any
   created_at: string
   
   // User information
@@ -29,10 +29,14 @@ export interface FeedPost {
   visibility?: string
   content_type?: string
   updated_at?: string
+  content_summary?: string
   
   // Legacy fields for backward compatibility
   content?: PostContent
   content_type_legacy?: string
+  
+  // Database fields from activities table
+  data?: any // JSONB field from activities table
   
   // Content safety and restrictions
   content_safety_score?: number

@@ -131,7 +131,7 @@ export default function PostManagementDashboard({ className }: PostManagementDas
   const applyFilters = useCallback((postsData: Post[], filterSettings: PostFilters) => {
     return postsData.filter(post => {
       // Search filter
-      if (filterSettings.search && !post.content?.text?.toLowerCase().includes(filterSettings.search.toLowerCase())) {
+      if (filterSettings.search && !(post.text || post.data?.text || '').toLowerCase().includes(filterSettings.search.toLowerCase())) {
         return false
       }
       
@@ -512,7 +512,7 @@ export default function PostManagementDashboard({ className }: PostManagementDas
                         </div>
                         
                         <p className="font-medium truncate">
-                          {post.content?.text || 'No content'}
+                          {post.text || post.data?.text || 'No content'}
                         </p>
                         
                         <div className="flex items-center space-x-4 text-sm text-muted-foreground mt-2">

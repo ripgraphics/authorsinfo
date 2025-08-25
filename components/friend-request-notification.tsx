@@ -24,6 +24,7 @@ import { useToast } from '@/hooks/use-toast'
 import { formatDistanceToNow } from 'date-fns'
 import Link from 'next/link'
 import { getProfileUrlFromUser } from '@/lib/utils/profile-url-client'
+import { useUser } from '@/contexts/UserContext'
 
 interface FriendRequest {
   id: string
@@ -39,42 +40,137 @@ interface FriendRequest {
 }
 
 export function FriendRequestNotification() {
+  const { user } = useUser()
   const [requests, setRequests] = useState<FriendRequest[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [processingRequest, setProcessingRequest] = useState<string | null>(null)
   const [isOpen, setIsOpen] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   
   const { toast } = useToast()
 
   useEffect(() => {
-    fetchPendingRequests()
-    
-    // Poll for new requests every 30 seconds
-    const interval = setInterval(fetchPendingRequests, 30000)
-    return () => clearInterval(interval)
-  }, [])
+    // Only fetch if user is authenticated
+    if (user) {
+      fetchPendingRequests()
+      
+      // Poll for new requests every 30 seconds
+      const interval = setInterval(fetchPendingRequests, 30000)
+      return () => clearInterval(interval)
+    } else {
+      setIsLoading(false)
+    }
+  }, [user])
 
   const fetchPendingRequests = async () => {
+    // Don't fetch if user is not authenticated
+    if (!user) {
+      setIsLoading(false)
+      return
+    }
+
     try {
-      const response = await fetch('/api/friends/pending')
+      setError(null)
+      console.log('🔍 Fetching pending friend requests for user:', user.id)
+      console.log('🔍 API endpoint: /api/friends/pending')
+      
+      // Test the API endpoint first
+      try {
+        const testResponse = await fetch('/api/test-friends', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          signal: AbortSignal.timeout(5000) // 5 second timeout for test
+        })
+        
+        if (testResponse.ok) {
+          const testData = await testResponse.json()
+          console.log('✅ Test endpoint response:', testData)
+        } else {
+          console.warn('⚠️ Test endpoint failed:', testResponse.status, testResponse.statusText)
+        }
+      } catch (testError) {
+        console.warn('⚠️ Test endpoint error:', testError)
+      }
+      
+      const response = await fetch('/api/friends/pending', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // Add timeout to prevent hanging requests
+        signal: AbortSignal.timeout(10000) // 10 second timeout
+      })
+      
+      console.log('📡 Response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries())
+      })
       
       if (response.ok) {
         const data = await response.json()
-        console.log('FriendRequestNotification - Received data:', data)
+        console.log('✅ FriendRequestNotification - Received data:', data)
         setRequests(data.requests || [])
       } else {
-        console.error('Failed to fetch pending requests')
+        console.error('❌ Failed to fetch pending requests')
         console.error('Response status:', response.status)
         console.error('Response status text:', response.statusText)
+        
+        // Try to get error details from response
+        try {
+          const errorData = await response.json()
+          console.error('Error response data:', errorData)
+        } catch (parseError) {
+          console.error('Could not parse error response:', parseError)
+        }
+        
+        if (response.status === 401) {
+          setError('Authentication required')
+        } else if (response.status === 403) {
+          setError('Access denied')
+        } else if (response.status >= 500) {
+          setError('Server error')
+        } else {
+          setError(`Request failed (${response.status})`)
+        }
       }
     } catch (error) {
-      console.error('Error fetching pending requests:', error)
+      console.error('❌ Error fetching pending requests:', error)
+      
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          setError('Request timed out')
+        } else if (error.message.includes('Failed to fetch')) {
+          console.error('🔍 Network error details:', {
+            message: error.message,
+            name: error.name,
+            stack: error.stack
+          })
+          setError('Network error - please check your connection')
+        } else {
+          setError('An unexpected error occurred')
+        }
+      } else {
+        setError('An unknown error occurred')
+      }
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleRequestAction = async (requestId: string, action: 'accept' | 'reject') => {
+    if (!user) {
+      toast({
+        title: "Authentication Error",
+        description: "Please log in to perform this action",
+        variant: 'destructive',
+      })
+      return
+    }
+
     try {
       setProcessingRequest(requestId)
       console.log('Sending request to update friend request:', { requestId, action })
@@ -85,6 +181,7 @@ export function FriendRequestNotification() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ requestId, action }),
+        signal: AbortSignal.timeout(10000) // 10 second timeout
       })
 
       console.log('Response status:', response.status)
@@ -114,17 +211,31 @@ export function FriendRequestNotification() {
       }
     } catch (error) {
       console.error(`Error ${action}ing friend request:`, error)
-      toast({
-        title: "Error",
-        description: `Failed to ${action} friend request`,
-        variant: 'destructive',
-      })
+      
+      if (error instanceof Error && error.name === 'AbortError') {
+        toast({
+          title: "Request Timeout",
+          description: "The request took too long. Please try again.",
+          variant: 'destructive',
+        })
+      } else {
+        toast({
+          title: "Error",
+          description: `Failed to ${action} friend request`,
+          variant: 'destructive',
+        })
+      }
     } finally {
       setProcessingRequest(null)
     }
   }
 
   const pendingCount = requests.length
+
+  // Don't render if user is not authenticated
+  if (!user) {
+    return null
+  }
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
@@ -147,7 +258,7 @@ export function FriendRequestNotification() {
           <span>Friend Requests</span>
           {pendingCount > 0 && (
             <Badge variant="secondary" className="text-xs">
-              {pendingCount} new
+              {pendingCount}
             </Badge>
           )}
         </DropdownMenuLabel>
@@ -157,89 +268,82 @@ export function FriendRequestNotification() {
         {isLoading ? (
           <div className="flex items-center justify-center p-4">
             <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            <span className="text-sm">Loading...</span>
+            <span>Loading...</span>
           </div>
-        ) : requests.length === 0 ? (
+        ) : error ? (
           <div className="p-4 text-center">
-            <Users className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground mb-2">{error}</p>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={fetchPendingRequests}
+              className="w-full"
+            >
+              Retry
+            </Button>
+          </div>
+        ) : pendingCount === 0 ? (
+          <div className="p-4 text-center">
+            <Users className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">No pending friend requests</p>
           </div>
         ) : (
           <div className="max-h-64 overflow-y-auto">
             {requests.map((request) => (
               <div key={request.id} className="p-3 border-b last:border-b-0">
-                <div className="flex items-start space-x-3">
+                <div className="flex items-center gap-3 mb-2">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(request.user.name)}`} />
+                    <AvatarImage src={`/api/users/${request.user.id}/avatar`} />
                     <AvatarFallback>
-                      {request.user.name.charAt(0).toUpperCase()}
+                      {request.user.name?.charAt(0) || request.user.email?.charAt(0) || 'U'}
                     </AvatarFallback>
                   </Avatar>
-                  
                   <div className="flex-1 min-w-0">
-                    {request.user.name === 'Unknown User' ? (
-                      <span className="font-medium text-sm truncate block">
-                        {request.user.name}
-                      </span>
-                    ) : (
-                      <Link 
-                        href={getProfileUrlFromUser(request.user)}
-                        className="font-medium text-sm hover:underline truncate block"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        {request.user.name}
-                      </Link>
-                    )}
+                    <Link 
+                      href={getProfileUrlFromUser(request.user)}
+                      className="font-medium text-sm hover:underline truncate block"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {request.user.name || request.user.email}
+                    </Link>
                     <p className="text-xs text-muted-foreground">
-                      Sent {formatDistanceToNow(new Date(request.requested_at), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(request.requested_at), { addSuffix: true })}
                     </p>
                   </div>
-                  
-                  <div className="flex items-center space-x-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRequestAction(request.id, 'reject')}
-                      disabled={processingRequest === request.id}
-                      className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      {processingRequest === request.id ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : (
-                        <X className="h-3 w-3" />
-                      )}
-                    </Button>
-                    
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRequestAction(request.id, 'accept')}
-                      disabled={processingRequest === request.id}
-                      className="h-6 w-6 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
-                    >
-                      {processingRequest === request.id ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : (
-                        <Check className="h-3 w-3" />
-                      )}
-                    </Button>
-                  </div>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => handleRequestAction(request.id, 'accept')}
+                    disabled={processingRequest === request.id}
+                  >
+                    {processingRequest === request.id ? (
+                      <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                    ) : (
+                      <Check className="h-3 w-3 mr-1" />
+                    )}
+                    Accept
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => handleRequestAction(request.id, 'reject')}
+                    disabled={processingRequest === request.id}
+                  >
+                    {processingRequest === request.id ? (
+                      <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                    ) : (
+                      <X className="h-3 w-3 mr-1" />
+                    )}
+                    Reject
+                  </Button>
                 </div>
               </div>
             ))}
           </div>
-        )}
-        
-        {requests.length > 0 && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/friend-requests" onClick={() => setIsOpen(false)}>
-                <UserPlus className="h-4 w-4 mr-2" />
-                View All Requests
-              </Link>
-            </DropdownMenuItem>
-          </>
         )}
       </DropdownMenuContent>
     </DropdownMenu>

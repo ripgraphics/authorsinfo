@@ -1,0 +1,21 @@
+Enterprise Database Backup Report
+========================================
+
+Timestamp: 20250823_124506
+Duration: 230.66 seconds
+Operations: 5
+Errors: 1
+
+Schema Backup:
+  - Lines: 19,017
+  - Size: 610.32 KB
+
+Complete Backup:
+  - Lines: 22,530
+  - Size: 1439.57 KB
+
+Compression:
+  - Original: 832.66 KB
+  - Compressed: 113.95 KB
+  - Ratio: 86.3%
+

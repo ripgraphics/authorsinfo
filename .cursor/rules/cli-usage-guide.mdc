@@ -1,0 +1,19 @@
+---
+alwaysApply: false
+// Use the Supabase CLI for all database migrations and schema changes.
+// The correct command to apply SQL migrations or schema changes is:
+//
+//   supabase db push
+//
+// This command will apply all pending migrations to your Supabase database.
+// Do not use npx or alternative CLI methods. Always use the direct supabase CLI as described in CLI_USAGE_GUIDE.md.
+//
+// For generating types after schema changes, use:
+//
+//   npm run types:generate
+//
+// If you encounter migration errors, follow the troubleshooting steps in CLI_USAGE_GUIDE.md, including deleting problematic migration files before retrying.
+//
+// Never run destructive commands or database resets unless explicitly required and approved.
+
+---

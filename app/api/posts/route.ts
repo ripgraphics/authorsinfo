@@ -22,13 +22,13 @@ export async function GET(request: NextRequest) {
     const sortBy = searchParams.get('sort_by') || 'created_at'
     const sortOrder = searchParams.get('sort_order') || 'desc'
     
-    // Build query
+    // Build query using activities table (unified system)
     let query = supabase
-      .from('posts')
+      .from('activities')
       .select('*')
+      .eq('activity_type', 'post_created')
       .eq('publish_status', publishStatus)
-      .eq('is_deleted', false)
-      .eq('is_hidden', false)
+      .neq('visibility', 'private')
     
     // Apply filters
     if (userId) {
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     }
     
     if (tags && tags.length > 0) {
-      query = query.overlaps('tags', tags)
+      query = query.overlaps('hashtags', tags)
     }
     
     // Apply sorting
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
     const { data: posts, error, count } = await query
     
     if (error) {
-      console.error('Error fetching posts:', error)
+      console.error('Error fetching posts from activities:', error)
       return NextResponse.json(
         { error: 'Failed to fetch posts' },
         { status: 500 }
@@ -79,11 +79,11 @@ export async function GET(request: NextRequest) {
     } else {
       // Fallback: count total posts with same filters
       const { count: total } = await supabase
-        .from('posts')
+        .from('activities')
         .select('*', { count: 'exact', head: true })
+        .eq('activity_type', 'post_created')
         .eq('publish_status', publishStatus)
-        .eq('is_deleted', false)
-        .eq('is_hidden', false)
+        .neq('visibility', 'private')
       
       totalCount = total || 0
     }
@@ -121,28 +121,20 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { content, visibility = 'public', scheduled_at, tags, category, location } = body
+    const { content, visibility = 'public', scheduled_at, tags, category, location, entity_type, entity_id } = body
 
-    // Create the post in the activities table instead of posts table
+    // Create the post in the activities table with enterprise features
     const { data: activity, error } = await supabase
       .from('activities')
       .insert({
         user_id: user.id,
-        activity_type: 'post_created',
-        entity_type: 'user',
-        entity_id: user.id,
-        is_public: visibility === 'public',
+        activity_type: 'post',
+        entity_type: entity_type || 'user',
+        entity_id: entity_id || user.id,
         metadata: {
           title: content?.title,
-          tags,
           category,
           location,
-          scheduled_at,
-          published_at: new Date().toISOString(),
-          is_featured: false,
-          is_pinned: false,
-          is_verified: false,
-          engagement_score: 0,
           content_safety_score: 1.0,
           age_restriction: 'all',
           sensitive_content: false
@@ -150,11 +142,21 @@ export async function POST(request: NextRequest) {
         text: content?.text || content?.content || content?.body || 'Post content',
         image_url: content?.image_url || content?.images || content?.media_url,
         link_url: content?.link_url || content?.url,
-        visibility,
-        content_type: content?.image_url ? 'image' : 'text',
-        updated_at: new Date().toISOString()
+        hashtags: content?.hashtags || tags || [],
+        visibility: visibility || 'public',
+        content_type: content?.image_url ? 'image' : (content?.contentType || 'text'),
+        publish_status: 'published',
+        scheduled_at: scheduled_at ? new Date(scheduled_at).toISOString() : null,
+        published_at: new Date().toISOString(),
+        is_featured: false,
+        is_pinned: false,
+        bookmark_count: 0,
+        trending_score: 0,
+        engagement_score: 0,
+        updated_at: new Date().toISOString(),
+        created_at: new Date().toISOString()
       })
-      .select()
+      .select('*')
       .single()
 
     if (error) {

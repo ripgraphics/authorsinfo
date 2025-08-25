@@ -1,0 +1,38 @@
+{
+  "timestamp": "20250824_170815",
+  "started_at": "2025-08-24T17:08:15.009322",
+  "operations": [
+    {
+      "command": "npx supabase db dump",
+      "description": "Downloading schema structure",
+      "status": "success",
+      "timestamp": "2025-08-24T17:08:53.514928"
+    }
+  ],
+  "statistics": {
+    "schema": {
+      "lines": 18196,
+      "size_kb": 585.27,
+      "files_created": [
+        "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\schemas\\current_schema.sql",
+        "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\current_schema.sql",
+        "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\schemas\\schema_20250824_170815.sql"
+      ]
+    }
+  },
+  "errors": [
+    {
+      "command": "npx supabase db dump",
+      "error": "Command 'npx supabase db dump' returned non-zero exit status 1.",
+      "stderr": "Initialising cli_login_postgres role...\nDumping schemas from remote database...\npg_dump: error: connection to server at \"aws-0-us-east-2.pooler.supabase.com\" (3.13.175.194), port 5432 failed: error received from server in SCRAM exchange: Wrong password\nerror running container: exit 1\nTry rerunning the command with --debug to troubleshoot the error.\n",
+      "timestamp": "2025-08-24T17:09:01.274724"
+    },
+    {
+      "operation": "full_backup",
+      "error": "Command 'npx supabase db dump' returned non-zero exit status 1.",
+      "timestamp": "2025-08-24T17:09:01.274747"
+    }
+  ],
+  "completed_at": "2025-08-24T17:09:01.275110",
+  "status": "failed"
+}

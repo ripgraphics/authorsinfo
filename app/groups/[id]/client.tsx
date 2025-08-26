@@ -43,7 +43,7 @@ import {
   Activity
 } from "lucide-react"
 import { EntityPhotoAlbums } from '@/components/user-photo-albums'
-import EnterpriseTimelineActivities from '@/components/enterprise-timeline-activities'
+import EnterpriseTimelineActivities from '@/components/enterprise/enterprise-timeline-activities-optimized'
 
 interface Follower {
   id: string

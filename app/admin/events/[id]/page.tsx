@@ -1,8 +1,11 @@
+'use client';
+
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase-server';
 import { CheckCircleIcon, XCircleIcon, EyeIcon, ChartBarIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
+import { useTransition } from 'react';
 import AdminEventStatusActions from './status-actions';
 
 export default async function AdminEventDetailPage({ params }: { params: { id: string } }) {
@@ -196,7 +199,6 @@ export default async function AdminEventDetailPage({ params }: { params: { id: s
 }
 
 // Client component for comment moderation
-import { useTransition } from 'react';
 function ModerateCommentButton({ commentId, isHidden }: { commentId: string, isHidden: boolean }) {
   const [isPending, startTransition] = useTransition();
   async function handleModerate() {

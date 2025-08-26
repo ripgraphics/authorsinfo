@@ -400,32 +400,59 @@ const EnterpriseTimelineActivities = React.memo(({
   // PERFORMANCE OPTIMIZED RENDER FUNCTIONS
   // ============================================================================
   
+  // Transform EnterpriseActivity to FeedPost
+  const transformActivityToPost = useCallback((activity: EnterpriseActivity): FeedPost => ({
+    id: activity.id,
+    user_id: activity.user_id,
+    activity_type: activity.activity_type,
+    entity_type: activity.entity_type,
+    entity_id: activity.entity_id,
+    is_public: activity.is_public,
+    metadata: activity.metadata,
+    created_at: activity.created_at,
+    user_name: activity.user_name,
+    user_avatar_url: activity.user_avatar_url,
+    like_count: activity.like_count,
+    comment_count: activity.comment_count,
+    share_count: activity.share_count,
+    is_liked: activity.is_liked,
+    text: activity.text,
+    image_url: activity.image_url,
+    link_url: activity.link_url,
+    visibility: activity.visibility,
+    content_type: activity.content_type,
+    content_summary: activity.content_summary,
+    content_safety_score: activity.content_safety_score,
+    user_has_reacted: activity.is_liked,
+    user_has_commented: false, // Default value
+    user_has_shared: false, // Default value
+    user_reaction_type: undefined, // Default value
+    user_has_bookmarked: activity.is_bookmarked || false,
+    user_has_viewed: false, // Default value
+    view_count: activity.view_count,
+    bookmark_count: 0, // Default value
+    tags: activity.hashtags || [],
+    scheduled_at: undefined, // Default value
+    is_featured: false, // Default value
+    is_pinned: false, // Default value
+    is_verified: activity.is_verified || false,
+    engagement_score: activity.engagement_score
+  }), [])
+  
   // Memoized activity renderer
-  const renderActivity = useCallback((activity: EnterpriseActivity, index: number) => (
-    <EntityFeedCard
-      key={`${activity.id}_${index}`}
-      activity={activity}
-      entityType={memoizedEntityType}
-      isOwnEntity={isOwnEntity}
-      showAnalytics={showAnalytics}
-      enableModeration={enableModeration}
-      enableAI={enableAI}
-      enableAudit={enableAudit}
-      enableRealTime={enableRealTime}
-      enableCrossPosting={enableCrossPosting}
-      enableCollaboration={enableCollaboration}
-      enableAICreation={enableAICreation}
-      enableSocialNetworking={enableSocialNetworking}
-      enableMonetization={enableMonetization}
-      enableReadingProgress={enableReadingProgress}
-      enablePrivacyControls={enablePrivacyControls}
-    />
-  ), [
-    memoizedEntityType, isOwnEntity, showAnalytics, enableModeration, enableAI,
-    enableAudit, enableRealTime, enableCrossPosting, enableCollaboration,
-    enableAICreation, enableSocialNetworking, enableMonetization,
-    enableReadingProgress, enablePrivacyControls
-  ])
+  const renderActivity = useCallback((activity: EnterpriseActivity, index: number) => {
+    const post = transformActivityToPost(activity)
+    return (
+      <EntityFeedCard
+        key={`${activity.id}_${index}`}
+        post={post}
+        showActions={true}
+        showComments={true}
+        showEngagement={true}
+        className=""
+      />
+    )
+  }, [transformActivityToPost])
   
   // Memoized loading skeleton
   const renderLoadingSkeleton = useCallback(() => (

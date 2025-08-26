@@ -1,5 +1,7 @@
+'use client';
+
 import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase-client';
+import { supabaseClient } from '@/lib/supabase-client';
 import { toast } from 'react-hot-toast';
 import ScheduleEventModal from './ScheduleEventModal';
 
@@ -40,7 +42,7 @@ interface Props {
 export default function AuthorEventsClient({ initialAuthorEvents, groupId }: Props) {
   const [authorEvents, setAuthorEvents] = useState<AuthorEvent[]>(initialAuthorEvents);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
-  const supabase = createClient();
+  const supabase = supabaseClient;
 
   useEffect(() => {
     // Subscribe to real-time updates

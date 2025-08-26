@@ -48,10 +48,12 @@ export interface FeedPost {
   user_has_commented?: boolean
   user_has_shared?: boolean
   user_reaction_type?: string // Type of reaction user has made (like, love, care, haha, wow, sad, angry)
+  user_has_bookmarked?: boolean
+  user_has_viewed?: boolean
   
   // Additional fields for backward compatibility
   view_count?: number
-  share_count?: number
+  bookmark_count?: number
   tags?: string[]
   
   // Post metadata fields

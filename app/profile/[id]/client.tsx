@@ -43,7 +43,7 @@ import { useToast } from '@/hooks/use-toast'
 import { EntityPhotoAlbums } from '@/components/user-photo-albums'
 import { FriendList } from '@/components/friend-list'
 import { TimelineActivities } from '@/components/timeline-activities'
-import EnterpriseTimelineActivities from '@/components/enterprise-timeline-activities'
+import EnterpriseTimelineActivities from '@/components/enterprise/enterprise-timeline-activities-optimized'
 
 
 interface ClientProfilePageProps {

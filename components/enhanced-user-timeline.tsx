@@ -24,7 +24,7 @@ import {
   Settings,
   Shield
 } from 'lucide-react'
-import EnterpriseTimelineActivities from '@/components/enterprise-timeline-activities'
+import EnterpriseTimelineActivities from '@/components/enterprise/enterprise-timeline-activities-optimized'
 
 interface EnhancedUserTimelineProps {
   userId: string

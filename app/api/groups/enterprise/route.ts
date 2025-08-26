@@ -90,209 +90,77 @@ export async function POST(request: Request) {
   try {
     const supabase = createRouteHandlerClient({ cookies })
     const body = await request.json()
+    const action = body.action || 'create_group'
     
-    // Validate input
-    const validatedData = createGroupSchema.parse(body)
-    
-    // Create group
-    const { data: group, error } = await supabase
-      .from('groups')
-      .insert(validatedData)
-      .select()
-      .single()
-    
-    if (error) throw error
-    
-    // Create owner role for creator
-    const { data: user } = await supabase.auth.getUser()
-    if (!user?.user?.id) throw new Error('User not authenticated')
-    
-    await supabase.from('group_memberships').insert({
-      group_id: group.id,
-      user_id: user.user.id,
-      role: 'owner',
-      status: 'active'
-    })
-    
-    return NextResponse.json({ group })
-  } catch (error) {
-    console.error('Error creating group:', error)
-    return NextResponse.json({ error: 'Failed to create group' }, { status: 500 })
-  }
-}
-
-// PUT /api/groups/enterprise/:id
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
-  try {
-    const supabase = createRouteHandlerClient({ cookies })
-    const body = await request.json()
-    
-    // Check permissions
-    const hasPermission = await checkPermission(supabase, params.id, 'manage_group')
-    if (!hasPermission) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    switch (action) {
+      case 'create_group':
+        // Validate input
+        const validatedData = createGroupSchema.parse(body)
+        
+        // Create group
+        const { data: group, error } = await supabase
+          .from('groups')
+          .insert(validatedData)
+          .select()
+          .single()
+        
+        if (error) throw error
+        
+        return NextResponse.json({ group })
+        
+      case 'add_member':
+        // Check permissions
+        const hasPermission = await checkPermission(supabase, body.group_id, 'manage_members')
+        if (!hasPermission) {
+          return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+        }
+        
+        // Validate input
+        const validatedMemberData = membershipSchema.parse(body)
+        
+        // Add member
+        const { data: membership, error: memberError } = await supabase
+          .from('group_memberships')
+          .insert({
+            group_id: body.group_id,
+            ...validatedMemberData
+          })
+          .select()
+          .single()
+        
+        if (memberError) throw memberError
+        
+        return NextResponse.json({ membership })
+        
+      case 'moderate_content':
+        // Check permissions
+        const hasModPermission = await checkPermission(supabase, body.group_id, 'moderate_content')
+        if (!hasModPermission) {
+          return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+        }
+        
+        // Validate input
+        const validatedModData = moderationSchema.parse(body)
+        
+        // Create moderation entry
+        const { data: moderation, error: modError } = await supabase
+          .from('group_content_moderation')
+          .insert({
+            group_id: body.group_id,
+            ...validatedModData
+          })
+          .select()
+          .single()
+        
+        if (modError) throw modError
+        
+        return NextResponse.json({ moderation })
+        
+      default:
+        return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
     }
-    
-    // Validate input
-    const validatedData = updateGroupSchema.parse(body)
-    
-    // Update group
-    const { data: group, error } = await supabase
-      .from('groups')
-      .update(validatedData)
-      .eq('id', params.id)
-      .select()
-      .single()
-    
-    if (error) throw error
-    
-    return NextResponse.json({ group })
   } catch (error) {
-    console.error('Error updating group:', error)
-    return NextResponse.json({ error: 'Failed to update group' }, { status: 500 })
-  }
-}
-
-// POST /api/groups/enterprise/:id/members
-export async function POST(request: Request, { params }: { params: { id: string } }) {
-  try {
-    const supabase = createRouteHandlerClient({ cookies })
-    const body = await request.json()
-    
-    // Check permissions
-    const hasPermission = await checkPermission(supabase, params.id, 'manage_members')
-    if (!hasPermission) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
-    }
-    
-    // Validate input
-    const validatedData = membershipSchema.parse(body)
-    
-    // Add member
-    const { data: membership, error } = await supabase
-      .from('group_memberships')
-      .insert({
-        group_id: params.id,
-        ...validatedData
-      })
-      .select()
-      .single()
-    
-    if (error) throw error
-    
-    return NextResponse.json({ membership })
-  } catch (error) {
-    console.error('Error adding member:', error)
-    return NextResponse.json({ error: 'Failed to add member' }, { status: 500 })
-  }
-}
-
-// POST /api/groups/enterprise/:id/moderation
-export async function POST(request: Request, { params }: { params: { id: string } }) {
-  try {
-    const supabase = createRouteHandlerClient({ cookies })
-    const body = await request.json()
-    
-    // Check permissions
-    const hasPermission = await checkPermission(supabase, params.id, 'moderate_content')
-    if (!hasPermission) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
-    }
-    
-    // Validate input
-    const validatedData = moderationSchema.parse(body)
-    
-    // Create moderation entry
-    const { data: moderation, error } = await supabase
-      .from('group_content_moderation')
-      .insert({
-        group_id: params.id,
-        ...validatedData
-      })
-      .select()
-      .single()
-    
-    if (error) throw error
-    
-    return NextResponse.json({ moderation })
-  } catch (error) {
-    console.error('Error moderating content:', error)
-    return NextResponse.json({ error: 'Failed to moderate content' }, { status: 500 })
-  }
-}
-
-// GET /api/groups/enterprise/:id/analytics
-export async function GET(request: Request, { params }: { params: { id: string } }) {
-  try {
-    const supabase = createRouteHandlerClient({ cookies })
-    const { searchParams } = new URL(request.url)
-    
-    // Check permissions
-    const hasPermission = await checkPermission(supabase, params.id, 'view_analytics')
-    if (!hasPermission) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
-    }
-    
-    // Get query parameters
-    const startDate = searchParams.get('start_date')
-    const endDate = searchParams.get('end_date')
-    const metrics = searchParams.get('metrics')?.split(',')
-    
-    // Build query
-    let query = supabase
-      .from('group_analytics')
-      .select('*')
-      .eq('group_id', params.id)
-    
-    if (startDate) query = query.gte('timestamp', startDate)
-    if (endDate) query = query.lte('timestamp', endDate)
-    if (metrics) query = query.in('metric_name', metrics)
-    
-    const { data: analytics, error } = await query
-    
-    if (error) throw error
-    
-    return NextResponse.json({ analytics })
-  } catch (error) {
-    console.error('Error fetching analytics:', error)
-    return NextResponse.json({ error: 'Failed to fetch analytics' }, { status: 500 })
-  }
-}
-
-// GET /api/groups/enterprise/:id/audit
-export async function GET(request: Request, { params }: { params: { id: string } }) {
-  try {
-    const supabase = createRouteHandlerClient({ cookies })
-    const { searchParams } = new URL(request.url)
-    
-    // Check permissions
-    const hasPermission = await checkPermission(supabase, params.id, 'view_audit_logs')
-    if (!hasPermission) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
-    }
-    
-    // Get query parameters
-    const startDate = searchParams.get('start_date')
-    const endDate = searchParams.get('end_date')
-    const actions = searchParams.get('actions')?.split(',')
-    
-    // Build query
-    let query = supabase
-      .from('group_audit_log')
-      .select('*')
-      .eq('group_id', params.id)
-    
-    if (startDate) query = query.gte('created_at', startDate)
-    if (endDate) query = query.lte('created_at', endDate)
-    if (actions) query = query.in('action', actions)
-    
-    const { data: auditLogs, error } = await query
-    
-    if (error) throw error
-    
-    return NextResponse.json({ auditLogs })
-  } catch (error) {
-    console.error('Error fetching audit logs:', error)
-    return NextResponse.json({ error: 'Failed to fetch audit logs' }, { status: 500 })
+    console.error('Error in enterprise groups API:', error)
+    return NextResponse.json({ error: 'Operation failed' }, { status: 500 })
   }
 } 

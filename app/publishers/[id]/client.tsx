@@ -49,7 +49,7 @@ import { ViewFullDetailsButton } from "@/components/ui/ViewFullDetailsButton"
 import { TimelineAboutSection } from "@/components/author/TimelineAboutSection"
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter, useSearchParams } from "next/navigation"
-import EnterpriseTimelineActivities from '@/components/enterprise-timeline-activities'
+import EnterpriseTimelineActivities from '@/components/enterprise/enterprise-timeline-activities-optimized'
 
 interface ClientPublisherPageProps {
   publisher: any

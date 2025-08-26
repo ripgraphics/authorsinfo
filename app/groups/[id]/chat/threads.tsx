@@ -227,7 +227,8 @@ export default function GroupChatThreadsPage({ params, onSelectThread }: { param
     }
     // Refetch mute state
     const res = await fetch(`/api/groups/${groupId}/chat-thread-mute?user_id=${user.id}`)
-    setMuted((prev) => ({ ...prev, [threadId]: !!(await res.json()).find((m: any) => m.thread_id === threadId) }))
+    const muteData = await res.json()
+    setMuted((prev) => ({ ...prev, [threadId]: !!muteData.find((m: any) => m.thread_id === threadId) }))
   }
 
   // Snooze logic (persisted)

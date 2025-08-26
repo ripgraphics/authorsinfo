@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 import { supabaseClient } from '@/lib/supabase-client';
 import { toast } from 'react-hot-toast';

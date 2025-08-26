@@ -232,7 +232,7 @@ export default function ImportByEntityPage() {
   }
 
   return (
-    <div " book-page container mx-auto py-8">
+    <div className="book-page container mx-auto py-8">
       <div className="flex flex-col space-y-4">
         <h1 className="text-3xl font-bold">Import Books by Author or Publisher</h1>
         <p className="text-gray-500">Add all books by a specific author or publisher to your library.</p>

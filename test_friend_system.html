@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friend Request System Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { opacity: 0.8; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        pre { background-color: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔗 Friend Request System Test</h1>
+    
+    <div class="test-section info">
+        <h3>📋 Test Instructions</h3>
+        <p>This page tests the friend request system after removing the test-friends endpoint and fixing the API issues.</p>
+        <p><strong>Note:</strong> You need to be logged into your application for these tests to work.</p>
+    </div>
+
+    <div class="test-section">
+        <h3>🧪 API Endpoint Tests</h3>
+        <button class="btn-primary" onclick="testPendingRequests()">Test Pending Requests API</button>
+        <button class="btn-primary" onclick="testFriendStatus()">Test Friend Status API</button>
+        <button class="btn-primary" onclick="testSendFriendRequest()">Test Send Friend Request</button>
+        <div id="api-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>📊 Test Results</h3>
+        <div id="test-results"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        
+        function logResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('test-results');
+            const timestamp = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = `test-section ${type}`;
+            div.innerHTML = `<strong>${timestamp}:</strong> ${message}`;
+            resultsDiv.appendChild(div);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        function displayApiResult(title, data, success = true) {
+            const resultsDiv = document.getElementById('api-results');
+            const div = document.createElement('div');
+            div.className = `test-section ${success ? 'success' : 'error'}`;
+            div.innerHTML = `
+                <h4>${title}</h4>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            `;
+            resultsDiv.appendChild(div);
+        }
+
+        async function testPendingRequests() {
+            try {
+                logResult('Testing pending friend requests API...', 'info');
+                
+                const response = await fetch(`${API_BASE}/friends/pending`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    logResult('✅ Pending requests API working!', 'success');
+                    displayApiResult('Pending Requests API Response', data, true);
+                } else {
+                    logResult(`❌ Pending requests API failed: ${response.status}`, 'error');
+                    displayApiResult('Pending Requests API Error', data, false);
+                }
+            } catch (error) {
+                logResult(`❌ Error testing pending requests: ${error.message}`, 'error');
+            }
+        }
+
+        async function testFriendStatus() {
+            try {
+                logResult('Testing friend status API...', 'info');
+                
+                // Test with a sample user ID (you'll need to replace this with a real user ID)
+                const testUserId = 'test-user-123';
+                const response = await fetch(`${API_BASE}/friends?targetUserId=${testUserId}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    logResult('✅ Friend status API working!', 'success');
+                    displayApiResult('Friend Status API Response', data, true);
+                } else {
+                    logResult(`❌ Friend status API failed: ${response.status}`, 'error');
+                    displayApiResult('Friend Status API Error', data, false);
+                }
+            } catch (error) {
+                logResult(`❌ Error testing friend status: ${error.message}`, 'error');
+            }
+        }
+
+        async function testSendFriendRequest() {
+            try {
+                logResult('Testing send friend request API...', 'info');
+                
+                // Test with a sample user ID (you'll need to replace this with a real user ID)
+                const testUserId = 'test-user-456';
+                const response = await fetch(`${API_BASE}/friends`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ targetUserId: testUserId })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    logResult('✅ Send friend request API working!', 'success');
+                    displayApiResult('Send Friend Request API Response', data, true);
+                } else {
+                    logResult(`❌ Send friend request API failed: ${response.status}`, 'error');
+                    displayApiResult('Send Friend Request API Error', data, false);
+                }
+            } catch (error) {
+                logResult(`❌ Error testing send friend request: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-run basic test on page load
+        window.addEventListener('load', () => {
+            logResult('🚀 Friend request system test page loaded', 'info');
+            logResult('Click the test buttons above to verify the system is working', 'info');
+        });
+    </script>
+</body>
+</html>

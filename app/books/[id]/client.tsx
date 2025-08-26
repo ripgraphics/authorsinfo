@@ -61,7 +61,7 @@ import { supabase } from '@/lib/supabase/client';
 import { EntityTabs, EntityTab } from '@/components/ui/entity-tabs'
 import { EntityPhotoAlbums } from '@/components/user-photo-albums'
 import { useSearchParams } from 'next/navigation'
-import EnterpriseTimelineActivities from '@/components/enterprise-timeline-activities'
+import EnterpriseTimelineActivities from '@/components/enterprise/enterprise-timeline-activities-optimized'
 
 interface Follower {
   id: string

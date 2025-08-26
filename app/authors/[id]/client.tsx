@@ -55,7 +55,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { FollowButton } from '@/components/follow-button'
 import { canUserEditEntity } from '@/lib/auth-utils'
 import { EntityTabs, EntityTab } from '@/components/ui/entity-tabs'
-import EnterpriseTimelineActivities from '@/components/enterprise-timeline-activities'
+import EnterpriseTimelineActivities from '@/components/enterprise/enterprise-timeline-activities-optimized'
 import { CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import EntityComments from "@/components/entity-comments"
 

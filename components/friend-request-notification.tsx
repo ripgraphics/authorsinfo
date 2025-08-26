@@ -74,26 +74,6 @@ export function FriendRequestNotification() {
       console.log('🔍 Fetching pending friend requests for user:', user.id)
       console.log('🔍 API endpoint: /api/friends/pending')
       
-      // Test the API endpoint first
-      try {
-        const testResponse = await fetch('/api/test-friends', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          signal: AbortSignal.timeout(5000) // 5 second timeout for test
-        })
-        
-        if (testResponse.ok) {
-          const testData = await testResponse.json()
-          console.log('✅ Test endpoint response:', testData)
-        } else {
-          console.warn('⚠️ Test endpoint failed:', testResponse.status, testResponse.statusText)
-        }
-      } catch (testError) {
-        console.warn('⚠️ Test endpoint error:', testError)
-      }
-      
       const response = await fetch('/api/friends/pending', {
         method: 'GET',
         headers: {

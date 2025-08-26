@@ -100,15 +100,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to send friend request' }, { status: 500 })
     }
 
-    // Log activity
-    await supabase
-      .from('friend_activities')
-      .insert({
-        user_id: user.id,
-        friend_id: targetUserUUID,
-        activity_type: 'request_sent',
-        metadata: { request_id: friendRequest.id }
-      })
+
 
     return NextResponse.json({ 
       success: true, 
@@ -197,15 +189,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to update friend request' }, { status: 500 })
     }
 
-    // Log activity
-    await supabase
-      .from('friend_activities')
-      .insert({
-        user_id: user.id,
-        friend_id: friendRequest.user_id,
-        activity_type: `request_${action}ed`,
-        metadata: { request_id: requestId, action }
-      })
+
 
     return NextResponse.json({
       success: true,
@@ -259,15 +243,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to remove friend' }, { status: 500 })
     }
 
-    // Log activity
-    await supabase
-      .from('friend_activities')
-      .insert({
-        user_id: user.id,
-        friend_id: friendId,
-        activity_type: 'friend_removed',
-        metadata: { relationship_id: friendRelationship.id }
-      })
+
 
     return NextResponse.json({
       success: true,

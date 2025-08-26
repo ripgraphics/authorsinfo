@@ -9,7 +9,7 @@ import { EntityPhotoAlbums } from "@/components/user-photo-albums"
 import { FollowersListTab } from "@/components/followers-list-tab"
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter, useSearchParams } from "next/navigation"
-import EnterpriseTimelineActivities from '@/components/enterprise-timeline-activities'
+import EnterpriseTimelineActivities from '@/components/enterprise/enterprise-timeline-activities-optimized'
 import { 
   Calendar,
   Clock,

@@ -47,6 +47,7 @@ export interface FeedPost {
   user_has_reacted?: boolean
   user_has_commented?: boolean
   user_has_shared?: boolean
+  user_reaction_type?: string // Type of reaction user has made (like, love, care, haha, wow, sad, angry)
   
   // Additional fields for backward compatibility
   view_count?: number

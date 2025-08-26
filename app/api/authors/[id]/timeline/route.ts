@@ -121,7 +121,9 @@ export async function GET(
       ai_enhanced: activity.ai_enhanced,
       ai_enhanced_text: activity.ai_enhanced_text,
       ai_enhanced_performance: activity.ai_enhanced_performance,
-      metadata: activity.metadata
+      metadata: activity.metadata,
+      // User reaction information
+      user_reaction_type: activity.user_reaction_type
     })) || [];
 
     // Debug: Log the transformed data

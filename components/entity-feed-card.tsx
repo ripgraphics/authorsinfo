@@ -56,13 +56,17 @@ import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 import { BookCover } from '@/components/book-cover'
 import { EntityHoverCard } from '@/components/entity-hover-cards'
-import { EngagementActions } from '@/components/enterprise/engagement-actions'
+import { EnterpriseEngagementActions } from '@/components/enterprise/enterprise-engagement-actions'
 import { NestedCommentThread } from '@/components/enterprise/nested-comment-thread'
 import { SophisticatedPhotoGrid } from '@/components/photo-gallery/sophisticated-photo-grid'
 import { EnterprisePhotoViewer } from '@/components/photo-gallery/enterprise-photo-viewer'
 import { FeedPost, PostContent, PostVisibility, PostPublishStatus, getPostText, getPostImages, getPostContentType, hasImageContent, hasTextContent } from '@/types/feed'
 import { useAuth } from '@/hooks/useAuth'
 import { deduplicatedRequest } from '@/lib/request-utils'
+import { CommentsList } from '@/components/comments/comments-list'
+import { ReactionsModal } from '@/components/enterprise/reactions-modal'
+import { CommentsModal } from '@/components/enterprise/comments-modal'
+import { EngagementDisplay } from '@/components/enterprise/engagement-display'
 
 export interface EntityFeedCardProps {
   post: FeedPost
@@ -142,6 +146,14 @@ export default function EntityFeedCard({
   })
   const [isLoadingEngagement, setIsLoadingEngagement] = useState(false)
   
+      // Add state for comments and likes
+    const [comments, setComments] = useState<any[]>([])
+    const [likes, setLikes] = useState<any[]>([])
+    const [isLoadingComments, setIsLoadingComments] = useState(false)
+    const [isLoadingLikes, setIsLoadingLikes] = useState(false)
+    const [showLikesModal, setShowLikesModal] = useState(false)
+    const [showCommentsModal, setShowCommentsModal] = useState(false)
+  
   // Inline editing state
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState('')
@@ -157,9 +169,95 @@ export default function EntityFeedCard({
   const [showImageModal, setShowImageModal] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
+  // Function to fetch comments for this post
+  const fetchComments = useCallback(async () => {
+    if (!post.comment_count || post.comment_count === 0) {
+      setComments([])
+      return
+    }
+
+    try {
+      setIsLoadingComments(true)
+      console.log('🔍 FeedCard: Fetching comments for post:', post.id)
+      
+      const response = await fetch(`/api/engagement?entity_id=${post.id}&entity_type=${post.entity_type || 'activity'}`)
+      
+      if (response.ok) {
+        const data = await response.json()
+        console.log('🔍 FeedCard: Comments API response:', data)
+        
+        if (data.recent_comments && Array.isArray(data.recent_comments)) {
+          console.log('🔍 FeedCard: Setting comments:', data.recent_comments)
+          setComments(data.recent_comments)
+        } else {
+          console.log('🔍 FeedCard: No comments found, setting empty array')
+          setComments([])
+        }
+      } else {
+        console.error('🔍 FeedCard: Comments API response not ok:', response.status)
+        setComments([])
+      }
+    } catch (error) {
+      console.error('🔍 FeedCard: Error fetching comments:', error)
+      setComments([])
+    } finally {
+      setIsLoadingComments(false)
+    }
+  }, [post.id, post.entity_type, post.comment_count])
+
+  // Fetch likes for the post
+  const fetchLikes = useCallback(async () => {
+    if (!post.like_count || post.like_count === 0) {
+      setLikes([])
+      return
+    }
+
+    try {
+      setIsLoadingLikes(true)
+      console.log('🔍 FeedCard: Fetching likes for post:', post.id)
+      
+      const response = await fetch(`/api/engagement?entity_id=${post.id}&entity_type=${post.entity_type || 'activity'}`)
+      
+      if (response.ok) {
+        const data = await response.json()
+        console.log('🔍 FeedCard: Likes API response:', data)
+        
+        if (data.recent_likes && Array.isArray(data.recent_likes)) {
+          console.log('🔍 FeedCard: Setting likes:', data.recent_likes)
+          setLikes(data.recent_likes)
+        } else {
+          console.log('🔍 FeedCard: No likes found, setting empty array')
+          setLikes([])
+        }
+      } else {
+        console.error('🔍 FeedCard: Likes API response not ok:', response.status)
+        setLikes([])
+      }
+    } catch (error) {
+      console.error('🔍 FeedCard: Error fetching likes:', error)
+      setLikes([])
+    } finally {
+      setIsLoadingLikes(false)
+    }
+  }, [post.id, post.entity_type, post.like_count])
+
   // Check if current user can edit this post
   const canEdit = user && post.user_id === user.id && !(post as any).is_deleted
   const canDelete = user && post.user_id === user.id && !(post as any).is_deleted
+  
+  // Fetch comments when component mounts
+  useEffect(() => {
+    if (showComments && post.comment_count > 0) {
+      fetchComments()
+    }
+  }, [showComments, post.comment_count, fetchComments])
+
+  // Fetch likes when component mounts
+  useEffect(() => {
+    if (post.like_count > 0) {
+      fetchLikes()
+    }
+  }, [post.like_count, fetchLikes])
   
   // Debug logging
   console.log('Debug - User:', user)
@@ -771,20 +869,6 @@ export default function EntityFeedCard({
 
   // Note: PhotoViewerModal handles keyboard navigation (Escape, Arrow keys)
 
-  // Format timestamp
-  const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp)
-    const now = new Date()
-    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
-
-    if (diffInSeconds < 60) return 'Just now'
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`
-    if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d ago`
-    if (diffInSeconds < 31536000) return `${Math.floor(diffInSeconds / 2592000)}mo ago`
-    return `${Math.floor(diffInSeconds / 31536000)}y ago`
-  }
-
   // Render content warnings
   const renderContentWarnings = () => {
     if (!post.metadata?.content_safety_score || post.metadata.content_safety_score >= 0.8) return null
@@ -1316,136 +1400,27 @@ export default function EntityFeedCard({
     if (!showEngagement) return null
 
     return (
-      <div className="enterprise-feed-card-engagement-stats flex items-center gap-4 text-sm text-muted-foreground">
-        {(post.view_count || 0) > 0 && (
-          <span className="enterprise-feed-card-views flex items-center gap-1">
-            <Eye className="h-4 w-4" />
-            {post.view_count} views
-          </span>
-        )}
-        {post.like_count > 0 && (
-          <div className="enterprise-feed-card-likes-container relative group">
-            <span className="enterprise-feed-card-likes flex items-center gap-1 cursor-pointer hover:text-blue-600 transition-colors">
-              <Heart className="h-4 w-4" />
-              {post.like_count} likes
-            </span>
-            {/* Hover dropdown for likes */}
-            <div className="absolute bottom-full left-0 mb-2 px-3 py-2 bg-white border rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto z-50 min-w-48">
-              <div className="text-xs font-semibold text-gray-700 mb-2 border-b pb-1">
-                People who liked this
-              </div>
-              {/* Engagement data is now directly available in post.metadata */}
-              {post.metadata?.recent_likers && post.metadata.recent_likers.length > 0 ? (
-                <div className="space-y-1">
-                  {post.metadata.recent_likers.map((liker: string, index: number) => (
-                    <div key={index} className="flex items-center gap-2 text-xs">
-                      <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
-                        {liker.includes('@') ? (
-                          <EntityHoverCard
-                            type="user"
-                            entity={{ id: liker.substring(1), name: liker.substring(1).split(' ')[0] }}
-                          >
-                            <Avatar
-                              src={`/api/users/${liker.substring(1)}/avatar`}
-                              alt={liker.substring(1).split(' ')[0]}
-                              name={liker.substring(1).split(' ')[0]}
-                              size="sm"
-                              className="object-cover rounded-full"
-                            />
-                          </EntityHoverCard>
-                        ) : (
-                          <Avatar
-                            src={`/api/users/${liker}/avatar`}
-                            alt={liker}
-                            name={liker}
-                            size="sm"
-                            className="object-cover rounded-full"
-                          />
-                        )}
-                      </div>
-                      <span className="text-gray-700">{liker}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-xs text-gray-500">No recent likers</div>
-              )}
-            </div>
-          </div>
-        )}
-        {post.comment_count > 0 && (
-          <div className="enterprise-feed-card-comments-container relative group">
-            <span className="enterprise-feed-card-comments flex items-center gap-1 cursor-pointer hover:text-green-600 transition-colors">
-              <MessageCircle className="h-4 w-4" />
-              {post.comment_count} comments
-            </span>
-            {/* Hover dropdown for comments */}
-            <div className="absolute bottom-full left-0 mb-2 px-3 py-2 bg-white border rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto z-50 min-w-80 max-h-64 overflow-y-auto">
-              <div className="text-xs font-semibold text-gray-700 mb-2 border-b pb-1">
-                Comments
-              </div>
-              {/* Engagement data is now directly available in post.metadata */}
-              {post.metadata?.recent_comments && post.metadata.recent_comments.length > 0 ? (
-                <div className="space-y-2">
-                  {post.metadata.recent_comments.map((comment: string, index: number) => {
-                    const commentParts = comment.split('|');
-                    const userName = commentParts[0];
-                    const commentText = commentParts[1];
-                    return (
-                      <div key={index} className="text-xs border-b border-gray-100 pb-2 last:border-b-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center">
-                            {userName.includes('@') ? (
-                              <EntityHoverCard
-                                type="user"
-                                entity={{ id: userName.substring(1), name: userName.substring(1).split(' ')[0] }}
-                              >
-                                <Avatar
-                                  src={`/api/users/${userName.substring(1)}/avatar`}
-                                  alt={userName.substring(1).split(' ')[0]}
-                                  name={userName.substring(1).split(' ')[0]}
-                                  size="sm"
-                                  className="object-cover rounded-full"
-                                />
-                              </EntityHoverCard>
-                            ) : (
-                              <Avatar
-                                src={`/api/users/${userName}/avatar`}
-                                alt={userName}
-                                name={userName}
-                                size="sm"
-                                className="object-cover rounded-full"
-                              />
-                            )}
-                          </div>
-                          <span className="font-medium text-gray-700">{userName}</span>
-                          <span className="text-gray-400 text-xs">
-                            {new Date(comment.split('|')[2]).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric'
-                            })}
-                          </span>
-                        </div>
-                        <div className="text-gray-600 ml-7">
-                          {commentText}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="text-xs text-gray-500">No recent comments</div>
-              )}
-            </div>
-          </div>
-        )}
-        {(post.share_count || 0) > 0 && (
-          <span className="enterprise-feed-card-shares flex items-center gap-1">
-            <Share2 className="h-4 w-4" />
-            {post.share_count} shares
-          </span>
-        )}
-      </div>
+      <EngagementDisplay
+        entityId={post.id}
+        entityType={post.entity_type || 'activity'}
+        reactionCount={post.like_count || 0}
+        commentCount={post.comment_count || 0}
+        onReactionsClick={() => setShowLikesModal(true)}
+        onCommentsClick={() => setShowCommentsModal(true)}
+        onUserClick={(userId) => {
+          console.log('Navigate to user profile:', userId)
+          // Add navigation logic here
+        }}
+        onAddFriend={(userId) => {
+          console.log('Send friend request to:', userId)
+          // Add friend request logic here
+        }}
+        customReactionIcon={<Heart className="h-3.5 w-3.5" />}
+        customReactionColor="from-red-500 to-pink-500"
+        showReactionTypes={false}
+        maxPreviewItems={6}
+        showAddFriendButtons={true}
+      />
     )
   }
 
@@ -1575,14 +1550,24 @@ export default function EntityFeedCard({
 
             <div className="enterprise-feed-card-header-bottom flex items-center gap-2 text-xs text-muted-foreground">
               <span className="enterprise-feed-card-timestamp">
-                {formatTimestamp(post.created_at)}
+                {new Date(post.created_at).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  hour: 'numeric',
+                  minute: 'numeric'
+                })}
               </span>
 
               {/* Scheduled Post */}
               {post.scheduled_at && (
                 <span className="enterprise-feed-card-scheduled flex items-center gap-1">
                   <Clock className="h-3 w-3" />
-                  Scheduled for {formatTimestamp(post.scheduled_at)}
+                  Scheduled for {new Date(post.scheduled_at).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric'
+                  })}
                 </span>
               )}
 
@@ -1686,23 +1671,30 @@ export default function EntityFeedCard({
         {/* Engagement Actions - Keep only the action buttons, remove duplicate stats */}
         {showActions && (
           <div className="enterprise-feed-card-engagement-actions mt-4">
-            <EngagementActions
+            <EnterpriseEngagementActions
               entityId={post.id}
               entityType="activity"
               initialEngagementCount={post.like_count + post.comment_count + (post.share_count || 0)}
               commentCount={post.comment_count || 0}
+              shareCount={post.share_count || 0}
+              bookmarkCount={post.bookmark_count || 0}
+              viewCount={post.view_count || 0}
               isLiked={post.user_has_reacted}
-              isCommented={false}
-              onEngagement={async (action, entityId, entityType) => {
+              isCommented={post.user_has_commented}
+              isShared={post.user_has_shared}
+              isBookmarked={post.user_has_bookmarked}
+              isViewed={post.user_has_viewed}
+              currentReaction={post.user_reaction_type || null}
+              onEngagement={async (action: 'reaction' | 'comment' | 'share' | 'bookmark' | 'view', entityId: string, entityType: string, reactionType?: any) => {
                 // Handle engagement
-                console.log('Engagement action:', action, entityId, entityType)
+                console.log('Engagement action:', action, entityId, entityType, reactionType)
                 // Update local state if needed
                 if (onPostUpdated) {
                   const updatedPost = { ...post }
                   onPostUpdated(updatedPost)
                 }
               }}
-              onCommentAdded={async (newComment) => {
+              onCommentAdded={async (newComment: any) => {
                 // Add the new comment to the local state
                 setEngagementData((prev: any) => ({
                   ...prev,
@@ -1715,6 +1707,14 @@ export default function EntityFeedCard({
                   onPostUpdated(updatedPost)
                 }
               }}
+              onShare={async (entityId: string, entityType: string) => {
+                console.log('Share action:', entityId, entityType)
+                // Handle share logic
+              }}
+              onBookmark={async (entityId: string, entityType: string) => {
+                console.log('Bookmark action:', entityId, entityType)
+                // Handle bookmark logic
+              }}
             />
           </div>
         )}
@@ -1723,48 +1723,116 @@ export default function EntityFeedCard({
         {showComments && (
           <div className="enterprise-feed-card-comments mt-4">
             <Separator className="mb-3" />
-            {/* Engagement data is now directly available in post.metadata */}
-            {post.metadata?.recent_comments && post.metadata.recent_comments.length > 0 && (
+            {/* Comments display with real data from database */}
+            {post.comment_count > 0 ? (
               <>
-                <div className="enterprise-feed-card-comments-header">
-                  <h4 className="text-sm font-semibold mb-2">Comments ({post.metadata.recent_comments.length})</h4>
+                <div className="text-sm text-gray-500 mb-2">Debug: Comment count: {post.comment_count}</div>
+                <div className="text-sm text-gray-500 mb-2">Debug: Post ID: {post.id}</div>
+                <div className="text-sm text-gray-500 mb-2">Debug: Entity Type: {post.entity_type || 'activity'}</div>
+                <div className="text-sm text-gray-500 mb-2">Debug: About to render CommentsList with:</div>
+                <div className="text-sm text-gray-500 mb-2">- entityId: {post.id}</div>
+                <div className="text-sm text-gray-500 mb-2">- entityType: {post.entity_type || 'activity'}</div>
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <p className="text-blue-800">CommentsList component should appear here</p>
+                  <p className="text-sm text-blue-600">Post has {post.comment_count} comments</p>
                 </div>
-                <div className="enterprise-feed-card-comments-list space-y-4">
-                  {post.metadata.recent_comments.map((comment: string, index: number) => {
-                    const commentParts = comment.split('|');
-                    const userName = commentParts[0];
-                    const commentText = commentParts[1];
-                    return (
-                      <NestedCommentThread
-                        key={index}
-                        comment={{
-                          id: `comment-${index}`, // Unique ID for each comment in the list
-                          content: commentText,
-                          created_at: commentParts[2],
-                          updated_at: commentParts[2], // Assuming no update for recent comments
-                          user: {
-                            id: userName.includes('@') ? userName.substring(1) : userName,
-                            name: userName.includes('@') ? userName.substring(1).split(' ')[0] : userName,
-                            avatar_url: userName.includes('@') ? `/api/users/${userName.substring(1)}/avatar` : `/api/users/${userName}/avatar`
-                          },
-                          parent_comment_id: null, // No parent for recent comments
-                          comment_depth: 0,
-                          thread_id: `thread-${index}`, // Generate a unique thread ID
-                          reply_count: 0,
-                          replies: []
-                        }}
-                        entityType={post.entity_type || 'post'}
-                        entityId={post.entity_id || post.id}
-                        postId={post.id}
-                        onCommentUpdated={(updatedComment) => {
-                          // No-op for recent comments as they are not editable
-                        }}
-                      />
-                    );
-                  })}
-                </div>
+                {/* Temporarily comment out CommentsList to test */}
+                {/* <CommentsList entityId={post.id} entityType={post.entity_type || 'activity'} /> */}
+                
+                {/* Simple inline comment display using existing data */}
+                {post.comment_count > 0 && (
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                      Comments ({post.comment_count})
+                    </h4>
+                    
+                    {/* Loading state */}
+                    {isLoadingComments && (
+                      <div className="space-y-3">
+                        <div className="animate-pulse">
+                          <div className="flex gap-3">
+                            <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+                            <div className="flex-1">
+                              <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
+                              <div className="h-16 bg-gray-200 rounded"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Real comment display */}
+                    {!isLoadingComments && comments.length > 0 && (
+                      <div className="space-y-3">
+                        {comments.map((comment) => (
+                          <div key={comment.id} className="comment-item" role="article">
+                            <div className="flex gap-3">
+                              {/* User Avatar */}
+                              <div className="flex-shrink-0">
+                                <Avatar 
+                                  src={comment.user?.avatar_url || '/placeholder.svg?height=32&width=32'} 
+                                  alt={`${comment.user?.name || 'User'} avatar`}
+                                  name={comment.user?.name || 'User'}
+                                  className="w-8 h-8"
+                                />
+                              </div>
+                              
+                              {/* Comment Content */}
+                              <div className="flex-1 min-w-0">
+                                <div className="bg-white rounded-lg p-3 border border-gray-100">
+                                  {/* User Name */}
+                                  <div className="mb-1">
+                                    <span className="text-sm font-semibold text-blue-600">
+                                      {comment.user?.name || 'Unknown User'}
+                                    </span>
+                                  </div>
+                                  
+                                  {/* Comment Text */}
+                                  <div className="text-sm text-gray-800">
+                                    {comment.comment_text}
+                                  </div>
+                                </div>
+                                
+                                {/* Comment Actions */}
+                                <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
+                                  <button className="hover:text-blue-600 transition-colors flex items-center gap-1">
+                                    <ThumbsUp className="w-3 h-3" />
+                                    Like
+                                  </button>
+                                  <button className="hover:text-blue-600 transition-colors flex items-center gap-1">
+                                    <MessageSquare className="w-3 h-3" />
+                                    Reply
+                                  </button>
+                                  <span className="text-gray-400">•</span>
+                                  <span>{new Date(comment.created_at).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: 'numeric',
+                                    minute: 'numeric'
+                                  })}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {/* No comments state */}
+                    {!isLoadingComments && comments.length === 0 && (
+                      <div className="text-sm text-gray-500 text-center py-4">
+                        No comments found
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+
               </>
+            ) : (
+              <div className="text-sm text-gray-500">Debug: No comments to show</div>
             )}
+            {/* If no comments, show nothing - exactly as requested */}
           </div>
         )}
       </div>
@@ -1804,6 +1872,223 @@ export default function EntityFeedCard({
           entityType={post.entity_type || 'user'}
           isOwner={false}
         />
+      )}
+
+      {/* Reusable Reactions Modal */}
+      <ReactionsModal
+        isOpen={showLikesModal}
+        onClose={() => setShowLikesModal(false)}
+        entityId={post.id}
+        entityType={post.entity_type || 'activity'}
+        reactionCount={post.like_count || 0}
+        title="Reactions"
+        description="People who reacted to this post"
+        onUserClick={(userId) => {
+          console.log('Navigate to user profile:', userId)
+          // Add navigation logic here
+        }}
+        onAddFriend={(userId) => {
+          console.log('Send friend request to:', userId)
+          // Add friend request logic here
+        }}
+        customReactionIcon={<Heart className="h-5 w-5" />}
+        customReactionColor="from-red-500 to-pink-500"
+        showReactionTypes={false}
+        maxReactions={50}
+      />
+
+      {/* Enhanced Comments Modal */}
+      {showCommentsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden shadow-2xl">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <MessageCircle className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                      Comments ({post.comment_count})
+                </h3>
+                    <p className="text-sm text-gray-500">
+                      Join the conversation about this post
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowCommentsModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex flex-col h-[calc(90vh-140px)]">
+              {/* Comments List */}
+              <div className="flex-1 overflow-y-auto px-6 py-4">
+              {!isLoadingComments && comments.length > 0 ? (
+                  <div className="space-y-4">
+                  {comments.map((comment) => (
+                      <div key={comment.id} className="comment-item">
+                      {/* Comment Header */}
+                        <div className="flex items-start gap-3">
+                        <Avatar
+                            src={comment.user?.avatar_url || '/placeholder.svg?height=32&width=32'}
+                          alt={`${comment.user?.name || 'User'} avatar`}
+                          name={comment.user?.name || 'User'}
+                            className="w-8 h-8 flex-shrink-0"
+                        />
+                          <div className="flex-1 min-w-0">
+                            {/* Comment Bubble */}
+                            <div className="bg-gray-100 rounded-2xl px-4 py-3 inline-block max-w-full">
+                              <div className="flex items-center gap-2 mb-2">
+                        <button
+                                  className="text-sm font-semibold text-gray-900 hover:text-blue-600 transition-colors hover:underline"
+                          onClick={() => {
+                            console.log('Clicked on user:', comment.user?.name)
+                          }}
+                        >
+                          {comment.user?.name || 'Unknown User'}
+                        </button>
+                                <span className="text-xs text-gray-500">
+                                  {new Date(comment.created_at).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: 'numeric',
+                                    minute: 'numeric'
+                                  })}
+                                </span>
+                      </div>
+                      
+                      {/* Comment Text */}
+                              <div className="text-sm text-gray-800 leading-relaxed">
+                        {comment.comment_text}
+                              </div>
+                      </div>
+                      
+                            {/* Comment Actions */}
+                            <div className="flex items-center gap-4 mt-2 ml-2">
+                              <button className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline">
+                                Like
+                              </button>
+                              <button className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline">
+                                Reply
+                              </button>
+                              <span className="text-xs text-gray-400">
+                                {comment.reply_count > 0 && `${comment.reply_count} replies`}
+                              </span>
+                            </div>
+                            
+                            {/* Nested Replies */}
+                            {comment.replies && comment.replies.length > 0 && (
+                              <div className="ml-8 mt-3 space-y-3">
+                                {comment.replies.map((reply: any) => (
+                                  <div key={reply.id} className="flex items-start gap-3">
+                                    <Avatar
+                                      src={reply.user?.avatar_url || '/placeholder.svg?height=24&width=24'}
+                                      alt={`${reply.user?.name || 'User'} avatar`}
+                                      name={reply.user?.name || 'User'}
+                                      className="w-6 h-6 flex-shrink-0"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                      <div className="bg-gray-50 rounded-2xl px-3 py-2 inline-block max-w-full">
+                                        <div className="flex items-center gap-2 mb-1">
+                                          <button
+                                            className="text-xs font-semibold text-gray-900 hover:text-blue-600 transition-colors hover:underline"
+                                            onClick={() => {
+                                              console.log('Clicked on user:', reply.user?.name)
+                                            }}
+                                          >
+                                            {reply.user?.name || 'Unknown User'}
+                                          </button>
+                                          <span className="text-xs text-gray-400">
+                                            {new Date(reply.created_at).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: 'numeric',
+                          minute: 'numeric'
+                        })}
+                                          </span>
+                                        </div>
+                                        <div className="text-xs text-gray-800 leading-relaxed">
+                                          {reply.comment_text}
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center gap-3 mt-1 ml-2">
+                                        <button className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline">
+                                          Like
+                                        </button>
+                                        <button className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline">
+                                          Reply
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <MessageCircle className="h-8 w-8 text-gray-400" />
+                  </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No comments yet</h3>
+                    <p className="text-gray-500">Be the first to share your thoughts!</p>
+                </div>
+              )}
+            </div>
+
+              {/* Comment Input Section */}
+              <div className="border-t border-gray-200 bg-gray-50 px-6 py-4">
+                <div className="flex items-start gap-3">
+                  <Avatar
+                    src={userDetails?.avatar_url || '/placeholder.svg?height=32&width=32'}
+                    alt={`${userDetails?.name || 'User'} avatar`}
+                    name={userDetails?.name || 'User'}
+                    className="w-8 h-8 flex-shrink-0"
+                  />
+                  <div className="flex-1">
+                    <div className="bg-white border border-gray-200 rounded-2xl px-4 py-3">
+                      <Textarea
+                        placeholder="Write a comment..."
+                        className="border-0 resize-none focus:ring-0 focus:outline-none min-h-[60px] text-sm"
+                        rows={2}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between mt-2">
+                      <div className="flex items-center gap-2">
+                        <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-100">
+                          <Smile className="h-4 w-4" />
+                        </button>
+                        <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-100">
+                          <ImageIcon className="h-4 w-4" />
+                        </button>
+                        <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-100">
+                          <Link className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full"
+                      >
+                        Post Comment
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

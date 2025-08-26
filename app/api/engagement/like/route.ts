@@ -56,14 +56,29 @@ export async function POST(request: NextRequest) {
         }, { status: 500 })
       }
 
-      // Update activities table count
-      const { error: updateError } = await supabase
+      // Update activities table count - first get current count, then decrement
+      const { data: currentActivity, error: fetchError } = await supabase
         .from('activities')
-        .update({ like_count: supabase.sql`GREATEST(like_count - 1, 0)` })
+        .select('like_count')
         .eq('id', entity_id)
+        .single()
 
-      if (updateError) {
-        console.error('Error updating like count:', updateError)
+      if (fetchError) {
+        console.error('Error fetching current like count:', fetchError)
+      } else {
+        const currentCount = currentActivity?.like_count || 0
+        const newCount = Math.max(currentCount - 1, 0)
+
+        const { error: updateError } = await supabase
+          .from('activities')
+          .update({ like_count: newCount })
+          .eq('id', entity_id)
+
+        if (updateError) {
+          console.error('Error updating like count:', updateError)
+        } else {
+          console.log('✅ Like count updated from', currentCount, 'to', newCount)
+        }
       }
 
       liked = false
@@ -85,14 +100,29 @@ export async function POST(request: NextRequest) {
         }, { status: 500 })
       }
 
-      // Update activities table count
-      const { error: updateError } = await supabase
+      // Update activities table count - first get current count, then increment
+      const { data: currentActivity, error: fetchError } = await supabase
         .from('activities')
-        .update({ like_count: supabase.sql`COALESCE(like_count, 0) + 1` })
+        .select('like_count')
         .eq('id', entity_id)
+        .single()
 
-      if (updateError) {
-        console.error('Error updating like count:', updateError)
+      if (fetchError) {
+        console.error('Error fetching current like count:', fetchError)
+      } else {
+        const currentCount = currentActivity?.like_count || 0
+        const newCount = currentCount + 1
+
+        const { error: updateError } = await supabase
+          .from('activities')
+          .update({ like_count: newCount })
+          .eq('id', entity_id)
+
+        if (updateError) {
+          console.error('Error updating like count:', updateError)
+        } else {
+          console.log('✅ Like count updated from', currentCount, 'to', newCount)
+        }
       }
 
       liked = true

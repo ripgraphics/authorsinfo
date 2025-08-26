@@ -4657,69 +4657,38 @@ $$;
 ALTER FUNCTION "public"."trigger_update_book_popularity"() OWNER TO "postgres";
 
 
-CREATE OR REPLACE FUNCTION "public"."update_activity_bookmark_count"() RETURNS "trigger"
-    LANGUAGE "plpgsql"
-    AS $$
-BEGIN
-    IF TG_OP = 'INSERT' THEN
-        -- Increment bookmark count for ANY entity type
-        UPDATE public.activities 
-        SET bookmark_count = COALESCE(bookmark_count, 0) + 1,
-            updated_at = NOW()
-        WHERE id = NEW.entity_id;
-        RETURN NEW;
-    ELSIF TG_OP = 'DELETE' THEN
-        -- Decrement bookmark count for ANY entity type
-        UPDATE public.activities 
-        SET bookmark_count = GREATEST(COALESCE(bookmark_count, 0) - 1, 0),
-            updated_at = NOW()
-        WHERE id = OLD.entity_id;
-        RETURN OLD;
-    END IF;
-    RETURN NULL;
-END;
-$$;
-
-
-ALTER FUNCTION "public"."update_activity_bookmark_count"() OWNER TO "postgres";
-
-
-COMMENT ON FUNCTION "public"."update_activity_bookmark_count"() IS 'New function to update bookmark count for ALL entity types';
-
-
-
 CREATE OR REPLACE FUNCTION "public"."update_activity_comment_count"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        -- Increment comment count for ANY entity type (activity, author, book, etc.)
+        -- Increment comment count
         UPDATE public.activities 
         SET comment_count = COALESCE(comment_count, 0) + 1,
             updated_at = NOW()
-        WHERE id = NEW.entity_id;  -- Removed entity_type restriction
+        WHERE id = NEW.entity_id AND entity_type = 'activity';
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
-        -- Decrement comment count for ANY entity type
+        -- Decrement comment count
         UPDATE public.activities 
         SET comment_count = GREATEST(COALESCE(comment_count, 0) - 1, 0),
             updated_at = NOW()
-        WHERE id = OLD.entity_id;  -- Removed entity_type restriction
+        WHERE id = NEW.entity_id AND entity_type = 'activity';
         RETURN OLD;
     ELSIF TG_OP = 'UPDATE' THEN
-        -- Handle comment soft delete/restore for ANY entity type
+        -- Handle comment soft delete/restore
         IF OLD.is_deleted = false AND NEW.is_deleted = true THEN
             -- Comment was soft deleted, decrement count
             UPDATE public.activities 
             SET comment_count = GREATEST(COALESCE(comment_count, 0) - 1, 0),
                 updated_at = NOW()
-            WHERE id = NEW.entity_id;  -- Removed entity_type restriction
+            WHERE id = NEW.entity_id AND entity_type = 'activity';
         ELSIF OLD.is_deleted = true AND NEW.is_deleted = false THEN
             -- Comment was restored, increment count
             UPDATE public.activities 
             SET comment_count = COALESCE(comment_count, 0) + 1,
                 updated_at = NOW()
-            WHERE id = NEW.entity_id;  -- Removed entity_type restriction
+            WHERE id = NEW.entity_id AND entity_type = 'activity';
         END IF;
         RETURN NEW;
     END IF;
@@ -4731,27 +4700,23 @@ $$;
 ALTER FUNCTION "public"."update_activity_comment_count"() OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."update_activity_comment_count"() IS 'Fixed function to update comment count for ALL entity types (activity, author, book, etc.)';
-
-
-
 CREATE OR REPLACE FUNCTION "public"."update_activity_like_count"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$
 BEGIN
     IF TG_OP = 'INSERT' THEN
-        -- Increment like count for ANY entity type
+        -- Increment like count
         UPDATE public.activities 
         SET like_count = COALESCE(like_count, 0) + 1,
             updated_at = NOW()
-        WHERE id = NEW.entity_id;  -- Removed entity_type restriction
+        WHERE id = NEW.entity_id AND entity_type = 'activity';
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
-        -- Decrement like count for ANY entity type
+        -- Decrement like count
         UPDATE public.activities 
         SET like_count = GREATEST(COALESCE(like_count, 0) - 1, 0),
             updated_at = NOW()
-        WHERE id = OLD.entity_id;  -- Removed entity_type restriction
+        WHERE id = OLD.entity_id AND entity_type = 'activity';
         RETURN OLD;
     END IF;
     RETURN NULL;
@@ -4760,41 +4725,6 @@ $$;
 
 
 ALTER FUNCTION "public"."update_activity_like_count"() OWNER TO "postgres";
-
-
-COMMENT ON FUNCTION "public"."update_activity_like_count"() IS 'Fixed function to update like count for ALL entity types (activity, author, book, etc.)';
-
-
-
-CREATE OR REPLACE FUNCTION "public"."update_activity_share_count"() RETURNS "trigger"
-    LANGUAGE "plpgsql"
-    AS $$
-BEGIN
-    IF TG_OP = 'INSERT' THEN
-        -- Increment share count for ANY entity type
-        UPDATE public.activities 
-        SET share_count = COALESCE(share_count, 0) + 1,
-            updated_at = NOW()
-        WHERE id = NEW.entity_id;
-        RETURN NEW;
-    ELSIF TG_OP = 'DELETE' THEN
-        -- Decrement share count for ANY entity type
-        UPDATE public.activities 
-        SET share_count = GREATEST(COALESCE(share_count, 0) - 1, 0),
-            updated_at = NOW()
-        WHERE id = OLD.entity_id;
-        RETURN OLD;
-    END IF;
-    RETURN NULL;
-END;
-$$;
-
-
-ALTER FUNCTION "public"."update_activity_share_count"() OWNER TO "postgres";
-
-
-COMMENT ON FUNCTION "public"."update_activity_share_count"() IS 'New function to update share count for ALL entity types';
-
 
 
 CREATE OR REPLACE FUNCTION "public"."update_album_revenue_from_monetization"() RETURNS "trigger"
@@ -6811,23 +6741,6 @@ CREATE TABLE IF NOT EXISTS "public"."engagement_analytics" (
 ALTER TABLE "public"."engagement_analytics" OWNER TO "postgres";
 
 
-CREATE TABLE IF NOT EXISTS "public"."engagement_bookmarks" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "user_id" "uuid" NOT NULL,
-    "entity_type" "text" NOT NULL,
-    "entity_id" "uuid" NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
-);
-
-
-ALTER TABLE "public"."engagement_bookmarks" OWNER TO "postgres";
-
-
-COMMENT ON TABLE "public"."engagement_bookmarks" IS 'Enterprise-grade bookmarks table for all entity types';
-
-
-
 CREATE TABLE IF NOT EXISTS "public"."engagement_comments" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "user_id" "uuid" NOT NULL,
@@ -6866,25 +6779,6 @@ ALTER TABLE "public"."engagement_likes" OWNER TO "postgres";
 
 
 COMMENT ON TABLE "public"."engagement_likes" IS 'Enterprise-grade consolidated likes table - replaces all fragmented like tables';
-
-
-
-CREATE TABLE IF NOT EXISTS "public"."engagement_shares" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "user_id" "uuid" NOT NULL,
-    "entity_type" "text" NOT NULL,
-    "entity_id" "uuid" NOT NULL,
-    "share_platform" "text" DEFAULT 'internal'::"text",
-    "share_url" "text",
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
-);
-
-
-ALTER TABLE "public"."engagement_shares" OWNER TO "postgres";
-
-
-COMMENT ON TABLE "public"."engagement_shares" IS 'Enterprise-grade shares table for all entity types';
 
 
 
@@ -10786,16 +10680,6 @@ ALTER TABLE ONLY "public"."engagement_analytics"
 
 
 
-ALTER TABLE ONLY "public"."engagement_bookmarks"
-    ADD CONSTRAINT "engagement_bookmarks_pkey" PRIMARY KEY ("id");
-
-
-
-ALTER TABLE ONLY "public"."engagement_bookmarks"
-    ADD CONSTRAINT "engagement_bookmarks_user_entity_unique" UNIQUE ("user_id", "entity_type", "entity_id");
-
-
-
 ALTER TABLE ONLY "public"."engagement_comments"
     ADD CONSTRAINT "engagement_comments_pkey" PRIMARY KEY ("id");
 
@@ -10808,16 +10692,6 @@ ALTER TABLE ONLY "public"."engagement_likes"
 
 ALTER TABLE ONLY "public"."engagement_likes"
     ADD CONSTRAINT "engagement_likes_user_entity_unique" UNIQUE ("user_id", "entity_type", "entity_id");
-
-
-
-ALTER TABLE ONLY "public"."engagement_shares"
-    ADD CONSTRAINT "engagement_shares_pkey" PRIMARY KEY ("id");
-
-
-
-ALTER TABLE ONLY "public"."engagement_shares"
-    ADD CONSTRAINT "engagement_shares_user_entity_unique" UNIQUE ("user_id", "entity_type", "entity_id");
 
 
 
@@ -12259,18 +12133,6 @@ CREATE INDEX "idx_discussions_user_id" ON "public"."discussions" USING "btree" (
 
 
 
-CREATE INDEX "idx_engagement_bookmarks_created" ON "public"."engagement_bookmarks" USING "btree" ("created_at");
-
-
-
-CREATE INDEX "idx_engagement_bookmarks_entity" ON "public"."engagement_bookmarks" USING "btree" ("entity_type", "entity_id");
-
-
-
-CREATE INDEX "idx_engagement_bookmarks_user" ON "public"."engagement_bookmarks" USING "btree" ("user_id");
-
-
-
 CREATE INDEX "idx_engagement_comments_created" ON "public"."engagement_comments" USING "btree" ("created_at");
 
 
@@ -12300,18 +12162,6 @@ CREATE INDEX "idx_engagement_likes_entity" ON "public"."engagement_likes" USING 
 
 
 CREATE INDEX "idx_engagement_likes_user" ON "public"."engagement_likes" USING "btree" ("user_id");
-
-
-
-CREATE INDEX "idx_engagement_shares_created" ON "public"."engagement_shares" USING "btree" ("created_at");
-
-
-
-CREATE INDEX "idx_engagement_shares_entity" ON "public"."engagement_shares" USING "btree" ("entity_type", "entity_id");
-
-
-
-CREATE INDEX "idx_engagement_shares_user" ON "public"."engagement_shares" USING "btree" ("user_id");
 
 
 
@@ -13223,19 +13073,11 @@ CREATE OR REPLACE TRIGGER "trigger_shares_audit" AFTER INSERT OR DELETE ON "publ
 
 
 
-CREATE OR REPLACE TRIGGER "trigger_update_activity_bookmark_count" AFTER INSERT OR DELETE ON "public"."engagement_bookmarks" FOR EACH ROW EXECUTE FUNCTION "public"."update_activity_bookmark_count"();
-
-
-
 CREATE OR REPLACE TRIGGER "trigger_update_activity_comment_count" AFTER INSERT OR DELETE OR UPDATE ON "public"."engagement_comments" FOR EACH ROW EXECUTE FUNCTION "public"."update_activity_comment_count"();
 
 
 
 CREATE OR REPLACE TRIGGER "trigger_update_activity_like_count" AFTER INSERT OR DELETE ON "public"."engagement_likes" FOR EACH ROW EXECUTE FUNCTION "public"."update_activity_like_count"();
-
-
-
-CREATE OR REPLACE TRIGGER "trigger_update_activity_share_count" AFTER INSERT OR DELETE ON "public"."engagement_shares" FOR EACH ROW EXECUTE FUNCTION "public"."update_activity_share_count"();
 
 
 
@@ -14717,10 +14559,6 @@ CREATE POLICY "Users can delete their own albums" ON "public"."photo_albums" FOR
 
 
 
-CREATE POLICY "Users can delete their own bookmarks" ON "public"."engagement_bookmarks" FOR DELETE USING (("auth"."uid"() = "user_id"));
-
-
-
 CREATE POLICY "Users can delete their own comments" ON "public"."engagement_comments" FOR DELETE USING (("auth"."uid"() = "user_id"));
 
 
@@ -14733,19 +14571,11 @@ CREATE POLICY "Users can delete their own likes" ON "public"."engagement_likes" 
 
 
 
-CREATE POLICY "Users can delete their own shares" ON "public"."engagement_shares" FOR DELETE USING (("auth"."uid"() = "user_id"));
-
-
-
 CREATE POLICY "Users can insert entities" ON "public"."entities" FOR INSERT WITH CHECK (true);
 
 
 
 CREATE POLICY "Users can insert images" ON "public"."images" FOR INSERT WITH CHECK (("auth"."uid"() = "uploader_id"));
-
-
-
-CREATE POLICY "Users can insert their own bookmarks" ON "public"."engagement_bookmarks" FOR INSERT WITH CHECK (("auth"."uid"() = "user_id"));
 
 
 
@@ -14762,10 +14592,6 @@ CREATE POLICY "Users can insert their own likes" ON "public"."engagement_likes" 
 
 
 CREATE POLICY "Users can insert their own predictions" ON "public"."ml_predictions" FOR INSERT WITH CHECK (("user_id" = "auth"."uid"()));
-
-
-
-CREATE POLICY "Users can insert their own shares" ON "public"."engagement_shares" FOR INSERT WITH CHECK (("auth"."uid"() = "user_id"));
 
 
 
@@ -14837,10 +14663,6 @@ CREATE POLICY "Users can view active ML models" ON "public"."ml_models" FOR SELE
 
 
 
-CREATE POLICY "Users can view all bookmarks" ON "public"."engagement_bookmarks" FOR SELECT USING (true);
-
-
-
 CREATE POLICY "Users can view all comments" ON "public"."engagement_comments" FOR SELECT USING (true);
 
 
@@ -14850,10 +14672,6 @@ CREATE POLICY "Users can view all images" ON "public"."images" FOR SELECT USING 
 
 
 CREATE POLICY "Users can view all likes" ON "public"."engagement_likes" FOR SELECT USING (true);
-
-
-
-CREATE POLICY "Users can view all shares" ON "public"."engagement_shares" FOR SELECT USING (true);
 
 
 
@@ -15194,9 +15012,6 @@ ALTER TABLE "public"."discussions" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."engagement_analytics" ENABLE ROW LEVEL SECURITY;
 
 
-ALTER TABLE "public"."engagement_bookmarks" ENABLE ROW LEVEL SECURITY;
-
-
 ALTER TABLE "public"."engagement_comments" ENABLE ROW LEVEL SECURITY;
 
 
@@ -15229,9 +15044,6 @@ CREATE POLICY "engagement_likes_insert_policy" ON "public"."engagement_likes" FO
 
 CREATE POLICY "engagement_likes_select_policy" ON "public"."engagement_likes" FOR SELECT USING (("auth"."uid"() IS NOT NULL));
 
-
-
-ALTER TABLE "public"."engagement_shares" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."enterprise_audit_trail" ENABLE ROW LEVEL SECURITY;
@@ -16879,12 +16691,6 @@ GRANT ALL ON FUNCTION "public"."trigger_update_book_popularity"() TO "service_ro
 
 
 
-GRANT ALL ON FUNCTION "public"."update_activity_bookmark_count"() TO "anon";
-GRANT ALL ON FUNCTION "public"."update_activity_bookmark_count"() TO "authenticated";
-GRANT ALL ON FUNCTION "public"."update_activity_bookmark_count"() TO "service_role";
-
-
-
 GRANT ALL ON FUNCTION "public"."update_activity_comment_count"() TO "anon";
 GRANT ALL ON FUNCTION "public"."update_activity_comment_count"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_activity_comment_count"() TO "service_role";
@@ -16894,12 +16700,6 @@ GRANT ALL ON FUNCTION "public"."update_activity_comment_count"() TO "service_rol
 GRANT ALL ON FUNCTION "public"."update_activity_like_count"() TO "anon";
 GRANT ALL ON FUNCTION "public"."update_activity_like_count"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_activity_like_count"() TO "service_role";
-
-
-
-GRANT ALL ON FUNCTION "public"."update_activity_share_count"() TO "anon";
-GRANT ALL ON FUNCTION "public"."update_activity_share_count"() TO "authenticated";
-GRANT ALL ON FUNCTION "public"."update_activity_share_count"() TO "service_role";
 
 
 
@@ -17359,12 +17159,6 @@ GRANT ALL ON TABLE "public"."engagement_analytics" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."engagement_bookmarks" TO "anon";
-GRANT ALL ON TABLE "public"."engagement_bookmarks" TO "authenticated";
-GRANT ALL ON TABLE "public"."engagement_bookmarks" TO "service_role";
-
-
-
 GRANT ALL ON TABLE "public"."engagement_comments" TO "anon";
 GRANT ALL ON TABLE "public"."engagement_comments" TO "authenticated";
 GRANT ALL ON TABLE "public"."engagement_comments" TO "service_role";
@@ -17374,12 +17168,6 @@ GRANT ALL ON TABLE "public"."engagement_comments" TO "service_role";
 GRANT ALL ON TABLE "public"."engagement_likes" TO "anon";
 GRANT ALL ON TABLE "public"."engagement_likes" TO "authenticated";
 GRANT ALL ON TABLE "public"."engagement_likes" TO "service_role";
-
-
-
-GRANT ALL ON TABLE "public"."engagement_shares" TO "anon";
-GRANT ALL ON TABLE "public"."engagement_shares" TO "authenticated";
-GRANT ALL ON TABLE "public"."engagement_shares" TO "service_role";
 
 
 

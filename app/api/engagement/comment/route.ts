@@ -1,73 +1,114 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { supabaseAdmin } from '@/lib/supabase'
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const cookieStore = await cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     
-    // Check authentication
+    // Get the current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
     if (authError || !user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
     }
 
-    const body = await request.json()
-    const { entity_type, entity_id, comment_text } = body
-
+    // Parse request body
+    const { entity_type, entity_id, comment_text, parent_id } = await request.json()
+    
     if (!entity_type || !entity_id || !comment_text) {
-      return NextResponse.json({ 
-        error: 'Missing required fields: entity_type, entity_id, comment_text' 
-      }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Missing required fields: entity_type, entity_id, comment_text' },
+        { status: 400 }
+      )
     }
 
-    console.log('🔍 POST /api/engagement/comment - Request:', { entity_type, entity_id, comment_text, user_id: user.id })
+    console.log('🔍 Processing comment:', {
+      user_id: user.id,
+      entity_type,
+      entity_id,
+      comment_text: comment_text.substring(0, 100) + '...',
+      parent_id
+    })
 
-    // Add the comment
-    const { data: commentData, error: insertError } = await supabase
+    // Insert the comment
+    const { data: comment, error: insertError } = await supabaseAdmin
       .from('engagement_comments')
       .insert({
         user_id: user.id,
-        entity_type: entity_type,
-        entity_id: entity_id,
+        entity_type,
+        entity_id,
         comment_text: comment_text.trim(),
-        parent_comment_id: null
+        parent_id: parent_id || null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       })
-      .select()
+      .select('id, comment_text, created_at')
       .single()
 
     if (insertError) {
-      console.error('Error adding comment:', insertError)
-      return NextResponse.json({ 
-        error: 'Failed to add comment',
-        details: insertError.message
-      }, { status: 500 })
+      console.error('❌ Error inserting comment:', insertError)
+      return NextResponse.json(
+        { error: 'Failed to add comment' },
+        { status: 500 }
+      )
     }
 
-    // Update activities table count
-    const { error: updateError } = await supabase
-      .from('activities')
-      .update({ comment_count: supabase.sql`COALESCE(comment_count, 0) + 1` })
-      .eq('id', entity_id)
+    // Update engagement counts in activities table if this is an activity
+    if (entity_type === 'activity') {
+      try {
+        // Get current comment count for this activity
+        const { data: commentCount, error: countError } = await supabaseAdmin
+          .from('engagement_comments')
+          .select('id', { count: 'exact' })
+          .eq('entity_type', entity_type)
+          .eq('entity_id', entity_id)
 
-    if (updateError) {
-      console.error('Error updating comment count:', updateError)
+        if (!countError && commentCount !== null) {
+          // Update the activities table with new comment count
+          const { error: updateError } = await supabaseAdmin
+            .from('activities')
+            .update({
+              comment_count: commentCount.length,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', entity_id)
+
+          if (updateError) {
+            console.warn('⚠️ Warning: Failed to update activity comment count:', updateError)
+            // Don't fail the request for this, just log it
+          }
+        }
+      } catch (error) {
+        console.warn('⚠️ Warning: Failed to update activity comment count:', error)
+        // Don't fail the request for this, just log it
+      }
     }
 
-    const response = {
-      action: 'commented',
-      message: 'Comment added successfully',
-      comment_id: commentData.id
-    }
+    console.log('✅ Comment added successfully:', {
+      comment_id: comment.id,
+      entity_type,
+      entity_id
+    })
 
-    console.log('✅ Comment handled successfully:', response)
-    return NextResponse.json(response)
+    return NextResponse.json({
+      success: true,
+      comment_id: comment.id,
+      comment_text: comment.comment_text,
+      created_at: comment.created_at,
+      message: 'Comment added successfully'
+    })
 
   } catch (error) {
-    console.error('Error in handleComment:', error)
-    return NextResponse.json({ 
-      error: 'Failed to add comment',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    console.error('❌ Unexpected error in comment API:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
   }
 }

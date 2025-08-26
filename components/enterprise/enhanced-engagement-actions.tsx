@@ -1,6 +1,6 @@
-"use client"
+'use client'
 
-import React, { useState, useCallback, useEffect } from "react"
+import React, { useState, useCallback, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -23,8 +23,9 @@ import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/useAuth"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
+import { ReactionPopup, ReactionType } from "./reaction-popup"
 
-interface EngagementActionsProps {
+interface EnhancedEngagementActionsProps {
   entityId: string
   entityType: 'user' | 'book' | 'author' | 'publisher' | 'group' | 'activity'
   initialEngagementCount?: number
@@ -32,17 +33,18 @@ interface EngagementActionsProps {
   isLiked?: boolean
   isCommented?: boolean
   isPremium?: boolean
+  currentReaction?: ReactionType | null
   monetization?: {
     type: 'subscription' | 'pay_per_view' | 'freemium'
     price?: number
     currency?: string
   }
-  onEngagement?: (action: 'like' | 'comment' | 'share', entityId: string, entityType: string) => Promise<void>
+  onEngagement?: (action: 'like' | 'comment' | 'share', entityId: string, entityType: string, reactionType?: ReactionType) => Promise<void>
   onCommentAdded?: (comment: any) => void
   className?: string
 }
 
-export function EngagementActions({
+export function EnhancedEngagementActions({
   entityId,
   entityType,
   initialEngagementCount = 0,
@@ -50,23 +52,30 @@ export function EngagementActions({
   isLiked = false,
   isCommented = false,
   isPremium = false,
+  currentReaction = null,
   monetization,
   onEngagement,
   onCommentAdded,
   className = ""
-}: EngagementActionsProps) {
-  const { user } = useAuth()
+}: EnhancedEngagementActionsProps) {
   const { toast } = useToast()
+  const { user } = useAuth()
   
   // State for engagement data
   const [engagementCount, setEngagementCount] = useState(initialEngagementCount)
   const [commentCountState, setCommentCountState] = useState(commentCount)
   const [isLikedState, setLikedState] = useState(isLiked)
   const [isCommentedState, setCommentedState] = useState(isCommented)
+  const [currentReactionState, setCurrentReactionState] = useState<ReactionType | null>(currentReaction)
   const [loading, setLoading] = useState<'like' | 'comment' | null>(null)
   const [showCommentInput, setShowCommentInput] = useState(false)
   const [commentText, setCommentText] = useState("")
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
+  
+  // State for reaction popup
+  const [showReactionPopup, setShowReactionPopup] = useState(false)
+  const [reactionPopupPosition, setReactionPopupPosition] = useState<'top' | 'bottom'>('bottom')
+  const [reactionButtonRef, setReactionButtonRef] = useState<HTMLButtonElement | null>(null)
   
   // State for dropdown data
   const [likers, setLikers] = useState<any[]>([])
@@ -74,49 +83,21 @@ export function EngagementActions({
   const [isLoadingLikers, setIsLoadingLikers] = useState(false)
   const [isLoadingCommenters, setIsLoadingCommenters] = useState(false)
   
-  // Fetch engagement data function - REMOVED - using built-in counts from activities table
-  const fetchEngagementData = useCallback(async () => {
-    // Since engagement counts are now built into the activities table,
-    // we don't need to make a separate API call
-    console.log('✅ Using built-in engagement counts from activities table')
-    
-    // The engagement counts should come from the parent component
-    // This function is now a no-op since we're using direct data
-  }, [entityId, entityType])
-
-  // Use engagement counts directly from props instead of API calls
+  // Update state when props change
   useEffect(() => {
-    // If we have engagement counts passed as props, use them
-    if (engagementCount !== undefined && commentCount !== undefined) {
-      console.log('✅ Using engagement counts from props:', { engagementCount, commentCount })
-      return
-    }
-    
-    // Otherwise, try to get them from the parent component's data
-    // This is a fallback for when the component is used standalone
-    console.log('ℹ️ No engagement counts provided, component will show 0 counts')
-  }, [engagementCount, commentCount])
-
-  // Update state when props change (important for page refresh)
-  useEffect(() => {
-    console.log('🔄 Props updated - updating component state:', {
-      initialEngagementCount,
-      commentCount,
-      isLiked
-    })
-    
     setEngagementCount(initialEngagementCount || 0)
     setCommentCountState(commentCount || 0)
     setLikedState(isLiked || false)
     setCommentedState(isCommented || false)
-  }, [initialEngagementCount, commentCount, isLiked, isCommented])
+    setCurrentReactionState(currentReaction)
+  }, [initialEngagementCount, commentCount, isLiked, isCommented, currentReaction])
 
-  // Handle like/unlike action
-  const handleEngagement = useCallback(async () => {
+  // Handle reaction selection
+  const handleReactionSelect = useCallback(async (reactionType: ReactionType) => {
     if (!user) {
       toast({
         title: "Authentication required",
-        description: "Please log in to like posts",
+        description: "Please log in to react to posts",
         variant: "destructive"
       })
       return
@@ -125,16 +106,17 @@ export function EngagementActions({
     setLoading('like')
     
     try {
-      console.log('🔍 Attempting to like/unlike:', { entityId, entityType })
+      console.log('🔍 Attempting to react with:', { entityId, entityType, reactionType })
       
-      const response = await fetch('/api/engagement/like', {
+      const response = await fetch('/api/engagement/reaction', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           entity_type: entityType,
-          entity_id: entityId
+          entity_id: entityId,
+          reaction_type: reactionType
         })
       })
 
@@ -143,39 +125,84 @@ export function EngagementActions({
       }
 
       const result = await response.json()
-      console.log('✅ Like response:', result)
+      console.log('✅ Reaction response:', result)
 
-      // Toggle the like state
-      const newLikeState = !isLikedState
-      setLikedState(newLikeState)
+      // Update the reaction state
+      setCurrentReactionState(reactionType)
       
-      // Update the count
-      if (newLikeState) {
+      // If this is a new reaction, increment count
+      if (!currentReactionState) {
         setEngagementCount(prev => prev + 1)
-      } else {
+      }
+      
+      // If changing reaction type, keep same count
+      // If removing reaction, decrement count
+      if (result.action === 'removed') {
         setEngagementCount(prev => Math.max(0, prev - 1))
+        setCurrentReactionState(null)
       }
 
       toast({
-        title: newLikeState ? "Post liked!" : "Post unliked",
-        description: newLikeState ? "You liked this post" : "You unliked this post",
+        title: reactionType === currentReactionState ? "Reaction removed" : "Reaction added!",
+        description: reactionType === currentReactionState 
+          ? "Your reaction has been removed" 
+          : `You reacted with ${reactionType}!`,
         variant: "default"
       })
 
+      // Notify parent component
+      if (onEngagement) {
+        await onEngagement('like', entityId, entityType, reactionType)
+      }
+
     } catch (error) {
-      console.error('❌ Error toggling like:', error)
+      console.error('❌ Error setting reaction:', error)
       toast({
         title: "Error",
-        description: "Failed to like post. Please try again.",
+        description: "Failed to set reaction. Please try again.",
         variant: "destructive"
       })
     } finally {
-      setLoading(null)
+      setLoading(false)
     }
-  }, [user, entityId, entityType, isLikedState, toast])
+  }, [user, entityId, entityType, currentReactionState, onEngagement, toast])
+
+  // Handle like button hover to show reaction popup
+  const handleLikeButtonHover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    const button = event.currentTarget
+    const rect = button.getBoundingClientRect()
+    const viewportHeight = window.innerHeight
+    
+    // Determine if popup should appear above or below the button
+    const spaceBelow = viewportHeight - rect.bottom
+    const spaceAbove = rect.top
+    
+    if (spaceBelow < 100 && spaceAbove > 100) {
+      setReactionPopupPosition('top')
+    } else {
+      setReactionPopupPosition('bottom')
+    }
+    
+    setReactionButtonRef(button)
+    setShowReactionPopup(true)
+  }, [])
+
+  // Handle like button leave to hide reaction popup after delay
+  const handleLikeButtonLeave = useCallback(() => {
+    // Small delay to allow moving mouse to popup
+    setTimeout(() => {
+      if (!showReactionPopup) return
+      
+      // Check if mouse is over the popup
+      const popup = document.querySelector('[data-reaction-popup]')
+      if (popup && popup.matches(':hover')) return
+      
+      setShowReactionPopup(false)
+    }, 100)
+  }, [showReactionPopup])
 
   // Handle comment submission
-  const handleSubmitComment = useCallback(async () => {
+  const handleCommentSubmit = useCallback(async () => {
     if (!user) {
       toast({
         title: "Authentication required",
@@ -280,10 +307,10 @@ export function EngagementActions({
   // Format engagement count for display
   const formatEngagementCount = (count: number) => {
     if (count === 0) return ""
-    if (count === 1) return "1 like"
-    if (count < 1000) return `${count} likes`
-    if (count < 1000000) return `${(count / 1000).toFixed(1)}K likes`
-    return `${(count / 1000000).toFixed(1)}M likes`
+    if (count === 1) return "1 reaction"
+    if (count < 1000) return `${count} reactions`
+    if (count < 1000000) return `${(count / 1000).toFixed(1)}K reactions`
+    return `${(count / 1000000).toFixed(1)}M reactions`
   }
 
   // Format comment count for display
@@ -293,13 +320,39 @@ export function EngagementActions({
     return `${count} comments`
   }
 
+  // Get current reaction icon and color
+  const getCurrentReactionDisplay = () => {
+    if (!currentReactionState) return { icon: <ThumbsUp className="h-5 w-5" />, color: "text-gray-600" }
+    
+    switch (currentReactionState) {
+      case 'like':
+        return { icon: <ThumbsUp className="h-5 w-5" />, color: "text-blue-600" }
+      case 'love':
+        return { icon: <Heart className="h-5 w-5" />, color: "text-red-500" }
+      case 'care':
+        return { icon: <Heart className="h-5 w-5" />, color: "text-yellow-500" }
+      case 'haha':
+        return { icon: <Smile className="h-5 w-5" />, color: "text-yellow-500" }
+      case 'wow':
+        return { icon: <Star className="h-5 w-5" />, color: "text-purple-500" }
+      case 'sad':
+        return { icon: <AlertTriangle className="h-5 w-5" />, color: "text-blue-500" }
+      case 'angry':
+        return { icon: <Zap className="h-5 w-5" />, color: "text-red-600" }
+      default:
+        return { icon: <ThumbsUp className="h-5 w-5" />, color: "text-gray-600" }
+    }
+  }
+
+  const currentReactionDisplay = getCurrentReactionDisplay()
+
   return (
     <div className={cn("enterprise-engagement-actions", className)}>
       {/* Reactions Display Row */}
       {(engagementCount > 0 || commentCountState > 0) && (
         <div className="engagement-reactions-display flex items-center justify-between px-4 py-2 border-b border-gray-100">
           <div className="engagement-reactions-left flex items-center gap-2">
-            {/* Like reactions */}
+            {/* Reaction reactions */}
             {engagementCount > 0 && (
               <div className="engagement-reactions-likes flex items-center gap-1">
                 <div className="engagement-reaction-icon bg-blue-500 text-white rounded-full p-1">
@@ -328,22 +381,44 @@ export function EngagementActions({
 
       {/* Action Buttons Row */}
       <div className="engagement-action-buttons flex items-center justify-between px-4 py-2 border-b border-gray-100">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleEngagement}
-          disabled={loading === 'like'}
-          className={cn(
-            "engagement-action-button flex-1 h-10 rounded-lg transition-colors",
-            isLikedState 
-              ? "text-blue-600 hover:text-blue-700 hover:bg-blue-50" 
-              : "text-gray-600 hover:text-gray-700 hover:bg-gray-50"
+        {/* Enhanced Like Button with Reaction Popup */}
+        <div className="relative flex-1">
+          <Button
+            ref={setReactionButtonRef}
+            variant="ghost"
+            size="sm"
+            onMouseEnter={handleLikeButtonHover}
+            onMouseLeave={handleLikeButtonLeave}
+            disabled={loading === 'like'}
+            className={cn(
+              "engagement-action-button w-full h-10 rounded-lg transition-colors",
+              currentReactionState 
+                ? `${currentReactionDisplay.color} hover:bg-gray-50` 
+                : "text-gray-600 hover:text-gray-700 hover:bg-gray-50"
+            )}
+          >
+            <span className={cn("mr-2", currentReactionState && "fill-current")}>
+              {currentReactionDisplay.icon}
+            </span>
+            <span className="engagement-action-label">
+              {currentReactionState ? currentReactionState.charAt(0).toUpperCase() + currentReactionState.slice(1) : 'Like'}
+            </span>
+          </Button>
+          
+          {/* Reaction Popup */}
+          {showReactionPopup && reactionButtonRef && (
+            <ReactionPopup
+              isVisible={showReactionPopup}
+              onReactionSelect={handleReactionSelect}
+              onClose={() => setShowReactionPopup(false)}
+              position={reactionPopupPosition}
+              currentReaction={currentReactionState}
+              className="left-0"
+            />
           )}
-        >
-          <ThumbsUp className={cn("h-5 w-5 mr-2", isLikedState && "fill-current")} />
-          <span className="engagement-action-label">Like</span>
-        </Button>
+        </div>
 
+        {/* Comment Button */}
         <Button
           variant="ghost"
           size="sm"
@@ -355,6 +430,7 @@ export function EngagementActions({
           <span className="engagement-action-label">Comment</span>
         </Button>
 
+        {/* Share Button */}
         <Button
           variant="ghost"
           size="sm"
@@ -381,68 +457,72 @@ export function EngagementActions({
                   />
                 ) : (
                   <span className="text-sm font-medium text-gray-600">
-                    {user?.user_metadata?.full_name?.[0] || user?.email?.[0] || 'U'}
+                    {user?.user_metadata?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
                   </span>
                 )}
               </div>
             </div>
-
-            {/* Comment Input Area */}
-            <div className="engagement-comment-input-area flex-1">
-              <div className="engagement-comment-input-wrapper relative">
-                <Textarea
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  placeholder="Write a comment..."
-                  className="engagement-comment-textarea min-h-[40px] max-h-32 resize-none border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  rows={1}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault()
-                      handleSubmitComment()
-                    }
-                  }}
-                />
-                
-                {/* Comment Action Icons */}
-                <div className="engagement-comment-actions absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
+            
+            {/* Comment Input */}
+            <div className="engagement-comment-input-field flex-1">
+              <Textarea
+                placeholder="Write a comment..."
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                className="min-h-[80px] resize-none border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                disabled={isSubmittingComment}
+              />
+              
+              {/* Comment Actions */}
+              <div className="flex items-center justify-between mt-3">
+                <div className="flex items-center gap-2">
+                  {/* Image Upload Button */}
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
-                    className="engagement-comment-action-icon p-1 h-6 w-6 text-gray-400 hover:text-gray-600"
-                    title="Add emoji"
+                    className="h-8 px-3 text-xs"
+                    disabled={isSubmittingComment}
                   >
-                    <Smile className="h-4 w-4" />
-                  </Button>
-                  
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="engagement-comment-action-icon p-1 h-6 w-6 text-gray-400 hover:text-gray-600"
-                    title="Add photo"
-                  >
-                    <ImageIcon className="h-4 w-4" />
+                    <ImageIcon className="h-4 w-4 mr-1" />
+                    Photo
                   </Button>
                 </div>
-              </div>
-
-              {/* Comment Submit Button */}
-              <div className="engagement-comment-submit mt-2 flex justify-end">
-                <Button
-                  onClick={handleSubmitComment}
-                  disabled={!commentText.trim() || isSubmittingComment}
-                  size="sm"
-                  className="engagement-comment-submit-button bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSubmittingComment ? (
-                    <div className="flex items-center gap-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Posting...
-                    </div>
-                  ) : (
-                    "Post"
-                  )}
-                </Button>
+                
+                <div className="flex items-center gap-2">
+                  {/* Cancel Button */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setShowCommentInput(false)
+                      setCommentText("")
+                    }}
+                    disabled={isSubmittingComment}
+                    className="h-8 px-3 text-xs"
+                  >
+                    Cancel
+                  </Button>
+                  
+                  {/* Submit Button */}
+                  <Button
+                    size="sm"
+                    onClick={handleCommentSubmit}
+                    disabled={!commentText.trim() || isSubmittingComment}
+                    className="h-8 px-4 text-xs"
+                  >
+                    {isSubmittingComment ? (
+                      <>
+                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>
+                        Posting...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-3 w-3 mr-1" />
+                        Post
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -450,4 +530,4 @@ export function EngagementActions({
       )}
     </div>
   )
-} 
+}

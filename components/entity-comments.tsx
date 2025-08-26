@@ -18,13 +18,17 @@ import {
   Flag,
   Trash2,
   ChevronDown,
-  Users
+  Users,
+  ThumbsUp,
+  Smile,
+  Image as ImageIcon
 } from 'lucide-react'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { cn } from '@/lib/utils'
 
 interface Comment {
   id: string
@@ -99,9 +103,9 @@ export default function EntityComments({
         
         setCurrentUser({
           id: user.id,
+          name: userData?.name || user.email,
           email: user.email,
-          name: userData?.name || user.email?.split('@')[0] || 'User',
-          avatar_url: undefined // We'll handle avatars separately if needed
+          avatar_url: user.user_metadata?.avatar_url
         })
       }
     } catch (error) {
@@ -109,657 +113,504 @@ export default function EntityComments({
     }
   }
 
-  // Load comments for the entity
-  const loadComments = useCallback(async () => {
+  // Fetch comments
+  const fetchComments = useCallback(async () => {
+    if (!entityId || !entityType) return
+    
+    setIsLoading(true)
     try {
-      setIsLoading(true)
+      console.log('🔍 Fetching comments for:', { entityId, entityType })
       
-      console.log('🔍 EntityComments: Loading comments for entity:', { entityId, entityType })
-      
-      // Use the correct engagement system - call the get_entity_engagement function
-      const response = await fetch(`/api/engagement?entity_type=${entityType}&entity_id=${entityId}`)
-      
+      const response = await fetch(`/api/engagement?entity_id=${entityId}&entity_type=${entityType}`)
       if (!response.ok) {
-        throw new Error(`Failed to load comments: ${response.status}`)
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
       
       const data = await response.json()
       console.log('🔍 EntityComments: Raw API response:', data)
       
-      const commentsData = data.recent_comments || []
-      console.log('🔍 EntityComments: Comments data from API:', commentsData)
+      if (data.comments && Array.isArray(data.comments)) {
+        console.log('🔍 EntityComments: Comments data from API:', data.comments)
+        setComments(data.comments)
+      } else {
+        console.log('🔍 EntityComments: No comments data or invalid format:', data)
+        setComments([])
+      }
       
-      // Transform the comment data to match the Comment interface
-      const transformedComments: Comment[] = commentsData.map((comment: any) => ({
-        id: comment.id,
-        user_id: comment.user_id,
-        entity_type: entityType,
-        entity_id: entityId,
-        content: comment.comment_text || comment.content || '',
-        parent_id: comment.parent_comment_id || comment.parent_id || null,
-        created_at: comment.created_at,
-        updated_at: comment.updated_at,
-        is_hidden: comment.is_hidden || false,
-        is_deleted: comment.is_deleted || false,
-        user: {
-          id: comment.user?.id || comment.user_id,
-          name: comment.user?.name || comment.user?.email || 'Unknown User',
-          avatar_url: comment.user?.avatar_url || undefined
-        },
-        replies: comment.replies || [] // Handle nested replies if available
-      }))
-
-      console.log('🔍 EntityComments: Transformed comments:', transformedComments)
-      setComments(transformedComments)
+      // Update engagement counts
+      if (data.likes) {
+        setLikeCount(data.likes.length || 0)
+      }
+      
     } catch (error) {
-      console.error('Error loading comments:', error)
-      // Set empty comments array on error to prevent UI issues
-      setComments([])
+      console.error('❌ Error fetching comments:', error)
+      toast({
+        title: "Error",
+        description: "Failed to load comments",
+        variant: "destructive"
+      })
     } finally {
       setIsLoading(false)
     }
-  }, [entityType, entityId])
+  }, [entityId, entityType, toast])
 
-  // Load like status and count
-  const loadLikeStatus = useCallback(async () => {
+  // Submit new comment
+  const submitComment = useCallback(async () => {
+    if (!newComment.trim() || !currentUser) return
+    
+    setIsSubmitting(true)
     try {
-      if (!currentUser) return
-
-      // Use the correct engagement system - call the get_entity_engagement function
-      const response = await fetch(`/api/engagement?entity_type=${entityType}&entity_id=${entityId}`)
-      
-      if (!response.ok) {
-        throw new Error(`Failed to load like status: ${response.status}`)
-      }
-      
-      const data = await response.json()
-      
-      // Check if current user liked this entity
-      const userLike = data.recent_likes?.find((like: any) => like.user_id === currentUser.id)
-      setIsLiked(!!userLike)
-      
-      // Set like count
-      setLikeCount(data.likes_count || 0)
-    } catch (error) {
-      console.error('Error loading like status:', error)
-      // Set default values on error
-      setIsLiked(false)
-      setLikeCount(0)
-    }
-  }, [entityType, entityId, currentUser])
-
-  // Handle like toggle
-  const handleLike = async () => {
-    try {
-      if (!currentUser) {
-        toast({
-          title: "Error",
-          description: "You must be logged in to like",
-          variant: "destructive"
-        })
-        return
-      }
-
-      // Use the correct engagement system - call the toggle_entity_like function
-      const response = await fetch(`/api/engagement/like`, {
+      const response = await fetch('/api/engagement/comment', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          entity_type: entityType,
-          entity_id: entityId
-        })
-      })
-
-      if (!response.ok) {
-        throw new Error(`Failed to toggle like: ${response.status}`)
-      }
-
-      // Toggle local state
-      setIsLiked(!isLiked)
-      setLikeCount(prev => isLiked ? Math.max(0, prev - 1) : prev + 1)
-      
-      // Reload like status to ensure consistency
-      await loadLikeStatus()
-    } catch (error) {
-      console.error('Error toggling like:', error)
-      toast({
-        title: "Error",
-        description: "Failed to update like",
-        variant: "destructive"
-      })
-    }
-  }
-
-  // Handle comment submission
-  const handleComment = useCallback(async (content: string, parentId?: string) => {
-    try {
-      setIsSubmitting(true)
-      
-      // Check if this is a timeline photo (generated ID) or a real database entity
-      const isTimelinePhoto = entityId.startsWith('post-') || entityId.startsWith('preview-')
-      
-      if (isTimelinePhoto) {
-        toast({
-          title: "Info",
-          description: "Comments are not available for timeline photos",
-          variant: "default"
-        })
-        return
-      }
-      
-      // Use the correct engagement system - call the add_engagement_comment function
-      const response = await fetch(`/api/engagement/comment`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           entity_type: entityType,
           entity_id: entityId,
-          comment_text: content.trim(),
-          parent_comment_id: parentId || null
+          comment_text: newComment.trim()
         })
       })
 
       if (!response.ok) {
-        throw new Error(`Failed to add comment: ${response.status}`)
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      // Clear form
-      if (parentId) {
-        setReplyContent('')
-        setReplyingTo(null)
-      } else {
-        setNewComment('')
-        // Clear the contentEditable div
-        if (commentInputRef.current) {
-          commentInputRef.current.innerText = ''
-        }
+      const result = await response.json()
+      console.log('✅ Comment submitted:', result)
+
+      // Add new comment to local state
+      const newCommentObj: Comment = {
+        id: result.comment_id || `comment-${Date.now()}`,
+        user_id: currentUser.id,
+        entity_type: entityType,
+        entity_id: entityId,
+        content: newComment.trim(),
+        parent_id: undefined,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        is_hidden: false,
+        is_deleted: false,
+        user: {
+          id: currentUser.id,
+          name: currentUser.name,
+          avatar_url: currentUser.avatar_url
+        },
+        replies: [],
+        reaction_count: 0,
+        user_reaction: undefined
       }
 
-      // Reload comments
-      await loadComments()
+      setComments(prev => [newCommentObj, ...prev])
+      setNewComment('')
       
       toast({
-        title: "Success",
-        description: "Comment added successfully"
+        title: "Comment posted!",
+        description: "Your comment has been added",
+        variant: "default"
       })
+
     } catch (error) {
-      console.error('Error adding comment:', error)
+      console.error('❌ Error submitting comment:', error)
       toast({
         title: "Error",
-        description: "Failed to add comment",
+        description: "Failed to post comment. Please try again.",
         variant: "destructive"
       })
     } finally {
       setIsSubmitting(false)
     }
-  }, [entityType, entityId, commentInputRef, loadComments])
+  }, [newComment, currentUser, entityType, entityId, toast])
 
-  // Handle share
-  const handleShare = () => {
-    toast({
-      title: "Info",
-      description: "Share functionality coming soon",
-      variant: "default"
-    })
-  }
+  // Handle reply submission
+  const submitReply = useCallback(async (parentCommentId: string) => {
+    if (!replyContent.trim() || !currentUser) return
+    
+    try {
+      const response = await fetch('/api/engagement/comment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          entity_type: entityType,
+          entity_id: entityId,
+          comment_text: replyContent.trim(),
+          parent_id: parentCommentId
+        })
+      })
 
-  // Handle bookmark
-  const handleBookmark = () => {
-    toast({
-      title: "Info",
-      description: "Bookmark functionality coming soon",
-      variant: "default"
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const result = await response.json()
+      console.log('✅ Reply submitted:', result)
+
+      // Add new reply to local state
+      const newReply: Comment = {
+        id: result.comment_id || `reply-${Date.now()}`,
+        user_id: currentUser.id,
+        entity_type: entityType,
+        entity_id: entityId,
+        content: replyContent.trim(),
+        parent_id: parentCommentId,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        is_hidden: false,
+        is_deleted: false,
+        user: {
+          id: currentUser.id,
+          name: currentUser.name,
+          avatar_url: currentUser.avatar_url
+        },
+        replies: [],
+        reaction_count: 0,
+        user_reaction: undefined
+      }
+
+      // Update comments with new reply
+      setComments(prev => prev.map(comment => {
+        if (comment.id === parentCommentId) {
+          return {
+            ...comment,
+            replies: [...(comment.replies || []), newReply]
+          }
+        }
+        return comment
+      }))
+
+      setReplyContent('')
+      setReplyingTo(null)
+      
+      toast({
+        title: "Reply posted!",
+        description: "Your reply has been added",
+        variant: "default"
+      })
+
+    } catch (error) {
+      console.error('❌ Error submitting reply:', error)
+      toast({
+        title: "Error",
+        description: "Failed to post reply. Please try again.",
+        variant: "destructive"
+      })
+    }
+  }, [replyContent, currentUser, entityType, entityId, toast])
+
+  // Format timestamp
+  const formatTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp)
+    const now = new Date()
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+    
+    if (diffInSeconds < 60) return 'Just now'
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`
+    if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d ago`
+    
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
     })
   }
 
   // Load data on mount
   useEffect(() => {
     getCurrentUser()
-  }, [])
+    fetchComments()
+  }, [fetchComments])
 
-  useEffect(() => {
-    if (currentUser) {
-      loadComments()
-      loadLikeStatus()
+  // Handle Enter key in comment input
+  const handleCommentKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      submitComment()
     }
-  }, [currentUser, loadComments, loadLikeStatus])
-
-  // Debug logging
-  useEffect(() => {
-    console.log('🔍 EntityComments: Component state:', { 
-      isLoading, 
-      commentsCount: comments.length, 
-      comments,
-      entityId,
-      entityType,
-      currentUser: !!currentUser
-    })
-  }, [isLoading, comments, entityId, entityType, currentUser])
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    })
   }
 
-  // Get unique commenters for the comment count display
-  const uniqueCommenters = comments.reduce((acc, comment) => {
-    if (!acc.find(u => u.id === comment.user.id)) {
-      acc.push(comment.user)
-    }
-    comment.replies?.forEach(reply => {
-      if (!acc.find(u => u.id === reply.user.id)) {
-        acc.push(reply.user)
+  // Handle Enter key in reply input
+  const handleReplyKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      if (replyingTo) {
+        submitReply(replyingTo)
       }
-    })
-    return acc
-  }, [] as any[])
-
-  // Get all likers for the like count display
-  const [likers, setLikers] = useState<any[]>([])
-  
-  const loadLikers = useCallback(async () => {
-    try {
-      // Use the correct engagement system - call the get_entity_engagement function
-      const response = await fetch(`/api/engagement?entity_type=${entityType}&entity_id=${entityId}`)
-      
-      if (!response.ok) {
-        throw new Error(`Failed to load likers: ${response.status}`)
-      }
-      
-      const data = await response.json()
-      const likesData = data.recent_likes || []
-      
-      // Transform the data to match the expected format
-      const transformedLikers = likesData.map((like: any) => ({
-        id: like.user_id,
-        name: like.user_name || 'Unknown User',
-        email: like.user_email
-      })).filter(Boolean)
-      
-      setLikers(transformedLikers)
-    } catch (error) {
-      console.error('Error loading likers:', error)
-      setLikers([])
     }
-  }, [entityType, entityId])
-
-  useEffect(() => {
-    loadLikers()
-  }, [loadLikers])
+  }
 
   return (
-    <div className="bg-white rounded-lg border shadow-sm">
-      {/* Entity Header */}
-      <div className="flex items-center gap-3 p-4 border-b">
-        <Avatar 
-          src={entityAvatar || entityDisplayInfo?.avatar} 
-          name={entityName || entityDisplayInfo?.name || 'Entity'}
-          className="w-10 h-10 flex-shrink-0"
-        />
-        <div className="flex-1">
-          <div className="font-medium text-sm">{entityName || entityDisplayInfo?.name || 'Entity'}</div>
-          <div className="text-xs text-gray-500">{formatDate(entityCreatedAt || new Date().toISOString())}</div>
-        </div>
+    <div className="entity-comments-container bg-white rounded-lg border border-gray-200">
+      {/* Comments Header */}
+      <div className="entity-comments-header px-4 py-3 border-b border-gray-100">
+        <h3 className="entity-comments-title text-lg font-semibold text-gray-900">
+          Comments ({comments.length})
+        </h3>
       </div>
 
-      {/* Social Actions */}
-      <div className="flex items-center justify-between p-4 border-b">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleLike}
-            disabled={entityId.startsWith('post-') || entityId.startsWith('preview-')}
-            className={`flex items-center gap-2 ${isLiked ? 'text-red-500' : 'text-gray-600'} ${(entityId.startsWith('post-') || entityId.startsWith('preview-')) ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
-            <span className="text-sm">{likeCount}</span>
-          </Button>
+      {/* Comment Input Section */}
+      {currentUser && (
+        <div className="entity-comment-input-section px-4 py-3 border-b border-gray-100">
+          <div className="entity-comment-input-container flex items-start gap-3">
+            {/* User Avatar */}
+            <div className="entity-comment-avatar flex-shrink-0">
+              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                {currentUser.avatar_url ? (
+                  <img 
+                    src={currentUser.avatar_url} 
+                    alt="User avatar" 
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="text-sm font-medium text-gray-600">
+                    {currentUser.name?.[0] || currentUser.email?.[0] || 'U'}
+                  </span>
+                )}
+              </div>
+            </div>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleShare}
-            disabled={entityId.startsWith('post-') || entityId.startsWith('preview-')}
-            className={`flex items-center gap-2 text-gray-600 ${(entityId.startsWith('post-') || entityId.startsWith('preview-')) ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            <Share2 className="w-4 h-4" />
-            <span className="text-sm">{shareCount}</span>
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleBookmark}
-            disabled={entityId.startsWith('post-') || entityId.startsWith('preview-')}
-            className={`flex items-center gap-2 text-gray-600 ${(entityId.startsWith('post-') || entityId.startsWith('preview-')) ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            <Download className={`w-4 h-4`} />
-            <span className="text-sm">{bookmarkCount}</span>
-          </Button>
-        </div>
-      </div>
-
-      {/* Engagement Summary - Facebook Style */}
-      <div className="px-4 py-2 border-b bg-gray-50">
-        <div className="flex items-center gap-4 text-sm text-gray-600">
-          {/* Like Count with Hover Dropdown */}
-          {likeCount > 0 && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-auto p-0 text-sm text-gray-600 hover:text-gray-900">
-                  <Heart className="w-4 h-4 mr-1 fill-current text-red-500" />
-                  {likeCount} {likeCount === 1 ? 'person' : 'people'} liked this
-                  <ChevronDown className="w-3 h-3 ml-1" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 p-0" align="start">
-                <div className="p-3 border-b">
-                  <h4 className="font-medium text-sm">People who liked this</h4>
+            {/* Comment Input Area */}
+            <div className="entity-comment-input-area flex-1">
+              <div className="entity-comment-input-wrapper relative">
+                <textarea
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Write a comment..."
+                  className="entity-comment-textarea w-full min-h-[40px] max-h-32 resize-none border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  rows={1}
+                  onKeyDown={handleCommentKeyDown}
+                  disabled={isSubmitting}
+                />
+                
+                {/* Comment Action Icons */}
+                <div className="entity-comment-actions absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="entity-comment-action-icon p-1 h-6 w-6 text-gray-400 hover:text-gray-600"
+                    title="Add emoji"
+                  >
+                    <Smile className="h-4 w-4" />
+                  </Button>
+                  
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="entity-comment-action-icon p-1 h-6 w-6 text-gray-400 hover:text-gray-600"
+                    title="Add photo"
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                  </Button>
                 </div>
-                <div className="max-h-60 overflow-y-auto">
-                  {likers.map((liker) => (
-                    <div key={liker.id} className="flex items-center gap-3 p-3 hover:bg-gray-50">
-                      <Avatar 
-                        src={liker.avatar_url} 
-                        name={liker.name}
-                        className="w-8 h-8"
-                      />
-                      <div className="flex-1">
-                        <div className="font-medium text-sm">{liker.name}</div>
-                      </div>
+              </div>
+
+              {/* Comment Submit Button */}
+              <div className="entity-comment-submit mt-2 flex justify-end">
+                <Button
+                  onClick={submitComment}
+                  disabled={!newComment.trim() || isSubmitting}
+                  size="sm"
+                  className="entity-comment-submit-button bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Posting...
                     </div>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-          )}
-
-          {/* Comment Count with Hover Dropdown */}
-          {comments.length > 0 && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-auto p-0 text-sm text-gray-600 hover:text-gray-900">
-                  <MessageCircle className="w-4 h-4 mr-1" />
-                  {comments.length} {comments.length === 1 ? 'comment' : 'comments'}
-                  <ChevronDown className="w-3 h-3 ml-1" />
+                  ) : (
+                    "Post"
+                  )}
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 p-0" align="start">
-                <div className="p-3 border-b">
-                  <h4 className="font-medium text-sm">People who commented</h4>
-                </div>
-                <div className="max-h-60 overflow-y-auto">
-                  {uniqueCommenters.map((commenter) => (
-                    <div key={commenter.id} className="flex items-center gap-3 p-3 hover:bg-gray-50">
-                      <Avatar 
-                        src={commenter.avatar_url} 
-                        name={commenter.name}
-                        className="w-8 h-8"
-                      />
-                      <div className="flex-1">
-                        <div className="font-medium text-sm">{commenter.name}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-          )}
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Comments Section */}
-      <div className="flex-1 overflow-y-auto p-4">
+      {/* Comments List */}
+      <div className="entity-comments-list">
         {isLoading ? (
-          <div className="text-center text-gray-500 py-4">Loading comments...</div>
+          <div className="entity-comments-loading px-4 py-8 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+            <p className="text-gray-500">Loading comments...</p>
+          </div>
         ) : comments.length === 0 ? (
-          <div className="text-center text-gray-500 py-4">No comments yet. Be the first to comment!</div>
+          <div className="entity-comments-empty px-4 py-8 text-center">
+            <MessageCircle className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+            <h4 className="text-lg font-medium text-gray-900 mb-1">No comments yet</h4>
+            <p className="text-gray-500">Be the first to comment!</p>
+          </div>
         ) : (
-          <div className="space-y-4">
+          <div className="entity-comments-items divide-y divide-gray-100">
             {comments.map((comment) => (
-              <CommentItem
-                key={comment.id}
-                comment={comment}
-                currentUser={currentUser}
-                onReply={(commentId) => setReplyingTo(commentId)}
-                onSubmitReply={(commentId) => handleComment(replyContent, commentId)}
-                replyContent={replyContent}
-                setReplyContent={setReplyContent}
-                isReplying={replyingTo === comment.id}
-                isSubmitting={isSubmitting}
-              />
+              <div key={comment.id} className="entity-comment-item px-4 py-3">
+                <div className="entity-comment-content flex items-start gap-3">
+                  {/* Comment Avatar */}
+                  <div className="entity-comment-avatar flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                      {comment.user.avatar_url ? (
+                        <img 
+                          src={comment.user.avatar_url} 
+                          alt="User avatar" 
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-sm font-medium text-gray-600">
+                          {comment.user.name?.[0] || 'U'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Comment Details */}
+                  <div className="entity-comment-details flex-1 min-w-0">
+                    {/* Comment Header */}
+                    <div className="entity-comment-header flex items-center gap-2 mb-1">
+                      <span className="entity-comment-author font-medium text-sm text-gray-900">
+                        {comment.user.name}
+                      </span>
+                      <span className="entity-comment-timestamp text-xs text-gray-500">
+                        {formatTimestamp(comment.created_at)}
+                      </span>
+                    </div>
+
+                    {/* Comment Text */}
+                    <div className="entity-comment-text text-sm text-gray-700 mb-2">
+                      {comment.content}
+                    </div>
+
+                    {/* Comment Actions */}
+                    <div className="entity-comment-actions flex items-center gap-4">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="entity-comment-action text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                        onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                      >
+                        <Reply className="h-3 w-3 mr-1" />
+                        Reply
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="entity-comment-action text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                      >
+                        <ThumbsUp className="h-3 w-3 mr-1" />
+                        Like
+                      </Button>
+
+                      <span className="entity-comment-timestamp text-xs text-gray-400">
+                        {formatTimestamp(comment.created_at)}
+                      </span>
+                    </div>
+
+                    {/* Reply Input */}
+                    {replyingTo === comment.id && (
+                      <div className="entity-reply-input mt-3">
+                        <div className="entity-reply-input-container flex items-start gap-2">
+                          <div className="entity-reply-avatar flex-shrink-0">
+                            <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
+                              {currentUser?.avatar_url ? (
+                                <img 
+                                  src={currentUser.avatar_url} 
+                                  alt="User avatar" 
+                                  className="w-6 h-6 rounded-full object-cover"
+                                />
+                              ) : (
+                                <span className="text-xs font-medium text-gray-600">
+                                  {currentUser?.name?.[0] || currentUser?.email?.[0] || 'U'}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="entity-reply-input-area flex-1">
+                            <textarea
+                              value={replyContent}
+                              onChange={(e) => setReplyContent(e.target.value)}
+                              placeholder="Write a reply..."
+                              className="entity-reply-textarea w-full min-h-[32px] max-h-24 resize-none border border-gray-200 rounded-lg px-2 py-1 text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              rows={1}
+                              onKeyDown={handleReplyKeyDown}
+                            />
+                            
+                            <div className="entity-reply-submit mt-2 flex justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setReplyingTo(null)
+                                  setReplyContent('')
+                                }}
+                                className="entity-reply-cancel text-xs text-gray-500 hover:text-gray-700"
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                onClick={() => submitReply(comment.id)}
+                                disabled={!replyContent.trim()}
+                                size="sm"
+                                className="entity-reply-submit-button bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                Reply
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Replies */}
+                    {comment.replies && comment.replies.length > 0 && (
+                      <div className="entity-comment-replies mt-3 ml-8 space-y-2">
+                        {comment.replies.map((reply) => (
+                          <div key={reply.id} className="entity-reply-item bg-gray-50 rounded-lg p-2">
+                            <div className="entity-reply-content flex items-start gap-2">
+                              <div className="entity-reply-avatar flex-shrink-0">
+                                <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
+                                  {reply.user.avatar_url ? (
+                                    <img 
+                                      src={reply.user.avatar_url} 
+                                      alt="User avatar" 
+                                      className="w-6 h-6 rounded-full object-cover"
+                                    />
+                                  ) : (
+                                    <span className="text-xs font-medium text-gray-600">
+                                      {reply.user.name?.[0] || 'U'}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="entity-reply-details flex-1 min-w-0">
+                                <div className="entity-reply-header flex items-center gap-2 mb-1">
+                                  <span className="entity-reply-author font-medium text-xs text-gray-900">
+                                    {reply.user.name}
+                                  </span>
+                                  <span className="entity-reply-timestamp text-xs text-gray-500">
+                                    {formatTimestamp(reply.created_at)}
+                                  </span>
+                                </div>
+
+                                <div className="entity-reply-text text-xs text-gray-700">
+                                  {reply.content}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         )}
       </div>
-
-      {/* Comment Input */}
-      <div className="p-4 border-t">
-        {entityId.startsWith('post-') || entityId.startsWith('preview-') ? (
-          <div className="text-center text-gray-500 py-4">
-            Comments are not available for timeline photos
-          </div>
-        ) : (
-          <div className="flex items-start gap-3">
-            <Avatar 
-              src={currentUser?.avatar_url} 
-              name={currentUser?.name}
-              className="w-10 h-10 flex-shrink-0"
-            />
-            <div className="flex-1">
-              <div
-                ref={commentInputRef}
-                contentEditable
-                className="min-h-[40px] max-h-[120px] px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                data-placeholder="Write a comment..."
-                onInput={(e) => {
-                  const text = e.currentTarget.innerText || ''
-                  setNewComment(text)
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault()
-                    if (newComment.trim()) {
-                      handleComment(newComment)
-                    }
-                  }
-                }}
-                suppressContentEditableWarning
-              />
-              <div className="flex items-center justify-between mt-2">
-                <div className="text-xs text-gray-500">
-                  Comment as {currentUser?.name || "User"}
-                </div>
-                <Button
-                  size="sm"
-                  onClick={() => handleComment(newComment)}
-                  disabled={!newComment.trim() || isSubmitting}
-                  className="flex items-center gap-2"
-                >
-                  <Send className="w-4 h-4" />
-                  Post
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-// Comment Item Component
-interface CommentItemProps {
-  comment: Comment
-  currentUser: any
-  onReply: (commentId: string) => void
-  onSubmitReply: (commentId: string) => void
-  replyContent: string
-  setReplyContent: (content: string) => void
-  isReplying: boolean
-  isSubmitting: boolean
-}
-
-function CommentItem({
-  comment,
-  currentUser,
-  onReply,
-  onSubmitReply,
-  replyContent,
-  setReplyContent,
-  isReplying,
-  isSubmitting
-}: CommentItemProps) {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    })
-  }
-
-  return (
-    <div className="space-y-3">
-      {/* Main Comment */}
-      <div className="flex items-start gap-3">
-        <UserHoverCard user={comment.user}>
-          <Avatar 
-            src={comment.user.avatar_url} 
-            name={comment.user.name}
-            className="w-10 h-10 flex-shrink-0"
-          />
-        </UserHoverCard>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <UserHoverCard user={comment.user}>
-              <span className="font-medium text-sm hover:underline cursor-pointer">
-                {comment.user.name}
-              </span>
-            </UserHoverCard>
-            <span className="text-xs text-gray-500">{formatDate(comment.created_at)}</span>
-          </div>
-          <div className="text-sm text-gray-900 mb-2">{comment.content}</div>
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onReply(comment.id)}
-              className="text-xs text-gray-600 hover:text-gray-900"
-            >
-              <Reply className="w-3 h-3 mr-1" />
-              Reply
-            </Button>
-            {currentUser?.id === comment.user.id && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-xs text-gray-600 hover:text-red-600"
-              >
-                <Trash2 className="w-3 h-3 mr-1" />
-                Delete
-              </Button>
-            )}
-            {currentUser?.id !== comment.user.id && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-xs text-gray-600 hover:text-orange-600"
-              >
-                <Flag className="w-3 h-3 mr-1" />
-                Report
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Reply Input */}
-      {isReplying && (
-        <div className="ml-11">
-          <div className="flex items-start gap-3">
-            <Avatar 
-              src={currentUser?.avatar_url} 
-              name={currentUser?.name}
-              className="w-8 h-8 flex-shrink-0"
-            />
-            <div className="flex-1">
-              <div
-                contentEditable
-                className="min-h-[32px] max-h-[100px] px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                data-placeholder="Write a reply..."
-                onInput={(e) => {
-                  const text = e.currentTarget.innerText || ''
-                  setReplyContent(text)
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault()
-                    if (replyContent.trim()) {
-                      onSubmitReply(comment.id)
-                    }
-                  }
-                }}
-                suppressContentEditableWarning
-              />
-              <div className="flex items-center justify-between mt-2">
-                <div className="text-xs text-gray-500">
-                  Reply as {currentUser?.name || "User"}
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onReply('')}
-                    className="text-xs"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => onSubmitReply(comment.id)}
-                    disabled={!replyContent.trim() || isSubmitting}
-                    className="text-xs"
-                  >
-                    Reply
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Replies */}
-      {comment.replies && comment.replies.length > 0 && (
-        <div className="ml-11 space-y-3">
-          {comment.replies.map((reply) => (
-            <div key={reply.id} className="flex items-start gap-3">
-              <UserHoverCard user={reply.user}>
-                <Avatar 
-                  src={reply.user.avatar_url} 
-                  name={reply.user.name}
-                  className="w-8 h-8 flex-shrink-0"
-                />
-              </UserHoverCard>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <UserHoverCard user={reply.user}>
-                    <span className="font-medium text-xs hover:underline cursor-pointer">
-                      {reply.user.name}
-                    </span>
-                  </UserHoverCard>
-                  <span className="text-xs text-gray-500">{formatDate(reply.created_at)}</span>
-                </div>
-                <div className="text-sm text-gray-900">{reply.content}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   )
 } 

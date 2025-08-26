@@ -1,15 +1,15 @@
 # ENTERPRISE DATABASE RECOVERY MANIFEST
         
 ## Backup Information
-- **Backup Date**: 2025-08-26 13:39:13
-- **Backup ID**: 20250826_133327
+- **Backup Date**: 2025-08-26 09:54:40
+- **Backup ID**: 20250826_094832
 - **Project**: AuthorsInfo Enterprise Platform
 
 ## Recovery Files Created
-1. **Complete Backup**: `complete_backup_20250826_133327.sql` (FULL RESTORATION)
-2. **Schema Only**: `schema_20250826_133327.sql` (Structure only)  
-3. **Data Only**: `data_only_20250826_133327.sql` (Data only)
-4. **Functions/Triggers**: `functions_triggers_20250826_133327.sql` (Custom logic)
+1. **Complete Backup**: `complete_backup_20250826_094832.sql` (FULL RESTORATION)
+2. **Schema Only**: `schema_20250826_094832.sql` (Structure only)  
+3. **Data Only**: `data_only_20250826_094832.sql` (Data only)
+4. **Functions/Triggers**: `functions_triggers_20250826_094832.sql` (Custom logic)
 5. **Main Backups**: Updated `complete_backup.sql`, `current_schema.sql`
 
 ## EMERGENCY RECOVERY PROCEDURES
@@ -29,22 +29,22 @@ npx supabase db pull
 ### SCENARIO 2: Schema Corruption Only
 ```bash
 # Step 1: Apply schema backup
-npx supabase db push --db-url YOUR_DB_URL --file ./schemas/schema_20250826_133327.sql
+npx supabase db push --db-url YOUR_DB_URL --file ./schemas/schema_20250826_094832.sql
 
 # Step 2: Apply custom functions
-npx supabase db push --db-url YOUR_DB_URL --file ./db_backups/functions_triggers_20250826_133327.sql
+npx supabase db push --db-url YOUR_DB_URL --file ./db_backups/functions_triggers_20250826_094832.sql
 ```
 
 ### SCENARIO 3: Data Loss Only
 ```bash
 # Apply data backup
-npx supabase db push --db-url YOUR_DB_URL --file ./db_backups/data_only_20250826_133327.sql
+npx supabase db push --db-url YOUR_DB_URL --file ./db_backups/data_only_20250826_094832.sql
 ```
 
 ### SCENARIO 4: Functions/Triggers Lost
 ```bash
 # Restore custom functions and triggers
-npx supabase db push --db-url YOUR_DB_URL --file ./db_backups/functions_triggers_20250826_133327.sql
+npx supabase db push --db-url YOUR_DB_URL --file ./db_backups/functions_triggers_20250826_094832.sql
 ```
 
 ## VERIFICATION CHECKLIST
@@ -65,25 +65,25 @@ After restoration, verify:
     "files_created": [
       "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\schemas\\current_schema.sql",
       "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\current_schema.sql",
-      "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\schemas\\schema_20250826_133327.sql"
+      "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\schemas\\schema_20250826_094832.sql"
     ]
   },
   "complete_backup": {
-    "lines": 23084,
-    "size_kb": 1671.73,
-    "file": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\complete_backup_20250826_133327.sql",
+    "lines": 22069,
+    "size_kb": 1409.13,
+    "file": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\complete_backup_20250826_094832.sql",
     "main_file": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\complete_backup.sql"
   },
   "data_backup": {
-    "lines": 4530,
-    "size_kb": 1074.86,
-    "file": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\data_only_20250826_133327.sql",
+    "lines": 3515,
+    "size_kb": 812.25,
+    "file": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\data_only_20250826_094832.sql",
     "main_file": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\data_only_backup.sql"
   },
   "functions_backup": {
     "lines": 1838,
     "size_kb": 78.5,
-    "file": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\functions_triggers_20250826_133327.sql",
+    "file": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\functions_triggers_20250826_094832.sql",
     "main_file": "C:\\Users\\cshan\\OneDrive\\Desktop\\Projects\\new\\v0-4-11-2025-authors-info-2\\db_backups\\functions_triggers.sql"
   }
 }

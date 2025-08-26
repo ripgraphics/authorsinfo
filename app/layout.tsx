@@ -9,6 +9,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { ClientLayout } from "@/components/client-layout"
 import { RealTimeNotifications } from "@/components/real-time-notifications"
 import { UserProvider } from "@/contexts/UserContext"
+import { EngagementProvider } from "@/contexts/engagement-context"
 import { ApiCallMonitor } from "@/components/debug/ApiCallMonitor"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -29,14 +30,16 @@ export default function RootLayout({
       <body suppressHydrationWarning className={`${inter.className} root-layout__body min-h-screen flex flex-col items-center`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <UserProvider>
-            <div className="root-layout__content-wrapper w-full">
-              <ClientLayout>
-                {children}
-              </ClientLayout>
-              <RealTimeNotifications />
-            </div>
-            <Toaster />
-            {process.env.NODE_ENV === 'development' && <ApiCallMonitor />}
+            <EngagementProvider>
+              <div className="root-layout__content-wrapper w-full">
+                <ClientLayout>
+                  {children}
+                </ClientLayout>
+                <RealTimeNotifications />
+              </div>
+              <Toaster />
+              {process.env.NODE_ENV === 'development' && <ApiCallMonitor />}
+            </EngagementProvider>
           </UserProvider>
         </ThemeProvider>
       </body>

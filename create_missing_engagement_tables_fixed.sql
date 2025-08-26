@@ -1,5 +1,6 @@
 -- ============================================================================
 -- CREATE MISSING ENGAGEMENT TABLES FOR ENTERPRISE ENGAGEMENT SYSTEM
+-- PostgreSQL Compatible Version
 -- ============================================================================
 
 -- Create engagement_views table for enterprise-grade view tracking
@@ -70,10 +71,16 @@ BEGIN
         ALTER TABLE "public"."engagement_likes" 
         ADD COLUMN "reaction_type" "text" DEFAULT 'like' NOT NULL;
         
-        -- Add constraint for valid reaction types
-        ALTER TABLE "public"."engagement_likes" 
-        ADD CONSTRAINT "engagement_likes_reaction_type_check"
-        CHECK ("reaction_type" IN ('like', 'love', 'care', 'haha', 'wow', 'sad', 'angry'));
+        -- Add constraint for valid reaction types (without IF NOT EXISTS)
+        BEGIN
+            ALTER TABLE "public"."engagement_likes" 
+            ADD CONSTRAINT "engagement_likes_reaction_type_check"
+            CHECK ("reaction_type" IN ('like', 'love', 'care', 'haha', 'wow', 'sad', 'angry'));
+        EXCEPTION
+            WHEN duplicate_object THEN
+                -- Constraint already exists, do nothing
+                NULL;
+        END;
         
         -- Update existing records to have 'like' as default
         UPDATE "public"."engagement_likes" 
@@ -85,7 +92,9 @@ BEGIN
         ON "public"."engagement_likes" ("reaction_type");
         
         -- Update unique constraint to allow multiple reaction types per user-entity
-        DROP INDEX IF EXISTS "engagement_likes_user_entity_unique";
+        -- First drop the existing unique constraint (this will also drop the associated index)
+        ALTER TABLE "public"."engagement_likes" DROP CONSTRAINT IF EXISTS "engagement_likes_user_entity_unique";
+        -- Then create the new unique index
         CREATE UNIQUE INDEX "engagement_likes_user_entity_reaction_unique"
         ON "public"."engagement_likes" ("user_id", "entity_type", "entity_id", "reaction_type");
         
@@ -205,9 +214,9 @@ CREATE TRIGGER "trigger_update_activity_engagement_counts_views"
 
 -- Check if all tables exist
 SELECT 
-    table_name,
+    expected_tables.table_name,
     CASE 
-        WHEN table_name IS NOT NULL THEN '✅ EXISTS'
+        WHEN t.table_name IS NOT NULL THEN '✅ EXISTS'
         ELSE '❌ MISSING'
     END as status
 FROM (
@@ -236,9 +245,9 @@ WHERE table_name = 'engagement_likes'
 
 -- Check if triggers exist
 SELECT 
-    trigger_name,
+    expected_triggers.trigger_name,
     CASE 
-        WHEN trigger_name IS NOT NULL THEN '✅ EXISTS'
+        WHEN t.trigger_name IS NOT NULL THEN '✅ EXISTS'
         ELSE '❌ MISSING'
     END as status
 FROM (
@@ -251,4 +260,4 @@ FROM (
 ) AS expected_triggers(trigger_name)
 LEFT JOIN information_schema.triggers t 
     ON t.trigger_name = expected_triggers.trigger_name 
-    AND t.trigger_schema = 'public';
+    AND t.table_schema = 'public';

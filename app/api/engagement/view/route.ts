@@ -30,22 +30,19 @@ export async function POST(request: Request) {
       view_source
     })
 
-    // Check if user already viewed this entity recently (within last hour)
+    // Check if user already viewed this entity (idempotent by unique key)
     let view_id: string | null = null
     let action: 'added' | 'updated' = 'added'
 
     if (userId) {
-      // For authenticated users, check recent views
-      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
-      
+      // For authenticated users, check existing view without time window to align with unique constraint
       const { data: existingView, error: checkError } = await supabaseAdmin
         .from('engagement_views')
         .select('id, view_count')
         .eq('user_id', userId)
         .eq('entity_type', entity_type)
         .eq('entity_id', entity_id)
-        .gte('updated_at', oneHourAgo)
-        .single()
+        .maybeSingle()
 
       if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
         console.error('❌ Error checking existing view:', checkError)
@@ -80,7 +77,7 @@ export async function POST(request: Request) {
         action = 'updated'
         view_id = updatedView.id
       } else {
-        // Insert new view
+        // Insert new view (idempotent): fallback to update on unique violation
         const { data: newView, error: insertError } = await supabaseAdmin
           .from('engagement_views')
           .insert({
@@ -97,15 +94,54 @@ export async function POST(request: Request) {
           .single()
 
         if (insertError) {
-          console.error('❌ Error inserting view:', insertError)
-          return NextResponse.json(
-            { error: 'Failed to add view' },
-            { status: 500 }
-          )
+          // 23505 unique_violation → another process created the row; increment instead
+          if ((insertError as any).code === '23505') {
+            const { data: existingNow } = await supabaseAdmin
+              .from('engagement_views')
+              .select('id, view_count')
+              .eq('user_id', userId)
+              .eq('entity_type', entity_type)
+              .eq('entity_id', entity_id)
+              .maybeSingle()
+            if (existingNow) {
+              const { data: updatedView, error: updateError } = await supabaseAdmin
+                .from('engagement_views')
+                .update({
+                  view_count: (existingNow.view_count || 1) + 1,
+                  view_duration: view_duration || null,
+                  view_source: view_source || null,
+                  updated_at: new Date().toISOString()
+                })
+                .eq('id', existingNow.id)
+                .select('id')
+                .maybeSingle()
+              if (updateError) {
+                console.error('❌ Error resolving unique conflict by update:', updateError)
+                return NextResponse.json(
+                  { error: 'Failed to update view after conflict' },
+                  { status: 500 }
+                )
+              }
+              action = 'updated'
+              view_id = updatedView?.id || existingNow.id
+            } else {
+              console.error('❌ Unique conflict but existing row not found')
+              return NextResponse.json(
+                { error: 'View tracking conflict' },
+                { status: 409 }
+              )
+            }
+          } else {
+            console.error('❌ Error inserting view:', insertError)
+            return NextResponse.json(
+              { error: 'Failed to add view' },
+              { status: 500 }
+            )
+          }
+        } else {
+          action = 'added'
+          view_id = newView.id
         }
-
-        action = 'added'
-        view_id = newView.id
       }
     } else {
       // For anonymous users, just track the view without storing user-specific data

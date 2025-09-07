@@ -136,8 +136,7 @@ export default async function BookPageServer({ params }: { params: Promise<{ id:
     redirect("/books/add")
   }
 
-  // Test database connection first
-  console.log(`Testing database connection for book ID: ${id}`)
+  // Test database connection first (silent)
   const dbConnectionOk = await testDatabaseConnection()
   if (!dbConnectionOk) {
     console.error("Database connection failed, cannot fetch book")
@@ -174,11 +173,11 @@ export default async function BookPageServer({ params }: { params: Promise<{ id:
     let publisher = null
     try {
       if (book.publisher_id != null) {
-        console.log(`Book ${id} has publisher_id: ${book.publisher_id} (type: ${typeof book.publisher_id})`)
+        // Quiet: remove verbose publisher_id type log
         publisher = await getPublisherById(book.publisher_id.toString())
-        console.log(`Publisher fetch result:`, publisher ? `Found: ${publisher.name}` : 'Not found')
+        // Quiet
       } else {
-        console.log(`Book ${id} has no publisher_id`)
+        // Quiet
       }
     } catch (error) {
       console.error("Error fetching publisher for book:", id, "publisher_id:", book.publisher_id, "error:", error)

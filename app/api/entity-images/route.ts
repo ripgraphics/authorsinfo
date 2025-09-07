@@ -38,27 +38,27 @@ interface EntityImageResponse {
 // GET - Retrieve entity images from albums
 export async function GET(request: NextRequest) {
   try {
-    console.log('🚀 GET /api/entity-images called')
+    
     
     const { searchParams } = new URL(request.url)
     let entityId = searchParams.get('entityId')
     const entityType = searchParams.get('entityType') as EntityType
     const albumPurpose = searchParams.get('albumPurpose') as AlbumPurpose
 
-    console.log('📋 Request params:', { entityId, entityType, albumPurpose })
+    
 
     if (!entityId || !entityType) {
-      console.log('❌ Missing required params')
+      
       return NextResponse.json({
         success: false,
         error: 'entityId and entityType are required'
       }, { status: 400 })
     }
 
-    console.log('🔐 Creating Supabase client...')
+    
     const cookieStore = await cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
-    console.log('✅ Supabase client created')
+    
 
     // Resolve permalink to UUID if necessary (users/books/authors/publishers/events)
     if (entityId && entityType) {
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
           .maybeSingle()
 
         if (resolveError) {
-          console.warn('Permalink resolution error (non-fatal):', resolveError)
+          
         }
         if (resolved?.id) {
           entityId = resolved.id
@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Debug: Let's also check what albums exist without any filters
-    console.log('🔍 API Debug - Checking all albums for entity...')
+    
     const { data: allAlbumsForEntity, error: allAlbumsError } = await supabase
       .from('photo_albums')
       .select('id, name, entity_id, entity_type, metadata')
@@ -114,18 +114,18 @@ export async function GET(request: NextRequest) {
       .eq('entity_type', entityType)
     
     if (allAlbumsError) {
-      console.error('❌ Error fetching all albums:', allAlbumsError)
+      console.error('Error fetching albums:', allAlbumsError)
       return NextResponse.json({
         success: false,
         error: `Failed to fetch albums: ${allAlbumsError.message}`
       }, { status: 500 })
     }
     
-    console.log('🔍 API Debug - All albums for entity (no purpose filter):', allAlbumsForEntity)
+    
     
     // 🔧 ONE-TIME FIX: Repair existing albums that are missing album_purpose metadata
     if (allAlbumsForEntity && allAlbumsForEntity.length > 0) {
-      console.log('🔧 Checking for albums that need metadata repair...')
+      
       
       for (const album of allAlbumsForEntity) {
         if (!album.metadata?.album_purpose) {
@@ -144,7 +144,7 @@ export async function GET(request: NextRequest) {
           }
           
           if (inferredAlbumPurpose) {
-            console.log(`🔧 Fixing album "${album.name}" - adding missing album_purpose: ${inferredAlbumPurpose}`)
+            
             await supabase
               .from('photo_albums')
               .update({
@@ -165,15 +165,13 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    console.log('🔍 Executing main query...')
+    
     const { data: albums, error } = await query
 
-    console.log('🔍 API Debug - Query params:', { entityId, entityType, albumPurpose })
-    console.log('🔍 API Debug - Raw albums result:', albums)
-    console.log('🔍 API Debug - Albums count:', albums?.length)
+    
 
     if (error) {
-      console.error('❌ Error fetching entity albums:', error)
+      console.error('Error fetching entity albums:', error)
       return NextResponse.json({
         success: false,
         error: `Failed to fetch entity albums: ${error.message}`
@@ -181,7 +179,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get images for each album with full image details
-    console.log('🖼️ Fetching images for albums...')
+    
     const albumsWithImages = await Promise.all(
       (albums || []).map(async (album) => {
         try {
@@ -208,14 +206,14 @@ export async function GET(request: NextRequest) {
             }
           }
 
-          console.log(`📸 Found ${albumImages?.length || 0} album_images for album ${album.id}`)
+          
           if (albumImages && albumImages.length > 0) {
-            console.log(`📸 Album images:`, albumImages.map(ai => ({ id: ai.id, image_id: ai.image_id, is_cover: ai.is_cover })))
+            
             
             // 🔧 ONE-TIME FIX: Clean up cover flags - only one image per album should be cover
             const coverImages = albumImages.filter(ai => ai.is_cover === true)
             if (coverImages.length > 1) {
-              console.log(`🔧 FIXING: Album ${album.id} has ${coverImages.length} cover images, should only have 1`)
+              
               
               // Set all to false first
               await supabase
@@ -229,7 +227,7 @@ export async function GET(request: NextRequest) {
               )[0]
               
               if (mostRecentImage) {
-                console.log(`🔧 Setting most recent image ${mostRecentImage.image_id} as cover`)
+                
                 await supabase
                   .from('album_images')
                   .update({ is_cover: true })
@@ -244,7 +242,7 @@ export async function GET(request: NextRequest) {
           }
 
           // Get full image details for each album image
-          console.log(`🖼️ Fetching image details for ${albumImages?.length || 0} images...`)
+          
           const imagesWithDetails = await Promise.all(
             (albumImages || []).map(async (albumImage) => {
               try {
@@ -271,7 +269,7 @@ export async function GET(request: NextRequest) {
                   }
                 }
 
-                console.log(`✅ Image details fetched for ${albumImage.image_id}:`, { id: imageDetails?.id, url: imageDetails?.url })
+                
                 return {
                   ...albumImage,
                   image: imageDetails,
@@ -303,13 +301,7 @@ export async function GET(request: NextRequest) {
       })
     )
 
-    console.log('✅ Successfully processed albums with images')
-    console.log('📊 Final result - Albums with images:', albumsWithImages.map(album => ({
-      id: album.id,
-      name: album.name,
-      imageCount: album.images?.length || 0,
-      images: album.images?.map(img => ({ id: img.image?.id, url: img.image?.url, is_cover: img.is_cover })) || []
-    })))
+    
     
     return NextResponse.json({
       success: true,

@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/posts - Create new post
+// POST /api/posts - Create new post with server-side permission enforcement
 export async function POST(request: NextRequest) {
   try {
     const supabase = createServerActionClient({ cookies })
@@ -123,14 +123,61 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { content, visibility = 'public', scheduled_at, tags, category, location, entity_type, entity_id } = body
 
-    // Create the post in the activities table with enterprise features
+    // Determine timeline owner for permission checks (only for user timelines)
+    const targetEntityType = entity_type || 'user'
+    const targetEntityId = entity_id || user.id
+
+    if (targetEntityType === 'user' && targetEntityId !== user.id) {
+      // Owner preference from user_privacy_settings.default_privacy_level
+      const { data: privacy } = await supabase
+        .from('user_privacy_settings')
+        .select('default_privacy_level')
+        .eq('user_id', targetEntityId)
+        .maybeSingle()
+
+      const level = (privacy?.default_privacy_level as string | undefined) || 'public'
+
+      if (level === 'private') {
+        return NextResponse.json({ error: 'Posting disabled by owner' }, { status: 403 })
+      }
+
+      if (level === 'friends' || level === 'followers') {
+        // followers: follower OR friend; friends: mutual follow OR friendship
+        if (level === 'friends') {
+          const { data: friendship } = await supabase
+            .from('friendships')
+            .select('status')
+            .or(`and(user_id.eq.${user.id},friend_id.eq.${targetEntityId}),and(user_id.eq.${targetEntityId},friend_id.eq.${user.id})`)
+            .maybeSingle()
+          if (friendship?.status !== 'accepted') {
+            return NextResponse.json({ error: 'Only friends can post' }, { status: 403 })
+          }
+        } else {
+          const { data: followData } = await supabase
+            .from('follows')
+            .select('follower_id, following_id, status')
+            .or(`and(follower_id.eq.${user.id},following_id.eq.${targetEntityId}),and(follower_id.eq.${targetEntityId},following_id.eq.${user.id})`)
+          const isFollower = followData?.some(r => r.follower_id === user.id && r.following_id === targetEntityId && (r as any).status === 'accepted') || false
+          const theyFollowYou = followData?.some(r => r.follower_id === targetEntityId && r.following_id === user.id && (r as any).status === 'accepted') || false
+          const isFriend = isFollower && theyFollowYou
+          const allowed = isFollower || isFriend
+          if (!allowed) {
+            return NextResponse.json({ error: 'Only followers can post' }, { status: 403 })
+          }
+        }
+      }
+
+      // level === 'public' -> allow any authenticated user by default
+    }
+
+    // Create the post in the activities table
     const { data: activity, error } = await supabase
       .from('activities')
       .insert({
         user_id: user.id,
-        activity_type: 'post',
-        entity_type: entity_type || 'user',
-        entity_id: entity_id || user.id,
+        activity_type: 'post_created',
+        entity_type: targetEntityType,
+        entity_id: targetEntityId,
         metadata: {
           title: content?.title,
           category,
@@ -167,7 +214,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ 
       success: true, 
       activity,
-      message: 'Post created successfully in activities table'
+      message: 'Post created successfully'
     })
 
   } catch (error) {

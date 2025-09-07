@@ -15,7 +15,6 @@ import type {
 // Books
 export async function testDatabaseConnection(): Promise<boolean> {
   try {
-    console.log("Testing database connection...")
     const { data, error } = await supabaseAdmin.from("books").select("id").limit(1)
     
     if (error) {
@@ -28,7 +27,6 @@ export async function testDatabaseConnection(): Promise<boolean> {
       return false
     }
     
-    console.log("Database connection test successful")
     return true
   } catch (error) {
     console.error("Database connection test error:", {
@@ -101,7 +99,7 @@ export async function getBookById(id: string): Promise<Book | null> {
   }
 
   try {
-    console.log(`Attempting to fetch book with ID: ${id}`)
+    // Quiet: remove verbose fetch log
     
     // Add a timeout to the request
     const timeoutPromise = new Promise<Book | null>((_, reject) => {
@@ -138,7 +136,6 @@ export async function getBookById(id: string): Promise<Book | null> {
           return
         }
 
-        console.log(`Successfully fetched book: ${data.title || 'Unknown title'}`)
 
         // Return book as-is, without trying to join with images
         resolve({
@@ -425,7 +422,7 @@ export async function getRecentPublishers(limit = 10, offset = 0): Promise<Publi
 
 export async function getPublisherById(id: string): Promise<Publisher | null> {
   try {
-    console.log(`Fetching publisher with ID: ${id}`)
+    // Quiet: remove verbose publisher fetch log
     
     // Fetch basic publisher data first
     const { data: publisherData, error: publisherError } = await supabaseAdmin
@@ -444,7 +441,7 @@ export async function getPublisherById(id: string): Promise<Publisher | null> {
       return null
     }
 
-    console.log(`Found publisher: ${publisherData.name}`)
+    // Quiet
 
     // Try to fetch associated images if they exist
     let publisher_image = null

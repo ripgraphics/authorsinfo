@@ -326,8 +326,8 @@ async function handleComment(supabase: any, userId: string, entityId: string, en
 
     const ownerUserId = activity.user_id
     if (ownerUserId !== userId) {
-      // Default policy is friends
-      let postingPolicy: 'friends' | 'followers' | 'private' = 'friends'
+      // Default policy is public (any authenticated user), owner can tighten
+      let postingPolicy: 'public' | 'friends' | 'followers' | 'private' = 'public'
       const { data: ownerPrivacy } = await supabase
         .from('user_privacy_settings')
         .select('default_privacy_level')
@@ -336,8 +336,9 @@ async function handleComment(supabase: any, userId: string, entityId: string, en
 
       const level = ownerPrivacy?.default_privacy_level as string | undefined
       if (level === 'followers') postingPolicy = 'followers'
+      else if (level === 'friends') postingPolicy = 'friends'
       else if (level === 'private') postingPolicy = 'private'
-      else postingPolicy = 'friends'
+      else postingPolicy = 'public'
 
       // Check relationship using follows table
       const [{ data: youFollow }, { data: theyFollow }] = await Promise.all([
@@ -357,7 +358,12 @@ async function handleComment(supabase: any, userId: string, entityId: string, en
 
       const isFollower = (youFollow?.length || 0) > 0
       const isFriend = isFollower && (theyFollow?.length || 0) > 0
-      const allowed = postingPolicy === 'followers' ? (isFollower || isFriend) : isFriend
+      const allowed = (
+        postingPolicy === 'public' ? true :
+        postingPolicy === 'followers' ? (isFollower || isFriend) :
+        postingPolicy === 'friends' ? isFriend :
+        false
+      )
       if (!allowed) {
         return NextResponse.json({ error: 'You do not have permission to comment on this post' }, { status: 403 })
       }

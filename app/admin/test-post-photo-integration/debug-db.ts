@@ -21,7 +21,7 @@ export default function DebugDatabase() {
   const testDatabaseConnection = async () => {
     setIsLoading(true)
     try {
-      addResult('INFO', 'Testing database connection...')
+      // Quiet: remove verbose test log
       
       const response = await fetch('/api/test-supabase', {
         method: 'GET'

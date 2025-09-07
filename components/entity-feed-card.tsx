@@ -1939,42 +1939,25 @@ export default function EntityFeedCard({
             </div>
 
               {/* Comment Input Section */}
-              <div className="border-t border-gray-200 bg-gray-50 px-6 py-4">
-                <div className="flex items-start gap-3">
+              <div className="border-t border-gray-200 bg-white px-6 py-3">
+                <div className="flex items-center gap-3">
                   <Avatar
                     src={userDetails?.avatar_url || '/placeholder.svg?height=32&width=32'}
                     alt={`${userDetails?.name || 'User'} avatar`}
                     name={userDetails?.name || 'User'}
                     className="w-8 h-8 flex-shrink-0"
                   />
-                  <div className="flex-1">
-                    <div className="bg-white border border-gray-200 rounded-2xl px-4 py-3">
-                      <Textarea
-                        placeholder="Write a comment..."
-                        className="border-0 resize-none focus:ring-0 focus:outline-none min-h-[60px] text-sm"
-                        rows={2}
-                      />
+                  <button
+                    onClick={() => setShowCommentsModal(true)}
+                    className="flex-1 flex items-center justify-between rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-left text-sm text-gray-600 hover:bg-gray-100"
+                  >
+                    <span className="truncate opacity-80">Comment as {userDetails?.name || 'You'}</span>
+                    <div className="flex items-center gap-2 ml-3 text-gray-400">
+                      <ImageIcon className="h-4 w-4" />
+                      <Smile className="h-4 w-4" />
+                      <span className="text-[10px] font-semibold">GIF</span>
                     </div>
-                    <div className="flex items-center justify-between mt-2">
-                      <div className="flex items-center gap-2">
-                        <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-100">
-                          <Smile className="h-4 w-4" />
-                        </button>
-                        <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-100">
-                          <ImageIcon className="h-4 w-4" />
-                        </button>
-                        <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-100">
-                          <Link className="h-4 w-4" />
-                        </button>
-                      </div>
-                      <Button 
-                        size="sm" 
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full"
-                      >
-                        Post Comment
-                      </Button>
-                    </div>
-                  </div>
+                  </button>
                 </div>
               </div>
             </div>

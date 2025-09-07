@@ -22,13 +22,7 @@ export async function POST(request: Request) {
       )
     }
 
-    console.log('🔍 Processing view:', {
-      user_id: userId,
-      entity_type,
-      entity_id,
-      view_duration,
-      view_source
-    })
+    
 
     // Check if user already viewed this entity (idempotent by unique key)
     let view_id: string | null = null
@@ -146,7 +140,7 @@ export async function POST(request: Request) {
     } else {
       // For anonymous users, just track the view without storing user-specific data
       // This could be stored in a separate anonymous views table or just counted
-      console.log('📊 Anonymous view tracked for:', { entity_type, entity_id })
+      
     }
 
     // Update engagement counts in activities table if this is an activity
@@ -183,13 +177,7 @@ export async function POST(request: Request) {
       }
     }
 
-    console.log('✅ View processed successfully:', {
-      action,
-      view_id,
-      entity_type,
-      entity_id,
-      user_id: userId
-    })
+    
 
     return NextResponse.json({
       success: true,

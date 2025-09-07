@@ -161,16 +161,32 @@ export function EnterpriseEngagementActions({
   // Refs
   const reactionButtonRef = useRef<HTMLButtonElement>(null)
   const commentInputRef = useRef<HTMLTextAreaElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const hasTrackedViewRef = useRef<boolean>(false)
   
   // ============================================================================
   // EFFECTS AND INITIALIZATION
   // ============================================================================
   
   useEffect(() => {
-    if (autoTrackViews && !isViewed) {
-      viewEntity()
+    if (!autoTrackViews || hasTrackedViewRef.current) return
+    if (engagement?.userHasViewed) {
+      hasTrackedViewRef.current = true
+      return
     }
-  }, [autoTrackViews, isViewed, viewEntity])
+    const el = containerRef.current
+    if (!el) return
+    const observer = new IntersectionObserver((entries) => {
+      const entry = entries[0]
+      if (entry.isIntersecting && entry.intersectionRatio > 0) {
+        hasTrackedViewRef.current = true
+        viewEntity()
+        observer.disconnect()
+      }
+    }, { threshold: 0.25 })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [autoTrackViews, engagement?.userHasViewed, viewEntity])
   
   useEffect(() => {
     if (isCommentInputVisible && commentInputRef.current) {
@@ -687,7 +703,7 @@ export function EnterpriseEngagementActions({
   }, [variant])
   
   return (
-    <div className={cn("enterprise-engagement-actions", getVariantClasses(), className)}>
+    <div ref={containerRef} className={cn("enterprise-engagement-actions", getVariantClasses(), className)}>
       {/* Engagement Summary */}
       {renderEngagementSummary()}
       

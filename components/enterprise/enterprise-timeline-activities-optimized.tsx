@@ -315,44 +315,16 @@ const EnterpriseTimelineActivities = React.memo(({
         }
       }
 
-      // Direct, schema-aligned query to avoid RPC signature mismatches
+      // Fetch via server API to avoid client network/env issues
       const rangeStart = (pageNum - 1) * memoizedPageSize
-      const rangeEnd = rangeStart + memoizedPageSize - 1
-      const { data: rows, error } = await supabase
-        .from('activities')
-        .select(`
-          id,
-          user_id,
-          user_name,
-          user_avatar_url,
-          activity_type,
-          data,
-          created_at,
-          is_public,
-          like_count,
-          comment_count,
-          entity_type,
-          entity_id,
-          content_type,
-          image_url,
-          text,
-          visibility,
-          content_summary,
-          link_url,
-          hashtags,
-          share_count,
-          view_count,
-          engagement_score,
-          metadata
-        `)
-        .eq('entity_type', memoizedEntityType)
-        .eq('entity_id', resolvedEntityId)
-        .order('created_at', { ascending: false })
-        .range(rangeStart, rangeEnd)
-
-      if (error) {
-        throw new Error(`Database query error: ${error.message}`)
+      const url = `/api/timeline?entityType=${encodeURIComponent(memoizedEntityType)}&entityId=${encodeURIComponent(resolvedEntityId)}&limit=${memoizedPageSize}&offset=${rangeStart}`
+      const resp = await fetch(url, { method: 'GET', credentials: 'include' })
+      if (!resp.ok) {
+        const text = await resp.text()
+        throw new Error(`Database query error: ${text || resp.status}`)
       }
+      const json = await resp.json()
+      const rows = json.activities || []
 
       const data: EnterpriseActivity[] = (rows || []).map((row: any) => ({
         id: row.id,
@@ -477,30 +449,45 @@ const EnterpriseTimelineActivities = React.memo(({
     if (!posterUserId || !timelineUserId) return { canPost: false, reason: 'Invalid users' }
     if (posterUserId === timelineUserId) return { canPost: true }
     try {
-      const { data: friendshipData, error: friendshipError } = await supabase
-        .from('friendships')
-        .select('status')
-        .or(`and(user_id.eq.${posterUserId},friend_id.eq.${timelineUserId}),and(user_id.eq.${timelineUserId},friend_id.eq.${posterUserId})`)
-        .maybeSingle()
-      if (friendshipError && friendshipError.code !== 'PGRST116') {
-        console.warn('Error checking friendship:', friendshipError)
-      }
-      if (friendshipData?.status === 'accepted') return { canPost: true }
+      // Owner override setting lives in user_privacy_settings.default_privacy_level
+      // Interpret levels for posting:
+      // - public: any authenticated user can post
+      // - followers: followers or friends can post
+      // - friends: only friends can post
+      // - private: only owner can post (already handled above)
       const { data: privacyData } = await supabase
         .from('user_privacy_settings')
-        .select('timeline_posting_permission')
+        .select('default_privacy_level')
         .eq('user_id', timelineUserId)
         .maybeSingle()
-      const permission = privacyData?.timeline_posting_permission || 'friends'
-      if (permission === 'friends') return { canPost: false, reason: 'Only friends can post' }
-      if (permission === 'followers') {
+      const level = (privacyData?.default_privacy_level as string | undefined) || 'public'
+
+      if (level === 'public') {
+        return { canPost: true }
+      }
+
+      if (level === 'followers') {
         const { data: followData } = await supabase
           .from('follows')
           .select('follower_id, following_id, status')
           .or(`and(follower_id.eq.${posterUserId},following_id.eq.${timelineUserId}),and(follower_id.eq.${timelineUserId},following_id.eq.${posterUserId})`)
-        const isFollower = followData?.some(r => r.follower_id === posterUserId && r.following_id === timelineUserId && r.status === 'accepted')
-        return { canPost: !!isFollower, reason: 'Only followers can post' }
+        const isFollower = followData?.some(r => r.follower_id === posterUserId && r.following_id === timelineUserId && (r as any).status === 'accepted') || false
+        return { canPost: isFollower, reason: 'Only followers can post' }
       }
+
+      if (level === 'friends') {
+        const { data: friendshipData, error: friendshipError } = await supabase
+          .from('friendships')
+          .select('status')
+          .or(`and(user_id.eq.${posterUserId},friend_id.eq.${timelineUserId}),and(user_id.eq.${timelineUserId},friend_id.eq.${posterUserId})`)
+          .maybeSingle()
+        if (friendshipError && (friendshipError as any).code !== 'PGRST116') {
+          console.warn('Error checking friendship:', friendshipError)
+        }
+        return { canPost: friendshipData?.status === 'accepted', reason: 'Only friends can post' }
+      }
+
+      // private or unknown -> deny
       return { canPost: false, reason: 'Posting disabled' }
     } catch (e) {
       console.warn('Permission check failed:', e)
@@ -540,7 +527,7 @@ const EnterpriseTimelineActivities = React.memo(({
       setPrivacySettingsLoading(true)
       const { data } = await supabase
         .from('user_privacy_settings')
-        .select('timeline_posting_permission')
+        .select('default_privacy_level')
         .eq('user_id', memoizedUserId)
         .maybeSingle()
       setPrivacySettings(data || null)

@@ -145,8 +145,8 @@ export default function EntityComments({
         return
       }
 
-      // Determine owner's policy (default friends)
-      let postingPolicy: 'friends' | 'followers' | 'private' = 'friends'
+      // Determine owner's policy (default public per new system default)
+      let postingPolicy: 'public' | 'followers' | 'friends' | 'private' = 'public'
       const { data: ownerPrivacy } = await supabase
         .from('user_privacy_settings')
         .select('default_privacy_level')
@@ -155,8 +155,9 @@ export default function EntityComments({
 
       const level = ownerPrivacy?.default_privacy_level as string | undefined
       if (level === 'followers') postingPolicy = 'followers'
+      else if (level === 'friends') postingPolicy = 'friends'
       else if (level === 'private') postingPolicy = 'private'
-      else postingPolicy = 'friends'
+      else postingPolicy = 'public'
 
       // Relationship checks
       const [{ data: youFollow }, { data: theyFollow }] = await Promise.all([
@@ -176,7 +177,12 @@ export default function EntityComments({
 
       const isFollower = (youFollow?.length || 0) > 0
       const isFriend = isFollower && (theyFollow?.length || 0) > 0
-      const allowed = postingPolicy === 'followers' ? (isFollower || isFriend) : isFriend
+      const allowed = (
+        postingPolicy === 'public' ? true :
+        postingPolicy === 'followers' ? (isFollower || isFriend) :
+        postingPolicy === 'friends' ? isFriend :
+        false
+      )
       setCanComment(allowed)
     } catch (e) {
       console.warn('Permission check failed; defaulting to no composer')
@@ -435,6 +441,11 @@ export default function EntityComments({
     }
   }
 
+  // Hide entire section when there are no comments
+  if (!isLoading && comments.length === 0) {
+    return null
+  }
+
   return (
     <div className="entity-comments-container bg-white rounded-lg border border-gray-200">
       {/* Comments Header */}
@@ -444,8 +455,8 @@ export default function EntityComments({
         </h3>
       </div>
 
-      {/* Comment Input Section */}
-      {currentUser && canComment && (
+      {/* Comment Input Section (hidden per design; composer exists elsewhere) */}
+      {false && currentUser && canComment && (
         <div className="entity-comment-input-section px-4 py-3 border-b border-gray-100">
           <div className="entity-comment-input-container flex items-center gap-3">
             {/* User Avatar */}

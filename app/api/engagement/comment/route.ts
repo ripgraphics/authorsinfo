@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     }
 
     // Parse request body
-    const { entity_type, entity_id, comment_text, parent_id } = await request.json()
+    const { entity_type, entity_id, comment_text, parent_id, parent_comment_id } = await request.json()
     
     if (!entity_type || !entity_id || !comment_text) {
       return NextResponse.json(
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
       entity_type,
       entity_id,
       comment_text: comment_text.substring(0, 100) + '...',
-      parent_id
+      parent_comment_id: parent_comment_id || parent_id || null
     })
 
     // Insert the comment
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
         entity_type,
         entity_id,
         comment_text: comment_text.trim(),
-        parent_id: parent_id || null,
+        parent_comment_id: parent_comment_id || parent_id || null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })

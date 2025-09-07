@@ -27,7 +27,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body suppressHydrationWarning className={`${inter.className} root-layout__body min-h-screen flex flex-col items-center`}>
+      <body suppressHydrationWarning className={`${inter.className} root-layout__body min-h-screen flex flex-col items-center`} style={{ backgroundColor: '#F2F4F7' }}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <UserProvider>
             <EngagementProvider>

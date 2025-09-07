@@ -3,14 +3,12 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 
 export async function GET(request: NextRequest) {
-  console.log('🚀 GET /api/friends/pending - Request received')
-  
   try {
     // Check if we can access cookies
     let cookieStore
     try {
       cookieStore = await cookies()
-      console.log('✅ Cookies accessed successfully')
+      
     } catch (cookieError) {
       console.error('❌ Error accessing cookies:', cookieError)
       return NextResponse.json({ 
@@ -23,7 +21,7 @@ export async function GET(request: NextRequest) {
     let supabase
     try {
       supabase = createRouteHandlerClient({ cookies: () => cookieStore })
-      console.log('✅ Supabase client created successfully')
+      
     } catch (clientError) {
       console.error('❌ Error creating Supabase client:', clientError)
       return NextResponse.json({ 
@@ -42,7 +40,6 @@ export async function GET(request: NextRequest) {
     }
 
     // Get the current user
-    console.log('🔍 Attempting to get current user...')
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError) {
@@ -60,27 +57,9 @@ export async function GET(request: NextRequest) {
       }, { status: 401 })
     }
 
-    console.log('✅ User authenticated:', user.id)
-
-    // Test database connection
-    console.log('🔍 Testing database connection...')
-    const { data: testData, error: testError } = await supabase
-      .from('user_friends')
-      .select('count')
-      .limit(1)
     
-    if (testError) {
-      console.error('❌ Database connection test failed:', testError)
-      return NextResponse.json({ 
-        error: 'Database connection failed',
-        details: testError.message
-      }, { status: 500 })
-    }
-    
-    console.log('✅ Database connection successful')
 
     // Get pending friend requests where the current user is the recipient
-    console.log('🔍 Fetching pending friend requests...')
     const { data: pendingRequests, error } = await supabase
       .from('user_friends')
       .select(`
@@ -96,11 +75,6 @@ export async function GET(request: NextRequest) {
       .eq('status', 'pending')
       .order('requested_at', { ascending: false })
 
-    console.log('📊 Pending requests query result:', { 
-      count: pendingRequests?.length || 0, 
-      error: error?.message || null 
-    })
-
     if (error) {
       console.error('❌ Error fetching pending requests:', error)
       return NextResponse.json({ 
@@ -109,10 +83,7 @@ export async function GET(request: NextRequest) {
       }, { status: 500 })
     }
 
-    console.log('✅ Pending requests fetched successfully:', pendingRequests?.length || 0)
-
     // Get user details for each request
-    console.log('🔍 Fetching user details for requests...')
     const requestsWithUserDetails = await Promise.all(
       (pendingRequests || []).map(async (request, index) => {
         try {
@@ -123,7 +94,7 @@ export async function GET(request: NextRequest) {
             .single()
 
           if (userError) {
-            console.warn(`⚠️ Warning: Could not fetch user details for request ${index}:`, userError)
+            
             return {
               ...request,
               user: {
@@ -145,7 +116,7 @@ export async function GET(request: NextRequest) {
             }
           }
         } catch (userError) {
-          console.warn(`⚠️ Warning: Error processing user details for request ${index}:`, userError)
+          
           return {
             ...request,
             user: {
@@ -159,8 +130,6 @@ export async function GET(request: NextRequest) {
       })
     )
 
-    console.log('✅ User details fetched successfully')
-
     const response = NextResponse.json({
       success: true,
       requests: requestsWithUserDetails || [],
@@ -172,7 +141,6 @@ export async function GET(request: NextRequest) {
     response.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS')
     response.headers.set('Access-Control-Allow-Headers', 'Content-Type')
 
-    console.log('✅ Response prepared successfully')
     return response
 
   } catch (error) {

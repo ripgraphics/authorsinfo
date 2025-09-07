@@ -6,7 +6,7 @@ enterprise-grade. Author's Info needs to be the best enterprose-grade Book
 entity platform without limits. use the proper command to apply the SQL fix without any destructive operations.tht
 
 
-Here is the Html output
+Here is the consol output
 
 
 
@@ -14,2080 +14,3010 @@ Here is the Html output
 
 
 
-
-:3034/favicon.ico:1  Failed to load resource: the server responded with a status of 404 (Not Found)
-nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/contact_info?select=*&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3:1  Failed to load resource: the server responded with a status of 406 ()
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: My new photos
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: image
- === POST DATA DEBUG ===
- Post ID: a0e17759-d56b-4b84-87fa-f7bb91985aa4
- Post.text (direct column): My new photos
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: My new photos
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- EntityFeedCard - Helper function results: Object
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: image
- renderContent called, isEditing: false
- EntityFeedCard renderContent: Object
- === POST DATA DEBUG ===
- Post ID: a0e17759-d56b-4b84-87fa-f7bb91985aa4
- Post.text (direct column): My new photos
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: My new photos
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: image
- === POST DATA DEBUG ===
- Post ID: a0e17759-d56b-4b84-87fa-f7bb91985aa4
- Post.text (direct column): My new photos
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: My new photos
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- Content type switch: Object
- Rendering image content: Object
- 🔍 Hover Card Debug: Object
- 🔍 Hover Card Debug: Object
- 🔍 Hover Card Debug: Object
- 🔍 Hover Card Debug: Object
- 🔍 FeedCard: Comments API response: Object
- 🔍 FeedCard: Setting comments: Array(3)
- 🔍 EntityFeedCard received post: Object
- Debug - User: Object
- Debug - Post user_id: 2474659f-003e-4faa-8c53-9969c33f20b2
- Debug - Can edit: true
- Debug - Can delete: true
- === POST DATA DEBUG ===
- Post ID: 17977b98-ef9b-4d60-8b4a-35f4ecceb3cb
- Post.text (direct column): I love this author @envyred
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: I love this author @envyred
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: image
- === POST DATA DEBUG ===
- Post ID: 17977b98-ef9b-4d60-8b4a-35f4ecceb3cb
- Post.text (direct column): I love this author @envyred
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: I love this author @envyred
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
- EntityFeedCard - Helper function results: Object
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: image
- renderContent called, isEditing: false
- EntityFeedCard renderContent: Object
- === POST DATA DEBUG ===
- Post ID: 17977b98-ef9b-4d60-8b4a-35f4ecceb3cb
- Post.text (direct column): I love this author @envyred
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: I love this author @envyred
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: image
- === POST DATA DEBUG ===
- Post ID: 17977b98-ef9b-4d60-8b4a-35f4ecceb3cb
- Post.text (direct column): I love this author @envyred
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: I love this author @envyred
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
- Content type switch: Object
- Rendering image content: Object
- 🔍 EntityFeedCard received post: Object
- Debug - User: Object
- Debug - Post user_id: 2474659f-003e-4faa-8c53-9969c33f20b2
- Debug - Can edit: true
- Debug - Can delete: true
- === POST DATA DEBUG ===
- Post ID: 17977b98-ef9b-4d60-8b4a-35f4ecceb3cb
- Post.text (direct column): I love this author @envyred
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: I love this author @envyred
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: image
- === POST DATA DEBUG ===
- Post ID: 17977b98-ef9b-4d60-8b4a-35f4ecceb3cb
- Post.text (direct column): I love this author @envyred
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: I love this author @envyred
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
- EntityFeedCard - Helper function results: Object
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: image
- renderContent called, isEditing: false
- EntityFeedCard renderContent: Object
- === POST DATA DEBUG ===
- Post ID: 17977b98-ef9b-4d60-8b4a-35f4ecceb3cb
- Post.text (direct column): I love this author @envyred
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: I love this author @envyred
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: image
- === POST DATA DEBUG ===
- Post ID: 17977b98-ef9b-4d60-8b4a-35f4ecceb3cb
- Post.text (direct column): I love this author @envyred
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: I love this author @envyred
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
- Content type switch: Object
- Rendering image content: Object
- 🔍 Hover Card Debug: Object
- 🔍 Hover Card Debug: Object
- 🔍 Hover Card Debug: Object
- 🔍 Hover Card Debug: Object
- 🔍 FeedCard: Likes API response: Object
- 🔍 FeedCard: Setting likes: Array(0)
- 🔍 EntityFeedCard received post: Object
- Debug - User: Object
- Debug - Post user_id: 2474659f-003e-4faa-8c53-9969c33f20b2
- Debug - Can edit: true
- Debug - Can delete: true
- === POST DATA DEBUG ===
- Post ID: a0e17759-d56b-4b84-87fa-f7bb91985aa4
- Post.text (direct column): My new photos
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: My new photos
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: image
- === POST DATA DEBUG ===
- Post ID: a0e17759-d56b-4b84-87fa-f7bb91985aa4
- Post.text (direct column): My new photos
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: My new photos
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- EntityFeedCard - Helper function results: Object
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: image
- renderContent called, isEditing: false
- EntityFeedCard renderContent: Object
- === POST DATA DEBUG ===
- Post ID: a0e17759-d56b-4b84-87fa-f7bb91985aa4
- Post.text (direct column): My new photos
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: My new photos
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: image
- === POST DATA DEBUG ===
- Post ID: a0e17759-d56b-4b84-87fa-f7bb91985aa4
- Post.text (direct column): My new photos
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: My new photos
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- Content type switch: Object
- Rendering image content: Object
- 🔍 EntityFeedCard received post: Object
- Debug - User: Object
- Debug - Post user_id: 2474659f-003e-4faa-8c53-9969c33f20b2
- Debug - Can edit: true
- Debug - Can delete: true
- === POST DATA DEBUG ===
- Post ID: a0e17759-d56b-4b84-87fa-f7bb91985aa4
- Post.text (direct column): My new photos
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: My new photos
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: image
- === POST DATA DEBUG ===
- Post ID: a0e17759-d56b-4b84-87fa-f7bb91985aa4
- Post.text (direct column): My new photos
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: My new photos
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- EntityFeedCard - Helper function results: Object
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: image
- renderContent called, isEditing: false
- EntityFeedCard renderContent: Object
- === POST DATA DEBUG ===
- Post ID: a0e17759-d56b-4b84-87fa-f7bb91985aa4
- Post.text (direct column): My new photos
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: My new photos
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: image
- === POST DATA DEBUG ===
- Post ID: a0e17759-d56b-4b84-87fa-f7bb91985aa4
- Post.text (direct column): My new photos
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: My new photos
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- Content type switch: Object
- Rendering image content: Object
- 🔍 Hover Card Debug: Object
- 🔍 Hover Card Debug: Object
- 🔍 Hover Card Debug: Object
- 🔍 Hover Card Debug: Object
- 🔍 FeedCard: Comments API response: Object
- 🔍 FeedCard: Setting comments: Array(1)
- 🔍 EntityFeedCard received post: Object
- Debug - User: Object
- Debug - Post user_id: 2474659f-003e-4faa-8c53-9969c33f20b2
- Debug - Can edit: true
- Debug - Can delete: true
- === POST DATA DEBUG ===
- Post ID: d6a00ffa-ba15-4379-8e47-8c68494996b1
- Post.text (direct column): This is test 4
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: This is test 4
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: text
- === POST DATA DEBUG ===
- Post ID: d6a00ffa-ba15-4379-8e47-8c68494996b1
- Post.text (direct column): This is test 4
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: This is test 4
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- EntityFeedCard - Helper function results: Object
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: text
- renderContent called, isEditing: false
- EntityFeedCard renderContent: Object
- === POST DATA DEBUG ===
- Post ID: d6a00ffa-ba15-4379-8e47-8c68494996b1
- Post.text (direct column): This is test 4
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: This is test 4
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: text
- === POST DATA DEBUG ===
- Post ID: d6a00ffa-ba15-4379-8e47-8c68494996b1
- Post.text (direct column): This is test 4
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: This is test 4
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- Content type switch: Object
- Rendering text content case: Object
- 🔍 EntityFeedCard received post: Object
- Debug - User: Object
- Debug - Post user_id: 2474659f-003e-4faa-8c53-9969c33f20b2
- Debug - Can edit: true
- Debug - Can delete: true
- === POST DATA DEBUG ===
- Post ID: d6a00ffa-ba15-4379-8e47-8c68494996b1
- Post.text (direct column): This is test 4
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: This is test 4
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: text
- === POST DATA DEBUG ===
- Post ID: d6a00ffa-ba15-4379-8e47-8c68494996b1
- Post.text (direct column): This is test 4
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: This is test 4
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- EntityFeedCard - Helper function results: Object
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: text
- renderContent called, isEditing: false
- EntityFeedCard renderContent: Object
- === POST DATA DEBUG ===
- Post ID: d6a00ffa-ba15-4379-8e47-8c68494996b1
- Post.text (direct column): This is test 4
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: This is test 4
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: text
- === POST DATA DEBUG ===
- Post ID: d6a00ffa-ba15-4379-8e47-8c68494996b1
- Post.text (direct column): This is test 4
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: This is test 4
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- Content type switch: Object
- Rendering text content case: Object
- 🔍 Hover Card Debug: Object
- 🔍 Hover Card Debug: Object
- 🔍 Hover Card Debug: Object
- 🔍 Hover Card Debug: Object
- 🔍 FeedCard: Comments API response: Object
- 🔍 FeedCard: Setting comments: Array(1)
- 🔍 EntityFeedCard received post: Object
- Debug - User: Object
- Debug - Post user_id: 2474659f-003e-4faa-8c53-9969c33f20b2
- Debug - Can edit: true
- Debug - Can delete: true
- === POST DATA DEBUG ===
- Post ID: 212603ea-6fbf-4815-bbd6-769f55e13ede
- Post.text (direct column): this is test 5
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: this is test 5
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: text
- === POST DATA DEBUG ===
- Post ID: 212603ea-6fbf-4815-bbd6-769f55e13ede
- Post.text (direct column): this is test 5
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: this is test 5
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- EntityFeedCard - Helper function results: Object
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: text
- renderContent called, isEditing: false
- EntityFeedCard renderContent: Object
- === POST DATA DEBUG ===
- Post ID: 212603ea-6fbf-4815-bbd6-769f55e13ede
- Post.text (direct column): this is test 5
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: this is test 5
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: text
- === POST DATA DEBUG ===
- Post ID: 212603ea-6fbf-4815-bbd6-769f55e13ede
- Post.text (direct column): this is test 5
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: this is test 5
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- Content type switch: Object
- Rendering text content case: Object
- 🔍 EntityFeedCard received post: Object
- Debug - User: Object
- Debug - Post user_id: 2474659f-003e-4faa-8c53-9969c33f20b2
- Debug - Can edit: true
- Debug - Can delete: true
- === POST DATA DEBUG ===
- Post ID: 212603ea-6fbf-4815-bbd6-769f55e13ede
- Post.text (direct column): this is test 5
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: this is test 5
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: text
- === POST DATA DEBUG ===
- Post ID: 212603ea-6fbf-4815-bbd6-769f55e13ede
- Post.text (direct column): this is test 5
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: this is test 5
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- EntityFeedCard - Helper function results: Object
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: text
- renderContent called, isEditing: false
- EntityFeedCard renderContent: Object
- === POST DATA DEBUG ===
- Post ID: 212603ea-6fbf-4815-bbd6-769f55e13ede
- Post.text (direct column): this is test 5
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: this is test 5
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: text
- === POST DATA DEBUG ===
- Post ID: 212603ea-6fbf-4815-bbd6-769f55e13ede
- Post.text (direct column): this is test 5
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: this is test 5
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- Content type switch: Object
- Rendering text content case: Object
- 🔍 Hover Card Debug: Object
- 🔍 Hover Card Debug: Object
- 🔍 Hover Card Debug: Object
- 🔍 Hover Card Debug: Object
- 🔍 FeedCard: Comments API response: Object
- 🔍 FeedCard: Setting comments: Array(1)
- 🔍 EntityFeedCard received post: Object
- Debug - User: Object
- Debug - Post user_id: 2474659f-003e-4faa-8c53-9969c33f20b2
- Debug - Can edit: true
- Debug - Can delete: true
- === POST DATA DEBUG ===
- Post ID: 55aa3fa3-3cd7-452a-a490-92b49171e385
- Post.text (direct column): this is test 3
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: this is test 3
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: text
- === POST DATA DEBUG ===
- Post ID: 55aa3fa3-3cd7-452a-a490-92b49171e385
- Post.text (direct column): this is test 3
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: this is test 3
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- EntityFeedCard - Helper function results: Object
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: text
- renderContent called, isEditing: false
- EntityFeedCard renderContent: Object
- === POST DATA DEBUG ===
- Post ID: 55aa3fa3-3cd7-452a-a490-92b49171e385
- Post.text (direct column): this is test 3
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: this is test 3
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: text
- === POST DATA DEBUG ===
- Post ID: 55aa3fa3-3cd7-452a-a490-92b49171e385
- Post.text (direct column): this is test 3
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: this is test 3
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- Content type switch: Object
- Rendering text content case: Object
- 🔍 EntityFeedCard received post: Object
- Debug - User: Object
- Debug - Post user_id: 2474659f-003e-4faa-8c53-9969c33f20b2
- Debug - Can edit: true
- Debug - Can delete: true
- === POST DATA DEBUG ===
- Post ID: 55aa3fa3-3cd7-452a-a490-92b49171e385
- Post.text (direct column): this is test 3
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: this is test 3
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: text
- === POST DATA DEBUG ===
- Post ID: 55aa3fa3-3cd7-452a-a490-92b49171e385
- Post.text (direct column): this is test 3
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: this is test 3
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- EntityFeedCard - Helper function results: Object
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: text
- renderContent called, isEditing: false
- EntityFeedCard renderContent: Object
- === POST DATA DEBUG ===
- Post ID: 55aa3fa3-3cd7-452a-a490-92b49171e385
- Post.text (direct column): this is test 3
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: this is test 3
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: text
- === POST DATA DEBUG ===
- Post ID: 55aa3fa3-3cd7-452a-a490-92b49171e385
- Post.text (direct column): this is test 3
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: this is test 3
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- Content type switch: Object
- Rendering text content case: Object
- 🔍 Hover Card Debug: Object
- 🔍 Hover Card Debug: Object
- 🔍 Hover Card Debug: Object
- 🔍 Hover Card Debug: Object
- 🔍 FeedCard: Likes API response: Object
- 🔍 FeedCard: Setting likes: Array(0)
- 🔍 EntityFeedCard received post: Object
- Debug - User: Object
- Debug - Post user_id: 2474659f-003e-4faa-8c53-9969c33f20b2
- Debug - Can edit: true
- Debug - Can delete: true
- === POST DATA DEBUG ===
- Post ID: d6a00ffa-ba15-4379-8e47-8c68494996b1
- Post.text (direct column): This is test 4
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: This is test 4
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: text
- === POST DATA DEBUG ===
- Post ID: d6a00ffa-ba15-4379-8e47-8c68494996b1
- Post.text (direct column): This is test 4
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: This is test 4
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- EntityFeedCard - Helper function results: Object
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: text
- renderContent called, isEditing: false
- EntityFeedCard renderContent: Object
- === POST DATA DEBUG ===
- Post ID: d6a00ffa-ba15-4379-8e47-8c68494996b1
- Post.text (direct column): This is test 4
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: This is test 4
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: text
- === POST DATA DEBUG ===
- Post ID: d6a00ffa-ba15-4379-8e47-8c68494996b1
- Post.text (direct column): This is test 4
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: This is test 4
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- Content type switch: Object
- Rendering text content case: Object
- 🔍 EntityFeedCard received post: Object
- Debug - User: Object
- Debug - Post user_id: 2474659f-003e-4faa-8c53-9969c33f20b2
- Debug - Can edit: true
- Debug - Can delete: true
- === POST DATA DEBUG ===
- Post ID: d6a00ffa-ba15-4379-8e47-8c68494996b1
- Post.text (direct column): This is test 4
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: This is test 4
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: text
- === POST DATA DEBUG ===
- Post ID: d6a00ffa-ba15-4379-8e47-8c68494996b1
- Post.text (direct column): This is test 4
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: This is test 4
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- EntityFeedCard - Helper function results: Object
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: text
- renderContent called, isEditing: false
- EntityFeedCard renderContent: Object
- === POST DATA DEBUG ===
- Post ID: d6a00ffa-ba15-4379-8e47-8c68494996b1
- Post.text (direct column): This is test 4
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: This is test 4
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: text
- === POST DATA DEBUG ===
- Post ID: d6a00ffa-ba15-4379-8e47-8c68494996b1
- Post.text (direct column): This is test 4
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: This is test 4
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- Content type switch: Object
- Rendering text content case: Object
- 🔍 Hover Card Debug: Object
- 🔍 Hover Card Debug: Object
- 🔍 Hover Card Debug: Object
- 🔍 Hover Card Debug: Object
- 🔍 Fetching pending friend requests for user: 2474659f-003e-4faa-8c53-9969c33f20b2
- 🔍 API endpoint: /api/friends/pending
- 🔍 FeedCard: Likes API response: Object
- 🔍 FeedCard: Setting likes: Array(0)
- 🔍 EntityFeedCard received post: Object
- Debug - User: Object
- Debug - Post user_id: 2474659f-003e-4faa-8c53-9969c33f20b2
- Debug - Can edit: true
- Debug - Can delete: true
- === POST DATA DEBUG ===
- Post ID: 55aa3fa3-3cd7-452a-a490-92b49171e385
- Post.text (direct column): this is test 3
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: this is test 3
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: text
- === POST DATA DEBUG ===
- Post ID: 55aa3fa3-3cd7-452a-a490-92b49171e385
- Post.text (direct column): this is test 3
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: this is test 3
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- EntityFeedCard - Helper function results: Object
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: text
- renderContent called, isEditing: false
- EntityFeedCard renderContent: Object
- === POST DATA DEBUG ===
- Post ID: 55aa3fa3-3cd7-452a-a490-92b49171e385
- Post.text (direct column): this is test 3
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: this is test 3
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
- getPostContentType - Found post.content_type: text
- === POST DATA DEBUG ===
- Post ID: 55aa3fa3-3cd7-452a-a490-92b49171e385
- Post.text (direct column): this is test 3
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: this is test 3
- hasTextContent function: Object
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- Content type switch: Object
- Rendering text content case: Object
- 🔍 EntityFeedCard received post: Object
- Debug - User: Object
- Debug - Post user_id: 2474659f-003e-4faa-8c53-9969c33f20b2
- Debug - Can edit: true
- Debug - Can delete: true
- === POST DATA DEBUG ===
- Post ID: 55aa3fa3-3cd7-452a-a490-92b49171e385
- Post.text (direct column): this is test 3
- Post.data (JSONB field): undefined
- Post.content_type: text
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: this is test 3
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostImages - Post image structure: Object
- getPostImages - No images found, returning empty array
- getPostContentType - Post content type structure: Object
-hook.js:377 getPostContentType - Found post.content_type: text
-hook.js:377 === POST DATA DEBUG ===
-hook.js:377 Post ID: 55aa3fa3-3cd7-452a-a490-92b49171e385
-hook.js:377 Post.text (direct column): this is test 3
-hook.js:377 Post.data (JSONB field): undefined
-hook.js:377 Post.content_type: text
-hook.js:377 Post.activity_type: post_created
-hook.js:377 ========================
-hook.js:377 getPostText - Found text in post.text: this is test 3
-hook.js:377 hasTextContent function: Object
-hook.js:377 getPostImages - Post image structure: Object
-hook.js:377 getPostImages - No images found, returning empty array
-hook.js:377 EntityFeedCard - Helper function results: Object
-hook.js:377 getPostImages - Post image structure: Object
-hook.js:377 getPostImages - No images found, returning empty array
-hook.js:377 getPostContentType - Post content type structure: Object
-hook.js:377 getPostContentType - Found post.content_type: text
-hook.js:377 renderContent called, isEditing: false
-hook.js:377 EntityFeedCard renderContent: Object
-hook.js:377 === POST DATA DEBUG ===
-hook.js:377 Post ID: 55aa3fa3-3cd7-452a-a490-92b49171e385
-hook.js:377 Post.text (direct column): this is test 3
-hook.js:377 Post.data (JSONB field): undefined
-hook.js:377 Post.content_type: text
-hook.js:377 Post.activity_type: post_created
-hook.js:377 ========================
-hook.js:377 getPostText - Found text in post.text: this is test 3
-hook.js:377 getPostImages - Post image structure: Object
-hook.js:377 getPostImages - No images found, returning empty array
-hook.js:377 getPostImages - Post image structure: Object
-hook.js:377 getPostImages - No images found, returning empty array
-hook.js:377 getPostContentType - Post content type structure: Object
-hook.js:377 getPostContentType - Found post.content_type: text
-hook.js:377 === POST DATA DEBUG ===
-hook.js:377 Post ID: 55aa3fa3-3cd7-452a-a490-92b49171e385
-hook.js:377 Post.text (direct column): this is test 3
-hook.js:377 Post.data (JSONB field): undefined
-hook.js:377 Post.content_type: text
-hook.js:377 Post.activity_type: post_created
-hook.js:377 ========================
-hook.js:377 getPostText - Found text in post.text: this is test 3
-hook.js:377 hasTextContent function: Object
-hook.js:377 getPostImages - Post image structure: Object
-hook.js:377 getPostImages - No images found, returning empty array
-hook.js:377 Content type switch: Object
-hook.js:377 Rendering text content case: Object
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-hover-cards.tsx:211 🔍 Hover Card Debug: Object
-hook.js:377 🔍 Hover Card Debug: Object
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-hover-cards.tsx:211 🔍 Hover Card Debug: Object
-hook.js:377 🔍 Hover Card Debug: Object
-hook.js:608 ❌ Error fetching pending requests: TimeoutError: signal timed out
+page.tsx:147  Server  No activities found for author's books
+favicon.ico:1  GET http://localhost:3034/favicon.ico 404 (Not Found)
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\lib\request-utils.ts:47 🚀 Creating new request for: current-user-data
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\hooks\useAuth.ts:29 🚀 Fetching fresh user data
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\lib\request-utils.ts:42 🔄 Returning active request for: current-user-data
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\lib\request-utils.ts:42 🔄 Returning active request for: current-user-data
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-hover-cards.tsx:211 🔍 Hover Card Debug: {entityId: 'e31e061d-a4a8-4cc8-af18-754786ad5ee3', entityName: 'Envy Red', userStats: undefined, displayStats: {…}, hasUserStats: false, …}
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-hover-cards.tsx:211 🔍 Hover Card Debug: {entityId: 'e31e061d-a4a8-4cc8-af18-754786ad5ee3', entityName: 'Envy Red', userStats: undefined, displayStats: {…}, hasUserStats: false, …}
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\lib\request-utils.ts:42 🔄 Returning active request for: current-user-data
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\lib\request-utils.ts:42 🔄 Returning active request for: current-user-data
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\lib\request-utils.ts:42 🔄 Returning active request for: current-user-data
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\lib\request-utils.ts:47 🚀 Creating new request for: follow-status-author-e31e061d-a4a8-4cc8-af18-754786ad5ee3
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-comments.tsx:193 🔍 Fetching comments for: {entityId: 'e31e061d-a4a8-4cc8-af18-754786ad5ee3', entityType: 'author'}
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\app\authors\[id]\client.tsx:197 Component mounted with initial author: {id: 'e31e061d-a4a8-4cc8-af18-754786ad5ee3', name: 'Envy Red', hasBio: false, bioLength: 0}
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\app\authors\[id]\client.tsx:212 Author state updated: {authorId: 'e31e061d-a4a8-4cc8-af18-754786ad5ee3', authorName: 'Envy Red', hasBio: false, bioLength: 0, bioPreview: undefined}
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\app\authors\[id]\client.tsx:222 EditedBio state updated: {length: 0, preview: ''}
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\app\authors\[id]\client.tsx:239 Fetching contact info for author: {authorId: 'e31e061d-a4a8-4cc8-af18-754786ad5ee3', authorName: 'Envy Red'}
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\utils\contactInfo.ts:14 Fetching contact info for: {entityType: 'author', entityId: 'e31e061d-a4a8-4cc8-af18-754786ad5ee3'}
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\lib\request-utils.ts:42 🔄 Returning active request for: current-user-data
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-hover-cards.tsx:211 🔍 Hover Card Debug: {entityId: 'e31e061d-a4a8-4cc8-af18-754786ad5ee3', entityName: 'Envy Red', userStats: undefined, displayStats: {…}, hasUserStats: false, …}
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-hover-cards.tsx:211 🔍 Hover Card Debug: {entityId: 'e31e061d-a4a8-4cc8-af18-754786ad5ee3', entityName: 'Envy Red', userStats: undefined, displayStats: {…}, hasUserStats: false, …}
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\lib\request-utils.ts:42 🔄 Returning active request for: current-user-data
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\lib\request-utils.ts:42 🔄 Returning active request for: current-user-data
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\lib\request-utils.ts:42 🔄 Returning active request for: current-user-data
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\lib\request-utils.ts:42 🔄 Returning active request for: current-user-data
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\lib\request-utils.ts:42 🔄 Returning active request for: current-user-data
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=0&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
 overrideMethod @ hook.js:608
- 🔍 FeedCard: Comments API response: {likes_count: 0, comments_count: 3, recent_likes: Array(0), recent_comments: Array(3)}
- 🔍 FeedCard: Setting comments: (3) [{…}, {…}, {…}]
- 🔍 EntityFeedCard received post: {id: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', user_id: '2474659f-003e-4faa-8c53-9969c33f20b2', activity_type: 'post_created', entity_type: 'author', content_type: 'image', …}
- Debug - User: {id: '2474659f-003e-4faa-8c53-9969c33f20b2', email: 'bob.brown@authorsinfo.com', name: 'Bob Brown', created_at: '2025-07-03T09:08:57.268783+00:00', role: 'admin', …}
- Debug - Post user_id: 2474659f-003e-4faa-8c53-9969c33f20b2
- Debug - Can edit: true
- Debug - Can delete: true
- === POST DATA DEBUG ===
- Post ID: a0e17759-d56b-4b84-87fa-f7bb91985aa4
- Post.text (direct column): My new photos
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: My new photos
- getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- getPostContentType - Post content type structure: {hasContentType: true, hasContent: true, contentType: 'image', postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', activityType: 'post_created', …}
- getPostContentType - Found post.content_type: image
- === POST DATA DEBUG ===
- Post ID: a0e17759-d56b-4b84-87fa-f7bb91985aa4
- Post.text (direct column): My new photos
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: My new photos
- hasTextContent function: {postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', text: 'My new photos', textType: 'string', textLength: 13, trimmedLength: 13, …}
- getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- EntityFeedCard - Helper function results: {postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', displayText: 'My new photos', displayImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp', displayContentType: 'image', hasTextContent: true, …}
- getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- getPostContentType - Post content type structure: {hasContentType: true, hasContent: true, contentType: 'image', postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', activityType: 'post_created', …}
- getPostContentType - Found post.content_type: image
- renderContent called, isEditing: false
- EntityFeedCard renderContent: {postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', contentType: 'image', imageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp', hasText: true, hasData: false, …}
- === POST DATA DEBUG ===
- Post ID: a0e17759-d56b-4b84-87fa-f7bb91985aa4
- Post.text (direct column): My new photos
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: My new photos
- getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- getPostContentType - Post content type structure: {hasContentType: true, hasContent: true, contentType: 'image', postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', activityType: 'post_created', …}
- getPostContentType - Found post.content_type: image
- === POST DATA DEBUG ===
- Post ID: a0e17759-d56b-4b84-87fa-f7bb91985aa4
- Post.text (direct column): My new photos
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: My new photos
- hasTextContent function: {postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', text: 'My new photos', textType: 'string', textLength: 13, trimmedLength: 13, …}
- getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- Content type switch: {contentType: 'image', postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', postContentType: 'image', postContent: {…}}
- Rendering image content: {postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', imageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp', hasImageUrl: true}
- 🔍 EntityFeedCard received post: {id: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', user_id: '2474659f-003e-4faa-8c53-9969c33f20b2', activity_type: 'post_created', entity_type: 'author', content_type: 'image', …}
- Debug - User: {id: '2474659f-003e-4faa-8c53-9969c33f20b2', email: 'bob.brown@authorsinfo.com', name: 'Bob Brown', created_at: '2025-07-03T09:08:57.268783+00:00', role: 'admin', …}
- Debug - Post user_id: 2474659f-003e-4faa-8c53-9969c33f20b2
- Debug - Can edit: true
- Debug - Can delete: true
- === POST DATA DEBUG ===
- Post ID: a0e17759-d56b-4b84-87fa-f7bb91985aa4
- Post.text (direct column): My new photos
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: My new photos
- getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:501 getPostContentType - Post content type structure: {hasContentType: true, hasContent: true, contentType: 'image', postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', activityType: 'post_created', …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:519 getPostContentType - Found post.content_type: image
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:362 === POST DATA DEBUG ===
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:363 Post ID: a0e17759-d56b-4b84-87fa-f7bb91985aa4
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:364 Post.text (direct column): My new photos
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:365 Post.data (JSONB field): undefined
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:366 Post.content_type: image
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:367 Post.activity_type: post_created
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:368 ========================
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:372 getPostText - Found text in post.text: My new photos
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:563 hasTextContent function: {postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', text: 'My new photos', textType: 'string', textLength: 13, trimmedLength: 13, …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:453 getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:461 getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:580 EntityFeedCard - Helper function results: {postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', displayText: 'My new photos', displayImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp', displayContentType: 'image', hasTextContent: true, …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:453 getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:461 getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:501 getPostContentType - Post content type structure: {hasContentType: true, hasContent: true, contentType: 'image', postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', activityType: 'post_created', …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:519 getPostContentType - Found post.content_type: image
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:891 renderContent called, isEditing: false
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:1036 EntityFeedCard renderContent: {postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', contentType: 'image', imageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp', hasText: true, hasData: false, …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:362 === POST DATA DEBUG ===
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:363 Post ID: a0e17759-d56b-4b84-87fa-f7bb91985aa4
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:364 Post.text (direct column): My new photos
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:365 Post.data (JSONB field): undefined
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:366 Post.content_type: image
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:367 Post.activity_type: post_created
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:368 ========================
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:372 getPostText - Found text in post.text: My new photos
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:453 getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:461 getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:453 getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:461 getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:501 getPostContentType - Post content type structure: {hasContentType: true, hasContent: true, contentType: 'image', postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', activityType: 'post_created', …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:519 getPostContentType - Found post.content_type: image
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:362 === POST DATA DEBUG ===
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:363 Post ID: a0e17759-d56b-4b84-87fa-f7bb91985aa4
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:364 Post.text (direct column): My new photos
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:365 Post.data (JSONB field): undefined
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:366 Post.content_type: image
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:367 Post.activity_type: post_created
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:368 ========================
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:372 getPostText - Found text in post.text: My new photos
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:563 hasTextContent function: {postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', text: 'My new photos', textType: 'string', textLength: 13, trimmedLength: 13, …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:453 getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:461 getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:1079 Content type switch: {contentType: 'image', postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', postContentType: 'image', postContent: {…}}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:1108 Rendering image content: {postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', imageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp', hasImageUrl: true}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-hover-cards.tsx:211 🔍 Hover Card Debug: {entityId: '2474659f-003e-4faa-8c53-9969c33f20b2', entityName: 'User', userStats: undefined, displayStats: {…}, hasUserStats: false, …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-hover-cards.tsx:211 🔍 Hover Card Debug: {entityId: '2474659f-003e-4faa-8c53-9969c33f20b2', entityName: 'User', userStats: undefined, displayStats: {…}, hasUserStats: false, …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-hover-cards.tsx:211 🔍 Hover Card Debug: {entityId: '2474659f-003e-4faa-8c53-9969c33f20b2', entityName: 'User', userStats: undefined, displayStats: {…}, hasUserStats: false, …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-hover-cards.tsx:211 🔍 Hover Card Debug: {entityId: '2474659f-003e-4faa-8c53-9969c33f20b2', entityName: 'User', userStats: undefined, displayStats: {…}, hasUserStats: false, …}
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:223 🔍 FeedCard: Likes API response: {likes_count: 0, comments_count: 3, recent_likes: Array(0), recent_comments: Array(3)}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:226 🔍 FeedCard: Setting likes: []
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:125 🔍 EntityFeedCard received post: {id: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', user_id: '2474659f-003e-4faa-8c53-9969c33f20b2', activity_type: 'post_created', entity_type: 'author', content_type: 'image', …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:263 Debug - User: {id: '2474659f-003e-4faa-8c53-9969c33f20b2', email: 'bob.brown@authorsinfo.com', name: 'Bob Brown', created_at: '2025-07-03T09:08:57.268783+00:00', role: 'admin', …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:264 Debug - Post user_id: 2474659f-003e-4faa-8c53-9969c33f20b2
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:265 Debug - Can edit: true
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:266 Debug - Can delete: true
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:362 === POST DATA DEBUG ===
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:363 Post ID: a0e17759-d56b-4b84-87fa-f7bb91985aa4
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:364 Post.text (direct column): My new photos
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:365 Post.data (JSONB field): undefined
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:366 Post.content_type: image
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:367 Post.activity_type: post_created
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:368 ========================
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:372 getPostText - Found text in post.text: My new photos
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:453 getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:461 getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:453 getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:461 getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:501 getPostContentType - Post content type structure: {hasContentType: true, hasContent: true, contentType: 'image', postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', activityType: 'post_created', …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:519 getPostContentType - Found post.content_type: image
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:362 === POST DATA DEBUG ===
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:363 Post ID: a0e17759-d56b-4b84-87fa-f7bb91985aa4
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:364 Post.text (direct column): My new photos
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:365 Post.data (JSONB field): undefined
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:366 Post.content_type: image
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:367 Post.activity_type: post_created
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:368 ========================
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:372 getPostText - Found text in post.text: My new photos
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:563 hasTextContent function: {postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', text: 'My new photos', textType: 'string', textLength: 13, trimmedLength: 13, …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:453 getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:461 getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:580 EntityFeedCard - Helper function results: {postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', displayText: 'My new photos', displayImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp', displayContentType: 'image', hasTextContent: true, …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:453 getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:461 getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:501 getPostContentType - Post content type structure: {hasContentType: true, hasContent: true, contentType: 'image', postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', activityType: 'post_created', …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:519 getPostContentType - Found post.content_type: image
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:891 renderContent called, isEditing: false
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:1036 EntityFeedCard renderContent: {postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', contentType: 'image', imageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp', hasText: true, hasData: false, …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:362 === POST DATA DEBUG ===
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:363 Post ID: a0e17759-d56b-4b84-87fa-f7bb91985aa4
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:364 Post.text (direct column): My new photos
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:365 Post.data (JSONB field): undefined
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:366 Post.content_type: image
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:367 Post.activity_type: post_created
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:368 ========================
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:372 getPostText - Found text in post.text: My new photos
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:453 getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- getPostContentType - Post content type structure: {hasContentType: true, hasContent: true, contentType: 'image', postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', activityType: 'post_created', …}
- getPostContentType - Found post.content_type: image
- === POST DATA DEBUG ===
- Post ID: a0e17759-d56b-4b84-87fa-f7bb91985aa4
- Post.text (direct column): My new photos
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: My new photos
- hasTextContent function: {postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', text: 'My new photos', textType: 'string', textLength: 13, trimmedLength: 13, …}
- getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- Content type switch: {contentType: 'image', postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', postContentType: 'image', postContent: {…}}
- Rendering image content: {postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', imageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp', hasImageUrl: true}
- 🔍 EntityFeedCard received post: {id: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', user_id: '2474659f-003e-4faa-8c53-9969c33f20b2', activity_type: 'post_created', entity_type: 'author', content_type: 'image', …}
- Debug - User: {id: '2474659f-003e-4faa-8c53-9969c33f20b2', email: 'bob.brown@authorsinfo.com', name: 'Bob Brown', created_at: '2025-07-03T09:08:57.268783+00:00', role: 'admin', …}
- Debug - Post user_id: 2474659f-003e-4faa-8c53-9969c33f20b2
- Debug - Can edit: true
- Debug - Can delete: true
- === POST DATA DEBUG ===
- Post ID: a0e17759-d56b-4b84-87fa-f7bb91985aa4
- Post.text (direct column): My new photos
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: My new photos
- getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
- getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:501 getPostContentType - Post content type structure: {hasContentType: true, hasContent: true, contentType: 'image', postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', activityType: 'post_created', …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:519 getPostContentType - Found post.content_type: image
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:362 === POST DATA DEBUG ===
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:363 Post ID: a0e17759-d56b-4b84-87fa-f7bb91985aa4
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:364 Post.text (direct column): My new photos
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:365 Post.data (JSONB field): undefined
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:366 Post.content_type: image
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:367 Post.activity_type: post_created
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:368 ========================
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:372 getPostText - Found text in post.text: My new photos
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:563 hasTextContent function: {postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', text: 'My new photos', textType: 'string', textLength: 13, trimmedLength: 13, …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:453 getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:461 getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:580 EntityFeedCard - Helper function results: {postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', displayText: 'My new photos', displayImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp', displayContentType: 'image', hasTextContent: true, …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:453 getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:461 getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:501 getPostContentType - Post content type structure: {hasContentType: true, hasContent: true, contentType: 'image', postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', activityType: 'post_created', …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:519 getPostContentType - Found post.content_type: image
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:891 renderContent called, isEditing: false
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:1036 EntityFeedCard renderContent: {postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', contentType: 'image', imageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp', hasText: true, hasData: false, …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:362 === POST DATA DEBUG ===
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:363 Post ID: a0e17759-d56b-4b84-87fa-f7bb91985aa4
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:364 Post.text (direct column): My new photos
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:365 Post.data (JSONB field): undefined
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:366 Post.content_type: image
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:367 Post.activity_type: post_created
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:368 ========================
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:372 getPostText - Found text in post.text: My new photos
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:453 getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:461 getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:453 getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:461 getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:501 getPostContentType - Post content type structure: {hasContentType: true, hasContent: true, contentType: 'image', postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', activityType: 'post_created', …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:519 getPostContentType - Found post.content_type: image
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:362 === POST DATA DEBUG ===
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:363 Post ID: a0e17759-d56b-4b84-87fa-f7bb91985aa4
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:364 Post.text (direct column): My new photos
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:365 Post.data (JSONB field): undefined
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:366 Post.content_type: image
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:367 Post.activity_type: post_created
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:368 ========================
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:372 getPostText - Found text in post.text: My new photos
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:563 hasTextContent function: {postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', text: 'My new photos', textType: 'string', textLength: 13, trimmedLength: 13, …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:453 getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp'}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:461 getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058803/authorsinfo/post_photos/mkom9jadi8zd6ppuhx8n.webp,https://res.cloudinary.com/dj8yugwyp/image/upload/v1756058804/authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:1079 Content type switch: {contentType: 'image', postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', postContentType: 'image', postContent: {…}}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:1108 Rendering image content: {postId: 'a0e17759-d56b-4b84-87fa-f7bb91985aa4', imageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/iq0fxifxibxrbd9dqemg.webp', hasImageUrl: true}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-hover-cards.tsx:211 🔍 Hover Card Debug: {entityId: '2474659f-003e-4faa-8c53-9969c33f20b2', entityName: 'User', userStats: undefined, displayStats: {…}, hasUserStats: false, …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-hover-cards.tsx:211 🔍 Hover Card Debug: {entityId: '2474659f-003e-4faa-8c53-9969c33f20b2', entityName: 'User', userStats: undefined, displayStats: {…}, hasUserStats: false, …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-hover-cards.tsx:211 🔍 Hover Card Debug: {entityId: '2474659f-003e-4faa-8c53-9969c33f20b2', entityName: 'User', userStats: undefined, displayStats: {…}, hasUserStats: false, …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-hover-cards.tsx:211 🔍 Hover Card Debug: {entityId: '2474659f-003e-4faa-8c53-9969c33f20b2', entityName: 'User', userStats: undefined, displayStats: {…}, hasUserStats: false, …}
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:187 🔍 FeedCard: Comments API response: {likes_count: 0, comments_count: 3, recent_likes: Array(0), recent_comments: Array(3)}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:190 🔍 FeedCard: Setting comments: (3) [{…}, {…}, {…}]
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:125 🔍 EntityFeedCard received post: {id: '17977b98-ef9b-4d60-8b4a-35f4ecceb3cb', user_id: '2474659f-003e-4faa-8c53-9969c33f20b2', activity_type: 'post_created', entity_type: 'author', content_type: 'image', …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:263 Debug - User: {id: '2474659f-003e-4faa-8c53-9969c33f20b2', email: 'bob.brown@authorsinfo.com', name: 'Bob Brown', created_at: '2025-07-03T09:08:57.268783+00:00', role: 'admin', …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:264 Debug - Post user_id: 2474659f-003e-4faa-8c53-9969c33f20b2
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:265 Debug - Can edit: true
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:266 Debug - Can delete: true
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:362 === POST DATA DEBUG ===
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:363 Post ID: 17977b98-ef9b-4d60-8b4a-35f4ecceb3cb
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:364 Post.text (direct column): I love this author @envyred
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:365 Post.data (JSONB field): undefined
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:366 Post.content_type: image
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:367 Post.activity_type: post_created
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:368 ========================
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:372 getPostText - Found text in post.text: I love this author @envyred
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:453 getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp'}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:461 getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:453 getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp'}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:461 getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:501 getPostContentType - Post content type structure: {hasContentType: true, hasContent: true, contentType: 'image', postId: '17977b98-ef9b-4d60-8b4a-35f4ecceb3cb', activityType: 'post_created', …}
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:519 getPostContentType - Found post.content_type: image
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:362 === POST DATA DEBUG ===
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:363 Post ID: 17977b98-ef9b-4d60-8b4a-35f4ecceb3cb
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:364 Post.text (direct column): I love this author @envyred
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:365 Post.data (JSONB field): undefined
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:366 Post.content_type: image
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:367 Post.activity_type: post_created
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:368 ========================
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:372 getPostText - Found text in post.text: I love this author @envyred
-C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-feed-card.tsx:563 hasTextContent function: {postId: '17977b98-ef9b-4d60-8b4a-35f4ecceb3cb', text: 'I love this author @envyred', textType: 'string', textLength: 27, trimmedLength: 27, …}
- getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp'}
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
- EntityFeedCard - Helper function results: {postId: '17977b98-ef9b-4d60-8b4a-35f4ecceb3cb', displayText: 'I love this author @envyred', displayImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp', displayContentType: 'image', hasTextContent: true, …}
- getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp'}
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
- getPostContentType - Post content type structure: {hasContentType: true, hasContent: true, contentType: 'image', postId: '17977b98-ef9b-4d60-8b4a-35f4ecceb3cb', activityType: 'post_created', …}
- getPostContentType - Found post.content_type: image
- renderContent called, isEditing: false
- EntityFeedCard renderContent: {postId: '17977b98-ef9b-4d60-8b4a-35f4ecceb3cb', contentType: 'image', imageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp', hasText: true, hasData: false, …}
- === POST DATA DEBUG ===
- Post ID: 17977b98-ef9b-4d60-8b4a-35f4ecceb3cb
- Post.text (direct column): I love this author @envyred
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: I love this author @envyred
- getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp'}
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
- getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp'}
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
- getPostContentType - Post content type structure: {hasContentType: true, hasContent: true, contentType: 'image', postId: '17977b98-ef9b-4d60-8b4a-35f4ecceb3cb', activityType: 'post_created', …}
- getPostContentType - Found post.content_type: image
- === POST DATA DEBUG ===
- Post ID: 17977b98-ef9b-4d60-8b4a-35f4ecceb3cb
- Post.text (direct column): I love this author @envyred
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: I love this author @envyred
- hasTextContent function: {postId: '17977b98-ef9b-4d60-8b4a-35f4ecceb3cb', text: 'I love this author @envyred', textType: 'string', textLength: 27, trimmedLength: 27, …}
- getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp'}
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
- Content type switch: {contentType: 'image', postId: '17977b98-ef9b-4d60-8b4a-35f4ecceb3cb', postContentType: 'image', postContent: {…}}
- Rendering image content: {postId: '17977b98-ef9b-4d60-8b4a-35f4ecceb3cb', imageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp', hasImageUrl: true}
- 🔍 EntityFeedCard received post: {id: '17977b98-ef9b-4d60-8b4a-35f4ecceb3cb', user_id: '2474659f-003e-4faa-8c53-9969c33f20b2', activity_type: 'post_created', entity_type: 'author', content_type: 'image', …}
- Debug - User: {id: '2474659f-003e-4faa-8c53-9969c33f20b2', email: 'bob.brown@authorsinfo.com', name: 'Bob Brown', created_at: '2025-07-03T09:08:57.268783+00:00', role: 'admin', …}
- Debug - Post user_id: 2474659f-003e-4faa-8c53-9969c33f20b2
- Debug - Can edit: true
- Debug - Can delete: true
- === POST DATA DEBUG ===
- Post ID: 17977b98-ef9b-4d60-8b4a-35f4ecceb3cb
- Post.text (direct column): I love this author @envyred
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: I love this author @envyred
- getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp'}
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
- getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp'}
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
- getPostContentType - Post content type structure: {hasContentType: true, hasContent: true, contentType: 'image', postId: '17977b98-ef9b-4d60-8b4a-35f4ecceb3cb', activityType: 'post_created', …}
- getPostContentType - Found post.content_type: image
- === POST DATA DEBUG ===
- Post ID: 17977b98-ef9b-4d60-8b4a-35f4ecceb3cb
- Post.text (direct column): I love this author @envyred
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: I love this author @envyred
- hasTextContent function: {postId: '17977b98-ef9b-4d60-8b4a-35f4ecceb3cb', text: 'I love this author @envyred', textType: 'string', textLength: 27, trimmedLength: 27, …}
- getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp'}
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
- EntityFeedCard - Helper function results: {postId: '17977b98-ef9b-4d60-8b4a-35f4ecceb3cb', displayText: 'I love this author @envyred', displayImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp', displayContentType: 'image', hasTextContent: true, …}
- getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp'}
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
- getPostContentType - Post content type structure: {hasContentType: true, hasContent: true, contentType: 'image', postId: '17977b98-ef9b-4d60-8b4a-35f4ecceb3cb', activityType: 'post_created', …}
- getPostContentType - Found post.content_type: image
- renderContent called, isEditing: false
- EntityFeedCard renderContent: {postId: '17977b98-ef9b-4d60-8b4a-35f4ecceb3cb', contentType: 'image', imageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp', hasText: true, hasData: false, …}
- === POST DATA DEBUG ===
- Post ID: 17977b98-ef9b-4d60-8b4a-35f4ecceb3cb
- Post.text (direct column): I love this author @envyred
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: I love this author @envyred
- getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp'}
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
- getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp'}
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
- getPostContentType - Post content type structure: {hasContentType: true, hasContent: true, contentType: 'image', postId: '17977b98-ef9b-4d60-8b4a-35f4ecceb3cb', activityType: 'post_created', …}
- getPostContentType - Found post.content_type: image
- === POST DATA DEBUG ===
- Post ID: 17977b98-ef9b-4d60-8b4a-35f4ecceb3cb
- Post.text (direct column): I love this author @envyred
- Post.data (JSONB field): undefined
- Post.content_type: image
- Post.activity_type: post_created
- ========================
- getPostText - Found text in post.text: I love this author @envyred
- hasTextContent function: {postId: '17977b98-ef9b-4d60-8b4a-35f4ecceb3cb', text: 'I love this author @envyred', textType: 'string', textLength: 27, trimmedLength: 27, …}
- getPostImages - Post image structure: {hasImageUrl: true, hasContent: true, contentImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp'}
- getPostImages - Found image_url in direct column: https://res.cloudinary.com/dj8yugwyp/image/upload/v1755919507/authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp
- Content type switch: {contentType: 'image', postId: '17977b98-ef9b-4d60-8b4a-35f4ecceb3cb', postContentType: 'image', postContent: {…}}
- Rendering image content: {postId: '17977b98-ef9b-4d60-8b4a-35f4ecceb3cb', imageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…authorsinfo/post_photos/w8ylgdy35dh5halsb5lq.webp', hasImageUrl: true}
- 🔍 Hover Card Debug: {entityId: '2474659f-003e-4faa-8c53-9969c33f20b2', entityName: 'User', userStats: undefined, displayStats: {…}, hasUserStats: false, …}
- 🔍 Hover Card Debug: {entityId: '2474659f-003e-4faa-8c53-9969c33f20b2', entityName: 'User', userStats: undefined, displayStats: {…}, hasUserStats: false, …}
- 🔍 Hover Card Debug: {entityId: '2474659f-003e-4faa-8c53-9969c33f20b2', entityName: 'User', userStats: undefined, displayStats: {…}, hasUserStats: false, …}
- 🔍 Hover Card Debug: {entityId: '2474659f-003e-4faa-8c53-9969c33f20b2', entityName: 'User', userStats: undefined, displayStats: {…}, hasUserStats: false, …}
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-view:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-  POST http://localhost:3034/api/engagement/view 500 (Internal Server Error)
-EngagementProvider.useCallback[viewEntity] @ webpack-internal:///…ent-context.tsx:596
-viewEntity @ webpack-internal:///…ent-context.tsx:768
-EnterpriseEngagementActions.useEffect @ webpack-internal:///…ment-actions.tsx:72
-react-stack-bottom-frame @ webpack-internal:///…evelopment.js:24036
-runWithFiberInDEV @ webpack-internal:///…development.js:1511
-commitHookEffectListMount @ webpack-internal:///…evelopment.js:10515
-commitHookPassiveMountEffects @ webpack-internal:///…evelopment.js:10636
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12442
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12529
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12504
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12454
-flushPassiveEffects @ webpack-internal:///…evelopment.js:15796
-eval @ webpack-internal:///…evelopment.js:15367
-performWorkUntilDeadline @ webpack-internal:///…r.development.js:45
-  POST http://localhost:3034/api/engagement/view 500 (Internal Server Error)
-EngagementProvider.useCallback[viewEntity] @ webpack-internal:///…ent-context.tsx:596
-viewEntity @ webpack-internal:///…ent-context.tsx:768
-EnterpriseEngagementActions.useEffect @ webpack-internal:///…ment-actions.tsx:72
-react-stack-bottom-frame @ webpack-internal:///…evelopment.js:24036
-runWithFiberInDEV @ webpack-internal:///…development.js:1511
-commitHookEffectListMount @ webpack-internal:///…evelopment.js:10515
-commitHookPassiveMountEffects @ webpack-internal:///…evelopment.js:10636
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12442
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12529
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12504
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12454
-flushPassiveEffects @ webpack-internal:///…evelopment.js:15796
-eval @ webpack-internal:///…evelopment.js:15367
-performWorkUntilDeadline @ webpack-internal:///…r.development.js:45
-  POST http://localhost:3034/api/engagement/view 500 (Internal Server Error)
-EngagementProvider.useCallback[viewEntity] @ webpack-internal:///…ent-context.tsx:596
-viewEntity @ webpack-internal:///…ent-context.tsx:768
-EnterpriseEngagementActions.useEffect @ webpack-internal:///…ment-actions.tsx:72
-react-stack-bottom-frame @ webpack-internal:///…evelopment.js:24036
-runWithFiberInDEV @ webpack-internal:///…development.js:1511
-commitHookEffectListMount @ webpack-internal:///…evelopment.js:10515
-commitHookPassiveMountEffects @ webpack-internal:///…evelopment.js:10636
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12442
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12529
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12504
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12445
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12435
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12558
-recursivelyTraversePassiveMountEffects @ webpack-internal:///…evelopment.js:12416
-commitPassiveMountOnFiber @ webpack-internal:///…evelopment.js:12454
-flushPassiveEffects @ webpack-internal:///…evelopment.js:15796
-eval @ webpack-internal:///…evelopment.js:15367
-performWorkUntilDeadline @ webpack-internal:///…r.development.js:45
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useEffect @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:463
+react-stack-bottom-frame @ react-dom-client.development.js:24036
+runWithFiberInDEV @ react-dom-client.development.js:1511
+commitHookEffectListMount @ react-dom-client.development.js:10515
+commitHookPassiveMountEffects @ react-dom-client.development.js:10636
+reconnectPassiveEffects @ react-dom-client.development.js:12605
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:12577
+reconnectPassiveEffects @ react-dom-client.development.js:12652
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:12577
+reconnectPassiveEffects @ react-dom-client.development.js:12652
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:12577
+reconnectPassiveEffects @ react-dom-client.development.js:12652
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:12577
+reconnectPassiveEffects @ react-dom-client.development.js:12652
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:12577
+reconnectPassiveEffects @ react-dom-client.development.js:12598
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:12577
+reconnectPassiveEffects @ react-dom-client.development.js:12652
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:12577
+reconnectPassiveEffects @ react-dom-client.development.js:12652
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:12577
+reconnectPassiveEffects @ react-dom-client.development.js:12598
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:12577
+reconnectPassiveEffects @ react-dom-client.development.js:12652
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:12577
+reconnectPassiveEffects @ react-dom-client.development.js:12598
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:12577
+reconnectPassiveEffects @ react-dom-client.development.js:12598
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:12577
+reconnectPassiveEffects @ react-dom-client.development.js:12598
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:12577
+reconnectPassiveEffects @ react-dom-client.development.js:12598
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:12577
+reconnectPassiveEffects @ react-dom-client.development.js:12652
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:12577
+reconnectPassiveEffects @ react-dom-client.development.js:12598
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:12577
+reconnectPassiveEffects @ react-dom-client.development.js:12598
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:12577
+reconnectPassiveEffects @ react-dom-client.development.js:12652
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:12577
+reconnectPassiveEffects @ react-dom-client.development.js:12598
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:12577
+reconnectPassiveEffects @ react-dom-client.development.js:12652
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:12577
+reconnectPassiveEffects @ react-dom-client.development.js:12652
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:12577
+reconnectPassiveEffects @ react-dom-client.development.js:12598
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:12577
+reconnectPassiveEffects @ react-dom-client.development.js:12652
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:12577
+reconnectPassiveEffects @ react-dom-client.development.js:12598
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:12577
+reconnectPassiveEffects @ react-dom-client.development.js:12598
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:12577
+commitPassiveMountOnFiber @ react-dom-client.development.js:12537
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12504
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12454
+flushPassiveEffects @ react-dom-client.development.js:15796
+flushPendingEffects @ react-dom-client.development.js:15761
+performSyncWorkOnRoot @ react-dom-client.development.js:16287
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16138
+flushSpawnedWork @ react-dom-client.development.js:15665
+commitRoot @ react-dom-client.development.js:15391
+commitRootWhenReady @ react-dom-client.development.js:14644
+performWorkOnRoot @ react-dom-client.development.js:14567
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16275
+performWorkUntilDeadline @ scheduler.development.js:45
+<EnterpriseTimelineActivities>
+exports.jsxDEV @ react-jsx-dev-runtime.development.js:326
+ClientAuthorPage @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\app\authors\[id]\client.tsx:649
+react-stack-bottom-frame @ react-dom-client.development.js:23950
+renderWithHooksAgain @ react-dom-client.development.js:5179
+renderWithHooks @ react-dom-client.development.js:5091
+updateFunctionComponent @ react-dom-client.development.js:8328
+beginWork @ react-dom-client.development.js:9894
+runWithFiberInDEV @ react-dom-client.development.js:1511
+performUnitOfWork @ react-dom-client.development.js:15120
+workLoopConcurrentByScheduler @ react-dom-client.development.js:15114
+renderRootConcurrent @ react-dom-client.development.js:15089
+performWorkOnRoot @ react-dom-client.development.js:14410
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16275
+performWorkUntilDeadline @ scheduler.development.js:45
+"use client"
+AuthorPage @ page.tsx:325
+eval @ react-server-dom-webpack-client.browser.development.js:2335
+initializeModelChunk @ react-server-dom-webpack-client.browser.development.js:1034
+readChunk @ react-server-dom-webpack-client.browser.development.js:929
+react-stack-bottom-frame @ react-dom-client.development.js:24059
+createChild @ react-dom-client.development.js:6872
+reconcileChildrenArray @ react-dom-client.development.js:7179
+reconcileChildFibersImpl @ react-dom-client.development.js:7502
+eval @ react-dom-client.development.js:7607
+reconcileChildren @ react-dom-client.development.js:8048
+beginWork @ react-dom-client.development.js:10293
+runWithFiberInDEV @ react-dom-client.development.js:1511
+performUnitOfWork @ react-dom-client.development.js:15120
+workLoopConcurrentByScheduler @ react-dom-client.development.js:15114
+renderRootConcurrent @ react-dom-client.development.js:15089
+performWorkOnRoot @ react-dom-client.development.js:14410
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16275
+performWorkUntilDeadline @ scheduler.development.js:45
+<AuthorPage>
+buildFakeTask @ react-server-dom-webpack-client.browser.development.js:2020
+initializeFakeTask @ react-server-dom-webpack-client.browser.development.js:2007
+resolveDebugInfo @ react-server-dom-webpack-client.browser.development.js:2043
+processFullStringRow @ react-server-dom-webpack-client.browser.development.js:2241
+processFullBinaryRow @ react-server-dom-webpack-client.browser.development.js:2213
+progress @ react-server-dom-webpack-client.browser.development.js:2459
+"use server"
+ResponseInstance @ react-server-dom-webpack-client.browser.development.js:1567
+createResponseFromOptions @ react-server-dom-webpack-client.browser.development.js:2376
+exports.createFromReadableStream @ react-server-dom-webpack-client.browser.development.js:2696
+eval @ app-index.js:133
+(app-pages-browser)/./node_modules/next/dist/client/app-index.js @ main-app.js?v=1757273979113:160
+options.factory @ webpack.js?v=1757273979113:712
+__webpack_require__ @ webpack.js?v=1757273979113:37
+fn @ webpack.js?v=1757273979113:369
+eval @ app-next-dev.js:10
+eval @ app-bootstrap.js:62
+loadScriptsInSequence @ app-bootstrap.js:23
+appBootstrap @ app-bootstrap.js:56
+eval @ app-next-dev.js:9
+(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js @ main-app.js?v=1757273979113:182
+options.factory @ webpack.js?v=1757273979113:712
+__webpack_require__ @ webpack.js?v=1757273979113:37
+__webpack_exec__ @ main-app.js?v=1757273979113:2781
+(anonymous) @ main-app.js?v=1757273979113:2782
+webpackJsonpCallback @ webpack.js?v=1757273979113:1388
+(anonymous) @ main-app.js?v=1757273979113:9
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/contact_info?select=*&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3 406 (Not Acceptable)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\utils\contactInfo.ts:25 No contact info found for: {entityType: 'author', entityId: 'e31e061d-a4a8-4cc8-af18-754786ad5ee3'}
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\app\authors\[id]\client.tsx:246 Contact info fetch result: {success: false, hasEmail: false, hasPhone: false, hasWebsite: false}
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-hover-cards.tsx:211 🔍 Hover Card Debug: {entityId: 'e31e061d-a4a8-4cc8-af18-754786ad5ee3', entityName: 'Envy Red', userStats: undefined, displayStats: {…}, hasUserStats: false, …}
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-hover-cards.tsx:211 🔍 Hover Card Debug: {entityId: 'e31e061d-a4a8-4cc8-af18-754786ad5ee3', entityName: 'Envy Red', userStats: undefined, displayStats: {…}, hasUserStats: false, …}
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=0&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useEffect @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:463
+react-stack-bottom-frame @ react-dom-client.development.js:24036
+runWithFiberInDEV @ react-dom-client.development.js:1511
+commitHookEffectListMount @ react-dom-client.development.js:10515
+commitHookPassiveMountEffects @ react-dom-client.development.js:10636
+commitPassiveMountOnFiber @ react-dom-client.development.js:12442
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12529
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12504
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12454
+flushPassiveEffects @ react-dom-client.development.js:15796
+flushPendingEffects @ react-dom-client.development.js:15761
+performSyncWorkOnRoot @ react-dom-client.development.js:16287
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16138
+flushSpawnedWork @ react-dom-client.development.js:15665
+commitRoot @ react-dom-client.development.js:15391
+commitRootWhenReady @ react-dom-client.development.js:14644
+performWorkOnRoot @ react-dom-client.development.js:14567
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16275
+performWorkUntilDeadline @ scheduler.development.js:45
+<EnterpriseTimelineActivities>
+exports.jsxDEV @ react-jsx-dev-runtime.development.js:326
+ClientAuthorPage @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\app\authors\[id]\client.tsx:649
+react-stack-bottom-frame @ react-dom-client.development.js:23950
+renderWithHooksAgain @ react-dom-client.development.js:5179
+renderWithHooks @ react-dom-client.development.js:5091
+updateFunctionComponent @ react-dom-client.development.js:8328
+beginWork @ react-dom-client.development.js:9894
+runWithFiberInDEV @ react-dom-client.development.js:1511
+performUnitOfWork @ react-dom-client.development.js:15120
+workLoopConcurrentByScheduler @ react-dom-client.development.js:15114
+renderRootConcurrent @ react-dom-client.development.js:15089
+performWorkOnRoot @ react-dom-client.development.js:14410
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16275
+performWorkUntilDeadline @ scheduler.development.js:45
+"use client"
+AuthorPage @ page.tsx:325
+eval @ react-server-dom-webpack-client.browser.development.js:2335
+initializeModelChunk @ react-server-dom-webpack-client.browser.development.js:1034
+readChunk @ react-server-dom-webpack-client.browser.development.js:929
+react-stack-bottom-frame @ react-dom-client.development.js:24059
+createChild @ react-dom-client.development.js:6872
+reconcileChildrenArray @ react-dom-client.development.js:7179
+reconcileChildFibersImpl @ react-dom-client.development.js:7502
+eval @ react-dom-client.development.js:7607
+reconcileChildren @ react-dom-client.development.js:8048
+beginWork @ react-dom-client.development.js:10293
+runWithFiberInDEV @ react-dom-client.development.js:1511
+performUnitOfWork @ react-dom-client.development.js:15120
+workLoopConcurrentByScheduler @ react-dom-client.development.js:15114
+renderRootConcurrent @ react-dom-client.development.js:15089
+performWorkOnRoot @ react-dom-client.development.js:14410
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16275
+performWorkUntilDeadline @ scheduler.development.js:45
+<AuthorPage>
+buildFakeTask @ react-server-dom-webpack-client.browser.development.js:2020
+initializeFakeTask @ react-server-dom-webpack-client.browser.development.js:2007
+resolveDebugInfo @ react-server-dom-webpack-client.browser.development.js:2043
+processFullStringRow @ react-server-dom-webpack-client.browser.development.js:2241
+processFullBinaryRow @ react-server-dom-webpack-client.browser.development.js:2213
+progress @ react-server-dom-webpack-client.browser.development.js:2459
+"use server"
+ResponseInstance @ react-server-dom-webpack-client.browser.development.js:1567
+createResponseFromOptions @ react-server-dom-webpack-client.browser.development.js:2376
+exports.createFromReadableStream @ react-server-dom-webpack-client.browser.development.js:2696
+eval @ app-index.js:133
+(app-pages-browser)/./node_modules/next/dist/client/app-index.js @ main-app.js?v=1757273979113:160
+options.factory @ webpack.js?v=1757273979113:712
+__webpack_require__ @ webpack.js?v=1757273979113:37
+fn @ webpack.js?v=1757273979113:369
+eval @ app-next-dev.js:10
+eval @ app-bootstrap.js:62
+loadScriptsInSequence @ app-bootstrap.js:23
+appBootstrap @ app-bootstrap.js:56
+eval @ app-next-dev.js:9
+(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js @ main-app.js?v=1757273979113:182
+options.factory @ webpack.js?v=1757273979113:712
+__webpack_require__ @ webpack.js?v=1757273979113:37
+__webpack_exec__ @ main-app.js?v=1757273979113:2781
+(anonymous) @ main-app.js?v=1757273979113:2782
+webpackJsonpCallback @ webpack.js?v=1757273979113:1388
+(anonymous) @ main-app.js?v=1757273979113:9
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=20&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useCallback[setupInfiniteScroll] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:441
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=0&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\hooks\useAuth.ts:47 ✅ User data fetched successfully
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-hover-cards.tsx:211 🔍 Hover Card Debug: {entityId: 'e31e061d-a4a8-4cc8-af18-754786ad5ee3', entityName: 'Envy Red', userStats: undefined, displayStats: {…}, hasUserStats: false, …}
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-hover-cards.tsx:211 🔍 Hover Card Debug: {entityId: 'e31e061d-a4a8-4cc8-af18-754786ad5ee3', entityName: 'Envy Red', userStats: undefined, displayStats: {…}, hasUserStats: false, …}
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useEffect @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:463
+react-stack-bottom-frame @ react-dom-client.development.js:24036
+runWithFiberInDEV @ react-dom-client.development.js:1511
+commitHookEffectListMount @ react-dom-client.development.js:10515
+commitHookPassiveMountEffects @ react-dom-client.development.js:10636
+commitPassiveMountOnFiber @ react-dom-client.development.js:12442
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12529
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12504
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12454
+flushPassiveEffects @ react-dom-client.development.js:15796
+flushPendingEffects @ react-dom-client.development.js:15761
+performSyncWorkOnRoot @ react-dom-client.development.js:16287
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16138
+flushSpawnedWork @ react-dom-client.development.js:15665
+commitRoot @ react-dom-client.development.js:15391
+commitRootWhenReady @ react-dom-client.development.js:14644
+performWorkOnRoot @ react-dom-client.development.js:14567
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16275
+performWorkUntilDeadline @ scheduler.development.js:45
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=40&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-hover-cards.tsx:211 🔍 Hover Card Debug: {entityId: 'e31e061d-a4a8-4cc8-af18-754786ad5ee3', entityName: 'Envy Red', userStats: undefined, displayStats: {…}, hasUserStats: false, …}
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-hover-cards.tsx:211 🔍 Hover Card Debug: {entityId: 'e31e061d-a4a8-4cc8-af18-754786ad5ee3', entityName: 'Envy Red', userStats: undefined, displayStats: {…}, hasUserStats: false, …}
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\friend-request-notification.tsx:74 🔍 Fetching pending friend requests for user: 0d1f32d3-18b4-4aa8-b858-141b139aacd8
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\friend-request-notification.tsx:75 🔍 API endpoint: /api/friends/pending
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-hover-cards.tsx:211 🔍 Hover Card Debug: {entityId: 'e31e061d-a4a8-4cc8-af18-754786ad5ee3', entityName: 'Envy Red', userStats: undefined, displayStats: {…}, hasUserStats: false, …}
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-hover-cards.tsx:211 🔍 Hover Card Debug: {entityId: 'e31e061d-a4a8-4cc8-af18-754786ad5ee3', entityName: 'Envy Red', userStats: undefined, displayStats: {…}, hasUserStats: false, …}
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\app\authors\[id]\client.tsx:212 Author state updated: {authorId: 'e31e061d-a4a8-4cc8-af18-754786ad5ee3', authorName: 'Envy Red', hasBio: false, bioLength: 0, bioPreview: undefined}
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=0&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=60&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/follows?select=following_id&follower_id=eq.0d1f32d3-18b4-4aa8-b858-141b139aacd8&status=eq.accepted 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/friendships?select=friend_id&user_id=eq.0d1f32d3-18b4-4aa8-b858-141b139aacd8&status=eq.accepted 404 (Not Found)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/follows?select=follower_id&following_id=eq.0d1f32d3-18b4-4aa8-b858-141b139aacd8&status=eq.accepted 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=100&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=80&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useCallback[setupInfiniteScroll] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:441
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useCallback[setupInfiniteScroll] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:441
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=0&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=0&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=0&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=0&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useEffect @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:463
+react-stack-bottom-frame @ react-dom-client.development.js:24036
+runWithFiberInDEV @ react-dom-client.development.js:1511
+commitHookEffectListMount @ react-dom-client.development.js:10515
+commitHookPassiveMountEffects @ react-dom-client.development.js:10636
+commitPassiveMountOnFiber @ react-dom-client.development.js:12442
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12529
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12504
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12454
+flushPassiveEffects @ react-dom-client.development.js:15796
+eval @ react-dom-client.development.js:15367
+performWorkUntilDeadline @ scheduler.development.js:45
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=0&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:410
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\friend-request-notification.tsx:86 📡 Response received: {status: 200, statusText: 'OK', ok: true, headers: {…}}
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\friend-request-notification.tsx:95 ✅ FriendRequestNotification - Received data: {success: true, requests: Array(0), timestamp: '2025-09-07T19:39:47.443Z'}
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-comments.tsx:202 🔍 EntityComments: Raw API response: {likes_count: 0, comments_count: 1, recent_likes: Array(0), recent_comments: Array(1)}
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\entity-comments.tsx:205 🔍 EntityComments: Comments data from API: [{…}]
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=0&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useEffect @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:463
+react-stack-bottom-frame @ react-dom-client.development.js:24036
+runWithFiberInDEV @ react-dom-client.development.js:1511
+commitHookEffectListMount @ react-dom-client.development.js:10515
+commitHookPassiveMountEffects @ react-dom-client.development.js:10636
+commitPassiveMountOnFiber @ react-dom-client.development.js:12442
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12529
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12504
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12454
+flushPassiveEffects @ react-dom-client.development.js:15796
+eval @ react-dom-client.development.js:15367
+performWorkUntilDeadline @ scheduler.development.js:45
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=20&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:410
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=0&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:410
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=0&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=120&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useCallback[setupInfiniteScroll] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:441
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=0&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useEffect @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:463
+react-stack-bottom-frame @ react-dom-client.development.js:24036
+runWithFiberInDEV @ react-dom-client.development.js:1511
+commitHookEffectListMount @ react-dom-client.development.js:10515
+commitHookPassiveMountEffects @ react-dom-client.development.js:10636
+commitPassiveMountOnFiber @ react-dom-client.development.js:12442
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12529
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12504
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12454
+flushPassiveEffects @ react-dom-client.development.js:15796
+flushPendingEffects @ react-dom-client.development.js:15761
+performSyncWorkOnRoot @ react-dom-client.development.js:16287
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16138
+flushSpawnedWork @ react-dom-client.development.js:15665
+commitRoot @ react-dom-client.development.js:15391
+commitRootWhenReady @ react-dom-client.development.js:14644
+performWorkOnRoot @ react-dom-client.development.js:14567
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16275
+performWorkUntilDeadline @ scheduler.development.js:45
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=140&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useCallback[setupInfiniteScroll] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:441
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=0&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:410
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=0&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:410
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=0&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useEffect @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:463
+react-stack-bottom-frame @ react-dom-client.development.js:24036
+runWithFiberInDEV @ react-dom-client.development.js:1511
+commitHookEffectListMount @ react-dom-client.development.js:10515
+commitHookPassiveMountEffects @ react-dom-client.development.js:10636
+commitPassiveMountOnFiber @ react-dom-client.development.js:12442
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12529
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12504
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12454
+flushPassiveEffects @ react-dom-client.development.js:15796
+flushPendingEffects @ react-dom-client.development.js:15761
+performSyncWorkOnRoot @ react-dom-client.development.js:16287
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16138
+flushSpawnedWork @ react-dom-client.development.js:15665
+commitRoot @ react-dom-client.development.js:15391
+commitRootWhenReady @ react-dom-client.development.js:14644
+performWorkOnRoot @ react-dom-client.development.js:14567
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16275
+performWorkUntilDeadline @ scheduler.development.js:45
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=0&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:410
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=160&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useCallback[setupInfiniteScroll] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:441
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=20&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=180&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=0&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:410
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useCallback[setupInfiniteScroll] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:441
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=40&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useEffect @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:463
+react-stack-bottom-frame @ react-dom-client.development.js:24036
+runWithFiberInDEV @ react-dom-client.development.js:1511
+commitHookEffectListMount @ react-dom-client.development.js:10515
+commitHookPassiveMountEffects @ react-dom-client.development.js:10636
+commitPassiveMountOnFiber @ react-dom-client.development.js:12442
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12529
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12504
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12454
+flushPassiveEffects @ react-dom-client.development.js:15796
+flushPendingEffects @ react-dom-client.development.js:15761
+performSyncWorkOnRoot @ react-dom-client.development.js:16287
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16138
+flushSpawnedWork @ react-dom-client.development.js:15665
+commitRoot @ react-dom-client.development.js:15391
+commitRootWhenReady @ react-dom-client.development.js:14644
+performWorkOnRoot @ react-dom-client.development.js:14567
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16275
+performWorkUntilDeadline @ scheduler.development.js:45
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:410
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=0&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useEffect @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:463
+react-stack-bottom-frame @ react-dom-client.development.js:24036
+runWithFiberInDEV @ react-dom-client.development.js:1511
+commitHookEffectListMount @ react-dom-client.development.js:10515
+commitHookPassiveMountEffects @ react-dom-client.development.js:10636
+commitPassiveMountOnFiber @ react-dom-client.development.js:12442
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12529
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12504
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12454
+flushPassiveEffects @ react-dom-client.development.js:15796
+eval @ react-dom-client.development.js:15367
+performWorkUntilDeadline @ scheduler.development.js:45
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=0&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useEffect @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:463
+react-stack-bottom-frame @ react-dom-client.development.js:24036
+runWithFiberInDEV @ react-dom-client.development.js:1511
+commitHookEffectListMount @ react-dom-client.development.js:10515
+commitHookPassiveMountEffects @ react-dom-client.development.js:10636
+commitPassiveMountOnFiber @ react-dom-client.development.js:12442
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12529
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12504
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12454
+flushPassiveEffects @ react-dom-client.development.js:15796
+eval @ react-dom-client.development.js:15367
+performWorkUntilDeadline @ scheduler.development.js:45
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=200&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useCallback[setupInfiniteScroll] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:441
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=0&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useEffect @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:463
+react-stack-bottom-frame @ react-dom-client.development.js:24036
+runWithFiberInDEV @ react-dom-client.development.js:1511
+commitHookEffectListMount @ react-dom-client.development.js:10515
+commitHookPassiveMountEffects @ react-dom-client.development.js:10636
+commitPassiveMountOnFiber @ react-dom-client.development.js:12442
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12529
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12504
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12454
+flushPassiveEffects @ react-dom-client.development.js:15796
+flushPendingEffects @ react-dom-client.development.js:15761
+performSyncWorkOnRoot @ react-dom-client.development.js:16287
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16138
+flushSpawnedWork @ react-dom-client.development.js:15665
+commitRoot @ react-dom-client.development.js:15391
+commitRootWhenReady @ react-dom-client.development.js:14644
+performWorkOnRoot @ react-dom-client.development.js:14567
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16275
+performWorkUntilDeadline @ scheduler.development.js:45
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=0&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:410
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=0&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403 Error fetching activities: Error: Database query error: column activities.user_name does not exist
+    at EnterpriseTimelineActivities.useCallback[fetchActivities] (C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:354:15)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:403
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useEffect @ C:\Users\cshan\OneDrive\Desktop\Projects\new\v0-4-11-2025-authors-info-2\components\enterprise\enterprise-timeline-activities-optimized.tsx:463
+react-stack-bottom-frame @ react-dom-client.development.js:24036
+runWithFiberInDEV @ react-dom-client.development.js:1511
+commitHookEffectListMount @ react-dom-client.development.js:10515
+commitHookPassiveMountEffects @ react-dom-client.development.js:10636
+commitPassiveMountOnFiber @ react-dom-client.development.js:12442
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12529
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12504
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12445
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12435
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12558
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12416
+commitPassiveMountOnFiber @ react-dom-client.development.js:12454
+flushPassiveEffects @ react-dom-client.development.js:15796
+eval @ react-dom-client.development.js:15367
+performWorkUntilDeadline @ scheduler.development.js:45
+fetch.js:30  GET https://nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?select=id%2Cuser_id%2Cuser_name%2Cuser_avatar_url%2Cactivity_type%2Cdata%2Ccreated_at%2Cis_public%2Clike_count%2Ccomment_count%2Centity_type%2Centity_id%2Ccontent_type%2Cimage_url%2Ctext%2Cvisibility%2Ccontent_summary%2Clink_url%2Chashtags%2Cshare_count%2Cview_count%2Cengagement_score%2Cmetadata&entity_type=eq.author&entity_id=eq.e31e061d-a4a8-4cc8-af18-754786ad5ee3&order=created_at.desc&offset=0&limit=20 400 (Bad Request)
+eval @ fetch.js:30
+eval @ fetch.js:51
+fulfilled @ fetch.js:11
+Promise.then
+step @ fetch.js:13
+eval @ fetch.js:14
+__awaiter @ fetch.js:10
+eval @ fetch.js:41
+then @ PostgrestBuilder.js:65
+ Error fetching activities: 
+overrideMethod @ installHook.js:1
+error @ webpack-internal:///…console-error.js:50
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ webpack-internal:///…s-optimized.tsx:243
+await in EnterpriseTimelineActivities.useCallback[fetchActivities]
+EnterpriseTimelineActivities.useCallback[fetchActivities] @ webpack-internal:///…s-optimized.tsx:251

@@ -5,15 +5,6 @@ import { cookies } from 'next/headers'
 export async function GET(request: NextRequest) {
   try {
     const supabase = createRouteHandlerClient({ cookies })
-    
-    // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ 
-        error: 'Authentication required',
-        details: authError?.message || 'User not found'
-      }, { status: 401 })
-    }
 
     const { searchParams } = new URL(request.url)
     const entityType = searchParams.get('entity_type')
@@ -25,7 +16,7 @@ export async function GET(request: NextRequest) {
       }, { status: 400 })
     }
 
-    console.log('🔍 GET /api/engagement - Request:', { entityType, entityId, userId: user.id })
+    console.log('🔍 GET /api/engagement - Request:', { entityType, entityId })
 
     // Debug: Check if tables exist and have data
     const { count: likesCount, error: likesCountError } = await supabase
@@ -68,7 +59,6 @@ export async function GET(request: NextRequest) {
     let likesWithUsers: any[] = []
     if (likesData && likesData.length > 0) {
       const userIds = [...new Set(likesData.map(l => l.user_id))]
-      
       const { data: usersData, error: usersError } = await supabase
         .from('users')
         .select('id, name, email')
@@ -100,7 +90,7 @@ export async function GET(request: NextRequest) {
       `)
       .eq('entity_type', entityType)
       .eq('entity_id', entityId)
-      .is('parent_comment_id', null) // Only top-level comments
+      .is('parent_comment_id', null)
       .order('created_at', { ascending: false })
       .limit(10)
 
@@ -112,7 +102,6 @@ export async function GET(request: NextRequest) {
     let commentsWithUsers: any[] = []
     if (commentsData && commentsData.length > 0) {
       const userIds = [...new Set(commentsData.map(c => c.user_id))]
-      
       const { data: usersData, error: usersError } = await supabase
         .from('users')
         .select('id, name, email')
@@ -130,14 +119,6 @@ export async function GET(request: NextRequest) {
         }
       })
     }
-
-    console.log('🔍 Debug - Comments data:', {
-      entityType,
-      entityId,
-      commentsData,
-      commentsWithUsers,
-      commentsError
-    })
 
     // Transform the data to match the expected format
     const response = {
@@ -323,6 +304,65 @@ async function handleLike(supabase: any, userId: string, entityId: string, entit
 // Handle comment engagement
 async function handleComment(supabase: any, userId: string, entityId: string, entityType: string, commentText: string, parentId?: string) {
   try {
+    const trimmed = commentText?.trim() || ''
+    if (trimmed.length === 0) {
+      return NextResponse.json({ error: 'Comment content is required' }, { status: 400 })
+    }
+    if (trimmed.length > 1500) {
+      return NextResponse.json({ error: 'Comment too long (max 1500 characters)' }, { status: 400 })
+    }
+
+    // Permission enforcement: owner, friends (mutual follows), or followers (per owner policy)
+    const { data: activity, error: activityError } = await supabase
+      .from('activities')
+      .select('id, user_id')
+      .eq('id', entityId)
+      .single()
+
+    if (activityError || !activity) {
+      console.error('Error loading activity for permission check:', activityError)
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 })
+    }
+
+    const ownerUserId = activity.user_id
+    if (ownerUserId !== userId) {
+      // Default policy is friends
+      let postingPolicy: 'friends' | 'followers' | 'private' = 'friends'
+      const { data: ownerPrivacy } = await supabase
+        .from('user_privacy_settings')
+        .select('default_privacy_level')
+        .eq('user_id', ownerUserId)
+        .maybeSingle()
+
+      const level = ownerPrivacy?.default_privacy_level as string | undefined
+      if (level === 'followers') postingPolicy = 'followers'
+      else if (level === 'private') postingPolicy = 'private'
+      else postingPolicy = 'friends'
+
+      // Check relationship using follows table
+      const [{ data: youFollow }, { data: theyFollow }] = await Promise.all([
+        supabase
+          .from('follows')
+          .select('id')
+          .eq('follower_id', userId)
+          .eq('following_id', ownerUserId)
+          .limit(1),
+        supabase
+          .from('follows')
+          .select('id')
+          .eq('follower_id', ownerUserId)
+          .eq('following_id', userId)
+          .limit(1)
+      ])
+
+      const isFollower = (youFollow?.length || 0) > 0
+      const isFriend = isFollower && (theyFollow?.length || 0) > 0
+      const allowed = postingPolicy === 'followers' ? (isFollower || isFriend) : isFriend
+      if (!allowed) {
+        return NextResponse.json({ error: 'You do not have permission to comment on this post' }, { status: 403 })
+      }
+    }
+
     // Add the comment
     const { data: commentData, error: insertError } = await supabase
       .from('engagement_comments')
@@ -330,7 +370,7 @@ async function handleComment(supabase: any, userId: string, entityId: string, en
         user_id: userId,
         entity_type: entityType,
         entity_id: entityId,
-        comment_text: commentText.trim(),
+        comment_text: trimmed,
         parent_comment_id: parentId || null
       })
       .select()

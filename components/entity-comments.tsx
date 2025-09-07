@@ -83,6 +83,8 @@ export default function EntityComments({
   const [shareCount, setShareCount] = useState(0)
   const [bookmarkCount, setBookmarkCount] = useState(0)
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [ownerUserId, setOwnerUserId] = useState<string | null>(null)
+  const [canComment, setCanComment] = useState<boolean>(false)
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
   const [replyContent, setReplyContent] = useState('')
   const [commentInputRef] = useState(useRef<HTMLDivElement>(null))
@@ -113,6 +115,75 @@ export default function EntityComments({
     }
   }
 
+  // Permission check (owner/friends/followers depending on owner's privacy)
+  const checkCanComment = useCallback(async () => {
+    try {
+      if (!entityId) return
+      // Load activity owner
+      const { data: activity } = await supabase
+        .from('activities')
+        .select('user_id')
+        .eq('id', entityId)
+        .maybeSingle()
+
+      const ownerId = activity?.user_id || null
+      setOwnerUserId(ownerId)
+      if (!ownerId) {
+        setCanComment(false)
+        return
+      }
+
+      // If not signed in, cannot comment
+      if (!currentUser?.id) {
+        setCanComment(false)
+        return
+      }
+
+      // Owner can always comment
+      if (currentUser.id === ownerId) {
+        setCanComment(true)
+        return
+      }
+
+      // Determine owner's policy (default friends)
+      let postingPolicy: 'friends' | 'followers' | 'private' = 'friends'
+      const { data: ownerPrivacy } = await supabase
+        .from('user_privacy_settings')
+        .select('default_privacy_level')
+        .eq('user_id', ownerId)
+        .maybeSingle()
+
+      const level = ownerPrivacy?.default_privacy_level as string | undefined
+      if (level === 'followers') postingPolicy = 'followers'
+      else if (level === 'private') postingPolicy = 'private'
+      else postingPolicy = 'friends'
+
+      // Relationship checks
+      const [{ data: youFollow }, { data: theyFollow }] = await Promise.all([
+        supabase
+          .from('follows')
+          .select('id')
+          .eq('follower_id', currentUser.id)
+          .eq('following_id', ownerId)
+          .limit(1),
+        supabase
+          .from('follows')
+          .select('id')
+          .eq('follower_id', ownerId)
+          .eq('following_id', currentUser.id)
+          .limit(1)
+      ])
+
+      const isFollower = (youFollow?.length || 0) > 0
+      const isFriend = isFollower && (theyFollow?.length || 0) > 0
+      const allowed = postingPolicy === 'followers' ? (isFollower || isFriend) : isFriend
+      setCanComment(allowed)
+    } catch (e) {
+      console.warn('Permission check failed; defaulting to no composer')
+      setCanComment(false)
+    }
+  }, [entityId, supabase, currentUser])
+
   // Fetch comments
   const fetchComments = useCallback(async () => {
     if (!entityId || !entityType) return
@@ -121,6 +192,7 @@ export default function EntityComments({
     try {
       console.log('🔍 Fetching comments for:', { entityId, entityType })
       
+      // Use existing unified engagement API for all entities
       const response = await fetch(`/api/engagement?entity_id=${entityId}&entity_type=${entityType}`)
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
@@ -129,9 +201,24 @@ export default function EntityComments({
       const data = await response.json()
       console.log('🔍 EntityComments: Raw API response:', data)
       
-      if (data.comments && Array.isArray(data.comments)) {
-        console.log('🔍 EntityComments: Comments data from API:', data.comments)
-        setComments(data.comments)
+      if (data?.recent_comments && Array.isArray(data.recent_comments)) {
+        console.log('🔍 EntityComments: Comments data from API:', data.recent_comments)
+        // Map API shape from /api/engagement to component shape
+        const mapped = data.recent_comments.map((c: any) => ({
+          id: c.id,
+          user_id: c.user_id,
+          entity_type: entityType,
+          entity_id: entityId,
+          content: c.comment_text,
+          parent_id: c.parent_comment_id ?? undefined,
+          created_at: c.created_at,
+          updated_at: c.updated_at,
+          is_hidden: false,
+          is_deleted: false,
+          user: { id: c.user?.id || c.user_id, name: c.user?.name || 'User', avatar_url: c.user?.avatar_url },
+          replies: [],
+        }))
+        setComments(mapped)
       } else {
         console.log('🔍 EntityComments: No comments data or invalid format:', data)
         setComments([])
@@ -160,15 +247,16 @@ export default function EntityComments({
     
     setIsSubmitting(true)
     try {
-      const response = await fetch('/api/engagement/comment', {
+      const response = await fetch('/api/engagement', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          entity_type: entityType,
           entity_id: entityId,
-          comment_text: newComment.trim()
+          entity_type: entityType,
+          engagement_type: 'comment',
+          content: newComment.trim()
         })
       })
 
@@ -227,15 +315,16 @@ export default function EntityComments({
     if (!replyContent.trim() || !currentUser) return
     
     try {
-      const response = await fetch('/api/engagement/comment', {
+      const response = await fetch('/api/engagement', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          entity_type: entityType,
           entity_id: entityId,
-          comment_text: replyContent.trim(),
+          entity_type: entityType,
+          engagement_type: 'comment',
+          content: replyContent.trim(),
           parent_id: parentCommentId
         })
       })
@@ -323,6 +412,11 @@ export default function EntityComments({
     fetchComments()
   }, [fetchComments])
 
+  // Recheck permissions when user/entity changes
+  useEffect(() => {
+    checkCanComment()
+  }, [checkCanComment])
+
   // Handle Enter key in comment input
   const handleCommentKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -351,7 +445,7 @@ export default function EntityComments({
       </div>
 
       {/* Comment Input Section */}
-      {currentUser && (
+      {currentUser && canComment && (
         <div className="entity-comment-input-section px-4 py-3 border-b border-gray-100">
           <div className="entity-comment-input-container flex items-start gap-3">
             {/* User Avatar */}
@@ -426,6 +520,11 @@ export default function EntityComments({
               </div>
             </div>
           </div>
+        </div>
+      )}
+      {currentUser && !canComment && (
+        <div className="px-4 py-3 border-b border-gray-100">
+          <p className="text-xs text-gray-500">You cannot comment on this post due to the owner's privacy settings.</p>
         </div>
       )}
 

@@ -63,7 +63,7 @@ import { EnterprisePhotoViewer } from '@/components/photo-gallery/enterprise-pho
 import { FeedPost, PostContent, PostVisibility, PostPublishStatus, getPostText, getPostImages, getPostContentType, hasImageContent, hasTextContent } from '@/types/feed'
 import { useAuth } from '@/hooks/useAuth'
 import { deduplicatedRequest } from '@/lib/request-utils'
-import { CommentsList } from '@/components/comments/comments-list'
+import EntityComments from '@/components/entity-comments'
 import { ReactionsModal } from '@/components/enterprise/reactions-modal'
 import { CommentsModal } from '@/components/enterprise/comments-modal'
 import { EngagementDisplay } from '@/components/enterprise/engagement-display'
@@ -1723,116 +1723,7 @@ export default function EntityFeedCard({
         {showComments && (
           <div className="enterprise-feed-card-comments mt-4">
             <Separator className="mb-3" />
-            {/* Comments display with real data from database */}
-            {post.comment_count > 0 ? (
-              <>
-                <div className="text-sm text-gray-500 mb-2">Debug: Comment count: {post.comment_count}</div>
-                <div className="text-sm text-gray-500 mb-2">Debug: Post ID: {post.id}</div>
-                <div className="text-sm text-gray-500 mb-2">Debug: Entity Type: {post.entity_type || 'activity'}</div>
-                <div className="text-sm text-gray-500 mb-2">Debug: About to render CommentsList with:</div>
-                <div className="text-sm text-gray-500 mb-2">- entityId: {post.id}</div>
-                <div className="text-sm text-gray-500 mb-2">- entityType: {post.entity_type || 'activity'}</div>
-                <div className="p-3 bg-blue-50 rounded-lg">
-                  <p className="text-blue-800">CommentsList component should appear here</p>
-                  <p className="text-sm text-blue-600">Post has {post.comment_count} comments</p>
-                </div>
-                {/* Temporarily comment out CommentsList to test */}
-                {/* <CommentsList entityId={post.id} entityType={post.entity_type || 'activity'} /> */}
-                
-                {/* Simple inline comment display using existing data */}
-                {post.comment_count > 0 && (
-                  <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-3">
-                      Comments ({post.comment_count})
-                    </h4>
-                    
-                    {/* Loading state */}
-                    {isLoadingComments && (
-                      <div className="space-y-3">
-                        <div className="animate-pulse">
-                          <div className="flex gap-3">
-                            <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-                            <div className="flex-1">
-                              <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
-                              <div className="h-16 bg-gray-200 rounded"></div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Real comment display */}
-                    {!isLoadingComments && comments.length > 0 && (
-                      <div className="space-y-3">
-                        {comments.map((comment) => (
-                          <div key={comment.id} className="comment-item" role="article">
-                            <div className="flex gap-3">
-                              {/* User Avatar */}
-                              <div className="flex-shrink-0">
-                                <Avatar 
-                                  src={comment.user?.avatar_url || '/placeholder.svg?height=32&width=32'} 
-                                  alt={`${comment.user?.name || 'User'} avatar`}
-                                  name={comment.user?.name || 'User'}
-                                  className="w-8 h-8"
-                                />
-                              </div>
-                              
-                              {/* Comment Content */}
-                              <div className="flex-1 min-w-0">
-                                <div className="bg-white rounded-lg p-3 border border-gray-100">
-                                  {/* User Name */}
-                                  <div className="mb-1">
-                                    <span className="text-sm font-semibold text-blue-600">
-                                      {comment.user?.name || 'Unknown User'}
-                                    </span>
-                                  </div>
-                                  
-                                  {/* Comment Text */}
-                                  <div className="text-sm text-gray-800">
-                                    {comment.comment_text}
-                                  </div>
-                                </div>
-                                
-                                {/* Comment Actions */}
-                                <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
-                                  <button className="hover:text-blue-600 transition-colors flex items-center gap-1">
-                                    <ThumbsUp className="w-3 h-3" />
-                                    Like
-                                  </button>
-                                  <button className="hover:text-blue-600 transition-colors flex items-center gap-1">
-                                    <MessageSquare className="w-3 h-3" />
-                                    Reply
-                                  </button>
-                                  <span className="text-gray-400">•</span>
-                                  <span>{new Date(comment.created_at).toLocaleDateString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    hour: 'numeric',
-                                    minute: 'numeric'
-                                  })}</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    
-                    {/* No comments state */}
-                    {!isLoadingComments && comments.length === 0 && (
-                      <div className="text-sm text-gray-500 text-center py-4">
-                        No comments found
-                      </div>
-                    )}
-                  </div>
-                )}
-                
-
-              </>
-            ) : (
-              <div className="text-sm text-gray-500">Debug: No comments to show</div>
-            )}
-            {/* If no comments, show nothing - exactly as requested */}
+            <EntityComments entityId={post.id} entityType={post.entity_type || 'activity'} entityName={userDetails?.name} entityAvatar={userDetails?.avatar_url} />
           </div>
         )}
       </div>

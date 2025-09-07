@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     console.log('🚀 GET /api/entity-images called')
     
     const { searchParams } = new URL(request.url)
-    const entityId = searchParams.get('entityId')
+    let entityId = searchParams.get('entityId')
     const entityType = searchParams.get('entityType') as EntityType
     const albumPurpose = searchParams.get('albumPurpose') as AlbumPurpose
 
@@ -59,6 +59,30 @@ export async function GET(request: NextRequest) {
     const cookieStore = await cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     console.log('✅ Supabase client created')
+
+    // Resolve permalink to UUID if necessary (users/books/authors/publishers/events)
+    if (entityId && entityType) {
+      // If entityId does not look like a UUID, try to resolve by permalink
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+      if (!uuidRegex.test(entityId)) {
+        const cookieStore = await cookies()
+        const supabaseResolve = createRouteHandlerClient({ cookies: () => cookieStore })
+        const table = entityType === 'user' ? 'users' : entityType + 's'
+        const idCol = 'id'
+        const { data: resolved, error: resolveError } = await supabaseResolve
+          .from(table)
+          .select('id, permalink')
+          .or(`id.eq.${entityId},permalink.eq.${entityId}`)
+          .maybeSingle()
+
+        if (resolveError) {
+          console.warn('Permalink resolution error (non-fatal):', resolveError)
+        }
+        if (resolved?.id) {
+          entityId = resolved.id
+        }
+      }
+    }
 
     // Build query to find albums based on entity and purpose
     let query = supabase

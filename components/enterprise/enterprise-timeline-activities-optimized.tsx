@@ -224,6 +224,27 @@ const EnterpriseTimelineActivities = React.memo(({
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [retryCount, setRetryCount] = useState(0)
   const [lastFetchTime, setLastFetchTime] = useState<Date | null>(null)
+  // Composer & posting state
+  const [postForm, setPostForm] = useState({
+    content: '',
+    contentType: 'text',
+    visibility: 'friends' as 'friends' | 'followers' | 'private',
+    imageUrl: '',
+    linkUrl: '',
+    hashtags: ''
+  })
+  const [isPosting, setIsPosting] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  // Permissions and connections
+  const [userConnections, setUserConnections] = useState<{ friends: string[]; followers: string[]; following: string[] }>({ friends: [], followers: [], following: [] })
+  // Reading progress / privacy
+  const [readingProgress, setReadingProgress] = useState<any>(null)
+  const [privacySettings, setPrivacySettings] = useState<any>(null)
+  const [privacySettingsLoading, setPrivacySettingsLoading] = useState(false)
+  // Moderation & analytics & filters
+  const [moderationSettings, setModerationSettings] = useState({ autoModerate: true, safetyThreshold: 0.6 })
+  const [analytics, setAnalytics] = useState({ total_activities: 0, total_engagement: 0, average_engagement_rate: 0 })
+  const [filters, setFilters] = useState({ search_query: '', date_range: 'all' as 'all' | '1d' | '7d' | '30d', content_type: 'all' as 'all' | 'text' | 'image' | 'link' })
   
   // Performance optimization: Use transitions for non-urgent updates
   const [isPending, startTransition] = useTransition()
@@ -275,33 +296,92 @@ const EnterpriseTimelineActivities = React.memo(({
         return
       }
       
-      let data, error
-      
-      // Use different functions based on entity type
-      if (memoizedEntityType === 'user') {
-        const result = await supabase.rpc('get_user_feed_activities', {
-          p_user_id: memoizedUserId,
-          p_limit: memoizedPageSize,
-          p_offset: (pageNum - 1) * memoizedPageSize
-        })
-        data = result.data
-        error = result.error
-      } else {
-        const result = await supabase.rpc('get_entity_timeline_activities', {
-          p_entity_type: memoizedEntityType,
-          p_entity_id: memoizedUserId,
-          p_limit: memoizedPageSize,
-          p_offset: (pageNum - 1) * memoizedPageSize
-        })
-        data = result.data
-        error = result.error
+      // Resolve permalink to UUID when necessary
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+      let resolvedEntityId = memoizedUserId
+      if (!uuidRegex.test(resolvedEntityId)) {
+        try {
+          const table = memoizedEntityType === 'user' ? 'users' : `${memoizedEntityType}s`
+          const { data: entityRow } = await supabase
+            .from(table)
+            .select('id, permalink')
+            .or(`id.eq.${resolvedEntityId},permalink.eq.${resolvedEntityId}`)
+            .maybeSingle()
+          if (entityRow?.id) {
+            resolvedEntityId = entityRow.id
+          }
+        } catch (e) {
+          console.warn('Permalink resolution failed (continuing with provided id):', e)
+        }
       }
+
+      // Direct, schema-aligned query to avoid RPC signature mismatches
+      const rangeStart = (pageNum - 1) * memoizedPageSize
+      const rangeEnd = rangeStart + memoizedPageSize - 1
+      const { data: rows, error } = await supabase
+        .from('activities')
+        .select(`
+          id,
+          user_id,
+          user_name,
+          user_avatar_url,
+          activity_type,
+          data,
+          created_at,
+          is_public,
+          like_count,
+          comment_count,
+          entity_type,
+          entity_id,
+          content_type,
+          image_url,
+          text,
+          visibility,
+          content_summary,
+          link_url,
+          hashtags,
+          share_count,
+          view_count,
+          engagement_score,
+          metadata
+        `)
+        .eq('entity_type', memoizedEntityType)
+        .eq('entity_id', resolvedEntityId)
+        .order('created_at', { ascending: false })
+        .range(rangeStart, rangeEnd)
+
+      if (error) {
+        throw new Error(`Database query error: ${error.message}`)
+      }
+
+      const data: EnterpriseActivity[] = (rows || []).map((row: any) => ({
+        id: row.id,
+        user_id: row.user_id,
+        user_name: row.user_name,
+        user_avatar_url: row.user_avatar_url,
+        activity_type: row.activity_type,
+        data: row.data,
+        created_at: row.created_at,
+        is_public: row.is_public,
+        like_count: row.like_count || 0,
+        comment_count: row.comment_count || 0,
+        is_liked: false,
+        entity_type: row.entity_type,
+        entity_id: row.entity_id,
+        content_type: row.content_type,
+        image_url: row.image_url,
+        text: row.text,
+        visibility: row.visibility,
+        content_summary: row.content_summary,
+        link_url: row.link_url,
+        hashtags: row.hashtags || [],
+        share_count: row.share_count || 0,
+        view_count: row.view_count || 0,
+        engagement_score: row.engagement_score || 0,
+        metadata: row.metadata || {}
+      }))
       
       const fetchTime = performance.now() - startTime
-      
-      if (error) {
-        throw new Error(`Database function error: ${error.message}`)
-      }
       
       // Performance optimization: Cache the result
       cacheRef.current.set(cacheKey, { data, timestamp: Date.now() })
@@ -388,6 +468,88 @@ const EnterpriseTimelineActivities = React.memo(({
     const cleanup = setupInfiniteScroll()
     return cleanup
   }, [setupInfiniteScroll])
+
+  // ============================================================================
+  // PERMISSIONS, CONNECTIONS, PRIVACY, READING PROGRESS
+  // ============================================================================
+
+  const canUserPostOnTimeline = useCallback(async (posterUserId: string, timelineUserId: string): Promise<{ canPost: boolean; reason?: string }> => {
+    if (!posterUserId || !timelineUserId) return { canPost: false, reason: 'Invalid users' }
+    if (posterUserId === timelineUserId) return { canPost: true }
+    try {
+      const { data: friendshipData, error: friendshipError } = await supabase
+        .from('friendships')
+        .select('status')
+        .or(`and(user_id.eq.${posterUserId},friend_id.eq.${timelineUserId}),and(user_id.eq.${timelineUserId},friend_id.eq.${posterUserId})`)
+        .maybeSingle()
+      if (friendshipError && friendshipError.code !== 'PGRST116') {
+        console.warn('Error checking friendship:', friendshipError)
+      }
+      if (friendshipData?.status === 'accepted') return { canPost: true }
+      const { data: privacyData } = await supabase
+        .from('user_privacy_settings')
+        .select('timeline_posting_permission')
+        .eq('user_id', timelineUserId)
+        .maybeSingle()
+      const permission = privacyData?.timeline_posting_permission || 'friends'
+      if (permission === 'friends') return { canPost: false, reason: 'Only friends can post' }
+      if (permission === 'followers') {
+        const { data: followData } = await supabase
+          .from('follows')
+          .select('follower_id, following_id, status')
+          .or(`and(follower_id.eq.${posterUserId},following_id.eq.${timelineUserId}),and(follower_id.eq.${timelineUserId},following_id.eq.${posterUserId})`)
+        const isFollower = followData?.some(r => r.follower_id === posterUserId && r.following_id === timelineUserId && r.status === 'accepted')
+        return { canPost: !!isFollower, reason: 'Only followers can post' }
+      }
+      return { canPost: false, reason: 'Posting disabled' }
+    } catch (e) {
+      console.warn('Permission check failed:', e)
+      return { canPost: false, reason: 'Error checking permissions' }
+    }
+  }, [supabase])
+
+  const fetchUserConnections = useCallback(async () => {
+    if (!user) return
+    try {
+      const [{ data: friends }, { data: followers }, { data: following }] = await Promise.all([
+        supabase.from('friendships').select('friend_id').eq('user_id', user.id).eq('status', 'accepted'),
+        supabase.from('follows').select('follower_id').eq('following_id', user.id).eq('status', 'accepted'),
+        supabase.from('follows').select('following_id').eq('follower_id', user.id).eq('status', 'accepted')
+      ])
+      setUserConnections({
+        friends: friends?.map(f => f.friend_id) || [],
+        followers: followers?.map(f => f.follower_id) || [],
+        following: following?.map(f => f.following_id) || []
+      })
+    } catch (e) {
+      console.warn('Error fetching connections:', e)
+    }
+  }, [user, supabase])
+
+  const fetchReadingProgress = useCallback(async () => {
+    try {
+      if (!enableReadingProgress) return
+      // Placeholder hook to keep parity; real endpoint optional
+      setReadingProgress(null)
+    } catch {}
+  }, [enableReadingProgress])
+
+  const fetchPrivacySettings = useCallback(async () => {
+    try {
+      if (!enablePrivacyControls || memoizedEntityType !== 'user') return
+      setPrivacySettingsLoading(true)
+      const { data } = await supabase
+        .from('user_privacy_settings')
+        .select('timeline_posting_permission')
+        .eq('user_id', memoizedUserId)
+        .maybeSingle()
+      setPrivacySettings(data || null)
+    } catch (e) {
+      console.warn('Error fetching privacy settings:', e)
+    } finally {
+      setPrivacySettingsLoading(false)
+    }
+  }, [enablePrivacyControls, supabase, memoizedEntityType, memoizedUserId])
   
   // Performance optimization: Cleanup cache on unmount
   useEffect(() => {
@@ -395,6 +557,31 @@ const EnterpriseTimelineActivities = React.memo(({
       cacheRef.current.clear()
     }
   }, [])
+
+  // Connections, privacy, reading progress
+  useEffect(() => {
+    fetchUserConnections()
+    fetchPrivacySettings()
+    fetchReadingProgress()
+  }, [fetchUserConnections, fetchPrivacySettings, fetchReadingProgress])
+
+  // Real-time updates: refetch on new activity affecting this timeline
+  useEffect(() => {
+    if (!enableRealTime) return
+    const channel = supabase
+      .channel('timeline-updates-optimized')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'activities' }, (payload) => {
+        const row = (payload.new || payload.old) as any
+        if (!row) return
+        if (row.entity_type === memoizedEntityType && row.entity_id === memoizedUserId) {
+          fetchActivities(1, false)
+        }
+      })
+      .subscribe()
+    return () => {
+      try { supabase.removeChannel(channel) } catch {}
+    }
+  }, [enableRealTime, supabase, memoizedEntityType, memoizedUserId, fetchActivities])
   
   // ============================================================================
   // PERFORMANCE OPTIMIZED RENDER FUNCTIONS
@@ -443,14 +630,45 @@ const EnterpriseTimelineActivities = React.memo(({
   const renderActivity = useCallback((activity: EnterpriseActivity, index: number) => {
     const post = transformActivityToPost(activity)
     return (
-      <EntityFeedCard
-        key={`${activity.id}_${index}`}
-        post={post}
-        showActions={true}
-        showComments={true}
-        showEngagement={true}
-        className=""
-      />
+      <div key={`${activity.id}_${index}`} className="enterprise-feed-card">
+        <EntityFeedCard
+          post={post}
+          showActions={true}
+          showComments={true}
+          showEngagement={true}
+          className=""
+        />
+        <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1">
+                <Eye className="h-3 w-3" />
+                {post.view_count || 0}
+              </div>
+              <div className="flex items-center gap-1">
+                <Heart className="h-3 w-3" />
+                {post.like_count || 0}
+              </div>
+              <div className="flex items-center gap-1">
+                <MessageCircle className="h-3 w-3" />
+                {post.comment_count || 0}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {post.is_verified && (
+                <Badge variant="default" className="bg-blue-100 text-blue-800 text-[10px]">
+                  <Check className="h-3 w-3 mr-1" />Verified
+                </Badge>
+              )}
+              {post.user_has_bookmarked && (
+                <Badge variant="secondary" className="text-[10px]">
+                  <Bookmark className="h-3 w-3 mr-1" />Bookmarked
+                </Badge>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
     )
   }, [transformActivityToPost])
   
@@ -473,6 +691,183 @@ const EnterpriseTimelineActivities = React.memo(({
       ))}
     </div>
   ), [])
+
+  // ============================================================================
+  // FILTERS, ANALYTICS, MODERATION
+  // ============================================================================
+
+  const filteredActivities = useMemo(() => {
+    let list = activities
+    if (filters.search_query) {
+      const q = filters.search_query.toLowerCase()
+      list = list.filter(a => (a.text || a.data?.content || '').toLowerCase().includes(q) || (a.user_name || '').toLowerCase().includes(q))
+    }
+    if (filters.content_type !== 'all') {
+      list = list.filter(a => (a.content_type || 'text') === filters.content_type)
+    }
+    if (filters.date_range !== 'all') {
+      const now = new Date()
+      const cutoff = new Date()
+      if (filters.date_range === '1d') cutoff.setDate(now.getDate() - 1)
+      if (filters.date_range === '7d') cutoff.setDate(now.getDate() - 7)
+      if (filters.date_range === '30d') cutoff.setDate(now.getDate() - 30)
+      list = list.filter(a => new Date(a.created_at) >= cutoff)
+    }
+    return list
+  }, [activities, filters])
+
+  useEffect(() => {
+    const totalEngagement = filteredActivities.reduce((sum, a) => sum + (a.like_count || 0) + (a.comment_count || 0), 0)
+    const average = filteredActivities.length ? (totalEngagement / filteredActivities.length) * 100 : 0
+    setAnalytics({ total_activities: filteredActivities.length, total_engagement: totalEngagement, average_engagement_rate: average })
+  }, [filteredActivities])
+
+  const renderAnalyticsDashboard = useCallback(() => {
+    if (!showAnalytics) return null
+    return (
+      <Card className="mb-4">
+        <CardContent className="p-4">
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div>
+              <div className="text-2xl font-semibold">{analytics.total_activities}</div>
+              <div className="text-xs text-muted-foreground">Posts</div>
+            </div>
+            <div>
+              <div className="text-2xl font-semibold">{analytics.total_engagement}</div>
+              <div className="text-xs text-muted-foreground">Engagement</div>
+            </div>
+            <div>
+              <div className="text-2xl font-semibold">{filteredActivities.length}</div>
+              <div className="text-xs text-muted-foreground">Visible</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }, [analytics, filteredActivities.length, showAnalytics])
+
+  const renderAdvancedFilters = useCallback(() => (
+    <Card className="mb-4">
+      <CardContent className="p-4">
+        <div className="flex items-center gap-3">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search posts..."
+              value={filters.search_query}
+              onChange={(e) => setFilters(prev => ({ ...prev, search_query: e.target.value }))}
+              className="pl-10"
+            />
+          </div>
+          <Select value={filters.date_range} onValueChange={(v) => setFilters(prev => ({ ...prev, date_range: v as any }))}>
+            <SelectTrigger className="w-[9rem]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Time</SelectItem>
+              <SelectItem value="1d">Today</SelectItem>
+              <SelectItem value="7d">This Week</SelectItem>
+              <SelectItem value="30d">This Month</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={filters.content_type} onValueChange={(v) => setFilters(prev => ({ ...prev, content_type: v as any }))}>
+            <SelectTrigger className="w-[9rem]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="text">Text</SelectItem>
+              <SelectItem value="image">Image</SelectItem>
+              <SelectItem value="link">Link</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button variant="outline" size="sm" onClick={() => setFilters({ search_query: '', date_range: 'all', content_type: 'all' })}>Clear</Button>
+        </div>
+      </CardContent>
+    </Card>
+  ), [filters])
+
+  // Moderation helpers
+  const calculateContentSafetyScore = useCallback((content: string) => {
+    if (!moderationSettings.autoModerate) return 1
+    const unsafe = ['spam', 'harassment', 'hate', 'abuse']
+    const found = unsafe.filter(w => content?.toLowerCase().includes(w)).length
+    return Math.max(0, 1 - found * 0.2)
+  }, [moderationSettings.autoModerate])
+
+  // ============================================================================
+  // COMPOSER: create post
+  // ============================================================================
+
+  const handleCreatePost = useCallback(async () => {
+    if (!user) return
+    if (!postForm.content.trim()) return
+    // Only allow posting to user timelines where permitted; allow entity posts otherwise
+    if (memoizedEntityType === 'user') {
+      const check = await canUserPostOnTimeline(user.id, memoizedUserId)
+      if (!check.canPost) {
+        toast({ title: 'Access denied', description: check.reason || 'Cannot post here', variant: 'destructive' })
+        return
+      }
+    }
+    setIsPosting(true)
+    try {
+      const { error } = await supabase
+        .from('activities')
+        .insert([{
+          user_id: user.id,
+          activity_type: 'post_created',
+          visibility: postForm.visibility,
+          content_type: postForm.imageUrl ? 'image' : postForm.contentType,
+          text: postForm.content,
+          content_summary: postForm.content.substring(0, 100),
+          image_url: postForm.imageUrl || null,
+          link_url: postForm.linkUrl || null,
+          hashtags: postForm.hashtags ? postForm.hashtags.split(',').map(t => t.trim()).filter(Boolean) : [],
+          data: { content: postForm.content, content_type: postForm.imageUrl ? 'image' : postForm.contentType },
+          entity_type: memoizedEntityType,
+          entity_id: memoizedUserId,
+          metadata: { privacy_level: postForm.visibility }
+        }])
+      if (error) throw error
+      setPostForm({ content: '', contentType: 'text', visibility: 'friends', imageUrl: '', linkUrl: '', hashtags: '' })
+      fetchActivities(1, false)
+      toast({ title: 'Posted', description: 'Your post is live.' })
+    } catch (e: any) {
+      toast({ title: 'Failed to post', description: e?.message || 'Try again', variant: 'destructive' })
+    } finally {
+      setIsPosting(false)
+    }
+  }, [user, postForm, supabase, memoizedEntityType, memoizedUserId, canUserPostOnTimeline, fetchActivities, toast])
+
+  const handlePhotoUpload = useCallback(() => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'image/*'
+    input.multiple = true
+    input.onchange = async (e) => {
+      const files = Array.from((e.target as HTMLInputElement).files || [])
+      if (!files.length) return
+      try {
+        setIsUploading(true)
+        const uploaded: string[] = []
+        for (const file of files) {
+          const formData = new FormData()
+          formData.append('file', file)
+          formData.append('entityType', memoizedEntityType)
+          formData.append('entityId', memoizedUserId)
+          const resp = await fetch('/api/upload/post-photo', { method: 'POST', body: formData })
+          if (!resp.ok) throw new Error(await resp.text())
+          const result = await resp.json()
+          if (result?.url) uploaded.push(result.url)
+        }
+        const current = postForm.imageUrl ? postForm.imageUrl.split(',').map(s => s.trim()).filter(Boolean) : []
+        setPostForm(prev => ({ ...prev, imageUrl: [...current, ...uploaded].join(', ') }))
+        toast({ title: 'Photos uploaded', description: `${uploaded.length} photo(s) ready` })
+      } catch (e: any) {
+        toast({ title: 'Upload failed', description: e?.message || 'Try again', variant: 'destructive' })
+      } finally {
+        setIsUploading(false)
+      }
+    }
+    input.click()
+  }, [memoizedEntityType, memoizedUserId, postForm.imageUrl, toast])
   
   // ============================================================================
   // PERFORMANCE OPTIMIZED RENDER
@@ -500,10 +895,70 @@ const EnterpriseTimelineActivities = React.memo(({
   
   return (
     <div className="space-y-6">
+      {renderAnalyticsDashboard()}
+      {renderAdvancedFilters()}
+      {/* Composer */}
+      {enablePrivacyControls && (
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-10 rounded-full overflow-hidden bg-gray-200" />
+              <div className="flex-1">
+                <Textarea
+                  placeholder={memoizedEntityType === 'user' ? "What's on your mind?" : 'Share your thoughts...'}
+                  className="border rounded-md resize-none min-h-[60px]"
+                  value={postForm.content}
+                  onChange={(e) => setPostForm(prev => ({ ...prev, content: e.target.value }))}
+                />
+                {!!postForm.imageUrl && (
+                  <div className="mt-2 text-xs text-muted-foreground">Images: {postForm.imageUrl.split(',').filter(Boolean).length}</div>
+                )}
+                <div className="mt-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="sm" onClick={handlePhotoUpload} disabled={isUploading}>
+                      <Camera className="h-4 w-4 mr-2" />{isUploading ? 'Uploading...' : 'Photo'}
+                    </Button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Select value={postForm.visibility} onValueChange={(v) => setPostForm(prev => ({ ...prev, visibility: v as any }))}>
+                      <SelectTrigger className="w-[8rem]"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="friends">Friends</SelectItem>
+                        <SelectItem value="followers">Followers</SelectItem>
+                        <SelectItem value="private">Only me</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button onClick={handleCreatePost} disabled={isPosting || !postForm.content.trim()} className="px-6">{isPosting ? 'Posting...' : 'Post'}</Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       {/* Performance optimized: Only render visible items */}
       <div className="space-y-4">
-        {activities.map((activity, index) => renderActivity(activity, index))}
+        {filteredActivities.map((activity, index) => renderActivity(activity, index))}
       </div>
+      {/* Compact cross-post/collaboration/AI summary */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div className="p-3 bg-blue-50 rounded">
+              <div className="text-xs text-blue-700">Cross-post Reach</div>
+              <div className="text-lg font-semibold text-blue-800">—</div>
+            </div>
+            <div className="p-3 bg-purple-50 rounded">
+              <div className="text-xs text-purple-700">Collaboration Activity</div>
+              <div className="text-lg font-semibold text-purple-800">—</div>
+            </div>
+            <div className="p-3 bg-amber-50 rounded">
+              <div className="text-xs text-amber-700">AI Enhancements</div>
+              <div className="text-lg font-semibold text-amber-800">—</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
       
       {/* Performance optimized: Loading indicator for infinite scroll */}
       {hasMore && (

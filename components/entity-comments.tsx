@@ -447,77 +447,81 @@ export default function EntityComments({
       {/* Comment Input Section */}
       {currentUser && canComment && (
         <div className="entity-comment-input-section px-4 py-3 border-b border-gray-100">
-          <div className="entity-comment-input-container flex items-start gap-3">
+          <div className="entity-comment-input-container flex items-center gap-3">
             {/* User Avatar */}
             <div className="entity-comment-avatar flex-shrink-0">
-              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden">
                 {currentUser.avatar_url ? (
-                  <img 
-                    src={currentUser.avatar_url} 
-                    alt="User avatar" 
-                    className="w-8 h-8 rounded-full object-cover"
+                  <img
+                    src={currentUser.avatar_url}
+                    alt="User avatar"
+                    className="w-8 h-8 object-cover"
                   />
                 ) : (
-                  <span className="text-sm font-medium text-gray-600">
+                  <div className="w-8 h-8 flex items-center justify-center text-sm font-medium text-gray-600">
                     {currentUser.name?.[0] || currentUser.email?.[0] || 'U'}
-                  </span>
+                  </div>
                 )}
               </div>
             </div>
 
-            {/* Comment Input Area */}
-            <div className="entity-comment-input-area flex-1">
-              <div className="entity-comment-input-wrapper relative">
-                <textarea
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Write a comment..."
-                  className="entity-comment-textarea w-full min-h-[40px] max-h-32 resize-none border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  rows={1}
-                  onKeyDown={handleCommentKeyDown}
-                  disabled={isSubmitting}
-                />
-                
-                {/* Comment Action Icons */}
-                <div className="entity-comment-actions absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="entity-comment-action-icon p-1 h-6 w-6 text-gray-400 hover:text-gray-600"
-                    title="Add emoji"
-                  >
-                    <Smile className="h-4 w-4" />
-                  </Button>
-                  
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="entity-comment-action-icon p-1 h-6 w-6 text-gray-400 hover:text-gray-600"
-                    title="Add photo"
-                  >
-                    <ImageIcon className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+            {/* Inline pill input with right-side quick icons */}
+            <div className="flex-1 flex items-center gap-2">
+              <textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder={`Comment as ${currentUser.name || currentUser.email || 'You'}`}
+                className="w-full min-h-[40px] max-h-32 resize-none border rounded-full px-4 py-2 text-sm bg-white border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows={1}
+                onKeyDown={handleCommentKeyDown}
+                disabled={isSubmitting}
+              />
 
-              {/* Comment Submit Button */}
-              <div className="entity-comment-submit mt-2 flex justify-end">
+              {/* Quick action icons (right of input) */}
+              <div className="flex items-center gap-1 ml-1">
                 <Button
-                  onClick={submitComment}
-                  disabled={!newComment.trim() || isSubmitting}
-                  size="sm"
-                  className="entity-comment-submit-button bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full text-gray-500 hover:text-gray-700"
+                  title="Add photo"
+                  onClick={() => document.getElementById('entity-comment-file-input')?.click()}
                 >
-                  {isSubmitting ? (
-                    <div className="flex items-center gap-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Posting...
-                    </div>
-                  ) : (
-                    "Post"
-                  )}
+                  <ImageIcon className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full text-gray-500 hover:text-gray-700"
+                  title="Add emoji"
+                >
+                  <Smile className="h-4 w-4" />
+                </Button>
+                {/* GIF badge */}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  title="Add GIF"
+                  className="h-8 px-2 rounded-full text-[10px] font-semibold text-gray-600 hover:text-gray-800"
+                >
+                  GIF
                 </Button>
               </div>
+
+              {/* Hidden file input for images */}
+              <input id="entity-comment-file-input" type="file" accept="image/*" className="hidden" />
+
+              {/* Submit */}
+              <Button
+                onClick={submitComment}
+                disabled={!newComment.trim() || isSubmitting}
+                size="sm"
+                className="ml-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? 'Posting…' : 'Post'}
+              </Button>
             </div>
           </div>
         </div>

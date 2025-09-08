@@ -46,7 +46,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Separator } from '@/components/ui/separator'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar } from '@/components/ui/avatar'
 
 // ============================================================================
 // ENTERPRISE-GRADE TYPE DEFINITIONS
@@ -148,7 +148,6 @@ export function EnterpriseEngagementActions({
     viewEntity,
     currentReaction: contextReaction,
     stats,
-    isLoading
   } = useEntityEngagement(entityId, entityType)
   
   // Local state
@@ -389,7 +388,7 @@ export function EnterpriseEngagementActions({
     return {
       icon: customReactionIcons?.[reaction] || reactionOption.icon,
       color: customColors?.[reaction]?.color || reactionOption.color,
-      label: reactionOption.label
+      label: reaction.charAt(0).toUpperCase() + reaction.slice(1)
     }
   }, [contextReaction, currentReaction, customReactionIcons, customColors])
   
@@ -408,7 +407,8 @@ export function EnterpriseEngagementActions({
           size="sm"
           onMouseEnter={handleReactionButtonHover}
           onMouseLeave={handleReactionButtonLeave}
-          disabled={isLoading}
+          onClick={() => setShowReactionPopup(true)}
+          disabled={!!engagement?.isLoading}
           className={cn(
             "engagement-action-button w-full h-10 rounded-lg transition-colors",
             "flex items-center justify-center gap-2",
@@ -437,8 +437,8 @@ export function EnterpriseEngagementActions({
             showReactionCounts={showReactionCounts}
             showQuickReactions={enableQuickReactions}
             maxQuickReactions={3}
-            onReactionChange={handleReactionSelect}
-            triggerRef={reactionButtonRef}
+            onReactionChange={(rt) => { if (rt) { handleReactionSelect(rt) } }}
+            triggerRef={reactionButtonRef as unknown as React.RefObject<HTMLElement>}
             autoPosition={true}
             size="md"
             animation="scale"
@@ -449,7 +449,6 @@ export function EnterpriseEngagementActions({
   }, [
     contextReaction,
     currentReaction,
-    isLoading,
     showReactionPopup,
     reactionPopupPositionState,
     entityId,
@@ -476,14 +475,14 @@ export function EnterpriseEngagementActions({
           }
           setIsCommentInputVisible(!isCommentInputVisible)
         }}
-        disabled={isLoading}
+        disabled={!!engagement?.isLoading}
         className="engagement-action-button flex-1 h-10 rounded-lg text-gray-600 hover:text-gray-700 hover:bg-gray-50 transition-colors"
       >
         <MessageSquare className="h-5 w-5 mr-2" />
         <span className="engagement-action-label">Comment</span>
       </Button>
     )
-  }, [showCommentInput, isCommentInputVisible, isLoading, onCommentClick])
+  }, [showCommentInput, isCommentInputVisible, onCommentClick, engagement?.isLoading])
   
   const renderShareButton = useCallback(() => {
     if (!showShareOptions) return null
@@ -532,7 +531,7 @@ export function EnterpriseEngagementActions({
         variant="ghost"
         size="sm"
         onClick={handleBookmark}
-        disabled={isLoading}
+        disabled={!!engagement?.isLoading}
         className={cn(
           "engagement-action-button flex-1 h-10 rounded-lg transition-colors",
           engagement?.userHasBookmarked || isBookmarked
@@ -549,7 +548,7 @@ export function EnterpriseEngagementActions({
         </span>
       </Button>
     )
-  }, [showBookmarkOptions, isLoading, engagement?.userHasBookmarked, isBookmarked, handleBookmark])
+  }, [showBookmarkOptions, engagement?.isLoading, engagement?.userHasBookmarked, isBookmarked, handleBookmark])
   
   const renderCommentInput = useCallback(() => {
     if (!showCommentInput || !isCommentInputVisible) return null
@@ -559,12 +558,12 @@ export function EnterpriseEngagementActions({
         <div className="engagement-comment-input-container flex items-start gap-3">
           {/* User Avatar */}
           <div className="engagement-comment-avatar flex-shrink-0">
-            <Avatar className="w-8 h-8">
-              <AvatarImage src={user?.user_metadata?.avatar_url} />
-              <AvatarFallback>
-                {user?.user_metadata?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
-              </AvatarFallback>
-            </Avatar>
+            <Avatar
+              src={user?.user_metadata?.avatar_url}
+              name={user?.user_metadata?.full_name || user?.email || 'User'}
+              size="sm"
+              className="w-8 h-8"
+            />
           </div>
           
           {/* Comment Input */}

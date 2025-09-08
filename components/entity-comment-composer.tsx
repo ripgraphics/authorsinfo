@@ -65,8 +65,11 @@ export default function EntityCommentComposer({
     setTimeout(() => textareaRef.current?.focus(), 0)
   }, [])
 
+  // Only activate when focusControl changes to a new positive value
+  const lastFocusTickRef = useRef<number | undefined>(undefined)
   useEffect(() => {
-    if (typeof focusControl === 'number') {
+    if (typeof focusControl === 'number' && focusControl > 0 && focusControl !== lastFocusTickRef.current) {
+      lastFocusTickRef.current = focusControl
       focusComposer()
     }
   }, [focusControl, focusComposer])

@@ -214,6 +214,16 @@ export function EnterprisePhotoGrid({
         return
       }
       
+      // If no albumId provided and no enhanced data, skip querying
+      if (!albumId) {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('EnterprisePhotoGrid: No albumId provided; skipping DB query')
+        }
+        setHasMore(false)
+        setLoading(false)
+        return
+      }
+
       // Fallback to database query if no enhanced data
       console.log('🖼️ No enhanced data, falling back to database query')
       let query = supabase
@@ -395,8 +405,21 @@ export function EnterprisePhotoGrid({
       }
 
       setHasMore(filteredPhotos.length === 20)
-    } catch (error) {
-      console.error('Error loading photos:', error)
+    } catch (error: any) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Error loading photos:', error)
+      }
+      const message = typeof error === 'string' 
+        ? error 
+        : error?.message 
+          || error?.details 
+          || 'Unable to load photos'
+      toast({
+        title: 'Error',
+        description: message,
+        variant: 'destructive'
+      })
+      setHasMore(false)
     } finally {
       setLoading(false)
     }

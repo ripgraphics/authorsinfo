@@ -174,9 +174,16 @@ export default function EntityFeedCard({
   // Bottom composer state
   const [bottomComment, setBottomComment] = useState('')
   const [isBottomComposerActive, setIsBottomComposerActive] = useState(false)
+  const [composerFocusTick, setComposerFocusTick] = useState(0)
   const bottomComposerRef = useRef<HTMLTextAreaElement>(null)
   const MAX_COMMENT_CHARS = 25000
   const MAX_COMPOSER_LINES = 9
+
+  // Display helpers for names/avatars
+  const postOwnerName = userDetails?.name || post.user_name || 'User'
+  const postOwnerAvatar = userDetails?.avatar_url || post.user_avatar_url
+  const currentUserDisplayName = (user as any)?.user_metadata?.full_name || (user as any)?.name || (user as any)?.email || 'You'
+  const currentUserAvatar = (user as any)?.user_metadata?.avatar_url || undefined
 
   // Single-comment preview helpers
   const firstCommentTextRef = useRef<HTMLDivElement>(null)
@@ -197,6 +204,7 @@ export default function EntityFeedCard({
 
   const focusBottomComposer = useCallback(() => {
     setIsBottomComposerActive(true)
+    setComposerFocusTick((t) => t + 1)
     setTimeout(() => bottomComposerRef.current?.focus(), 0)
   }, [])
 
@@ -1537,16 +1545,16 @@ export default function EntityFeedCard({
             type="user"
             entity={{
               id: post.user_id,
-              name: userDetails?.name || 'User',
-              avatar_url: userDetails?.avatar_url
+              name: postOwnerName,
+              avatar_url: postOwnerAvatar
             }}
           >
             <span className="hover:underline cursor-pointer text-muted-foreground" data-state="closed">
               <div className="avatar-container relative w-10 h-10 overflow-hidden rounded-full border-2 border-white shadow-md enterprise-feed-card-user-avatar cursor-pointer">
                 <Avatar
-                  src={userDetails?.avatar_url}
-                  alt={userDetails?.name || 'User'}
-                  name={userDetails?.name}
+                  src={postOwnerAvatar}
+                  alt={postOwnerName || 'User'}
+                  name={postOwnerName}
                   size="sm"
                   className="object-cover rounded-full"
                 />
@@ -1561,16 +1569,16 @@ export default function EntityFeedCard({
                 type="user"
                 entity={{
                   id: post.user_id,
-                  name: userDetails?.name || 'User',
-                  avatar_url: userDetails?.avatar_url
+                  name: postOwnerName,
+                  avatar_url: postOwnerAvatar
                 }}
               >
                 <span className="hover:underline cursor-pointer text-muted-foreground" data-state="closed">
                   <EntityName
                     type="user"
                     id={post.user_id}
-                    name={userDetails?.name || 'User'}
-                    avatar_url={userDetails?.avatar_url}
+                    name={postOwnerName}
+                    avatar_url={postOwnerAvatar}
                     className="enterprise-feed-card-user-name font-semibold text-sm"
                   />
                 </span>
@@ -1879,8 +1887,9 @@ export default function EntityFeedCard({
             entityId={post.id}
             entityType={post.entity_type || 'activity'}
             currentUserId={user?.id}
-            currentUserName={userDetails?.name || 'You'}
-            currentUserAvatar={userDetails?.avatar_url}
+            currentUserName={currentUserDisplayName}
+            currentUserAvatar={currentUserAvatar}
+            focusControl={composerFocusTick}
             rootClassName=""
             containerClassName="bg-white px-0 pt-3"
             rowClassName="enterprise-comment-composer-row flex items-center gap-3"
@@ -2103,8 +2112,8 @@ export default function EntityFeedCard({
                   entityId={post.id}
                   entityType={post.entity_type || 'activity'}
                   currentUserId={user?.id}
-                  currentUserName={userDetails?.name || 'You'}
-                  currentUserAvatar={userDetails?.avatar_url}
+                  currentUserName={currentUserDisplayName}
+                  currentUserAvatar={currentUserAvatar}
                   containerClassName=""
                   rowClassName="flex items-center gap-3"
                   avatarClassName="w-8 h-8 flex-shrink-0"

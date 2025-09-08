@@ -42,16 +42,79 @@ export default function LoginPage() {
 
   useEffect(() => {
     async function fetchUsers() {
+      setFetchError(null)
       try {
-        const response = await fetch('/api/auth-users')
+        const response = await fetch('/api/auth-users', { cache: 'no-store' })
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
         }
         const data = await response.json()
-        // The API returns the users array directly, not wrapped in a users property
-        setUsers(Array.isArray(data) ? data : [])
+        const primaryUsers = Array.isArray(data)
+          ? data
+          : Array.isArray((data as any)?.users)
+          ? (data as any).users
+          : []
+
+        if (primaryUsers.length > 0) {
+          setUsers(primaryUsers as User[])
+          return
+        }
+
+        // Fallback to alternate endpoint if primary returns empty
+        const fallbackRes = await fetch('/api/check-users', { cache: 'no-store' })
+        if (fallbackRes.ok) {
+          const fallbackData = await fallbackRes.json()
+          const fallbackUsers = Array.isArray(fallbackData)
+            ? fallbackData
+            : Array.isArray(fallbackData?.users)
+            ? fallbackData.users
+            : []
+
+          if (fallbackUsers.length > 0) {
+            const normalized: User[] = fallbackUsers.map((u: any) => ({
+              id: String(u.id),
+              email: u.email || 'No email',
+              name: u.name || u.email || 'Unknown User',
+              created_at: u.created_at || undefined,
+              last_sign_in_at: u.last_sign_in_at || undefined,
+              role: u.role || 'user',
+            }))
+            setUsers(normalized)
+            return
+          }
+        }
+
+        // If both primary and fallback yield nothing
+        setUsers([])
       } catch (error: any) {
-        console.error('Error fetching users:', error)
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('User list fetch failed:', error)
+        }
+        // Try fallback if primary failed outright
+        try {
+          const fallbackRes = await fetch('/api/check-users', { cache: 'no-store' })
+          if (fallbackRes.ok) {
+            const fallbackData = await fallbackRes.json()
+            const fallbackUsers = Array.isArray(fallbackData)
+              ? fallbackData
+              : Array.isArray(fallbackData?.users)
+              ? fallbackData.users
+              : []
+
+            const normalized: User[] = fallbackUsers.map((u: any) => ({
+              id: String(u.id),
+              email: u.email || 'No email',
+              name: u.name || u.email || 'Unknown User',
+              created_at: u.created_at || undefined,
+              last_sign_in_at: u.last_sign_in_at || undefined,
+              role: u.role || 'user',
+            }))
+            setUsers(normalized)
+            return
+          }
+        } catch (_) {
+          // ignore and surface original error
+        }
         setFetchError(error?.message || 'Failed to fetch users')
       }
     }
@@ -69,14 +132,6 @@ export default function LoginPage() {
     const loginPassword = passwordArg ?? password;
     
     try {
-      // First test the Supabase connection
-      const testRes = await fetch('/api/test-supabase');
-      const testData = await testRes.json();
-      
-      if (!testRes.ok) {
-        throw new Error(`Supabase connection failed: ${testData.details || testData.error}`);
-      }
-      
       const { error, data } = await supabase.auth.signInWithPassword({
         email: loginEmail,
         password: loginPassword,
@@ -92,29 +147,35 @@ export default function LoginPage() {
       setTimeout(() => {
         router.push(redirectTo);
       }, 1000);
-    } catch (error: any) {
-      console.error("Sign in error:", error);
-      console.error("Error type:", typeof error);
-      console.error("Error keys:", Object.keys(error || {}));
-      
-      let errorMessage = "Failed to sign in";
-      if (error?.message) {
-        errorMessage = error.message;
-      } else if (typeof error === 'string') {
-        errorMessage = error;
-      } else if (error?.error_description) {
-        errorMessage = error.error_description;
+    } catch (rawError: unknown) {
+      // Avoid console.error to prevent Next.js dev overlay from triggering
+      if (process.env.NODE_ENV === 'development') {
+        console.warn("Sign in failed:", rawError);
       }
-      
+
+      // Normalize error
+      const errorObj = rawError as any;
+
+      let errorMessage = "Failed to sign in";
+      if (typeof errorObj === 'string') {
+        errorMessage = errorObj;
+      } else if (errorObj?.message) {
+        errorMessage = errorObj.message;
+      } else if (errorObj?.error_description) {
+        errorMessage = errorObj.error_description;
+      }
+
+      const status = errorObj?.status;
+
       // Handle specific error codes
-      if (error?.status === 400) {
+      if (status === 400) {
         errorMessage = "Invalid email or password. Please check your credentials.";
-      } else if (error?.status === 401) {
+      } else if (status === 401) {
         errorMessage = "Authentication failed. Please try again.";
-      } else if (error?.status === 422) {
+      } else if (status === 422) {
         errorMessage = "Invalid email format.";
       }
-      
+
       toast({ 
         variant: "destructive", 
         title: "Login Failed", 

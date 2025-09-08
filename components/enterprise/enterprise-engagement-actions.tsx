@@ -91,6 +91,7 @@ export interface EnterpriseEngagementActionsProps {
   showReactionSummary?: boolean
   customReactionIcons?: Record<ReactionType, React.ReactNode>
   customColors?: Record<ReactionType, { color: string; bgColor: string }>
+  onCommentClick?: () => void
 }
 
 // ============================================================================
@@ -131,7 +132,8 @@ export function EnterpriseEngagementActions({
   enableQuickReactions = true,
   showReactionSummary = true,
   customReactionIcons,
-  customColors
+  customColors,
+  onCommentClick
 }: EnterpriseEngagementActionsProps) {
   const { user } = useAuth()
   const { toast } = useToast()
@@ -467,7 +469,13 @@ export function EnterpriseEngagementActions({
       <Button
         variant="ghost"
         size="sm"
-        onClick={() => setIsCommentInputVisible(!isCommentInputVisible)}
+        onClick={() => {
+          if (onCommentClick) {
+            onCommentClick()
+            return
+          }
+          setIsCommentInputVisible(!isCommentInputVisible)
+        }}
         disabled={isLoading}
         className="engagement-action-button flex-1 h-10 rounded-lg text-gray-600 hover:text-gray-700 hover:bg-gray-50 transition-colors"
       >
@@ -475,7 +483,7 @@ export function EnterpriseEngagementActions({
         <span className="engagement-action-label">Comment</span>
       </Button>
     )
-  }, [showCommentInput, isCommentInputVisible, isLoading])
+  }, [showCommentInput, isCommentInputVisible, isLoading, onCommentClick])
   
   const renderShareButton = useCallback(() => {
     if (!showShareOptions) return null

@@ -162,6 +162,8 @@ const MAX_RETRIES = 3
 const DEBOUNCE_DELAY = 300
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 const VIRTUAL_SCROLL_THRESHOLD = 100 // Enable virtual scrolling for 100+ items
+const MAX_POST_CHARS = 25000
+const MAX_COMPOSER_LINES = 9
 
 // ============================================================================
 // PERFORMANCE OPTIMIZED COMPONENT
@@ -235,6 +237,9 @@ const EnterpriseTimelineActivities = React.memo(({
   })
   const [isPosting, setIsPosting] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  // Top post composer state (two-state, like comment composer)
+  const [isTopComposerActive, setIsTopComposerActive] = useState(false)
+  const topComposerRef = useRef<HTMLTextAreaElement>(null)
   // Permissions and connections
   const [userConnections, setUserConnections] = useState<{ friends: string[]; followers: string[]; following: string[] }>({ friends: [], followers: [], following: [] })
   // Reading progress / privacy
@@ -782,6 +787,22 @@ const EnterpriseTimelineActivities = React.memo(({
   // COMPOSER: create post
   // ============================================================================
 
+  const focusTopComposer = useCallback(() => {
+    setIsTopComposerActive(true)
+    setTimeout(() => topComposerRef.current?.focus(), 0)
+  }, [])
+
+  const resizeTopComposer = useCallback(() => {
+    const el = topComposerRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    const lineHeight = parseFloat(getComputedStyle(el).lineHeight || '20') || 20
+    const maxHeight = lineHeight * MAX_COMPOSER_LINES
+    const newHeight = Math.min(el.scrollHeight, Math.ceil(maxHeight))
+    el.style.height = `${newHeight}px`
+    el.style.overflowY = el.scrollHeight > maxHeight ? 'auto' : 'hidden'
+  }, [])
+
   const handleCreatePost = useCallback(async () => {
     if (!user) return
     if (!postForm.content.trim()) return
@@ -814,6 +835,7 @@ const EnterpriseTimelineActivities = React.memo(({
         }])
       if (error) throw error
       setPostForm({ content: '', contentType: 'text', visibility: 'friends', imageUrl: '', linkUrl: '', hashtags: '' })
+      setIsTopComposerActive(false)
       fetchActivities(1, false)
       toast({ title: 'Posted', description: 'Your post is live.' })
     } catch (e: any) {
@@ -884,41 +906,84 @@ const EnterpriseTimelineActivities = React.memo(({
     <div className="space-y-6">
       {renderAnalyticsDashboard()}
       {renderAdvancedFilters()}
-      {/* Composer */}
+      {/* Composer: two-state pill/expanded, matching comment composer */}
       {enablePrivacyControls && (
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <div className="h-10 w-10 rounded-full overflow-hidden bg-gray-200" />
-              <div className="flex-1">
-                <Textarea
-                  placeholder={memoizedEntityType === 'user' ? "What's on your mind?" : 'Share your thoughts...'}
-                  className="border rounded-md resize-none min-h-[60px]"
-                  value={postForm.content}
-                  onChange={(e) => setPostForm(prev => ({ ...prev, content: e.target.value }))}
-                />
-                {!!postForm.imageUrl && (
-                  <div className="mt-2 text-xs text-muted-foreground">Images: {postForm.imageUrl.split(',').filter(Boolean).length}</div>
-                )}
-                <div className="mt-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="sm" onClick={handlePhotoUpload} disabled={isUploading}>
-                      <Camera className="h-4 w-4 mr-2" />{isUploading ? 'Uploading...' : 'Photo'}
-                    </Button>
+            <div className="flex items-center gap-3">
+              <Avatar src={user?.user_metadata?.avatar_url || '/placeholder.svg?height=40&width=40'} alt={user?.user_metadata?.full_name || 'User'} name={user?.user_metadata?.full_name || 'User'} className="w-10 h-10 flex-shrink-0" />
+              {!isTopComposerActive ? (
+                <button
+                  onClick={focusTopComposer}
+                  className="flex-1 flex items-center justify-between rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-left text-sm text-gray-600 cursor-text"
+                  style={{ transition: 'none' }}
+                  data-no-secondary-hover
+                >
+                  <span className="truncate opacity-80">{memoizedEntityType === 'user' ? "What's on your mind?" : 'Share your thoughts...'}</span>
+                  <div className="flex items-center gap-2 ml-3 text-gray-400">
+                    <ImageIcon className="h-4 w-4" />
+                    <Smile className="h-4 w-4" />
+                    <span className="text-[10px] font-semibold">GIF</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Select value={postForm.visibility} onValueChange={(v) => setPostForm(prev => ({ ...prev, visibility: v as any }))}>
-                      <SelectTrigger className="w-[8rem]"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="friends">Friends</SelectItem>
-                        <SelectItem value="followers">Followers</SelectItem>
-                        <SelectItem value="private">Only me</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button onClick={handleCreatePost} disabled={isPosting || !postForm.content.trim()} className="px-6">{isPosting ? 'Posting...' : 'Post'}</Button>
+                </button>
+              ) : (
+                <div className="flex-1">
+                  <div className="bg-gray-50 border border-gray-200 rounded-2xl px-3 py-2">
+                    <Textarea
+                      ref={topComposerRef}
+                      value={postForm.content}
+                      onChange={(e) => {
+                        const next = e.target.value.slice(0, MAX_POST_CHARS)
+                        setPostForm(prev => ({ ...prev, content: next }))
+                      }}
+                      placeholder={memoizedEntityType === 'user' ? "What's on your mind?" : 'Share your thoughts...'}
+                      className="border-0 resize-none focus:ring-0 focus:outline-none min-h-[48px] text-sm bg-transparent"
+                      rows={2}
+                      onInput={resizeTopComposer}
+                    />
+                    {!!postForm.imageUrl && (
+                      <div className="mt-2 text-xs text-muted-foreground">Images: {postForm.imageUrl.split(',').filter(Boolean).length}</div>
+                    )}
+                    <div className="flex items-center justify-between mt-2">
+                      <div className="flex items-center gap-2 text-gray-500">
+                        <button className="p-2 hover:text-gray-700 transition-colors rounded-full hover:bg-gray-100" onClick={handlePhotoUpload} disabled={isUploading}>
+                          <ImageIcon className="h-4 w-4" />
+                        </button>
+                        <button className="p-2 hover:text-gray-700 transition-colors rounded-full hover:bg-gray-100">
+                          <Smile className="h-4 w-4" />
+                        </button>
+                        <span className="text-[10px] font-semibold ml-1">GIF</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Select value={postForm.visibility} onValueChange={(v) => setPostForm(prev => ({ ...prev, visibility: v as any }))}>
+                          <SelectTrigger className="w-[8rem]"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="friends">Friends</SelectItem>
+                            <SelectItem value="followers">Followers</SelectItem>
+                            <SelectItem value="private">Only me</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 px-3 text-xs"
+                          onClick={() => { setIsTopComposerActive(false); setPostForm(prev => ({ ...prev, content: '' })) }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={handleCreatePost}
+                          disabled={isPosting || !postForm.content.trim()}
+                          className="h-8 px-4 text-xs"
+                        >
+                          {isPosting ? 'Posting...' : 'Post'}
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           </CardContent>
         </Card>

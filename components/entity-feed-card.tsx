@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useState, useCallback, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar } from '@/components/ui/avatar'
@@ -56,6 +56,8 @@ import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 import { BookCover } from '@/components/book-cover'
 import { EntityHoverCard } from '@/components/entity-hover-cards'
+import EntityName from '@/components/entity-name'
+import EntityAvatar from '@/components/entity-avatar'
 import { EnterpriseEngagementActions } from '@/components/enterprise/enterprise-engagement-actions'
 import { NestedCommentThread } from '@/components/enterprise/nested-comment-thread'
 import { SophisticatedPhotoGrid } from '@/components/photo-gallery/sophisticated-photo-grid'
@@ -63,10 +65,10 @@ import { EnterprisePhotoViewer } from '@/components/photo-gallery/enterprise-pho
 import { FeedPost, PostContent, PostVisibility, PostPublishStatus, getPostText, getPostImages, getPostContentType, hasImageContent, hasTextContent } from '@/types/feed'
 import { useAuth } from '@/hooks/useAuth'
 import { deduplicatedRequest } from '@/lib/request-utils'
-import EntityComments from '@/components/entity-comments'
 import { ReactionsModal } from '@/components/enterprise/reactions-modal'
 import { CommentsModal } from '@/components/enterprise/comments-modal'
 import { EngagementDisplay } from '@/components/enterprise/engagement-display'
+import EntityCommentComposer from '@/components/entity-comment-composer'
 
 export interface EntityFeedCardProps {
   post: FeedPost
@@ -169,6 +171,49 @@ export default function EntityFeedCard({
   const [showImageModal, setShowImageModal] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
+  // Bottom composer state
+  const [bottomComment, setBottomComment] = useState('')
+  const [isBottomComposerActive, setIsBottomComposerActive] = useState(false)
+  const bottomComposerRef = useRef<HTMLTextAreaElement>(null)
+  const MAX_COMMENT_CHARS = 25000
+  const MAX_COMPOSER_LINES = 9
+
+  // Single-comment preview helpers
+  const firstCommentTextRef = useRef<HTMLDivElement>(null)
+  const [isFirstCommentClamped, setIsFirstCommentClamped] = useState(false)
+
+  const formatTimeAgo = useCallback((timestamp: string) => {
+    const date = new Date(timestamp)
+    const now = new Date()
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+    if (seconds < 60) return 'Just now'
+    const minutes = Math.floor(seconds / 60)
+    if (minutes < 60) return `${minutes}m`
+    const hours = Math.floor(minutes / 60)
+    if (hours < 24) return `${hours}h`
+    const days = Math.floor(hours / 24)
+    return `${days}d`
+  }, [])
+
+  const focusBottomComposer = useCallback(() => {
+    setIsBottomComposerActive(true)
+    setTimeout(() => bottomComposerRef.current?.focus(), 0)
+  }, [])
+
+  const resizeBottomComposer = useCallback(() => {
+    const el = bottomComposerRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    // Compute max height based on line height
+    const lineHeight = parseFloat(getComputedStyle(el).lineHeight || '20') || 20
+    const maxHeight = lineHeight * MAX_COMPOSER_LINES
+    const newHeight = Math.min(el.scrollHeight, Math.ceil(maxHeight))
+    el.style.height = `${newHeight}px`
+    el.style.overflowY = el.scrollHeight > maxHeight ? 'auto' : 'hidden'
+  }, [])
+
+  // submitBottomComment is declared after fetchComments to avoid TDZ issues
+
   // Function to fetch comments for this post
   const fetchComments = useCallback(async () => {
     if (!post.comment_count || post.comment_count === 0) {
@@ -204,6 +249,40 @@ export default function EntityFeedCard({
       setIsLoadingComments(false)
     }
   }, [post.id, post.entity_type, post.comment_count])
+
+  const submitBottomComment = useCallback(async () => {
+    const text = bottomComment.trim()
+    if (!text) return
+    if (text.length > MAX_COMMENT_CHARS) return
+    try {
+      const resp = await fetch('/api/engagement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          entity_id: post.id,
+          entity_type: post.entity_type || 'activity',
+          engagement_type: 'comment',
+          content: text
+        })
+      })
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+      setBottomComment('')
+      setIsBottomComposerActive(false)
+      if (onPostUpdated) {
+        const updatedPost = { ...post, comment_count: (post.comment_count || 0) + 1 }
+        onPostUpdated(updatedPost)
+      }
+      fetchComments()
+    } catch (e) {
+      console.error('Failed to submit comment', e)
+    }
+  }, [bottomComment, post.id, post.entity_type, onPostUpdated, fetchComments])
+
+  useEffect(() => {
+    if (isBottomComposerActive) {
+      resizeBottomComposer()
+    }
+  }, [bottomComment, isBottomComposerActive, resizeBottomComposer])
 
   // Fetch likes for the post
   const fetchLikes = useCallback(async () => {
@@ -1487,9 +1566,13 @@ export default function EntityFeedCard({
                 }}
               >
                 <span className="hover:underline cursor-pointer text-muted-foreground" data-state="closed">
-                  <span className="enterprise-feed-card-user-name font-semibold text-sm hover:underline cursor-pointer">
-                    {userDetails?.name || 'User'}
-                  </span>
+                  <EntityName
+                    type="user"
+                    id={post.user_id}
+                    name={userDetails?.name || 'User'}
+                    avatar_url={userDetails?.avatar_url}
+                    className="enterprise-feed-card-user-name font-semibold text-sm"
+                  />
                 </span>
               </EntityHoverCard>
 
@@ -1715,19 +1798,113 @@ export default function EntityFeedCard({
                 console.log('Bookmark action:', entityId, entityType)
                 // Handle bookmark logic
               }}
+              onCommentClick={focusBottomComposer}
             />
           </div>
         )}
 
-        {/* Comments Section */}
-        {showComments && (
+        {/* Single-comment preview (above composer) */}
+        {showComments && !isLoadingComments && comments.length > 0 && (
           <div className="enterprise-feed-card-comments mt-4">
-            <Separator className="mb-3" />
-            <EntityComments entityId={post.id} entityType={post.entity_type || 'activity'} entityName={userDetails?.name} entityAvatar={userDetails?.avatar_url} />
+            {(post.comment_count || comments.length) > 1 && (
+              <button
+                onClick={() => setShowCommentsModal(true)}
+                className="text-sm text-gray-600 font-medium mb-2 hover:underline"
+              >
+                View more comments
+              </button>
+            )}
+
+            {(() => {
+              const first = comments[0]
+              if (!first) return null
+              const firstReply = Array.isArray(first.replies) && first.replies.length > 0 ? first.replies[0] : null
+              return (
+                <div className="space-y-3">
+                  {/* First comment bubble */}
+                  <div className="flex items-start gap-3">
+                    <EntityAvatar type="user" id={first.user?.id} name={first.user?.name || 'User'} src={first.user?.avatar_url} size="sm" />
+                    <div className="flex-1 min-w-0">
+                      <div className="bg-gray-100 rounded-2xl px-4 py-3 inline-block max-w-full">
+                        <div className="flex items-center gap-2 mb-1">
+                          <EntityName type="user" id={first.user?.id} name={first.user?.name || 'User'} className="text-sm font-semibold text-gray-900" />
+            </div>
+                        <div ref={firstCommentTextRef} className="text-sm text-gray-800 leading-relaxed line-clamp-5">
+                          {first.comment_text}
+              </div>
+                        {isFirstCommentClamped && (
+                          <button onClick={() => setShowCommentsModal(true)} className="mt-1 text-xs font-medium text-gray-600 hover:underline">
+                            View more
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-4 mt-1 ml-2 text-xs text-gray-500">
+                        <span>{formatTimeAgo(first.created_at)}</span>
+                        <button className="hover:underline">Like</button>
+                        <button className="hover:underline">Reply</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* First reply (if any) */}
+                  {firstReply && (
+                    <div className="ml-10 flex items-start gap-2">
+                      <EntityAvatar type="user" id={firstReply.user?.id} name={firstReply.user?.name || 'User'} src={firstReply.user?.avatar_url} size="xs" />
+                      <div className="flex-1 min-w-0">
+                        <div className="bg-gray-50 rounded-2xl px-3 py-2 inline-block max-w-full">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <EntityName type="user" id={firstReply.user?.id} name={firstReply.user?.name || 'User'} className="text-xs font-semibold text-gray-900" />
+                    </div>
+                          <div className="text-xs text-gray-800 leading-relaxed">
+                            {firstReply.comment_text}
+                  </div>
+                </div>
+                        <div className="flex items-center gap-3 mt-1 ml-2 text-[11px] text-gray-500">
+                          <span>{formatTimeAgo(firstReply.created_at)}</span>
+                          <button className="hover:underline">Like</button>
+                          <button className="hover:underline">Reply</button>
+              </div>
+            </div>
           </div>
         )}
+                </div>
+              )
+            })()}
+          </div>
+        )}
+
+        {/* Bottom comment composer (always at bottom) */}
+        <div className="enterprise-feed-card-comment-composer mt-3">
+          <EntityCommentComposer
+            entityId={post.id}
+            entityType={post.entity_type || 'activity'}
+            currentUserId={user?.id}
+            currentUserName={userDetails?.name || 'You'}
+            currentUserAvatar={userDetails?.avatar_url}
+            rootClassName=""
+            containerClassName="bg-white px-0 pt-3"
+            rowClassName="enterprise-comment-composer-row flex items-center gap-3"
+            avatarClassName="enterprise-comment-composer-avatar w-8 h-8 flex-shrink-0"
+            triggerClassName="enterprise-comment-composer-trigger flex-1 flex items-center justify-between rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-left text-sm text-gray-600 cursor-text"
+            triggerIconsClassName="enterprise-comment-composer-trigger-icons flex items-center gap-2 ml-3 text-gray-400"
+            expandedClassName="enterprise-comment-composer-expanded bg-gray-50 border border-gray-200 rounded-2xl px-3 py-2"
+            textareaClassName="enterprise-comment-composer-textarea border-0 resize-none focus:ring-0 focus:outline-none min-h-[48px] text-sm bg-transparent"
+            actionsClassName="enterprise-comment-composer-actions flex items-center justify-between mt-2"
+            quickActionsClassName="enterprise-comment-composer-quick-actions flex items-center gap-2 text-gray-500"
+            iconButtonClassName="enterprise-comment-composer-icon p-2 hover:text-gray-700 transition-colors rounded-full hover:bg-gray-100"
+            cancelButtonClassName="enterprise-comment-composer-cancel h-8 px-3 text-xs"
+            submitButtonClassName="enterprise-comment-composer-submit h-8 px-4 text-xs"
+            onSubmitted={() => {
+              if (onPostUpdated) {
+                const updatedPost = { ...post, comment_count: (post.comment_count || 0) + 1 }
+                onPostUpdated(updatedPost)
+              }
+              fetchComments()
+            }}
+          />
+        </div>
       </div>
-      
+
       {/* Image Modal */}
       {showImageModal && selectedImage && (
         <EnterprisePhotoViewer
@@ -1827,24 +2004,18 @@ export default function EntityFeedCard({
                       <div key={comment.id} className="comment-item">
                       {/* Comment Header */}
                         <div className="flex items-start gap-3">
-                        <Avatar
-                            src={comment.user?.avatar_url || '/placeholder.svg?height=32&width=32'}
-                          alt={`${comment.user?.name || 'User'} avatar`}
+                        <EntityAvatar
+                          type="user"
+                          id={comment.user?.id}
                           name={comment.user?.name || 'User'}
-                            className="w-8 h-8 flex-shrink-0"
+                          src={comment.user?.avatar_url}
+                          size="sm"
                         />
                           <div className="flex-1 min-w-0">
                             {/* Comment Bubble */}
                             <div className="bg-gray-100 rounded-2xl px-4 py-3 inline-block max-w-full">
                               <div className="flex items-center gap-2 mb-2">
-                        <button
-                                  className="text-sm font-semibold text-gray-900 hover:text-blue-600 transition-colors hover:underline"
-                          onClick={() => {
-                            console.log('Clicked on user:', comment.user?.name)
-                          }}
-                        >
-                          {comment.user?.name || 'Unknown User'}
-                        </button>
+                                <EntityName type="user" id={comment.user?.id} name={comment.user?.name || 'Unknown User'} className="text-sm font-semibold text-gray-900" />
                                 <span className="text-xs text-gray-500">
                                   {new Date(comment.created_at).toLocaleDateString('en-US', {
                                     month: 'short',
@@ -1879,23 +2050,11 @@ export default function EntityFeedCard({
                               <div className="ml-8 mt-3 space-y-3">
                                 {comment.replies.map((reply: any) => (
                                   <div key={reply.id} className="flex items-start gap-3">
-                                    <Avatar
-                                      src={reply.user?.avatar_url || '/placeholder.svg?height=24&width=24'}
-                                      alt={`${reply.user?.name || 'User'} avatar`}
-                                      name={reply.user?.name || 'User'}
-                                      className="w-6 h-6 flex-shrink-0"
-                                    />
+                                    <EntityAvatar type="user" id={reply.user?.id} name={reply.user?.name || 'User'} src={reply.user?.avatar_url} size="xs" />
                                     <div className="flex-1 min-w-0">
                                       <div className="bg-gray-50 rounded-2xl px-3 py-2 inline-block max-w-full">
                                         <div className="flex items-center gap-2 mb-1">
-                                          <button
-                                            className="text-xs font-semibold text-gray-900 hover:text-blue-600 transition-colors hover:underline"
-                                            onClick={() => {
-                                              console.log('Clicked on user:', reply.user?.name)
-                                            }}
-                                          >
-                                            {reply.user?.name || 'Unknown User'}
-                                          </button>
+                                          <EntityName type="user" id={reply.user?.id} name={reply.user?.name || 'Unknown User'} className="text-xs font-semibold text-gray-900" />
                                           <span className="text-xs text-gray-400">
                                             {new Date(reply.created_at).toLocaleDateString('en-US', {
                           month: 'short',
@@ -1938,27 +2097,34 @@ export default function EntityFeedCard({
               )}
             </div>
 
-              {/* Comment Input Section */}
-              <div className="border-t border-gray-200 bg-white px-6 py-3">
-                <div className="flex items-center gap-3">
-                  <Avatar
-                    src={userDetails?.avatar_url || '/placeholder.svg?height=32&width=32'}
-                    alt={`${userDetails?.name || 'User'} avatar`}
-                    name={userDetails?.name || 'User'}
-                    className="w-8 h-8 flex-shrink-0"
-                  />
-                  <button
-                    onClick={() => setShowCommentsModal(true)}
-                    className="flex-1 flex items-center justify-between rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-left text-sm text-gray-600 hover:bg-gray-100"
-                  >
-                    <span className="truncate opacity-80">Comment as {userDetails?.name || 'You'}</span>
-                    <div className="flex items-center gap-2 ml-3 text-gray-400">
-                      <ImageIcon className="h-4 w-4" />
-                      <Smile className="h-4 w-4" />
-                      <span className="text-[10px] font-semibold">GIF</span>
-                    </div>
-                  </button>
-                </div>
+              {/* Comment Input Section (reused composer) */}
+              <div className="bg-white px-6 py-3 border-t border-gray-200">
+                <EntityCommentComposer
+                  entityId={post.id}
+                  entityType={post.entity_type || 'activity'}
+                  currentUserId={user?.id}
+                  currentUserName={userDetails?.name || 'You'}
+                  currentUserAvatar={userDetails?.avatar_url}
+                  containerClassName=""
+                  rowClassName="flex items-center gap-3"
+                  avatarClassName="w-8 h-8 flex-shrink-0"
+                  triggerClassName="flex-1 flex items-center justify-between rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-left text-sm text-gray-600 cursor-text"
+                  triggerIconsClassName="flex items-center gap-2 ml-3 text-gray-400"
+                  expandedClassName="bg-gray-50 border border-gray-200 rounded-2xl px-3 py-2"
+                  textareaClassName="border-0 resize-none focus:ring-0 focus:outline-none min-h-[48px] text-sm bg-transparent"
+                  actionsClassName="flex items-center justify-between mt-2"
+                  quickActionsClassName="flex items-center gap-2 text-gray-500"
+                  iconButtonClassName="p-2 hover:text-gray-700 transition-colors rounded-full hover:bg-gray-100"
+                  cancelButtonClassName="h-8 px-3 text-xs"
+                  submitButtonClassName="h-8 px-4 text-xs"
+                  onSubmitted={() => {
+                    if (onPostUpdated) {
+                      const updatedPost = { ...post, comment_count: (post.comment_count || 0) + 1 }
+                      onPostUpdated(updatedPost)
+                    }
+                    fetchComments()
+                  }}
+                />
               </div>
             </div>
           </div>

@@ -2,6 +2,8 @@
 
 import React, { useState, useCallback, useEffect } from 'react'
 import { Avatar } from '@/components/ui/avatar'
+import EntityName from '@/components/entity-name'
+import EntityAvatar from '@/components/entity-avatar'
 import { Button } from '@/components/ui/button'
 import { 
   Heart, 
@@ -220,12 +222,7 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
                   >
                     {/* User Avatar */}
                     <div className="relative">
-                      <Avatar
-                        src={reaction.user.avatar_url || '/placeholder.svg?height=40&width=40'}
-                        alt={`${reaction.user.name} avatar`}
-                        name={reaction.user.name}
-                        className="w-10 h-10"
-                      />
+                      <EntityAvatar type="user" id={reaction.user.id} name={reaction.user.name} src={reaction.user.avatar_url} size="md" />
                       {/* Online Status Indicator */}
                       {reaction.user.is_online && (
                         <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
@@ -236,12 +233,7 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <div>
-                          <button
-                            className="text-sm font-semibold text-gray-900 hover:text-blue-600 transition-colors text-left block truncate"
-                            onClick={() => handleUserClick(reaction.user.id)}
-                          >
-                            {reaction.user.name}
-                          </button>
+                          <EntityName type="user" id={reaction.user.id} name={reaction.user.name} className="text-sm font-semibold text-gray-900 block truncate" />
                           <p className="text-xs text-gray-500 mt-1">
                             {reaction.user.location || 'Location not set'}
                           </p>

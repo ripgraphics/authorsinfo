@@ -2,6 +2,8 @@
 
 import React, { useState, useCallback, useEffect } from 'react'
 import { Avatar } from '@/components/ui/avatar'
+import EntityName from '@/components/entity-name'
+import EntityAvatar from '@/components/entity-avatar'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { 
@@ -249,21 +251,11 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                   <div key={comment.id} className="space-y-3">
                     {/* Main Comment */}
                     <div className="flex gap-3">
-                      <Avatar
-                        src={comment.user.avatar_url || '/placeholder.svg?height=32&width=32'}
-                        alt={`${comment.user.name} avatar`}
-                        name={comment.user.name}
-                        className="w-8 h-8 flex-shrink-0"
-                      />
+                      <EntityAvatar type="user" id={comment.user.id} name={comment.user.name} src={comment.user.avatar_url} size="sm" />
                       <div className="flex-1 min-w-0">
                         <div className="bg-gray-100 rounded-2xl px-4 py-3">
                           <div className="flex items-center justify-between mb-2">
-                            <button
-                              className="text-sm font-semibold text-gray-900 hover:text-blue-600 transition-colors"
-                              onClick={() => handleUserClick(comment.user.id)}
-                            >
-                              {comment.user.name}
-                            </button>
+                            <EntityName type="user" id={comment.user.id} name={comment.user.name} className="text-sm font-semibold text-gray-900" />
                             <span className="text-xs text-gray-500">
                               {formatDate(comment.created_at)}
                             </span>
@@ -327,21 +319,11 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                           <div className="ml-8 mt-3 space-y-3">
                             {comment.replies.map((reply) => (
                               <div key={reply.id} className="flex gap-3">
-                                <Avatar
-                                  src={reply.user.avatar_url || '/placeholder.svg?height=24&width=24'}
-                                  alt={`${reply.user.name} avatar`}
-                                  name={reply.user.name}
-                                  className="w-6 h-6 flex-shrink-0"
-                                />
+                                <EntityAvatar type="user" id={reply.user.id} name={reply.user.name} src={reply.user.avatar_url} size="xs" />
                                 <div className="flex-1 min-w-0">
                                   <div className="bg-gray-50 rounded-xl px-3 py-2">
                                     <div className="flex items-center justify-between mb-1">
-                                      <button
-                                        className="text-xs font-medium text-gray-900 hover:text-blue-600 transition-colors"
-                                        onClick={() => handleUserClick(reply.user.id)}
-                                      >
-                                        {reply.user.name}
-                                      </button>
+                                      <EntityName type="user" id={reply.user.id} name={reply.user.name} className="text-xs font-medium text-gray-900" />
                                       <span className="text-xs text-gray-400">
                                         {formatDate(reply.created_at)}
                                       </span>

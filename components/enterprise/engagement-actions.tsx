@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { 
-  Heart, 
-  MessageSquare, 
+import {
+  Heart,
+  MessageSquare,
   Eye,
   TrendingUp,
   Zap,
@@ -113,26 +113,26 @@ export function EngagementActions({
 
   // Handle like/unlike action
   const handleEngagement = useCallback(async () => {
-    if (!user) {
-      toast({
+      if (!user) {
+        toast({
         title: "Authentication required",
         description: "Please log in to like posts",
         variant: "destructive"
-      })
-      return
-    }
+        })
+        return
+      }
 
-    setLoading('like')
-    
+        setLoading('like')
+
     try {
       console.log('🔍 Attempting to like/unlike:', { entityId, entityType })
       
       const response = await fetch('/api/engagement/like', {
-        method: 'POST',
+          method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
+          body: JSON.stringify({
           entity_type: entityType,
           entity_id: entityId
         })
@@ -153,7 +153,7 @@ export function EngagementActions({
       if (newLikeState) {
         setEngagementCount(prev => prev + 1)
       } else {
-        setEngagementCount(prev => Math.max(0, prev - 1))
+          setEngagementCount(prev => Math.max(0, prev - 1))
       }
 
       toast({
@@ -169,9 +169,9 @@ export function EngagementActions({
         description: "Failed to like post. Please try again.",
         variant: "destructive"
       })
-    } finally {
-      setLoading(null)
-    }
+      } finally {
+        setLoading(null)
+      }
   }, [user, entityId, entityType, isLikedState, toast])
 
   // Handle comment submission
@@ -266,8 +266,8 @@ export function EngagementActions({
         description: "Please log in to share posts",
         variant: "destructive"
       })
-      return
-    }
+                    return
+                  }
 
     // For now, just show a toast - implement actual sharing logic later
     toast({
@@ -328,9 +328,9 @@ export function EngagementActions({
 
       {/* Action Buttons Row */}
       <div className="engagement-action-buttons flex items-center justify-between px-4 py-2 border-b border-gray-100">
-        <Button
-          variant="ghost"
-          size="sm"
+          <Button 
+            variant="ghost" 
+            size="sm" 
           onClick={handleEngagement}
           disabled={loading === 'like'}
           className={cn(
@@ -342,28 +342,28 @@ export function EngagementActions({
         >
           <ThumbsUp className={cn("h-5 w-5 mr-2", isLikedState && "fill-current")} />
           <span className="engagement-action-label">Like</span>
-        </Button>
+          </Button>
 
-        <Button
-          variant="ghost"
-          size="sm"
+          <Button
+            variant="ghost"
+            size="sm"
           onClick={() => setShowCommentInput(!showCommentInput)}
           disabled={loading === 'comment'}
           className="engagement-action-button flex-1 h-10 rounded-lg text-gray-600 hover:text-gray-700 hover:bg-gray-50 transition-colors"
         >
           <MessageSquare className="h-5 w-5 mr-2" />
           <span className="engagement-action-label">Comment</span>
-        </Button>
+          </Button>
 
-        <Button
-          variant="ghost"
-          size="sm"
+          <Button
+            variant="ghost"
+            size="sm"
           onClick={handleShare}
           className="engagement-action-button flex-1 h-10 rounded-lg text-gray-600 hover:text-gray-700 hover:bg-gray-50 transition-colors"
         >
           <Share2 className="h-5 w-5 mr-2" />
           <span className="engagement-action-label">Share</span>
-        </Button>
+          </Button>
       </div>
 
       {/* Comment Input Section */}
@@ -382,10 +382,10 @@ export function EngagementActions({
                 ) : (
                   <span className="text-sm font-medium text-gray-600">
                     {user?.user_metadata?.full_name?.[0] || user?.email?.[0] || 'U'}
-                  </span>
+                    </span>
                 )}
               </div>
-            </div>
+          </div>
 
             {/* Comment Input Area */}
             <div className="engagement-comment-input-area flex-1">
@@ -415,14 +415,14 @@ export function EngagementActions({
                     <Smile className="h-4 w-4" />
                   </Button>
                   
-                  <Button
-                    variant="ghost"
-                    size="sm"
+                <Button
+                  variant="ghost"
+                  size="sm"
                     className="engagement-comment-action-icon p-1 h-6 w-6 text-gray-400 hover:text-gray-600"
                     title="Add photo"
                   >
                     <ImageIcon className="h-4 w-4" />
-                  </Button>
+                </Button>
                 </div>
               </div>
 

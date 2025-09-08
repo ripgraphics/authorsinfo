@@ -43,6 +43,30 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    // Attach the current user's reaction for each activity (if authenticated)
+    let userReactionByActivity: Record<string, string | null> = {}
+    try {
+      const { data: auth } = await supabase.auth.getUser()
+      const currentUserId = auth?.user?.id
+      if (currentUserId && Array.isArray(data) && data.length > 0) {
+        const activityIds = data.map((row: any) => row.id)
+        const { data: reactions } = await supabase
+          .from('engagement_likes')
+          .select('entity_id, reaction_type')
+          .eq('entity_type', 'activity')
+          .eq('user_id', currentUserId)
+          .in('entity_id', activityIds)
+        if (Array.isArray(reactions)) {
+          userReactionByActivity = reactions.reduce((acc: Record<string, string>, r: any) => {
+            acc[r.entity_id] = r.reaction_type
+            return acc
+          }, {})
+        }
+      }
+    } catch (_) {
+      // Non-fatal; omit user reaction if lookup fails
+    }
+
     // Project only fields used by the UI to minimize payload
     const activities = (data || []).map((row: any) => ({
       id: row.id,
@@ -67,7 +91,9 @@ export async function GET(request: NextRequest) {
       share_count: row.share_count ?? 0,
       view_count: row.view_count ?? 0,
       engagement_score: row.engagement_score ?? 0,
-      metadata: row.metadata ?? {}
+      metadata: row.metadata ?? {},
+      user_reaction_type: userReactionByActivity[row.id] || null,
+      is_liked: !!userReactionByActivity[row.id]
     }))
 
     return NextResponse.json({ activities, pagination: { limit, offset, count: activities.length } })

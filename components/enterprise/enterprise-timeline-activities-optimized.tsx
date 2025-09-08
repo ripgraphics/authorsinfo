@@ -605,7 +605,7 @@ const EnterpriseTimelineActivities = React.memo(({
     user_has_reacted: activity.is_liked,
     user_has_commented: false, // Default value
     user_has_shared: false, // Default value
-    user_reaction_type: undefined, // Default value
+    user_reaction_type: (activity as any).user_reaction_type || undefined, // Pass through user reaction
     user_has_bookmarked: activity.is_bookmarked || false,
     user_has_viewed: false, // Default value
     view_count: activity.view_count,

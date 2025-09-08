@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabaseClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
+import EntityName from '@/components/entity-name'
+import EntityAvatar from '@/components/entity-avatar'
 import { useToast } from '@/hooks/use-toast'
 import { UserHoverCard } from '@/components/entity-hover-cards'
 import { EntityHoverCard } from '@/components/entity-hover-cards'
@@ -461,19 +463,7 @@ export default function EntityComments({
           <div className="entity-comment-input-container flex items-center gap-3">
             {/* User Avatar */}
             <div className="entity-comment-avatar flex-shrink-0">
-              <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden">
-                {currentUser.avatar_url ? (
-                  <img
-                    src={currentUser.avatar_url}
-                    alt="User avatar"
-                    className="w-8 h-8 object-cover"
-                  />
-                ) : (
-                  <div className="w-8 h-8 flex items-center justify-center text-sm font-medium text-gray-600">
-                    {currentUser.name?.[0] || currentUser.email?.[0] || 'U'}
-                  </div>
-                )}
-              </div>
+              <EntityAvatar type="user" id={currentUser.id} name={currentUser.name || currentUser.email} src={currentUser.avatar_url} size="sm" />
             </div>
 
             {/* Inline pill input with right-side quick icons */}
@@ -563,28 +553,14 @@ export default function EntityComments({
                 <div className="entity-comment-content flex items-start gap-3">
                   {/* Comment Avatar */}
                   <div className="entity-comment-avatar flex-shrink-0">
-                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                      {comment.user.avatar_url ? (
-                        <img 
-                          src={comment.user.avatar_url} 
-                          alt="User avatar" 
-                          className="w-8 h-8 rounded-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-sm font-medium text-gray-600">
-                          {comment.user.name?.[0] || 'U'}
-                        </span>
-                      )}
-                    </div>
+                    <EntityAvatar type="user" id={comment.user.id} name={comment.user.name} src={comment.user.avatar_url} size="sm" />
                   </div>
 
                   {/* Comment Details */}
                   <div className="entity-comment-details flex-1 min-w-0">
                     {/* Comment Header */}
                     <div className="entity-comment-header flex items-center gap-2 mb-1">
-                      <span className="entity-comment-author font-medium text-sm text-gray-900">
-                        {comment.user.name}
-                      </span>
+                      <EntityName type="user" id={comment.user.id} name={comment.user.name} className="entity-comment-author font-medium text-sm text-gray-900" />
                       <span className="entity-comment-timestamp text-xs text-gray-500">
                         {formatTimestamp(comment.created_at)}
                       </span>
@@ -626,19 +602,7 @@ export default function EntityComments({
                       <div className="entity-reply-input mt-3">
                         <div className="entity-reply-input-container flex items-start gap-2">
                           <div className="entity-reply-avatar flex-shrink-0">
-                            <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
-                              {currentUser?.avatar_url ? (
-                                <img 
-                                  src={currentUser.avatar_url} 
-                                  alt="User avatar" 
-                                  className="w-6 h-6 rounded-full object-cover"
-                                />
-                              ) : (
-                                <span className="text-xs font-medium text-gray-600">
-                                  {currentUser?.name?.[0] || currentUser?.email?.[0] || 'U'}
-                                </span>
-                              )}
-                            </div>
+                            <EntityAvatar type="user" id={currentUser?.id as string} name={currentUser?.name || currentUser?.email} src={currentUser?.avatar_url} size="xs" />
                           </div>
 
                           <div className="entity-reply-input-area flex-1">
@@ -684,26 +648,12 @@ export default function EntityComments({
                           <div key={reply.id} className="entity-reply-item bg-gray-50 rounded-lg p-2">
                             <div className="entity-reply-content flex items-start gap-2">
                               <div className="entity-reply-avatar flex-shrink-0">
-                                <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
-                                  {reply.user.avatar_url ? (
-                                    <img 
-                                      src={reply.user.avatar_url} 
-                                      alt="User avatar" 
-                                      className="w-6 h-6 rounded-full object-cover"
-                                    />
-                                  ) : (
-                                    <span className="text-xs font-medium text-gray-600">
-                                      {reply.user.name?.[0] || 'U'}
-                                    </span>
-                                  )}
-                                </div>
+                                <EntityAvatar type="user" id={reply.user.id} name={reply.user.name} src={reply.user.avatar_url} size="xs" />
                               </div>
 
                               <div className="entity-reply-details flex-1 min-w-0">
                                 <div className="entity-reply-header flex items-center gap-2 mb-1">
-                                  <span className="entity-reply-author font-medium text-xs text-gray-900">
-                                    {reply.user.name}
-                                  </span>
+                                  <EntityName type="user" id={reply.user.id} name={reply.user.name} className="entity-reply-author font-medium text-xs text-gray-900" />
                                   <span className="entity-reply-timestamp text-xs text-gray-500">
                                     {formatTimestamp(reply.created_at)}
                                   </span>

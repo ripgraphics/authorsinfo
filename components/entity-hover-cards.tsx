@@ -89,18 +89,13 @@ interface EntityHoverCardProps {
 
 export function EntityHoverCard({ type, entity, children, showActions = true, userStats }: EntityHoverCardProps) {
   const router = useRouter()
-  const [isOpen, setIsOpen] = useState(false)
-
-  const handleClose = () => {
-    setIsOpen(false)
-  }
+  const handleClose = () => {}
 
   const handleClick = () => {
     const info = getEntityInfo()
     if (info.href) {
       router.push(info.href)
     }
-    setIsOpen(false)
   }
 
   const getEntityInfo = () => {
@@ -234,7 +229,7 @@ export function EntityHoverCard({ type, entity, children, showActions = true, us
   const joinDate = formatJoinDate(displayStats.joinedDate)
 
   return (
-    <HoverCard open={isOpen} onOpenChange={setIsOpen}>
+    <HoverCard>
       <HoverCardTrigger asChild>
         <span
           className="hover:underline cursor-pointer text-muted-foreground"

@@ -57,9 +57,20 @@ button[class*="close-button"]:focus {
 }
 
 /* Global button hover behavior - default to secondary color on hover */
-button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([class*="destructive"]):not([class*="secondary"]):hover {
+button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([class*="destructive"]):not([class*="secondary"]):not([data-no-secondary-hover]):hover {
   background-color: hsl(var(--secondary)) !important;
   transition: background-color 0.2s ease-in-out !important;
+}
+
+/* Remove default focus rings globally (user preference) */
+*:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+*:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 /* Ensure close buttons in hover cards use primary styling with secondary hover */

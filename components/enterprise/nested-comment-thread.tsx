@@ -3,6 +3,8 @@
 import React, { useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
+import EntityName from '@/components/entity-name'
+import EntityAvatar from '@/components/entity-avatar'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
 import { Reply, MoreHorizontal, Heart, MessageCircle } from 'lucide-react'
@@ -121,20 +123,13 @@ export function NestedCommentThread({
       {/* Main comment */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
         <div className="flex items-start gap-3">
-          <Avatar
-            src={comment.user.avatar_url}
-            alt={comment.user.name}
-            name={comment.user.name}
-            size="md"
-          />
+          <EntityAvatar type="user" id={comment.user.id} name={comment.user.name} src={comment.user.avatar_url || undefined} size="md" />
           
           <div className="flex-1 min-w-0">
             {/* Comment header */}
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-sm text-gray-900 dark:text-gray-100">
-                  {comment.user.name}
-                </span>
+                <EntityName type="user" id={comment.user.id} name={comment.user.name} className="font-semibold text-sm text-gray-900 dark:text-gray-100" />
                 <span className="text-xs text-gray-500">
                   {formatTimestamp(comment.created_at)}
                 </span>

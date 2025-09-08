@@ -530,6 +530,7 @@ export function EnterpriseReactionPopup({
             getAnimationClasses(),
             className
           )}
+          data-reaction-popup
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}

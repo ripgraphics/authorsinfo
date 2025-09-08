@@ -243,14 +243,22 @@ async function handleLike(supabase: any, userId: string, entityId: string, entit
         }, { status: 500 })
       }
 
-      // Update activities table count
-      const { error: updateError } = await supabase
-        .from('activities')
-        .update({ like_count: supabase.sql`GREATEST(like_count - 1, 0)` })
-        .eq('id', entityId)
+      // Recompute and update reaction count (all reactions) if activity
+      const { count: newCount } = await supabase
+        .from('engagement_likes')
+        .select('id', { count: 'exact', head: true })
+        .eq('entity_type', entityType)
+        .eq('entity_id', entityId)
 
-      if (updateError) {
-        console.error('Error updating like count:', updateError)
+      if (entityType === 'activity') {
+        const { error: updateError } = await supabase
+          .from('activities')
+          .update({ like_count: newCount || 0 })
+          .eq('id', entityId)
+
+        if (updateError) {
+          console.error('Error updating like count:', updateError)
+        }
       }
 
       liked = false
@@ -272,14 +280,22 @@ async function handleLike(supabase: any, userId: string, entityId: string, entit
         }, { status: 500 })
       }
 
-      // Update activities table count
-      const { error: updateError } = await supabase
-        .from('activities')
-        .update({ like_count: supabase.sql`COALESCE(like_count, 0) + 1` })
-        .eq('id', entityId)
+      // Recompute and update reaction count (all reactions) if activity
+      const { count: newCount } = await supabase
+        .from('engagement_likes')
+        .select('id', { count: 'exact', head: true })
+        .eq('entity_type', entityType)
+        .eq('entity_id', entityId)
 
-      if (updateError) {
-        console.error('Error updating like count:', updateError)
+      if (entityType === 'activity') {
+        const { error: updateError } = await supabase
+          .from('activities')
+          .update({ like_count: newCount || 0 })
+          .eq('id', entityId)
+
+        if (updateError) {
+          console.error('Error updating like count:', updateError)
+        }
       }
 
       liked = true
@@ -392,14 +408,22 @@ async function handleComment(supabase: any, userId: string, entityId: string, en
       }, { status: 500 })
     }
 
-    // Update activities table count
-    const { error: updateError } = await supabase
-      .from('activities')
-      .update({ comment_count: supabase.sql`COALESCE(comment_count, 0) + 1` })
-      .eq('id', entityId)
+    // Recompute and update comment count if activity
+    const { count: newCount } = await supabase
+      .from('engagement_comments')
+      .select('id', { count: 'exact', head: true })
+      .eq('entity_type', entityType)
+      .eq('entity_id', entityId)
 
-    if (updateError) {
-      console.error('Error updating comment count:', updateError)
+    if (entityType === 'activity') {
+      const { error: updateError } = await supabase
+        .from('activities')
+        .update({ comment_count: newCount || 0 })
+        .eq('id', entityId)
+
+      if (updateError) {
+        console.error('Error updating comment count:', updateError)
+      }
     }
 
     const response = {

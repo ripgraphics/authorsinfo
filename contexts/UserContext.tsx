@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { User } from '@supabase/supabase-js'
-import { deduplicatedRequest, debounce } from '@/lib/request-utils'
+import { deduplicatedRequest, debounce, clearCache } from '@/lib/request-utils'
 
 interface UserWithRole extends User {
   role?: string
@@ -77,6 +77,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   // Refresh user data (for manual refresh)
   const refreshUser = async () => {
     // Clear cache to force fresh fetch
+    clearCache('current-user-data')
     const userData = await fetchUserData()
     if (userData) {
       debouncedSetUser(userData)
@@ -118,6 +119,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
+        // Invalidate cached user data so we fetch fresh details immediately after sign-in
+        clearCache('current-user-data')
         const userData = await fetchUserData()
         if (userData) {
           debouncedSetUser(userData)

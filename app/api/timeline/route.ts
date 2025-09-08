@@ -67,11 +67,31 @@ export async function GET(request: NextRequest) {
       // Non-fatal; omit user reaction if lookup fails
     }
 
+    // Resolve author names from users table for ALL activities
+    let userIdToName: Record<string, string> = {}
+    try {
+      const allUserIds = Array.from(new Set((data || []).map((row: any) => row.user_id).filter(Boolean)))
+      if (allUserIds.length > 0) {
+        const { data: users } = await supabase
+          .from('users')
+          .select('id, name')
+          .in('id', allUserIds)
+        if (Array.isArray(users)) {
+          userIdToName = users.reduce((acc: Record<string, string>, u: any) => {
+            if (u?.id && u?.name) acc[u.id] = u.name
+            return acc
+          }, {})
+        }
+      }
+    } catch (_) {
+      // Non-fatal; best-effort enrichment only
+    }
+
     // Project only fields used by the UI to minimize payload
     const activities = (data || []).map((row: any) => ({
       id: row.id,
       user_id: row.user_id,
-      user_name: row.user_name ?? null,
+      user_name: userIdToName[row.user_id] || null,
       user_avatar_url: row.user_avatar_url ?? null,
       activity_type: row.activity_type,
       data: row.data,

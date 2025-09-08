@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     const userId = user?.id || null
 
     // Parse request body
-    const { entity_type, entity_id, view_duration, view_source } = await request.json()
+    let { entity_type, entity_id, view_duration, view_source } = await request.json()
     
     if (!entity_type || !entity_id) {
       return NextResponse.json(
@@ -22,8 +22,50 @@ export async function POST(request: Request) {
       )
     }
 
-    
-
+    // Resolve permalinks to UUIDs and validate entity existence (no-op if missing)
+    const tableMap: Record<string, string> = {
+      user: 'users',
+      book: 'books',
+      author: 'authors',
+      publisher: 'publishers',
+      group: 'groups',
+      event: 'events',
+      activity: 'activities'
+    }
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    const targetTable = tableMap[entity_type]
+    if (targetTable) {
+      try {
+        if (!uuidRegex.test(entity_id)) {
+          const { data: resolved } = await supabaseAdmin
+            .from(targetTable)
+            .select('id, permalink')
+            .or(`id.eq.${entity_id},permalink.eq.${entity_id}`)
+            .maybeSingle()
+          if (resolved?.id) {
+            entity_id = resolved.id
+          }
+        }
+        // Validate existence after resolution
+        const { data: existsRow } = await supabaseAdmin
+          .from(targetTable)
+          .select('id')
+          .eq('id', entity_id)
+          .maybeSingle()
+        if (!existsRow) {
+          // No-op for non-existent entity to avoid hard failures
+          return NextResponse.json({
+            success: true,
+            action: 'skipped',
+            message: 'Entity not found; view not recorded',
+            entity_type,
+            entity_id
+          })
+        }
+      } catch (_) {
+        // Continue without failing; we will attempt to record view, and DB constraints may enforce integrity
+      }
+    }
     // Check if user already viewed this entity (idempotent by unique key)
     let view_id: string | null = null
     let action: 'added' | 'updated' = 'added'

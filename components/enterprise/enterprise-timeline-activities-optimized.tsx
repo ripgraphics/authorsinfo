@@ -86,6 +86,7 @@ import {
 } from 'lucide-react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { SophisticatedPhotoGrid } from '../photo-gallery/sophisticated-photo-grid'
+import PostButton from '../ui/post-button'
 
 // ============================================================================
 // PERFORMANCE OPTIMIZED INTERFACES
@@ -971,14 +972,13 @@ const EnterpriseTimelineActivities = React.memo(({
                         >
                           Cancel
                         </Button>
-                        <Button
-                          size="sm"
+                        <PostButton
                           onClick={handleCreatePost}
                           disabled={isPosting || !postForm.content.trim()}
-                          className="h-8 px-4 text-xs"
-                        >
-                          {isPosting ? 'Posting...' : 'Post'}
-                        </Button>
+                          loading={isPosting}
+                          sizeClassName="h-8 px-4 text-xs"
+                          label="Post"
+                        />
                       </div>
                     </div>
                   </div>

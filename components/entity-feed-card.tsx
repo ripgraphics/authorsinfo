@@ -224,11 +224,6 @@ export default function EntityFeedCard({
 
   // Function to fetch comments for this post
   const fetchComments = useCallback(async () => {
-    if (!post.comment_count || post.comment_count === 0) {
-      setComments([])
-      return
-    }
-
     try {
       setIsLoadingComments(true)
       console.log('🔍 FeedCard: Fetching comments for post:', post.id)
@@ -256,7 +251,7 @@ export default function EntityFeedCard({
     } finally {
       setIsLoadingComments(false)
     }
-  }, [post.id, post.entity_type, post.comment_count])
+  }, [post.id, post.entity_type])
 
   const submitBottomComment = useCallback(async () => {
     const text = bottomComment.trim()

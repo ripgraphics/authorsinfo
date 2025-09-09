@@ -5,6 +5,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Image as ImageIcon, Smile } from 'lucide-react'
 import EntityAvatar from '@/components/entity-avatar'
+import PostButton from '@/components/ui/post-button'
+import { useToast } from '@/hooks/use-toast'
 
 interface EntityCommentComposerProps {
   entityId: string
@@ -58,7 +60,9 @@ export default function EntityCommentComposer({
 }: EntityCommentComposerProps) {
   const [isActive, setIsActive] = useState(false)
   const [text, setText] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const { toast } = useToast()
 
   const focusComposer = useCallback(() => {
     setIsActive(true)
@@ -91,22 +95,43 @@ export default function EntityCommentComposer({
 
   const submit = async () => {
     const content = text.trim()
-    if (!content) return
-    if (content.length > maxChars) return
-    const resp = await fetch('/api/engagement', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        entity_id: entityId,
-        entity_type: entityType || 'activity',
-        engagement_type: 'comment',
-        content,
-      }),
-    })
-    if (!resp.ok) return
-    setText('')
-    setIsActive(false)
-    onSubmitted?.()
+    if (!content) {
+      return
+    }
+    if (content.length > maxChars) {
+      toast({ title: 'Too long', description: `Max ${maxChars} characters`, variant: 'destructive' })
+      return
+    }
+    try {
+      setIsSubmitting(true)
+      const resp = await fetch('/api/engagement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          entity_id: entityId,
+          entity_type: entityType || 'activity',
+          engagement_type: 'comment',
+          content,
+        }),
+      })
+      if (!resp.ok) {
+        let message = `Failed to post comment (${resp.status})`
+        try {
+          const data = await resp.json()
+          if (data?.error) message = data.error
+        } catch {}
+        toast({ title: 'Error', description: message, variant: 'destructive' })
+        return
+      }
+      setText('')
+      setIsActive(false)
+      toast({ title: 'Comment posted', description: 'Your comment has been added' })
+      onSubmitted?.()
+    } catch (e) {
+      toast({ title: 'Error', description: 'Failed to post comment. Please try again.', variant: 'destructive' })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -165,12 +190,18 @@ export default function EntityCommentComposer({
                         setIsActive(false)
                         setText('')
                       }}
+                      disabled={isSubmitting}
                     >
                       Cancel
                     </Button>
-                    <Button size="sm" onClick={submit} disabled={!text.trim()} className={submitButtonClassName || 'h-8 px-4 text-xs'}>
-                      Post
-                    </Button>
+                    <PostButton
+                      onClick={submit}
+                      disabled={!text.trim() || isSubmitting}
+                      loading={isSubmitting}
+                      className={submitButtonClassName || ''}
+                      sizeClassName="h-8 px-4 text-xs"
+                      label="Post"
+                    />
                   </div>
                 </div>
               </div>

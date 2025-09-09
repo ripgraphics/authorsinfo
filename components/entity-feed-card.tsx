@@ -69,6 +69,14 @@ import { ReactionsModal } from '@/components/enterprise/reactions-modal'
 import { CommentsModal } from '@/components/enterprise/comments-modal'
 import { EngagementDisplay } from '@/components/enterprise/engagement-display'
 import EntityCommentComposer from '@/components/entity-comment-composer'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator
+} from '@/components/ui/dropdown-menu'
+import { DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from '@/components/ui/dropdown-menu'
 
 export interface EntityFeedCardProps {
   post: FeedPost
@@ -155,6 +163,9 @@ export default function EntityFeedCard({
     const [isLoadingLikes, setIsLoadingLikes] = useState(false)
     const [showLikesModal, setShowLikesModal] = useState(false)
     const [showCommentsModal, setShowCommentsModal] = useState(false)
+    const [commentFilter, setCommentFilter] = useState<'relevant' | 'all'>('relevant')
+    const [expandedReplies, setExpandedReplies] = useState<Record<string, boolean>>({})
+    const [canCommentModal, setCanCommentModal] = useState<boolean>(false)
   
   // Inline editing state
   const [isEditing, setIsEditing] = useState(false)
@@ -931,6 +942,27 @@ export default function EntityFeedCard({
   useEffect(() => {
     loadEngagementData()
   }, [loadEngagementData])
+
+  // Fetch comment permission when modal opens
+  useEffect(() => {
+    let cancelled = false
+    async function checkPermission() {
+      if (!showCommentsModal) return
+      try {
+        const resp = await fetch(`/api/engagement/can-comment?entity_id=${post.id}&entity_type=${post.entity_type || 'activity'}`)
+        if (!resp.ok) {
+          if (!cancelled) setCanCommentModal(false)
+          return
+        }
+        const data = await resp.json()
+        if (!cancelled) setCanCommentModal(!!data?.allowed)
+      } catch {
+        if (!cancelled) setCanCommentModal(false)
+      }
+    }
+    checkPermission()
+    return () => { cancelled = true }
+  }, [showCommentsModal, post.id, post.entity_type])
 
   // Close actions menu when clicking outside
   useEffect(() => {
@@ -1840,12 +1872,122 @@ export default function EntityFeedCard({
                             View more
                           </button>
                         )}
-                      </div>
+            </div>
                       <div className="flex items-center gap-4 mt-1 ml-2 text-xs text-gray-500">
                         <span>{formatTimeAgo(first.created_at)}</span>
                         <button className="hover:underline">Like</button>
                         <button className="hover:underline">Reply</button>
-                      </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="p-1 rounded-full hover:bg-gray-100" aria-label="Comment actions">
+                              <MoreHorizontal className="h-4 w-4 text-gray-500" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={async () => {
+                                try {
+                                  await fetch('/api/comments/hide', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ comment_id: first.id })
+                                  })
+                                  fetchComments()
+                                } catch (e) {
+                                  console.error(e)
+                                }
+                              }}
+                            >
+                              Hide comment
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={async () => {
+                                try {
+                                  await fetch('/api/users/block', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ user_id: first.user?.id })
+                                  })
+                                  fetchComments()
+                                } catch (e) {
+                                  console.error(e)
+                                }
+                              }}
+                            >
+                              Block {first.user?.name || 'user'}
+                            </DropdownMenuItem>
+                            <DropdownMenuSub>
+                              <DropdownMenuSubTrigger>More block options</DropdownMenuSubTrigger>
+                              <DropdownMenuSubContent>
+                                <DropdownMenuItem
+                                  onClick={async () => {
+                                    try {
+                                      await fetch('/api/comments/hide-user', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ user_id: first.user?.id })
+                                      })
+                                      fetchComments()
+                                    } catch (e) {
+                                      console.error(e)
+                                    }
+                                  }}
+                                >
+                                  Hide all comments from this user
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={async () => {
+                                    try {
+                                      await fetch('/api/users/block', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ user_id: first.user?.id })
+                                      })
+                                      fetchComments()
+                                    } catch (e) {
+                                      console.error(e)
+                                    }
+                                  }}
+                                >
+                                  Block user globally
+                                </DropdownMenuItem>
+                              </DropdownMenuSubContent>
+                            </DropdownMenuSub>
+                            <DropdownMenuItem
+                              onClick={async () => {
+                                try {
+                                  await fetch('/api/users/block', {
+                                    method: 'DELETE',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ user_id: first.user?.id })
+                                  })
+                                  fetchComments()
+                                } catch (e) {
+                                  console.error(e)
+                                }
+                              }}
+                            >
+                              Unblock {first.user?.name || 'user'}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={async () => {
+                                try {
+                                  await fetch('/api/report', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ target_type: 'comment', target_id: first.id })
+                                  })
+                                } catch (e) {
+                                  console.error(e)
+                                }
+                              }}
+                            >
+                              Report comment
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+              </div>
                     </div>
                   </div>
 
@@ -1857,19 +1999,35 @@ export default function EntityFeedCard({
                         <div className="bg-gray-50 rounded-2xl px-3 py-2 inline-block max-w-full">
                           <div className="flex items-center gap-2 mb-0.5">
                             <EntityName type="user" id={firstReply.user?.id} name={firstReply.user?.name || 'User'} className="text-xs font-semibold text-gray-900" />
-                    </div>
+                          </div>
                           <div className="text-xs text-gray-800 leading-relaxed">
                             {firstReply.comment_text}
-                  </div>
-                </div>
+                          </div>
+                        </div>
                         <div className="flex items-center gap-3 mt-1 ml-2 text-[11px] text-gray-500">
                           <span>{formatTimeAgo(firstReply.created_at)}</span>
                           <button className="hover:underline">Like</button>
-                          <button className="hover:underline">Reply</button>
-              </div>
-            </div>
-          </div>
-        )}
+                          <button className="hover:underline" onClick={() => setExpandedReplies(prev => ({ ...prev, [first.id]: true }))}>Reply</button>
+                        </div>
+                        {expandedReplies[first.id] && (
+                          <div className="mt-2">
+                            <EntityCommentComposer
+                              entityId={post.id}
+                              entityType={post.entity_type || 'activity'}
+                              currentUserId={user?.id}
+                              currentUserName={currentUserDisplayName}
+                              currentUserAvatar={currentUserAvatar}
+                              parentCommentId={firstReply.id}
+                              placeholder={`Reply to ${firstReply.user?.name || 'reply'}`}
+                              onSubmitted={() => {
+                                fetchComments()
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )
             })()}
@@ -1972,7 +2130,7 @@ export default function EntityFeedCard({
       {/* Enhanced Comments Modal */}
       {showCommentsModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden shadow-2xl">
+          <div className="bg-white rounded-lg max-w-2xl w-full mx-4 h-[90vh] shadow-2xl flex flex-col">
             {/* Modal Header */}
             <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
               <div className="flex items-center justify-between">
@@ -1981,9 +2139,9 @@ export default function EntityFeedCard({
                     <MessageCircle className="h-5 w-5 text-blue-600" />
                   </div>
                   <div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                      Comments ({post.comment_count})
-                </h3>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {postOwnerName}'s Post
+                    </h3>
                     <p className="text-sm text-gray-500">
                       Join the conversation about this post
                     </p>
@@ -1999,12 +2157,95 @@ export default function EntityFeedCard({
             </div>
 
             {/* Modal Content */}
-            <div className="flex flex-col h-[calc(90vh-140px)]">
-              {/* Comments List */}
-              <div className="flex-1 overflow-y-auto px-6 py-4">
-              {!isLoadingComments && comments.length > 0 ? (
-                  <div className="space-y-4">
-                  {comments.map((comment) => (
+            <div className="flex-1 flex flex-col min-h-0">
+              {/* Single scrollable column: header + post content + filter + comments */}
+              <div className="flex-1 overflow-y-auto">
+                {/* Feed header (same as card header) */}
+                <div className="px-6 pt-4">
+                  <div className="enterprise-feed-card-header-content flex items-start gap-3">
+                    <EntityHoverCard
+                      type="user"
+                      entity={{ id: post.user_id, name: postOwnerName, avatar_url: postOwnerAvatar }}
+                    >
+                      <span className="hover:underline cursor-pointer text-muted-foreground" data-state="closed">
+                        <div className="avatar-container relative w-10 h-10 overflow-hidden rounded-full border-2 border-white shadow-md enterprise-feed-card-user-avatar cursor-pointer">
+                          <Avatar
+                            src={postOwnerAvatar}
+                            alt={postOwnerName || 'User'}
+                            name={postOwnerName}
+                            size="sm"
+                            className="object-cover rounded-full"
+                          />
+                        </div>
+                      </span>
+                    </EntityHoverCard>
+                    <div className="enterprise-feed-card-header-info flex-1">
+                      <div className="enterprise-feed-card-header-top flex items-center gap-2 mb-1">
+                        <EntityHoverCard
+                          type="user"
+                          entity={{ id: post.user_id, name: postOwnerName, avatar_url: postOwnerAvatar }}
+                        >
+                          <span className="hover:underline cursor-pointer text-muted-foreground" data-state="closed">
+                            <EntityName
+                              type="user"
+                              id={post.user_id}
+                              name={postOwnerName}
+                              avatar_url={postOwnerAvatar}
+                              className="enterprise-feed-card-user-name font-semibold text-sm"
+                            />
+                          </span>
+                        </EntityHoverCard>
+                      </div>
+                      <div className="enterprise-feed-card-header-bottom flex items-center gap-2 text-xs text-muted-foreground">
+                        <span className="enterprise-feed-card-timestamp">
+                          {new Date(post.created_at).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: 'numeric',
+                            minute: 'numeric'
+                          })}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Post content */}
+                <div className="px-6 pt-2">
+                  {renderContent()}
+                </div>
+
+                {/* Filter */}
+                <div className="px-6 pt-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors rounded-full px-3 py-1">
+                        {commentFilter === 'relevant' ? 'Most relevant' : 'All comments'}
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-80">
+                      <DropdownMenuItem onClick={() => setCommentFilter('relevant')}>
+                        <div>
+                          <div className="font-medium">Most relevant</div>
+                          <div className="text-xs text-gray-500">Show friends' comments and the most engaging comments first.</div>
+                        </div>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => setCommentFilter('all')}>
+                        <div>
+                          <div className="font-medium">All comments</div>
+                          <div className="text-xs text-gray-500">Show all comments, including potential spam.</div>
+                        </div>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                {/* Comments List */}
+                <div className="px-6 py-4">
+                {!isLoadingComments && comments.length > 0 ? (
+                    <div className="space-y-4">
+                    {(commentFilter === 'all' ? [...comments] : comments).map((comment) => (
                       <div key={comment.id} className="comment-item">
                       {/* Comment Header */}
                         <div className="flex items-start gap-3">
@@ -2028,7 +2269,7 @@ export default function EntityFeedCard({
                                     minute: 'numeric'
                                   })}
                                 </span>
-                      </div>
+                              </div>
                       
                       {/* Comment Text */}
                               <div className="text-sm text-gray-800 leading-relaxed">
@@ -2041,16 +2282,24 @@ export default function EntityFeedCard({
                               <button className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline">
                                 Like
                               </button>
-                              <button className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline">
+                              <button className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline" onClick={() => setExpandedReplies(prev => ({ ...prev, [comment.id]: true }))}>
                                 Reply
                               </button>
                               <span className="text-xs text-gray-400">
                                 {comment.reply_count > 0 && `${comment.reply_count} replies`}
                               </span>
+                              {Array.isArray(comment.replies) && comment.replies.length > 0 && (
+                                <button
+                                  className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline"
+                                  onClick={() => setExpandedReplies(prev => ({ ...prev, [comment.id]: !prev[comment.id] }))}
+                                >
+                                  {expandedReplies[comment.id] ? 'Hide replies' : 'Show replies'}
+                                </button>
+                              )}
                             </div>
                             
                             {/* Nested Replies */}
-                            {comment.replies && comment.replies.length > 0 && (
+                            {(comment.replies && comment.replies.length > 0 && expandedReplies[comment.id]) && (
                               <div className="ml-8 mt-3 space-y-3">
                                 {comment.replies.map((reply: any) => (
                                   <div key={reply.id} className="flex items-start gap-3">
@@ -2082,54 +2331,89 @@ export default function EntityFeedCard({
                                       </div>
                                     </div>
                                   </div>
+                                  <div className="ml-2 self-start">
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <button className="p-1 rounded-full hover:bg-gray-100" aria-label="Comment actions">
+                                          <MoreHorizontal className="h-4 w-4 text-gray-500" />
+                                        </button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={async () => { try { await fetch('/api/comments/hide', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment_id: comment.id }) }); fetchComments() } catch(e){ console.error(e) } }}>Hide comment</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={async () => { try { await fetch('/api/users/block', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: comment.user?.id }) }); fetchComments() } catch(e){ console.error(e) } }}>Block {comment.user?.name || 'user'}</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={async () => { try { await fetch('/api/users/block', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: comment.user?.id }) }); fetchComments() } catch(e){ console.error(e) } }}>Unblock {comment.user?.name || 'user'}</DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem onClick={async () => { try { await fetch('/api/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target_type: 'comment', target_id: comment.id }) }) } catch(e){ console.error(e) } }}>Report comment</DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  </div>
                                 ))}
+                              </div>
+                            )}
+                            {expandedReplies[comment.id] && (
+                              <div className="ml-8 mt-3">
+                                <EntityCommentComposer
+                                  entityId={post.id}
+                                  entityType={post.entity_type || 'activity'}
+                                  currentUserId={user?.id}
+                                  currentUserName={currentUserDisplayName}
+                                  currentUserAvatar={currentUserAvatar}
+                                  parentCommentId={comment.id}
+                                  placeholder={`Reply to ${comment.user?.name || 'comment'}`}
+                                  onSubmitted={() => {
+                                    fetchComments()
+                                  }}
+                                />
                               </div>
                             )}
                           </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                  <div className="text-center py-12">
-                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <MessageCircle className="h-8 w-8 text-gray-400" />
+                      </div>
+                    ))}
                   </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No comments yet</h3>
-                    <p className="text-gray-500">Be the first to share your thoughts!</p>
+                ) : (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <MessageCircle className="h-8 w-8 text-gray-400" />
+                    </div>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No comments yet</h3>
+                      <p className="text-gray-500">Be the first to share your thoughts!</p>
+                  </div>
+                )}
                 </div>
-              )}
-            </div>
+              </div>
 
               {/* Comment Input Section (reused composer) */}
-              <div className="bg-white px-6 py-3 border-t border-gray-200">
-                <EntityCommentComposer
-                  entityId={post.id}
-                  entityType={post.entity_type || 'activity'}
-                  currentUserId={user?.id}
-                  currentUserName={currentUserDisplayName}
-                  currentUserAvatar={currentUserAvatar}
-                  containerClassName=""
-                  rowClassName="flex items-center gap-3"
-                  avatarClassName="w-8 h-8 flex-shrink-0"
-                  triggerClassName="flex-1 flex items-center justify-between rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-left text-sm text-gray-600 cursor-text"
-                  triggerIconsClassName="flex items-center gap-2 ml-3 text-gray-400"
-                  expandedClassName="bg-gray-50 border border-gray-200 rounded-2xl px-3 py-2"
-                  textareaClassName="border-0 resize-none focus:ring-0 focus:outline-none min-h-[48px] text-sm bg-transparent"
-                  actionsClassName="flex items-center justify-between mt-2"
-                  quickActionsClassName="flex items-center gap-2 text-gray-500"
-                  iconButtonClassName="p-2 hover:text-gray-700 transition-colors rounded-full hover:bg-gray-100"
-                  cancelButtonClassName="h-8 px-3 text-xs"
-                  submitButtonClassName="h-8 px-4 text-xs"
-                  onSubmitted={() => {
-                    if (onPostUpdated) {
-                      const updatedPost = { ...post, comment_count: (post.comment_count || 0) + 1 }
-                      onPostUpdated(updatedPost)
-                    }
-                    fetchComments()
-                  }}
-                />
-              </div>
+              {canCommentModal && (
+                <div className="bg-white px-6 py-3 border-t border-gray-200 shrink-0">
+                  <EntityCommentComposer
+                    entityId={post.id}
+                    entityType={post.entity_type || 'activity'}
+                    currentUserId={user?.id}
+                    currentUserName={currentUserDisplayName}
+                    currentUserAvatar={currentUserAvatar}
+                    containerClassName=""
+                    rowClassName="flex items-center gap-3"
+                    avatarClassName="w-8 h-8 flex-shrink-0"
+                    triggerClassName="flex-1 flex items-center justify-between rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-left text-sm text-gray-600 cursor-text"
+                    triggerIconsClassName="flex items-center gap-2 ml-3 text-gray-400"
+                    expandedClassName="bg-gray-50 border border-gray-200 rounded-2xl px-3 py-2"
+                    textareaClassName="border-0 resize-none focus:ring-0 focus:outline-none min-h-[48px] text-sm bg-transparent"
+                    actionsClassName="flex items-center justify-between mt-2"
+                    quickActionsClassName="flex items-center gap-2 text-gray-500"
+                    iconButtonClassName="p-2 hover:text-gray-700 transition-colors rounded-full hover:bg-gray-100"
+                    cancelButtonClassName="h-8 px-3 text-xs"
+                    submitButtonClassName="h-8 px-4 text-xs"
+                    onSubmitted={() => {
+                      if (onPostUpdated) {
+                        const updatedPost = { ...post, comment_count: (post.comment_count || 0) + 1 }
+                        onPostUpdated(updatedPost)
+                      }
+                      fetchComments()
+                    }}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>

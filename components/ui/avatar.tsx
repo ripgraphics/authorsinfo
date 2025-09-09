@@ -9,12 +9,17 @@ interface AvatarProps {
   src?: string
   alt?: string
   name?: string
-  size?: "sm" | "md" | "lg" | "xl"
+  size?: "xs" | "sm" | "md" | "lg" | "xl"
   linkToProfile?: boolean
   className?: string
 }
 
 const sizeMap = {
+  xs: {
+    container: "w-8 h-8",
+    icon: "h-4 w-4",
+    img: 32,
+  },
   sm: {
     container: "w-10 h-10",
     icon: "h-5 w-5",
@@ -46,16 +51,17 @@ export function Avatar({
   linkToProfile = false,
   className = "",
 }: AvatarProps) {
+  const conf = (sizeMap as any)[size] || sizeMap.sm
   const avatarContent = (
     <div
-      className={`avatar-container relative ${sizeMap[size].container} overflow-hidden rounded-full border-2 border-white shadow-md ${className}`}
+      className={`avatar-container relative ${conf.container} overflow-hidden rounded-full border-2 border-white shadow-md ${className}`}
     >
       {src ? (
         <Image
           src={src}
           alt={alt || name || "Avatar"}
-          width={sizeMap[size].img}
-          height={sizeMap[size].img}
+          width={conf.img}
+          height={conf.img}
           className="object-cover rounded-full"
           style={{ aspectRatio: '1 / 1' }}
         />
@@ -64,7 +70,7 @@ export function Avatar({
           {name ? (
             <span className="text-lg font-semibold text-muted-foreground">{name.charAt(0)}</span>
           ) : (
-            <User className={`${sizeMap[size].icon} text-muted-foreground`} />
+            <User className={`${conf.icon} text-muted-foreground`} />
           )}
         </div>
       )}

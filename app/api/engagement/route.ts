@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Get comments count and recent comments
+    // Get comments count and recent comments (top-level)
     const { data: commentsData, error: commentsError } = await supabase
       .from('engagement_comments')
       .select(`
@@ -101,7 +101,11 @@ export async function GET(request: NextRequest) {
 
     // Get user data for comments separately to avoid foreign key issues
     let commentsWithUsers: any[] = []
+    let currentUserId: string | null = null
     if (commentsData && commentsData.length > 0) {
+      const { data: auth } = await supabase.auth.getUser()
+      currentUserId = auth?.user?.id || null
+
       const userIds = [...new Set(commentsData.map(c => c.user_id))]
       const { data: usersData, error: usersError } = await supabase
         .from('users')
@@ -116,9 +120,131 @@ export async function GET(request: NextRequest) {
         const user = usersData?.find(u => u.id === comment.user_id)
         return {
           ...comment,
-          user: user || { id: comment.user_id, name: 'Unknown User', email: null }
+          user: user || { id: comment.user_id, name: 'Unknown User', email: null },
+          replies: [] as any[]
         }
       })
+
+      // Load replies for the fetched parent comments (level 1)
+      const parentIds = commentsWithUsers.map(c => c.id)
+      const { data: repliesData } = await supabase
+        .from('engagement_comments')
+        .select('id, user_id, comment_text, parent_comment_id, created_at, updated_at')
+        .eq('entity_type', entityType)
+        .eq('entity_id', entityId)
+        .in('parent_comment_id', parentIds)
+        .order('created_at', { ascending: true })
+
+      let repliesWithUsers: any[] = []
+      if (repliesData && repliesData.length > 0) {
+        const replyUserIds = [...new Set(repliesData.map((r: any) => r.user_id))]
+        const { data: replyUsers } = await supabase
+          .from('users')
+          .select('id, name, email')
+          .in('id', replyUserIds)
+
+        repliesWithUsers = repliesData.map((r: any) => {
+          const ru = replyUsers?.find(u => u.id === r.user_id)
+          return { ...r, user: ru || { id: r.user_id, name: 'Unknown User', email: null } }
+        })
+      }
+
+      // Load second-level replies (replies to replies)
+      let repliesLevel2: any[] = []
+      if (repliesWithUsers.length > 0) {
+        const level1Ids = repliesWithUsers.map(r => r.id)
+        const { data: r2 } = await supabase
+          .from('engagement_comments')
+          .select('id, user_id, comment_text, parent_comment_id, created_at, updated_at')
+          .eq('entity_type', entityType)
+          .eq('entity_id', entityId)
+          .in('parent_comment_id', level1Ids)
+          .order('created_at', { ascending: true })
+        if (r2 && r2.length > 0) {
+          const level2UserIds = [...new Set(r2.map((r: any) => r.user_id))]
+          const { data: r2Users } = await supabase
+            .from('users')
+            .select('id, name, email')
+            .in('id', level2UserIds)
+          repliesLevel2 = r2.map((r: any) => {
+            const ru = r2Users?.find(u => u.id === r.user_id)
+            return { ...r, user: ru || { id: r.user_id, name: 'Unknown User', email: null } }
+          })
+        }
+      }
+
+      const repliesByParent = new Map<string, any[]>()
+      for (const r of repliesWithUsers) {
+        const list = repliesByParent.get(r.parent_comment_id) || []
+        list.push(r)
+        repliesByParent.set(r.parent_comment_id, list)
+      }
+      // attach level2 into level1
+      for (const r of repliesLevel2) {
+        const list = repliesByParent.get(r.parent_comment_id) || []
+        list.push(r)
+        repliesByParent.set(r.parent_comment_id, list)
+      }
+      commentsWithUsers = commentsWithUsers.map(c => ({
+        ...c,
+        replies: (repliesByParent.get(c.id) || []).map((r1: any) => ({
+          ...r1,
+          replies: repliesByParent.get(r1.id) || []
+        }))
+      }))
+
+      // Filter out comments from blocked users or per-user hidden-author rule
+      if (currentUserId) {
+        const { data: blocks } = await supabase
+          .from('blocks')
+          .select('blocked_user_id')
+          .eq('user_id', currentUserId)
+
+        const blockedSet = new Set((blocks || []).map((b: any) => b.blocked_user_id))
+        if (blockedSet.size > 0) {
+          commentsWithUsers = commentsWithUsers.filter(c => !blockedSet.has(c.user_id))
+        }
+
+        // Hide comments the user has chosen to hide (logged in activity_log)
+        const { data: hides } = await supabase
+          .from('activity_log')
+          .select('target_id, action, target_type')
+          .eq('user_id', currentUserId)
+          .eq('action', 'hide_comment')
+          .in('target_id', commentsWithUsers.map(c => c.id))
+
+        const hiddenSet = new Set((hides || []).map((h: any) => h.target_id))
+        if (hiddenSet.size > 0) {
+          commentsWithUsers = commentsWithUsers
+            .filter(c => !hiddenSet.has(c.id))
+            .map(c => ({
+              ...c,
+              replies: (c.replies || [])
+                .filter((r: any) => !hiddenSet.has(r.id))
+                .map((r: any) => ({ ...r, replies: (r.replies || []).filter((rr: any) => !hiddenSet.has(rr.id)) }))
+            }))
+        }
+
+        // Hide all comments authored by a specific user (per viewer)
+        const { data: hiddenAuthors } = await supabase
+          .from('activity_log')
+          .select('target_id')
+          .eq('user_id', currentUserId)
+          .eq('action', 'hide_user_comments')
+          .eq('target_type', 'user')
+
+        const hiddenAuthorSet = new Set((hiddenAuthors || []).map((h: any) => h.target_id))
+        if (hiddenAuthorSet.size > 0) {
+          commentsWithUsers = commentsWithUsers
+            .filter(c => !hiddenAuthorSet.has(c.user_id))
+            .map(c => ({
+              ...c,
+              replies: (c.replies || [])
+                .filter((r: any) => !hiddenAuthorSet.has(r.user_id))
+                .map((r: any) => ({ ...r, replies: (r.replies || []).filter((rr: any) => !hiddenAuthorSet.has(rr.user_id)) }))
+            }))
+        }
+      }
     }
 
     // Transform the data to match the expected format

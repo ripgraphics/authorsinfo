@@ -16,6 +16,8 @@ interface EntityCommentComposerProps {
   currentUserAvatar?: string | null
   focusControl?: number
   onSubmitted?: () => void
+  parentCommentId?: string
+  placeholder?: string
   // Optional className hooks to match host layouts
   rootClassName?: string
   containerClassName?: string
@@ -42,6 +44,8 @@ export default function EntityCommentComposer({
   currentUserAvatar,
   focusControl,
   onSubmitted,
+  parentCommentId,
+  placeholder,
   rootClassName,
   containerClassName,
   rowClassName,
@@ -112,6 +116,7 @@ export default function EntityCommentComposer({
           entity_type: entityType || 'activity',
           engagement_type: 'comment',
           content,
+          parent_id: parentCommentId || undefined,
         }),
       })
       if (!resp.ok) {
@@ -125,7 +130,7 @@ export default function EntityCommentComposer({
       }
       setText('')
       setIsActive(false)
-      toast({ title: 'Comment posted', description: 'Your comment has been added' })
+      toast({ title: 'Comment posted', description: parentCommentId ? 'Your reply has been added' : 'Your comment has been added' })
       onSubmitted?.()
     } catch (e) {
       toast({ title: 'Error', description: 'Failed to post comment. Please try again.', variant: 'destructive' })

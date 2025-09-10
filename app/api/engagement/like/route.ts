@@ -23,109 +23,20 @@ export async function POST(request: NextRequest) {
 
     console.log('🔍 POST /api/engagement/like - Request:', { entity_type, entity_id, user_id: user.id })
 
-    // Check if user already liked this entity
-    const { data: existingLike, error: checkError } = await supabase
-      .from('engagement_likes')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('entity_type', entity_type)
-      .eq('entity_id', entity_id)
-      .single()
+    // Use the toggle_entity_like() function as documented in COMMENT_SYSTEM_FIXED.md
+    const { data: liked, error: toggleError } = await supabase
+      .rpc('toggle_entity_like', {
+        p_user_id: user.id,
+        p_entity_type: entity_type,
+        p_entity_id: entity_id
+      })
 
-    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
-      console.error('Error checking existing like:', checkError)
+    if (toggleError) {
+      console.error('❌ Error calling toggle_entity_like:', toggleError)
       return NextResponse.json({ 
-        error: 'Failed to check existing like',
-        details: checkError.message
+        error: 'Failed to toggle like',
+        details: toggleError.message
       }, { status: 500 })
-    }
-
-    let liked = false
-    if (existingLike) {
-      // Unlike: remove the like
-      const { error: deleteError } = await supabase
-        .from('engagement_likes')
-        .delete()
-        .eq('id', existingLike.id)
-
-      if (deleteError) {
-        console.error('Error removing like:', deleteError)
-        return NextResponse.json({ 
-          error: 'Failed to remove like',
-          details: deleteError.message
-        }, { status: 500 })
-      }
-
-      // Update activities table count - first get current count, then decrement
-      const { data: currentActivity, error: fetchError } = await supabase
-        .from('activities')
-        .select('like_count')
-        .eq('id', entity_id)
-        .single()
-
-      if (fetchError) {
-        console.error('Error fetching current like count:', fetchError)
-      } else {
-        const currentCount = currentActivity?.like_count || 0
-        const newCount = Math.max(currentCount - 1, 0)
-
-        const { error: updateError } = await supabase
-          .from('activities')
-          .update({ like_count: newCount })
-          .eq('id', entity_id)
-
-        if (updateError) {
-          console.error('Error updating like count:', updateError)
-        } else {
-          console.log('✅ Like count updated from', currentCount, 'to', newCount)
-        }
-      }
-
-      liked = false
-    } else {
-      // Like: add the like
-      const { error: insertError } = await supabase
-        .from('engagement_likes')
-        .insert({
-          user_id: user.id,
-          entity_type: entity_type,
-          entity_id: entity_id
-        })
-
-      if (insertError) {
-        console.error('Error adding like:', insertError)
-        return NextResponse.json({ 
-          error: 'Failed to add like',
-          details: insertError.message
-        }, { status: 500 })
-      }
-
-      // Update activities table count - first get current count, then increment
-      const { data: currentActivity, error: fetchError } = await supabase
-        .from('activities')
-        .select('like_count')
-        .eq('id', entity_id)
-        .single()
-
-      if (fetchError) {
-        console.error('Error fetching current like count:', fetchError)
-      } else {
-        const currentCount = currentActivity?.like_count || 0
-        const newCount = currentCount + 1
-
-        const { error: updateError } = await supabase
-          .from('activities')
-          .update({ like_count: newCount })
-          .eq('id', entity_id)
-
-        if (updateError) {
-          console.error('Error updating like count:', updateError)
-        } else {
-          console.log('✅ Like count updated from', currentCount, 'to', newCount)
-        }
-      }
-
-      liked = true
     }
 
     const response = {
@@ -134,7 +45,7 @@ export async function POST(request: NextRequest) {
       liked: liked
     }
 
-    console.log('✅ Like handled successfully:', response)
+    console.log('✅ Like toggled successfully:', response)
     return NextResponse.json(response)
 
   } catch (error) {

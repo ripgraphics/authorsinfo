@@ -85,33 +85,34 @@ export async function GET(request: NextRequest) {
     }
 
     // Build query to find albums based on entity and purpose
-    let query = supabase
-      .from('photo_albums')
-      .select(`
-        id,
-        name,
-        description,
-        is_public,
-        cover_image_id,
-        created_at,
-        updated_at,
-        metadata
-      `)
-      .eq('entity_id', entityId)
-      .eq('entity_type', entityType)
+    try {
+      let query = supabase
+        .from('photo_albums')
+        .select(`
+          id,
+          name,
+          description,
+          is_public,
+          cover_image_id,
+          created_at,
+          updated_at,
+          metadata
+        `)
+        .eq('entity_id', entityId)
+        .eq('entity_type', entityType)
 
-    // If albumPurpose is specified, filter by metadata
-    if (albumPurpose) {
-      query = query.contains('metadata', { album_purpose: albumPurpose })
-    }
+      // If albumPurpose is specified, filter by metadata
+      if (albumPurpose) {
+        query = query.contains('metadata', { album_purpose: albumPurpose })
+      }
 
-    // Debug: Let's also check what albums exist without any filters
-    
-    const { data: allAlbumsForEntity, error: allAlbumsError } = await supabase
-      .from('photo_albums')
-      .select('id, name, entity_id, entity_type, metadata')
-      .eq('entity_id', entityId)
-      .eq('entity_type', entityType)
+      // Debug: Let's also check what albums exist without any filters
+      
+      const { data: allAlbumsForEntity, error: allAlbumsError } = await supabase
+        .from('photo_albums')
+        .select('id, name, entity_id, entity_type, metadata')
+        .eq('entity_id', entityId)
+        .eq('entity_type', entityType)
     
     if (allAlbumsError) {
       console.error('Error fetching albums:', allAlbumsError)
@@ -307,6 +308,14 @@ export async function GET(request: NextRequest) {
       success: true,
       albums: albumsWithImages
     })
+
+    } catch (photoAlbumsError) {
+      console.log('Photo albums table not available, returning empty result:', photoAlbumsError)
+      return NextResponse.json({
+        success: true,
+        albums: []
+      })
+    }
 
   } catch (error) {
     console.error('Error in GET /api/entity-images:', error)

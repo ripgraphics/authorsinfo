@@ -59,6 +59,7 @@ import { EntityHoverCard } from '@/components/entity-hover-cards'
 import EntityName from '@/components/entity-name'
 import EntityAvatar from '@/components/entity-avatar'
 import { EnterpriseEngagementActions } from '@/components/enterprise/enterprise-engagement-actions'
+import { ReactionType } from '@/contexts/engagement-context'
 import { NestedCommentThread } from '@/components/enterprise/nested-comment-thread'
 import { SophisticatedPhotoGrid } from '@/components/photo-gallery/sophisticated-photo-grid'
 import { EnterprisePhotoViewer } from '@/components/photo-gallery/enterprise-photo-viewer'
@@ -451,41 +452,27 @@ export default function EntityFeedCard({
 
   // Helper functions to extract content from current data structure
   const getPostText = (post: any): string => {
-    // Debug: Log the actual post structure directly
-    console.log('=== POST DATA DEBUG ===')
-    console.log('Post ID:', post.id)
-    console.log('Post.text (direct column):', post.text)
-    console.log('Post.data (JSONB field):', post.data)
-    console.log('Post.content_type:', post.content_type)
-    console.log('Post.activity_type:', post.activity_type)
-    console.log('========================')
     
     // PRIORITY 1: Check for direct columns first (from updated database function)
     if (post.text && post.text.trim() !== '') {
-      console.log('getPostText - Found text in post.text:', post.text)
       return post.text
     }
     
     // PRIORITY 2: Check for content in the data JSONB field (old structure)
     if (post.data) {
       if (post.data.text && post.data.text.trim() !== '') {
-        console.log('getPostText - Found text in post.data.text:', post.data.text)
         return post.data.text
       }
       if (post.data.content && post.data.content.trim() !== '') {
-        console.log('getPostText - Found text in post.data.content:', post.data.content)
         return post.data.content
       }
       if (post.data.body && post.data.body.trim() !== '') {
-        console.log('getPostText - Found text in post.data.body:', post.data.body)
         return post.data.body
       }
       if (post.data.message && post.data.message.trim() !== '') {
-        console.log('getPostText - Found text in post.data.message:', post.data.message)
         return post.data.message
       }
       if (post.data.description && post.data.description.trim() !== '') {
-        console.log('getPostText - Found text in post.data.description:', post.data.description)
         return post.data.description
       }
     }
@@ -493,18 +480,15 @@ export default function EntityFeedCard({
     // PRIORITY 3: Check for content in metadata field (if it exists)
     if (post.metadata) {
       if (post.metadata.text && post.metadata.text.trim() !== '') {
-        console.log('getPostText - Found text in post.metadata.text:', post.metadata.text)
         return post.metadata.text
       }
       if (post.metadata.content && post.metadata.content.trim() !== '') {
-        console.log('getPostText - Found text in post.metadata.content:', post.metadata.content)
         return post.metadata.content
       }
     }
     
     // PRIORITY 4: Check for content_summary field
     if (post.content_summary && post.content_summary.trim() !== '') {
-      console.log('getPostText - Found text in post.content_summary:', post.content_summary)
       return post.content_summary
     }
     
@@ -696,24 +680,17 @@ export default function EntityFeedCard({
 
   // Handle inline editing
   const handleEditToggle = () => {
-    console.log('Edit button clicked!')
-    console.log('Current isEditing state:', isEditing)
-    console.log('Current post content:', getPostText(post))
-    
     if (isEditing) {
       // Cancel editing - reset content and images
-      console.log('Canceling edit, resetting content')
       setEditContent(getPostText(post))
       setEditImages(getPostImages(post))
     } else {
       // Start editing - set content and images to current post values
-      console.log('Starting edit, setting content to:', getPostText(post))
       setEditContent(getPostText(post))
       setEditImages(getPostImages(post))
     }
     setIsEditing(!isEditing)
     setShowActionsMenu(false)
-    console.log('New isEditing state will be:', !isEditing)
   }
 
   // Handle image upload
@@ -1802,7 +1779,7 @@ export default function EntityFeedCard({
               isShared={post.user_has_shared}
               isBookmarked={post.user_has_bookmarked}
               isViewed={post.user_has_viewed}
-              currentReaction={post.user_reaction_type || null}
+              currentReaction={post.user_reaction_type as ReactionType | null || null}
               onEngagement={async (action: 'reaction' | 'comment' | 'share' | 'bookmark' | 'view', entityId: string, entityType: string, reactionType?: any) => {
                 // Handle engagement
                 console.log('Engagement action:', action, entityId, entityType, reactionType)
@@ -1873,10 +1850,12 @@ export default function EntityFeedCard({
                           </button>
                         )}
             </div>
-                      <div className="flex items-center gap-4 mt-1 ml-2 text-xs text-gray-500">
-                        <span>{formatTimeAgo(first.created_at)}</span>
-                        <button className="hover:underline">Like</button>
-                        <button className="hover:underline">Reply</button>
+                      <div className="flex items-center justify-between mt-1 ml-2">
+                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                          <span>{formatTimeAgo(first.created_at)}</span>
+                          <button className="hover:underline">Like</button>
+                          <button className="hover:underline">Reply</button>
+                        </div>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <button className="p-1 rounded-full hover:bg-gray-100" aria-label="Comment actions">
@@ -1999,16 +1978,16 @@ export default function EntityFeedCard({
                         <div className="bg-gray-50 rounded-2xl px-3 py-2 inline-block max-w-full">
                           <div className="flex items-center gap-2 mb-0.5">
                             <EntityName type="user" id={firstReply.user?.id} name={firstReply.user?.name || 'User'} className="text-xs font-semibold text-gray-900" />
-                          </div>
+                    </div>
                           <div className="text-xs text-gray-800 leading-relaxed">
                             {firstReply.comment_text}
-                          </div>
-                        </div>
+                  </div>
+                </div>
                         <div className="flex items-center gap-3 mt-1 ml-2 text-[11px] text-gray-500">
                           <span>{formatTimeAgo(firstReply.created_at)}</span>
                           <button className="hover:underline">Like</button>
                           <button className="hover:underline" onClick={() => setExpandedReplies(prev => ({ ...prev, [first.id]: true }))}>Reply</button>
-                        </div>
+              </div>
                         {expandedReplies[first.id] && (
                           <div className="mt-2">
                             <EntityCommentComposer
@@ -2025,9 +2004,9 @@ export default function EntityFeedCard({
                             />
                           </div>
                         )}
-                      </div>
-                    </div>
-                  )}
+            </div>
+          </div>
+        )}
                 </div>
               )
             })()}
@@ -2278,7 +2257,8 @@ export default function EntityFeedCard({
                       </div>
                       
                             {/* Comment Actions */}
-                            <div className="flex items-center gap-4 mt-2 ml-2">
+                            <div className="flex items-center justify-between mt-2 ml-2">
+                              <div className="flex items-center gap-4">
                               <button className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline">
                                 Like
                               </button>
@@ -2296,6 +2276,21 @@ export default function EntityFeedCard({
                                   {expandedReplies[comment.id] ? 'Hide replies' : 'Show replies'}
                                 </button>
                               )}
+                              </div>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <button className="p-1 rounded-full hover:bg-gray-100" aria-label="Comment actions">
+                                    <MoreHorizontal className="h-4 w-4 text-gray-500" />
+                                  </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={async () => { try { await fetch('/api/comments/hide', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment_id: comment.id }) }); fetchComments() } catch(e){ console.error(e) } }}>Hide comment</DropdownMenuItem>
+                                  <DropdownMenuItem onClick={async () => { try { await fetch('/api/users/block', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: comment.user?.id }) }); fetchComments() } catch(e){ console.error(e) } }}>Block {comment.user?.name || 'user'}</DropdownMenuItem>
+                                  <DropdownMenuItem onClick={async () => { try { await fetch('/api/users/block', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: comment.user?.id }) }); fetchComments() } catch(e){ console.error(e) } }}>Unblock {comment.user?.name || 'user'}</DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem onClick={async () => { try { await fetch('/api/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target_type: 'comment', target_id: comment.id }) }) } catch(e){ console.error(e) } }}>Report comment</DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </div>
                             
                             {/* Nested Replies */}
@@ -2321,31 +2316,84 @@ export default function EntityFeedCard({
                                           {reply.comment_text}
                                         </div>
                                       </div>
-                                      <div className="flex items-center gap-3 mt-1 ml-2">
-                                        <button className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline">
-                                          Like
-                                        </button>
-                                        <button className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline">
-                                          Reply
-                                        </button>
+                                      <div className="flex items-center justify-between mt-1 ml-2">
+                                        <div className="flex items-center gap-3">
+                                          <button className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline">
+                                            Like
+                                          </button>
+                                          <button className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline">
+                                            Reply
+                                          </button>
+                                        </div>
+                                        <DropdownMenu>
+                                          <DropdownMenuTrigger asChild>
+                                            <button className="p-1 rounded-full hover:bg-gray-100" aria-label="Reply actions">
+                                              <MoreHorizontal className="h-3 w-3 text-gray-500" />
+                                            </button>
+                                          </DropdownMenuTrigger>
+                                          <DropdownMenuContent align="end">
+                                            <DropdownMenuItem onClick={async () => { try { await fetch('/api/comments/hide', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment_id: reply.id }) }); fetchComments() } catch(e){ console.error(e) } }}>Hide reply</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={async () => { try { await fetch('/api/users/block', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: reply.user?.id }) }); fetchComments() } catch(e){ console.error(e) } }}>Block {reply.user?.name || 'user'}</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={async () => { try { await fetch('/api/users/block', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: reply.user?.id }) }); fetchComments() } catch(e){ console.error(e) } }}>Unblock {reply.user?.name || 'user'}</DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem onClick={async () => { try { await fetch('/api/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target_type: 'comment', target_id: reply.id }) }) } catch(e){ console.error(e) } }}>Report reply</DropdownMenuItem>
+                                          </DropdownMenuContent>
+                                        </DropdownMenu>
                                       </div>
+                                      
+                                      {/* Nested Replies (replies to replies) */}
+                                      {reply.replies && reply.replies.length > 0 && (
+                                        <div className="ml-6 mt-2 space-y-2">
+                                          {reply.replies.map((nestedReply: any) => (
+                                            <div key={nestedReply.id} className="flex items-start gap-2">
+                                              <EntityAvatar type="user" id={nestedReply.user?.id} name={nestedReply.user?.name || 'User'} src={nestedReply.user?.avatar_url} size="xs" />
+                                              <div className="flex-1 min-w-0">
+                                                <div className="bg-gray-50 rounded-2xl px-3 py-2 inline-block max-w-full">
+                                                  <div className="flex items-center gap-2 mb-1">
+                                                    <EntityName type="user" id={nestedReply.user?.id} name={nestedReply.user?.name || 'Unknown User'} className="text-xs font-semibold text-gray-900" />
+                                                    <span className="text-xs text-gray-400">
+                                                      {new Date(nestedReply.created_at).toLocaleDateString('en-US', {
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                        hour: 'numeric',
+                                                        minute: 'numeric'
+                                                      })}
+                                                    </span>
+                                                  </div>
+                                                  <div className="text-xs text-gray-800 leading-relaxed">
+                                                    {nestedReply.comment_text}
+                                                  </div>
+                                                </div>
+                                                <div className="flex items-center justify-between mt-1 ml-2">
+                                                  <div className="flex items-center gap-3">
+                                                    <button className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline">
+                                                      Like
+                                                    </button>
+                                                    <button className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline">
+                                                      Reply
+                                                    </button>
+                                                  </div>
+                                                  <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                      <button className="p-1 rounded-full hover:bg-gray-100" aria-label="Nested reply actions">
+                                                        <MoreHorizontal className="h-3 w-3 text-gray-500" />
+                                                      </button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                      <DropdownMenuItem onClick={async () => { try { await fetch('/api/comments/hide', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment_id: nestedReply.id }) }); fetchComments() } catch(e){ console.error(e) } }}>Hide reply</DropdownMenuItem>
+                                                      <DropdownMenuItem onClick={async () => { try { await fetch('/api/users/block', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: nestedReply.user?.id }) }); fetchComments() } catch(e){ console.error(e) } }}>Block {nestedReply.user?.name || 'user'}</DropdownMenuItem>
+                                                      <DropdownMenuItem onClick={async () => { try { await fetch('/api/users/block', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: nestedReply.user?.id }) }); fetchComments() } catch(e){ console.error(e) } }}>Unblock {nestedReply.user?.name || 'user'}</DropdownMenuItem>
+                                                      <DropdownMenuSeparator />
+                                                      <DropdownMenuItem onClick={async () => { try { await fetch('/api/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target_type: 'comment', target_id: nestedReply.id }) }) } catch(e){ console.error(e) } }}>Report reply</DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                  </DropdownMenu>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
                                     </div>
-                                  </div>
-                                  <div className="ml-2 self-start">
-                                    <DropdownMenu>
-                                      <DropdownMenuTrigger asChild>
-                                        <button className="p-1 rounded-full hover:bg-gray-100" aria-label="Comment actions">
-                                          <MoreHorizontal className="h-4 w-4 text-gray-500" />
-                                        </button>
-                                      </DropdownMenuTrigger>
-                                      <DropdownMenuContent align="end">
-                                        <DropdownMenuItem onClick={async () => { try { await fetch('/api/comments/hide', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment_id: comment.id }) }); fetchComments() } catch(e){ console.error(e) } }}>Hide comment</DropdownMenuItem>
-                                        <DropdownMenuItem onClick={async () => { try { await fetch('/api/users/block', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: comment.user?.id }) }); fetchComments() } catch(e){ console.error(e) } }}>Block {comment.user?.name || 'user'}</DropdownMenuItem>
-                                        <DropdownMenuItem onClick={async () => { try { await fetch('/api/users/block', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: comment.user?.id }) }); fetchComments() } catch(e){ console.error(e) } }}>Unblock {comment.user?.name || 'user'}</DropdownMenuItem>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuItem onClick={async () => { try { await fetch('/api/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target_type: 'comment', target_id: comment.id }) }) } catch(e){ console.error(e) } }}>Report comment</DropdownMenuItem>
-                                      </DropdownMenuContent>
-                                    </DropdownMenu>
                                   </div>
                                 ))}
                               </div>

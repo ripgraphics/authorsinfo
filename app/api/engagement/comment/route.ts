@@ -36,23 +36,18 @@ export async function POST(request: Request) {
       parent_comment_id: parent_comment_id || parent_id || null
     })
 
-    // Insert the comment
-    const { data: comment, error: insertError } = await supabaseAdmin
-      .from('engagement_comments')
-      .insert({
-        user_id: user.id,
-        entity_type,
-        entity_id,
-        comment_text: comment_text.trim(),
-        parent_comment_id: parent_comment_id || parent_id || null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+    // Use the add_entity_comment() function as documented in COMMENT_SYSTEM_FIXED.md
+    const { data: commentId, error: insertError } = await supabaseAdmin
+      .rpc('add_entity_comment', {
+        p_user_id: user.id,
+        p_entity_type: entity_type,
+        p_entity_id: entity_id,
+        p_comment_text: comment_text.trim(),
+        p_parent_comment_id: parent_comment_id || parent_id || null
       })
-      .select('id, comment_text, created_at')
-      .single()
 
     if (insertError) {
-      console.error('❌ Error inserting comment:', insertError)
+      console.error('❌ Error calling add_entity_comment:', insertError)
       return NextResponse.json(
         { error: 'Failed to add comment' },
         { status: 500 }
@@ -91,16 +86,14 @@ export async function POST(request: Request) {
     }
 
     console.log('✅ Comment added successfully:', {
-      comment_id: comment.id,
+      comment_id: commentId,
       entity_type,
       entity_id
     })
 
     return NextResponse.json({
       success: true,
-      comment_id: comment.id,
-      comment_text: comment.comment_text,
-      created_at: comment.created_at,
+      comment_id: commentId,
       message: 'Comment added successfully'
     })
 

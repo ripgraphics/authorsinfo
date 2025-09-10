@@ -71,22 +71,23 @@ export async function POST(request: Request) {
     let action: 'added' | 'updated' = 'added'
 
     if (userId) {
-      // For authenticated users, check existing view without time window to align with unique constraint
-      const { data: existingView, error: checkError } = await supabaseAdmin
-        .from('engagement_views')
-        .select('id, view_count')
-        .eq('user_id', userId)
-        .eq('entity_type', entity_type)
-        .eq('entity_id', entity_id)
-        .maybeSingle()
+      try {
+        // For authenticated users, check existing view without time window to align with unique constraint
+        const { data: existingView, error: checkError } = await supabaseAdmin
+          .from('engagement_views')
+          .select('id, view_count')
+          .eq('user_id', userId)
+          .eq('entity_type', entity_type)
+          .eq('entity_id', entity_id)
+          .maybeSingle()
 
-      if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
-        console.error('❌ Error checking existing view:', checkError)
-        return NextResponse.json(
-          { error: 'Failed to check existing view' },
-          { status: 500 }
-        )
-      }
+        if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
+          console.error('❌ Error checking existing view:', checkError)
+          return NextResponse.json(
+            { error: 'Failed to check existing view' },
+            { status: 500 }
+          )
+        }
 
       if (existingView) {
         // Update existing view count
@@ -178,6 +179,17 @@ export async function POST(request: Request) {
           action = 'added'
           view_id = newView.id
         }
+      }
+      } catch (viewError) {
+        console.log('View tracking not available, skipping:', viewError)
+        // If view tracking fails, just return success without recording
+        return NextResponse.json({
+          success: true,
+          action: 'skipped',
+          message: 'View tracking not available',
+          entity_type,
+          entity_id
+        })
       }
     } else {
       // For anonymous users, just track the view without storing user-specific data

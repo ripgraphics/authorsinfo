@@ -1,12 +1,5 @@
-import Link from 'next/link';
-import { getPublicEvents } from '@/lib/events';
 import { createClient } from '@/lib/supabase-server';
-import { CalendarDaysIcon, CheckCircleIcon, XCircleIcon, EyeIcon } from '@heroicons/react/24/outline';
-import { Button } from '@/components/ui/button';
-import { UserHoverCard } from '@/components/entity-hover-cards';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Textarea } from '@/components/ui/textarea'
-import { useState, useRef } from 'react';
+import AdminEventsBulkUI from './client'
 export default async function AdminEventsPage({ searchParams }: { searchParams?: Promise<{ status?: string, search?: string, creator?: string, page?: string }> }) {
   const params = await (searchParams || Promise.resolve({}))
   // Pagination
@@ -51,10 +44,6 @@ export default async function AdminEventsPage({ searchParams }: { searchParams?:
   // Bulk actions and selection state will be handled in a client component
   return <AdminEventsBulkUI events={events || []} creators={creators} status={status} search={search} creator={creator} page={page} limit={limit} totalCount={totalCount || 0} userMap={userMap} />;
 }
-
-'use client'
-
-function AdminEventsBulkUI({ events, creators, status, search, creator, page, limit, totalCount, userMap }: any) {
   const [selected, setSelected] = useState<string[]>([]);
   const [bulkAction, setBulkAction] = useState<string>('');
   const [showDialog, setShowDialog] = useState(false);

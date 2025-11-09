@@ -5,11 +5,10 @@ import { supabaseAdmin } from '@/lib/supabase';
 
 export async function GET(
   request: Request,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { params } = context;
-    const resolvedParams = await params;
+    const resolvedParams = await context.params;
     const id = resolvedParams.id;
     if (!id) {
       return NextResponse.json({ error: 'Author ID is required' }, { status: 400 });
@@ -43,11 +42,10 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { params } = context;
-    const resolvedParams = await params;
+    const resolvedParams = await context.params;
     const id = resolvedParams.id;
     if (!id) {
       return NextResponse.json({ error: 'Author ID is required' }, { status: 400 });

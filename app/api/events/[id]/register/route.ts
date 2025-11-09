@@ -5,10 +5,10 @@ import { createClient } from '@/lib/supabase-server';
 // POST /api/events/[id]/register - Register for an event
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const eventId = params.id;
+    const { id: eventId } = await params;
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     
@@ -49,10 +49,10 @@ export async function POST(
 // GET /api/events/[id]/register - Check registration status
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const eventId = params.id;
+    const { id: eventId } = await params;
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     

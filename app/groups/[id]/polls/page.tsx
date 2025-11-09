@@ -1,3 +1,5 @@
+"use client"
+
 import GroupPolls from '@/components/group/GroupPolls';
 import { useParams } from 'next/navigation';
 

@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { createClient } from "@/lib/supabase-client"
 import { useToast } from "@/components/ui/use-toast"
-import notificationSound from "@/public/notification.mp3"
-import messageSound from "@/public/message.mp3"
-import reactionSound from "@/public/reaction.mp3"
+// Audio files - using public paths instead of imports
+const notificationSound = "/notification.mp3"
+const messageSound = "/message.mp3"
+const reactionSound = "/reaction.mp3"
 
 const EMOJIS = ["👍", "😂", "🔥", "❤️", "😮", "🎉"];
 

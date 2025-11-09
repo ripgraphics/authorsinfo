@@ -5,11 +5,10 @@ import { supabaseAdmin } from '@/lib/supabase';
 
 export async function GET(
   request: Request,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { params } = context;
-    const resolvedParams = await params;
+    const resolvedParams = await context.params;
     const authorId = resolvedParams.id;
     
     if (!authorId) {

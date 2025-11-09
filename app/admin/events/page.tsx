@@ -1,26 +1,24 @@
-'use client';
-
 import Link from 'next/link';
 import { getPublicEvents } from '@/lib/events';
 import { createClient } from '@/lib/supabase-server';
 import { CalendarDaysIcon, CheckCircleIcon, XCircleIcon, EyeIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
-import { useState, useRef } from 'react';
 import { UserHoverCard } from '@/components/entity-hover-cards';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
-
-export default async function AdminEventsPage({ searchParams }: { searchParams?: { status?: string, search?: string, creator?: string, page?: string } }) {
+import { useState, useRef } from 'react';
+export default async function AdminEventsPage({ searchParams }: { searchParams?: Promise<{ status?: string, search?: string, creator?: string, page?: string }> }) {
+  const params = await (searchParams || Promise.resolve({}))
   // Pagination
-  const page = parseInt(searchParams?.page || '1', 10);
+  const page = parseInt(params?.page || '1', 10);
   const limit = 20;
   const offset = (page - 1) * limit;
 
   // Fetch all events, including drafts and pending approval
   const supabase = createClient();
-  const status = searchParams?.status || '';
-  const search = searchParams?.search || '';
-  const creator = searchParams?.creator || '';
+  const status = params?.status || '';
+  const search = params?.search || '';
+  const creator = params?.creator || '';
   let query = supabase
     .from('events')
     .select(`*, category:event_categories(*), created_by, status`, { count: 'exact' })
@@ -53,6 +51,8 @@ export default async function AdminEventsPage({ searchParams }: { searchParams?:
   // Bulk actions and selection state will be handled in a client component
   return <AdminEventsBulkUI events={events || []} creators={creators} status={status} search={search} creator={creator} page={page} limit={limit} totalCount={totalCount || 0} userMap={userMap} />;
 }
+
+'use client'
 
 function AdminEventsBulkUI({ events, creators, status, search, creator, page, limit, totalCount, userMap }: any) {
   const [selected, setSelected] = useState<string[]>([]);

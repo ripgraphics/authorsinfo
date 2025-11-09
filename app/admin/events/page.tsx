@@ -44,11 +44,6 @@ export default async function AdminEventsPage({ searchParams }: { searchParams?:
   // Bulk actions and selection state will be handled in a client component
   return <AdminEventsBulkUI events={events || []} creators={creators} status={status} search={search} creator={creator} page={page} limit={limit} totalCount={totalCount || 0} userMap={userMap} />;
 }
-  const [selected, setSelected] = useState<string[]>([]);
-  const [bulkAction, setBulkAction] = useState<string>('');
-  const [showDialog, setShowDialog] = useState(false);
-  const [note, setNote] = useState('');
-  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const formRef = useRef<HTMLFormElement>(null);
 

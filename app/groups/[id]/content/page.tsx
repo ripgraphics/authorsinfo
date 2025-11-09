@@ -11,7 +11,7 @@ interface GroupContentPageProps {
   params: { id: string }
 }
 
-export default function GroupContentPage({ params }: GroupContentPageProps) {
+export default function GroupContentPageClient({ params }: GroupContentPageProps) {
   const groupId = params.id
   const [content, setContent] = useState<any[]>([])
   const [loading, setLoading] = useState(true)

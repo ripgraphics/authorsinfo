@@ -95,10 +95,10 @@ export async function GET(
 // DELETE /api/events/[id]/register - Cancel registration
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const eventId = params.id;
+    const { id: eventId } = await params;
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     

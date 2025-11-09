@@ -1,6 +1,6 @@
 import { supabaseAdmin } from "@/lib/supabase"
 import { notFound } from "next/navigation"
-import { ClientDiscussionPage } from "./client"
+import { ClientProfilePage as ClientDiscussionPage } from "./client"
 
 export const dynamic = "force-dynamic"
 

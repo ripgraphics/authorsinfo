@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { Database } from '@/types/database'
 
 if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -9,7 +9,7 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
 }
 
 // Create a single supabase client for interacting with your database
-export const supabaseClient = createClient<Database>(
+export const supabaseClient = createSupabaseClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   {
@@ -18,4 +18,9 @@ export const supabaseClient = createClient<Database>(
       persistSession: true
     }
   }
-) 
+)
+
+// Export createClient function for compatibility
+export function createClient() {
+  return supabaseClient
+} 

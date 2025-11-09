@@ -6,10 +6,10 @@ import { DebugStats } from "./debug"
 import { importNewestBooks } from "@/app/actions/bulk-import-books"
 
 interface BookAuthorConnectionsPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string
     pageSize?: string
-  }
+  }>
 }
 
 export default async function BookAuthorConnectionsPage({ searchParams }: BookAuthorConnectionsPageProps) {

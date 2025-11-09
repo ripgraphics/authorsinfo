@@ -30,3 +30,8 @@ export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
     },
   },
 })
+
+// Export createClient function for compatibility
+export function createClient() {
+  return supabaseAdmin
+}

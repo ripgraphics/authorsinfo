@@ -1,19 +1,17 @@
-'use client';
-
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase-server';
 import { CheckCircleIcon, XCircleIcon, EyeIcon, ChartBarIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
-import { useTransition } from 'react';
 import AdminEventStatusActions from './status-actions';
 
-export default async function AdminEventDetailPage({ params }: { params: { id: string } }) {
+export default async function AdminEventDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const supabase = createClient();
   const { data: event, error } = await supabase
     .from('events')
     .select(`*, category:event_categories(*), created_by, status`)
-    .eq('id', params.id)
+    .eq('id', id)
     .single();
 
   if (!event) {

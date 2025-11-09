@@ -112,8 +112,6 @@ export async function PUT(
     if (authError) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
-
-    const { type, id } = params
     
     // Validate entity type
     const validEntityTypes = ['users', 'authors', 'publishers', 'groups', 'events']
@@ -192,8 +190,6 @@ export async function POST(
     if (authError) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
-
-    const { type, id } = params
     
     // Validate entity type
     const validEntityTypes = ['users', 'authors', 'publishers', 'groups', 'events']

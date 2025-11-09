@@ -4,15 +4,16 @@ import { BooksWithMultipleAuthorsClient } from "./client"
 import BooksWithMultipleAuthorsLoading from "./loading"
 
 interface BooksWithMultipleAuthorsPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string
     pageSize?: string
-  }
+  }>
 }
 
 export default async function BooksWithMultipleAuthorsPage({ searchParams }: BooksWithMultipleAuthorsPageProps) {
-  const page = Number(searchParams.page) || 1
-  const pageSize = Number(searchParams.pageSize) || 20
+  const params = await searchParams
+  const page = Number(params.page) || 1
+  const pageSize = Number(params.pageSize) || 20
 
   try {
     const { books, count, error } = await getBooksWithMultipleAuthors(page, pageSize)

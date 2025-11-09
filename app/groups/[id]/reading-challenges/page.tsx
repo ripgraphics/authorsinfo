@@ -1,3 +1,5 @@
+"use client"
+
 import GroupReadingChallenges from '@/components/group/GroupReadingChallenges';
 import { useParams } from 'next/navigation';
 

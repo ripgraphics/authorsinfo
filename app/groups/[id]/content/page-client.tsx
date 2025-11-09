@@ -1,11 +1,10 @@
 "use client"
 
+import React from "react"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { ContentComments } from "./comments"
-import { CollaborativeEditor } from "./CollaborativeEditor"
 
 interface GroupContentPageProps {
   params: { id: string }
@@ -50,6 +49,10 @@ export default function GroupContentPageClient({ params }: GroupContentPageProps
     }
   }
 
+  if (loading) {
+    return <div>Loading...</div>
+  }
+
   return (
     <div className="max-w-3xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-4">Group Content & Collaboration</h2>
@@ -90,48 +93,32 @@ export default function GroupContentPageClient({ params }: GroupContentPageProps
           {success && <div className="text-green-600 text-sm mt-2">{success}</div>}
         </form>
       )}
-      {loading ? (
-        <div>Loading...</div>
-      ) : (
-        <div className="space-y-4">
-          {content.length === 0 ? (
-            <div className="text-gray-500">No content yet.</div>
-          ) : (
-            <table className="w-full border text-sm">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="p-2 text-left">Type</th>
-                  <th className="p-2 text-left">Title</th>
-                  <th className="p-2 text-left">Body</th>
-                  <th className="p-2 text-left">Created</th>
+      <div className="space-y-4">
+        {content.length === 0 ? (
+          <div className="text-gray-500">No content yet.</div>
+        ) : (
+          <table className="w-full border text-sm">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="p-2 text-left">Type</th>
+                <th className="p-2 text-left">Title</th>
+                <th className="p-2 text-left">Body</th>
+                <th className="p-2 text-left">Created</th>
+              </tr>
+            </thead>
+            <tbody>
+              {content.map((item) => (
+                <tr key={item.id} className="border-t">
+                  <td className="p-2">{item.type}</td>
+                  <td className="p-2 font-semibold">{item.title}</td>
+                  <td className="p-2 max-w-xs truncate">{item.body}</td>
+                  <td className="p-2">{item.created_at?.slice(0, 10)}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {content.map((item) => (
-                  <tr key={item.id} className="border-t">
-                    <td className="p-2">{item.type}</td>
-                    <td className="p-2 font-semibold">{item.title}</td>
-                    <td className="p-2 max-w-xs truncate">
-                      {item.type === 'document' ? (
-                        <CollaborativeEditor groupId={groupId} contentId={item.id} initialBody={item.body} user={{ id: 'mock', name: 'Test User' }} />
-                      ) : (
-                        item.body
-                      )}
-                    </td>
-                    <td className="p-2">{item.created_at?.slice(0, 10)}</td>
-                  </tr>
-                  <tr>
-                    <td colSpan={4} className="p-2">
-                      <ContentComments groupId={groupId} contentId={item.id} user={{ id: 'mock', name: 'Test User' }} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      )}
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   )
 }
-

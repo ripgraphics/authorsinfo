@@ -7,7 +7,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { ContentComments } from "./comments"
 import { CollaborativeEditor } from "./CollaborativeEditor"
 
-export default function GroupContentPage({ params }: { params: { id: string } }) {
+interface GroupContentPageProps {
+  params: { id: string }
+}
+
+export default function GroupContentPage({ params }: GroupContentPageProps) {
   const groupId = params.id
   const [content, setContent] = useState<any[]>([])
   const [loading, setLoading] = useState(true)

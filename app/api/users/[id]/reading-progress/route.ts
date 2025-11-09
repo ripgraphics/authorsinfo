@@ -4,9 +4,10 @@ import { cookies } from 'next/headers'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: userId } = await params
     const supabase = createRouteHandlerClient({ cookies })
     
     // Get the current user to check permissions
@@ -15,8 +16,6 @@ export async function GET(
     if (authError) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
-
-    const userId = params.id
     
     // Check if the user exists
     const { data: user, error: userError } = await supabase

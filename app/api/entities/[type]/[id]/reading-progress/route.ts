@@ -4,9 +4,10 @@ import { cookies } from 'next/headers'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { type: string; id: string } }
+  { params }: { params: Promise<{ type: string; id: string }> }
 ) {
   try {
+    const { type, id } = await params
     const supabase = createRouteHandlerClient({ cookies })
     
     // Get the current user to check permissions
@@ -15,8 +16,6 @@ export async function GET(
     if (authError) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
-
-    const { type, id } = params
     
     // Validate entity type
     const validEntityTypes = ['users', 'authors', 'publishers', 'groups', 'events']

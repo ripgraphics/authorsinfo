@@ -31,13 +31,13 @@ import { BookCard } from "@/components/book-card"
 import { InteractiveControls } from "./components/InteractiveControls"
 
 interface BooksPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string
     search?: string
     language?: string
     sort?: string
     year?: string
-  }
+  }>
 }
 
 async function getUniqueLanguages() {

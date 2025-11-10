@@ -10,9 +10,9 @@ import { supabaseAdmin } from "@/lib/supabase/server"
 import { cleanSynopsis } from "@/utils/textUtils"
 
 interface AddBookPageProps {
-  searchParams: {
+  searchParams: Promise<{
     isbn?: string
-  }
+  }>
 }
 
 export default async function AddBookPage({ searchParams }: AddBookPageProps) {

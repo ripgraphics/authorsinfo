@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 
 // GET: List all announcements for a group (optionally filter by pinned, scheduled, and role)
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const url = new URL(req.url);
   const pinned = url.searchParams.get('pinned');
@@ -11,7 +12,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   let query = supabase
     .from('group_announcements')
     .select('*')
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .order('created_at', { ascending: false });
   if (pinned) query = query.eq('pinned', pinned === 'true');
   if (scheduled === 'future') query = query.gt('scheduled_at', new Date().toISOString());
@@ -26,13 +27,14 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 }
 
 // POST: Add a new announcement to a group (support attachments and role visibility)
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const body = await req.json();
   if (!body.title || !body.body || !body.created_by) return NextResponse.json({ error: 'Missing title, body, or created_by' }, { status: 400 });
   const { data, error } = await supabase
     .from('group_announcements')
-    .insert([{ ...body, group_id: params.id }])
+    .insert([{ ...body, group_id: id }])
     .select()
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
@@ -41,7 +43,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 }
 
 // PATCH: Update an announcement (attachments, role visibility, etc.)
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  await params; // Await params even though we don't use it in this function
   const supabase = createClient();
   const body = await req.json();
   if (!body.id) return NextResponse.json({ error: 'Missing announcement id' }, { status: 400 });
@@ -57,7 +60,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 
 // DELETE: Delete an announcement (only if user is creator or admin)
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  await params; // Await params even though we don't use it in this function
   const supabase = createClient();
   const url = new URL(req.url);
   const announcementId = url.searchParams.get('id');
@@ -84,7 +88,8 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
 // --- Read Receipts ---
 // GET: List all users who have read an announcement
-export async function GET_readers(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET_readers(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  await params; // Await params even though we don't use it in this function
   const supabase = createClient();
   const announcementId = new URL(req.url).searchParams.get('announcement_id');
   if (!announcementId) return NextResponse.json({ error: 'Missing announcement_id' }, { status: 400 });
@@ -96,13 +101,14 @@ export async function GET_readers(req: NextRequest, { params }: { params: { id: 
   return NextResponse.json(data);
 }
 // POST: Mark an announcement as read
-export async function POST_readers(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST_readers(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const body = await req.json();
   if (!body.announcement_id || !body.user_id) return NextResponse.json({ error: 'Missing announcement_id or user_id' }, { status: 400 });
   const { data, error } = await supabase
     .from('group_announcement_reads')
-    .insert([{ ...body, group_id: params.id }])
+    .insert([{ ...body, group_id: id }])
     .select()
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });

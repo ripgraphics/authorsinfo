@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 
 // GET: Get user's progress for all checklists
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const userId = req.nextUrl.searchParams.get('user_id');
   
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         order_index
       )
     `)
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .order('created_at', { ascending: true });
 
   if (checklistsError) return NextResponse.json({ error: checklistsError.message }, { status: 400 });
@@ -47,7 +48,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 }
 
 // POST: Mark a task as completed
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const body = await req.json();
   
@@ -68,7 +70,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     .from('group_onboarding_checklists')
     .select('id')
     .eq('id', task.checklist_id)
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .single();
 
   if (checklistError) return NextResponse.json({ error: 'Task not found in group' }, { status: 400 });
@@ -90,7 +92,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 }
 
 // DELETE: Mark a task as incomplete
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const taskId = req.nextUrl.searchParams.get('task_id');
   const userId = req.nextUrl.searchParams.get('user_id');
@@ -112,7 +115,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     .from('group_onboarding_checklists')
     .select('id')
     .eq('id', task.checklist_id)
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .single();
 
   if (checklistError) return NextResponse.json({ error: 'Task not found in group' }, { status: 400 });

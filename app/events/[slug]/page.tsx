@@ -25,9 +25,10 @@ export const revalidate = 1800; // Revalidate every 30 minutes
 export async function generateMetadata({ 
   params 
 }: { 
-  params: { slug: string } 
+  params: Promise<{ slug: string }> 
 }): Promise<Metadata> {
-  const event = await getEventById(params.slug);
+  const { slug } = await params;
+  const event = await getEventById(slug);
   
   if (!event) {
     return {
@@ -47,9 +48,10 @@ export async function generateMetadata({
 export default async function EventPage({
   params
 }: {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }) {
-  const eventData = await getEventById(params.slug);
+  const { slug } = await params;
+  const eventData = await getEventById(slug);
   
   if (!eventData) {
     notFound();
@@ -63,7 +65,7 @@ export default async function EventPage({
       <ClientEventPage
         event={eventData}
         coverImageUrl={coverImageUrl}
-        params={params}
+        params={{ slug }}
         followers={eventData.followers || []}
         followersCount={eventData.followers?.length || 0}
         speakers={eventData.speakers || []}

@@ -13,9 +13,9 @@ import type { Event } from '@/types/database'
 import { createClient } from '@/lib/supabase-server'
 
 interface AuthorPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 interface AlbumImage {
@@ -302,8 +302,7 @@ function getTimeAgo(date: Date): string {
 
 export default async function AuthorPage({ params }: AuthorPageProps) {
   // Await params before accessing its properties
-  const resolvedParams = await Promise.resolve(params)
-  const authorId = resolvedParams.id
+  const { id: authorId } = await params
 
   if (!authorId) {
     notFound()
@@ -326,7 +325,7 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
       author={author}
       authorImageUrl={author.author_image?.url || ""}
       coverImageUrl={author.cover_image?.url || ""}
-      params={resolvedParams}
+      params={{ id: authorId }}
       followers={followers.followers}
       followersCount={followers.count}
       books={books}

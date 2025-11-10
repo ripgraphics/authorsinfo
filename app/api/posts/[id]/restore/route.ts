@@ -5,11 +5,11 @@ import { cookies } from 'next/headers'
 // POST /api/posts/[id]/restore - Restore deleted post
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: postId } = await params
     const supabase = createServerActionClient({ cookies })
-    const postId = params.id
     
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()

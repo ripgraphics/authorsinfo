@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 
 // GET: List all group reading challenges (optionally filter by year/active)
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const url = new URL(req.url);
   const year = url.searchParams.get('year');
   let query = supabase
     .from('group_reading_challenges')
     .select('*')
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .order('created_at', { ascending: false });
   if (year) query = query.eq('year', year);
   const { data, error } = await query;
@@ -18,7 +19,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 }
 
 // POST: Create a new group reading challenge
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const body = await req.json();
   if (!body.title || !body.target_books || !body.created_by) {
@@ -26,7 +28,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }
   const { data, error } = await supabase
     .from('group_reading_challenges')
-    .insert([{ ...body, group_id: params.id }])
+    .insert([{ ...body, group_id: id }])
     .select()
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
@@ -34,7 +36,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 }
 
 // PATCH: Update a challenge
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  await params; // Await params even though we don't use it in this function
   const supabase = createClient();
   const body = await req.json();
   if (!body.id) return NextResponse.json({ error: 'Missing challenge id' }, { status: 400 });
@@ -49,7 +52,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 
 // DELETE: Delete a challenge (admin/mod only)
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  await params; // Await params even though we don't use it in this function
   const supabase = createClient();
   const url = new URL(req.url);
   const challengeId = url.searchParams.get('id');
@@ -76,7 +80,8 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
 // --- Progress ---
 // GET: List all user progress for a challenge
-export async function GET_progress(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET_progress(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  await params; // Await params even though we don't use it in this function
   const supabase = createClient();
   const challengeId = new URL(req.url).searchParams.get('challenge_id');
   if (!challengeId) return NextResponse.json({ error: 'Missing challenge_id' }, { status: 400 });
@@ -88,14 +93,15 @@ export async function GET_progress(req: NextRequest, { params }: { params: { id:
   return NextResponse.json(data);
 }
 // POST: Update user progress for a challenge
-export async function POST_progress(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST_progress(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const body = await req.json();
   if (!body.challenge_id || !body.user_id) return NextResponse.json({ error: 'Missing challenge_id or user_id' }, { status: 400 });
   // Upsert progress
   const { data, error } = await supabase
     .from('group_reading_challenge_progress')
-    .upsert([{ ...body, group_id: params.id }], { onConflict: ['challenge_id', 'user_id'] })
+    .upsert([{ ...body, group_id: id }], { onConflict: ['challenge_id', 'user_id'] })
     .select()
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });

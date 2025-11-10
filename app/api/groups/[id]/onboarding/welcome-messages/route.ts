@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 
 // GET: List all welcome messages for a group
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   
   const { data, error } = await supabase
@@ -14,7 +15,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         name
       )
     `)
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .order('created_at', { ascending: true });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
@@ -22,7 +23,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 }
 
 // POST: Create a new welcome message
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const body = await req.json();
   
@@ -30,7 +32,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const { data: member, error: memberError } = await supabase
     .from('group_members')
     .select('role_id, group_roles(name)')
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .eq('user_id', body.user_id)
     .single();
 
@@ -42,7 +44,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const { data, error } = await supabase
     .from('group_welcome_messages')
     .insert({
-      group_id: params.id,
+      group_id: id,
       role_id: body.role_id,
       message: body.message
     })
@@ -54,7 +56,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 }
 
 // PATCH: Update a welcome message
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const body = await req.json();
   
@@ -62,7 +65,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const { data: member, error: memberError } = await supabase
     .from('group_members')
     .select('role_id, group_roles(name)')
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .eq('user_id', body.user_id)
     .single();
 
@@ -78,7 +81,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       message: body.message
     })
     .eq('id', body.message_id)
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .select()
     .single();
 
@@ -87,7 +90,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 
 // DELETE: Remove a welcome message
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const messageId = req.nextUrl.searchParams.get('message_id');
   
@@ -104,7 +108,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   const { data: member, error: memberError } = await supabase
     .from('group_members')
     .select('role_id, group_roles(name)')
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .eq('user_id', userId)
     .single();
 
@@ -117,7 +121,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     .from('group_welcome_messages')
     .delete()
     .eq('id', messageId)
-    .eq('group_id', params.id);
+    .eq('group_id', id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json({ success: true });

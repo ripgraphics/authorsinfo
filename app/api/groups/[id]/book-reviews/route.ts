@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 
 // GET: List all book reviews for a group
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const { data, error } = await supabase
     .from('book_reviews')
@@ -25,7 +26,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         name
       )
     `)
-    .or(`group_id.eq.${params.id},visibility.eq.public`)
+    .or(`group_id.eq.${id},visibility.eq.public`)
     .order('created_at', { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
@@ -33,7 +34,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 }
 
 // POST: Create a new book review
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const body = await req.json();
   
@@ -45,7 +47,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     .from('book_reviews')
     .insert([{ 
       ...body, 
-      group_id: params.id,
+      group_id: id,
       visibility: 'public',
       created_at: new Date().toISOString()
     }])
@@ -57,7 +59,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 }
 
 // PATCH: Update a book review
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const body = await req.json();
   
@@ -69,7 +72,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     .from('book_reviews')
     .update(body)
     .eq('id', body.id)
-    .or(`group_id.eq.${params.id},visibility.eq.public`)
+    .or(`group_id.eq.${id},visibility.eq.public`)
     .select()
     .single();
 
@@ -78,7 +81,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 
 // DELETE: Remove a book review
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const url = new URL(req.url);
   const reviewId = url.searchParams.get('review_id');
@@ -91,7 +95,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     .from('book_reviews')
     .delete()
     .eq('id', reviewId)
-    .or(`group_id.eq.${params.id},visibility.eq.public`);
+    .or(`group_id.eq.${id},visibility.eq.public`);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json({ success: true });

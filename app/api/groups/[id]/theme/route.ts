@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 
 // GET: Get current theme settings
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   
   const { data, error } = await supabase
     .from('groups')
     .select('theme_mode, custom_theme')
-    .eq('id', params.id)
+    .eq('id', id)
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
@@ -16,7 +17,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 }
 
 // PATCH: Update theme settings
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const body = await req.json();
   
@@ -24,7 +26,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const { data: member, error: memberError } = await supabase
     .from('group_members')
     .select('role_id, group_roles(name)')
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .eq('user_id', body.user_id)
     .single();
 
@@ -40,7 +42,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       custom_theme: body.custom_theme,
       updated_at: new Date().toISOString()
     })
-    .eq('id', params.id)
+    .eq('id', id)
     .select()
     .single();
 

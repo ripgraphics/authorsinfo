@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { useState, useEffect } from "react"
@@ -19,14 +19,9 @@ import { uploadImage } from "@/app/actions/upload"
 import type { Author, Book } from "@/types/database"
 import { Combobox } from "@/components/ui/combobox"
 
-interface EditAuthorPageProps {
-  params: {
-    id: string
-  }
-}
-
-export default function EditAuthorPage({ params }: EditAuthorPageProps) {
+export default function EditAuthorPage() {
   const router = useRouter()
+  const params = useParams()
   const [author, setAuthor] = useState<Author | null>(null)
   const [authorBooks, setAuthorBooks] = useState<Book[]>([])
   const [loading, setLoading] = useState(true)
@@ -50,7 +45,7 @@ export default function EditAuthorPage({ params }: EditAuthorPageProps) {
         const { data: authorData, error: authorError } = await supabaseClient
           .from("authors")
           .select("*, author_image:author_image_id(url)")
-          .eq("id", params.id)
+          .eq("id", params.id as string)
           .single()
 
         if (authorError) {
@@ -71,7 +66,7 @@ export default function EditAuthorPage({ params }: EditAuthorPageProps) {
         const { data: booksData, error: booksError } = await supabaseClient
           .from("books")
           .select("*")
-          .eq("author_id", params.id)
+          .eq("author_id", params.id as string)
           .order("title")
 
         if (booksError) {
@@ -106,7 +101,7 @@ export default function EditAuthorPage({ params }: EditAuthorPageProps) {
     }
 
     fetchAuthorData()
-  }, [params.id])
+  }, [params.id as string])
 
   // Handle photo change
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -188,7 +183,7 @@ export default function EditAuthorPage({ params }: EditAuthorPageProps) {
       }
 
       // Update the author
-      const { error: updateError } = await supabaseClient.from("authors").update(updateData).eq("id", params.id)
+      const { error: updateError } = await supabaseClient.from("authors").update(updateData).eq("id", params.id as string)
 
       if (updateError) {
         console.error("Error updating author:", updateError)
@@ -201,7 +196,7 @@ export default function EditAuthorPage({ params }: EditAuthorPageProps) {
 
       // Redirect back to the author page after a short delay
       setTimeout(() => {
-        router.push(`/authors/${params.id}`)
+        router.push(`/authors/${params.id as string}`)
       }, 1500)
     } catch (error) {
       console.error("Error in handleSubmit:", error)

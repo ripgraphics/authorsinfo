@@ -29,12 +29,12 @@ import { Label } from "@/components/ui/label"
 import { AuthorsFilters } from "./components/AuthorsFilters"
 
 interface AuthorsPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string
     search?: string
     nationality?: string
     sort?: string
-  }
+  }>
 }
 
 interface Author {
@@ -213,11 +213,11 @@ async function AuthorsList({
 
 export default async function AuthorsPage({ searchParams }: AuthorsPageProps) {
   // Await searchParams before accessing its properties
-  const resolvedParams = await Promise.resolve(searchParams)
-  const page = resolvedParams.page ? parseInt(resolvedParams.page) : 1
-  const search = resolvedParams.search
-  const nationality = resolvedParams.nationality
-  const sort = resolvedParams.sort
+  const params = await searchParams
+  const page = params.page ? parseInt(params.page) : 1
+  const search = params.search
+  const nationality = params.nationality
+  const sort = params.sort
   
   // Get unique nationalities for the filter
   const nationalities = await getUniqueNationalities()

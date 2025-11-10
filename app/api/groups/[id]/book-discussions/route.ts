@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 
 // GET: List all book discussions for a group
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const { data, error } = await supabase
     .from('book_discussions')
@@ -26,7 +27,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         last_read_at
       )
     `)
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .order('is_pinned', { ascending: false })
     .order('last_activity_at', { ascending: false });
 
@@ -35,7 +36,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 }
 
 // POST: Create a new book discussion
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const body = await req.json();
   
@@ -47,7 +49,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     .from('book_discussions')
     .insert([{ 
       ...body, 
-      group_id: params.id,
+      group_id: id,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       last_activity_at: new Date().toISOString()
@@ -74,7 +76,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 }
 
 // PATCH: Update a book discussion
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const body = await req.json();
   
@@ -89,7 +92,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       updated_at: new Date().toISOString()
     })
     .eq('id', body.id)
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .select()
     .single();
 
@@ -98,7 +101,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 
 // DELETE: Remove a book discussion
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const url = new URL(req.url);
   const discussionId = url.searchParams.get('discussion_id');
@@ -111,7 +115,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     .from('book_discussions')
     .delete()
     .eq('id', discussionId)
-    .eq('group_id', params.id);
+    .eq('group_id', id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json({ success: true });

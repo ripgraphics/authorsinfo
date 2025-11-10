@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 
 // GET: List all participants for a thread
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  await params; // Await params even though we don't use it in this function
   const supabase = createClient();
   const threadId = req.nextUrl.searchParams.get('thread_id');
   if (!threadId) return NextResponse.json({ error: 'Missing thread_id' }, { status: 400 });
@@ -15,13 +16,14 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 }
 
 // POST: Add a participant to a thread
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const body = await req.json();
   if (!body.thread_id || !body.user_id) return NextResponse.json({ error: 'Missing thread_id or user_id' }, { status: 400 });
   const { data, error } = await supabase
     .from('group_chat_thread_participants')
-    .insert([{ ...body, group_id: params.id }])
+    .insert([{ ...body, group_id: id }])
     .select()
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
@@ -29,7 +31,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 }
 
 // DELETE: Remove a participant from a thread
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  await params; // Await params even though we don't use it in this function
   const supabase = createClient();
   const threadId = req.nextUrl.searchParams.get('thread_id');
   const userId = req.nextUrl.searchParams.get('user_id');

@@ -2,25 +2,27 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 
 // GET: List all chat messages for a group
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const { data, error } = await supabase
     .from('group_chat_messages')
     .select('*')
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .order('created_at', { ascending: true });
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json(data);
 }
 
 // POST: Send a new chat message to the group
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const body = await req.json();
   if (!body.user_id || !body.body) return NextResponse.json({ error: 'Missing user_id or body' }, { status: 400 });
   const { data, error } = await supabase
     .from('group_chat_messages')
-    .insert([{ ...body, group_id: params.id }])
+    .insert([{ ...body, group_id: id }])
     .select()
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });

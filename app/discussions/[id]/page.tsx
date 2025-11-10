@@ -5,7 +5,7 @@ import { ClientProfilePage as ClientDiscussionPage } from "./client"
 export const dynamic = "force-dynamic"
 
 interface DiscussionPageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default async function DiscussionPage({ params }: DiscussionPageProps) {

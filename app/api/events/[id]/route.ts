@@ -5,10 +5,10 @@ import { createClient } from '@/lib/supabase-server';
 // GET /api/events/[id] - Get a single event by ID or slug
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const eventId = params.id;
+    const { id: eventId } = await params;
     
     if (!eventId) {
       return NextResponse.json(
@@ -52,10 +52,10 @@ export async function GET(
 // PUT /api/events/[id] - Update an event (admin or event creator only)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const eventId = params.id;
+    const { id: eventId } = await params;
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     
@@ -168,10 +168,10 @@ export async function PUT(
 // DELETE /api/events/[id] - Delete an event (admin or event creator only)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const eventId = params.id;
+    const { id: eventId } = await params;
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     

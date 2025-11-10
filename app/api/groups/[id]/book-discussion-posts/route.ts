@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 
 // GET: List all posts for a discussion
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  await params; // Await params even though we don't use it in this function
   const supabase = createClient();
   const discussionId = req.nextUrl.searchParams.get('discussion_id');
   
@@ -27,7 +28,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 }
 
 // POST: Create a new post
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const body = await req.json();
   
@@ -40,7 +42,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     .from('book_discussions')
     .select('id')
     .eq('id', body.discussion_id)
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .single();
 
   if (discussionError || !discussion) {
@@ -70,7 +72,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 }
 
 // PATCH: Update a post
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const body = await req.json();
   
@@ -93,7 +96,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     .from('book_discussions')
     .select('id')
     .eq('id', post.discussion_id)
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .single();
 
   if (discussionError || !discussion) {
@@ -115,7 +118,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 
 // DELETE: Remove a post
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const url = new URL(req.url);
   const postId = url.searchParams.get('post_id');
@@ -139,7 +143,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     .from('book_discussions')
     .select('id')
     .eq('id', post.discussion_id)
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .single();
 
   if (discussionError || !discussion) {

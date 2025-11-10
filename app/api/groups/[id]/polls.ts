@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 
 // GET: List all polls for a group (optionally filter by active/expired, anonymous, etc.)
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const url = new URL(req.url);
   const status = url.searchParams.get('status'); // 'active', 'expired', or undefined
@@ -10,7 +11,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   let query = supabase
     .from('group_polls')
     .select('*')
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .order('created_at', { ascending: false });
   if (status === 'active') query = query.or(`expires_at.is.null,expires_at.gt.${now}`);
   if (status === 'expired') query = query.lte('expires_at', now);
@@ -20,7 +21,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 }
 
 // POST: Create a new poll
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const body = await req.json();
   if (!body.question || !body.options || !body.created_by) {
@@ -28,7 +30,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }
   const { data, error } = await supabase
     .from('group_polls')
-    .insert([{ ...body, group_id: params.id }])
+    .insert([{ ...body, group_id: id }])
     .select()
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
@@ -37,7 +39,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 }
 
 // PATCH: Update a poll (only by creator or admin)
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  await params; // Await params even though we don't use it in this function
   const supabase = createClient();
   const body = await req.json();
   if (!body.id) return NextResponse.json({ error: 'Missing poll id' }, { status: 400 });
@@ -52,7 +55,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 
 // DELETE: Delete a poll (only by creator or admin)
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  await params; // Await params even though we don't use it in this function
   const supabase = createClient();
   const url = new URL(req.url);
   const pollId = url.searchParams.get('id');
@@ -79,7 +83,8 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
 // --- Voting ---
 // POST: Vote on a poll
-export async function POST_vote(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST_vote(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   const body = await req.json();
   if (!body.poll_id || !body.user_id || typeof body.option_index !== 'number') {
@@ -97,7 +102,7 @@ export async function POST_vote(req: NextRequest, { params }: { params: { id: st
   }
   const { data, error } = await supabase
     .from('group_poll_votes')
-    .insert([{ ...body, group_id: params.id }])
+    .insert([{ ...body, group_id: id }])
     .select()
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
@@ -105,7 +110,8 @@ export async function POST_vote(req: NextRequest, { params }: { params: { id: st
 }
 
 // GET: Get poll results (vote counts, optionally user votes if not anonymous)
-export async function GET_results(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET_results(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  await params; // Await params even though we don't use it in this function
   const supabase = createClient();
   const pollId = new URL(req.url).searchParams.get('poll_id');
   if (!pollId) return NextResponse.json({ error: 'Missing poll_id' }, { status: 400 });

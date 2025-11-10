@@ -6,11 +6,11 @@ import { Post, UpdatePostData } from '@/types/post'
 // GET /api/posts/[id] - Get single post
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: postId } = await params
     const supabase = createServerActionClient({ cookies })
-    const postId = params.id
     
     // Get current user for visibility checks
     const { data: { user } } = await supabase.auth.getUser()
@@ -73,11 +73,11 @@ export async function GET(
 // PUT /api/posts/[id] - Update post
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: postId } = await params
     const supabase = createServerActionClient({ cookies })
-    const postId = params.id
     
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -242,11 +242,11 @@ export async function PUT(
 // DELETE /api/posts/[id] - Soft delete post
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: postId } = await params
     const supabase = createServerActionClient({ cookies })
-    const postId = params.id
     
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()

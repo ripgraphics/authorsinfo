@@ -59,9 +59,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: userId } = await params
     const supabase = createRouteHandlerClient({ cookies })
     
     // Get the current user
@@ -70,8 +71,6 @@ export async function PUT(
     if (authError) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
-
-    const userId = params.id
     
     // Users can only update their own privacy settings
     if (currentUser.id !== userId) {
@@ -167,9 +166,10 @@ export async function PUT(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: userId } = await params
     const supabase = createRouteHandlerClient({ cookies })
     
     // Get the current user
@@ -178,8 +178,6 @@ export async function POST(
     if (authError) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
-
-    const userId = params.id
     
     // Users can only manage their own privacy settings
     if (currentUser.id !== userId) {

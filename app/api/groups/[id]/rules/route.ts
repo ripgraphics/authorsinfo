@@ -36,14 +36,15 @@ export async function GET(
 // POST: Create a new rule for a group
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const groupId = params.id;
+    const { id: groupId } = await params;
     if (!groupId) {
       return NextResponse.json({ error: 'Group ID is required' }, { status: 400 });
     }
 
+    const supabase = createClient();
     const body = await request.json();
     if (!body.title) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
@@ -89,14 +90,15 @@ export async function POST(
 // PUT: Update a rule
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const groupId = params.id;
+    const { id: groupId } = await params;
     if (!groupId) {
       return NextResponse.json({ error: 'Group ID is required' }, { status: 400 });
     }
 
+    const supabase = createClient();
     const body = await request.json();
     if (!body.id || !body.title) {
       return NextResponse.json({ error: 'ID and title are required' }, { status: 400 });
@@ -128,14 +130,15 @@ export async function PUT(
 // DELETE: Delete a rule
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const groupId = params.id;
+    const { id: groupId } = await params;
     if (!groupId) {
       return NextResponse.json({ error: 'Group ID is required' }, { status: 400 });
     }
 
+    const supabase = createClient();
     const { searchParams } = new URL(request.url);
     const ruleId = searchParams.get('ruleId');
 

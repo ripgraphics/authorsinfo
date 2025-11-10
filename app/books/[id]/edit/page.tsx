@@ -1,7 +1,7 @@
 "use client"
 
-import React, { use, useState, useEffect, useRef, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import React, { useState, useEffect, useRef, useCallback } from "react"
+import { useRouter, useParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -19,15 +19,10 @@ import type { Book, Author, Publisher } from "@/types/database"
 import { PageContainer } from "@/components/page-container"
 import { useToast } from "@/hooks/use-toast"
 
-interface EditBookPageProps {
-  params: {
-    id: string
-  }
-}
-
-export default function EditBookPage({ params }: EditBookPageProps) {
+export default function EditBookPage() {
   const router = useRouter()
-  const bookId = use(params).id
+  const params = useParams()
+  const bookId = params.id as string
   const [book, setBook] = useState<Book | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)

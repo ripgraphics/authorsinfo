@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase-server';
 import AuthorEventsClient from './AuthorEventsClient';
 
-export default async function AuthorEventsPage({ params }: { params: { id: string } }) {
+export default async function AuthorEventsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   
   // Fetch initial author events
@@ -27,7 +28,7 @@ export default async function AuthorEventsPage({ params }: { params: { id: strin
         author_image_id
       )
     `)
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .order('scheduled_at', { ascending: true });
 
   return (
@@ -44,7 +45,7 @@ export default async function AuthorEventsPage({ params }: { params: { id: strin
       
       <AuthorEventsClient 
         initialAuthorEvents={authorEvents || []} 
-        groupId={params.id}
+        groupId={id}
       />
     </div>
   );

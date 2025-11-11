@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { createClient } from "@/lib/supabase-client"
@@ -10,8 +11,9 @@ const EMOJIS = ["👍", "😂", "🔥", "❤️", "😮", "🎉"];
 const GroupChatThreadsPage = dynamic(() => import("./threads"), { ssr: false })
 const GroupChatThreadPage = dynamic(() => import("./thread"), { ssr: false })
 
-export default function GroupChatPage({ params }: { params: { id: string } }) {
-  const groupId = params.id
+export default function GroupChatPage() {
+  const params = useParams()
+  const groupId = params.id as string
   const [messages, setMessages] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [body, setBody] = useState("")
@@ -24,6 +26,8 @@ export default function GroupChatPage({ params }: { params: { id: string } }) {
   const [selectedThread, setSelectedThread] = useState<any | null>(null)
   const [threadParticipants, setThreadParticipants] = useState<{ [threadId: string]: string[] }>({})
   const [threadReactions, setThreadReactions] = useState<{ [threadId: string]: string[] }>({})
+  const [threads, setThreads] = useState<any[]>([])
+  const channelRef = useRef<any>(null)
 
   useEffect(() => {
     fetch(`/api/groups/${groupId}/chat`)
@@ -34,6 +38,7 @@ export default function GroupChatPage({ params }: { params: { id: string } }) {
     // Subscribe to real-time chat messages
     const supabase = createClient()
     const channel = supabase.channel(`group_chat_${groupId}`)
+    channelRef.current = channel
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'group_chat_messages', filter: `group_id=eq.${groupId}` }, (payload: any) => {
         setMessages((prev: any[]) => [...prev, payload.new])
       })
@@ -134,7 +139,7 @@ export default function GroupChatPage({ params }: { params: { id: string } }) {
     <div className="flex h-[80vh]">
       {/* Sidebar: Threads */}
       <div className="w-1/3 border-r bg-gray-50 overflow-y-auto">
-        <GroupChatThreadsPage params={params} onSelectThread={handleJoinThread} />
+        <GroupChatThreadsPage params={{ id: groupId }} onSelectThread={handleJoinThread} />
         {/* Show thread reactions */}
         {selectedThread && (
           <div className="p-2 border-t flex gap-1">
@@ -156,7 +161,7 @@ export default function GroupChatPage({ params }: { params: { id: string } }) {
       {/* Main: Chat or Thread */}
       <div className="flex-1">
         {selectedThread ? (
-          <GroupChatThreadPage params={params} thread={selectedThread} />
+          <GroupChatThreadPage params={{ id: groupId }} thread={selectedThread} />
         ) : (
           <div className="max-w-2xl mx-auto p-6 flex flex-col h-[80vh]">
             <h2 className="text-2xl font-bold mb-4">Group Chat</h2>

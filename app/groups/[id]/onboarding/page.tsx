@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase-server';
 import OnboardingClient from './OnboardingClient';
 
-export default async function OnboardingPage({ params }: { params: { id: string } }) {
+export default async function OnboardingPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
 
   // Fetch welcome messages
@@ -14,7 +15,7 @@ export default async function OnboardingPage({ params }: { params: { id: string 
         name
       )
     `)
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .order('created_at', { ascending: true });
 
   // Fetch checklists
@@ -28,12 +29,12 @@ export default async function OnboardingPage({ params }: { params: { id: string 
         order_index
       )
     `)
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .order('created_at', { ascending: true });
 
   return (
     <OnboardingClient
-      groupId={params.id}
+      groupId={id}
       welcomeMessages={messages || []}
       checklists={checklists || []}
     />

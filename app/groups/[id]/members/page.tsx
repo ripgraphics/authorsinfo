@@ -1,11 +1,13 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
-export default function GroupMembersPage({ params }: { params: { id: string } }) {
-  const groupId = params.id
+export default function GroupMembersPage() {
+  const params = useParams()
+  const groupId = params.id as string
   const [members, setMembers] = useState<any[]>([])
   const [roles, setRoles] = useState<any[]>([])
   const [loading, setLoading] = useState(true)

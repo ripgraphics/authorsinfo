@@ -1,11 +1,13 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
-export default function GroupResourcesPage({ params }: { params: { id: string } }) {
-  const groupId = params.id
+export default function GroupResourcesPage() {
+  const params = useParams()
+  const groupId = params.id as string
   const [resources, setResources] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)

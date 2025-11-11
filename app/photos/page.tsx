@@ -28,12 +28,12 @@ import {
 import { Label } from "@/components/ui/label"
 
 interface PhotosPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string
     search?: string
     category?: string
     sort?: string
-  }
+  }>
 }
 
 // Function to get unique photo categories
@@ -230,7 +230,7 @@ export default async function PhotosPage({ searchParams }: PhotosPageProps) {
   // Get all required data first
   const [categoriesList, params] = await Promise.all([
     getUniqueCategories(),
-    Promise.resolve(searchParams)
+    searchParams
   ])
 
   const page = params?.page ? parseInt(params.page) : 1

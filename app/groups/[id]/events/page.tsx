@@ -1,12 +1,14 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 
-export default function GroupEventsPage({ params }: { params: { id: string } }) {
-  const groupId = params.id
+export default function GroupEventsPage() {
+  const params = useParams()
+  const groupId = params.id as string
   const [events, setEvents] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)

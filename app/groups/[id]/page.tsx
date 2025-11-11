@@ -8,9 +8,9 @@ import { getFollowers, getFollowersCount } from "@/lib/follows-server"
 import { createClient } from '@/lib/supabase-server'
 
 interface GroupPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 async function getGroup(id: string) {

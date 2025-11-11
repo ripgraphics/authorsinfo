@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import Image from "next/image"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
@@ -18,14 +18,9 @@ import { uploadImage } from "@/app/actions/upload"
 import { CountrySelect } from "@/components/country-select"
 import type { Publisher } from "@/types/database"
 
-interface PublisherEditPageProps {
-  params: {
-    id: string
-  }
-}
-
-export default function PublisherEditPage({ params }: PublisherEditPageProps) {
+export default function PublisherEditPage() {
   const router = useRouter()
+  const params = useParams()
   const [publisher, setPublisher] = useState<Publisher | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -50,7 +45,7 @@ export default function PublisherEditPage({ params }: PublisherEditPageProps) {
             cover_image:cover_image_id(id, url, alt_text),
             country_details:country_id(id, name, code)
           `)
-          .eq("id", params.id)
+          .eq("id", params.id as string)
           .single()
 
         if (error) {
@@ -84,7 +79,7 @@ export default function PublisherEditPage({ params }: PublisherEditPageProps) {
     }
 
     fetchPublisher()
-  }, [params.id])
+  }, [params.id as string])
 
   // Handle logo image change
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -200,7 +195,7 @@ export default function PublisherEditPage({ params }: PublisherEditPageProps) {
 
       // Redirect back to the publisher page after a short delay
       setTimeout(() => {
-        router.push(`/publishers/${params.id}`)
+        router.push(`/publishers/${params.id as string}`)
       }, 1500)
     } catch (error: any) {
       console.error("Error in handleSubmit:", error)

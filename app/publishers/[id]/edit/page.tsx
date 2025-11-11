@@ -1,8 +1,8 @@
 "use client"
 
 import type React from "react"
-import { use, useState, useEffect, useRef } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useState, useEffect, useRef } from "react"
+import { useRouter, useSearchParams, useParams } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -16,17 +16,12 @@ import { uploadImage } from "@/app/actions/upload"
 import { CountrySelect } from "@/components/country-select"
 import type { Publisher } from "@/types/database"
 
-interface PublisherEditPageProps {
-  params: {
-    id: string
-  }
-}
-
-export default function PublisherEditPage({ params }: PublisherEditPageProps) {
+export default function PublisherEditPage() {
   const router = useRouter()
+  const params = useParams()
   const searchParams = useSearchParams()
   const section = searchParams.get('section')
-  const publisherId = use(params).id
+  const publisherId = params.id as string
   
   // Add refs for each section
   const overviewRef = useRef<HTMLDivElement>(null)

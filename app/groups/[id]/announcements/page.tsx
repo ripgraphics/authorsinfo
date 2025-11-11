@@ -1,13 +1,15 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
 import { createClient } from "@/lib/supabase-client"
 
-export default function GroupAnnouncementsPage({ params }: { params: { id: string } }) {
-  const groupId = params.id
+export default function GroupAnnouncementsPage() {
+  const params = useParams()
+  const groupId = params.id as string
   const [announcements, setAnnouncements] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)

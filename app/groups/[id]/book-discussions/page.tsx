@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase-server';
 import BookDiscussionsClient from './BookDiscussionsClient';
 
-export default async function BookDiscussionsPage({ params }: { params: { id: string } }) {
+export default async function BookDiscussionsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
 
   // Fetch initial book discussions
@@ -27,7 +28,7 @@ export default async function BookDiscussionsPage({ params }: { params: { id: st
         last_read_at
       )
     `)
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .order('is_pinned', { ascending: false })
     .order('last_activity_at', { ascending: false });
 
@@ -42,7 +43,7 @@ export default async function BookDiscussionsPage({ params }: { params: { id: st
           Start Discussion
         </button>
       </div>
-      <BookDiscussionsClient initialDiscussions={discussions || []} groupId={params.id} />
+      <BookDiscussionsClient initialDiscussions={discussions || []} groupId={id} />
     </div>
   );
 } 

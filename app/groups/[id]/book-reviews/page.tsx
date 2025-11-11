@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase-server';
 import BookReviewsClient from './BookReviewsClient';
 
-export default async function BookReviewsPage({ params }: { params: { id: string } }) {
+export default async function BookReviewsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   
   // Fetch initial book reviews
@@ -22,7 +23,7 @@ export default async function BookReviewsPage({ params }: { params: { id: string
         name
       )
     `)
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .order('created_at', { ascending: false });
 
   return (
@@ -39,7 +40,7 @@ export default async function BookReviewsPage({ params }: { params: { id: string
       
       <BookReviewsClient 
         initialBookReviews={bookReviews || []} 
-        groupId={params.id}
+        groupId={id}
       />
     </div>
   );

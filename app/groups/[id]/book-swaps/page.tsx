@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase-server';
 import BookSwapsClient from './BookSwapsClient';
 
-export default async function BookSwapsPage({ params }: { params: { id: string } }) {
+export default async function BookSwapsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = createClient();
   
   // Fetch initial book swaps
@@ -18,7 +19,7 @@ export default async function BookSwapsPage({ params }: { params: { id: string }
       offered_by:users!offered_by(name),
       accepted_by:users!accepted_by(name)
     `)
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .order('created_at', { ascending: false });
 
   return (
@@ -35,7 +36,7 @@ export default async function BookSwapsPage({ params }: { params: { id: string }
       
       <BookSwapsClient 
         initialBookSwaps={bookSwaps || []} 
-        groupId={params.id}
+        groupId={id}
       />
     </div>
   );

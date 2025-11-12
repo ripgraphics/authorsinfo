@@ -356,7 +356,7 @@ export async function exportBooksToCSV(bookIds?: string[]) {
 
     // Convert to CSV
     const headers = Object.keys(data[0]).join(",")
-    const rows = data.map((book) =>
+    const rows = data.map((book: Record<string, any>) =>
       Object.values(book)
         .map((value) => (value === null ? "" : typeof value === "string" ? `"${value.replace(/"/g, '""')}"` : value))
         .join(","),

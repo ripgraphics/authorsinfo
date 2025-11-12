@@ -491,10 +491,10 @@ export async function getAuthorBookStats() {
     }
 
     // Get unique author IDs from book_authors
-    const authorIdsWithBooks = new Set(bookAuthorData.map((ba) => ba.author_id))
+    const authorIdsWithBooks = new Set(bookAuthorData.map((ba: { book_id: string; author_id: string }) => ba.author_id))
 
     // Authors without books are those not in the book_authors table
-    const authorsWithoutBooks = allAuthorIds.filter((author) => !authorIdsWithBooks.has(author.id)).length
+    const authorsWithoutBooks = allAuthorIds.filter((author: { id: string }) => !authorIdsWithBooks.has(author.id)).length
     console.log(`Authors without books: ${authorsWithoutBooks}`)
 
     // Step 4: Calculate books with multiple authors

@@ -12236,3 +12236,11 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
+// Re-export types from book.ts for convenience
+export type { Book, Author, Review, BookWithAuthor, BookWithDetails } from './book'
+export type { Publisher } from './supabase'
+export type { User } from './supabase'
+export type { Bookshelf } from './supabase'
+export type { ReadingStatus } from './supabase'
+export type { ReadingChallenge } from './supabase'

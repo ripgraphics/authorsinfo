@@ -471,7 +471,7 @@ export async function getAuthorBookStats() {
     const bookIdsWithAuthors = new Set(bookAuthorData.map((ba: { book_id: string; author_id: string }) => ba.book_id))
 
     // Books without authors are those not in the book_authors table
-    const booksWithoutAuthors = allBookIds.filter((book) => !bookIdsWithAuthors.has(book.id)).length
+    const booksWithoutAuthors = allBookIds.filter((book: { id: string }) => !bookIdsWithAuthors.has(book.id)).length
     console.log(`Books without authors: ${booksWithoutAuthors}`)
 
     // Step 3: Calculate authors without books

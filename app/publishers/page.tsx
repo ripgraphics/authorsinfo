@@ -56,12 +56,12 @@ interface QueryResponse<T> {
 }
 
 interface PublishersPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string
     search?: string
     location?: string
     sort?: string
-  }
+  }>
 }
 
 // Function to detect the location field in the publishers table
@@ -290,7 +290,7 @@ export default async function PublishersPage({ searchParams }: PublishersPagePro
   // Get all required data first
   const [locationsList, params] = await Promise.all([
     getUniqueLocations(),
-    Promise.resolve(searchParams)
+    searchParams
   ])
 
   const page = params?.page ? parseInt(params.page) : 1

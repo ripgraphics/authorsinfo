@@ -308,7 +308,7 @@ export async function getBookFormOptions() {
     ])
 
     // Extract unique languages
-    const uniqueLanguages = languages ? Array.from(new Set(languages.map((item) => item.language).filter(Boolean))) : []
+    const uniqueLanguages = languages ? Array.from(new Set(languages.map((item: { language: string | null }) => item.language).filter(Boolean))) : []
 
     return {
       genres: genres || [],

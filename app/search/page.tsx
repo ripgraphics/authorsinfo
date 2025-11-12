@@ -8,15 +8,16 @@ import Image from "next/image"
 import { BookOpen, User, Building, Plus } from "lucide-react"
 
 interface SearchPageProps {
-  searchParams: {
+  searchParams: Promise<{
     q?: string
     type?: string
-  }
+  }>
 }
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
-  const query = searchParams.q || ""
-  const type = searchParams.type || "books"
+  const params = await searchParams
+  const query = params.q || ""
+  const type = params.type || "books"
 
   // For demonstration purposes, we'll just show recent items
   // In a real app, you would implement actual search functionality

@@ -468,7 +468,7 @@ export async function getAuthorBookStats() {
     }
 
     // Get unique book IDs from book_authors
-    const bookIdsWithAuthors = new Set(bookAuthorData.map((ba) => ba.book_id))
+    const bookIdsWithAuthors = new Set(bookAuthorData.map((ba: { book_id: string; author_id: string }) => ba.book_id))
 
     // Books without authors are those not in the book_authors table
     const booksWithoutAuthors = allBookIds.filter((book) => !bookIdsWithAuthors.has(book.id)).length

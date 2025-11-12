@@ -5,7 +5,7 @@ import { ClientProfilePage } from "./client"
 export const dynamic = "force-dynamic"
 
 interface ProfilePageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default async function ProfilePage({ params }: ProfilePageProps) {

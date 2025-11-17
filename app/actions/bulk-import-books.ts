@@ -62,7 +62,7 @@ export async function checkForDuplicates(isbns: string[]) {
 
   // Create a set of existing ISBNs (both ISBN-10 and ISBN-13)
   const existingIsbns = new Set<string>()
-  existingBooks?.forEach((book) => {
+  existingBooks?.forEach((book: { isbn10: string | null; isbn13: string | null }) => {
     if (book.isbn10) existingIsbns.add(book.isbn10)
     if (book.isbn13) existingIsbns.add(book.isbn13)
   })

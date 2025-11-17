@@ -103,7 +103,7 @@ export async function importBooksByEntity(
 
     result.duplicates = duplicates.length
 
-    if (newIsbns.length === 0) {
+    if (!newIsbns || newIsbns.length === 0) {
       return result // No new books to add
     }
 

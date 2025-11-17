@@ -72,7 +72,7 @@ export async function getRecentBooks(limit = 10, offset = 0): Promise<Book[]> {
     }
 
     // Process books to include cover image URL and author data
-    const books = (data || []).map(book => ({
+    const books = (data || []).map((book: any) => ({
       ...book,
       cover_image_url: book.cover_image?.url || null,
       author: book.author ? {
@@ -199,7 +199,7 @@ export async function getBooksByAuthorId(authorId: string, limit = 10): Promise<
         }
 
         // Extract book IDs
-        const bookIds = bookAuthors.map((item) => item.book_id)
+        const bookIds = bookAuthors.map((item: { book_id: string }) => item.book_id)
 
         // Get the books
         const { data: books, error: booksError } = await supabaseAdmin.from("books").select("*").in("id", bookIds)
@@ -328,7 +328,7 @@ export async function getAuthorsByBookId(bookId: string): Promise<Author[]> {
         }
 
         // Extract author IDs from the join table
-        const authorIds = bookAuthors.map((item) => item.author_id)
+        const authorIds = bookAuthors.map((item: { author_id: string }) => item.author_id)
 
         // Get the authors without foreign key relationships
         const { data: authors, error: authorsError } = await supabaseAdmin
@@ -633,7 +633,7 @@ export async function getUserReadingList(
     }
 
     // Extract book IDs
-    const bookIds = statusData.map((item) => item.book_id)
+    const bookIds = statusData.map((item: { book_id: string }) => item.book_id)
 
     // Then get the books
     const { data, error } = await supabaseAdmin.from("books").select("*").in("id", bookIds)
@@ -691,7 +691,7 @@ export async function getUserFriends(userId: string, limit = 20): Promise<User[]
     }
 
     // Extract friend IDs (the other user in each relationship)
-    const friendIds = friendsData.map((item) => (item.user_id === userId ? item.friend_id : item.user_id))
+    const friendIds = friendsData.map((item: { user_id: string; friend_id: string }) => (item.user_id === userId ? item.friend_id : item.user_id))
 
     // Get the user data for all friends, including permalinks
     const { data, error } = await supabaseAdmin.from("users").select("*, permalink").in("id", friendIds)
@@ -740,7 +740,7 @@ export async function getBookshelfBooks(bookshelfId: string): Promise<Book[]> {
     }
 
     // Extract book IDs
-    const bookIds = bookshelfData.map((item) => item.book_id)
+    const bookIds = bookshelfData.map((item: { book_id: string }) => item.book_id)
 
     // Then get the books
     const { data, error } = await supabaseAdmin.from("books").select("*").in("id", bookIds)

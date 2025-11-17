@@ -106,7 +106,7 @@ export default function AdminEventsBulkUI({ events, creators, status, search, cr
           <div className="flex items-center gap-2">
             <input type="checkbox" id="select-all" className="mr-2" checked={selected.length === events.length && events.length > 0} onChange={handleSelectAll} />
             <label htmlFor="select-all" className="text-sm">Select All ({selected.length} selected)</label>
-            <Button type="button" size="sm" variant="success" className="ml-2" disabled={selected.length === 0} onClick={() => openDialog('published')}>Bulk Approve</Button>
+            <Button type="button" size="sm" variant="default" className="ml-2" disabled={selected.length === 0} onClick={() => openDialog('published')}>Bulk Approve</Button>
             <Button type="button" size="sm" variant="destructive" className="ml-2" disabled={selected.length === 0} onClick={() => openDialog('cancelled')}>Bulk Cancel</Button>
           </div>
           <div className="text-sm text-gray-600">Total: {totalCount} events</div>
@@ -143,7 +143,9 @@ export default function AdminEventsBulkUI({ events, creators, status, search, cr
                     {event.status === 'cancelled' && <span className="inline-flex items-center text-red-700"><XCircleIcon className="h-4 w-4 mr-1" /> Cancelled</span>}
                   </td>
                   <td className="px-2 py-2 border">
-                    <UserHoverCard userId={event.created_by} userEntity={{ id: event.created_by, name: userMap[event.created_by]?.name || event.created_by }} />
+                    <UserHoverCard user={{ id: event.created_by, name: userMap[event.created_by]?.name || event.created_by }}>
+                      <span>{userMap[event.created_by]?.name || event.created_by}</span>
+                    </UserHoverCard>
                   </td>
                   <td className="px-2 py-2 border">{event.start_date ? new Date(event.start_date).toLocaleDateString() : '-'}</td>
                   <td className="px-2 py-2 border">{event.category?.name || '-'}</td>

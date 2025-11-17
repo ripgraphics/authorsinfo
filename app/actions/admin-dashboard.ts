@@ -207,7 +207,7 @@ export async function getPopularContent() {
 
     // Combine with counts
     const authorsWithCounts =
-      prolificAuthors?.map((author) => {
+      prolificAuthors?.map((author: { id: string; name: string }) => {
         const authorData = sortedAuthors.find((item) => item.authorId === author.id)
         return {
           ...author,

@@ -130,7 +130,7 @@ export async function getContentPopularityData(dateRange: DateRange) {
             .in("id", topBookIds)
 
           // Combine with view counts
-          viewData = (books || []).map((book) => ({
+          viewData = (books || []).map((book: { id: string; title: string | null; author_id: string | null; cover_image_id: string | null }) => ({
             ...book,
             views: bookViewCounts[book.id] || 0,
           }))
@@ -181,7 +181,7 @@ export async function getContentPopularityData(dateRange: DateRange) {
             .in("id", topRatedBookIds)
 
           // Combine with rating data
-          ratingData = (books || []).map((book) => ({
+          ratingData = (books || []).map((book: { id: string; title: string | null; author_id: string | null; cover_image_id: string | null }) => ({
             ...book,
             averageRating: bookAverages[book.id] || 0,
             ratingCount: bookRatings[book.id]?.count || 0,
@@ -211,14 +211,14 @@ export async function getContentPopularityData(dateRange: DateRange) {
         const { data: genres } = await supabaseAdmin.from("book_genres").select("id, name")
 
         // Combine with counts
-        genreData = (genres || []).map((genre) => ({
+        genreData = (genres || []).map((genre: { id: string; name: string }) => ({
           id: genre.id,
           name: genre.name,
           bookCount: genreCounts[genre.id] || 0,
         }))
 
         // Sort by book count
-        genreData.sort((a, b) => b.bookCount - a.bookCount)
+        genreData.sort((a: { id: string; name: string; bookCount: number }, b: { id: string; name: string; bookCount: number }) => b.bookCount - a.bookCount)
       }
     } catch (error) {
       console.log("Error fetching genre data:", error)
@@ -303,7 +303,7 @@ export async function getReadingTrendsData(dateRange: DateRange) {
     }
 
     // Get reading time trends (if you have reading_sessions or similar)
-    let readingTimeData = []
+    let readingTimeData: Record<string, number> = {}
     try {
       const { data, error } = await supabaseAdmin
         .from("reading_sessions")
@@ -399,7 +399,7 @@ export async function getAuthorPerformanceData(dateRange: DateRange) {
     }
 
     // Combine author data
-    const authorData = (authors || []).map((author) => {
+    const authorData = (authors || []).map((author: { id: string; name: string }) => {
       const bookCount = authorBookCounts[author.id] || 0
       const ratingData = authorRatings[author.id]
       const averageRating = ratingData ? ratingData.sum / ratingData.count : 0
@@ -415,13 +415,13 @@ export async function getAuthorPerformanceData(dateRange: DateRange) {
     })
 
     // Sort by book count
-    authorData.sort((a, b) => b.bookCount - a.bookCount)
+    authorData.sort((a: { id: string; name: string; bookCount: number; averageRating: number; ratingCount: number }, b: { id: string; name: string; bookCount: number; averageRating: number; ratingCount: number }) => b.bookCount - a.bookCount)
 
     return {
       topAuthors: authorData.slice(0, 10),
       authorRatings: authorData
-        .filter((author) => author.ratingCount > 0)
-        .sort((a, b) => b.averageRating - a.averageRating)
+        .filter((author: { id: string; name: string; bookCount: number; averageRating: number; ratingCount: number }) => author.ratingCount > 0)
+        .sort((a: { id: string; name: string; bookCount: number; averageRating: number; ratingCount: number }, b: { id: string; name: string; bookCount: number; averageRating: number; ratingCount: number }) => b.averageRating - a.averageRating)
         .slice(0, 10),
       error: null,
     }

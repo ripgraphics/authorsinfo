@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase-server';
 import AdminEventsBulkUI from './client'
 
 export default async function AdminEventsPage({ searchParams }: { searchParams?: Promise<{ status?: string, search?: string, creator?: string, page?: string }> }) {
-  const params = await (searchParams || Promise.resolve({}))
+  const params = await (searchParams || Promise.resolve({} as { status?: string, search?: string, creator?: string, page?: string }))
   // Pagination
   const page = parseInt(params?.page || '1', 10);
   const limit = 20;

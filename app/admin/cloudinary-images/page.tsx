@@ -73,7 +73,7 @@ export default function CloudinaryImagesPage() {
       const result: CloudinaryResponse = await response.json()
 
       if (!result.success) {
-        throw new Error(result.error || "Failed to fetch images")
+        throw new Error("Failed to fetch images")
       }
 
       if (cursor) {

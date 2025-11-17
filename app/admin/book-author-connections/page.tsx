@@ -48,7 +48,7 @@ export default async function BookAuthorConnectionsPage({ searchParams }: BookAu
     }
 
     // Transform books to match the expected Book interface
-    const transformedBooks = books.map(book => ({
+    const transformedBooks = books.map((book: any) => ({
       ...book,
       cover_image: book.cover_image?.[0] || undefined // Take the first cover image or undefined if none
     }))

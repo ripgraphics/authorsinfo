@@ -49,7 +49,7 @@ export async function linkImagesToAlbum(
     return {
       success: true,
       linkedCount: albumImageRecords.length,
-      albumImageIds: data.map(record => record.id)
+      albumImageIds: data.map((record: { id: string }) => record.id)
     }
   } catch (error) {
     console.error('Error in linkImagesToAlbum:', error)

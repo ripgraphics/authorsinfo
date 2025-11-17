@@ -39,7 +39,7 @@ export default function AdminEventStatusActions({ eventId, currentStatus }: { ev
       />
       <div className="flex gap-2 items-center">
         {currentStatus !== 'published' && (
-          <Button variant="success" disabled={isPending} onClick={() => updateStatus('published')}>Approve</Button>
+          <Button variant="default" disabled={isPending} onClick={() => updateStatus('published')}>Approve</Button>
         )}
         {currentStatus !== 'cancelled' && (
           <Button variant="destructive" disabled={isPending} onClick={() => updateStatus('cancelled')}>Cancel</Button>

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase-server';
 import { CheckCircleIcon, XCircleIcon, EyeIcon, ChartBarIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
 import AdminEventStatusActions from './status-actions';
+import { ModerateCommentButton, ModerateChatButton } from './moderation-buttons';
 
 export default async function AdminEventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -195,51 +196,3 @@ export default async function AdminEventDetailPage({ params }: { params: Promise
     </div>
   );
 }
-
-// Client component for comment moderation
-function ModerateCommentButton({ commentId, isHidden }: { commentId: string, isHidden: boolean }) {
-  const [isPending, startTransition] = useTransition();
-  async function handleModerate() {
-    startTransition(async () => {
-      await fetch(`/api/admin/comments/${commentId}/moderate`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_hidden: !isHidden })
-      });
-      window.location.reload();
-    });
-  }
-  return (
-    <button
-      onClick={handleModerate}
-      disabled={isPending}
-      className={`text-xs px-2 py-1 rounded ${isHidden ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} ml-4`}
-    >
-      {isHidden ? 'Unhide' : 'Hide'}
-    </button>
-  );
-}
-
-// Client component for chat moderation
-function ModerateChatButton({ messageId, isHidden }: { messageId: string, isHidden: boolean }) {
-  const [isPending, startTransition] = useTransition();
-  async function handleModerate() {
-    startTransition(async () => {
-      await fetch(`/api/admin/chat-messages/${messageId}/moderate`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_hidden: !isHidden })
-      });
-      window.location.reload();
-    });
-  }
-  return (
-    <button
-      onClick={handleModerate}
-      disabled={isPending}
-      className={`text-xs px-2 py-1 rounded ${isHidden ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} ml-4`}
-    >
-      {isHidden ? 'Unhide' : 'Hide'}
-    </button>
-  );
-} 

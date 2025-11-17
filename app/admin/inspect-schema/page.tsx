@@ -13,7 +13,7 @@ export default async function InspectSchemaPage() {
   }
 
   // Filter for ISBN-related columns
-  const isbnColumns = columns.filter((col) => col.column_name.toLowerCase().includes("isbn"))
+  const isbnColumns = columns.filter((col: { column_name: string }) => col.column_name.toLowerCase().includes("isbn"))
 
   return (
     <div className="p-6">

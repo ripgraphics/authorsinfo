@@ -465,7 +465,7 @@ export default function RegenerateCoversPage() {
                 )}
 
                 {isComplete && progress.processed >= progress.total && progress.total > 0 && (
-                  <Alert variant="success" className="mt-4">
+                  <Alert variant="default" className="mt-4">
                     <CheckCircle2 className="h-4 w-4" />
                     <AlertTitle>Processing Complete</AlertTitle>
                     <AlertDescription>

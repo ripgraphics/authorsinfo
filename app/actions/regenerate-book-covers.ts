@@ -44,7 +44,7 @@ export async function getBookCoverRegenerationCandidates(
             .eq("images.url", "{}")
 
           if (data) {
-            data.forEach((book) => bookIds.add(book.id))
+            data.forEach((book: { id: string }) => bookIds.add(book.id))
           }
         } else if (problemType === "null") {
           // Handle NULL url in images table
@@ -55,7 +55,7 @@ export async function getBookCoverRegenerationCandidates(
             .is("images.url", null)
 
           if (data) {
-            data.forEach((book) => bookIds.add(book.id))
+            data.forEach((book: { id: string }) => bookIds.add(book.id))
           }
         } else if (problemType === "broken") {
           // Handle broken Cloudinary URLs with fetch: in them
@@ -66,7 +66,7 @@ export async function getBookCoverRegenerationCandidates(
             .ilike("images.url", "%fetch:%")
 
           if (data) {
-            data.forEach((book) => bookIds.add(book.id))
+            data.forEach((book: { id: string }) => bookIds.add(book.id))
           }
         } else if (problemType === "null_id") {
           // Handle NULL cover_image_id
@@ -77,7 +77,7 @@ export async function getBookCoverRegenerationCandidates(
             .is("cover_image_id", null)
 
           if (data) {
-            data.forEach((book) => bookIds.add(book.id))
+            data.forEach((book: { id: string }) => bookIds.add(book.id))
           }
         }
       }
@@ -265,7 +265,7 @@ export async function regenerateBookCovers(
             console.warn(`Attempt ${retries}/${maxRetries} failed:`, error)
 
             // If it's a rate limit error, wait longer between retries
-            if (error.message?.includes("rate limit")) {
+            if (error instanceof Error && error.message?.includes("rate limit")) {
               await new Promise((resolve) => setTimeout(resolve, 2000 * retries)) // Exponential backoff
             } else if (retries < maxRetries) {
               await new Promise((resolve) => setTimeout(resolve, 1000)) // Wait 1 second before retry for other errors

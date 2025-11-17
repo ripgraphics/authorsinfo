@@ -276,7 +276,7 @@ export default function FetchByYearPage() {
       
       if (res.ok) {
         const data = await res.json();
-        const newBooksInSystem = new Set(data.existingIsbns || []);
+        const newBooksInSystem = new Set<string>(data.existingIsbns || []);
         setBooksInSystem(newBooksInSystem);
         
         // Remove newly imported books from selection

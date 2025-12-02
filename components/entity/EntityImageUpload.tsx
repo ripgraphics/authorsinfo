@@ -82,6 +82,27 @@ export function EntityImageUpload({
   const { toast } = useToast()
   const supabase = createClientComponentClient()
 
+  // Validate entityId prop on mount and log it
+  useEffect(() => {
+    console.log(`EntityImageUpload [${type}]: Received props:`, {
+      entityId,
+      entityType,
+      type,
+      entityIdType: typeof entityId,
+      entityIdLength: entityId?.length,
+      isEntityIdUUID: entityId ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(entityId) : false
+    })
+    
+    if (!entityId || typeof entityId !== 'string' || entityId.trim() === '') {
+      console.error(`EntityImageUpload [${type}]: WARNING - Invalid entityId received:`, entityId)
+    } else {
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+      if (!uuidRegex.test(entityId)) {
+        console.error(`EntityImageUpload [${type}]: WARNING - entityId is not a valid UUID:`, entityId)
+      }
+    }
+  }, [entityId, entityType, type])
+
   useEffect(() => {
     // Load Cloudinary Upload Widget script
     const script = document.createElement('script')
@@ -172,6 +193,22 @@ export function EntityImageUpload({
       // Add image to entity album
       // Map image type to album purpose: 'cover' -> 'entity_header', 'avatar' -> 'avatar'
       const albumPurpose = type === 'cover' ? 'entity_header' : type
+      
+      // Validate entityId before making API call
+      if (!entityId || typeof entityId !== 'string' || entityId.trim() === '') {
+        console.error('EntityImageUpload: Invalid entityId:', entityId)
+        throw new Error(`Invalid entityId: ${entityId}. Expected a valid UUID.`)
+      }
+      
+      // Check if entityId looks like a UUID
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+      if (!uuidRegex.test(entityId)) {
+        console.error('EntityImageUpload: entityId is not a valid UUID:', entityId)
+        throw new Error(`entityId "${entityId}" is not a valid UUID. Please ensure the entityId prop is set correctly.`)
+      }
+      
+      console.log('EntityImageUpload: Adding image to album with:', { entityId, entityType, albumPurpose, imageId: uploadResult.image_id })
+      
       try {
         const albumResponse = await fetch('/api/entity-images', {
           method: 'POST',

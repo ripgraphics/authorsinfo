@@ -11,7 +11,8 @@ export async function POST(request: NextRequest) {
       storage_path, 
       original_filename, 
       file_size, 
-      mime_type 
+      mime_type,
+      img_type_id
     } = body
 
     console.log('Inserting image:', { 

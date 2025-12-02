@@ -1,37 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
+import { supabaseAdmin } from '@/lib/supabase-admin'
 import crypto from 'crypto'
-
-const IMAGE_TYPE_IDS = {
-  user: {
-    avatar: 33,
-    cover: 32,
-  },
-  group: {
-    avatar: 35,
-    cover: 34,
-  },
-  author: {
-    avatar: 37,
-    cover: 36,
-  },
-  publisher: {
-    avatar: 39,
-    cover: 38,
-  },
-  book: {
-    avatar: 41,
-    cover: 40,
-  },
-  event: {
-    avatar: 43,
-    cover: 42,
-  },
-  photo: {
-    avatar: 45,
-    cover: 44,
-  }
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -172,30 +142,54 @@ export async function POST(request: NextRequest) {
     // Parse response
     const data = await response.json()
 
-    // Create image record in database (without img_type_id as it doesn't exist in schema)
+    // Get actual schema columns from Supabase
+    const { data: columnsData } = await supabaseAdmin
+      .from("information_schema.columns")
+      .select("column_name")
+      .eq("table_name", "images")
+      .eq("table_schema", "public")
+
+    const availableColumns = new Set(columnsData?.map((col: { column_name: string }) => col.column_name) || [])
+
+    // Build insert object using only columns that exist in the schema
+    const insertObject: Record<string, any> = {
+      url: data.secure_url,
+      alt_text: `${imageType} for ${entityType} ${entityId}`,
+      storage_provider: 'cloudinary',
+      storage_path: folderPath,
+      original_filename: file.name,
+      file_size: file.size,
+      mime_type: file.type,
+    }
+
+    // Only include columns that exist in the schema
+    if (availableColumns.has('is_processed')) {
+      insertObject.is_processed = true
+    }
+    if (availableColumns.has('processing_status')) {
+      insertObject.processing_status = 'completed'
+    }
+    if (availableColumns.has('metadata')) {
+      insertObject.metadata = {
+        original_name: file.name,
+        file_size: file.size,
+        content_type: file.type,
+        upload_timestamp: new Date().toISOString(),
+        cloudinary_public_id: data.public_id,
+        entity_type: entityType,
+        entity_id: entityId,
+        image_type: imageType
+      }
+    }
+    if (availableColumns.has('img_type_id')) {
+      // If img_type_id exists, we could use it, but for now we'll skip it since we don't have the mapping
+      // insertObject.img_type_id = imgTypeId
+    }
+
+    // Create image record in database using only existing columns
     const { data: imageRecord, error: imageError } = await supabase
       .from('images')
-      .insert({
-        url: data.secure_url,
-        alt_text: `${imageType} for ${entityType} ${entityId}`,
-        storage_provider: 'cloudinary',
-        storage_path: folderPath,
-        original_filename: file.name,
-        file_size: file.size,
-        mime_type: file.type,
-        is_processed: true,
-        processing_status: 'completed',
-        metadata: {
-          original_name: file.name,
-          file_size: file.size,
-          content_type: file.type,
-          upload_timestamp: new Date().toISOString(),
-          cloudinary_public_id: data.public_id,
-          entity_type: entityType,
-          entity_id: entityId,
-          image_type: imageType // Store image type in metadata instead
-        }
-      })
+      .insert(insertObject)
       .select()
       .single()
 

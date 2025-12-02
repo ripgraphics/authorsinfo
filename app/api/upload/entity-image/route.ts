@@ -172,23 +172,12 @@ export async function POST(request: NextRequest) {
     // Parse response
     const data = await response.json()
 
-    // Get image type ID
-    const imgTypeId = IMAGE_TYPE_IDS[entityType as keyof typeof IMAGE_TYPE_IDS]?.[imageType as 'avatar' | 'cover']
-    
-    if (!imgTypeId) {
-      return NextResponse.json(
-        { error: `Invalid entityType or imageType combination` },
-        { status: 400 }
-      )
-    }
-
-    // Create image record in database
+    // Create image record in database (without img_type_id as it doesn't exist in schema)
     const { data: imageRecord, error: imageError } = await supabase
       .from('images')
       .insert({
         url: data.secure_url,
         alt_text: `${imageType} for ${entityType} ${entityId}`,
-        img_type_id: imgTypeId,
         storage_provider: 'cloudinary',
         storage_path: folderPath,
         original_filename: file.name,
@@ -203,7 +192,8 @@ export async function POST(request: NextRequest) {
           upload_timestamp: new Date().toISOString(),
           cloudinary_public_id: data.public_id,
           entity_type: entityType,
-          entity_id: entityId
+          entity_id: entityId,
+          image_type: imageType // Store image type in metadata instead
         }
       })
       .select()

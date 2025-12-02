@@ -94,7 +94,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       }
 
       // Get friends count
-      const { data: friends, error: friendsError } = await supabaseAdmin
+      const { data: friendsCountData, error: friendsError } = await supabaseAdmin
         .from('user_friends')
         .select('id', { count: 'exact' })
         .eq('user_id', user.id)
@@ -107,10 +107,10 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         .eq('status', 'accepted')
 
       if (!friendsError && !reverseFriendsError) {
-        userStats.friendsCount = (friends?.length || 0) + (reverseFriends?.length || 0)
+        userStats.friendsCount = (friendsCountData?.length || 0) + (reverseFriends?.length || 0)
         
         console.log('👥 Friends Query:', { 
-          friends: friends?.length, 
+          friends: friendsCountData?.length, 
           reverseFriends: reverseFriends?.length,
           totalFriends: userStats.friendsCount
         })

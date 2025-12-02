@@ -1098,7 +1098,7 @@ export function EntityHeader({
       {isEditable && (
         <>
           <EntityImageUpload
-            entityId={entityType === 'group' ? group?.id || '' : name}
+            entityId={entityType === 'group' ? group?.id || '' : (entityId || '')}
             entityType={entityType}
             currentImageUrl={coverImage}
             onImageChange={setCoverImage}
@@ -1107,7 +1107,7 @@ export function EntityHeader({
             onOpenChange={setIsCoverModalOpen}
           />
           <EntityImageUpload
-            entityId={entityType === 'group' ? group?.id || '' : name}
+            entityId={entityType === 'group' ? group?.id || '' : (entityId || '')}
             entityType={entityType}
             currentImageUrl={avatarImage}
             onImageChange={setAvatarImage}

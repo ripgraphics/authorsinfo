@@ -350,7 +350,7 @@ export function ImageCropper({
           <ZoomOut className="h-4 w-4 text-gray-600" />
           <Slider
             value={[zoom]}
-            min={1}
+            min={0.1}
             max={3}
             step={0.1}
             onValueChange={(value) => setZoom(value[0])}

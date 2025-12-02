@@ -14,8 +14,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'entityType and entityId are required' }, { status: 400 })
     }
 
-    const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies: async () => cookieStore })
+    const supabase = createRouteHandlerClient({ cookies })
 
     // Resolve permalink to UUID when necessary
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i

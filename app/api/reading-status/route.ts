@@ -4,8 +4,7 @@ import { cookies } from 'next/headers'
 
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createServerActionClient({ cookies: async () => cookieStore })
+    const supabase = createServerActionClient({ cookies })
     
     // Get the current user
     const { data: { user } } = await supabase.auth.getUser()
@@ -167,8 +166,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createServerActionClient({ cookies: async () => cookieStore })
+    const supabase = createServerActionClient({ cookies })
     
     // Get the current user
     const { data: { user } } = await supabase.auth.getUser()
@@ -217,8 +215,7 @@ export async function DELETE(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createServerActionClient({ cookies: async () => cookieStore })
+    const supabase = createServerActionClient({ cookies })
     
     // Get the current user
     const { data: { user } } = await supabase.auth.getUser()

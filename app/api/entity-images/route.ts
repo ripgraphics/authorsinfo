@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
     }
 
     const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies: async () => cookieStore })
+    const supabase = createRouteHandlerClient({ cookies })
 
     // Resolve permalink to UUID if necessary (users/books/authors/publishers/events)
     if (entityId && entityType) {
@@ -349,7 +349,7 @@ export async function POST(request: NextRequest) {
     }
 
     const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies: async () => cookieStore })
+    const supabase = createRouteHandlerClient({ cookies })
  
      // Get the current authenticated user ID early (needed for album search)
      const { data: { user }, error: userError } = await supabase.auth.getUser()
@@ -651,7 +651,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies: async () => cookieStore })
+    const supabase = createRouteHandlerClient({ cookies })
 
     // Get album ID
     const { data: album } = await supabase
@@ -752,7 +752,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies: async () => cookieStore })
+    const supabase = createRouteHandlerClient({ cookies })
 
     // Get album ID
     const { data: album } = await supabase

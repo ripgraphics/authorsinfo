@@ -27,6 +27,7 @@ interface Friend {
     name: string
     email: string
     permalink?: string
+    avatar_url?: string | null
   }
   friendshipDate: string
   mutualFriendsCount: number
@@ -130,7 +131,10 @@ export function FriendList({ userId, className = '', profileOwnerId, profileOwne
             >
               <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14 bg-muted">
                 <Avatar className="h-14 w-14">
-                  <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(friend.friend.name)}`} />
+                  <AvatarImage 
+                    src={friend.friend.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(friend.friend.name)}`} 
+                    alt={friend.friend.name}
+                  />
                   <AvatarFallback>
                     {friend.friend.name.charAt(0).toUpperCase()}
                   </AvatarFallback>

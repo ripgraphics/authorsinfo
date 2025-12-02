@@ -4,20 +4,8 @@ import { cookies } from 'next/headers'
 
 export async function GET(request: NextRequest) {
   try {
-    // Check if we can access cookies
     // Create Supabase client
-    let supabase
-    try {
-      const cookieStore = await cookies()
-      supabase = createRouteHandlerClient({ cookies: async () => cookieStore })
-      
-    } catch (clientError) {
-      console.error('❌ Error creating Supabase client:', clientError)
-      return NextResponse.json({ 
-        error: 'Failed to create Supabase client',
-        details: clientError instanceof Error ? clientError.message : 'Unknown client error'
-      }, { status: 500 })
-    }
+    const supabase = createRouteHandlerClient({ cookies })
 
     // Check environment variables
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {

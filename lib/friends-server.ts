@@ -160,27 +160,33 @@ export async function getFriends(userId: string, page = 1, limit = 100) {
   const userMap = new Map(users.map((u: any) => [u.id, u]))
   const profileMap = new Map(profiles.map((p: any) => [p.user_id, p]))
 
-  return {
-    friends: friends.map(friend => {
-      const friendUserId = friend.user_id === userId ? friend.friend_id : friend.user_id
-      const friendUser = userMap.get(friendUserId)
-      const profile = profileMap.get(friendUserId)
-      const avatarImageId = profile?.avatar_image_id
-      const avatarUrl = avatarImageId ? avatarImageMap.get(avatarImageId) : null
+  const friendsList = friends.map(friend => {
+    const friendUserId = friend.user_id === userId ? friend.friend_id : friend.user_id
+    const friendUser = userMap.get(friendUserId)
+    const profile = profileMap.get(friendUserId)
+    const avatarImageId = profile?.avatar_image_id
+    const avatarUrl = avatarImageId ? avatarImageMap.get(avatarImageId) : null
 
-      return {
+    return {
+      id: friend.id,
+      friend: {
         id: friendUser?.id || friendUserId,
-        name: friendUser?.name || 'Unknown User',
-        email: friendUser?.email || 'unknown@email.com',
+        name: friendUser?.name || friendUser?.email || 'Unknown User',
+        email: friendUser?.email || '',
         permalink: friendUser?.permalink,
-        avatar_url: avatarUrl,
-        followers_count: followersCountMap.get(friendUserId) || 0,
-        friends_count: friendsCountMap.get(friendUserId) || 0,
-        books_read_count: booksReadCountMap.get(friendUserId) || 0,
-        friendshipDate: friend.responded_at
-      }
-    }),
-    count: count || 0
+        avatar_url: avatarUrl
+      },
+      friendshipDate: friend.responded_at,
+      mutualFriendsCount: 0,
+      followersCount: followersCountMap.get(friendUserId) || 0,
+      friendsCount: friendsCountMap.get(friendUserId) || 0,
+      booksReadCount: booksReadCountMap.get(friendUserId) || 0
+    }
+  })
+
+  return {
+    friends: friendsList,
+    count: count || friendsList.length
   }
 }
 

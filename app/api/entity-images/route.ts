@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 
 // Entity types that match the existing working system
 type EntityType = 'book' | 'author' | 'publisher' | 'user' | 'event'
@@ -55,15 +54,14 @@ export async function GET(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createRouteHandlerClientAsync()
 
     // Resolve permalink to UUID if necessary (users/books/authors/publishers/events)
     if (entityId && entityType) {
       // If entityId does not look like a UUID, try to resolve by permalink
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
       if (!uuidRegex.test(entityId)) {
-        const supabaseResolve = createRouteHandlerClient({ cookies: async () => cookieStore })
+        const supabaseResolve = supabase
         const table = entityType === 'user' ? 'users' : entityType + 's'
         const idCol = 'id'
         const { data: resolved, error: resolveError } = await supabaseResolve
@@ -348,8 +346,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createRouteHandlerClientAsync()
  
      // Get the current authenticated user ID early (needed for album search)
      const { data: { user }, error: userError } = await supabase.auth.getUser()
@@ -650,8 +647,7 @@ export async function PUT(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createRouteHandlerClientAsync()
 
     // Get album ID
     const { data: album } = await supabase
@@ -751,8 +747,7 @@ export async function DELETE(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createRouteHandlerClientAsync()
 
     // Get album ID
     const { data: album } = await supabase

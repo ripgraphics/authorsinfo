@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerActionClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createServerActionClientAsync } from '@/lib/supabase/client-helper'
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createServerActionClient({ cookies })
+    const supabase = await createServerActionClientAsync()
     
     // Get the current user
     const { data: { user } } = await supabase.auth.getUser()
@@ -166,7 +165,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = createServerActionClient({ cookies })
+    const supabase = await createServerActionClientAsync()
     
     // Get the current user
     const { data: { user } } = await supabase.auth.getUser()
@@ -215,7 +214,7 @@ export async function DELETE(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerActionClient({ cookies })
+    const supabase = await createServerActionClientAsync()
     
     // Get the current user
     const { data: { user } } = await supabase.auth.getUser()

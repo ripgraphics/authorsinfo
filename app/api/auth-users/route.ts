@@ -1,5 +1,4 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
@@ -8,7 +7,7 @@ const CACHE_DURATION = 300
 
 export async function GET(request: Request) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createRouteHandlerClientAsync()
     // Use admin client for fetching all users
     const adminSupabase = supabaseAdmin
     
@@ -151,7 +150,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createRouteHandlerClientAsync()
     
     // Get current user from session
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()

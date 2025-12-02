@@ -1,9 +1,8 @@
-'use client'
+"use client"
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Card, CardContent } from '@/components/ui/card'
 import { UserListLayout } from '@/components/ui/user-list-layout'
 import { UserActionButtons } from '@/components/user-action-buttons'
 import { 
@@ -46,39 +45,78 @@ interface FriendListProps {
   initialCount?: number
 }
 
-export function FriendList({ userId, className = '', profileOwnerId, profileOwnerName, profileOwnerPermalink, initialFriends = [], initialCount = 0 }: FriendListProps) {
-  const { user } = useAuth()
-  const [friends, setFriends] = useState<Friend[]>(initialFriends.map(f => ({
-    id: f.id || '',
+const PAGE_SIZE = 20
+
+const normalizeFriendEntry = (entry: any): Friend | null => {
+  if (!entry) return null
+
+  const baseFriend = entry.friend || entry.user || entry
+  const friendId = baseFriend?.id || entry.friend_id || entry.user_id || entry.id
+
+  if (!friendId) {
+    return null
+  }
+
+  return {
+    id: entry.id || friendId,
     friend: {
-      id: f.id,
-      name: f.name,
-      email: f.email || '',
-      permalink: f.permalink,
-      avatar_url: f.avatar_url
+      id: friendId,
+      name: baseFriend?.name || baseFriend?.email || entry.name || 'Unknown User',
+      email: baseFriend?.email || entry.email || '',
+      permalink: baseFriend?.permalink || entry.permalink,
+      avatar_url: baseFriend?.avatar_url ?? entry.avatar_url ?? null
     },
-    friendshipDate: f.friendshipDate || new Date().toISOString(),
-    mutualFriendsCount: 0,
-    followersCount: f.followers_count || 0,
-    friendsCount: f.friends_count || 0,
-    booksReadCount: f.books_read_count || 0
-  })))
-  const [isLoading, setIsLoading] = useState(initialFriends.length === 0)
+    friendshipDate: entry.friendshipDate || entry.responded_at || entry.created_at || new Date().toISOString(),
+    mutualFriendsCount: entry.mutualFriendsCount ?? entry.mutual_friends ?? 0,
+    followersCount: entry.followersCount ?? entry.followers_count ?? 0,
+    friendsCount: entry.friendsCount ?? entry.friends_count ?? 0,
+    booksReadCount: entry.booksReadCount ?? entry.books_read_count ?? 0
+  }
+}
+
+export function FriendList({
+  userId,
+  className = '',
+  profileOwnerId,
+  profileOwnerName,
+  profileOwnerPermalink,
+  initialFriends = [],
+  initialCount = 0
+}: FriendListProps) {
+  const { user } = useAuth()
+  const normalizedInitialFriends = useMemo(
+    () => (initialFriends || []).map(normalizeFriendEntry).filter(Boolean) as Friend[],
+    [initialFriends]
+  )
+  const [friends, setFriends] = useState<Friend[]>(normalizedInitialFriends)
+  const [isLoading, setIsLoading] = useState(normalizedInitialFriends.length === 0)
   const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(Math.ceil(initialCount / 20) || 1)
+  const [totalPages, setTotalPages] = useState(Math.max(1, Math.ceil((initialCount || normalizedInitialFriends.length || 0) / PAGE_SIZE)))
   const retryCount = useRef(0)
+  const hasInitialServerData = useRef(normalizedInitialFriends.length > 0)
   
   const { toast } = useToast()
 
   useEffect(() => {
-    // Only fetch if we don't have initial data or if page changed
-    if (initialFriends.length === 0 || currentPage > 1) {
-      fetchFriends()
+    setFriends(normalizedInitialFriends)
+    setTotalPages(Math.max(1, Math.ceil((initialCount || normalizedInitialFriends.length || 0) / PAGE_SIZE)))
+    setIsLoading(normalizedInitialFriends.length === 0)
+    setCurrentPage(1)
+    hasInitialServerData.current = normalizedInitialFriends.length > 0
+  }, [normalizedInitialFriends, initialCount])
+
+  useEffect(() => {
+    const shouldSkipFetch = hasInitialServerData.current && currentPage === 1
+    if (shouldSkipFetch) {
+      hasInitialServerData.current = false
+      return
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    fetchFriends(currentPage)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage])
 
-  const fetchFriends = async () => {
+  const fetchFriends = async (page = currentPage, options: { replace?: boolean } = {}) => {
     try {
       setIsLoading(true)
       const targetId = userId && userId !== 'undefined' ? userId : user?.id
@@ -86,12 +124,33 @@ export function FriendList({ userId, className = '', profileOwnerId, profileOwne
         setIsLoading(false)
         return;
       }
-      const response = await fetch(`/api/friends/list?userId=${targetId}&page=${currentPage}`)
+      const response = await fetch(`/api/friends/list?userId=${targetId}&page=${page}`)
       
       if (response.ok) {
         const data = await response.json()
-        setFriends(data.friends || [])
-        setTotalPages(data.pagination?.totalPages || 1)
+        const normalized = (data.friends || []).map(normalizeFriendEntry).filter(Boolean) as Friend[]
+
+        setFriends(prev => {
+          if (options.replace || page === 1) {
+            return normalized
+          }
+
+          const merged = new Map(prev.map(friend => [friend.id, friend]))
+          normalized.forEach(friend => {
+            if (friend?.id) {
+              merged.set(friend.id, friend)
+            }
+          })
+          return Array.from(merged.values())
+        })
+
+        if (data.pagination?.totalPages) {
+          setTotalPages(Math.max(1, data.pagination.totalPages))
+        } else if (data.pagination?.total) {
+          setTotalPages(Math.max(1, Math.ceil(data.pagination.total / PAGE_SIZE)))
+        } else if (data.pagination?.limit && data.pagination?.total && data.pagination?.limit > 0) {
+          setTotalPages(Math.max(1, Math.ceil(data.pagination.total / data.pagination.limit)))
+        }
       } else {
         console.error('Failed to fetch friends')
       }
@@ -135,7 +194,7 @@ export function FriendList({ userId, className = '', profileOwnerId, profileOwne
   return (
     <div className={className}>
       <UserListLayout
-        title={`Friends · ${friends.length}`}
+        title={`Friends · ${initialCount || friends.length}`}
         items={friends}
         searchPlaceholder="Search friends..."
         sortOptions={sortOptions}
@@ -192,7 +251,11 @@ export function FriendList({ userId, className = '', profileOwnerId, profileOwne
                 size="sm"
                 variant="outline"
                 showFollow={false}
-                onFriendChange={fetchFriends}
+                onFriendChange={() => {
+                  fetchFriends(1, { replace: true })
+                  hasInitialServerData.current = true
+                  setCurrentPage(1)
+                }}
                 className="justify-center"
               />
             </div>

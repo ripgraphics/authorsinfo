@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
+import { supabaseAdmin } from '@/lib/supabase-admin'
 import { getUserIdFromPermalinkServer } from '@/lib/utils/profile-url-server'
 
 export async function POST(request: NextRequest) {
   try {
     console.log('Friend request POST started')
-    const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createRouteHandlerClientAsync()
     
     // Get the current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -116,8 +115,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createRouteHandlerClientAsync()
     
     // Get the current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -205,8 +203,7 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createRouteHandlerClientAsync()
     
     // Get the current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -258,8 +255,7 @@ export async function DELETE(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createRouteHandlerClientAsync()
     
     // Get the current user (optional - allow checking friend status without auth)
     const { data: { user } } = await supabase.auth.getUser()
@@ -287,33 +283,34 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Target user not found' }, { status: 404 })
     }
 
-    // Check friend status
-    const { data: existingRequests, error: checkError } = await supabase
-      .from('user_friends')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('friend_id', targetUserUUID)
+    // Use admin client for faster queries - check both directions in parallel
+    const [existingResult, reverseResult] = await Promise.all([
+      supabaseAdmin
+        .from('user_friends')
+        .select('status, requested_by')
+        .eq('user_id', user.id)
+        .eq('friend_id', targetUserUUID)
+        .maybeSingle(),
+      supabaseAdmin
+        .from('user_friends')
+        .select('status, requested_by')
+        .eq('user_id', targetUserUUID)
+        .eq('friend_id', user.id)
+        .maybeSingle()
+    ])
 
-    if (checkError) {
-      console.error('Check error:', checkError)
+    if (existingResult.error) {
+      console.error('Check error:', existingResult.error)
       return NextResponse.json({ error: 'Error checking friend status' }, { status: 500 })
     }
 
-    // Also check the reverse relationship
-    const { data: reverseRequests, error: reverseCheckError } = await supabase
-      .from('user_friends')
-      .select('*')
-      .eq('user_id', targetUserUUID)
-      .eq('friend_id', user.id)
-
-    if (reverseCheckError) {
-      console.error('Reverse check error:', reverseCheckError)
+    if (reverseResult.error) {
+      console.error('Reverse check error:', reverseResult.error)
       return NextResponse.json({ error: 'Error checking friend status' }, { status: 500 })
     }
 
-    // Combine both results
-    const allRequests = [...(existingRequests || []), ...(reverseRequests || [])]
-    const friendStatus = allRequests[0]
+    // Get the friend status from either direction
+    const friendStatus = existingResult.data || reverseResult.data
 
     let status = 'none'
     let isPending = false

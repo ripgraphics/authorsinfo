@@ -71,12 +71,12 @@ export function FriendList({ userId, className = '', profileOwnerId, profileOwne
   const { toast } = useToast()
 
   useEffect(() => {
-    // Only fetch if we don't have initial data
-    if (initialFriends.length === 0) {
+    // Only fetch if we don't have initial data or if page changed
+    if (initialFriends.length === 0 || currentPage > 1) {
       fetchFriends()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, user?.id, currentPage])
+  }, [currentPage])
 
   const fetchFriends = async () => {
     try {

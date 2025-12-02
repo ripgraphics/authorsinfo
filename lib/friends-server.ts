@@ -48,7 +48,7 @@ export async function getFriends(userId: string, page = 1, limit = 100) {
     supabaseAdmin
       .from('profiles')
       .select('user_id, avatar_image_id')
-      .in('id', friendUserIds)
+      .in('user_id', friendUserIds)
   ])
 
   const users = usersResult.data || []

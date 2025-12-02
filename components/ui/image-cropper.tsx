@@ -309,77 +309,91 @@ export function ImageCropper({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
-      <div className="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-lg bg-white p-6">
-        {/* Header */}
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Crop Image</h3>
+      <div className="relative max-h-[90vh] max-w-[90vw] flex flex-col rounded-lg bg-white overflow-hidden">
+        {/* Fixed Header */}
+        <div className="flex-shrink-0 flex items-center justify-between px-3 py-2 border-b">
+          <h3 className="text-sm font-semibold">Crop Image</h3>
           <Button
             variant="ghost"
             size="sm"
             onClick={onCancel}
-            className="h-8 w-8 p-0"
+            className="h-6 w-6 p-0"
             disabled={processing}
           >
-            <X className="h-4 w-4" />
+            <X className="h-3 w-3" />
           </Button>
         </div>
 
-        {/* Image Cropper */}
-        <div ref={cropContainerRef} className="max-h-[70vh] overflow-auto flex items-start justify-center p-4 bg-gray-50">
-          <ReactCrop
-            crop={crop}
-            onChange={(_, percentCrop) => setCrop(percentCrop)}
-            onComplete={(c) => setCompletedCrop(c)}
-            aspect={aspectRatio}
-            minWidth={50}
-            minHeight={50}
-            ruleOfThirds
-            circularCrop={circularCrop}
-            className="max-w-full"
-            disabled={!imageLoaded || processing}
-          >
-            <img
-              ref={imgRef}
-              alt="Crop me"
-              src={imageUrl}
-              crossOrigin="anonymous"
-              style={{
-                maxWidth: '100%',
-                height: 'auto',
-                display: 'block',
-                cursor: 'crosshair',
-                margin: '0 auto',
-              }}
-              onLoad={onImageLoad}
-              onError={onImageError}
-              onClick={handleImageClick}
-            />
-          </ReactCrop>
+        {/* Scrollable Image Cropper Container */}
+        <div 
+          ref={cropContainerRef} 
+          className="flex-1 overflow-auto flex items-start justify-center bg-gray-50"
+          style={{ minHeight: 0 }}
+        >
+          <div className="p-2">
+            <ReactCrop
+              crop={crop}
+              onChange={(_, percentCrop) => setCrop(percentCrop)}
+              onComplete={(c) => setCompletedCrop(c)}
+              aspect={aspectRatio}
+              minWidth={50}
+              minHeight={50}
+              ruleOfThirds
+              circularCrop={circularCrop}
+              className="max-w-full"
+              disabled={!imageLoaded || processing}
+            >
+              <img
+                ref={imgRef}
+                alt="Crop me"
+                src={imageUrl}
+                crossOrigin="anonymous"
+                style={{
+                  maxWidth: '100%',
+                  height: 'auto',
+                  display: 'block',
+                  cursor: 'crosshair',
+                  margin: '0 auto',
+                }}
+                onLoad={onImageLoad}
+                onError={onImageError}
+                onClick={handleImageClick}
+              />
+            </ReactCrop>
+          </div>
         </div>
 
-        {/* Instructions */}
-        <div className="mt-2 text-center text-sm text-gray-600">
-          Click and drag to create a new crop area, or drag the corners to adjust the existing crop area.
-        </div>
-
-        {/* Footer */}
-        <div className="mt-4 flex justify-end gap-2">
-          <Button variant="outline" onClick={onCancel} disabled={processing}>
-            Cancel
-          </Button>
-          <Button
-            onClick={generateCroppedImage}
-            disabled={!completedCrop || !imageLoaded || processing}
-          >
-            {processing ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing...
-              </>
-            ) : (
-              'Crop Image'
-            )}
-          </Button>
+        {/* Fixed Footer */}
+        <div className="flex-shrink-0 flex items-center justify-between px-3 py-2 border-t bg-white">
+          <div className="text-xs text-gray-500">
+            Click and drag to adjust crop area
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={onCancel} 
+              disabled={processing}
+              className="h-7 px-3 text-xs"
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={generateCroppedImage}
+              disabled={!completedCrop || !imageLoaded || processing}
+              className="h-7 px-3 text-xs"
+            >
+              {processing ? (
+                <>
+                  <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                'Crop Image'
+              )}
+            </Button>
+          </div>
         </div>
       </div>
     </div>

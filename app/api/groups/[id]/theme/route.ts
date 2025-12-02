@@ -30,7 +30,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     .eq('user_id', body.user_id)
     .single();
 
-  if (memberError || !member || member.group_roles?.name !== 'Owner') {
+  const groupRole = Array.isArray(member?.group_roles) ? member.group_roles[0] : member?.group_roles
+  if (memberError || !member || groupRole?.name !== 'Owner') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
   }
 

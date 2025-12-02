@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     let supabase
     try {
       const cookieStore = await cookies()
-      supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+      supabase = createRouteHandlerClient({ cookies: async () => cookieStore })
       
     } catch (clientError) {
       console.error('❌ Error creating Supabase client:', clientError)

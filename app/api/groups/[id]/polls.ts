@@ -129,7 +129,7 @@ export async function GET_results(req: NextRequest, { params }: { params: Promis
     .eq('poll_id', pollId);
   if (votesError) return NextResponse.json({ error: votesError.message }, { status: 400 });
   // Tally votes
-  const results = (poll.options || []).map((_, idx: number) => ({ option_index: idx, count: 0, voters: [] as string[] }));
+  const results = (poll.options || []).map((_: any, idx: number) => ({ option_index: idx, count: 0, voters: [] as string[] }));
   for (const vote of votes || []) {
     if (results[vote.option_index]) {
       results[vote.option_index].count++;

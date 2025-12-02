@@ -35,7 +35,7 @@ const getTargetTypeId = async (targetType: string): Promise<number | null> => {
 export async function POST(request: NextRequest) {
   try {
     const cookieStore = await cookies()
-    const supabase = createServerComponentClient({ cookies: () => cookieStore })
+    const supabase = createServerComponentClient({ cookies: async () => cookieStore })
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {
@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const cookieStore = await cookies()
-    const supabase = createServerComponentClient({ cookies: () => cookieStore })
+    const supabase = createServerComponentClient({ cookies: async () => cookieStore })
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {
@@ -243,7 +243,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const cookieStore = await cookies()
-    const supabase = createServerComponentClient({ cookies: () => cookieStore })
+    const supabase = createServerComponentClient({ cookies: async () => cookieStore })
     const {
       data: { user },
     } = await supabase.auth.getUser()

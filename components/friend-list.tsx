@@ -42,20 +42,39 @@ interface FriendListProps {
   profileOwnerId?: string
   profileOwnerName?: string
   profileOwnerPermalink?: string
+  initialFriends?: any[]
+  initialCount?: number
 }
 
-export function FriendList({ userId, className = '', profileOwnerId, profileOwnerName, profileOwnerPermalink }: FriendListProps) {
+export function FriendList({ userId, className = '', profileOwnerId, profileOwnerName, profileOwnerPermalink, initialFriends = [], initialCount = 0 }: FriendListProps) {
   const { user } = useAuth()
-  const [friends, setFriends] = useState<Friend[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [friends, setFriends] = useState<Friend[]>(initialFriends.map(f => ({
+    id: f.id || '',
+    friend: {
+      id: f.id,
+      name: f.name,
+      email: f.email || '',
+      permalink: f.permalink,
+      avatar_url: f.avatar_url
+    },
+    friendshipDate: f.friendshipDate || new Date().toISOString(),
+    mutualFriendsCount: 0,
+    followersCount: f.followers_count || 0,
+    friendsCount: f.friends_count || 0,
+    booksReadCount: f.books_read_count || 0
+  })))
+  const [isLoading, setIsLoading] = useState(initialFriends.length === 0)
   const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
+  const [totalPages, setTotalPages] = useState(Math.ceil(initialCount / 20) || 1)
   const retryCount = useRef(0)
   
   const { toast } = useToast()
 
   useEffect(() => {
-    fetchFriends()
+    // Only fetch if we don't have initial data
+    if (initialFriends.length === 0) {
+      fetchFriends()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, user?.id, currentPage])
 

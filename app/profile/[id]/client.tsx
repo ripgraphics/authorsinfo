@@ -62,13 +62,15 @@ interface ClientProfilePageProps {
   coverImageUrl: string
   followers?: any[]
   followersCount?: number
+  friends?: any[]
+  friendsCount?: number
   books?: any[]
   params: {
     id: string
   }
 }
 
-export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, followers = [], followersCount = 0, books = [], params }: ClientProfilePageProps) {
+export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, followers = [], followersCount = 0, friends = [], friendsCount = 0, books = [], params }: ClientProfilePageProps) {
   const { user: authUser } = useAuth()
   const { toast } = useToast()
   const searchParams = useSearchParams()

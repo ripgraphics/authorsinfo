@@ -201,20 +201,61 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Update entity profile with image_id
-    const { error: updateError } = await supabase
-      .from(`${entityType}s`)
-      .update({
-        [`${imageType}_image_id`]: imageRecord.id
-      })
-      .eq('id', entityId)
+    // Check what image columns actually exist in the entity table before updating
+    // Map entity type to actual table name (users -> profiles)
+    const entityTableName = entityType === 'user' ? 'profiles' : `${entityType}s`
+    const entityIdColumn = entityType === 'user' ? 'user_id' : 'id'
+    const { data: entityColumnsData } = await supabaseAdmin
+      .from("information_schema.columns")
+      .select("column_name")
+      .eq("table_name", entityTableName)
+      .eq("table_schema", "public")
 
-    if (updateError) {
-      console.error('Error updating entity profile:', updateError)
-      return NextResponse.json(
-        { error: `Failed to update ${entityType} profile: ${updateError.message}` },
-        { status: 500 }
-      )
+    const entityColumns = new Set(entityColumnsData?.map((col: { column_name: string }) => col.column_name) || [])
+    
+    // Map imageType to actual column names that might exist
+    // For books: 'cover' -> 'cover_image_id', 'avatar' might not exist
+    // For authors: 'cover' -> 'cover_image_id', 'avatar' -> 'author_image_id'
+    // For users (profiles): 'cover' -> 'cover_image_id', 'avatar' -> 'avatar_image_id'
+    let columnName = `${imageType}_image_id`
+    
+    // Handle special cases for different entity types
+    if (entityType === 'book' && imageType === 'avatar') {
+      // Books might not have avatar_image_id, skip update if it doesn't exist
+      if (!entityColumns.has('avatar_image_id')) {
+        console.warn(`Column 'avatar_image_id' does not exist in '${entityTableName}' table, skipping entity update`)
+        // Still return success since the image was uploaded and saved
+        return NextResponse.json({
+          success: true,
+          url: data.secure_url,
+          image_id: imageRecord.id,
+          public_id: data.public_id,
+          message: 'Image uploaded successfully (entity profile not updated - column does not exist)'
+        })
+      }
+    } else if (entityType === 'author' && imageType === 'avatar') {
+      columnName = 'author_image_id' // Authors use author_image_id for avatars
+    }
+
+    // Only update if the column exists
+    if (entityColumns.has(columnName)) {
+      const { error: updateError } = await supabase
+        .from(entityTableName)
+        .update({
+          [columnName]: imageRecord.id
+        })
+        .eq(entityIdColumn, entityId)
+
+      if (updateError) {
+        console.error('Error updating entity profile:', updateError)
+        return NextResponse.json(
+          { error: `Failed to update ${entityType} profile: ${updateError.message}` },
+          { status: 500 }
+        )
+      }
+    } else {
+      console.warn(`Column '${columnName}' does not exist in '${entityTableName}' table, skipping entity update`)
+      // Still return success since the image was uploaded and saved to images table
     }
 
     return NextResponse.json({

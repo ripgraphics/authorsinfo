@@ -135,89 +135,60 @@ export function EntityImageUpload({
       // Store the old image URL for potential cleanup
       const oldImageUrl = currentImageUrl
 
-      // For cropped images, we'll upload directly to Cloudinary without the widget
+      // For cropped images, upload via server-side API route
       if (croppedImage) {
-        // Create FormData for direct upload
         const formData = new FormData()
         formData.append('file', fileToUpload)
-        formData.append('upload_preset', 'authorsinfo_webp')
-        formData.append('cloud_name', process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || '')
-        formData.append('quality', '95')
-        formData.append('transformation', 'f_webp')
+        formData.append('entityType', entityType)
+        formData.append('entityId', entityId)
+        formData.append('imageType', type)
 
-        const uploadResponse = await fetch(
-          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-          {
-            method: 'POST',
-            body: formData
-          }
-        )
+        const uploadResponse = await fetch('/api/upload/entity-image', {
+          method: 'POST',
+          body: formData
+        })
 
         if (!uploadResponse.ok) {
-          throw new Error('Failed to upload to Cloudinary')
+          const errorData = await uploadResponse.json().catch(() => ({}))
+          throw new Error(errorData.error || 'Failed to upload to Cloudinary')
         }
 
         const uploadResult = await uploadResponse.json()
 
-        // Insert into images table
-        const { data: imageData, error: imageError } = await supabase
-          .from('images')
-          .insert({
-            url: uploadResult.secure_url,
-            alt_text: `${type} for ${entityType} ${entityId}`,
-            img_type_id: IMAGE_TYPE_IDS[entityType][type],
-            storage_provider: 'cloudinary',
-            storage_path: `authorsinfo/${entityType}_${type}`,
-            original_filename: fileToUpload.name,
-            file_size: fileToUpload.size,
-            mime_type: fileToUpload.type,
-            is_processed: true,
-            processing_status: 'completed'
-          })
-          .select()
-          .single()
-
-        if (imageError) {
-          throw new Error(`Failed to insert image record: ${imageError.message}`)
-        }
-
-        // Update entity profile
-        const { error: updateError } = await supabase
-          .from(`${entityType}s`)
-          .update({
-            [`${type}_image_id`]: imageData.id
-          })
-          .eq('id', entityId)
-
-        if (updateError) {
-          throw new Error(`Failed to update ${entityType} profile: ${updateError.message}`)
-        }
-
         // Optionally delete old image from Cloudinary (only if it's a Cloudinary URL)
         if (oldImageUrl && oldImageUrl.includes('cloudinary.com')) {
           try {
-            // Extract public ID from Cloudinary URL
+            // Extract public ID from Cloudinary URL (including folder path)
             const urlParts = oldImageUrl.split('/')
-            const filename = urlParts[urlParts.length - 1]
-            const publicId = filename.split('.')[0] // Remove file extension
-            
-            // Delete from Cloudinary
-            await fetch('/api/cloudinary/delete', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ publicId })
-            })
-            
-            console.log('Old image deleted from Cloudinary:', publicId)
+            const uploadIndex = urlParts.findIndex(part => part === 'upload')
+            if (uploadIndex > -1 && uploadIndex < urlParts.length - 1) {
+              const pathParts = urlParts.slice(uploadIndex + 1)
+              const filename = pathParts[pathParts.length - 1]
+              const publicIdWithoutExt = filename.split('.')[0]
+              
+              let publicId = publicIdWithoutExt
+              if (pathParts.length > 1) {
+                const folderPath = pathParts.slice(0, -1).join('/')
+                publicId = `${folderPath}/${publicIdWithoutExt}`
+              }
+              
+              await fetch('/api/cloudinary/delete', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ publicId })
+              })
+              
+              console.log('Old image deleted from Cloudinary:', publicId)
+            }
           } catch (deleteError) {
             console.warn('Failed to delete old image from Cloudinary:', deleteError)
             // Don't fail the upload if deletion fails
           }
         }
 
-        onImageChange(uploadResult.secure_url)
+        onImageChange(uploadResult.url)
         toast({
           title: "Success",
           description: `${entityType} ${type} has been updated successfully.`

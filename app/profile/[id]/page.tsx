@@ -2,6 +2,7 @@ import { supabaseAdmin } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
 import { ClientProfilePage } from "./client"
 import { getFollowersCount, getFollowers } from "@/lib/follows-server"
+import { getFriends } from "@/lib/friends-server"
 
 export const dynamic = "force-dynamic"
 
@@ -74,8 +75,9 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       joinedDate: user.created_at
     }
 
-    // Initialize followers array at the top level
+    // Initialize followers and friends arrays at the top level
     let followers: any[] = []
+    let friends: any[] = []
     let books: any[] = []
 
     try {
@@ -130,6 +132,18 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         // Continue with default value of 0
         userStats.followersCount = 0
         followers = []
+      }
+
+      // Get friends list (users who are friends with this user)
+      try {
+        if (userStats.friendsCount > 0) {
+          const friendsData = await getFriends(user.id, 1, 100) // Get up to 100 friends
+          friends = friendsData.friends || []
+        }
+        console.log('👥 Friends Count:', userStats.friendsCount, 'Friends List:', friends.length)
+      } catch (friendsError) {
+        console.error("Error fetching friends:", friendsError)
+        friends = []
       }
     } catch (statsError) {
       console.error("Error fetching user stats:", statsError)
@@ -336,6 +350,8 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         coverImageUrl={coverImageUrl}
         followers={followers}
         followersCount={userStats.followersCount}
+        friends={friends}
+        friendsCount={userStats.friendsCount}
         books={books}
         params={{ id: user.id }}
       />

@@ -1,6 +1,5 @@
-import Link from "next/link"
 import { supabaseAdmin } from "@/lib/supabase"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { UserCard } from "./user-card"
 
 export default async function UsersPage() {
   // Fetch user id, name, and permalink from the database
@@ -22,18 +21,7 @@ export default async function UsersPage() {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
         {users?.map((user: any) => (
-          <Link
-            key={user.id}
-            href={user.permalink ? `/profile/${user.permalink}` : `/profile/${user.id}`}
-            className="block bg-white rounded-lg shadow hover:shadow-lg p-4 text-center transition-transform hover:scale-105"
-          >
-            <div className="mx-auto mb-4 w-16 h-16">
-              <Avatar className="w-full h-full">
-                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-            </div>
-            <h2 className="font-medium truncate">{user.name}</h2>
-          </Link>
+          <UserCard key={user.id} user={user} />
         ))}
       </div>
     </div>

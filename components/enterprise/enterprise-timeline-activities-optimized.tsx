@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef, useTransition } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
+import { useCurrentUserAvatar, useCurrentUserName } from '@/components/user-avatar'
 import EntityFeedCard from '../entity-feed-card'
 import { Avatar } from '../ui/avatar'
 import { Badge } from '../ui/badge'
@@ -214,6 +215,8 @@ const EnterpriseTimelineActivities = React.memo(({
   const { user } = useAuth()
   const { toast } = useToast()
   const supabase = createClientComponentClient()
+  const currentUserAvatar = useCurrentUserAvatar()
+  const currentUserName = useCurrentUserName()
   
   // ============================================================================
   // PERFORMANCE OPTIMIZED STATE MANAGEMENT
@@ -912,7 +915,7 @@ const EnterpriseTimelineActivities = React.memo(({
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <Avatar src={user?.user_metadata?.avatar_url || '/placeholder.svg?height=40&width=40'} alt={user?.user_metadata?.full_name || 'User'} name={user?.user_metadata?.full_name || 'User'} className="w-10 h-10 flex-shrink-0" />
+              <Avatar src={currentUserAvatar || '/placeholder.svg?height=40&width=40'} alt={currentUserName || 'User'} name={currentUserName || 'User'} className="w-10 h-10 flex-shrink-0" />
               {!isTopComposerActive ? (
                 <button
                   onClick={focusTopComposer}

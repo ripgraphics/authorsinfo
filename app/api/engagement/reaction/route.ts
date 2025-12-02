@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
-import { supabaseAdmin } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase/server'
 
 export async function POST(request: Request) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    const supabase = createRouteHandlerClient({ cookies })
     
     // Get the current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -44,116 +43,83 @@ export async function POST(request: Request) {
       reaction_type
     })
 
-    // Check if user already has a reaction for this entity
-    const { data: existingReaction, error: checkError } = await supabaseAdmin
-      .from('engagement_likes')
-      .select('id, reaction_type')
+    // Use likes table for all entity types (activity_likes doesn't exist)
+    const { data: existingLike, error: checkError } = await supabaseAdmin
+      .from('likes')
+      .select('id')
       .eq('user_id', user.id)
       .eq('entity_type', entity_type)
       .eq('entity_id', entity_id)
       .single()
 
     if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
-      console.error('❌ Error checking existing reaction:', checkError)
+      console.error('❌ Error checking existing like:', checkError)
       return NextResponse.json(
-        { error: 'Failed to check existing reaction' },
+        { error: 'Failed to check existing like' },
         { status: 500 }
       )
     }
 
-    let action: 'added' | 'updated' | 'removed' = 'added'
-    let comment_id: string | null = null
+    let action: 'added' | 'removed' = 'added'
+    let like_id: string | null = null
 
-    if (existingReaction) {
-      // User already has a reaction
-      if (existingReaction.reaction_type === reaction_type) {
-        // Same reaction type - remove it (toggle off)
-        const { error: deleteError } = await supabaseAdmin
-          .from('engagement_likes')
-          .delete()
-          .eq('id', existingReaction.id)
+    if (existingLike) {
+      // User already has a like - remove it (toggle off)
+      const { error: deleteError } = await supabaseAdmin
+        .from('likes')
+        .delete()
+        .eq('id', existingLike.id)
 
-        if (deleteError) {
-          console.error('❌ Error removing reaction:', deleteError)
-          return NextResponse.json(
-            { error: 'Failed to remove reaction' },
-            { status: 500 }
-          )
-        }
-
-        action = 'removed'
-        comment_id = null
-      } else {
-        // Different reaction type - update it
-        const { error: updateError } = await supabaseAdmin
-          .from('engagement_likes')
-          .update({ 
-            reaction_type,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existingReaction.id)
-
-        if (updateError) {
-          console.error('❌ Error updating reaction:', updateError)
-          return NextResponse.json(
-            { error: 'Failed to update reaction' },
-            { status: 500 }
-          )
-        }
-
-        action = 'updated'
-        comment_id = existingReaction.id
+      if (deleteError) {
+        console.error('❌ Error removing like:', deleteError)
+        return NextResponse.json(
+          { error: 'Failed to remove like' },
+          { status: 500 }
+        )
       }
+
+      action = 'removed'
+      like_id = null
     } else {
-      // User doesn't have a reaction - add new one
-      const { data: newReaction, error: insertError } = await supabaseAdmin
-        .from('engagement_likes')
+      // User doesn't have a like - add new one
+      const { data: newLike, error: insertError } = await supabaseAdmin
+        .from('likes')
         .insert({
           user_id: user.id,
-          entity_type,
-          entity_id,
-          reaction_type,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          entity_type: entity_type,
+          entity_id: entity_id
         })
         .select('id')
         .single()
 
       if (insertError) {
-        console.error('❌ Error adding reaction:', insertError)
+        console.error('❌ Error adding like:', insertError)
         return NextResponse.json(
-          { error: 'Failed to add reaction' },
+          { error: 'Failed to add like' },
           { status: 500 }
         )
       }
 
       action = 'added'
-      comment_id = newReaction.id
+      like_id = newLike.id
     }
 
     // Update engagement counts in activities table if this is an activity
     if (entity_type === 'activity') {
       try {
-        // Get current reaction counts for this activity
-        const { data: reactionCounts, error: countError } = await supabaseAdmin
-          .from('engagement_likes')
-          .select('reaction_type')
+        // Get current like count for this activity using likes table
+        const { count, error: countError } = await supabaseAdmin
+          .from('likes')
+          .select('*', { count: 'exact', head: true })
           .eq('entity_type', entity_type)
           .eq('entity_id', entity_id)
 
-        if (!countError && reactionCounts) {
-          // Count reactions by type
-          const counts = reactionCounts.reduce((acc, reaction) => {
-            acc[reaction.reaction_type] = (acc[reaction.reaction_type] || 0) + 1
-            return acc
-          }, {} as Record<string, number>)
-
-          // Update the activities table with new counts
+        if (!countError && count !== null) {
+          // Update the activities table with new count
           const { error: updateError } = await supabaseAdmin
             .from('activities')
             .update({
-              like_count: counts.like || 0,
-              // You could add separate columns for each reaction type if needed
+              like_count: count,
               updated_at: new Date().toISOString()
             })
             .eq('id', entity_id)
@@ -169,22 +135,20 @@ export async function POST(request: Request) {
       }
     }
 
-    console.log('✅ Reaction processed successfully:', {
+    console.log('✅ Like processed successfully:', {
       action,
       reaction_type,
-      comment_id
+      like_id
     })
 
     return NextResponse.json({
       success: true,
       action,
-      reaction_type,
-      comment_id,
+      reaction_type: 'like', // Always 'like' since table doesn't support reaction types
+      like_id,
       message: action === 'removed' 
-        ? 'Reaction removed successfully' 
-        : action === 'updated'
-        ? 'Reaction updated successfully'
-        : 'Reaction added successfully'
+        ? 'Like removed successfully' 
+        : 'Like added successfully'
     })
 
   } catch (error) {

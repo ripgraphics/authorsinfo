@@ -457,7 +457,7 @@ export default function RegenerateCoversPage() {
                 )}
 
                 {isPaused && (
-                  <Alert variant="warning" className="mt-4">
+                  <Alert variant="default" className="mt-4 border-yellow-200 bg-yellow-50">
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>Processing Paused</AlertTitle>
                     <AlertDescription>Processing has been paused. Click Resume to continue.</AlertDescription>

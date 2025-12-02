@@ -15,8 +15,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    const supabase = createRouteHandlerClient({ cookies })
 
     // Validate format
     const isValidFormat = /^[a-z0-9-]{3,100}$/.test(permalink) && 

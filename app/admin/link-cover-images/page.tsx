@@ -167,7 +167,10 @@ export default function LinkCoverImagesPage() {
                     className="max-w-full h-32 object-cover rounded border"
                     onError={(e) => {
                       e.currentTarget.style.display = "none"
-                      e.currentTarget.nextElementSibling!.style.display = "block"
+                      const nextSibling = e.currentTarget.nextElementSibling as HTMLElement
+                      if (nextSibling) {
+                        nextSibling.style.display = "block"
+                      }
                     }}
                   />
                   <p className="text-xs text-red-600 hidden">Image not found or invalid public ID</p>

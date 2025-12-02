@@ -279,8 +279,8 @@ export function EnterprisePhotoViewer({
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         setAlbumOwner({
-          name: user.user_metadata?.full_name || user.email || "User",
-          avatar_url: user.user_metadata?.avatar_url
+          name: (user as any)?.name || user.user_metadata?.full_name || user.email || "User",
+          avatar_url: (user as any)?.avatar_url || null
         })
       }
     }

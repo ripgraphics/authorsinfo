@@ -1,11 +1,12 @@
 import { useEffect, useState, useMemo, useRef } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { User } from '@supabase/supabase-js'
-import { deduplicatedRequest, debounce } from '@/lib/request-utils'
+import { deduplicatedRequest, debounce, clearCache } from '@/lib/request-utils'
 
 interface UserWithRole extends User {
   role?: string
   permalink?: string | null
+  avatar_url?: string | null
 }
 
 export function useAuth() {
@@ -97,7 +98,12 @@ export function useAuth() {
   useEffect(() => {
     initializeUser()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      // Clear cache on sign in/out to ensure fresh data
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
+        clearCache('current-user-data')
+      }
+      
       if (session?.user) {
         const userData = await fetchUserData()
         if (userData) {

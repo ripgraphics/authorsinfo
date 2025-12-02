@@ -13,7 +13,7 @@ export async function GET(
     // Get the current user
     const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser()
     
-    if (authError) {
+    if (authError || !currentUser) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
     
@@ -109,7 +109,7 @@ export async function PUT(
     // Get the current user
     const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser()
     
-    if (authError) {
+    if (authError || !currentUser) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
     
@@ -187,7 +187,7 @@ export async function POST(
     // Get the current user
     const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser()
     
-    if (authError) {
+    if (authError || !currentUser) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
     

@@ -94,31 +94,154 @@ export async function getFollowers(followingId: string | number, targetType: Fol
   // Get user IDs from follows
   const followerIds = followsData.map(follow => follow.follower_id)
 
-  // Fetch user details from auth using admin API
-  const { data: authUsers, error: usersError } = await supabaseAdmin.auth.admin.listUsers()
+  // Fetch user details from users table and profiles
+  const [usersResult, profilesResult] = await Promise.all([
+    supabaseAdmin
+      .from('users')
+      .select('id, name, email, permalink')
+      .in('id', followerIds),
+    supabaseAdmin
+      .from('profiles')
+      .select('user_id, avatar_image_id')
+      .in('user_id', followerIds)
+  ])
 
-  if (usersError) {
-    console.error('Error getting user details:', usersError)
-    // Return follows data with fallback names if user fetch fails
-    return {
-      followers: followsData.map(follow => ({
-        id: follow.follower_id,
-        name: 'Unknown User',
-        email: 'unknown@email.com',
-        followSince: follow.created_at
-      })),
-      count: count || 0
+  const users = usersResult.data || []
+  const profiles = profilesResult.data || []
+
+  // Create profile map by user_id
+  const profileMap = new Map(profiles.map((p: any) => [p.user_id, p]))
+
+  // Get unique avatar_image_ids
+  const avatarImageIds = Array.from(new Set(
+    profiles
+      .map((p: any) => p.avatar_image_id)
+      .filter(Boolean)
+  ))
+
+  // Fetch avatar URLs from images table
+  let avatarImageMap = new Map()
+  if (avatarImageIds.length > 0) {
+    const { data: images } = await supabaseAdmin
+      .from('images')
+      .select('id, url')
+      .in('id', avatarImageIds)
+
+    if (images) {
+      avatarImageMap = new Map(images.map((img: any) => [img.id, img.url]))
     }
+  }
+
+  // Get followers count for each user (users who follow this user)
+  const userTargetType = await getFollowTargetType('user')
+  const followersCountMap = new Map<string, number>()
+  
+  if (userTargetType && followerIds.length > 0) {
+    // For each user, get their followers count
+    // We'll batch this by querying all follows where following_id is in our list
+    const { data: userFollowsData } = await supabaseAdmin
+      .from('follows')
+      .select('following_id')
+      .eq('target_type_id', userTargetType.id)
+      .in('following_id', followerIds)
+
+    if (userFollowsData) {
+      // Count followers for each user
+      userFollowsData.forEach((follow: any) => {
+        const currentCount = followersCountMap.get(follow.following_id) || 0
+        followersCountMap.set(follow.following_id, currentCount + 1)
+      })
+    }
+    
+    // Initialize all users with 0 followers if they don't have any
+    followerIds.forEach(id => {
+      if (!followersCountMap.has(id)) {
+        followersCountMap.set(id, 0)
+      }
+    })
+  }
+
+  // Get friends count for each user
+  const friendsCountMap = new Map<string, number>()
+  if (followerIds.length > 0) {
+    // Get friends where user_id is in our list
+    const { data: userFriendsData } = await supabaseAdmin
+      .from('user_friends')
+      .select('user_id, friend_id')
+      .eq('status', 'accepted')
+      .in('user_id', followerIds)
+
+    const { data: reverseFriendsData } = await supabaseAdmin
+      .from('user_friends')
+      .select('user_id, friend_id')
+      .eq('status', 'accepted')
+      .in('friend_id', followerIds)
+
+    // Count friends for each user
+    if (userFriendsData) {
+      userFriendsData.forEach((friendship: any) => {
+        const currentCount = friendsCountMap.get(friendship.user_id) || 0
+        friendsCountMap.set(friendship.user_id, currentCount + 1)
+      })
+    }
+    if (reverseFriendsData) {
+      reverseFriendsData.forEach((friendship: any) => {
+        const currentCount = friendsCountMap.get(friendship.friend_id) || 0
+        friendsCountMap.set(friendship.friend_id, currentCount + 1)
+      })
+    }
+
+    // Initialize all users with 0 friends if they don't have any
+    followerIds.forEach(id => {
+      if (!friendsCountMap.has(id)) {
+        friendsCountMap.set(id, 0)
+      }
+    })
+  }
+
+  // Get books read count for each user
+  const booksReadCountMap = new Map<string, number>()
+  if (followerIds.length > 0) {
+    const { data: booksReadData } = await supabaseAdmin
+      .from('reading_progress')
+      .select('user_id')
+      .eq('status', 'completed')
+      .in('user_id', followerIds)
+
+    if (booksReadData) {
+      booksReadData.forEach((progress: any) => {
+        const currentCount = booksReadCountMap.get(progress.user_id) || 0
+        booksReadCountMap.set(progress.user_id, currentCount + 1)
+      })
+    }
+
+    // Initialize all users with 0 books read if they don't have any
+    followerIds.forEach(id => {
+      if (!booksReadCountMap.has(id)) {
+        booksReadCountMap.set(id, 0)
+      }
+    })
   }
 
   // Create a map of user data for quick lookup
   const userMap = new Map()
-  authUsers?.users?.forEach(user => {
-    const name = user.user_metadata?.name || user.user_metadata?.full_name || 'Unknown User'
+  users.forEach(user => {
+    const profile = profileMap.get(user.id)
+    const avatarImageId = profile?.avatar_image_id
+    const avatarUrl = avatarImageId ? avatarImageMap.get(avatarImageId) : null
+    const followersCount = followersCountMap.get(user.id) || 0
+    const friendsCount = friendsCountMap.get(user.id) || 0
+    const booksReadCount = booksReadCountMap.get(user.id) || 0
+
     userMap.set(user.id, {
       id: user.id,
-      name: name,
-      email: user.email || 'unknown@email.com'
+      name: user.name || 'Unknown User',
+      email: user.email || 'unknown@email.com',
+      permalink: user.permalink,
+      avatar_url: avatarUrl,
+      followers_count: followersCount,
+      friends_count: friendsCount,
+      books_read_count: booksReadCount
     })
   })
 
@@ -127,7 +250,12 @@ export async function getFollowers(followingId: string | number, targetType: Fol
       const userData = userMap.get(follow.follower_id) || {
         id: follow.follower_id,
         name: 'Unknown User',
-        email: 'unknown@email.com'
+        email: 'unknown@email.com',
+        permalink: null,
+        avatar_url: null,
+        followers_count: 0,
+        friends_count: 0,
+        books_read_count: 0
       }
       return {
         ...userData,

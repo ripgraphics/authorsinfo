@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
-import { supabaseAdmin } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase/server'
 
 export async function POST(request: Request) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    const supabase = createRouteHandlerClient({ cookies })
     
     // Get the current user (optional for view tracking)
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -66,169 +65,105 @@ export async function POST(request: Request) {
         // Continue without failing; we will attempt to record view, and DB constraints may enforce integrity
       }
     }
-    // Check if user already viewed this entity (idempotent by unique key)
+    // Track view based on entity type using appropriate table
     let view_id: string | null = null
-    let action: 'added' | 'updated' = 'added'
+    let action: 'added' | 'updated' | 'skipped' = 'added'
 
-    if (userId) {
-      try {
-        // For authenticated users, check existing view without time window to align with unique constraint
-        const { data: existingView, error: checkError } = await supabaseAdmin
-          .from('engagement_views')
-          .select('id, view_count')
-          .eq('user_id', userId)
-          .eq('entity_type', entity_type)
-          .eq('entity_id', entity_id)
-          .maybeSingle()
+    try {
+      if (entity_type === 'book') {
+        // Use book_views table for books
+        if (userId) {
+          const { data: existingView } = await supabaseAdmin
+            .from('book_views')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('book_id', entity_id)
+            .maybeSingle()
 
-        if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
-          console.error('❌ Error checking existing view:', checkError)
-          return NextResponse.json(
-            { error: 'Failed to check existing view' },
-            { status: 500 }
-          )
-        }
+          if (!existingView) {
+            const { data: newView, error: insertError } = await supabaseAdmin
+              .from('book_views')
+              .insert({
+                user_id: userId,
+                book_id: entity_id,
+                viewed_at: new Date().toISOString()
+              })
+              .select('id')
+              .single()
 
-      if (existingView) {
-        // Update existing view count
-        const { data: updatedView, error: updateError } = await supabaseAdmin
-          .from('engagement_views')
-          .update({
-            view_count: (existingView.view_count || 1) + 1,
-            view_duration: view_duration || null,
-            view_source: view_source || null,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existingView.id)
-          .select('id')
-          .single()
-
-        if (updateError) {
-          console.error('❌ Error updating view:', updateError)
-          return NextResponse.json(
-            { error: 'Failed to update view' },
-            { status: 500 }
-          )
-        }
-
-        action = 'updated'
-        view_id = updatedView.id
-      } else {
-        // Insert new view (idempotent): fallback to update on unique violation
-        const { data: newView, error: insertError } = await supabaseAdmin
-          .from('engagement_views')
-          .insert({
-            user_id: userId,
-            entity_type,
-            entity_id,
-            view_count: 1,
-            view_duration: view_duration || null,
-            view_source: view_source || null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-          .select('id')
-          .single()
-
-        if (insertError) {
-          // 23505 unique_violation → another process created the row; increment instead
-          if ((insertError as any).code === '23505') {
-            const { data: existingNow } = await supabaseAdmin
-              .from('engagement_views')
-              .select('id, view_count')
-              .eq('user_id', userId)
-              .eq('entity_type', entity_type)
-              .eq('entity_id', entity_id)
-              .maybeSingle()
-            if (existingNow) {
-              const { data: updatedView, error: updateError } = await supabaseAdmin
-                .from('engagement_views')
-                .update({
-                  view_count: (existingNow.view_count || 1) + 1,
-                  view_duration: view_duration || null,
-                  view_source: view_source || null,
-                  updated_at: new Date().toISOString()
-                })
-                .eq('id', existingNow.id)
-                .select('id')
-                .maybeSingle()
-              if (updateError) {
-                console.error('❌ Error resolving unique conflict by update:', updateError)
-                return NextResponse.json(
-                  { error: 'Failed to update view after conflict' },
-                  { status: 500 }
-                )
-              }
-              action = 'updated'
-              view_id = updatedView?.id || existingNow.id
-            } else {
-              console.error('❌ Unique conflict but existing row not found')
-              return NextResponse.json(
-                { error: 'View tracking conflict' },
-                { status: 409 }
-              )
+            if (!insertError && newView) {
+              view_id = newView.id
+              action = 'added'
             }
           } else {
-            console.error('❌ Error inserting view:', insertError)
-            return NextResponse.json(
-              { error: 'Failed to add view' },
-              { status: 500 }
-            )
+            view_id = existingView.id
+            action = 'updated'
           }
-        } else {
-          action = 'added'
-          view_id = newView.id
         }
-      }
-      } catch (viewError) {
-        console.log('View tracking not available, skipping:', viewError)
-        // If view tracking fails, just return success without recording
-        return NextResponse.json({
-          success: true,
-          action: 'skipped',
-          message: 'View tracking not available',
-          entity_type,
-          entity_id
-        })
-      }
-    } else {
-      // For anonymous users, just track the view without storing user-specific data
-      // This could be stored in a separate anonymous views table or just counted
-      
-    }
+      } else if (entity_type === 'event') {
+        // Use event_views table for events
+        if (userId) {
+          const { data: existingView } = await supabaseAdmin
+            .from('event_views')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('event_id', entity_id)
+            .maybeSingle()
 
-    // Update engagement counts in activities table if this is an activity
-    if (entity_type === 'activity') {
-      try {
-        // Get current view count for this activity
-        const { data: viewCount, error: countError } = await supabaseAdmin
-          .from('engagement_views')
-          .select('view_count', { count: 'exact' })
-          .eq('entity_type', entity_type)
-          .eq('entity_id', entity_id)
+          if (!existingView) {
+            const { data: newView, error: insertError } = await supabaseAdmin
+              .from('event_views')
+              .insert({
+                user_id: userId,
+                event_id: entity_id,
+                viewed_at: new Date().toISOString(),
+                ip_address: null,
+                user_agent: null,
+                referrer: null
+              })
+              .select('id')
+              .single()
 
-        if (!countError && viewCount !== null) {
-          // Sum up all view counts
-          const totalViews = viewCount.reduce((sum, view) => sum + (view.view_count || 1), 0)
-          
-          // Update the activities table with new view count
+            if (!insertError && newView) {
+              view_id = newView.id
+              action = 'added'
+            }
+          } else {
+            view_id = existingView.id
+            action = 'updated'
+          }
+        }
+      } else if (entity_type === 'activity') {
+        // For activities, update the view_count column directly
+        const { data: activity } = await supabaseAdmin
+          .from('activities')
+          .select('view_count')
+          .eq('id', entity_id)
+          .single()
+
+        if (activity) {
+          const newViewCount = (activity.view_count || 0) + 1
           const { error: updateError } = await supabaseAdmin
             .from('activities')
             .update({
-              view_count: totalViews,
+              view_count: newViewCount,
               updated_at: new Date().toISOString()
             })
             .eq('id', entity_id)
 
-          if (updateError) {
-            console.warn('⚠️ Warning: Failed to update activity view count:', updateError)
-            // Don't fail the request for this, just log it
+          if (!updateError) {
+            action = 'updated'
           }
         }
-      } catch (error) {
-        console.warn('⚠️ Warning: Failed to update activity view count:', error)
-        // Don't fail the request for this, just log it
+      } else {
+        // For other entity types (user, author, publisher, group), skip view tracking
+        // or use activities table if applicable
+        action = 'skipped'
       }
+    } catch (viewError) {
+      console.log('View tracking not available, skipping:', viewError)
+      // If view tracking fails, just return success without recording
+      action = 'skipped'
     }
 
     

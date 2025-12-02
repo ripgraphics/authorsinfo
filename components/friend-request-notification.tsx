@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
@@ -41,6 +42,7 @@ interface FriendRequest {
 
 export function FriendRequestNotification() {
   const { user } = useUser()
+  const router = useRouter()
   const [requests, setRequests] = useState<FriendRequest[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [processingRequest, setProcessingRequest] = useState<string | null>(null)
@@ -174,6 +176,12 @@ export function FriendRequestNotification() {
         
         // Refresh the pending requests to ensure we have the latest data
         await fetchPendingRequests()
+        
+        // If accepting, refresh the page to update friend counts in profile headers
+        if (action === 'accept') {
+          // Use router.refresh() to re-fetch server components and update friend counts
+          router.refresh()
+        }
         
         toast({
           title: `Friend request ${action}ed!`,

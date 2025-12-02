@@ -194,8 +194,9 @@ export default function EntityFeedCard({
   // Display helpers for names/avatars
   const postOwnerName = userDetails?.name || post.user_name || 'User'
   const postOwnerAvatar = userDetails?.avatar_url || post.user_avatar_url
-  const currentUserDisplayName = (user as any)?.user_metadata?.full_name || (user as any)?.name || (user as any)?.email || 'You'
-  const currentUserAvatar = (user as any)?.user_metadata?.avatar_url || undefined
+  // Use hooks for current user data
+  const currentUserDisplayName = (user as any)?.name || (user as any)?.user_metadata?.full_name || (user as any)?.email || 'You'
+  const currentUserAvatar = (user as any)?.avatar_url || undefined
 
   // Single-comment preview helpers
   const firstCommentTextRef = useRef<HTMLDivElement>(null)
@@ -240,7 +241,9 @@ export default function EntityFeedCard({
       setIsLoadingComments(true)
       console.log('🔍 FeedCard: Fetching comments for post:', post.id)
       
-      const response = await fetch(`/api/engagement?entity_id=${post.id}&entity_type=${post.entity_type || 'activity'}`)
+      const response = await fetch(`/api/engagement?entity_id=${post.id}&entity_type=${post.entity_type || 'activity'}`, {
+        signal: AbortSignal.timeout(30000) // 30 second timeout
+      })
       
       if (response.ok) {
         const data = await response.json()
@@ -259,11 +262,19 @@ export default function EntityFeedCard({
       }
     } catch (error) {
       console.error('🔍 FeedCard: Error fetching comments:', error)
+      if (error instanceof Error && error.name === 'TimeoutError') {
+        console.error('🔍 FeedCard: Request timed out')
+        toast({
+          title: 'Timeout',
+          description: 'Loading comments took too long. Please try again.',
+          variant: 'destructive'
+        })
+      }
       setComments([])
     } finally {
       setIsLoadingComments(false)
     }
-  }, [post.id, post.entity_type])
+  }, [post.id, post.entity_type, toast])
 
   const submitBottomComment = useCallback(async () => {
     const text = bottomComment.trim()
@@ -278,7 +289,8 @@ export default function EntityFeedCard({
           entity_type: post.entity_type || 'activity',
           engagement_type: 'comment',
           content: text
-        })
+        }),
+        signal: AbortSignal.timeout(30000) // 30 second timeout
       })
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
       setBottomComment('')
@@ -287,11 +299,26 @@ export default function EntityFeedCard({
         const updatedPost = { ...post, comment_count: (post.comment_count || 0) + 1 }
         onPostUpdated(updatedPost)
       }
+      // Add a small delay to ensure the database transaction is committed
+      await new Promise(resolve => setTimeout(resolve, 500))
       fetchComments()
     } catch (e) {
       console.error('Failed to submit comment', e)
+      if (e instanceof Error && e.name === 'TimeoutError') {
+        toast({
+          title: 'Timeout',
+          description: 'The request took too long. Please try again.',
+          variant: 'destructive'
+        })
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to post comment. Please try again.',
+          variant: 'destructive'
+        })
+      }
     }
-  }, [bottomComment, post.id, post.entity_type, onPostUpdated, fetchComments])
+  }, [bottomComment, post.id, post.entity_type, onPostUpdated, fetchComments, toast])
 
   useEffect(() => {
     if (isBottomComposerActive) {

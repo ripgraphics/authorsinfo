@@ -50,15 +50,16 @@ export async function GET(request: NextRequest) {
       const currentUserId = auth?.user?.id
       if (currentUserId && Array.isArray(data) && data.length > 0) {
         const activityIds = data.map((row: any) => row.id)
+        // Use likes table for all entity types (activity_likes doesn't exist)
         const { data: reactions } = await supabase
-          .from('engagement_likes')
-          .select('entity_id, reaction_type')
+          .from('likes')
+          .select('entity_id')
           .eq('entity_type', 'activity')
           .eq('user_id', currentUserId)
           .in('entity_id', activityIds)
         if (Array.isArray(reactions)) {
           userReactionByActivity = reactions.reduce((acc: Record<string, string>, r: any) => {
-            acc[r.entity_id] = r.reaction_type
+            acc[r.entity_id] = 'like' // Always 'like' since table doesn't support reaction types
             return acc
           }, {})
         }
@@ -67,11 +68,13 @@ export async function GET(request: NextRequest) {
       // Non-fatal; omit user reaction if lookup fails
     }
 
-    // Resolve author names from users table for ALL activities
+    // Resolve author names from users table and avatars from images table via profiles.avatar_image_id
     let userIdToName: Record<string, string> = {}
+    let userIdToAvatar: Record<string, string | null> = {}
     try {
       const allUserIds = Array.from(new Set((data || []).map((row: any) => row.user_id).filter(Boolean)))
       if (allUserIds.length > 0) {
+        // Fetch user names
         const { data: users } = await supabase
           .from('users')
           .select('id, name')
@@ -81,6 +84,38 @@ export async function GET(request: NextRequest) {
             if (u?.id && u?.name) acc[u.id] = u.name
             return acc
           }, {})
+        }
+        
+        // Fetch user avatars from images table via profiles.avatar_image_id
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('user_id, avatar_image_id')
+          .in('user_id', allUserIds)
+          .not('avatar_image_id', 'is', null)
+        
+        if (profiles && profiles.length > 0) {
+          // Get unique image IDs
+          const imageIds = Array.from(new Set(profiles.map((p: any) => p.avatar_image_id).filter(Boolean)))
+          
+          if (imageIds.length > 0) {
+            // Fetch image URLs from images table
+            const { data: images } = await supabase
+              .from('images')
+              .select('id, url')
+              .in('id', imageIds)
+            
+            if (images && images.length > 0) {
+              // Create map of image_id to url
+              const imageIdToUrl = new Map(images.map((img: any) => [img.id, img.url]))
+              
+              // Map user_id to avatar_url
+              profiles.forEach((profile: any) => {
+                if (profile.avatar_image_id && imageIdToUrl.has(profile.avatar_image_id)) {
+                  userIdToAvatar[profile.user_id] = imageIdToUrl.get(profile.avatar_image_id) || null
+                }
+              })
+            }
+          }
         }
       }
     } catch (_) {
@@ -92,7 +127,7 @@ export async function GET(request: NextRequest) {
       id: row.id,
       user_id: row.user_id,
       user_name: userIdToName[row.user_id] || null,
-      user_avatar_url: row.user_avatar_url ?? null,
+      user_avatar_url: userIdToAvatar[row.user_id] ?? row.user_avatar_url ?? null, // Prefer avatar from images table via profiles.avatar_image_id
       activity_type: row.activity_type,
       data: row.data,
       created_at: row.created_at,

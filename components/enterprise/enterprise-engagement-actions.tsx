@@ -270,8 +270,8 @@ export function EnterpriseEngagementActions({
             created_at: new Date().toISOString(),
             user: {
               id: user?.id || '',
-              name: user?.user_metadata?.full_name || user?.email || 'User',
-              avatar_url: user?.user_metadata?.avatar_url
+              name: (user as any)?.name || user?.user_metadata?.full_name || user?.email || 'User',
+              avatar_url: (user as any)?.avatar_url || null
             }
           })
         }
@@ -559,8 +559,8 @@ export function EnterpriseEngagementActions({
           {/* User Avatar */}
           <div className="engagement-comment-avatar flex-shrink-0">
             <Avatar
-              src={user?.user_metadata?.avatar_url}
-              name={user?.user_metadata?.full_name || user?.email || 'User'}
+              src={(user as any)?.avatar_url || undefined}
+              name={(user as any)?.name || user?.user_metadata?.full_name || user?.email || 'User'}
               size="sm"
               className="w-8 h-8"
             />

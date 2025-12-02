@@ -686,21 +686,23 @@ async function getEnterpriseInsights(supabase: any, entityId: string, entityType
       .eq('user_id', entityId)
       .eq('status', 'completed')
 
-    insights.total_revenue = (revenueData || []).reduce((sum, tx) => sum + (tx.amount || 0), 0)
+    insights.total_revenue = (revenueData || []).reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0)
 
     // Calculate total views
+    const { data: imagesData } = await supabase.from('images').select('id').eq('entity_type_id', entityId)
+    const imageIds = imagesData?.map((img: any) => img.id) || []
     const { data: analyticsData } = await supabase
       .from('image_analytics')
       .select('views')
-      .in('image_id', (await supabase.from('images').select('id').eq('entity_type_id', entityId)).data?.map(img => img.id) || [])
+      .in('image_id', imageIds)
 
-    insights.total_views = (analyticsData || []).reduce((sum, analytics) => sum + (analytics.views || 0), 0)
+    insights.total_views = (analyticsData || []).reduce((sum: number, analytics: any) => sum + (analytics.views || 0), 0)
 
     // Count AI processed images
     const { count: aiProcessedCount } = await supabase
       .from('ai_image_analysis')
       .select('*', { count: 'exact', head: true })
-      .in('image_id', (await supabase.from('images').select('id').eq('entity_type_id', entityId)).data?.map(img => img.id) || [])
+      .in('image_id', imageIds)
 
     insights.ai_processed_images = aiProcessedCount || 0
 
@@ -719,7 +721,7 @@ async function getEnterpriseInsights(supabase: any, entityId: string, entityType
       .select('points_awarded')
       .eq('user_id', entityId)
 
-    insights.community_score = (communityData || []).reduce((sum, award) => sum + (award.points_awarded || 0), 0)
+    insights.community_score = (communityData || []).reduce((sum: number, award: any) => sum + (award.points_awarded || 0), 0)
 
     // Calculate performance score
     insights.performance_score = Math.min(100, (

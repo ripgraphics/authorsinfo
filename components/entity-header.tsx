@@ -718,7 +718,7 @@ export function EntityHeader({
 
   const renderEntityName = () => {
     const nameElement = (
-      <h1 className="entity-header__title text-base sm:text-[1.1rem] font-bold truncate">{name}</h1>
+      <h1 className="entity-header__title text-base sm:text-[1.1rem] font-bold truncate w-full min-w-0 block">{name}</h1>
     )
 
     switch (entityType) {
@@ -747,7 +747,7 @@ export function EntityHeader({
             }}
             userStats={userStats}
           >
-            <h1 className="entity-header__title text-base sm:text-[1.1rem] font-bold truncate cursor-pointer hover:text-primary transition-colors">{name}</h1>
+            <h1 className="entity-header__title text-base sm:text-[1.1rem] font-bold truncate w-full min-w-0 block cursor-pointer hover:text-primary transition-colors">{name}</h1>
           </EntityHoverCard>
         )
       case 'author':
@@ -1010,9 +1010,9 @@ export function EntityHeader({
           </div>
 
           {/* Entity Info - This should stay within the container */}
-          <div className="entity-header__info mt-6 md:ml-6 flex-1">
+          <div className="entity-header__info mt-6 md:ml-6 flex-1 min-w-0">
             <div className="entity-header__info-layout flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-              <div className="entity-header__info-content max-w-full md:max-w-[calc(100%-240px)] min-w-0">
+              <div className="entity-header__info-content flex-1 min-w-0 overflow-hidden">
                 {renderEntityName()}
                 {entityType === 'group' && creatorName && (
                   <div className="entity-header__creator-info text-muted-foreground truncate text-sm">
@@ -1151,6 +1151,7 @@ export function EntityHeader({
               onCropComplete={handleCropAvatar}
               onCancel={handleAvatarCropCancel}
               isProcessing={isProcessing}
+              circularCrop={true}
             />
           </DialogContent>
         </Dialog>

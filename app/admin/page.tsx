@@ -259,9 +259,11 @@ async function RecentActivitySection() {
 }
 
 async function SystemHealthSection() {
-  const { storage, errorLogs } = await getSystemHealthMetrics()
+  const result = await getSystemHealthMetrics()
+  const storage = result.storage
+  const typedErrorLogs: Array<{ id: string; error_message: string; created_at: string }> = (result.errorLogs || []) as Array<{ id: string; error_message: string; created_at: string }>
 
-  const errorItems = errorLogs.map((log) => ({
+  const errorItems = typedErrorLogs.map((log) => ({
     id: log.id,
     title: log.error_message,
     subtitle: "Error occurred",

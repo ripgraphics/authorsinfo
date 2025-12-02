@@ -44,7 +44,8 @@ export async function GET(request: Request) {
           id,
           user_id,
           bio,
-          role
+          role,
+          avatar_image_id
         `)
         .eq('user_id', userId)
         .single()
@@ -53,12 +54,32 @@ export async function GET(request: Request) {
         console.error('Error fetching profile:', profileError)
       }
       
+      // Fetch avatar from images table via profiles.avatar_image_id
+      let avatarUrl: string | null = null
+      if (profile?.avatar_image_id) {
+        try {
+          const { data: image } = await supabase
+            .from('images')
+            .select('url')
+            .eq('id', profile.avatar_image_id)
+            .single()
+          
+          if (image?.url) {
+            avatarUrl = image.url
+          }
+        } catch (avatarError) {
+          // Non-fatal; avatar will be null if not found
+          console.log('Avatar not found or error fetching:', avatarError)
+        }
+      }
+      
       const transformedUser = {
         id: user.id,
         email: user.email || 'No email',
         name: user.name || 'Unknown User',
         created_at: user.created_at,
-        role: profile?.role || 'user'
+        role: profile?.role || 'user',
+        avatar_url: avatarUrl
       }
       
       const response = NextResponse.json({ user: transformedUser })
@@ -145,8 +166,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No authenticated user' }, { status: 401 })
     }
     
-    // Optimize: Use a single query with JOIN instead of separate queries
-    const { data: userWithProfile, error: userError } = await supabase
+    // Get user data from users table
+    const { data: user, error: userError } = await supabase
       .from('users')
       .select(`
         id,
@@ -155,55 +176,51 @@ export async function POST(request: Request) {
         created_at,
         updated_at,
         role_id,
-        permalink,
-        profiles!inner(
-          id,
-          role
-        )
+        permalink
       `)
       .eq('id', session.user.id)
       .single()
     
     if (userError) {
-      // Fallback to separate queries if JOIN fails
-      console.log('JOIN query failed, falling back to separate queries')
+      console.error('Error fetching user:', userError)
+      return NextResponse.json({ error: 'Failed to fetch user' }, { status: 500 })
+    }
       
-      // Check public.profiles for role
+    // Get profile for role and avatar_image_id
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select(`
           id,
           user_id,
           role,
+        avatar_image_id,
           created_at
         `)
         .eq('user_id', session.user.id)
         .single()
       
       let userRole = 'user'
-      
       if (!profileError && profile && profile.role) {
         userRole = profile.role
       }
       
-      // Get user data from users table
-      const { data: user, error: userError2 } = await supabase
-        .from('users')
-        .select(`
-          id,
-          email,
-          name,
-          created_at,
-          updated_at,
-          role_id,
-          permalink
-        `)
-        .eq('id', session.user.id)
+    // Fetch avatar from images table via profiles.avatar_image_id
+    let avatarUrl: string | null = null
+    if (profile?.avatar_image_id) {
+      try {
+        const { data: image } = await supabase
+          .from('images')
+          .select('url')
+          .eq('id', profile.avatar_image_id)
         .single()
       
-      if (userError2) {
-        console.error('Error fetching user:', userError2)
-        return NextResponse.json({ error: 'Failed to fetch user' }, { status: 500 })
+        if (image?.url) {
+          avatarUrl = image.url
+        }
+      } catch (avatarError) {
+        // Non-fatal; avatar will be null if not found
+        console.log('Avatar not found or error fetching:', avatarError)
+      }
       }
       
       const transformedUser = {
@@ -212,24 +229,8 @@ export async function POST(request: Request) {
         name: user.name || 'Unknown User',
         created_at: user.created_at,
         role: userRole,
-        permalink: user.permalink
-      }
-      
-      const response = NextResponse.json({ user: transformedUser })
-      response.headers.set('Cache-Control', `private, max-age=${CACHE_DURATION}`)
-      return response
-    }
-    
-    // Use the JOIN result
-    const userRole = userWithProfile.profiles?.role || 'user'
-    
-    const transformedUser = {
-      id: userWithProfile.id,
-      email: userWithProfile.email || 'No email',
-      name: userWithProfile.name || 'Unknown User',
-      created_at: userWithProfile.created_at,
-      role: userRole,
-      permalink: userWithProfile.permalink
+      permalink: user.permalink,
+      avatar_url: avatarUrl
     }
     
     const response = NextResponse.json({ user: transformedUser })

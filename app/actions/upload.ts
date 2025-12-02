@@ -8,6 +8,7 @@ export async function uploadImage(
   alt_text = "",
   maxWidth?: number,
   maxHeight?: number,
+  img_type_id?: string,
 ) {
   try {
     // Get Cloudinary credentials from environment variables
@@ -146,6 +147,11 @@ export async function uploadImage(
       metadata: { cloudinary_public_id: data.public_id },
     }
 
+    // Add img_type_id if provided (should be a UUID from entity_types table)
+    if (img_type_id) {
+      insertObject.img_type_id = img_type_id
+    }
+
     // Store the Cloudinary public_id in a field that exists
     // Try common field names that might exist
     if (tableInfo && tableInfo.length > 0) {
@@ -189,6 +195,18 @@ export async function uploadImage(
 
     if (error) {
       console.error("Error inserting image record:", error)
+      console.error("Insert object:", insertObject)
+      console.error("Error details:", {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      })
+      return null
+    }
+
+    if (!imageData || imageData.length === 0) {
+      console.error("No image data returned from insert")
       return null
     }
 

@@ -37,10 +37,10 @@ export async function GET(
 
     // Determine if current user can see reading progress
     const canViewProgress = 
-      currentUser.id === user.id || // Own profile
+      (currentUser?.id === user.id) || // Own profile
       privacySettings?.allow_public_reading_profile === true || // Public profile
-      (privacySettings?.allow_friends_to_see_reading === true && await checkIfFriends(currentUser.id, user.id, supabase)) || // Friends only
-      (privacySettings?.allow_followers_to_see_reading === true && await checkIfFollowing(currentUser.id, user.id, supabase)) // Followers only
+      (currentUser && privacySettings?.allow_friends_to_see_reading === true && await checkIfFriends(currentUser.id, user.id, supabase)) || // Friends only
+      (currentUser && privacySettings?.allow_followers_to_see_reading === true && await checkIfFollowing(currentUser.id, user.id, supabase)) // Followers only
 
     if (!canViewProgress) {
       return NextResponse.json({ error: 'Reading progress is private' }, { status: 403 })

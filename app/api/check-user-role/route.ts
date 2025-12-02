@@ -87,11 +87,11 @@ export async function GET(request: Request) {
       effectiveRole,
       roleSource,
       roleName,
-      authUser: authUserError ? null : authUser,
+      authUser: null, // auth.users table doesn't exist in current schema
       profile: profileError ? null : profile,
       publicUser: publicUserError ? null : publicUser,
       errors: {
-        authUserError: authUserError?.message,
+        authUserError: null, // auth.users table doesn't exist in current schema
         profileError: profileError?.message,
         publicUserError: publicUserError?.message
       }

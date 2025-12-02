@@ -261,17 +261,24 @@ export async function GET(request: NextRequest) {
     const cookieStore = await cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     
-    // Get the current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    // Get the current user (optional - allow checking friend status without auth)
+    const { data: { user } } = await supabase.auth.getUser()
 
     const { searchParams } = new URL(request.url)
     const targetUserId = searchParams.get('targetUserId')
     
     if (!targetUserId) {
       return NextResponse.json({ error: 'Target user ID is required' }, { status: 400 })
+    }
+    
+    // If no user is logged in, return a default status
+    if (!user) {
+      return NextResponse.json({
+        status: 'none',
+        isPending: false,
+        isRequestedByMe: false,
+        isFriends: false
+      })
     }
 
     // Convert permalink to UUID if needed

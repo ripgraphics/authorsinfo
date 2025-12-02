@@ -8,6 +8,7 @@ import { deduplicatedRequest, debounce, clearCache } from '@/lib/request-utils'
 interface UserWithRole extends User {
   role?: string
   permalink?: string | null
+  avatar_url?: string | null
 }
 
 interface UserContextType {
@@ -117,10 +118,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     initializeUser()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        // Invalidate cached user data so we fetch fresh details immediately after sign-in
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      // Clear cache on sign in/out to ensure fresh data
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
         clearCache('current-user-data')
+      }
+      
+      if (session?.user) {
         const userData = await fetchUserData()
         if (userData) {
           debouncedSetUser(userData)

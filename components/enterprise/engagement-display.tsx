@@ -193,41 +193,44 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
               
               {!isLoadingReactions && reactions.length > 0 ? (
                 <div className="space-y-2">
-                  {reactions.map((reaction) => (
-                    <div key={reaction.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors duration-150">
-                      <Avatar
-                        src={reaction.user.avatar_url || '/placeholder.svg?height=24&width=24'}
-                        alt={`${reaction.user.name} avatar`}
-                        name={reaction.user.name}
-                        className="w-6 h-6 flex-shrink-0"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-gray-700 truncate">
-                          {reaction.user.name}
-                        </div>
-                        <div className="text-xs text-gray-500 truncate">
-                          {reaction.user.location || 'Location not set'}
-                        </div>
-                        {showReactionTypes && reaction.reaction_type && (
-                          <div className="flex items-center gap-1 mt-1">
-                            {getReactionIcon(reaction.reaction_type)}
-                            <span className="text-xs text-gray-400 capitalize">
-                              {reaction.reaction_type}
-                            </span>
+                  {reactions.map((reaction) => {
+                    if (!reaction || !reaction.user) return null
+                    return (
+                      <div key={reaction.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors duration-150">
+                        <Avatar
+                          src={reaction.user?.avatar_url || '/placeholder.svg?height=24&width=24'}
+                          alt={`${reaction.user?.name || 'User'} avatar`}
+                          name={reaction.user?.name || 'Unknown User'}
+                          className="w-6 h-6 flex-shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-gray-700 truncate">
+                            {reaction.user?.name || 'Unknown User'}
                           </div>
+                          <div className="text-xs text-gray-500 truncate">
+                            {reaction.user?.location || 'Location not set'}
+                          </div>
+                          {showReactionTypes && reaction.reaction_type && (
+                            <div className="flex items-center gap-1 mt-1">
+                              {getReactionIcon(reaction.reaction_type)}
+                              <span className="text-xs text-gray-400 capitalize">
+                                {reaction.reaction_type}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        {showAddFriendButtons && reaction.user?.id && (
+                          <button
+                            className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-all duration-150 flex items-center gap-1 opacity-0 group-hover:opacity-100"
+                            onClick={() => handleAddFriend(reaction.user.id)}
+                          >
+                            <User className="h-3 w-3" />
+                            Add
+                          </button>
                         )}
                       </div>
-                      {showAddFriendButtons && (
-                        <button
-                          className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-all duration-150 flex items-center gap-1 opacity-0 group-hover:opacity-100"
-                          onClick={() => handleAddFriend(reaction.user.id)}
-                        >
-                          <User className="h-3 w-3" />
-                          Add
-                        </button>
-                      )}
-                    </div>
-                  ))}
+                    )
+                  })}
                   {reactions.length > maxPreviewItems && (
                     <div className="text-xs text-blue-600 text-center pt-2 border-t border-gray-100">
                       +{reactions.length - maxPreviewItems} more people
@@ -266,33 +269,36 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
               
               {!isLoadingComments && comments.length > 0 ? (
                 <div className="space-y-2">
-                  {comments.map((comment) => (
-                    <div key={comment.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors duration-150">
-                      <Avatar
-                        src={comment.user.avatar_url || '/placeholder.svg?height=24&width=24'}
-                        alt={`${comment.user.name} avatar`}
-                        name={comment.user.name}
-                        className="w-6 h-6 flex-shrink-0"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-gray-700 truncate">
-                          {comment.user.name}
+                  {comments.map((comment) => {
+                    if (!comment || !comment.user) return null
+                    return (
+                      <div key={comment.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors duration-150">
+                        <Avatar
+                          src={comment.user?.avatar_url || '/placeholder.svg?height=24&width=24'}
+                          alt={`${comment.user?.name || 'User'} avatar`}
+                          name={comment.user?.name || 'Unknown User'}
+                          className="w-6 h-6 flex-shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-gray-700 truncate">
+                            {comment.user?.name || 'Unknown User'}
+                          </div>
+                          <div className="text-xs text-gray-500 truncate">
+                            {comment.comment_text || ''}
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-500 truncate">
-                          {comment.comment_text}
-                        </div>
+                        {showAddFriendButtons && comment.user?.id && (
+                          <button
+                            className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-all duration-150 flex items-center gap-1 opacity-0 group-hover:opacity-100"
+                            onClick={() => handleAddFriend(comment.user.id)}
+                          >
+                            <User className="h-3 w-3" />
+                            Add
+                          </button>
+                        )}
                       </div>
-                      {showAddFriendButtons && (
-                        <button
-                          className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-all duration-150 flex items-center gap-1 opacity-0 group-hover:opacity-100"
-                          onClick={() => handleAddFriend(comment.user.id)}
-                        >
-                          <User className="h-3 w-3" />
-                          Add
-                        </button>
-                      )}
-                    </div>
-                  ))}
+                    )
+                  })}
                   {comments.length > maxPreviewItems && (
                     <div className="text-xs text-blue-600 text-center pt-2 border-t border-gray-100">
                       +{comments.length - maxPreviewItems} more comments

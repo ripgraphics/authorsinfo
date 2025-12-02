@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
-import { supabaseAdmin } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase/server'
 
 export async function GET(request: Request) {
   try {
@@ -16,32 +16,26 @@ export async function GET(request: Request) {
       )
     }
     
-    // Get reaction counts grouped by reaction type
-    const { data: reactionCounts, error } = await supabaseAdmin
-      .from('engagement_likes')
-      .select('reaction_type, count')
+    // Use likes table for all entity types (activity_likes doesn't exist)
+    const { count, error } = await supabaseAdmin
+      .from('likes')
+      .select('*', { count: 'exact', head: true })
       .eq('entity_type', entityType)
       .eq('entity_id', entityId)
-      .select('reaction_type')
     
     if (error) {
-      console.error('Error fetching reaction counts:', error)
+      console.error('Error fetching like count:', error)
       return NextResponse.json(
-        { error: 'Failed to fetch reaction counts' },
+        { error: 'Failed to fetch like count' },
         { status: 500 }
       )
     }
     
-    // Count reactions by type
-    const counts = reactionCounts.reduce((acc, reaction) => {
-      acc[reaction.reaction_type] = (acc[reaction.reaction_type] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
-    
-    // Ensure all reaction types are represented
+    // Return counts with all reaction types set to 0 except 'like'
+    // Note: The likes table doesn't support reaction types, so only 'like' is available
     const allReactionTypes = ['like', 'love', 'care', 'haha', 'wow', 'sad', 'angry']
     const completeCounts = allReactionTypes.reduce((acc, type) => {
-      acc[type] = counts[type] || 0
+      acc[type] = type === 'like' ? (count || 0) : 0
       return acc
     }, {} as Record<string, number>)
     
@@ -50,7 +44,7 @@ export async function GET(request: Request) {
       entity_id: entityId,
       entity_type: entityType,
       counts: completeCounts,
-      total_reactions: Object.values(completeCounts).reduce((sum, count) => sum + count, 0)
+      total_reactions: count || 0
     })
     
   } catch (error) {

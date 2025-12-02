@@ -26,7 +26,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!body.thread_id || !body.user_id || !body.last_read) return NextResponse.json({ error: 'Missing thread_id, user_id, or last_read' }, { status: 400 });
   const { data, error } = await supabase
     .from('group_chat_thread_last_read')
-    .upsert([{ ...body, group_id: id }], { onConflict: ['thread_id', 'user_id'] })
+    .upsert([{ ...body, group_id: id }], { onConflict: 'thread_id,user_id' })
     .select()
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });

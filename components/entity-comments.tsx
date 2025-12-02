@@ -109,7 +109,7 @@ export default function EntityComments({
           id: user.id,
           name: userData?.name || user.email,
           email: user.email,
-          avatar_url: user.user_metadata?.avatar_url
+          avatar_url: (user as any)?.avatar_url || null
         })
       }
     } catch (error) {

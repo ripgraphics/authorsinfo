@@ -8,7 +8,6 @@ export async function POST(
 ) {
   try {
     const { id } = await params
-    const cookieStore = await cookies()
     const supabase = createRouteHandlerClient({ cookies })
     
     // Get current user
@@ -168,7 +167,6 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const cookieStore = await cookies()
     const supabase = createRouteHandlerClient({ cookies })
     
     // Get current user

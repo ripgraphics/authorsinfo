@@ -101,7 +101,7 @@ export async function POST_progress(req: NextRequest, { params }: { params: Prom
   // Upsert progress
   const { data, error } = await supabase
     .from('group_reading_challenge_progress')
-    .upsert([{ ...body, group_id: id }], { onConflict: ['challenge_id', 'user_id'] })
+    .upsert([{ ...body, group_id: id }], { onConflict: 'challenge_id,user_id' })
     .select()
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });

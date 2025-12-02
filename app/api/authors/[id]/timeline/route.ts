@@ -54,7 +54,7 @@ export async function GET(
     console.log('================================');
 
     // FALLBACK: If RPC function returns no data, try direct query
-    let fallbackActivities = null;
+    let fallbackActivities: any[] | null = null;
     if (!activities || activities.length === 0) {
       console.log('⚠️ RPC function returned no data, trying direct query...');
       
@@ -64,18 +64,18 @@ export async function GET(
         .eq('entity_type', 'author')
         .eq('entity_id', authorId)
         .order('created_at', { ascending: false })
-        .limit(limit)
-        .offset(offset);
+        .range(offset, offset + limit - 1);
       
       if (directError) {
         console.error('Direct query error:', directError);
       } else {
-        fallbackActivities = directData;
+        fallbackActivities = directData || null;
         console.log('✅ Direct query returned:', fallbackActivities?.length || 0, 'activities');
         if (fallbackActivities && fallbackActivities.length > 0) {
-          console.log('First direct query activity:', fallbackActivities[0]);
-          console.log('First direct query text field:', fallbackActivities[0]?.text);
-          console.log('First direct query ALL fields:', Object.keys(fallbackActivities[0]).map(key => `${key}: ${fallbackActivities[0][key]}`));
+          const firstActivity = fallbackActivities[0];
+          console.log('First direct query activity:', firstActivity);
+          console.log('First direct query text field:', firstActivity?.text);
+          console.log('First direct query ALL fields:', Object.keys(firstActivity || {}).map(key => `${key}: ${(firstActivity as any)[key]}`));
         }
       }
     }

@@ -46,7 +46,7 @@ async function getStatistics() {
     }
 
     // Count binding types manually
-    const bindingTypeCounts = {}
+    const bindingTypeCounts: Record<number, number> = {}
     booksWithBindingTypes?.forEach((book) => {
       if (book.binding_type_id) {
         bindingTypeCounts[book.binding_type_id] = (bindingTypeCounts[book.binding_type_id] || 0) + 1
@@ -54,7 +54,7 @@ async function getStatistics() {
     })
 
     // Count format types manually
-    const formatTypeCounts = {}
+    const formatTypeCounts: Record<number, number> = {}
     booksWithFormatTypes?.forEach((book) => {
       if (book.format_type_id) {
         formatTypeCounts[book.format_type_id] = (formatTypeCounts[book.format_type_id] || 0) + 1

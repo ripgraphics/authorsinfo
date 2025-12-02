@@ -94,7 +94,7 @@ export function ContentSection({
 
       {/* Footer Section */}
       {footer && (
-        <div className={cn("content-section__footer-container p-6 pt-0", footerClassName)}>
+        <div className={cn("content-section__footer-container px-6 pb-6", footerClassName)}>
           {footer}
         </div>
       )}

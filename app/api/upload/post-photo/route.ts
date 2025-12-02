@@ -7,8 +7,7 @@ import crypto from 'crypto'
 export async function POST(request: NextRequest) {
   try {
     // Get authenticated user from session
-    const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    const supabase = createRouteHandlerClient({ cookies })
     
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
     if (sessionError) {

@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
 import { EntityTabs } from "@/components/ui/entity-tabs"
-import { deduplicatedRequest } from '@/lib/request-utils'
+import { deduplicatedRequest, clearCache } from '@/lib/request-utils'
 
 export type EntityType = 'author' | 'publisher' | 'book' | 'group' | 'user' | 'event' | 'photo'
 
@@ -507,6 +507,15 @@ export function EntityHeader({
       setImageVersion(prev => prev + 1)
       setIsCropModalOpen(false)
 
+      // Clear cache for entity images to force fresh data on next load
+      clearCache(`entity-avatar-${entityType}-${entityId}`)
+      clearCache(`entity-header-${entityType}-${entityId}`)
+      
+      // Dispatch event to trigger EntityHeader to refetch images
+      window.dispatchEvent(new CustomEvent('entityImageChanged', {
+        detail: { entityType, entityId, imageType: 'cover' }
+      }))
+
       // Call the onCoverImageChange callback if provided
       if (onCoverImageChange) {
         onCoverImageChange()
@@ -687,6 +696,15 @@ export function EntityHeader({
       setAvatarImage(uploadResult.secure_url)
       setImageVersion(prev => prev + 1)
       setIsAvatarCropModalOpen(false)
+
+      // Clear cache for entity images to force fresh data on next load
+      clearCache(`entity-avatar-${entityType}-${entityId}`)
+      clearCache(`entity-header-${entityType}-${entityId}`)
+      
+      // Dispatch event to trigger EntityHeader to refetch images
+      window.dispatchEvent(new CustomEvent('entityImageChanged', {
+        detail: { entityType, entityId, imageType: 'avatar' }
+      }))
 
       // Call the onProfileImageChange callback if provided
       if (onProfileImageChange) {

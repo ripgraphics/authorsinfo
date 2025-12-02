@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createServerComponentClientAsync } from '@/lib/supabase/client-helper'
 import { getFollowTargetType } from '@/lib/follows-server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { followEntity, unfollowEntity } from '@/app/actions/follow'
@@ -34,7 +33,7 @@ const getTargetTypeId = async (targetType: string): Promise<number | null> => {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createServerComponentClient({ cookies })
+    const supabase = await createServerComponentClientAsync()
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {
@@ -151,7 +150,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = createServerComponentClient({ cookies })
+    const supabase = await createServerComponentClientAsync()
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {
@@ -240,7 +239,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const supabase = createServerComponentClient({ cookies })
+    const supabase = await createServerComponentClientAsync()
     const {
       data: { user },
     } = await supabase.auth.getUser()

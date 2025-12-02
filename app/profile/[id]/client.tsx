@@ -481,6 +481,8 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
                 profileOwnerId={user.id}
                 profileOwnerName={user.name}
                 profileOwnerPermalink={user.permalink}
+                initialFriends={friends}
+                initialCount={friendsCount || userStats.friendsCount}
               />
             </div>
           </div>

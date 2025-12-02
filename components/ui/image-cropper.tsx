@@ -37,22 +37,42 @@ export function ImageCropper({
   // Use external isProcessing if provided, otherwise use internal state
   const processing = isProcessing !== undefined ? isProcessing : internalProcessing
 
-  // Function to center the crop on the image
-  const centerAspectCrop = useCallback(
+  // Function to initialize crop - use full width for tall images
+  const initializeCrop = useCallback(
     (mediaWidth: number, mediaHeight: number) => {
-      return centerCrop(
-        makeAspectCrop(
+      // Calculate if image is tall (height > width / aspectRatio means crop height > image height)
+      const cropHeightAtFullWidth = mediaWidth / aspectRatio
+      const isTallImage = mediaHeight > cropHeightAtFullWidth
+      
+      if (isTallImage) {
+        // For tall images: use full width, position at top
+        return makeAspectCrop(
           {
             unit: '%',
-            width: 90,
+            width: 100,
+            x: 0,
+            y: 0,
           },
           aspectRatio,
           mediaWidth,
           mediaHeight,
-        ),
-        mediaWidth,
-        mediaHeight,
-      )
+        )
+      } else {
+        // For wide images: center the crop
+        return centerCrop(
+          makeAspectCrop(
+            {
+              unit: '%',
+              width: 90,
+            },
+            aspectRatio,
+            mediaWidth,
+            mediaHeight,
+          ),
+          mediaWidth,
+          mediaHeight,
+        )
+      }
     },
     [aspectRatio],
   )
@@ -63,10 +83,10 @@ export function ImageCropper({
       setImageLoaded(true)
       if (aspectRatio) {
         const { width, height } = e.currentTarget
-        setCrop(centerAspectCrop(width, height))
+        setCrop(initializeCrop(width, height))
       }
     },
-    [aspectRatio, centerAspectCrop],
+    [aspectRatio, initializeCrop],
   )
 
   // Handle image error
@@ -305,7 +325,7 @@ export function ImageCropper({
         </div>
 
         {/* Image Cropper */}
-        <div ref={cropContainerRef} className="max-h-[75vh] overflow-auto flex items-center justify-center p-4">
+        <div ref={cropContainerRef} className="max-h-[70vh] overflow-auto flex items-start justify-center p-4 bg-gray-50">
           <ReactCrop
             crop={crop}
             onChange={(_, percentCrop) => setCrop(percentCrop)}
@@ -315,7 +335,7 @@ export function ImageCropper({
             minHeight={50}
             ruleOfThirds
             circularCrop={circularCrop}
-            className="max-w-full mx-auto"
+            className="max-w-full"
             disabled={!imageLoaded || processing}
           >
             <img

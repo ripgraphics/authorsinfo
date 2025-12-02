@@ -57,8 +57,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
     }
 
-    const cookiesStore = await cookies();
-    const supabase = createRouteHandlerClient({ cookies: () => cookiesStore });
+    const supabase = createRouteHandlerClient({ cookies });
     const { data: { session } } = await supabase.auth.getSession();
     
     const allowedFields = [

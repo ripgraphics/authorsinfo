@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
 
       console.log(`Resetting passwords for all users to: ${password}`)
 
-      const { data: users, error: fetchError } = await supabaseAdmin.auth.admin.listUsers({ limit: 1000 })
+      const { data: users, error: fetchError } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 })
       if (fetchError) {
         console.error('Error fetching users:', fetchError)
         return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 })

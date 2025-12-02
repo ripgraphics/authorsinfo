@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { BookOpen, AlertTriangle, Loader2 } from "lucide-react"
+import { BookOpen, AlertTriangle, Loader2, Camera } from "lucide-react"
 import { MultiCombobox } from "@/components/ui/multi-combobox"
 import { supabaseClient } from "@/lib/supabase/client"
 import { uploadImage } from "@/app/actions/upload"
@@ -246,10 +246,17 @@ export default function EditBookPage() {
 
           // Upload the new image to Cloudinary with alt text
           const bookTitle = formData.get("title") as string
-          const uploadResult = await uploadImage(base64Image, "bookcovers", `Cover of ${bookTitle}`)
+          
+          // Use the known Book Cover entity type ID (img_type_id from entity_types table)
+          // This UUID corresponds to 'Book Cover' in the entity_types table
+          const bookCoverEntityTypeId = '9d91008f-4f24-4501-b18a-922e2cfd6d34'
+          
+          // Upload image and create record with img_type_id
+          const uploadResult = await uploadImage(base64Image, "bookcovers", `Cover of ${bookTitle}`, undefined, undefined, bookCoverEntityTypeId)
 
-          if (uploadResult) {
+          if (uploadResult && uploadResult.imageId) {
             newCoverImageUrl = uploadResult.url
+            newCoverImageId = uploadResult.imageId
 
             // If we already have a cover_image_id, update that image record
             if (book.cover_image_id) {
@@ -260,29 +267,10 @@ export default function EditBookPage() {
 
               if (imageUpdateError) {
                 console.error("Error updating image record:", imageUpdateError)
-                // Continue anyway, we'll update the URL directly on the book
-              }
-            } else {
-              // Create a new image record
-              const { data: newImage, error: newImageError } = await supabaseClient
-                .from("images")
-                .insert({
-                  url: uploadResult.url,
-                  img_type_id: 1, // Assuming 1 is for book covers
-                  alt_text: `Cover of ${bookTitle}`,
-                })
-                .select("id")
-                .single()
-
-              if (newImageError) {
-                console.error("Error creating image record:", newImageError)
-                // Continue anyway, we'll update the URL directly on the book
-              } else if (newImage) {
-                newCoverImageId = newImage.id
               }
             }
           } else {
-            throw new Error("Failed to upload image")
+            throw new Error("Failed to upload image or get image ID")
           }
         } catch (uploadError) {
           console.error("Upload error:", uploadError)
@@ -412,13 +400,25 @@ export default function EditBookPage() {
           newData.cover_image_id = handleUuidField(newData.cover_image_id);
         }
         
-        // Handle binding_type_id and format_type_id - these might be UUIDs or numbers
+        // Handle binding_type_id and format_type_id - these are integers, not UUIDs
         if (newData.binding_type_id !== undefined) {
-          newData.binding_type_id = handleUuidField(newData.binding_type_id);
+          // Convert to number or null
+          if (newData.binding_type_id === "" || newData.binding_type_id === null) {
+            newData.binding_type_id = null;
+          } else {
+            const num = Number(newData.binding_type_id);
+            newData.binding_type_id = isNaN(num) ? null : num;
+          }
         }
         
         if (newData.format_type_id !== undefined) {
-          newData.format_type_id = handleUuidField(newData.format_type_id);
+          // Convert to number or null
+          if (newData.format_type_id === "" || newData.format_type_id === null) {
+            newData.format_type_id = null;
+          } else {
+            const num = Number(newData.format_type_id);
+            newData.format_type_id = isNaN(num) ? null : num;
+          }
         }
         
         // Ensure array fields are arrays
@@ -729,32 +729,38 @@ export default function EditBookPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Book Cover */}
             <div>
-              <Card className="overflow-hidden">
-                {coverPreview ? (
-                  <div className="w-full h-full">
+              <Card className="overflow-hidden relative">
+                <div className="relative w-full aspect-[2/3]">
+                  {coverPreview ? (
                     <Image
                       src={coverPreview || "/placeholder.svg"}
                       alt={book.title}
-                      width={400}
-                      height={600}
-                      className="w-full aspect-[2/3] object-cover"
+                      fill
+                      className="object-cover"
                     />
-                  </div>
-                ) : book.cover_image_url ? (
-                  <div className="w-full h-full">
+                  ) : book.cover_image_url ? (
                     <Image
                       src={book.cover_image_url || "/placeholder.svg"}
                       alt={book.title}
-                      width={400}
-                      height={600}
-                      className="w-full aspect-[2/3] object-cover"
+                      fill
+                      className="object-cover"
                     />
-                  </div>
-                ) : (
-                  <div className="w-full aspect-[2/3] bg-muted flex items-center justify-center">
-                    <BookOpen className="h-16 w-16 text-muted-foreground" />
-                  </div>
-                )}
+                  ) : (
+                    <div className="w-full h-full bg-muted flex items-center justify-center">
+                      <BookOpen className="h-16 w-16 text-muted-foreground" />
+                    </div>
+                  )}
+                  {/* Camera Icon Overlay */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="absolute bottom-2 right-2 rounded-full h-8 w-8 bg-white/80 hover:bg-white border-white shadow-md"
+                    onClick={() => document.getElementById('cover-image')?.click()}
+                  >
+                    <Camera className="h-4 w-4" />
+                  </Button>
+                </div>
               </Card>
               <div className="mt-4">
                 <Label htmlFor="cover-image" className="block mb-2">

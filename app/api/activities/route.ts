@@ -57,16 +57,16 @@ export async function GET(request: NextRequest) {
     }
 
     // Apply additional filters if provided
-    let filteredData = data || []
+    let filteredData: any[] = data || []
     
     if (activityType) {
-      filteredData = filteredData.filter(activity => 
+      filteredData = filteredData.filter((activity: any) => 
         activity.activity_type === activityType
       )
     }
     
     if (entityType) {
-      filteredData = filteredData.filter(activity => 
+      filteredData = filteredData.filter((activity: any) => 
         activity.entity_type === entityType
       )
     }
@@ -184,7 +184,7 @@ export async function PUT(request: NextRequest) {
     // Check if activity exists and user owns it
     const { data: existingActivity, error: fetchError } = await supabase
       .from('activities')
-      .select('user_id, activity_type')
+      .select('user_id, activity_type, content_type, text, image_url, link_url, visibility')
       .eq('id', id)
       .single()
 

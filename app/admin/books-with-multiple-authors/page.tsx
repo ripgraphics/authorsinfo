@@ -30,11 +30,19 @@ export default async function BooksWithMultipleAuthorsPage({ searchParams }: Boo
       )
     }
 
+    // Transform books to handle cover_image array -> single object
+    const transformedBooks = books.map((book: any) => ({
+      ...book,
+      cover_image: Array.isArray(book.cover_image) && book.cover_image.length > 0 
+        ? book.cover_image[0] 
+        : book.cover_image || undefined
+    }))
+
     return (
       <div className="p-6">
         <Suspense fallback={<BooksWithMultipleAuthorsLoading />}>
           <BooksWithMultipleAuthorsClient
-            initialBooks={books}
+            initialBooks={transformedBooks}
             totalBooks={count}
             initialPage={page}
             initialPageSize={pageSize}

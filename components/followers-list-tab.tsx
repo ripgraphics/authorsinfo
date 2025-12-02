@@ -1,7 +1,9 @@
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Filter } from "lucide-react"
+'use client'
+
+import { useMemo } from "react"
+import { UserListLayout } from "@/components/ui/user-list-layout"
+import { UserActionButtons } from "@/components/user-action-buttons"
+import { UserPlus, Users, BookOpen } from "lucide-react"
 import Link from "next/link"
 
 interface FollowersListTabProps {
@@ -9,61 +11,84 @@ interface FollowersListTabProps {
   followersCount: number
   entityId: string
   entityType: string
+  profileOwnerId?: string
+  profileOwnerName?: string
+  profileOwnerPermalink?: string
 }
 
 export function FollowersListTab({
   followers,
   followersCount,
   entityId,
-  entityType
+  entityType,
+  profileOwnerId,
+  profileOwnerName,
+  profileOwnerPermalink
 }: FollowersListTabProps) {
+  const sortOptions = [
+    { value: 'recent', label: 'Recently Followed' },
+    { value: 'oldest', label: 'Oldest Followers' },
+    { value: 'most_followers', label: 'Most Followers' },
+    { value: 'least_followers', label: 'Least Followers' },
+    { value: 'name_asc', label: 'Name (A-Z)' },
+    { value: 'name_desc', label: 'Name (Z-A)' },
+  ]
+
   return (
-    <Card className="rounded-lg border bg-card text-card-foreground shadow-sm">
-      <div className="flex flex-col space-y-1.5 p-6">
-        <div className="flex justify-between items-center">
-          <div className="text-2xl font-semibold leading-none tracking-tight">
-            Followers · {followersCount}
-          </div>
-          <div className="flex items-center gap-2">
-            <Input className="w-[200px]" placeholder="Search followers..." type="search" />
-            <Button variant="outline" size="icon">
-              <Filter className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
-      <CardContent className="p-6 pt-0">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {followers.length > 0 ? (
-            followers.map((follower) => (
-              <Link
-                key={follower.id}
-                href={follower.permalink ? `/profile/${follower.permalink}` : `/profile/${follower.id}`}
-                className="flex items-center gap-3 p-3 border rounded-lg hover:bg-accent transition-colors"
-              >
-                <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14 bg-muted">
-                  <img
-                    src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(follower.name || 'User')}`}
-                    alt={follower.name || 'User'}
-                    className="aspect-square h-full w-full"
-                  />
-                </span>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-medium truncate">{follower.name || 'Unknown User'}</h3>
-                  <p className="text-xs text-muted-foreground">{follower.email || 'No email available'}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Following since {follower.followSince ? new Date(follower.followSince).toLocaleDateString() : 'unknown date'}
-                  </p>
-                </div>
-              </Link>
-            ))
-          ) : (
-            <div className="col-span-3 text-center p-6">
-              <p className="text-muted-foreground">No followers yet</p>
+    <UserListLayout
+      title={`Followers · ${followersCount}`}
+      items={followers}
+      searchPlaceholder="Search followers..."
+      sortOptions={sortOptions}
+      defaultSort="recent"
+      emptyMessage="No followers yet"
+      emptySearchMessage="No followers found matching your search"
+      renderItem={(follower) => (
+        <div className="flex flex-col border rounded-lg hover:bg-accent transition-colors overflow-hidden">
+          <Link
+            href={follower.permalink ? `/profile/${follower.permalink}` : `/profile/${follower.id}`}
+            className="flex items-center gap-3 p-3 flex-1 min-w-0"
+          >
+            <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14 bg-muted">
+              <img
+                src={follower.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(follower.name || 'User')}`}
+                alt={follower.name || 'User'}
+                className="aspect-square h-full w-full object-cover rounded-full"
+              />
+            </span>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-medium truncate">{follower.name || 'Unknown User'}</h3>
+              <div className="flex items-center text-xs text-muted-foreground mt-1">
+                <BookOpen className="h-3 w-3 mr-1" />
+                <span>{follower.books_read_count || 0} {follower.books_read_count === 1 ? 'book read' : 'books read'}</span>
+              </div>
+              <div className="flex items-center text-xs text-muted-foreground mt-1">
+                <Users className="h-3 w-3 mr-1" />
+                <span>{follower.friends_count || 0} {follower.friends_count === 1 ? 'friend' : 'friends'}</span>
+              </div>
+              <div className="flex items-center text-xs text-muted-foreground mt-1">
+                <UserPlus className="h-3 w-3 mr-1" />
+                <span>{follower.followers_count || 0} {follower.followers_count === 1 ? 'follower' : 'followers'}</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Following since {follower.followSince ? new Date(follower.followSince).toLocaleDateString() : 'unknown date'}
+              </p>
             </div>
-          )}
+          </Link>
+          <div className="px-3 pb-3 pt-0 border-t">
+            <UserActionButtons
+              userId={follower.id}
+              userName={follower.name}
+              userPermalink={follower.permalink}
+              orientation="horizontal"
+              size="sm"
+              variant="outline"
+              showFollow={false}
+              className="justify-center"
+            />
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      )}
+    />
   )
 } 

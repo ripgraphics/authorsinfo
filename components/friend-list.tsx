@@ -2,21 +2,17 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Card, CardContent } from '@/components/ui/card'
+import { UserListLayout } from '@/components/ui/user-list-layout'
+import { UserActionButtons } from '@/components/user-action-buttons'
 import { 
-  Users, 
-  Search, 
-  Filter, 
-  UserMinus, 
-  MessageCircle, 
-  Calendar,
   Loader2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  BookOpen,
+  Users,
+  UserPlus
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { formatDistanceToNow } from 'date-fns'
@@ -34,22 +30,25 @@ interface Friend {
   }
   friendshipDate: string
   mutualFriendsCount: number
+  followersCount?: number
+  friendsCount?: number
+  booksReadCount?: number
 }
 
 interface FriendListProps {
   userId?: string
   className?: string
+  profileOwnerId?: string
+  profileOwnerName?: string
+  profileOwnerPermalink?: string
 }
 
-export function FriendList({ userId, className = '' }: FriendListProps) {
+export function FriendList({ userId, className = '', profileOwnerId, profileOwnerName, profileOwnerPermalink }: FriendListProps) {
   const { user } = useAuth()
   const [friends, setFriends] = useState<Friend[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [sortBy, setSortBy] = useState('recent')
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-  const [removingFriend, setRemovingFriend] = useState<string | null>(null)
   const retryCount = useRef(0)
   
   const { toast } = useToast()
@@ -93,194 +92,94 @@ export function FriendList({ userId, className = '' }: FriendListProps) {
       }
   }
 
-  const handleRemoveFriend = async (friendId: string) => {
-    try {
-      setRemovingFriend(friendId)
-      const response = await fetch(`/api/friends?friendId=${friendId}`, {
-        method: 'DELETE',
-      })
 
-      if (response.ok) {
-        setFriends(prev => prev.filter(friend => friend.friend.id !== friendId))
-        toast({
-          title: "Friend removed",
-          description: "Friend has been removed from your list",
-        })
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to remove friend",
-          variant: 'destructive',
-        })
-      }
-    } catch (error) {
-      console.error('Error removing friend:', error)
-      toast({
-        title: "Error",
-        description: "Failed to remove friend",
-        variant: 'destructive',
-      })
-    } finally {
-      setRemovingFriend(null)
-    }
-  }
-
-  const filteredAndSortedFriends = friends
-    .filter(friend => 
-      friend.friend.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      friend.friend.email.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'name':
-          return a.friend.name.localeCompare(b.friend.name)
-        case 'recent':
-          return new Date(b.friendshipDate).getTime() - new Date(a.friendshipDate).getTime()
-        case 'mutual':
-          return b.mutualFriendsCount - a.mutualFriendsCount
-        default:
-          return 0
-      }
-    })
 
   if (isLoading) {
     return (
-      <Card className={className}>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-center">
-            <Loader2 className="h-6 w-6 animate-spin" />
-            <span className="ml-2">Loading friends...</span>
-          </div>
-        </CardContent>
-      </Card>
+      <div className={className}>
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span className="ml-2">Loading friends...</span>
+        </div>
+      </div>
     )
   }
 
+  const sortOptions = [
+    { value: 'recent', label: 'Most Recent' },
+    { value: 'name_asc', label: 'Name (A-Z)' },
+    { value: 'name_desc', label: 'Name (Z-A)' },
+    { value: 'mutual', label: 'Mutual Friends' },
+  ]
+
   return (
-    <div className={`space-y-4 ${className}`}>
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Friends</h2>
-          <p className="text-muted-foreground">
-            {friends.length} friend{friends.length !== 1 ? 's' : ''}
-          </p>
-        </div>
-        <Badge variant="secondary">
-          <Users className="h-4 w-4 mr-1" />
-          {friends.length}
-        </Badge>
-      </div>
-
-      {/* Search and Filter */}
-      <div className="flex gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search friends..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-40">
-            <Filter className="h-4 w-4 mr-2" />
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="recent">Most Recent</SelectItem>
-            <SelectItem value="name">Name</SelectItem>
-            <SelectItem value="mutual">Mutual Friends</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Friends List */}
-      <div className="space-y-3">
-        {filteredAndSortedFriends.length === 0 ? (
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex flex-col items-center text-center">
-                <Users className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">
-                  {searchTerm ? 'No friends found' : 'No friends yet'}
-                </h3>
-                <p className="text-muted-foreground">
-                  {searchTerm 
-                    ? 'Try adjusting your search terms'
-                    : 'Start connecting with other users to build your network'
-                  }
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          filteredAndSortedFriends.map((friend) => (
-            <Card key={friend.id}>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(friend.friend.name)}`} />
-                      <AvatarFallback>
-                        {friend.friend.name.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    
-                    <div className="flex-1">
-                      <Link 
-                        href={getProfileUrlFromUser(friend.friend)}
-                        className="font-semibold hover:underline"
-                      >
-                        {friend.friend.name}
-                      </Link>
-                      <p className="text-sm text-muted-foreground">
-                        Friends since {formatDistanceToNow(new Date(friend.friendshipDate), { addSuffix: true })}
-                      </p>
-                      {friend.mutualFriendsCount > 0 && (
-                        <p className="text-xs text-muted-foreground">
-                          {friend.mutualFriendsCount} mutual friend{friend.mutualFriendsCount !== 1 ? 's' : ''}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      asChild
-                    >
-                      <Link href={`/messages/${friend.friend.id}`}>
-                        <MessageCircle className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                    
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleRemoveFriend(friend.friend.id)}
-                      disabled={removingFriend === friend.friend.id}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      {removingFriend === friend.friend.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <UserMinus className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
+    <div className={className}>
+      <UserListLayout
+        title={`Friends · ${friends.length}`}
+        items={friends}
+        searchPlaceholder="Search friends..."
+        sortOptions={sortOptions}
+        defaultSort="recent"
+        emptyMessage="No friends yet"
+        emptySearchMessage="No friends found matching your search"
+        renderItem={(friend) => (
+          <div className="flex flex-col border rounded-lg hover:bg-accent transition-colors overflow-hidden">
+            <Link
+              href={getProfileUrlFromUser(friend.friend)}
+              className="flex items-center gap-3 p-3 flex-1 min-w-0"
+            >
+              <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14 bg-muted">
+                <Avatar className="h-14 w-14">
+                  <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(friend.friend.name)}`} />
+                  <AvatarFallback>
+                    {friend.friend.name.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </span>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-medium truncate">{friend.friend.name}</h3>
+                <div className="flex items-center text-xs text-muted-foreground mt-1">
+                  <BookOpen className="h-3 w-3 mr-1" />
+                  <span>{friend.booksReadCount || 0} {friend.booksReadCount === 1 ? 'book read' : 'books read'}</span>
                 </div>
-              </CardContent>
-            </Card>
-          ))
+                <div className="flex items-center text-xs text-muted-foreground mt-1">
+                  <Users className="h-3 w-3 mr-1" />
+                  <span>{friend.friendsCount || 0} {friend.friendsCount === 1 ? 'friend' : 'friends'}</span>
+                </div>
+                <div className="flex items-center text-xs text-muted-foreground mt-1">
+                  <UserPlus className="h-3 w-3 mr-1" />
+                  <span>{friend.followersCount || 0} {friend.followersCount === 1 ? 'follower' : 'followers'}</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Friends since {formatDistanceToNow(new Date(friend.friendshipDate), { addSuffix: true })}
+                </p>
+                {friend.mutualFriendsCount > 0 && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {friend.mutualFriendsCount} mutual friend{friend.mutualFriendsCount !== 1 ? 's' : ''}
+                  </p>
+                )}
+              </div>
+            </Link>
+            <div className="px-3 pb-3 pt-0 border-t">
+              <UserActionButtons
+                userId={friend.friend.id}
+                userName={friend.friend.name}
+                userPermalink={friend.friend.permalink}
+                orientation="horizontal"
+                size="sm"
+                variant="outline"
+                showFollow={false}
+                onFriendChange={fetchFriends}
+                className="justify-center"
+              />
+            </div>
+          </div>
         )}
-      </div>
-
+      />
+      
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-center space-x-2">
+        <div className="flex items-center justify-center space-x-2 mt-4">
           <Button
             variant="outline"
             size="sm"

@@ -42,12 +42,125 @@ export async function GET(request: NextRequest) {
       recent_comments: []
     }
 
-    console.log('✅ GET /api/engagement - Response:', engagement)
+    // Transform the data to include user information
+    const recentLikes = Array.isArray(engagement.recent_likes) ? engagement.recent_likes : []
+    const recentComments = Array.isArray(engagement.recent_comments) ? engagement.recent_comments : []
+
+    // Get all unique user IDs
+    const userIds = new Set<string>()
+    recentLikes.forEach((like: any) => {
+      if (like?.user_id) userIds.add(like.user_id)
+    })
+    recentComments.forEach((comment: any) => {
+      if (comment?.user_id) userIds.add(comment.user_id)
+    })
+
+    // Fetch user profiles
+    let userProfiles: Record<string, any> = {}
+    if (userIds.size > 0) {
+      // Fetch user names from users table and location/avatar_image_id from profiles
+      const userIdsArray = Array.from(userIds)
+      const [usersResult, profilesResult] = await Promise.all([
+        supabase
+          .from('users')
+          .select('id, name')
+          .in('id', userIdsArray),
+        supabase
+          .from('profiles')
+          .select('user_id, location, avatar_image_id')
+          .in('user_id', userIdsArray)
+      ])
+
+      const users = usersResult.data || []
+      const profiles = profilesResult.data || []
+      
+      // Create profile map by user_id
+      const profileMap = new Map(profiles.map((p: any) => [p.user_id, p]))
+      
+      if (users) {
+        users.forEach((user: any) => {
+          const profile = profileMap.get(user.id)
+          userProfiles[user.id] = {
+            id: user.id,
+            name: user.name || 'Unknown User',
+            avatar_url: null,
+            location: profile?.location || null
+          }
+        })
+      }
+      
+      // Fetch avatars from images table via profiles.avatar_image_id
+      try {
+        // Get unique avatar_image_ids from profiles
+        const avatarImageIds = Array.from(new Set(
+          profiles
+            .map((p: any) => p.avatar_image_id)
+            .filter(Boolean)
+        ))
+        
+        if (avatarImageIds.length > 0) {
+          // Fetch image URLs from images table
+          const { data: images } = await supabase
+            .from('images')
+            .select('id, url')
+            .in('id', avatarImageIds)
+          
+          if (images && images.length > 0) {
+            // Create map of image_id to url
+            const imageIdToUrl = new Map(images.map((img: any) => [img.id, img.url]))
+            
+            // Map user_id to avatar_url
+            profiles.forEach((profile: any) => {
+              if (profile.avatar_image_id && imageIdToUrl.has(profile.avatar_image_id) && userProfiles[profile.user_id]) {
+                userProfiles[profile.user_id].avatar_url = imageIdToUrl.get(profile.avatar_image_id) || null
+              }
+            })
+          }
+        }
+      } catch (avatarError) {
+        // Non-fatal; avatars will be null if not found
+        console.log('Error fetching avatars:', avatarError)
+      }
+    }
+
+    // Transform recent_likes to include user object
+    const transformedLikes = recentLikes.map((like: any, index: number) => ({
+      id: like.user_id || `like-${index}`,
+      user: userProfiles[like.user_id] || {
+        id: like.user_id || '',
+        name: 'Unknown User',
+        avatar_url: null,
+        location: null
+      },
+      reaction_type: like.reaction_type || 'like',
+      created_at: like.created_at || new Date().toISOString()
+    }))
+
+    // Transform recent_comments to include user object
+    const transformedComments = recentComments.map((comment: any, index: number) => ({
+      id: comment.id || `comment-${index}`,
+      user: userProfiles[comment.user_id] || {
+        id: comment.user_id || '',
+        name: 'Unknown User',
+        avatar_url: null,
+        location: null
+      },
+      comment_text: comment.comment_text || comment.content || '',
+      created_at: comment.created_at || new Date().toISOString()
+    }))
+
+    console.log('✅ GET /api/engagement - Response:', {
+      likes_count: engagement.likes_count || 0,
+      comments_count: engagement.comments_count || 0,
+      recent_likes: transformedLikes,
+      recent_comments: transformedComments
+    })
+
     return NextResponse.json({
       likes_count: engagement.likes_count || 0,
       comments_count: engagement.comments_count || 0,
-      recent_likes: engagement.recent_likes || [],
-      recent_comments: engagement.recent_comments || []
+      recent_likes: transformedLikes,
+      recent_comments: transformedComments
     })
 
   } catch (error) {
@@ -213,11 +326,12 @@ async function handleCommentWithFunction(supabase: any, userId: string, entityId
 }
 
 // Handle like engagement using direct table operations (fallback)
+// Use likes table for all entity types (activity_likes doesn't exist)
 async function handleLike(supabase: any, userId: string, entityId: string, entityType: string) {
   try {
-    // Check if user already liked this entity
+    // Use likes table for all entity types
     const { data: existingLike, error: checkError } = await supabase
-      .from('engagement_likes')
+      .from('likes')
       .select('id')
       .eq('user_id', userId)
       .eq('entity_type', entityType)
@@ -235,7 +349,7 @@ async function handleLike(supabase: any, userId: string, entityId: string, entit
     if (existingLike) {
       // Unlike - remove the like
       const { error: deleteError } = await supabase
-        .from('engagement_likes')
+        .from('likes')
         .delete()
         .eq('id', existingLike.id)
 
@@ -257,7 +371,7 @@ async function handleLike(supabase: any, userId: string, entityId: string, entit
     } else {
       // Like - add the like
       const { data: likeData, error: insertError } = await supabase
-        .from('engagement_likes')
+        .from('likes')
         .insert({
           user_id: userId,
           entity_type: entityType,
@@ -294,6 +408,7 @@ async function handleLike(supabase: any, userId: string, entityId: string, entit
 }
 
 // Handle comment engagement using direct table operations
+// Use comments table for all entity types (activity_comments may not exist)
 async function handleComment(supabase: any, userId: string, entityId: string, entityType: string, commentText: string, parentId?: string) {
   try {
     const trimmed = commentText?.trim() || ''
@@ -304,15 +419,17 @@ async function handleComment(supabase: any, userId: string, entityId: string, en
       return NextResponse.json({ error: 'Comment too long (max 1500 characters)' }, { status: 400 })
     }
 
-    // Add the comment directly to the table
+    // Use comments table for all entity types
     const { data: commentData, error: insertError } = await supabase
-      .from('engagement_comments')
+      .from('comments')
       .insert({
         user_id: userId,
         entity_type: entityType,
         entity_id: entityId,
-        comment_text: trimmed,
-        parent_comment_id: parentId || null
+        content: trimmed,
+        parent_id: parentId || null,
+        is_deleted: false,
+        is_hidden: false
       })
       .select()
       .single()

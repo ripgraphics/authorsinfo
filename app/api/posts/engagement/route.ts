@@ -18,8 +18,7 @@ export async function POST(request: NextRequest) {
     console.log('=== ENTERPRISE ENGAGEMENT API START ===')
     
     // Authentication
-    const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    const supabase = createRouteHandlerClient({ cookies })
     
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
     if (sessionError || !session?.user) {
@@ -355,8 +354,7 @@ async function updatePostEngagementCounts(supabase: any, postId: string) {
 export async function GET(request: NextRequest) {
   try {
     // Authentication
-    const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    const supabase = createRouteHandlerClient({ cookies })
     
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
     if (sessionError || !session?.user) {

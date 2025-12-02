@@ -261,8 +261,8 @@ export function EnhancedEngagementActions({
           created_at: new Date().toISOString(),
           user: {
             id: user.id,
-            name: user.user_metadata?.full_name || user.email || 'User',
-            avatar_url: user.user_metadata?.avatar_url
+            name: (user as any)?.name || user.user_metadata?.full_name || user.email || 'User',
+            avatar_url: (user as any)?.avatar_url || null
           }
         })
       }
@@ -449,15 +449,15 @@ export function EnhancedEngagementActions({
             {/* User Avatar */}
             <div className="engagement-comment-avatar flex-shrink-0">
               <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                {user?.user_metadata?.avatar_url ? (
+                {(user as any)?.avatar_url ? (
                   <img 
-                    src={user.user_metadata.avatar_url} 
+                    src={(user as any).avatar_url} 
                     alt="User avatar" 
                     className="w-8 h-8 rounded-full object-cover"
                   />
                 ) : (
                   <span className="text-sm font-medium text-gray-600">
-                    {user?.user_metadata?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
+                    {(user as any)?.name?.charAt(0) || user?.user_metadata?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
                   </span>
                 )}
               </div>

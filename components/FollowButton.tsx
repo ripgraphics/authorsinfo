@@ -7,6 +7,7 @@ import { UserPlus, UserMinus, Loader2 } from 'lucide-react'
 import { followEntity, unfollowEntity } from '@/app/actions/follow'
 import { useToast } from '@/hooks/use-toast'
 import { deduplicatedRequest } from '@/lib/request-utils'
+import { useAuth } from '@/hooks/useAuth'
 
 interface FollowButtonProps {
   entityId: string | number
@@ -40,6 +41,7 @@ export default function FollowButton({
   const [isActionLoading, setIsActionLoading] = useState<boolean>(false)
   const { toast } = useToast()
   const router = useRouter()
+  const { user } = useAuth()
 
   // Check if entityId is valid
   const isValidEntityId = useMemo(() => {
@@ -51,6 +53,14 @@ export default function FollowButton({
     }
     return false
   }, [entityId])
+
+  // Check if user is trying to follow themselves
+  const isSelfFollow = useMemo(() => {
+    if (!user || targetType !== 'user') return false
+    if (typeof entityId === 'string' && entityId === user.id) return true
+    if (typeof entityId === 'number' && entityId.toString() === user.id) return true
+    return false
+  }, [user, entityId, targetType])
 
   // Check initial follow status
   useEffect(() => {
@@ -146,8 +156,8 @@ export default function FollowButton({
     ButtonIcon: isFollowingState ? UserMinus : UserPlus
   }), [isFollowingState])
 
-  // Don't render the button if targetType is undefined or entityId is invalid
-  if (!targetType || !isValidEntityId) {
+  // Don't render the button if targetType is undefined, entityId is invalid, or user is trying to follow themselves
+  if (!targetType || !isValidEntityId || isSelfFollow) {
     return null
   }
 

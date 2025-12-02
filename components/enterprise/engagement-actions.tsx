@@ -21,6 +21,7 @@ import {
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/useAuth"
+import { useCurrentUserAvatar, useCurrentUserName } from "@/components/user-avatar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 
@@ -57,6 +58,8 @@ export function EngagementActions({
 }: EngagementActionsProps) {
   const { user } = useAuth()
   const { toast } = useToast()
+  const currentUserAvatar = useCurrentUserAvatar()
+  const currentUserName = useCurrentUserName()
   
   // State for engagement data
   const [engagementCount, setEngagementCount] = useState(initialEngagementCount)
@@ -234,8 +237,8 @@ export function EngagementActions({
           created_at: new Date().toISOString(),
           user: {
             id: user.id,
-            name: user.user_metadata?.full_name || user.email || 'User',
-            avatar_url: user.user_metadata?.avatar_url
+            name: currentUserName,
+            avatar_url: currentUserAvatar
           }
         })
       }
@@ -373,15 +376,15 @@ export function EngagementActions({
             {/* User Avatar */}
             <div className="engagement-comment-avatar flex-shrink-0">
               <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                {user?.user_metadata?.avatar_url ? (
+                {currentUserAvatar ? (
                   <img 
-                    src={user.user_metadata.avatar_url} 
+                    src={currentUserAvatar} 
                     alt="User avatar" 
                     className="w-8 h-8 rounded-full object-cover"
                   />
                 ) : (
                   <span className="text-sm font-medium text-gray-600">
-                    {user?.user_metadata?.full_name?.[0] || user?.email?.[0] || 'U'}
+                    {currentUserName?.[0] || 'U'}
                     </span>
                 )}
               </div>

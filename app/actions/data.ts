@@ -113,17 +113,17 @@ export async function getBookById(id: string): Promise<Book | null> {
           .from("books")
           .select(`
             *,
-            cover_image:images!cover_image_id(url, alt_text)
+            cover_image:images!books_cover_image_id_fkey(url, alt_text)
           `)
           .eq("id", id)
           .single()
 
         if (error) {
           console.error("Error fetching book:", {
-            error,
             errorCode: error.code,
             errorMessage: error.message,
             errorDetails: error.details,
+            errorHint: error.hint,
             bookId: id
           })
           resolve(null)

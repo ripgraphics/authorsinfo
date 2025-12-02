@@ -127,8 +127,8 @@ export function NestedCommentReply({
           updated_at: comment.updated_at,
           user: {
             id: comment.user_id || user.id,
-            name: user.user_metadata?.full_name || user.email || 'Unknown User',
-            avatar_url: user.user_metadata?.avatar_url
+            name: (user as any)?.name || user.user_metadata?.full_name || user.email || 'Unknown User',
+            avatar_url: (user as any)?.avatar_url || null
           },
           parent_comment_id: comment.parent_comment_id,
           comment_depth: (parentComment.comment_depth || 0) + 1,
@@ -213,9 +213,9 @@ export function NestedCommentReply({
       <div className="space-y-3">
         <div className="flex items-start gap-2">
           <Avatar
-            src={user.user_metadata?.avatar_url}
-            alt={user.user_metadata?.full_name || user.email}
-            name={user.user_metadata?.full_name || user.email}
+            src={(user as any)?.avatar_url || undefined}
+            alt={(user as any)?.name || user.user_metadata?.full_name || user.email}
+            name={(user as any)?.name || user.user_metadata?.full_name || user.email}
             size="sm"
           />
           <div className="flex-1">

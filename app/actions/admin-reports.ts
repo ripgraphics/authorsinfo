@@ -24,7 +24,7 @@ export async function getUserActivityData(dateRange: DateRange) {
     if (newUsersError) throw newUsersError
 
     // Get user logins over time (if you have a login_history table)
-    let loginData = []
+    let loginData: Array<{ id: string; user_id: string; created_at: string }> = []
     try {
       const { data: logins, error: loginsError } = await supabaseAdmin
         .from("login_history")
@@ -41,7 +41,7 @@ export async function getUserActivityData(dateRange: DateRange) {
     }
 
     // Get user reading activity (if you have a reading_activity or similar table)
-    let readingData = []
+    let readingData: Array<{ id: string; user_id: string; book_id: string; status: string; created_at: string }> = []
     try {
       const { data: readings, error: readingsError } = await supabaseAdmin
         .from("reading_activity")
@@ -100,7 +100,7 @@ export async function getContentPopularityData(dateRange: DateRange) {
     const { startDate, endDate } = dateRange
 
     // Get most viewed books
-    let viewData = []
+    let viewData: Array<{ id: string; title: string | null; author_id: string | null; cover_image_id: string | null; views: number }> = []
     try {
       const { data: views, error: viewsError } = await supabaseAdmin
         .from("book_views")
@@ -141,7 +141,7 @@ export async function getContentPopularityData(dateRange: DateRange) {
     }
 
     // Get most rated books
-    let ratingData = []
+    let ratingData: Array<{ id: string; title: string | null; author_id: string | null; cover_image_id: string | null; averageRating: number; ratingCount: number }> = []
     try {
       const { data: ratings, error: ratingsError } = await supabaseAdmin
         .from("book_ratings")
@@ -193,7 +193,7 @@ export async function getContentPopularityData(dateRange: DateRange) {
     }
 
     // Get genre popularity
-    let genreData = []
+    let genreData: Array<{ id: string; name: string; bookCount: number }> = []
     try {
       // First get all books with their genres
       const { data: books, error: booksError } = await supabaseAdmin.from("books").select("id, genre_id")

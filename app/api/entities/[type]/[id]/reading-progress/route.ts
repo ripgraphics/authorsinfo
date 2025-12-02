@@ -87,7 +87,7 @@ export async function GET(
     }
 
     // Check privacy settings for users
-    let canViewProgress = true
+    let canViewProgress: boolean = true
     if (type === 'users') {
       const { data: privacySettings } = await supabase
         .from('user_privacy_settings')
@@ -95,11 +95,12 @@ export async function GET(
         .eq('user_id', entity.id)
         .single()
 
-      canViewProgress = 
-        currentUser.id === entity.id || // Own profile
+      canViewProgress = !!(
+        (currentUser?.id === entity.id) || // Own profile
         privacySettings?.allow_public_reading_profile === true || // Public profile
-        (privacySettings?.allow_friends_to_see_reading === true && await checkIfFriends(currentUser.id, entity.id, supabase)) || // Friends only
-        (privacySettings?.allow_followers_to_see_reading === true && await checkIfFollowing(currentUser.id, entity.id, supabase)) // Followers only
+        (currentUser && privacySettings?.allow_friends_to_see_reading === true && await checkIfFriends(currentUser.id, entity.id, supabase)) || // Friends only
+        (currentUser && privacySettings?.allow_followers_to_see_reading === true && await checkIfFollowing(currentUser.id, entity.id, supabase)) // Followers only
+      )
     }
 
     if (!canViewProgress) {
@@ -239,11 +240,11 @@ async function fetchUserReadingProgress(userId: string, supabase: any) {
     throw new Error('Failed to fetch user reading progress')
   }
 
-  const totalPagesRead = currentlyReading?.reduce((sum, book) => 
+  const totalPagesRead = currentlyReading?.reduce((sum: number, book: any) => 
     sum + (book.current_page || 0), 0) || 0
 
   const averageRating = recentlyCompleted?.length > 0 
-    ? recentlyCompleted.reduce((sum, book) => sum + (book.rating || 0), 0) / recentlyCompleted.length
+    ? recentlyCompleted.reduce((sum: number, book: any) => sum + (book.rating || 0), 0) / recentlyCompleted.length
     : 0
 
   return {
@@ -276,7 +277,7 @@ async function fetchAuthorReadingProgress(authorId: string, supabase: any) {
   }
 
   // Get reading progress for these books across all users
-  const bookIds = authorBooks?.map(ab => ab.book_id) || []
+  const bookIds = authorBooks?.map((ab: any) => ab.book_id) || []
   let totalReadingProgress = []
   
   if (bookIds.length > 0) {
@@ -304,7 +305,7 @@ async function fetchAuthorReadingProgress(authorId: string, supabase: any) {
     totalReadingProgress,
     totalBooks: authorBooks?.length || 0,
     totalPagesRead: 0, // Would need to calculate from reading progress
-    averageRating: authorBooks?.reduce((sum, ab) => sum + (ab.books.average_rating || 0), 0) / Math.max(authorBooks?.length || 1, 1) || 0
+    averageRating: authorBooks?.reduce((sum: number, ab: any) => sum + (ab.books?.average_rating || 0), 0) / Math.max(authorBooks?.length || 1, 1) || 0
   }
 }
 
@@ -331,8 +332,8 @@ async function fetchPublisherReadingProgress(publisherId: string, supabase: any)
   return {
     publisherBooks: publisherBooks || [],
     totalBooks: publisherBooks?.length || 0,
-    totalPagesRead: publisherBooks?.reduce((sum, book) => sum + (book.pages || 0), 0) || 0,
-    averageRating: publisherBooks?.reduce((sum, book) => sum + (book.average_rating || 0), 0) / Math.max(publisherBooks?.length || 1, 1) || 0
+    totalPagesRead: publisherBooks?.reduce((sum: number, book: any) => sum + (book.pages || 0), 0) || 0,
+    averageRating: publisherBooks?.reduce((sum: number, book: any) => sum + (book.average_rating || 0), 0) / Math.max(publisherBooks?.length || 1, 1) || 0
   }
 }
 
@@ -351,7 +352,7 @@ async function fetchGroupReadingProgress(groupId: string, supabase: any) {
     throw new Error('Failed to fetch group members')
   }
 
-  const memberIds = groupMembers?.map(member => member.user_id) || []
+  const memberIds = groupMembers?.map((member: any) => member.user_id) || []
   let collectiveReadingProgress = []
   
   if (memberIds.length > 0) {
@@ -408,8 +409,8 @@ async function fetchEventReadingProgress(eventId: string, supabase: any) {
   return {
     eventBooks: eventBooks || [],
     totalBooks: eventBooks?.length || 0,
-    totalPagesRead: eventBooks?.reduce((sum, eb) => sum + (eb.books.pages || 0), 0) || 0,
-    averageRating: eventBooks?.reduce((sum, eb) => sum + (eb.books.average_rating || 0), 0) / Math.max(eventBooks?.length || 1, 1) || 0
+    totalPagesRead: eventBooks?.reduce((sum: number, eb: any) => sum + (eb.books?.pages || 0), 0) || 0,
+    averageRating: eventBooks?.reduce((sum: number, eb: any) => sum + (eb.books?.average_rating || 0), 0) / Math.max(eventBooks?.length || 1, 1) || 0
   }
 }
 

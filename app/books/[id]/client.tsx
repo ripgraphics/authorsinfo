@@ -44,7 +44,8 @@ import {
   Book,
   MapPin,
   Camera,
-  UserPlus
+  UserPlus,
+  Crop
 } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { FollowersList } from "@/components/followers-list"
@@ -60,8 +61,16 @@ import { BookCard } from "@/components/book-card";
 import { supabase } from '@/lib/supabase/client';
 import { EntityTabs, EntityTab } from '@/components/ui/entity-tabs'
 import { EntityPhotoAlbums } from '@/components/user-photo-albums'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import EnterpriseTimelineActivities from '@/components/enterprise/enterprise-timeline-activities-optimized'
+import { EntityImageUpload } from '@/components/entity/EntityImageUpload'
+import { ImageCropper } from '@/components/ui/image-cropper'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface Follower {
   id: string
@@ -101,6 +110,7 @@ export function ClientBookPage({
 }: ClientBookPageProps) {
   const { user } = useAuth()
   const { toast } = useToast()
+  const router = useRouter()
   const searchParams = useSearchParams()
   
   const validTabs: EntityTab[] = [
@@ -127,6 +137,12 @@ export function ClientBookPage({
   const [canEdit, setCanEdit] = useState(false)
   const [moreBooks, setMoreBooks] = useState<any[]>([]);
   const [bookData, setBookData] = useState(book)
+  const [isCoverImageModalOpen, setIsCoverImageModalOpen] = useState(false)
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false)
+  const [isHoveringCover, setIsHoveringCover] = useState(false)
+  const [isProcessingCover, setIsProcessingCover] = useState(false)
+  const [isCoverImageModalOpen, setIsCoverImageModalOpen] = useState(false)
+  const [isHoveringCover, setIsHoveringCover] = useState(false)
 
   // Determine if current user can edit this book
   useEffect(() => {
@@ -136,30 +152,43 @@ export function ClientBookPage({
         return
       }
       
-      try {
-        // Check if user is admin
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('user_id', user.id)
-          .single()
-        
-        if (profile?.role === 'admin') {
-          setCanEdit(true)
-          return
-        }
-        
-        // Check if user created the book
-        if (book.created_by === user.id) {
-          setCanEdit(true)
-          return
-        }
-        
-        setCanEdit(false)
-      } catch (error) {
-        console.error('Error checking edit permissions:', error)
-        setCanEdit(false)
+      // Check if user is admin or super_admin (from user object first, then database)
+      const userRole = (user as any)?.role
+      const isAdmin = userRole === 'admin' || userRole === 'super_admin' || userRole === 'super-admin'
+      
+      if (isAdmin) {
+        setCanEdit(true)
+        return
       }
+      
+      // If not in user object, check database
+      if (!userRole) {
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('user_id', user.id)
+            .single()
+          
+          const profileRole = profile?.role
+          const isAdminFromDb = profileRole === 'admin' || profileRole === 'super_admin' || profileRole === 'super-admin'
+          
+          if (isAdminFromDb) {
+            setCanEdit(true)
+            return
+          }
+        } catch (error) {
+          console.error('Error checking edit permissions:', error)
+        }
+      }
+      
+      // Check if user created the book
+      if (book.created_by === user.id) {
+        setCanEdit(true)
+        return
+      }
+      
+      setCanEdit(false)
     }
     
     checkEditPermissions()
@@ -272,21 +301,6 @@ export function ClientBookPage({
     setTruncation(estimatedHeight > maxHeight)
   }
 
-  // Check edit permissions
-  useEffect(() => {
-    const checkEditPermissions = async () => {
-      if (!user?.id) {
-        setCanEdit(false)
-        return
-      }
-
-      // For books (catalog entities), only admins can edit
-      const isAdmin = user.role === 'admin' || user.role === 'super_admin' || user.role === 'super-admin'
-      setCanEdit(isAdmin)
-    }
-
-    checkEditPermissions()
-  }, [user])
 
   // Check follow status on component mount
   useEffect(() => {
@@ -441,11 +455,85 @@ export function ClientBookPage({
     }
   }
 
-  // Entity images are now completely separate from book data
-  // No need to refresh book data when entity images are uploaded
-  const handleCoverImageChange = () => {
-    // Entity images are stored in photo albums and displayed directly
-    // Book cover images remain unchanged and separate
+  // Extract public ID from Cloudinary URL (including folder path)
+  const getPublicIdFromUrl = (url: string): string | null => {
+    try {
+      if (!url || !url.includes('cloudinary.com')) return null
+      const parts = url.split('/')
+      const uploadIndex = parts.findIndex(part => part === 'upload')
+      
+      if (uploadIndex > -1 && uploadIndex < parts.length - 1) {
+        // Get everything after 'upload' including folder path and filename
+        const pathParts = parts.slice(uploadIndex + 1)
+        const filename = pathParts[pathParts.length - 1]
+        const publicIdWithoutExt = filename.split('.')[0]
+        
+        // Reconstruct public ID with folder path if it exists
+        if (pathParts.length > 1) {
+          // There's a folder path
+          const folderPath = pathParts.slice(0, -1).join('/')
+          return `${folderPath}/${publicIdWithoutExt}`
+        }
+        return publicIdWithoutExt
+      }
+      
+      // Fallback: just get filename if we can't find 'upload'
+      const filename = parts[parts.length - 1]
+      return filename.split('.')[0]
+    } catch (error) {
+      console.error('Error extracting public ID:', error)
+      return null
+    }
+  }
+
+  // Delete old image from Cloudinary
+  const deleteOldImageFromCloudinary = async (imageUrl: string) => {
+    try {
+      const publicId = getPublicIdFromUrl(imageUrl)
+      if (!publicId) {
+        console.log('No public ID found in URL, skipping deletion')
+        return
+      }
+
+      const response = await fetch('/api/cloudinary/delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ publicId })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.warn('Failed to delete old image from Cloudinary:', errorData)
+      } else {
+        console.log('Old image deleted from Cloudinary:', publicId)
+      }
+    } catch (error) {
+      console.warn('Error deleting old image from Cloudinary:', error)
+    }
+  }
+
+  // Handle cover image change
+  const handleCoverImageChange = async (newImageUrl: string) => {
+    // Delete old image from Cloudinary if it exists
+    const oldImageUrl = book.cover_image?.url || book.cover_image_url
+    if (oldImageUrl) {
+      await deleteOldImageFromCloudinary(oldImageUrl)
+    }
+    // Update the book data with new cover image
+    setBookData((prev) => ({
+      ...prev,
+      cover_image: {
+        ...prev.cover_image,
+        url: newImageUrl
+      },
+      cover_image_url: newImageUrl
+    }))
+    
+    // Refresh the page data
+    router.refresh()
+    
     toast({
       title: "Success!",
       description: "Entity image uploaded successfully",
@@ -721,9 +809,13 @@ export function ClientBookPage({
               {/* Left Column - Book Cover (1/3 width) */}
               <div className="book-page__details-sidebar lg:col-span-1">
               {/* Book Cover (full width) */}
-                <Card className="book-page__cover-card overflow-hidden">
+                <Card 
+                  className="book-page__cover-card overflow-hidden relative"
+                  onMouseEnter={() => setIsHoveringCover(true)}
+                  onMouseLeave={() => setIsHoveringCover(false)}
+                >
                 {book.cover_image?.url ? (
-                    <div className="book-page__cover-image w-full h-full">
+                    <div className="book-page__cover-image w-full h-full relative">
                     <Image
                       src={book.cover_image.url}
                       alt={book.cover_image?.alt_text ?? book.title}
@@ -731,13 +823,216 @@ export function ClientBookPage({
                       height={600}
                       className="w-full aspect-[2/3] object-cover"
                     />
+                    {/* Camera Icon Overlay - Only show on hover and if editable */}
+                    {canEdit && isHoveringCover && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="rounded-full h-12 w-12 bg-white/90 hover:bg-white border-white shadow-lg"
+                            >
+                              <Camera className="h-6 w-6" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="center">
+                            <DropdownMenuItem onClick={() => setIsCoverImageModalOpen(true)}>
+                              <Camera className="h-4 w-4 mr-2" />
+                              Change Cover Image
+                            </DropdownMenuItem>
+                            {book.cover_image?.url && (
+                              <DropdownMenuItem onClick={() => setIsCropModalOpen(true)}>
+                                <Crop className="h-4 w-4 mr-2" />
+                                Crop Cover Image
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    )}
                   </div>
                 ) : (
-                    <div className="book-page__cover-placeholder w-full aspect-[2/3] bg-muted flex items-center justify-center">
+                    <div className="book-page__cover-placeholder w-full aspect-[2/3] bg-muted flex items-center justify-center relative">
                     <BookOpen className="h-16 w-16 text-muted-foreground" />
+                    {/* Camera Icon Overlay - Only show on hover and if editable */}
+                    {canEdit && isHoveringCover && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="rounded-full h-12 w-12 bg-white/90 hover:bg-white border-white shadow-lg"
+                            >
+                              <Camera className="h-6 w-6" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="center">
+                            <DropdownMenuItem onClick={() => setIsCoverImageModalOpen(true)}>
+                              <Camera className="h-4 w-4 mr-2" />
+                              Change Cover Image
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    )}
                   </div>
                 )}
               </Card>
+              
+              {/* Crop Cover Image Modal */}
+              {canEdit && book.cover_image?.url && (
+                <Dialog open={isCropModalOpen} onOpenChange={setIsCropModalOpen}>
+                  <DialogContent className="max-w-4xl">
+                    <DialogHeader>
+                      <DialogTitle>Crop Book Cover Image</DialogTitle>
+                    </DialogHeader>
+                    <ImageCropper
+                      imageUrl={book.cover_image.url}
+                      aspectRatio={2/3} // Book cover aspect ratio
+                      targetWidth={800}
+                      targetHeight={1200}
+                      onCropComplete={async (croppedImageBlob: Blob) => {
+                        setIsProcessingCover(true)
+                        try {
+                          // Convert blob to file
+                          const file = new File([croppedImageBlob], 'book-cover.jpg', { type: 'image/jpeg' })
+                          
+                          // Get Cloudinary signature for signed upload
+                          const signatureResponse = await fetch('/api/cloudinary/signature', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                              folder: 'bookcovers'
+                            })
+                          })
+
+                          if (!signatureResponse.ok) {
+                            throw new Error('Failed to get Cloudinary signature')
+                          }
+
+                          const signatureData = await signatureResponse.json()
+
+                          // Create FormData for signed upload to Cloudinary
+                          const formData = new FormData()
+                          formData.append('file', file)
+                          formData.append('api_key', signatureData.apiKey)
+                          formData.append('timestamp', signatureData.timestamp.toString())
+                          formData.append('signature', signatureData.signature)
+                          formData.append('folder', signatureData.folder)
+                          formData.append('cloud_name', signatureData.cloudName)
+                          formData.append('quality', '95')
+                          formData.append('fetch_format', 'auto')
+
+                          const uploadResponse = await fetch(
+                            `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/image/upload`,
+                            {
+                              method: 'POST',
+                              body: formData
+                            }
+                          )
+
+                          if (!uploadResponse.ok) {
+                            const errorText = await uploadResponse.text()
+                            throw new Error(`Failed to upload to Cloudinary: ${errorText}`)
+                          }
+
+                          const uploadResult = await uploadResponse.json()
+
+                          if (!uploadResult.secure_url) {
+                            throw new Error('No secure URL returned from Cloudinary')
+                          }
+
+                          // Get Book Cover entity type ID
+                          const bookCoverEntityTypeId = '9d91008f-4f24-4501-b18a-922e2cfd6d34'
+
+                          // Insert into images table
+                          const imageInsertResponse = await fetch('/api/insert-image', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                              url: uploadResult.secure_url,
+                              alt_text: `Book cover for ${book.title}`,
+                              storage_provider: 'cloudinary',
+                              storage_path: 'authorsinfo/bookcovers',
+                              original_filename: file.name,
+                              file_size: file.size,
+                              mime_type: file.type,
+                              img_type_id: bookCoverEntityTypeId
+                            })
+                          })
+
+                          if (!imageInsertResponse.ok) {
+                            const errorText = await imageInsertResponse.text()
+                            throw new Error(`Failed to insert image record: ${errorText}`)
+                          }
+
+                          const imageInsertResult = await imageInsertResponse.json()
+                          const newImageId = imageInsertResult.data.id
+
+                          // Delete old image from Cloudinary
+                          const oldImageUrl = book.cover_image.url
+                          await deleteOldImageFromCloudinary(oldImageUrl)
+
+                          // Update book's cover_image_id
+                          const updateResponse = await fetch(`/api/books/${book.id}`, {
+                            method: 'PUT',
+                            headers: {
+                              'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                              cover_image_id: newImageId
+                            })
+                          })
+
+                          if (!updateResponse.ok) {
+                            const errorText = await updateResponse.text()
+                            throw new Error(`Failed to update book: ${errorText}`)
+                          }
+
+                          // Update local state and refresh
+                          await handleCoverImageChange(uploadResult.secure_url)
+                          
+                          setIsCropModalOpen(false)
+                          toast({
+                            title: "Success",
+                            description: "Book cover image cropped and updated successfully",
+                          })
+                        } catch (error: any) {
+                          console.error('Error cropping cover image:', error)
+                          toast({
+                            title: "Error",
+                            description: error.message || "Failed to crop cover image",
+                            variant: "destructive"
+                          })
+                        } finally {
+                          setIsProcessingCover(false)
+                        }
+                      }}
+                      onCancel={() => setIsCropModalOpen(false)}
+                      isProcessing={isProcessingCover}
+                    />
+                  </DialogContent>
+                </Dialog>
+              )}
+              
+              {/* Cover Image Upload Modal */}
+              {canEdit && (
+                <EntityImageUpload
+                  entityId={book.id}
+                  entityType="book"
+                  currentImageUrl={book.cover_image?.url || book.cover_image_url}
+                  onImageChange={handleCoverImageChange}
+                  type="cover"
+                  isOpen={isCoverImageModalOpen}
+                  onOpenChange={setIsCoverImageModalOpen}
+                />
+              )}
 
               {/* Add to Shelf Section */}
                 <div className="book-page__shelf-section space-y-4 w-full mt-6">

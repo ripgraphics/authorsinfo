@@ -36,7 +36,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     .eq('user_id', body.user_id)
     .single();
 
-  if (memberError || !member || member.group_roles?.name !== 'Owner') {
+  const isOwner = Array.isArray(member?.group_roles) && member.group_roles.length > 0 
+    ? member.group_roles[0]?.name === 'Owner'
+    : false
+  if (memberError || !member || !isOwner) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
   }
 
@@ -69,7 +72,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     .eq('user_id', body.user_id)
     .single();
 
-  if (memberError || !member || member.group_roles?.name !== 'Owner') {
+  const isOwner = Array.isArray(member?.group_roles) && member.group_roles.length > 0 
+    ? member.group_roles[0]?.name === 'Owner'
+    : false
+  if (memberError || !member || !isOwner) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
   }
 
@@ -112,7 +118,10 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     .eq('user_id', userId)
     .single();
 
-  if (memberError || !member || member.group_roles?.name !== 'Owner') {
+  const isOwner = Array.isArray(member?.group_roles) && member.group_roles.length > 0 
+    ? member.group_roles[0]?.name === 'Owner'
+    : false
+  if (memberError || !member || !isOwner) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
   }
 

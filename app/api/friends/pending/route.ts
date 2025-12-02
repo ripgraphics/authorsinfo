@@ -5,21 +5,10 @@ import { cookies } from 'next/headers'
 export async function GET(request: NextRequest) {
   try {
     // Check if we can access cookies
-    let cookieStore
-    try {
-      cookieStore = await cookies()
-      
-    } catch (cookieError) {
-      console.error('❌ Error accessing cookies:', cookieError)
-      return NextResponse.json({ 
-        error: 'Failed to access cookies',
-        details: cookieError instanceof Error ? cookieError.message : 'Unknown cookie error'
-      }, { status: 500 })
-    }
-
     // Create Supabase client
     let supabase
     try {
+      const cookieStore = await cookies()
       supabase = createRouteHandlerClient({ cookies: () => cookieStore })
       
     } catch (clientError) {

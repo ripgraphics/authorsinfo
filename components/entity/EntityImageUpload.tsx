@@ -345,24 +345,41 @@ export function EntityImageUpload({
                   // Don't fail the upload if album addition fails
                 }
 
-                // Optionally delete old image from Cloudinary (only if it's a Cloudinary URL)
+                // Delete old image from Cloudinary (only if it's a Cloudinary URL)
                 if (oldImageUrl && oldImageUrl.includes('cloudinary.com')) {
                   try {
-                    // Extract public ID from Cloudinary URL
+                    // Extract public ID from Cloudinary URL (including folder path)
                     const urlParts = oldImageUrl.split('/')
-                    const filename = urlParts[urlParts.length - 1]
-                    const publicId = filename.split('.')[0] // Remove file extension
-                    
-                    // Delete from Cloudinary
-                    await fetch('/api/cloudinary/delete', {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify({ publicId })
-                    })
-                    
-                    console.log('Old image deleted from Cloudinary:', publicId)
+                    const uploadIndex = urlParts.findIndex(part => part === 'upload')
+                    if (uploadIndex > -1 && uploadIndex < urlParts.length - 1) {
+                      // Get everything after 'upload' including folder path
+                      const pathParts = urlParts.slice(uploadIndex + 1)
+                      const filename = pathParts[pathParts.length - 1]
+                      const publicIdWithoutExt = filename.split('.')[0]
+                      
+                      // Reconstruct public ID with folder path if it exists
+                      let publicId = publicIdWithoutExt
+                      if (pathParts.length > 1) {
+                        // There's a folder path
+                        const folderPath = pathParts.slice(0, -1).join('/')
+                        publicId = `${folderPath}/${publicIdWithoutExt}`
+                      }
+                      
+                      // Delete from Cloudinary
+                      const deleteResponse = await fetch('/api/cloudinary/delete', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ publicId })
+                      })
+                      
+                      if (deleteResponse.ok) {
+                        console.log('Old image deleted from Cloudinary:', publicId)
+                      } else {
+                        console.warn('Failed to delete old image from Cloudinary')
+                      }
+                    }
                   } catch (deleteError) {
                     console.warn('Failed to delete old image from Cloudinary:', deleteError)
                     // Don't fail the upload if deletion fails
@@ -434,6 +451,9 @@ export function EntityImageUpload({
             aspectRatio={getAspectRatio()}
             onCropComplete={handleCrop}
             onCancel={handleCropCancel}
+            circularCrop={type === 'avatar'}
+            targetWidth={type === 'avatar' ? 400 : undefined}
+            targetHeight={type === 'avatar' ? 400 : undefined}
           />
         ) : (
           <div className={type === 'cover' ? "space-y-6" : "flex flex-col items-center space-y-6 py-4"}>
@@ -458,8 +478,8 @@ export function EntityImageUpload({
               />
             </div>
 
-            {/* Crop Button - Only show for cover images when a file is selected */}
-            {type === 'cover' && preview && !showCropper && (
+            {/* Crop Button - Show for both cover and avatar images when a file is selected */}
+            {(type === 'cover' || type === 'avatar') && preview && !showCropper && (
               <div className="flex justify-center">
                 <Button
                   variant="outline"

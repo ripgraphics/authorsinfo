@@ -5,7 +5,7 @@ export async function GET() {
   try {
     console.log('Checking users...')
     
-    const { data: users, error: fetchError } = await supabaseAdmin.auth.admin.listUsers({ limit: 10 })
+    const { data: users, error: fetchError } = await supabaseAdmin.auth.admin.listUsers({ perPage: 10 })
     if (fetchError) {
       console.error('Error fetching users:', fetchError)
       return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 })
@@ -22,13 +22,8 @@ export async function GET() {
       last_sign_in_at: user.last_sign_in_at,
       email_confirmed_at: user.email_confirmed_at,
       phone_confirmed_at: user.phone_confirmed_at,
-      banned_until: user.banned_until,
-      reauthentication_sent_at: user.reauthentication_sent_at,
-      recovery_sent_at: user.recovery_sent_at,
-      email_change_sent_at: user.email_change_sent_at,
-      phone_change_sent_at: user.phone_change_sent_at,
-      confirmation_sent_at: user.confirmation_sent_at,
-      has_password: !!user.encrypted_password,
+      phone: user.phone,
+      has_password: !!(user as any).encrypted_password,
       app_metadata: user.app_metadata,
       user_metadata: user.user_metadata
     }))

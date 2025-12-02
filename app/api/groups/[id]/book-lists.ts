@@ -117,7 +117,7 @@ export async function POST_vote(req: NextRequest, { params }: { params: Promise<
   // Upsert vote
   const { data, error } = await supabase
     .from('group_book_list_votes')
-    .upsert([{ ...body, group_id: id }], { onConflict: ['list_id', 'book_id', 'user_id'] })
+    .upsert([{ ...body, group_id: id }], { onConflict: 'list_id,book_id,user_id' })
     .select()
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });

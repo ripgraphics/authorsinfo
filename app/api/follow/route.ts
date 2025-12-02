@@ -67,6 +67,14 @@ export async function POST(request: NextRequest) {
       actualEntityId = userUUID
     }
 
+    // Prevent users from following themselves
+    if (targetType === 'user' && user.id === actualEntityId) {
+      return NextResponse.json(
+        { error: 'You cannot follow yourself' },
+        { status: 400 }
+      )
+    }
+
     // Get the target type ID
     const targetTypeData = await getFollowTargetType(targetType)
     if (!targetTypeData) {

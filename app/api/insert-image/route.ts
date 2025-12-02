@@ -24,20 +24,28 @@ export async function POST(request: NextRequest) {
       mime_type 
     })
 
+    // Prepare insert object
+    const insertObject: Record<string, any> = {
+      url,
+      alt_text,
+      storage_provider,
+      storage_path,
+      original_filename,
+      file_size,
+      mime_type,
+      is_processed: true,
+      processing_status: 'completed'
+    }
+
+    // Add img_type_id if provided
+    if (img_type_id) {
+      insertObject.img_type_id = img_type_id
+    }
+
     // Use server-side Supabase client to avoid RLS issues
     const { data: imageData, error: imageError } = await supabaseAdmin
       .from('images')
-      .insert({
-        url,
-        alt_text,
-        storage_provider,
-        storage_path,
-        original_filename,
-        file_size,
-        mime_type,
-        is_processed: true,
-        processing_status: 'completed'
-      })
+      .insert(insertObject)
       .select()
       .single()
 

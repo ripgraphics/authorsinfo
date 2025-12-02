@@ -70,8 +70,8 @@ export function ReportsClient() {
       setIsLoading(true)
 
       const dateRangeParam = {
-        startDate: format(dateRange.from, "yyyy-MM-dd"),
-        endDate: format(dateRange.to, "yyyy-MM-dd"),
+        startDate: dateRange.from ? format(dateRange.from, "yyyy-MM-dd") : format(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), "yyyy-MM-dd"),
+        endDate: dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
       }
 
       try {
@@ -125,8 +125,8 @@ export function ReportsClient() {
 
     try {
       const dateRangeParam = {
-        startDate: format(dateRange.from, "yyyy-MM-dd"),
-        endDate: format(dateRange.to, "yyyy-MM-dd"),
+        startDate: dateRange.from ? format(dateRange.from, "yyyy-MM-dd") : format(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), "yyyy-MM-dd"),
+        endDate: dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
       }
 
       const result = await exportReportToCSV(activeTab, dateRangeParam)

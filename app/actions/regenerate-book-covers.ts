@@ -220,8 +220,12 @@ export async function regenerateBookCovers(
         let existingImageUrl = null
 
         // If we have an images relation, check its URL
-        if (book.images && book.images.url) {
-          existingImageUrl = book.images.url
+        // Note: images is an array from the relation query
+        if (book.images && Array.isArray(book.images) && book.images.length > 0 && book.images[0]?.url) {
+          existingImageUrl = book.images[0].url
+        } else if (book.images && !Array.isArray(book.images) && (book.images as any).url) {
+          // Fallback for non-array case (shouldn't happen but for type safety)
+          existingImageUrl = (book.images as any).url
         }
 
         // Delete existing cover image if it exists and is not problematic

@@ -36,11 +36,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   if (progressError) return NextResponse.json({ error: progressError.message }, { status: 400 });
 
   // Combine the data
-  const result = checklists.map(checklist => ({
+  const result = checklists.map((checklist: any) => ({
     ...checklist,
-    tasks: checklist.group_onboarding_tasks.map(task => ({
+    tasks: (checklist.group_onboarding_tasks || []).map((task: any) => ({
       ...task,
-      completed: progress.some(p => p.task_id === task.id)
+      completed: progress.some((p: any) => p.task_id === task.id)
     }))
   }));
 

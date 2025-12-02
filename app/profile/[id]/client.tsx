@@ -42,8 +42,10 @@ import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
 import { EntityPhotoAlbums } from '@/components/user-photo-albums'
 import { FriendList } from '@/components/friend-list'
+import { FollowersListTab } from '@/components/followers-list-tab'
 import { TimelineActivities } from '@/components/timeline-activities'
 import EnterpriseTimelineActivities from '@/components/enterprise/enterprise-timeline-activities-optimized'
+import { BookCard } from '@/components/book-card'
 
 
 interface ClientProfilePageProps {
@@ -51,18 +53,22 @@ interface ClientProfilePageProps {
   userStats: {
     booksRead: number
     friendsCount: number
+    followersCount: number
     location: string | null
     website: string | null
     joinedDate: string
   }
   avatarUrl: string
   coverImageUrl: string
+  followers?: any[]
+  followersCount?: number
+  books?: any[]
   params: {
     id: string
   }
 }
 
-export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, params }: ClientProfilePageProps) {
+export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, followers = [], followersCount = 0, books = [], params }: ClientProfilePageProps) {
   const { user: authUser } = useAuth()
   const { toast } = useToast()
   const searchParams = useSearchParams()
@@ -71,22 +77,13 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, p
   const [isFollowing, setIsFollowing] = useState(false)
   const [isLoadingFollow, setIsLoadingFollow] = useState(false)
 
-  // Handle permalink redirect
-  useEffect(() => {
-    // Check if the current ID is a UUID and the user has a permalink
-    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(params.id)
-    
-    if (isUUID && user?.permalink && user.permalink !== params.id) {
-      // Redirect to the permalink URL
-      const newUrl = `/profile/${user.permalink}`
-      router.replace(newUrl)
-    }
-  }, [user, params.id, router])
+  // Note: Permalink redirect is handled on the server side in page.tsx
+  // No need for client-side redirect as the server already resolves permalinks to UUIDs
 
   // Set initial tab based on URL search parameters
   useEffect(() => {
     const tabParam = searchParams.get('tab')
-    if (tabParam && ['timeline', 'about', 'books', 'friends', 'photos', 'more'].includes(tabParam)) {
+    if (tabParam && ['timeline', 'about', 'books', 'friends', 'followers', 'photos', 'more'].includes(tabParam)) {
       setActiveTab(tabParam)
     }
   }, [searchParams])
@@ -123,8 +120,9 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, p
   const realUsername = user?.permalink || user?.name?.split(" ").join("").toLowerCase() || "user"
   const realBooksRead = userStats.booksRead
   const realFriendsCount = userStats.friendsCount
-  const realLocation = userStats.location || "Location not set"
-  const realWebsite = userStats.website || `${realUsername}.com`
+  const realFollowersCount = userStats.followersCount || 0
+  const realLocation = userStats.location
+  const realWebsite = userStats.website
   const realAbout = "Book lover, coffee addict, and aspiring writer. I read mostly fantasy, sci-fi, and literary fiction."
   const realJoinedDate = userStats.joinedDate ? new Date(userStats.joinedDate).toLocaleDateString('en-US', { 
     year: 'numeric', 
@@ -158,23 +156,22 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, p
   ]
 
   // Set up stats for the EntityHeader using real data
+  const profileUrl = `/profile/${params.id}`
   const userStatsForHeader = [
     { 
       icon: <BookOpen className="h-4 w-4 mr-1" />, 
-      text: `${realBooksRead} books read` 
+      text: `${realBooksRead} books read`,
+      href: `${profileUrl}?tab=books`
     },
     { 
       icon: <Users className="h-4 w-4 mr-1" />, 
-      text: `${realFriendsCount} friends` 
+      text: `${realFriendsCount} friends`,
+      href: `${profileUrl}?tab=friends`
     },
     {
-      icon: <MapPin className="h-4 w-4 mr-1" />,
-      text: realLocation
-    },
-    {
-      icon: <Globe className="h-4 w-4 mr-1" />,
-      text: "Website",
-      href: realWebsite.startsWith('http') ? realWebsite : `https://${realWebsite}`
+      icon: <UserPlus className="h-4 w-4 mr-1" />,
+      text: `${realFollowersCount} ${realFollowersCount === 1 ? 'follower' : 'followers'}`,
+      href: `${profileUrl}?tab=followers`
     }
   ]
 
@@ -184,77 +181,18 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, p
     { id: "about", label: "About" },
     { id: "books", label: "Books" },
     { id: "friends", label: "Friends" },
+    { id: "followers", label: "Followers" },
     { id: "photos", label: "Photos" },
     { id: "more", label: "More" }
   ]
 
-  // Mock books for the user's library
-  const mockBooks = [
-    {
-      id: "1",
-      title: "The Great Gatsby",
-      author: "F. Scott Fitzgerald",
-      cover_url: "/placeholder.svg?text=Gatsby&width=200&height=300",
-      status: "Read",
-      rating: 5
-    },
-    {
-      id: "2",
-      title: "To Kill a Mockingbird",
-      author: "Harper Lee",
-      cover_url: "/placeholder.svg?text=Mockingbird&width=200&height=300",
-      status: "Read",
-      rating: 5
-    },
-    {
-      id: "3",
-      title: "1984",
-      author: "George Orwell",
-      cover_url: "/placeholder.svg?text=1984&width=200&height=300",
-      status: "Read",
-      rating: 4
-    },
-    {
-      id: "4",
-      title: "Pride and Prejudice",
-      author: "Jane Austen",
-      cover_url: "/placeholder.svg?text=Pride&width=200&height=300",
-      status: "Reading",
-      rating: 4
-    },
-    {
-      id: "5",
-      title: "The Hobbit",
-      author: "J.R.R. Tolkien",
-      cover_url: "/placeholder.svg?text=Hobbit&width=200&height=300",
-      status: "Read",
-      rating: 5
-    },
-    {
-      id: "6",
-      title: "Harry Potter and the Sorcerer's Stone",
-      author: "J.K. Rowling",
-      cover_url: "/placeholder.svg?text=Harry&width=200&height=300",
-      status: "Read",
-      rating: 5
-    },
-    {
-      id: "7",
-      title: "The Catcher in the Rye",
-      author: "J.D. Salinger",
-      cover_url: "/placeholder.svg?text=Catcher&width=200&height=300",
-      status: "Want to Read",
-      rating: null
-    },
-    {
-      id: "8",
-      title: "Lord of the Flies",
-      author: "William Golding",
-      cover_url: "/placeholder.svg?text=LOTF&width=200&height=300",
-      status: "Read",
-      rating: 3
-    }
-  ]
+
+  // Determine if the current user can edit this profile
+  const canEdit = authUser && (
+    authUser.id === user.id || 
+    (authUser as any)?.role === 'admin' || 
+    (authUser as any)?.role === 'super_admin'
+  )
 
   return (
     <div className="profile-page">
@@ -269,9 +207,10 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, p
         onTabChange={setActiveTab}
         isFollowing={isFollowing}
         onFollow={handleFollow}
-        entityId={user.id === authUser?.id ? undefined : params.id}
-        targetType={user.id === authUser?.id ? undefined : "user"}
+        entityId={user.id}
+        targetType="user"
         userStats={userStats}
+        isEditable={canEdit}
       />
       
       <div className="profile-page__content">
@@ -285,25 +224,29 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, p
                   <div className="space-y-4">
                     <p>{realAbout}</p>
                     <div className="space-y-2">
-                      <div className="flex items-center">
-                        <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                        <span>Lives in {realLocation}</span>
-                      </div>
+                      {realLocation && (
+                        <div className="flex items-center">
+                          <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                          <span>Lives in {realLocation}</span>
+                        </div>
+                      )}
                       <div className="flex items-center">
                         <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
                         <span>Joined {realJoinedDate}</span>
                       </div>
-                      <div className="flex items-center">
-                        <Globe className="h-4 w-4 mr-2 text-muted-foreground" />
-                        <a
-                          href={realWebsite}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="hover:underline"
-                        >
-                          Website
-                        </a>
-                      </div>
+                      {realWebsite && (
+                        <div className="flex items-center">
+                          <Globe className="h-4 w-4 mr-2 text-muted-foreground" />
+                          <a
+                            href={realWebsite.startsWith('http') ? realWebsite : `https://${realWebsite}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline"
+                          >
+                            {realWebsite}
+                          </a>
+                        </div>
+                      )}
                     </div>
                     <Link href="/profile/edit" className="w-full">
                       <Button variant="outline" className="w-full">
@@ -433,20 +376,22 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, p
                     <ContentSection title="Overview">
                     <p className="text-muted-foreground">{realAbout}</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                      <div className="flex items-start gap-3">
-                        <Globe className="h-5 w-5 text-muted-foreground mt-0.5" />
-                        <div>
-                          <h3 className="font-medium">Website</h3>
-                          <a
-                            href={realWebsite}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary hover:underline"
-                          >
-                            {realWebsite}
-                          </a>
+                      {realWebsite && (
+                        <div className="flex items-start gap-3">
+                          <Globe className="h-5 w-5 text-muted-foreground mt-0.5" />
+                          <div>
+                            <h3 className="font-medium">Website</h3>
+                            <a
+                              href={realWebsite.startsWith('http') ? realWebsite : `https://${realWebsite}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary hover:underline"
+                            >
+                              {realWebsite}
+                            </a>
+                          </div>
                         </div>
-                      </div>
+                      )}
                       <div className="flex items-start gap-3">
                         <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
                         <div>
@@ -500,39 +445,23 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, p
               </div>
               
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mt-6">
-                {mockBooks.map((book) => (
-                  <Link href={`/books/${book.id}`} key={book.id} className="group">
-                    <Card className="h-full overflow-hidden transition-all hover:shadow-md">
-                      <div className="relative aspect-[2/3] overflow-hidden">
-                        <Image 
-                          src={book.cover_url} 
-                          alt={book.title}
-                          fill
-                          className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
-                        />
-                        {book.status && (
-                          <div className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm text-xs font-medium py-1 px-2 rounded">
-                            {book.status}
-                          </div>
-                        )}
-                      </div>
-                      <CardContent className="p-3">
-                        <h3 className="font-medium line-clamp-1 text-sm">{book.title}</h3>
-                        <p className="text-xs text-muted-foreground line-clamp-1">{book.author}</p>
-                        {book.rating && (
-                          <div className="flex items-center mt-1">
-                            {Array.from({ length: 5 }).map((_, i) => (
-                              <Star 
-                                key={i} 
-                                className={`h-3 w-3 ${i < book.rating ? "text-yellow-500 fill-yellow-500" : "text-muted"}`} 
-                              />
-                            ))}
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
+                {books.length > 0 ? (
+                  books.map((book) => (
+                    <BookCard
+                      key={book.id}
+                      id={book.id}
+                      title={book.title}
+                      coverImageUrl={book.coverImageUrl}
+                      author={book.author}
+                    />
+                  ))
+                ) : (
+                  <div className="col-span-full text-center py-12">
+                    <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                    <p className="text-muted-foreground">No books yet</p>
+                    <p className="text-sm text-muted-foreground mt-2">Start reading to see your books here</p>
+                  </div>
+                )}
               </div>
               
               <div className="mt-8 text-center">
@@ -545,7 +474,28 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, p
         {activeTab === "friends" && (
           <div className="profile-page__friends-tab">
             <div className="profile-page__tab-content">
-              <FriendList userId={params.id} />
+              <FriendList 
+                userId={params.id} 
+                profileOwnerId={user.id}
+                profileOwnerName={user.name}
+                profileOwnerPermalink={user.permalink}
+              />
+            </div>
+          </div>
+        )}
+
+        {activeTab === "followers" && (
+          <div className="profile-page__followers-tab">
+            <div className="profile-page__tab-content">
+              <FollowersListTab
+                followers={followers}
+                followersCount={followersCount || userStats.followersCount}
+                entityId={params.id}
+                entityType="user"
+                profileOwnerId={user.id}
+                profileOwnerName={user.name}
+                profileOwnerPermalink={user.permalink}
+              />
             </div>
           </div>
         )}

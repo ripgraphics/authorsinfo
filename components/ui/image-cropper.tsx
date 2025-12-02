@@ -14,6 +14,7 @@ interface ImageCropperProps {
   targetWidth?: number
   targetHeight?: number
   isProcessing?: boolean
+  circularCrop?: boolean
 }
 
 export function ImageCropper({
@@ -23,13 +24,15 @@ export function ImageCropper({
   aspectRatio = 1344 / 500, // Default aspect ratio
   targetWidth = 1344,
   targetHeight = 500,
-  isProcessing = false
+  isProcessing = false,
+  circularCrop = false
 }: ImageCropperProps) {
   const [crop, setCrop] = useState<Crop>()
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>()
   const [imageLoaded, setImageLoaded] = useState(false)
   const [internalProcessing, setInternalProcessing] = useState(false)
   const imgRef = useRef<HTMLImageElement>(null)
+  const cropContainerRef = useRef<HTMLDivElement>(null)
 
   // Use external isProcessing if provided, otherwise use internal state
   const processing = isProcessing !== undefined ? isProcessing : internalProcessing
@@ -71,6 +74,67 @@ export function ImageCropper({
     setImageLoaded(false)
     console.error('Failed to load image')
   }, [])
+
+  // Handle click outside crop area to start new crop
+  const handleImageClick = useCallback((e: React.MouseEvent<HTMLImageElement>) => {
+    if (!imgRef.current || !imageLoaded || processing) return
+    
+    const img = imgRef.current
+    const rect = img.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    
+    // Check if click is within image bounds
+    if (x < 0 || y < 0 || x > rect.width || y > rect.height) return
+    
+    // Convert click position to percentage
+    const percentX = (x / rect.width) * 100
+    const percentY = (y / rect.height) * 100
+    
+    // Check if click is outside the current crop area
+    if (crop) {
+      const cropLeft = crop.x
+      const cropTop = crop.y
+      const cropRight = crop.x + crop.width
+      const cropBottom = crop.y + crop.height
+      
+      // If click is outside crop area, create new crop from click position
+      if (
+        percentX < cropLeft ||
+        percentX > cropRight ||
+        percentY < cropTop ||
+        percentY > cropBottom
+      ) {
+        // Create a new crop starting from the click position
+        const newCrop = makeAspectCrop(
+          {
+            unit: '%',
+            x: Math.max(0, Math.min(percentX, 100)),
+            y: Math.max(0, Math.min(percentY, 100)),
+            width: 30, // Start with 30% width
+          },
+          aspectRatio,
+          img.width,
+          img.height,
+        )
+        setCrop(newCrop)
+      }
+    } else {
+      // No existing crop, create one from click position
+      const newCrop = makeAspectCrop(
+        {
+          unit: '%',
+          x: Math.max(0, Math.min(percentX, 100)),
+          y: Math.max(0, Math.min(percentY, 100)),
+          width: 30, // Start with 30% width
+        },
+        aspectRatio,
+        img.width,
+        img.height,
+      )
+      setCrop(newCrop)
+    }
+  }, [crop, imageLoaded, processing, aspectRatio])
 
   // Generate cropped image
   const generateCroppedImage = async () => {
@@ -241,7 +305,7 @@ export function ImageCropper({
         </div>
 
         {/* Image Cropper */}
-        <div className="max-h-[60vh] overflow-auto">
+        <div ref={cropContainerRef} className="max-h-[60vh] overflow-auto flex items-center justify-center">
           <ReactCrop
             crop={crop}
             onChange={(_, percentCrop) => setCrop(percentCrop)}
@@ -249,9 +313,9 @@ export function ImageCropper({
             aspect={aspectRatio}
             minWidth={50}
             minHeight={50}
-            keepSelection
             ruleOfThirds
-            className="max-w-full"
+            circularCrop={circularCrop}
+            className="max-w-full mx-auto"
             disabled={!imageLoaded || processing}
           >
             <img
@@ -263,16 +327,19 @@ export function ImageCropper({
                 maxWidth: '100%',
                 maxHeight: '100%',
                 display: 'block',
+                cursor: 'crosshair',
+                margin: '0 auto',
               }}
               onLoad={onImageLoad}
               onError={onImageError}
+              onClick={handleImageClick}
             />
           </ReactCrop>
         </div>
 
         {/* Instructions */}
         <div className="mt-2 text-center text-sm text-gray-600">
-          Drag the corners to adjust the crop area.
+          Click and drag to create a new crop area, or drag the corners to adjust the existing crop area.
         </div>
 
         {/* Footer */}

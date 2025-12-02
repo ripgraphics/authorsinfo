@@ -55,17 +55,14 @@ export async function GET(request: NextRequest) {
       }, { status: 400 })
     }
 
-    
     const cookieStore = await cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
-    
 
     // Resolve permalink to UUID if necessary (users/books/authors/publishers/events)
     if (entityId && entityType) {
       // If entityId does not look like a UUID, try to resolve by permalink
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
       if (!uuidRegex.test(entityId)) {
-        const cookieStore = await cookies()
         const supabaseResolve = createRouteHandlerClient({ cookies: () => cookieStore })
         const table = entityType === 'user' ? 'users' : entityType + 's'
         const idCol = 'id'
@@ -274,9 +271,9 @@ export async function GET(request: NextRequest) {
                 return {
                   ...albumImage,
                   image: imageDetails,
-                  // Include the album-specific alt_text and description
-                  alt_text: albumImage.alt_text || imageDetails.alt_text,
-                  description: albumImage.description || imageDetails.description
+                  // Include the image alt_text and description
+                  alt_text: imageDetails?.alt_text,
+                  description: imageDetails?.description || imageDetails?.caption
                 }
               } catch (imageError) {
                 console.error(`❌ Error processing image ${albumImage.image_id}:`, imageError)
@@ -351,8 +348,8 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-         const cookieStore = await cookies()
-         const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    const cookieStore = await cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
  
      // Get the current authenticated user ID early (needed for album search)
      const { data: { user }, error: userError } = await supabase.auth.getUser()

@@ -17,12 +17,15 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar } from "@/components/ui/avatar"
 import { useAuth } from "@/hooks/useAuth"
+import { useCurrentUserAvatar, useCurrentUserName } from "@/components/user-avatar"
 import { getProfileUrlFromUser } from "@/lib/utils/profile-url-client"
 
 export function AdminHeader() {
   const [searchOpen, setSearchOpen] = useState(false)
   const { theme, setTheme } = useTheme()
   const { user, loading } = useAuth()
+  const currentUserAvatar = useCurrentUserAvatar()
+  const currentUserName = useCurrentUserName()
 
   return (
     <>
@@ -74,9 +77,9 @@ export function AdminHeader() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative rounded-full p-0">
                   <Avatar
-                    src={user.user_metadata?.avatar_url}
-                    alt={user.user_metadata?.full_name || user.email || "User"}
-                    name={user.user_metadata?.full_name || user.email || ""}
+                    src={currentUserAvatar || undefined}
+                    alt={currentUserName || "User"}
+                    name={currentUserName || ""}
                   />
                 </Button>
               </DropdownMenuTrigger>

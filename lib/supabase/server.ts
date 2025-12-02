@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js"
+import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 
 // Use SUPABASE_URL if set, otherwise fallback to NEXT_PUBLIC_SUPABASE_URL
 const supabaseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -14,7 +14,7 @@ if (!supabaseServiceKey) {
 
 // Create a Supabase client with admin privileges for server-side operations
 // Add timeout options to prevent hanging connections
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+export const supabaseAdmin = createSupabaseClient(supabaseUrl, supabaseServiceKey, {
   auth: {
     persistSession: false,
   },
@@ -32,6 +32,5 @@ export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
 })
 
 // Export createClient function for compatibility
-export function createClient() {
-  return supabaseAdmin
-}
+// Use a function expression to avoid potential hoisting issues
+export const createClient = () => supabaseAdmin

@@ -8,8 +8,8 @@ const CACHE_DURATION = 300
 
 export async function GET(request: Request) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => Promise.resolve(cookieStore) })
     // Use admin client for fetching all users
     const adminSupabase = supabaseAdmin
     
@@ -152,8 +152,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => Promise.resolve(cookieStore) })
     
     // Get current user from session
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()

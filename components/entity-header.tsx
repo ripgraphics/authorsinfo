@@ -4,7 +4,7 @@ import Image from "next/image"
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Camera, BookOpen, Users, MapPin, Globe, User, MoreHorizontal, MessageSquare, UserPlus, Settings, Crop, Loader2 } from "lucide-react"
+import { Camera, BookOpen, Users, MapPin, Globe, User, MoreHorizontal, MessageSquare, UserPlus, Settings, Crop } from "lucide-react"
 import Link from "next/link"
 import { Avatar } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
@@ -24,13 +24,6 @@ import { useAuth } from '@/hooks/useAuth'
 import { FollowButton } from '@/components/follow-button'
 import { EntityImageUpload } from '@/components/entity/EntityImageUpload'
 import { AddFriendButton } from '@/components/add-friend-button'
-import { ImageCropper } from '@/components/ui/image-cropper'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
 import { EntityTabs } from "@/components/ui/entity-tabs"
 import { deduplicatedRequest, clearCache } from '@/lib/request-utils'
@@ -222,11 +215,8 @@ export function EntityHeader({
   const [groupMemberData, setGroupMemberData] = useState<any>(null);
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false)
   const [isCoverModalOpen, setIsCoverModalOpen] = useState(false)
-  const [isCropModalOpen, setIsCropModalOpen] = useState(false)
-  const [isAvatarCropModalOpen, setIsAvatarCropModalOpen] = useState(false)
   const [coverImage, setCoverImage] = useState<string | undefined>(coverImageUrl)
   const [avatarImage, setAvatarImage] = useState<string | undefined>(profileImageUrl)
-  const [isProcessing, setIsProcessing] = useState(false)
   const [imageVersion, setImageVersion] = useState(0)
   const [entityImages, setEntityImages] = useState<{
     header?: string
@@ -354,385 +344,7 @@ export function EntityHeader({
 
   console.log('🔍 EntityHeader useEffect dependencies changed:', { entityId, entityType });
 
-  const handleCropCover = async (croppedImageBlob: Blob) => {
-    setIsProcessing(true)
-    try {
-      console.log('handleCropCover called with blob:', croppedImageBlob)
-      console.log('Blob size:', croppedImageBlob.size)
-      console.log('Blob type:', croppedImageBlob.type)
-      
-      // Convert blob to file
-      const file = new File([croppedImageBlob], 'cropped-cover.jpg', { type: 'image/jpeg' })
-      console.log('Created file:', file)
-      console.log('File size:', file.size)
-      console.log('File type:', file.type)
-      
-      // Get Cloudinary signature for signed upload
-      const signatureResponse = await fetch('/api/cloudinary/signature', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          folder: `${entityType}_entity_header_cover`
-        })
-      })
 
-      if (!signatureResponse.ok) {
-        throw new Error('Failed to get Cloudinary signature')
-      }
-
-      const signatureData = await signatureResponse.json()
-      console.log('Signature data:', signatureData)
-
-      // Create FormData for signed upload to Cloudinary
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('api_key', signatureData.apiKey)
-      formData.append('timestamp', signatureData.timestamp.toString())
-      formData.append('signature', signatureData.signature)
-      formData.append('folder', signatureData.folder)
-      formData.append('cloud_name', signatureData.cloudName)
-      formData.append('quality', '95')
-      formData.append('fetch_format', 'auto')
-
-      console.log('FormData created, entries:')
-      for (let [key, value] of formData.entries()) {
-        console.log(key, value)
-      }
-
-      const uploadUrl = `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/image/upload`
-      console.log('Upload URL:', uploadUrl)
-
-      const uploadResponse = await fetch(uploadUrl, {
-        method: 'POST',
-        body: formData
-      })
-
-      console.log('Upload response status:', uploadResponse.status)
-      console.log('Upload response ok:', uploadResponse.ok)
-      console.log('Upload response headers:', Object.fromEntries(uploadResponse.headers.entries()))
-
-      if (!uploadResponse.ok) {
-        const errorText = await uploadResponse.text()
-        console.error('Cloudinary upload error response:', errorText)
-        throw new Error(`Failed to upload to Cloudinary: ${uploadResponse.status} ${uploadResponse.statusText} - ${errorText}`)
-      }
-
-      const uploadResult = await uploadResponse.json()
-      console.log('Upload result:', uploadResult)
-
-      if (!uploadResult.secure_url) {
-        throw new Error('No secure URL returned from Cloudinary')
-      }
-
-      // Insert into images table using server action
-      const imageInsertResponse = await fetch('/api/insert-image', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          url: uploadResult.secure_url,
-          alt_text: `Entity header cover for ${entityType} ${name}`,
-          storage_provider: 'cloudinary',
-          storage_path: `authorsinfo/${entityType}_entity_header_cover`,
-          original_filename: file.name,
-          file_size: file.size,
-          mime_type: file.type
-        })
-      })
-
-      if (!imageInsertResponse.ok) {
-        const errorText = await imageInsertResponse.text()
-        throw new Error(`Failed to insert image record: ${errorText}`)
-      }
-
-      const imageInsertResult = await imageInsertResponse.json()
-      const imageData = imageInsertResult.data
-
-      // Add image to entity album
-      const albumPurpose = 'entity_header'
-      
-      console.log('DEBUG - entityId value:', entityId)
-      console.log('DEBUG - entityId type:', typeof entityId)
-      console.log('DEBUG - entityId truthy check:', !!entityId)
-      
-      console.log('Calling entity-images API with:', {
-        entityId: entityId || '',
-        entityType: entityType,
-        albumPurpose: albumPurpose,
-        imageId: imageData.id,
-        isCover: true,
-        isFeatured: true
-      })
-
-      const albumResponse = await fetch('/api/entity-images', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          entityId: entityId || '',
-          entityType: entityType,
-          albumPurpose: albumPurpose,
-          imageId: imageData.id,
-          isCover: true,
-          isFeatured: true,
-          metadata: {
-            aspect_ratio: 16/9,
-            uploaded_via: 'entity_header',
-            original_filename: file.name,
-            file_size: file.size
-          }
-        })
-      })
-
-      console.log('Album response status:', albumResponse.status)
-      console.log('Album response ok:', albumResponse.ok)
-
-      if (!albumResponse.ok) {
-        const errorText = await albumResponse.text()
-        console.error('Failed to add image to album:', errorText)
-        console.error('Album response status:', albumResponse.status)
-        console.error('Album response headers:', Object.fromEntries(albumResponse.headers.entries()))
-        // Don't throw error here, just log it
-      } else {
-        const albumResult = await albumResponse.json()
-        console.log('Successfully added image to album:', albumResult)
-      }
-
-      // Update local state with the new image URL
-      setCoverImage(uploadResult.secure_url)
-      setImageVersion(prev => prev + 1)
-      setIsCropModalOpen(false)
-
-      // Clear cache for entity images to force fresh data on next load
-      clearCache(`entity-avatar-${entityType}-${entityId}`)
-      clearCache(`entity-header-${entityType}-${entityId}`)
-      
-      // Dispatch event to trigger EntityHeader to refetch images
-      window.dispatchEvent(new CustomEvent('entityImageChanged', {
-        detail: { entityType, entityId, imageType: 'cover' }
-      }))
-
-      // Call the onCoverImageChange callback if provided
-      if (onCoverImageChange) {
-        onCoverImageChange()
-      }
-
-      // Show success message
-      toast({
-        title: "Success",
-        description: `${entityType} entity header cover has been updated successfully and added to album.`
-      })
-
-    } catch (error: any) {
-      console.error('Error uploading cropped image:', error)
-      toast({
-        title: "Error",
-        description: error.message || "Failed to upload cropped image. Please try again.",
-        variant: "destructive"
-      })
-    } finally {
-      setIsProcessing(false)
-    }
-  }
-
-  const handleCropCancel = () => {
-    setIsCropModalOpen(false)
-    setIsProcessing(false)
-  }
-
-  const handleCropAvatar = async (croppedImageBlob: Blob) => {
-    setIsProcessing(true)
-    try {
-      console.log('handleCropAvatar called with blob:', croppedImageBlob)
-      console.log('Blob size:', croppedImageBlob.size)
-      console.log('Blob type:', croppedImageBlob.type)
-      
-      // Convert blob to file
-      const file = new File([croppedImageBlob], 'cropped-avatar.jpg', { type: 'image/jpeg' })
-      console.log('Created file:', file)
-      console.log('File size:', file.size)
-      console.log('File type:', file.type)
-      
-      // Get Cloudinary signature for signed upload
-      const signatureResponse = await fetch('/api/cloudinary/signature', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          folder: `${entityType}_entity_header_avatar`
-        })
-      })
-
-      if (!signatureResponse.ok) {
-        throw new Error('Failed to get Cloudinary signature')
-      }
-
-      const signatureData = await signatureResponse.json()
-      console.log('Signature data:', signatureData)
-
-      // Create FormData for signed upload to Cloudinary
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('api_key', signatureData.apiKey)
-      formData.append('timestamp', signatureData.timestamp.toString())
-      formData.append('signature', signatureData.signature)
-      formData.append('folder', signatureData.folder)
-      formData.append('cloud_name', signatureData.cloudName)
-      formData.append('quality', '95')
-      formData.append('fetch_format', 'auto')
-
-      console.log('FormData created, entries:')
-      for (let [key, value] of formData.entries()) {
-        console.log(key, value)
-      }
-
-      const uploadUrl = `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/image/upload`
-      console.log('Upload URL:', uploadUrl)
-
-      const uploadResponse = await fetch(uploadUrl, {
-        method: 'POST',
-        body: formData
-      })
-
-      console.log('Upload response status:', uploadResponse.status)
-      console.log('Upload response ok:', uploadResponse.ok)
-      console.log('Upload response headers:', Object.fromEntries(uploadResponse.headers.entries()))
-
-      if (!uploadResponse.ok) {
-        const errorText = await uploadResponse.text()
-        console.error('Cloudinary upload error response:', errorText)
-        throw new Error(`Failed to upload to Cloudinary: ${uploadResponse.status} ${uploadResponse.statusText} - ${errorText}`)
-      }
-
-      const uploadResult = await uploadResponse.json()
-      console.log('Upload result:', uploadResult)
-
-      if (!uploadResult.secure_url) {
-        throw new Error('No secure URL returned from Cloudinary')
-      }
-
-      // Insert into images table using server action
-      const imageInsertResponse = await fetch('/api/insert-image', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          url: uploadResult.secure_url,
-          alt_text: `Entity header avatar for ${entityType} ${name}`,
-          storage_provider: 'cloudinary',
-          storage_path: `authorsinfo/${entityType}_entity_header_avatar`,
-          original_filename: file.name,
-          file_size: file.size,
-          mime_type: file.type
-        })
-      })
-
-      if (!imageInsertResponse.ok) {
-        const errorText = await imageInsertResponse.text()
-        throw new Error(`Failed to insert image record: ${errorText}`)
-      }
-
-      const imageInsertResult = await imageInsertResponse.json()
-      const imageData = imageInsertResult.data
-
-      // Add image to entity album
-      const albumPurpose = 'avatar'
-      
-      console.log('DEBUG - entityId value for avatar:', entityId)
-      console.log('DEBUG - entityId type for avatar:', typeof entityId)
-      console.log('DEBUG - entityId truthy check for avatar:', !!entityId)
-      
-      console.log('Calling entity-images API for avatar with:', {
-        entityId: entityId || '',
-        entityType: entityType,
-        albumPurpose: albumPurpose,
-        imageId: imageData.id,
-        isCover: true,
-        isFeatured: true
-      })
-
-      const albumResponse = await fetch('/api/entity-images', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          entityId: entityId || '',
-          entityType: entityType,
-          albumPurpose: albumPurpose,
-          imageId: imageData.id,
-          isCover: true,
-          isFeatured: true,
-          metadata: {
-            aspect_ratio: 1,
-            uploaded_via: 'entity_header',
-            original_filename: file.name,
-            file_size: file.size
-          }
-        })
-      })
-
-      console.log('Avatar album response status:', albumResponse.status)
-      console.log('Avatar album response ok:', albumResponse.ok)
-
-      if (!albumResponse.ok) {
-        const errorText = await albumResponse.text()
-        console.error('Failed to add avatar to album:', errorText)
-        console.error('Avatar album response status:', albumResponse.status)
-        console.error('Avatar album response headers:', Object.fromEntries(albumResponse.headers.entries()))
-        // Don't throw error here, just log it
-      } else {
-        const albumResult = await albumResponse.json()
-        console.log('Successfully added avatar to album:', albumResult)
-      }
-
-      // Update local state with the new image URL
-      setAvatarImage(uploadResult.secure_url)
-      setImageVersion(prev => prev + 1)
-      setIsAvatarCropModalOpen(false)
-
-      // Clear cache for entity images to force fresh data on next load
-      clearCache(`entity-avatar-${entityType}-${entityId}`)
-      clearCache(`entity-header-${entityType}-${entityId}`)
-      
-      // Dispatch event to trigger EntityHeader to refetch images
-      window.dispatchEvent(new CustomEvent('entityImageChanged', {
-        detail: { entityType, entityId, imageType: 'avatar' }
-      }))
-
-      // Call the onProfileImageChange callback if provided
-      if (onProfileImageChange) {
-        onProfileImageChange()
-      }
-
-      // Show success message
-      toast({
-        title: "Success",
-        description: `${entityType} entity header avatar has been updated successfully and added to album.`
-      })
-
-    } catch (error: any) {
-      console.error('Error uploading cropped avatar:', error)
-      toast({
-        title: "Error",
-        description: error.message || "Failed to upload cropped avatar. Please try again.",
-        variant: "destructive"
-      })
-    } finally {
-      setIsProcessing(false)
-    }
-  }
-
-  const handleAvatarCropCancel = () => {
-    setIsAvatarCropModalOpen(false)
-    setIsProcessing(false)
-  }
 
   const renderEntityName = () => {
     const nameElement = (
@@ -934,20 +546,10 @@ export function EntityHeader({
             {coverImage && (
               <button
                 className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input hover:text-accent-foreground h-9 rounded-md px-3 entity-header__crop-cover-button bg-white/80 hover:bg-white"
-                onClick={() => setIsCropModalOpen(true)}
-                disabled={isProcessing}
+                onClick={() => setIsCoverModalOpen(true)}
               >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <Crop className="h-4 w-4 mr-2" />
-                    Crop
-                  </>
-                )}
+                <Crop className="h-4 w-4 mr-2" />
+                Crop
               </button>
             )}
             <button
@@ -1001,12 +603,6 @@ export function EntityHeader({
                 <Camera className="h-4 w-4 mr-2" />
                 Change Avatar
               </DropdownMenuItem>
-              {avatarImage && (
-                <DropdownMenuItem onClick={() => setIsAvatarCropModalOpen(true)}>
-                  <Crop className="h-4 w-4 mr-2" />
-                  Crop Avatar
-                </DropdownMenuItem>
-              )}
             </DropdownMenuContent>
           </DropdownMenu>
         )}
@@ -1136,44 +732,6 @@ export function EntityHeader({
         </>
       )}
 
-      {/* Crop Cover Image Modal */}
-      {isEditable && coverImage && (
-        <Dialog open={isCropModalOpen} onOpenChange={setIsCropModalOpen}>
-          <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>Crop Entity Header Cover</DialogTitle>
-            </DialogHeader>
-            <ImageCropper
-              imageUrl={coverImage}
-              aspectRatio={1344 / 500}
-              onCropComplete={handleCropCover}
-              onCancel={handleCropCancel}
-              isProcessing={isProcessing}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {/* Crop Avatar Image Modal */}
-      {isEditable && avatarImage && (
-        <Dialog open={isAvatarCropModalOpen} onOpenChange={setIsAvatarCropModalOpen}>
-          <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>Crop Avatar</DialogTitle>
-            </DialogHeader>
-            <ImageCropper
-              imageUrl={avatarImage}
-              aspectRatio={1}
-              targetWidth={400}
-              targetHeight={400}
-              onCropComplete={handleCropAvatar}
-              onCancel={handleAvatarCropCancel}
-              isProcessing={isProcessing}
-              circularCrop={true}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
 
       {children}
     </div>

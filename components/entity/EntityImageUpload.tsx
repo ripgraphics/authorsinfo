@@ -101,6 +101,15 @@ export function EntityImageUpload({
       const previewUrl = URL.createObjectURL(file)
       setPreview(previewUrl)
       setCroppedImage(null) // Reset cropped image when new file is selected
+      setShowCropper(false) // Reset cropper state
+    }
+  }
+
+  // Allow cropping existing image when component opens with currentImageUrl and no file selected
+  const handleCropExisting = () => {
+    if (currentImageUrl) {
+      setPreview(currentImageUrl)
+      setShowCropper(true)
     }
   }
 
@@ -126,7 +135,12 @@ export function EntityImageUpload({
         // Convert blob URL to file
         const response = await fetch(croppedImage)
         const blob = await response.blob()
-        fileToUpload = new File([blob], 'cropped-image.jpg', { type: 'image/jpeg' })
+        fileToUpload = new File([blob], `cropped-${type}.jpg`, { type: 'image/jpeg' })
+      } else if (preview && !selectedFile && currentImageUrl && preview === currentImageUrl) {
+        // If cropping existing image (preview is currentImageUrl), we need to fetch and convert it
+        const response = await fetch(preview)
+        const blob = await response.blob()
+        fileToUpload = new File([blob], `cropped-${type}.jpg`, { type: blob.type || 'image/jpeg' })
       }
 
       if (!fileToUpload) {
@@ -156,7 +170,8 @@ export function EntityImageUpload({
       const uploadResult = await uploadResponse.json()
 
       // Add image to entity album
-      const albumPurpose = type
+      // Map image type to album purpose: 'cover' -> 'entity_header', 'avatar' -> 'avatar'
+      const albumPurpose = type === 'cover' ? 'entity_header' : type
       try {
         const albumResponse = await fetch('/api/entity-images', {
           method: 'POST',
@@ -308,20 +323,21 @@ export function EntityImageUpload({
               />
             </div>
 
-            {/* Crop Button - Show for both cover and avatar images when a file is selected */}
-            {(type === 'cover' || type === 'avatar') && preview && !showCropper && (
-              <div className="flex justify-center">
+            {/* Action Buttons Row */}
+            <div className="flex gap-2 justify-center">
+              {/* Crop Button - Show when file is selected OR when existing image is available */}
+              {(preview || currentImageUrl) && !showCropper && (
                 <Button
                   variant="outline"
-                  onClick={() => setShowCropper(true)}
+                  onClick={preview ? () => setShowCropper(true) : handleCropExisting}
                   disabled={isUploading}
                   className="flex items-center gap-2"
                 >
                   <Crop className="h-4 w-4" />
-                  Crop & Adjust Image
+                  {preview ? 'Crop & Adjust Image' : 'Crop Current Image'}
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
 

@@ -141,8 +141,6 @@ export function ClientBookPage({
   const [isCropModalOpen, setIsCropModalOpen] = useState(false)
   const [isHoveringCover, setIsHoveringCover] = useState(false)
   const [isProcessingCover, setIsProcessingCover] = useState(false)
-  const [isCoverImageModalOpen, setIsCoverImageModalOpen] = useState(false)
-  const [isHoveringCover, setIsHoveringCover] = useState(false)
 
   // Determine if current user can edit this book
   useEffect(() => {

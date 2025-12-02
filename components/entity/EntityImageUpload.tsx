@@ -334,8 +334,8 @@ export function EntityImageUpload({
             onCropComplete={handleCrop}
             onCancel={handleCropCancel}
             circularCrop={type === 'avatar'}
-            targetWidth={type === 'avatar' ? 400 : undefined}
-            targetHeight={type === 'avatar' ? 400 : undefined}
+            targetWidth={400}
+            targetHeight={400}
           />
         ) : (
           <div className={type === 'cover' ? "space-y-6" : "flex flex-col items-center space-y-6 py-4"}>

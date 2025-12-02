@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { getFollowersCount } from '@/lib/follows-server'
+import { supabaseAdmin } from '@/lib/supabase-admin'
 
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies: async () => cookieStore })
+    const supabase = createRouteHandlerClient({ cookies })
     
     // Get the current user (optional - allow viewing friends list without auth)
     const { data: { user } } = await supabase.auth.getUser()
@@ -43,87 +43,132 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch friends' }, { status: 500 })
     }
 
-    // Get user details for each friend
-    const friendsWithUserDetails = await Promise.all(
-      (friends || []).map(async (friend) => {
-        const [userData, friendData] = await Promise.all([
-          supabase
-            .from('users')
-            .select('id, name, email, permalink')
-            .eq('id', friend.user_id)
-            .single(),
-          supabase
-            .from('users')
-            .select('id, name, email, permalink')
-            .eq('id', friend.friend_id)
-            .single()
-        ])
-
-        // Determine which user is the friend (not the current user)
-        const friendUserId = friend.user_id === userId ? friend.friend_id : friend.user_id
-        
-        // Get followers count for the friend (users following this friend)
-        // Use the same method as the profile page - getFollowersCount from follows-server
-        let followersCount = 0
-        try {
-          followersCount = await getFollowersCount(friendUserId, 'user')
-        } catch (error) {
-          console.error(`Error getting followers count for ${friendUserId}:`, error)
-          followersCount = 0
-        }
-
-        // Get friends count for the friend (same method as profile page)
-        const { data: friendsData, error: friendsError } = await supabase
-          .from('user_friends')
-          .select('id', { count: 'exact' })
-          .eq('user_id', friendUserId)
-          .eq('status', 'accepted')
-        
-        const { data: reverseFriendsData, error: reverseFriendsError } = await supabase
-          .from('user_friends')
-          .select('id', { count: 'exact' })
-          .eq('friend_id', friendUserId)
-          .eq('status', 'accepted')
-        
-        const friendsCount = (friendsError || reverseFriendsError) ? 0 : 
-          ((friendsData?.length || 0) + (reverseFriendsData?.length || 0))
-
-        // Get books read count for the friend
-        const { data: booksReadData, error: booksError } = await supabase
-          .from('reading_progress')
-          .select('id', { count: 'exact' })
-          .eq('user_id', friendUserId)
-          .eq('status', 'completed')
-        
-        const booksReadCount = booksError ? 0 : (booksReadData?.length || 0)
-
-        return {
-          ...friend,
-          user: {
-            id: userData.data?.id || friend.user_id,
-            name: userData.data?.name || userData.data?.email || 'Unknown User',
-            email: userData.data?.email || '',
-            permalink: userData.data?.permalink
-          },
-          friend: {
-            id: friendData.data?.id || friend.friend_id,
-            name: friendData.data?.name || friendData.data?.email || 'Unknown User',
-            email: friendData.data?.email || '',
-            permalink: friendData.data?.permalink
-          },
-          followersCount: followersCount || 0,
-          friendsCount: friendsCount || 0,
-          booksReadCount: booksReadCount || 0
-        }
-      })
+    // Extract all friend user IDs (the ones that aren't the current user)
+    const friendUserIds = (friends || []).map(friend => 
+      friend.user_id === userId ? friend.friend_id : friend.user_id
     )
+
+    // Batch fetch all user data, profiles, and stats in parallel
+    const [usersResult, profilesResult] = await Promise.all([
+      supabase
+        .from('users')
+        .select('id, name, email, permalink')
+        .in('id', friendUserIds),
+      supabase
+        .from('profiles')
+        .select('user_id, avatar_image_id')
+        .in('user_id', friendUserIds)
+    ])
+
+    const users = usersResult.data || []
+    const profiles = profilesResult.data || []
+
+    // Get unique avatar_image_ids and fetch image URLs
+    const avatarImageIds = Array.from(new Set(
+      profiles.map(p => p.avatar_image_id).filter(Boolean)
+    ))
+
+    let avatarImageMap = new Map()
+    if (avatarImageIds.length > 0) {
+      const { data: images } = await supabaseAdmin
+        .from('images')
+        .select('id, url')
+        .in('id', avatarImageIds)
+
+      if (images) {
+        images.forEach(img => {
+          avatarImageMap.set(img.id, img.url)
+        })
+      }
+    }
+
+    // Batch fetch followers counts for all friends
+    const followersCountPromises = friendUserIds.map(id => getFollowersCount(id, 'user'))
+    const followersCounts = await Promise.all(followersCountPromises)
+    const followersCountMap = new Map(friendUserIds.map((id, idx) => [id, followersCounts[idx] || 0]))
+
+    // Batch fetch friends counts
+    const [friendsDataResult, reverseFriendsDataResult] = await Promise.all([
+      supabase
+        .from('user_friends')
+        .select('user_id, id')
+        .in('user_id', friendUserIds)
+        .eq('status', 'accepted'),
+      supabase
+        .from('user_friends')
+        .select('friend_id, id')
+        .in('friend_id', friendUserIds)
+        .eq('status', 'accepted')
+    ])
+
+    const friendsData = friendsDataResult.data || []
+    const reverseFriendsData = reverseFriendsDataResult.data || []
+    
+    // Count friends per user
+    const friendsCountMap = new Map()
+    friendUserIds.forEach(id => {
+      const userFriends = friendsData.filter(f => f.user_id === id).length
+      const reverseFriends = reverseFriendsData.filter(f => f.friend_id === id).length
+      friendsCountMap.set(id, userFriends + reverseFriends)
+    })
+
+    // Batch fetch books read counts
+    const { data: booksReadData } = await supabase
+      .from('reading_progress')
+      .select('user_id, id')
+      .in('user_id', friendUserIds)
+      .eq('status', 'completed')
+
+    const booksReadCountMap = new Map()
+    friendUserIds.forEach(id => {
+      const count = booksReadData?.filter(b => b.user_id === id).length || 0
+      booksReadCountMap.set(id, count)
+    })
+
+    // Create maps for quick lookup
+    const userMap = new Map(users.map(u => [u.id, u]))
+    const profileMap = new Map(profiles.map(p => [p.user_id, p]))
+
+    // Build friends with user details
+    const friendsWithUserDetails = (friends || []).map(friend => {
+      const friendUserId = friend.user_id === userId ? friend.friend_id : friend.user_id
+      const user = userMap.get(friend.user_id)
+      const friendUser = userMap.get(friend.friend_id)
+      const profile = profileMap.get(friendUserId)
+      const avatarImageId = profile?.avatar_image_id
+      const avatarUrl = avatarImageId ? avatarImageMap.get(avatarImageId) : null
+
+      return {
+        ...friend,
+        user: {
+          id: user?.id || friend.user_id,
+          name: user?.name || user?.email || 'Unknown User',
+          email: user?.email || '',
+          permalink: user?.permalink
+        },
+        friend: {
+          id: friendUser?.id || friend.friend_id,
+          name: friendUser?.name || friendUser?.email || 'Unknown User',
+          email: friendUser?.email || '',
+          permalink: friendUser?.permalink,
+          avatar_url: avatarUrl
+        },
+        followersCount: followersCountMap.get(friendUserId) || 0,
+        friendsCount: friendsCountMap.get(friendUserId) || 0,
+        booksReadCount: booksReadCountMap.get(friendUserId) || 0
+      }
+    })
 
     // Transform the data to get friend details
     const friendsList = friendsWithUserDetails?.map(friend => {
       const isUserRequesting = friend.user_id === userId
+      const friendData = isUserRequesting ? friend.friend : friend.user
       return {
         id: friend.id,
-        friend: isUserRequesting ? friend.friend : friend.user,
+        friend: {
+          ...friendData,
+          avatar_url: friendData.avatar_url || null // Include avatar_url in friend object
+        },
         friendshipDate: friend.responded_at,
         mutualFriendsCount: 0, // Will be calculated separately
         followersCount: friend.followersCount || 0,

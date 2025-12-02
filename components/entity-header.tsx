@@ -206,7 +206,10 @@ export function EntityHeader({
     entityType,
     entityId,
     name,
-    coverImageUrl
+    coverImageUrl,
+    entityIdType: typeof entityId,
+    entityIdLength: entityId?.length,
+    isEntityIdUUID: entityId ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(entityId) : false
   });
   
   const { user } = useAuth()
@@ -712,7 +715,7 @@ export function EntityHeader({
       {isEditable && (
         <>
           <EntityImageUpload
-            entityId={entityType === 'group' ? group?.id || '' : (entityId || '')}
+            entityId={entityType === 'group' ? (group?.id || '') : (entityId || '')}
             entityType={entityType}
             currentImageUrl={coverImage}
             onImageChange={setCoverImage}
@@ -721,7 +724,7 @@ export function EntityHeader({
             onOpenChange={setIsCoverModalOpen}
           />
           <EntityImageUpload
-            entityId={entityType === 'group' ? group?.id || '' : (entityId || '')}
+            entityId={entityType === 'group' ? (group?.id || '') : (entityId || '')}
             entityType={entityType}
             currentImageUrl={avatarImage}
             onImageChange={setAvatarImage}

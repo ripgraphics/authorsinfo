@@ -4,7 +4,8 @@ import React, { useState, useRef, useCallback } from 'react'
 import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
 import { Button } from '@/components/ui/button'
-import { X, Loader2 } from 'lucide-react'
+import { X, Loader2, ZoomIn, ZoomOut } from 'lucide-react'
+import { Slider } from '@/components/ui/slider'
 
 interface ImageCropperProps {
   imageUrl: string
@@ -31,6 +32,7 @@ export function ImageCropper({
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>()
   const [imageLoaded, setImageLoaded] = useState(false)
   const [internalProcessing, setInternalProcessing] = useState(false)
+  const [zoom, setZoom] = useState(1)
   const imgRef = useRef<HTMLImageElement>(null)
   const cropContainerRef = useRef<HTMLDivElement>(null)
 
@@ -61,6 +63,7 @@ export function ImageCropper({
   const onImageLoad = useCallback(
     (e: React.SyntheticEvent<HTMLImageElement>) => {
       setImageLoaded(true)
+      setZoom(1) // Reset zoom when new image loads
       if (aspectRatio) {
         const { width, height } = e.currentTarget
         setCrop(centerAspectCrop(width, height))
@@ -150,8 +153,11 @@ export function ImageCropper({
       return
     }
 
-    const scaleX = imgRef.current.naturalWidth / imgRef.current.width
-    const scaleY = imgRef.current.naturalHeight / imgRef.current.height
+    // Account for zoom in scale calculations
+    const displayedWidth = imgRef.current.width / zoom
+    const displayedHeight = imgRef.current.height / zoom
+    const scaleX = imgRef.current.naturalWidth / displayedWidth
+    const scaleY = imgRef.current.naturalHeight / displayedHeight
 
     canvas.width = targetWidth
     canvas.height = targetHeight
@@ -329,6 +335,8 @@ export function ImageCropper({
                 display: 'block',
                 cursor: 'crosshair',
                 margin: '0 auto',
+                transform: `scale(${zoom})`,
+                transformOrigin: 'center center',
               }}
               onLoad={onImageLoad}
               onError={onImageError}
@@ -337,9 +345,25 @@ export function ImageCropper({
           </ReactCrop>
         </div>
 
+        {/* Zoom Controls */}
+        <div className="mt-4 flex items-center gap-4 px-4">
+          <ZoomOut className="h-4 w-4 text-gray-600" />
+          <Slider
+            value={[zoom]}
+            min={1}
+            max={3}
+            step={0.1}
+            onValueChange={(value) => setZoom(value[0])}
+            className="flex-1"
+            disabled={!imageLoaded || processing}
+          />
+          <ZoomIn className="h-4 w-4 text-gray-600" />
+          <span className="text-sm text-gray-600 w-12 text-right">{Math.round(zoom * 100)}%</span>
+        </div>
+
         {/* Instructions */}
         <div className="mt-2 text-center text-sm text-gray-600">
-          Click and drag to create a new crop area, or drag the corners to adjust the existing crop area.
+          Click and drag to create a new crop area, drag the corners to adjust, or use the zoom slider above.
         </div>
 
         {/* Footer */}

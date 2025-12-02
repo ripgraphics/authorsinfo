@@ -6,7 +6,7 @@ import { getFollowersCount } from '@/lib/follows-server'
 export async function GET(request: NextRequest) {
   try {
     const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    const supabase = createRouteHandlerClient({ cookies: async () => cookieStore })
     
     // Get the current user (optional - allow viewing friends list without auth)
     const { data: { user } } = await supabase.auth.getUser()

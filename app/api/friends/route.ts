@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
   try {
     console.log('Friend request POST started')
     const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    const supabase = createRouteHandlerClient({ cookies: async () => cookieStore })
     
     // Get the current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    const supabase = createRouteHandlerClient({ cookies: async () => cookieStore })
     
     // Get the current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -206,7 +206,7 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    const supabase = createRouteHandlerClient({ cookies: async () => cookieStore })
     
     // Get the current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -259,7 +259,7 @@ export async function DELETE(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    const supabase = createRouteHandlerClient({ cookies: async () => cookieStore })
     
     // Get the current user (optional - allow checking friend status without auth)
     const { data: { user } } = await supabase.auth.getUser()

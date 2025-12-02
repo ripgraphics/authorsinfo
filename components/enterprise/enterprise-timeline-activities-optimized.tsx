@@ -486,7 +486,7 @@ const EnterpriseTimelineActivities = React.memo(({
 
       if (level === 'friends') {
         const { data: friendshipData, error: friendshipError } = await supabase
-          .from('friendships')
+          .from('user_friends')
           .select('status')
           .or(`and(user_id.eq.${posterUserId},friend_id.eq.${timelineUserId}),and(user_id.eq.${timelineUserId},friend_id.eq.${posterUserId})`)
           .maybeSingle()
@@ -507,10 +507,22 @@ const EnterpriseTimelineActivities = React.memo(({
   const fetchUserConnections = useCallback(async () => {
     if (!user) return
     try {
+      // Get user target type ID for follows queries
+      const { data: userTargetType } = await supabase
+        .from('follow_target_types')
+        .select('id')
+        .eq('name', 'user')
+        .single()
+      
+      if (!userTargetType) {
+        console.warn('Could not find user target type')
+        return
+      }
+
       const [{ data: friends }, { data: followers }, { data: following }] = await Promise.all([
-        supabase.from('friendships').select('friend_id').eq('user_id', user.id).eq('status', 'accepted'),
-        supabase.from('follows').select('follower_id').eq('following_id', user.id).eq('status', 'accepted'),
-        supabase.from('follows').select('following_id').eq('follower_id', user.id).eq('status', 'accepted')
+        supabase.from('user_friends').select('friend_id').eq('user_id', user.id).eq('status', 'accepted'),
+        supabase.from('follows').select('follower_id').eq('following_id', user.id).eq('target_type_id', userTargetType.id),
+        supabase.from('follows').select('following_id').eq('follower_id', user.id).eq('target_type_id', userTargetType.id)
       ])
       setUserConnections({
         friends: friends?.map(f => f.friend_id) || [],

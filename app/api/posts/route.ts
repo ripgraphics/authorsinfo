@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
         // followers: follower OR friend; friends: mutual follow OR friendship
         if (level === 'friends') {
           const { data: friendship } = await supabase
-            .from('friendships')
+            .from('user_friends')
             .select('status')
             .or(`and(user_id.eq.${user.id},friend_id.eq.${targetEntityId}),and(user_id.eq.${targetEntityId},friend_id.eq.${user.id})`)
             .maybeSingle()
@@ -153,12 +153,24 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Only friends can post' }, { status: 403 })
           }
         } else {
+          // Get user target type ID for follows table
+          const { data: userTargetType } = await supabase
+            .from('follow_target_types')
+            .select('id')
+            .eq('name', 'user')
+            .single()
+          
+          if (!userTargetType) {
+            return NextResponse.json({ error: 'Invalid follow target type' }, { status: 500 })
+          }
+
           const { data: followData } = await supabase
             .from('follows')
-            .select('follower_id, following_id, status')
+            .select('follower_id, following_id')
+            .eq('target_type_id', userTargetType.id)
             .or(`and(follower_id.eq.${user.id},following_id.eq.${targetEntityId}),and(follower_id.eq.${targetEntityId},following_id.eq.${user.id})`)
-          const isFollower = followData?.some(r => r.follower_id === user.id && r.following_id === targetEntityId && (r as any).status === 'accepted') || false
-          const theyFollowYou = followData?.some(r => r.follower_id === targetEntityId && r.following_id === user.id && (r as any).status === 'accepted') || false
+          const isFollower = followData?.some(r => r.follower_id === user.id && r.following_id === targetEntityId) || false
+          const theyFollowYou = followData?.some(r => r.follower_id === targetEntityId && r.following_id === user.id) || false
           const isFriend = isFollower && theyFollowYou
           const allowed = isFollower || isFriend
           if (!allowed) {

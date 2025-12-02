@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
 import { Camera, Crop } from 'lucide-react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { clearCache } from '@/lib/request-utils'
 import {
   Dialog,
   DialogContent,
@@ -222,6 +223,16 @@ export function EntityImageUpload({
       }
 
       onImageChange(uploadResult.url)
+      
+      // Clear cache for entity images to force fresh data on next load
+      clearCache(`entity-avatar-${entityType}-${entityId}`)
+      clearCache(`entity-header-${entityType}-${entityId}`)
+      
+      // Dispatch event to trigger EntityHeader to refetch images
+      window.dispatchEvent(new CustomEvent('entityImageChanged', {
+        detail: { entityType, entityId, imageType: type }
+      }))
+      
       toast({
         title: "Success",
         description: `${entityType} ${type} has been updated successfully.`

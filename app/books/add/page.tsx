@@ -209,23 +209,25 @@ export default async function AddBookPage({ searchParams }: AddBookPageProps) {
           {/* Book Cover */}
           <div>
             <Card className="overflow-hidden">
-              {existingBook && (() => {
-                const coverImage = existingBook.cover_image as any
+              {(() => {
+                if (!existingBook) return null
+                const coverImage: any = existingBook.cover_image
                 const coverImageUrl = Array.isArray(coverImage) ? coverImage[0]?.url : coverImage?.url
-                return coverImageUrl
-              })() ? (
-                <Link href={`/books/${existingBook.id}`}>
-                  <div className="w-full h-full cursor-pointer hover:opacity-90 transition-opacity">
-                    <Image
-                      src={Array.isArray(existingBook.cover_image) ? existingBook.cover_image[0]?.url || '' : existingBook.cover_image?.url || ''}
-                      alt={Array.isArray(existingBook.cover_image) ? existingBook.cover_image[0]?.alt_text || existingBook.title : existingBook.cover_image?.alt_text || existingBook.title}
+                if (!coverImageUrl) return null
+                return (
+                  <Link href={`/books/${existingBook.id}`}>
+                    <div className="w-full h-full cursor-pointer hover:opacity-90 transition-opacity">
+                      <Image
+                        src={coverImageUrl}
+                        alt={Array.isArray(coverImage) ? coverImage[0]?.alt_text || existingBook.title : coverImage?.alt_text || existingBook.title}
                       width={400}
                       height={600}
                       className="w-full aspect-[2/3] object-cover"
                     />
                   </div>
                 </Link>
-              ) : (
+                )
+              })() ?? (
                 <div className="w-full aspect-[2/3] bg-muted flex items-center justify-center">
                   <BookOpen className="h-16 w-16 text-muted-foreground" />
                 </div>

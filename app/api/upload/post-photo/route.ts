@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
       .from('images')
       .insert({
         url: data.secure_url,
-        alt_text: `Post photo by ${user.name || 'User'}`,
+        alt_text: `Post photo by ${user.email || 'User'}`,
         storage_provider: 'cloudinary',
         storage_path: `authorsinfo/post_photos`,
         original_filename: file.name,

@@ -453,7 +453,7 @@ export function ClientAuthorPage({
                     entity={{
                       id: author.id,
                       name: author.name,
-                      author_image: author.author_image,
+                      author_image: author.author_image || undefined,
                       bookCount: booksCount
                     }}
                   >
@@ -529,8 +529,8 @@ export function ClientAuthorPage({
             {/* About Section */}
             <TimelineAboutSection
               bio={author?.bio}
-              nationality={author?.nationality}
-              website={author?.website}
+              nationality={author?.nationality || undefined}
+              website={author?.website || undefined}
               onViewMore={() => setActiveTab("about")}
               onViewFullDetails={() => setActiveTab("about")}
             />
@@ -636,18 +636,15 @@ export function ClientAuthorPage({
                   entityCreatedAt={author?.created_at}
                   isOwner={canEdit}
                   entityDisplayInfo={{
-                    id: params.id,
                     name: author?.name || "Author",
-                    type: 'author' as const,
-                    author_image: author?.author_image,
-                    bookCount: booksCount || 0
+                    type: 'author',
+                    avatar: author?.author_image?.url || undefined
                   }}
                 />
               </CardContent>
             </Card>
             {/* Timeline Feed - This has full posting functionality */}
             <EnterpriseTimelineActivities
-              userId={params.id}
               entityType="author"
               entityId={params.id}
               enableReadingProgress={true}
@@ -972,7 +969,11 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                 id={book.id}
                 title={book.title}
                 coverImageUrl={book.cover_image_url}
-                author={author}
+                author={author ? {
+                  id: author.id,
+                  name: author.name,
+                  author_image: author.author_image ? { url: author.author_image.url } : undefined
+                } : undefined}
                 authorBookCount={booksCount}
               />
             ))}
@@ -1000,7 +1001,7 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                 id: params.id,
                 name: author.name,
                 type: 'author' as const,
-                author_image: author.author_image,
+                author_image: author.author_image || undefined,
                 bookCount: booksCount || 0
               }}
             />

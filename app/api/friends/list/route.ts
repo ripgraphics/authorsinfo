@@ -183,6 +183,14 @@ export async function GET(request: NextRequest) {
       const profile = profileMap.get(friendUserId)
       const avatarImageId = profile?.avatar_image_id
       const avatarUrl = avatarImageId ? avatarImageMap.get(avatarImageId) : null
+      
+      // Get avatar URLs for both users
+      const userProfile = profileMap.get(friend.user_id)
+      const friendProfile = profileMap.get(friend.friend_id)
+      const userAvatarId = userProfile?.avatar_image_id
+      const friendAvatarId = friendProfile?.avatar_image_id
+      const userAvatarUrl = userAvatarId ? avatarImageMap.get(userAvatarId) : null
+      const friendAvatarUrl = friendAvatarId ? avatarImageMap.get(friendAvatarId) : null
 
       return {
         ...friend,
@@ -190,14 +198,15 @@ export async function GET(request: NextRequest) {
           id: user?.id || friend.user_id,
           name: user?.name || user?.email || 'Unknown User',
           email: user?.email || '',
-          permalink: user?.permalink
+          permalink: user?.permalink,
+          avatar_url: userAvatarUrl || null
         },
         friend: {
           id: friendUser?.id || friend.friend_id,
           name: friendUser?.name || friendUser?.email || 'Unknown User',
           email: friendUser?.email || '',
           permalink: friendUser?.permalink,
-          avatar_url: avatarUrl
+          avatar_url: friendAvatarUrl || null
         },
         followersCount: followersCountMap.get(friendUserId) || 0,
         friendsCount: friendsCountMap.get(friendUserId) || 0,

@@ -18,7 +18,7 @@ export async function GET(
     }
     
     // Users can only view their own privacy settings
-    if (currentUser.id !== userId) {
+    if (!currentUser || currentUser.id !== userId) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 })
     }
 
@@ -73,7 +73,7 @@ export async function PUT(
     }
     
     // Users can only update their own privacy settings
-    if (currentUser.id !== userId) {
+    if (!currentUser || currentUser.id !== userId) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 })
     }
 
@@ -180,7 +180,7 @@ export async function POST(
     }
     
     // Users can only manage their own privacy settings
-    if (currentUser.id !== userId) {
+    if (!currentUser || currentUser.id !== userId) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 })
     }
 

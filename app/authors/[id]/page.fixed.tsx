@@ -171,12 +171,12 @@ export default function AuthorPage() {
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    setEditedAuthor((prev) => ({ ...prev, [name]: value }))
+    setEditedAuthor((prev: Partial<Author>) => ({ ...prev, [name]: value }))
   }
 
   // Handle nationality change
   const handleNationalityChange = (value: string) => {
-    setEditedAuthor((prev) => ({ ...prev, nationality: value }))
+    setEditedAuthor((prev: Partial<Author>) => ({ ...prev, nationality: value }))
   }
 
   // Save changes
@@ -289,7 +289,7 @@ export default function AuthorPage() {
       console.error("Error updating bio:", error)
       return
     }
-    setAuthor((prev) => (prev ? { ...prev, bio: editedAuthor.bio || "" } : null))
+    setAuthor((prev: Author | null) => (prev ? { ...prev, bio: editedAuthor.bio || "" } : null))
   }
 
   const handleSocialMediaSave = async () => {
@@ -310,7 +310,7 @@ export default function AuthorPage() {
       console.error("Error updating social media:", error)
       return
     }
-    setAuthor((prev) =>
+    setAuthor((prev: Author | null) =>
       prev
         ? {
             ...prev,

@@ -396,7 +396,7 @@ export default async function AddBookPage({ searchParams }: AddBookPageProps) {
                   Other Books by {existingBook.publisher?.name}
                 </h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                  {otherBooksByPublisher.map((book) => (
+                  {otherBooksByPublisher.map((book: any) => (
                     <Link key={book.id} href={`/books/${book.id}`}>
                       <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
                         <div className="aspect-[2/3] relative">

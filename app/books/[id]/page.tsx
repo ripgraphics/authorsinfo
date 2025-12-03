@@ -6,8 +6,7 @@ import type { Book, Author, Review, BindingType, FormatType } from '@/types/book
 import { PageBanner } from "@/components/page-banner"
 import { ClientBookPage } from "./client"
 import { getFollowers, getFollowersCount } from "@/lib/follows-server"
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
+import { createServerComponentClientAsync } from "@/lib/supabase/client-helper"
 
 interface BookPageProps {
   params: {
@@ -128,8 +127,7 @@ async function getUserReadingProgress(userId: string | null, bookId: string) {
 export default async function BookPageServer({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params
   const id = resolvedParams.id
-  const cookieStore = await cookies()
-  const supabase = createServerComponentClient({ cookies: () => cookieStore })
+  const supabase = await createServerComponentClientAsync()
 
   // Special case: if id is "add", redirect to the add page
   if (id === "add") {

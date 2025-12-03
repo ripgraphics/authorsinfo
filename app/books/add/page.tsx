@@ -55,8 +55,8 @@ export default async function AddBookPage({ searchParams }: AddBookPageProps) {
 
   // Check if book already exists in database and get full details
   let existingBook = null
-  let otherBooksByAuthor = []
-  let otherBooksByPublisher = []
+  let otherBooksByAuthor: any[] = []
+  let otherBooksByPublisher: any[] = []
   
   if (bookData.isbn) {
     const { data } = await supabaseAdmin

@@ -974,8 +974,10 @@ export function ClientBookPage({
                           const newImageId = imageInsertResult.data.id
 
                           // Delete old image from Cloudinary
-                          const oldImageUrl = book.cover_image.url
-                          await deleteOldImageFromCloudinary(oldImageUrl)
+                          const oldImageUrl = book.cover_image?.url || book.cover_image_url
+                          if (oldImageUrl) {
+                            await deleteOldImageFromCloudinary(oldImageUrl)
+                          }
 
                           // Update book's cover_image_id
                           const updateResponse = await fetch(`/api/books/${book.id}`, {
@@ -1024,7 +1026,7 @@ export function ClientBookPage({
                 <EntityImageUpload
                   entityId={book.id}
                   entityType="book"
-                  currentImageUrl={book.cover_image?.url || book.cover_image_url}
+                  currentImageUrl={book.cover_image?.url || book.cover_image_url || undefined}
                   onImageChange={handleCoverImageChange}
                   type="cover"
                   isOpen={isCoverImageModalOpen}
@@ -1158,7 +1160,7 @@ export function ClientBookPage({
                               entity={{
                                   id: author.id,
                                   name: author.name,
-                                  author_image: author.author_image,
+                                  author_image: author.author_image ? { url: author.author_image.url } : undefined,
                                   bookCount: authorBookCounts[author.id] || 0
                               }}
                             >
@@ -1578,7 +1580,7 @@ export function ClientBookPage({
                   id: authors[0].id,
                   name: authors[0].name,
                   type: 'author' as const,
-                  author_image: authors[0].author_image,
+                  author_image: authors[0].author_image ? { url: authors[0].author_image.url } : undefined,
                   bookCount: authorBookCounts[authors[0].id] || 0
                 } : undefined}
               />

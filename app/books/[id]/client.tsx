@@ -142,6 +142,11 @@ export function ClientBookPage({
   const [isHoveringCover, setIsHoveringCover] = useState(false)
   const [isProcessingCover, setIsProcessingCover] = useState(false)
 
+  // Sync bookData with book prop when it changes (e.g., after page refresh)
+  useEffect(() => {
+    setBookData(book)
+  }, [book])
+
   // Determine if current user can edit this book
   useEffect(() => {
     const checkEditPermissions = async () => {
@@ -510,7 +515,7 @@ export function ClientBookPage({
   }
 
   // Handle cover image change
-  const handleCoverImageChange = async (newImageUrl: string) => {
+  const handleCoverImageChange = async (newImageUrl: string, newImageId?: string) => {
     // Delete old image from Cloudinary if it exists
     const oldImageUrl = bookData?.cover_image?.url || bookData?.cover_image_url
     if (oldImageUrl) {
@@ -523,8 +528,10 @@ export function ClientBookPage({
         ...prev,
         cover_image: baseCoverImage ? {
           ...baseCoverImage,
+          id: newImageId || baseCoverImage.id,
           url: newImageUrl
-        } : baseCoverImage,
+        } : (newImageId ? { id: newImageId, url: newImageUrl } : null),
+        cover_image_id: newImageId || prev.cover_image_id,
         cover_image_url: newImageUrl
       } as typeof prev
     })
@@ -812,11 +819,11 @@ export function ClientBookPage({
                   onMouseEnter={() => setIsHoveringCover(true)}
                   onMouseLeave={() => setIsHoveringCover(false)}
                 >
-                {book.cover_image?.url ? (
+                {bookData.cover_image?.url ? (
                     <div className="book-page__cover-image w-full h-full relative">
                     <Image
-                      src={book.cover_image.url}
-                      alt={book.cover_image?.alt_text ?? book.title}
+                      src={bookData.cover_image.url}
+                      alt={bookData.cover_image?.alt_text ?? bookData.title}
                       width={400}
                       height={600}
                       className="w-full aspect-[2/3] object-cover"
@@ -839,7 +846,7 @@ export function ClientBookPage({
                               <Camera className="h-4 w-4 mr-2" />
                               Change Cover Image
                             </DropdownMenuItem>
-                            {book.cover_image?.url && (
+                            {bookData.cover_image?.url && (
                               <DropdownMenuItem onClick={() => setIsCropModalOpen(true)}>
                                 <Crop className="h-4 w-4 mr-2" />
                                 Crop Cover Image
@@ -880,14 +887,14 @@ export function ClientBookPage({
               </Card>
               
               {/* Crop Cover Image Modal */}
-              {canEdit && book.cover_image?.url && (
+              {canEdit && bookData.cover_image?.url && (
                 <Dialog open={isCropModalOpen} onOpenChange={setIsCropModalOpen}>
                   <DialogContent className="max-w-4xl">
                     <DialogHeader>
                       <DialogTitle>Crop Book Cover Image</DialogTitle>
                     </DialogHeader>
                     <ImageCropper
-                      imageUrl={book.cover_image.url}
+                      imageUrl={bookData.cover_image.url}
                       aspectRatio={2/3} // Book cover aspect ratio
                       targetWidth={800}
                       targetHeight={1200}
@@ -974,7 +981,7 @@ export function ClientBookPage({
                           const newImageId = imageInsertResult.data.id
 
                           // Delete old image from Cloudinary
-                          const oldImageUrl = book.cover_image?.url || book.cover_image_url
+                          const oldImageUrl = bookData.cover_image?.url || bookData.cover_image_url
                           if (oldImageUrl) {
                             await deleteOldImageFromCloudinary(oldImageUrl)
                           }
@@ -996,7 +1003,7 @@ export function ClientBookPage({
                           }
 
                           // Update local state and refresh
-                          await handleCoverImageChange(uploadResult.secure_url)
+                          await handleCoverImageChange(uploadResult.secure_url, newImageId)
                           
                           setIsCropModalOpen(false)
                           toast({
@@ -1026,7 +1033,7 @@ export function ClientBookPage({
                 <EntityImageUpload
                   entityId={book.id}
                   entityType="book"
-                  currentImageUrl={book.cover_image?.url || book.cover_image_url || undefined}
+                  currentImageUrl={bookData.cover_image?.url || bookData.cover_image_url || undefined}
                   onImageChange={handleCoverImageChange}
                   type="cover"
                   isOpen={isCoverImageModalOpen}

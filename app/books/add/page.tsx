@@ -339,7 +339,9 @@ export default async function AddBookPage({ searchParams }: AddBookPageProps) {
                     </div>
                   </div>
                 ) : (
-                  <form action={addBook}>
+                  <form action={async (formData) => {
+                    await addBook(formData)
+                  }}>
                     <Button type="submit" className="w-full mt-4">
                       Add to Library
                     </Button>

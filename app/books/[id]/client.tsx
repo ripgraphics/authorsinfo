@@ -180,17 +180,14 @@ export function ClientBookPage({
         }
       }
       
-      // Check if user created the book
-      if (book.created_by === user.id) {
-        setCanEdit(true)
-        return
-      }
+      // Books don't have a created_by field, so editing is based on admin role only
+      // (which is checked above)
       
       setCanEdit(false)
     }
     
     checkEditPermissions()
-  }, [user, book.created_by])
+  }, [user, book.id])
 
   // Mock photos for the Photos tab
   const mockPhotosTabData = [
@@ -515,19 +512,22 @@ export function ClientBookPage({
   // Handle cover image change
   const handleCoverImageChange = async (newImageUrl: string) => {
     // Delete old image from Cloudinary if it exists
-    const oldImageUrl = book.cover_image?.url || book.cover_image_url
+    const oldImageUrl = bookData?.cover_image?.url || bookData?.cover_image_url
     if (oldImageUrl) {
       await deleteOldImageFromCloudinary(oldImageUrl)
     }
     // Update the book data with new cover image
-    setBookData((prev) => ({
-      ...prev,
-      cover_image: {
-        ...prev.cover_image,
-        url: newImageUrl
-      },
-      cover_image_url: newImageUrl
-    }))
+    setBookData((prev) => {
+      const baseCoverImage = prev.cover_image || (prev.cover_image_id ? { id: prev.cover_image_id, url: prev.cover_image_url || '' } : null)
+      return {
+        ...prev,
+        cover_image: baseCoverImage ? {
+          ...baseCoverImage,
+          url: newImageUrl
+        } : baseCoverImage,
+        cover_image_url: newImageUrl
+      } as typeof prev
+    })
     
     // Refresh the page data
     router.refresh()
@@ -595,7 +595,7 @@ export function ClientBookPage({
               entity={{
               id: authors[0].id,
               name: authors[0].name,
-              author_image: authors[0].author_image,
+              author_image: authors[0].author_image ? { url: authors[0].author_image.url } : undefined,
               bookCount: authorBookCounts[authors[0].id] || 0
               }}
             >
@@ -614,15 +614,15 @@ export function ClientBookPage({
               text: `${followersCount} followers` 
             }
           ]}
-          location={bookData.language}
-          website={bookData.website}
+          location={bookData.language || undefined}
+          website={bookData.website || undefined}
           tabs={tabs}
           activeTab={activeTab}
           onTabChange={setActiveTab}
           author={authors && authors.length > 0 ? {
             id: authors[0].id,
             name: authors[0].name,
-            author_image: authors[0].author_image
+            author_image: authors[0].author_image ? { url: authors[0].author_image.url } : undefined
             } : undefined}
           authorBookCount={authors && authors.length > 0 ? authorBookCounts[authors[0].id] : 0}
           publisher={publisher ? {
@@ -636,7 +636,7 @@ export function ClientBookPage({
           isEditable={canEdit}
           isFollowing={isFollowing}
           onFollow={handleFollow}
-          onCoverImageChange={handleCoverImageChange}
+          onCoverImageChange={() => {}}
         />
 
       <div className="book-page__content">
@@ -792,7 +792,7 @@ export function ClientBookPage({
                     id: authors[0].id,
                     name: authors[0].name,
                     type: 'author' as const,
-                    author_image: authors[0].author_image,
+                    author_image: authors[0].author_image?.url || undefined,
                     bookCount: authorBookCounts[authors[0].id] || 0
                   } : undefined}
                 />

@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
@@ -34,7 +34,7 @@ export default function AddAuthorPage() {
   })
 
   // Fetch nationalities on component mount
-  useState(() => {
+  useEffect(() => {
     async function fetchNationalities() {
       try {
         const { data, error } = await supabaseClient

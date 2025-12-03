@@ -92,7 +92,7 @@ export async function PUT(
     // Check if post exists and user owns it
     const { data: existingPost, error: fetchError } = await supabase
       .from('activities')
-      .select('user_id, publish_status, text, data')
+      .select('user_id, publish_status, text, data, is_deleted, metadata')
       .eq('id', postId)
       .eq('activity_type', 'post_created')
       .single()
@@ -261,7 +261,7 @@ export async function DELETE(
     // Check if post exists and user owns it
     const { data: existingPost, error: fetchError } = await supabase
       .from('activities')
-      .select('user_id, publish_status')
+      .select('user_id, publish_status, is_deleted')
       .eq('id', postId)
       .eq('activity_type', 'post_created')
       .single()

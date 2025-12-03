@@ -124,7 +124,24 @@ export async function POST(request: NextRequest) {
         (comprehensiveStats.dataFieldsCollected.size / comprehensiveStats.totalFound).toFixed(1) : '0',
     };
 
-    const response = {
+    const response: {
+      books: any[]
+      summary: {
+        totalRequested: number
+        totalFound: number
+        totalNotFound: number
+        successRate: string
+        dataFieldsCollected: number
+        processingTime: string
+      }
+      stats?: any
+      databaseStats?: {
+        totalStored: number
+        totalUpdated: number
+        totalSkipped: number
+        storeSuccessRate: string
+      }
+    } = {
       books: results,
       summary: {
         totalRequested: isbns.length,
@@ -191,7 +208,16 @@ export async function GET(request: NextRequest) {
 
     const processingTime = Date.now() - startTime;
 
-    const response = {
+    const response: {
+      total: number
+      books: any[]
+      query: string
+      page: number
+      pageSize: number
+      withPrices: boolean
+      processingTime: string
+      stats?: any
+    } = {
       total: result.total,
       books: result.books,
       query,

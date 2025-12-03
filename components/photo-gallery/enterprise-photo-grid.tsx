@@ -254,37 +254,7 @@ export function EnterprisePhotoGrid({
             comment_count,
             share_count,
             quality_score,
-            is_featured,
-            photo_tags:photo_tags(
-              id,
-              entity_type,
-              entity_id,
-              entity_name,
-              x_position,
-              y_position,
-              created_at,
-              tagged_by
-            ),
-            photo_likes:photo_likes(
-              id,
-              user_id,
-              like_type,
-              created_at
-            ),
-            photo_comments:photo_comments(
-              id,
-              user_id,
-              content,
-              parent_id,
-              created_at,
-              updated_at
-            ),
-            photo_shares:photo_shares(
-              id,
-              user_id,
-              share_type,
-              created_at
-            )
+            is_featured
           )
         `)
         .eq('album_id', albumId)
@@ -327,15 +297,17 @@ export function EnterprisePhotoGrid({
           is_cover: isCover,
           is_featured: item.is_featured || image.is_featured,
           // Full enterprise data
-          tags: image.photo_tags || [],
-          likes: image.photo_likes || [],
-          comments: image.photo_comments || [],
-          shares: image.photo_shares || [],
+          // Note: photo_tags, photo_likes, photo_comments, photo_shares are not included in the query
+          // to avoid 400 errors from Supabase. They can be loaded separately if needed.
+          tags: [],
+          likes: [],
+          comments: [],
+          shares: [],
           analytics: {
             views: image.view_count || item.view_count || 0,
             unique_views: Math.floor((image.view_count || 0) * 0.7), // Estimate
             downloads: 0, // Will be loaded separately if needed
-            shares: image.share_count || item.share_count || (image.photo_shares?.length || 0),
+            shares: image.share_count || item.share_count || 0,
             engagement_rate: image.view_count > 0 ? 
               ((image.like_count || 0) + (image.comment_count || 0) + (image.share_count || 0)) / image.view_count * 100 : 0
           }

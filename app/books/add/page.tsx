@@ -210,7 +210,7 @@ export default async function AddBookPage({ searchParams }: AddBookPageProps) {
           <div>
             <Card className="overflow-hidden">
               {existingBook && (() => {
-                const coverImage = existingBook.cover_image
+                const coverImage = existingBook.cover_image as any
                 const coverImageUrl = Array.isArray(coverImage) ? coverImage[0]?.url : coverImage?.url
                 return coverImageUrl
               })() ? (

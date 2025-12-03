@@ -208,13 +208,12 @@ export function AlbumSettingsDialog({
       // Update feed activity if needed
       if (isPublic && showInFeed) {
         // Check if feed activity exists
-        // Note: entity_type and entity_id are stored in metadata JSONB
         const { data: existingActivity } = await supabase
           .from('activities')
           .select('id')
           .eq('activity_type', 'album_created')
-          .eq('metadata->>entity_type', 'photo_album')
-          .eq('metadata->>entity_id', album.id)
+          .eq('entity_type', 'photo_album')
+          .eq('entity_id', album.id)
           .single()
 
         if (!existingActivity) {
@@ -224,10 +223,10 @@ export function AlbumSettingsDialog({
             .insert({
               user_id: user.id,
               activity_type: 'album_created',
+              entity_type: 'photo_album',
+              entity_id: album.id,
               visibility: 'public',
               metadata: {
-                entity_type: 'photo_album',
-                entity_id: album.id,
                 album_name: album.name,
                 privacy_level: privacyLevel
               }
@@ -239,8 +238,8 @@ export function AlbumSettingsDialog({
           .from('activities')
           .delete()
           .eq('activity_type', 'album_created')
-          .eq('metadata->>entity_type', 'photo_album')
-          .eq('metadata->>entity_id', album.id)
+          .eq('entity_type', 'photo_album')
+          .eq('entity_id', album.id)
       }
 
       toast({

@@ -283,7 +283,10 @@ export default async function AddBookPage({ searchParams }: AddBookPageProps) {
                       href={`/publishers/${existingBook.publisher.id}`}
                       className="text-muted-foreground hover:text-primary transition-colors"
                     >
-                      {existingBook.publisher.name}
+                      {(() => {
+                        const publisher = existingBook.publisher as any
+                        return Array.isArray(publisher) ? publisher[0]?.name : publisher?.name
+                      })()}
                     </Link>
                   </div>
                 ) : bookPublisher && (

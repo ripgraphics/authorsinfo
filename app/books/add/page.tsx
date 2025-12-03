@@ -257,10 +257,10 @@ export default async function AddBookPage({ searchParams }: AddBookPageProps) {
                   <div>
                     <h3 className="font-medium">Author</h3>
                     <Link 
-                      href={`/authors/${existingBook.author.id}`}
+                      href={`/authors/${Array.isArray(existingBook.author) ? existingBook.author[0]?.id : existingBook.author?.id}`}
                       className="text-muted-foreground hover:text-primary transition-colors"
                     >
-                      {existingBook.author.name}
+                      {Array.isArray(existingBook.author) ? existingBook.author[0]?.name : existingBook.author?.name}
                     </Link>
                   </div>
                 ) : bookAuthors && bookAuthors.length > 0 && (

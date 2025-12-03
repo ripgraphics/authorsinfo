@@ -205,7 +205,7 @@ export default function ImportBooksPage() {
                   </div>
 
                   {duplicates.length > 0 && (
-                    <Alert variant="warning">
+                    <Alert variant="default">
                       <AlertCircle className="h-4 w-4" />
                       <AlertTitle>Duplicates Found</AlertTitle>
                       <AlertDescription>

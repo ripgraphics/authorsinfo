@@ -76,7 +76,7 @@ export async function getEventById(eventId: string, includeDetails = true) {
       .select('*')
       .eq('event_id', data.id)
       .eq('is_primary', true)
-      .single<EventLocation>();
+      .single<any>();
     
     // Get event sessions
     const { data: sessionData } = await supabase
@@ -84,7 +84,7 @@ export async function getEventById(eventId: string, includeDetails = true) {
       .select('*')
       .eq('event_id', data.id)
       .order('start_time', { ascending: true })
-      .returns<EventSession[]>();
+      .returns<any[]>();
     
     // Get event speakers
     const { data: speakerData } = await supabase
@@ -95,7 +95,7 @@ export async function getEventById(eventId: string, includeDetails = true) {
       `)
       .eq('event_id', data.id)
       .order('speaker_order', { ascending: true })
-      .returns<EventSpeaker[]>();
+      .returns<any[]>();
     
     // Get ticket types if registration is required
     let ticketTypes = null;
@@ -104,7 +104,7 @@ export async function getEventById(eventId: string, includeDetails = true) {
         .from('event_ticket_types')
         .select('*')
         .eq('event_id', data.id)
-        .returns<EventTicketType[]>();
+        .returns<any[]>();
       
       ticketTypes = ticketData;
     }
@@ -257,7 +257,7 @@ export async function registerForEvent(
       .select('*')
       .eq('id', ticketTypeId)
       .eq('event_id', eventId)
-      .single<EventTicketType>();
+      .single<any>();
     
     if (!ticketType) {
       throw new Error('Invalid ticket type');
@@ -299,7 +299,7 @@ export async function getEventCategories() {
     .from('event_categories')
     .select('*')
     .order('name')
-    .returns<EventCategory[]>();
+    .returns<any[]>();
   
   if (error) {
     console.error('Error fetching event categories:', error);

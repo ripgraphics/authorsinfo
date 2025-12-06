@@ -70,9 +70,9 @@ export default function GroupDetail() {
     setEditedGroup(prev => ({
       ...prev,
       contact_info: {
-        ...prev.contact_info,
-        [name]: value
-      }
+        ...prev?.contact_info,
+        [name]: value || undefined
+      } as any
     }));
   };
 

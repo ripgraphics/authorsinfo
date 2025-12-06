@@ -110,6 +110,8 @@ interface EnterprisePhotoGridProps {
   entityId?: string
   entityType?: string
   isOwner?: boolean
+  enableSelection?: boolean
+  onSelectionChange?: (selectedIds: string[]) => void
   onCoverImageChange?: () => void
   maxHeight?: string
   enhancedAlbumData?: any
@@ -131,7 +133,6 @@ export function EnterprisePhotoGrid({
   entityId,
   entityType,
   isOwner = false,
-  showHeader = true,
   enableSelection = false,
   onSelectionChange,
   onCoverImageChange,
@@ -725,8 +726,7 @@ export function EnterprisePhotoGrid({
   return (
     <div className="flex flex-col h-full">
       {/* Header Controls */}
-      {showHeader && (
-        <div className="flex-shrink-0">
+      <div className="flex-shrink-0">
           <div className="flex flex-col gap-4 p-4">
             {/* Search and Filters */}
             <div className="flex flex-col sm:flex-row gap-4">

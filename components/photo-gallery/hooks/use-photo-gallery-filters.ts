@@ -37,9 +37,11 @@ export function usePhotoGalleryFilters(initialImages: AlbumImage[] = []) {
       const query = filterState.searchQuery.toLowerCase();
       result = result.filter(
         (image) =>
-          image.altText?.toLowerCase().includes(query) ||
-          image.caption?.toLowerCase().includes(query) ||
-          image.tags?.some((tag) => tag.name.toLowerCase().includes(query))
+          (image as any).altText?.toLowerCase().includes(query) ||
+          (image as any).alt_text?.toLowerCase().includes(query) ||
+          (image as any).caption?.toLowerCase().includes(query) ||
+          (image as any).description?.toLowerCase().includes(query) ||
+          (image as any).tags?.some((tag: any) => tag.name?.toLowerCase().includes(query))
       );
     }
 

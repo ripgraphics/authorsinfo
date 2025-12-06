@@ -548,12 +548,6 @@ export function EnterprisePhotoGallery({
             gridCols={3}
             isEditable={isEditable}
             showTags={enableAI}
-            enterpriseFeatures={{
-              analytics: enableAnalytics,
-              monetization: enableMonetization,
-              community: enableCommunity,
-              ai: enableAI
-            }}
             onImageClick={(image) => {
               console.log('Enterprise image clicked:', image)
               if (enableAnalytics) {

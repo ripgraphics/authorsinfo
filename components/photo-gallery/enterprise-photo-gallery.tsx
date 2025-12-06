@@ -68,6 +68,10 @@ interface EnterpriseAlbumImage {
     width?: number
     height?: number
     created_at: string
+    alt_text?: string
+    caption?: string
+    updated_at?: string
+    metadata?: Record<string, any>
   }
 }
 

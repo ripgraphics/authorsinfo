@@ -82,7 +82,7 @@ export function usePhotoGalleryMetadata(options: MetadataOptions = {}) {
         }
       } else {
         // Fetch image metadata from URL
-        const response = await fetch(image.url);
+        const response = await fetch((image as any).url || '');
         const blob = await response.blob();
         metadata.size = blob.size;
         metadata.type = blob.type;

@@ -1,5 +1,5 @@
 import { createClient } from './supabase-server';
-import type { Event, EventCategory, EventType, EventLocation, EventSession, EventSpeaker, EventRegistration, EventTicketType } from '@/types/database';
+import type { Event } from '@/types/database';
 
 // Get all public published events with pagination
 export async function getPublicEvents(

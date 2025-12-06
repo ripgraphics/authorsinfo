@@ -242,8 +242,6 @@ export default function ContentModeration({ groupId, userRole }: ContentModerati
                                   variant={
                                     item.ai_score > 0.7
                                       ? 'destructive'
-                                      : item.ai_score > 0.4
-                                      ? 'warning'
                                       : 'secondary'
                                   }
                                 >

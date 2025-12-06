@@ -80,15 +80,14 @@ export async function createActivity(params: CreateActivityParams): Promise<{
         user_id: user.id,
         activity_type: params.activity_type,     
         entity_type: params.entity_type || 'unknown',
-      } as any)
-        entity_id: params.entity_id || null,
-        is_public: params.is_public ?? true,
+        entity_id: params.entity_id || null,     
+        is_public: params.is_public ?? true,   
         metadata: params.metadata || {},
-        group_id: params.group_id || null,
+        group_id: params.group_id || null,       
         book_id: params.book_id || null,
         author_id: params.author_id || null,
         event_id: params.event_id || null
-      })
+      } as any)
       .select()
       .single()
 

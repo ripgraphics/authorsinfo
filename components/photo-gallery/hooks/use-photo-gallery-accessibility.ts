@@ -196,8 +196,8 @@ export function usePhotoGalleryAccessibility(
     return {
       role: 'button',
       tabIndex: 0,
-      'aria-label': image.altText || `Image ${index + 1}`,
-      'aria-description': image.caption || '',
+      'aria-label': (image as any).altText || (image as any).alt_text || `Image ${index + 1}`,
+      'aria-description': (image as any).caption || (image as any).description || '',
       'aria-selected': index === accessibilityState.focusedIndex,
       'aria-posinset': index + 1,
       'aria-setsize': images.length,

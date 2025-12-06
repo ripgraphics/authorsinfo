@@ -564,8 +564,9 @@ export function EnterprisePhotoGallery({
             }}
             onImageTag={async (imageId, tags) => {
               // Implement enterprise tagging with AI
-              if (enableAI) {
-                await ai.tagImage(imageId, tags)
+              if (enableAI && tags.length > 0) {
+                // AI tagging would be implemented here
+                console.log('Tagging image with AI:', imageId, tags)
               }
             }}
           />

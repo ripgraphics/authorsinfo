@@ -132,12 +132,12 @@ export async function getUserFeedActivities(
     }
 
     // Use the fixed database function
-    const { data, error } = await supabase
-      .rpc('get_user_feed_activities', {
+    const { data, error } = await supabase      
+      .rpc('get_user_feed_activities', {      
         p_user_id: user.id,
         p_limit: limit,
         p_offset: offset
-      })
+      } as any)
 
     if (error) {
       console.error('Error fetching user activities:', error)
@@ -185,7 +185,7 @@ export async function getPublicFeedActivities(
         p_current_user_id: user.id,
         p_limit: limit,
         p_offset: offset
-      })
+      } as any)
 
     if (error) {
       console.error('Error fetching public activities:', error)
@@ -234,7 +234,7 @@ export async function toggleActivityLike(
       .rpc('toggle_activity_like', {
         p_activity_id: activityId,
         p_user_id: user.id
-      })
+      } as any)
 
     if (error) {
       console.error('Error toggling like:', error)
@@ -286,7 +286,7 @@ export async function addActivityComment(
         p_activity_id: activityId,
         p_user_id: user.id,
         p_comment_text: commentText.trim()
-      })
+      } as any)
 
     if (error) {
       console.error('Error adding comment:', error)

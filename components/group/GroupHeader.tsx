@@ -37,10 +37,6 @@ export function GroupHeader({
     {
       icon: <Globe className="h-4 w-4 mr-1" />,
       text: group.is_private ? "Private" : "Public"
-    },
-    {
-      icon: <Star className="h-4 w-4 mr-1" />,
-      text: group.is_discoverable ? "Discoverable" : "Hidden"
     }
   ];
 

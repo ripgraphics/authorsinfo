@@ -90,7 +90,7 @@ export function usePhotoGalleryFilters(initialImages: AlbumImage[] = []) {
         case 'size':
           return ((b as any).fileSize || (b as any).size || 0) - ((a as any).fileSize || (a as any).size || 0);
         case 'dimensions':
-          return (b.width * b.height) - (a.width * a.height);
+          return (((b as any).width || (b as any).metadata?.width || 0) * ((b as any).height || (b as any).metadata?.height || 0)) - (((a as any).width || (a as any).metadata?.width || 0) * ((a as any).height || (a as any).metadata?.height || 0));
         default:
           return 0;
       }

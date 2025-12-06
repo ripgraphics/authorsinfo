@@ -92,7 +92,7 @@ export function usePhotoGalleryMetadata(options: MetadataOptions = {}) {
         await new Promise((resolve, reject) => {
           img.onload = resolve;
           img.onerror = reject;
-          img.src = image.url;
+          img.src = (image as any).url || '';
         });
         metadata.width = img.width;
         metadata.height = img.height;

@@ -158,7 +158,7 @@ export function usePhotoGalleryOptimization(options: OptimizationOptions = {}) {
       return optimized.url;
     } catch (error) {
       console.error('Failed to optimize image:', error);
-      return image.url; // Fallback to original URL
+      return (image as any).url || ''; // Fallback to original URL
     }
   }, [cache, maxCacheAge, maxCacheSize, optimizeImage]);
 

@@ -82,9 +82,9 @@ export function usePhotoGalleryFilters(initialImages: AlbumImage[] = []) {
     result.sort((a, b) => {
       switch (filterState.sortBy) {
         case 'newest':
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          return new Date((b as any).createdAt || b.created_at).getTime() - new Date((a as any).createdAt || a.created_at).getTime();
         case 'oldest':
-          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          return new Date((a as any).createdAt || a.created_at).getTime() - new Date((b as any).createdAt || b.created_at).getTime();
         case 'name':
           return (a.altText || '').localeCompare(b.altText || '');
         case 'size':

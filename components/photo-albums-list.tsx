@@ -13,12 +13,23 @@ interface PhotoAlbumsListProps {
     cover_image_url?: string
     photo_count: number
     created_at: string
+    is_public?: boolean
+    cover_image_id?: string
+    metadata?: any
   }[]
   onAlbumUpdated: () => void
 }
 
 export function PhotoAlbumsList({ albums, onAlbumUpdated }: PhotoAlbumsListProps) {
   const router = useRouter()
+  const [selectedAlbum, setSelectedAlbum] = useState<{
+    id: string
+    name: string
+    is_public: boolean
+    cover_image_id?: string
+    metadata?: any
+  } | null>(null)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   if (albums.length === 0) {
     return (
@@ -67,10 +78,22 @@ export function PhotoAlbumsList({ albums, onAlbumUpdated }: PhotoAlbumsListProps
                 buttonText="Add Photos"
                 size="sm"
               />
-              <AlbumSettingsDialog
-                album={album}
-                onSettingsUpdated={onAlbumUpdated}
-              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSelectedAlbum({
+                    id: album.id,
+                    name: album.name,
+                    is_public: album.is_public ?? false,
+                    cover_image_id: album.cover_image_id,
+                    metadata: album.metadata
+                  })
+                  setIsSettingsOpen(true)
+                }}
+              >
+                Settings
+              </Button>
             </div>
             <Button
               variant="ghost"
@@ -81,6 +104,22 @@ export function PhotoAlbumsList({ albums, onAlbumUpdated }: PhotoAlbumsListProps
           </CardFooter>
         </Card>
       ))}
+      {selectedAlbum && (
+        <AlbumSettingsDialog
+          isOpen={isSettingsOpen}
+          onClose={() => {
+            setIsSettingsOpen(false)
+            setSelectedAlbum(null)
+          }}
+          album={selectedAlbum}
+          photos={[]}
+          onSettingsUpdated={() => {
+            onAlbumUpdated()
+            setIsSettingsOpen(false)
+            setSelectedAlbum(null)
+          }}
+        />
+      )}
     </div>
   )
 } 

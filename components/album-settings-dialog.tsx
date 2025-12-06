@@ -12,16 +12,16 @@ import { useAuth } from '@/hooks/useAuth'
 import { ImageIcon, Globe, Users, Lock, Eye, EyeOff, Share2 } from "lucide-react"
 
 interface AlbumSettingsDialogProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen?: boolean
+  onClose?: () => void
   album: {
     id: string
     name: string
-    is_public: boolean
+    is_public?: boolean
     cover_image_id?: string
     metadata?: any
   }
-  photos: {
+  photos?: {
     id: string
     url: string
     alt?: string
@@ -32,12 +32,16 @@ interface AlbumSettingsDialogProps {
 type PrivacyLevel = 'public' | 'friends' | 'private' | 'custom'
 
 export function AlbumSettingsDialog({
-  isOpen,
-  onClose,
+  isOpen: externalIsOpen,
+  onClose: externalOnClose,
   album,
-  photos,
+  photos = [],
   onSettingsUpdated
 }: AlbumSettingsDialogProps) {
+  const [internalIsOpen, setInternalIsOpen] = useState(false)
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen
+  const onClose = externalOnClose || (() => setInternalIsOpen(false))
+  
   const [privacyLevel, setPrivacyLevel] = useState<PrivacyLevel>('public')
   const [showInFeed, setShowInFeed] = useState(true)
   const [selectedCoverId, setSelectedCoverId] = useState(album.cover_image_id)
@@ -82,8 +86,8 @@ export function AlbumSettingsDialog({
       setPrivacyLevel(album.metadata.privacy_level || 'public')
       setShowInFeed(album.metadata.show_in_feed !== false)
     } else {
-      setPrivacyLevel(album.is_public ? 'public' : 'private')
-      setShowInFeed(album.is_public)
+      setPrivacyLevel(album.is_public ?? false ? 'public' : 'private')
+      setShowInFeed(album.is_public ?? false)
     }
   }, [album])
 

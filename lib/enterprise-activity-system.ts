@@ -379,7 +379,7 @@ export class EnterpriseActivityGenerator {
             book_id: book.id,
             book_title: book.title,
             author_id: book.author_id,
-            author_name: book.authors?.name
+            author_name: Array.isArray(book.authors) ? book.authors[0]?.name : (book.authors as any)?.name
           },
           metadata: includeMetadata ? {
             batch_id: this.batchId,

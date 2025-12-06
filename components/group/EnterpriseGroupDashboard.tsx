@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { createBrowserClient } from '@supabase/ssr';
 import type { Database } from '@/types/database';
-import type { Database } from '@/types/database';
 
 // Import sub-components (to be created next)
 import GroupAnalytics from './GroupAnalytics';

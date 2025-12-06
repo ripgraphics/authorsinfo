@@ -7,9 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { useToast } from '@/hooks/use-toast';
+import { createBrowserClient } from '@supabase/ssr';
 import type { Database } from '@/types/database';
+import { useToast } from '@/hooks/use-toast';
 
 interface ContentModerationProps {
   groupId: string;
@@ -38,7 +38,10 @@ export default function ContentModeration({ groupId, userRole }: ContentModerati
   const [selectedItem, setSelectedItem] = useState<ModerationItem | null>(null);
   const [contentDetails, setContentDetails] = useState<any>(null);
 
-  const supabase = createClientComponentClient<Database>();
+  const supabase = createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
   const { toast } = useToast();
 
   useEffect(() => {

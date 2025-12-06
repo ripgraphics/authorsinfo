@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/ssr'
+import type { Database } from '@/types/database'
 import { uploadPhoto } from '@/app/actions/upload-photo'
 import { usePhotoGalleryAnalytics } from './hooks/use-photo-gallery-analytics'
 import { usePhotoGalleryMonetization } from './hooks/use-photo-gallery-monetization'
@@ -192,7 +193,10 @@ export function EnterprisePhotoGallery({
   const [newAlbumName, setNewAlbumName] = useState('')
   const [activeTab, setActiveTab] = useState<'gallery' | 'analytics' | 'monetization' | 'community'>('gallery')
 
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Enterprise hooks

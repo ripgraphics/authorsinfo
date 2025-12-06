@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createBrowserClient } from '@supabase/ssr';
+import type { Database } from '@/types/database';
 import { AlbumImage } from '../types';
 
 interface Album {
@@ -41,7 +42,10 @@ export function usePhotoGalleryAlbum(options: AlbumOptions = {}) {
     images: [],
   });
 
-  const supabase = createClientComponentClient();
+  const supabase = createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   // Create new album
   const createAlbum = useCallback(async (

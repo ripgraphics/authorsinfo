@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createBrowserClient } from '@supabase/ssr';
+import type { Database } from '@/types/database';
 import { AlbumImage } from '../types';
 
 type SharePlatform = 'facebook' | 'twitter' | 'pinterest' | 'linkedin' | 'whatsapp' | 'email';
@@ -24,7 +25,10 @@ export function usePhotoGalleryShare() {
     shareUrl: null,
   });
 
-  const supabase = createClientComponentClient();
+  const supabase = createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   const generateShareUrl = useCallback((image: AlbumImage, options: ShareOptions) => {
     const baseUrl = window.location.origin;

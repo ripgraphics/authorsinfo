@@ -57,6 +57,18 @@ interface EnterpriseAlbumImage {
   revenue_generated: number
   ai_tags?: string[]
   community_engagement?: number
+  // Related image data from join
+  image?: {
+    id: string
+    url: string
+    original_filename?: string
+    storage_path?: string
+    file_size?: number
+    mime_type?: string
+    width?: number
+    height?: number
+    created_at: string
+  }
 }
 
 interface EnterpriseImage {

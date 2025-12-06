@@ -212,9 +212,9 @@ export function usePhotoGalleryEditor() {
       const { error: updateError } = await supabase
         .from('images')
         .update({
-          url: image.url,
-          width: image.width,
-          height: image.height,
+          url: (image as any).url || '',
+          width: (image as any).width || 0,
+          height: (image as any).height || 0,
           updated_at: new Date().toISOString(),
         })
         .eq('id', image.id);

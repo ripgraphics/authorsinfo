@@ -421,12 +421,6 @@ export function EnterprisePhotoGallery({
           showStats={showStats}
           showShare={showShare}
           onUpload={handleFileUpload}
-          enterpriseFeatures={{
-            analytics: enableAnalytics,
-            monetization: enableMonetization,
-            community: enableCommunity,
-            ai: enableAI
-          }}
         />
         <PhotoGalleryEmpty
           isEditable={isEditable}
@@ -461,15 +455,6 @@ export function EnterprisePhotoGallery({
         showStats={showStats}
         showShare={showShare}
         onUpload={handleFileUpload}
-        enterpriseFeatures={{
-          analytics: enableAnalytics,
-          monetization: enableMonetization,
-          community: enableCommunity,
-          ai: enableAI
-        }}
-        analytics={albumState.analytics}
-        monetization={albumState.monetization}
-        community={albumState.community}
       />
 
       {/* Enterprise Tab Navigation */}

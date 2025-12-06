@@ -89,6 +89,7 @@ export function usePhotoGalleryOptimization(options: OptimizationOptions = {}) {
         }
       };
 
+      if (!workerRef.current) return;
       workerRef.current.addEventListener('message', handleMessage);
       workerRef.current.postMessage({
         id: messageId,

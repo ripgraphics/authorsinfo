@@ -86,9 +86,9 @@ export function usePhotoGalleryFilters(initialImages: AlbumImage[] = []) {
         case 'oldest':
           return new Date((a as any).createdAt || a.created_at).getTime() - new Date((b as any).createdAt || b.created_at).getTime();
         case 'name':
-          return (a.altText || '').localeCompare(b.altText || '');
+          return ((a as any).altText || (a as any).alt_text || (a as any).filename || (a as any).name || '').localeCompare((b as any).altText || (b as any).alt_text || (b as any).filename || (b as any).name || '');
         case 'size':
-          return (b.fileSize || 0) - (a.fileSize || 0);
+          return ((b as any).fileSize || (b as any).size || 0) - ((a as any).fileSize || (a as any).size || 0);
         case 'dimensions':
           return (b.width * b.height) - (a.width * a.height);
         default:

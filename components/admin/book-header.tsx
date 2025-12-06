@@ -52,6 +52,7 @@ export function BookHeader({ book, mainAuthor, bookCount = 0 }: BookHeaderProps)
             alt={book.cover_image.alt_text || book.title}
             fill
             className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
           />
         ) : (
           <div className="book-header-cover-placeholder absolute inset-0 bg-muted flex items-center justify-center">
@@ -78,6 +79,7 @@ export function BookHeader({ book, mainAuthor, bookCount = 0 }: BookHeaderProps)
                   alt={`Photo of ${author.name}`}
                   fill
                   className="object-cover"
+                  sizes="(max-width: 768px) 128px, 160px"
                 />
               ) : (
                 <div className="book-header-author-placeholder flex h-full w-full items-center justify-center bg-muted">

@@ -7,7 +7,7 @@ import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/ssr'
 import { useToast } from '@/components/ui/use-toast'
 import { useAuth } from '@/hooks/useAuth'
 import { FolderPlus, Users, Lock, Globe, Eye, EyeOff, UserCheck } from 'lucide-react'
@@ -32,7 +32,7 @@ export function PhotoAlbumCreator({ onAlbumCreated, trigger, entityType, entityI
   const [showInFeed, setShowInFeed] = useState(true)
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const [isCreating, setIsCreating] = useState(false)
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
   const privacyOptions = [
     {

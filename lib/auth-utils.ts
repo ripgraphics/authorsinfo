@@ -1,4 +1,6 @@
 import { supabaseClient } from '@/lib/supabase/client'
+import { createBrowserClient } from "@supabase/ssr"
+import type { Database } from "@/types/database"
 
 export interface UserWithRole {
   id: string
@@ -100,7 +102,7 @@ export async function canUserEditEntity(
   if (!userId) return false
 
   try {
-    const supabase = createClientComponentClient()
+    const supabase = createBrowserClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
     
     // First check if user is admin (admins can edit everything)
     const isAdmin = await isUserAdmin(userId)

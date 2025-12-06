@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper';
 import { supabaseAdmin } from '@/lib/supabase';
 
 export async function GET(
@@ -57,7 +56,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
     }
 
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = await createRouteHandlerClientAsync();
     const { data: { session } } = await supabase.auth.getSession();
     
     const allowedFields = [

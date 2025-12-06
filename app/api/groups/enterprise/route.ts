@@ -1,5 +1,5 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
+
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
@@ -15,7 +15,7 @@ const createGroupSchema = z.object({
   auto_approve_members: z.boolean().optional(),
   content_moderation_enabled: z.boolean().optional(),
   analytics_enabled: z.boolean().optional(),
-  metadata: z.record(z.any()).optional()
+  metadata: z.record(z.string(), z.any()).optional()
 })
 
 const updateGroupSchema = createGroupSchema.partial()
@@ -25,7 +25,7 @@ const membershipSchema = z.object({
   role: z.string(),
   status: z.enum(['pending', 'active', 'suspended', 'banned']).optional(),
   expires_at: z.string().datetime().optional(),
-  metadata: z.record(z.any()).optional()
+  metadata: z.record(z.string(), z.any()).optional()
 })
 
 const moderationSchema = z.object({
@@ -52,7 +52,7 @@ async function checkPermission(supabase: any, groupId: string, permission: strin
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createRouteHandlerClientAsync()
     
     // Get query parameters
     const visibility = searchParams.get('visibility')
@@ -88,7 +88,7 @@ export async function GET(request: Request) {
 // POST /api/groups/enterprise
 export async function POST(request: Request) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createRouteHandlerClientAsync()
     const body = await request.json()
     const action = body.action || 'create_group'
     

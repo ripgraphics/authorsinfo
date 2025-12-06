@@ -8,12 +8,17 @@ export async function POST(request: NextRequest) {
     console.log('Friend request POST started')
     const supabase = await createRouteHandlerClientAsync()
     
-    // Get the current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      console.log('Auth error:', authError)
+    // Get the current user from session
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    if (sessionError) {
+      console.error('Session error:', sessionError)
+      return NextResponse.json({ error: 'Failed to get session' }, { status: 500 })
+    }
+    if (!session?.user) {
+      console.log('No user found in session')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+    const user = session.user
 
     console.log('User authenticated:', user.id)
     const { targetUserId } = await request.json()
@@ -117,11 +122,16 @@ export async function PUT(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClientAsync()
     
-    // Get the current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
+    // Get the current user from session
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    if (sessionError) {
+      console.error('Session error:', sessionError)
+      return NextResponse.json({ error: 'Failed to get session' }, { status: 500 })
+    }
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+    const user = session.user
 
     const { requestId, action } = await request.json()
     
@@ -205,11 +215,16 @@ export async function DELETE(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClientAsync()
     
-    // Get the current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
+    // Get the current user from session
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    if (sessionError) {
+      console.error('Session error:', sessionError)
+      return NextResponse.json({ error: 'Failed to get session' }, { status: 500 })
+    }
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+    const user = session.user
 
     const { searchParams } = new URL(request.url)
     const friendId = searchParams.get('friendId')
@@ -258,7 +273,8 @@ export async function GET(request: NextRequest) {
     const supabase = await createRouteHandlerClientAsync()
     
     // Get the current user (optional - allow checking friend status without auth)
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { session } } = await supabase.auth.getSession()
+    const user = session?.user || null
 
     const { searchParams } = new URL(request.url)
     const targetUserId = searchParams.get('targetUserId')

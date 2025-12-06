@@ -115,7 +115,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        isEditable={authUser && (authUser.role === 'admin' || authUser.role === 'super_admin' || authUser.role === 'super-admin')}
+        isEditable={authUser && (authUser.role === 'admin' || authUser.role === 'super_admin' || authUser.role === 'super-admin') ? true : undefined}
       />
       
       {/* Timeline Tab Content */}

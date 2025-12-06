@@ -59,7 +59,6 @@ export function PhotosList({
             <PhotoUpload
               entityId={entityId}
               entityType={entityType}
-              albumId={albumId}
               onUploadComplete={onUploadComplete}
             />
           </div>
@@ -83,7 +82,7 @@ export function PhotosList({
         <AlbumSettingsDialog
           isOpen={isSettingsOpen}
           onClose={() => setIsSettingsOpen(false)}
-          album={album}
+          album={{ id: album.id, name: album.title, is_public: album.is_public, cover_image_id: album.cover_image_id }}
           photos={photos}
           onSettingsUpdated={onPhotosUpdated}
         />

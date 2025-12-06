@@ -1,13 +1,12 @@
 import { Suspense } from 'react'
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createServerComponentClientAsync } from '@/lib/supabase/client-helper'
 import { redirect } from 'next/navigation'
 import { FeedContent } from './feed-content'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export default async function FeedPage() {
-  const supabase = createServerComponentClient({ cookies })
+  const supabase = await createServerComponentClientAsync()
   
   const { data: { user }, error } = await supabase.auth.getUser()
   

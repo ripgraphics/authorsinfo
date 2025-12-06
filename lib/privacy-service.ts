@@ -1,5 +1,5 @@
-import { createServerActionClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createServerActionClientAsync } from '@/lib/supabase/client-helper'
+
 import type { 
   PrivacyLevel, 
   PermissionType, 
@@ -14,7 +14,7 @@ import type {
 export class PrivacyService {
   private static async getSupabase() {
     const cookieStore = await cookies()
-    return createServerActionClient({ cookies: () => cookieStore })
+    return await createServerActionClientAsync()
   }
 
   /**

@@ -1,4 +1,4 @@
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/ssr'
 
 /**
  * Generates a profile URL using the user's permalink instead of ID (client-side)
@@ -6,7 +6,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
  */
 export async function getProfileUrlClient(userId: string): Promise<string> {
   try {
-    const supabase = createClientComponentClient()
+    const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
     
     // Get the user's permalink
     const { data: user, error } = await supabase
@@ -53,7 +53,7 @@ export function getProfileUrlFromPermalink(permalink: string): string {
  */
 export async function getUserIdFromPermalink(identifier: string): Promise<string | null> {
   try {
-    const supabase = createClientComponentClient()
+    const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
     
     // Check if the identifier looks like a UUID
     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(identifier)

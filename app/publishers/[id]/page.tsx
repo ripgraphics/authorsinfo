@@ -1,5 +1,4 @@
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
+import { createServerComponentClientAsync } from "@/lib/supabase/client-helper"
 import { notFound } from "next/navigation"
 import { supabaseAdmin } from "@/lib/supabase"
 import type { Publisher } from "@/types/database"
@@ -112,7 +111,7 @@ export default async function PublisherPage({ params }: { params: Promise<{ id: 
   const { followers, count: followersCount } = await getPublisherFollowers(id)
   
   // Get publisher books with error handling
-  let books = []
+  let books: any[] = []
   try {
     books = await getPublisherBooks(id)
   } catch (error) {

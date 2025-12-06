@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/ssr'
 import { useToast } from '@/components/ui/use-toast'
 import { useRouter } from 'next/navigation'
 
@@ -29,7 +29,7 @@ export function CreateAlbumDialog({ entityId, entityType, onAlbumCreated }: Crea
   useEffect(() => {
     const initializeClient = async () => {
       try {
-        const client = createClientComponentClient()
+        const client = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
         setSupabase(client)
 
         const { data: { session }, error: sessionError } = await client.auth.getSession()

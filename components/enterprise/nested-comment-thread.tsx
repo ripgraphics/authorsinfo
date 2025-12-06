@@ -21,7 +21,7 @@ interface Comment {
   id: string
   content: string
   created_at: string
-  updated_at: string
+  updated_at?: string
   user: CommentUser
   parent_comment_id?: string | null
   comment_depth: number

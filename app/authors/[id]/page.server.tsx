@@ -1,5 +1,4 @@
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
+import { createServerComponentClientAsync } from "@/lib/supabase/client-helper"
 import { notFound } from "next/navigation"
 import { supabaseAdmin } from "@/lib/supabase"
 import type { Author } from "@/types/database"

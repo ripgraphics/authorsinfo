@@ -32,13 +32,13 @@ export default function GroupEditPage() {
   // Set initial previews when group data is loaded
   useEffect(() => {
     if (group) {
-      if (group.group_image_id) {
+      if ((group as any).group_image_id) {
         // Fetch the image URL from the images table
         const fetchImageUrl = async () => {
           const { data: imageData } = await supabaseClient
             .from("images")
             .select("url")
-            .eq("id", group.group_image_id)
+            .eq("id", (group as any).group_image_id)
           .single()
 
           if (imageData?.url) {
@@ -48,13 +48,13 @@ export default function GroupEditPage() {
         fetchImageUrl()
       }
       
-      if (group.cover_image_id) {
+      if ((group as any).cover_image_id) {
         // Fetch the cover image URL from the images table
         const fetchCoverUrl = async () => {
           const { data: imageData } = await supabaseClient
             .from("images")
             .select("url")
-            .eq("id", group.cover_image_id)
+            .eq("id", (group as any).cover_image_id)
             .single()
           
           if (imageData?.url) {
@@ -342,7 +342,7 @@ export default function GroupEditPage() {
                 <Input
                   id="tags"
                   name="tags"
-                  defaultValue={group.tags?.join(", ")}
+                  defaultValue={(group as any).tags?.join(", ")}
                 />
               </div>
 
@@ -351,7 +351,7 @@ export default function GroupEditPage() {
                 <select
                   id="is_public"
                   name="is_public"
-                  defaultValue={group.is_public ? "true" : "false"}
+                  defaultValue={(group as any).is_public ? "true" : "false"}
                   className="w-full p-2 border rounded"
                 >
                   <option value="true">Public</option>
@@ -364,7 +364,7 @@ export default function GroupEditPage() {
                 <select
                   id="is_discoverable"
                   name="is_discoverable"
-                  defaultValue={group.is_discoverable ? "true" : "false"}
+                  defaultValue={(group as any).is_discoverable ? "true" : "false"}
                   className="w-full p-2 border rounded"
                 >
                   <option value="true">Discoverable</option>

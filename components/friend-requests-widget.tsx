@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast'
 import { formatDistanceToNow } from 'date-fns'
 import Link from 'next/link'
 import { getProfileUrlFromUser } from '@/lib/utils/profile-url-client'
+import { useAuth } from '@/hooks/useAuth'
 
 interface FriendRequest {
   id: string
@@ -40,14 +41,17 @@ export function FriendRequestsWidget({ maxRequests = 3, className = '' }: Friend
   const [requests, setRequests] = useState<FriendRequest[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [processingRequest, setProcessingRequest] = useState<string | null>(null)
-  
+  const { user } = useAuth()
   const { toast } = useToast()
 
-  useEffect(() => {
-    fetchPendingRequests()
-  }, [])
+  const fetchPendingRequests = useCallback(async () => {
+    // Don't fetch if user is not authenticated
+    if (!user) {
+      setIsLoading(false)
+      setRequests([])
+      return
+    }
 
-  const fetchPendingRequests = async () => {
     try {
       setIsLoading(true)
       const response = await fetch('/api/friends/pending')
@@ -55,15 +59,28 @@ export function FriendRequestsWidget({ maxRequests = 3, className = '' }: Friend
       if (response.ok) {
         const data = await response.json()
         setRequests((data.requests || []).slice(0, maxRequests))
+      } else if (response.status === 401) {
+        // 401 is expected when user is not logged in - silently handle
+        setRequests([])
       } else {
-        console.error('Failed to fetch pending requests')
+        // Only log non-401 errors in development
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Failed to fetch pending requests:', response.status, response.statusText)
+        }
       }
     } catch (error) {
-      console.error('Error fetching pending requests:', error)
+      // Only log errors in development, and skip network errors for 401s
+      if (process.env.NODE_ENV === 'development' && error instanceof Error && !error.message.includes('401')) {
+        console.error('Error fetching pending requests:', error)
+      }
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [user, maxRequests])
+
+  useEffect(() => {
+    fetchPendingRequests()
+  }, [fetchPendingRequests])
 
   const handleRequestAction = async (requestId: string, action: 'accept' | 'reject') => {
     try {

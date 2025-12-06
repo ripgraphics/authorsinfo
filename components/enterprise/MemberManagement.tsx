@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { DataTable } from '@/components/ui/data-table'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
@@ -71,10 +71,10 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
         `)
         .eq('group_id', groupId)
 
-      if (filter.status) {
+      if (filter.status && filter.status !== 'all') {
         query = query.eq('status', filter.status)
       }
-      if (filter.role) {
+      if (filter.role && filter.role !== 'all') {
         query = query.contains('roles', [filter.role])
       }
 
@@ -198,7 +198,7 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
   const columns = [
     {
       header: 'Member',
-      cell: ({ row }) => (
+      cell: ({ row }: { row: any }) => (
         <div className="flex items-center gap-2">
           {row.original.user.avatar_url && (
             <img
@@ -216,7 +216,7 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
     },
     {
       header: 'Roles',
-      cell: ({ row }) => (
+      cell: ({ row }: { row: any }) => (
         <div className="flex flex-wrap gap-1">
           {row.original.roles.map((role: string) => (
             <Badge key={role} variant="secondary">
@@ -229,11 +229,11 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
     {
       header: 'Status',
       accessorKey: 'status',
-      cell: ({ row }) => (
+      cell: ({ row }: { row: any }) => (
         <Badge variant={
-          row.original.status === 'active' ? 'success' :
+          row.original.status === 'active' ? 'secondary' :
           row.original.status === 'suspended' ? 'destructive' :
-          'warning'
+          'outline'
         }>
           {row.original.status}
         </Badge>
@@ -242,16 +242,16 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
     {
       header: 'Joined',
       accessorKey: 'joined_at',
-      cell: ({ row }) => format(new Date(row.original.joined_at), 'MMM d, yyyy')
+      cell: ({ row }: { row: any }) => format(new Date(row.original.joined_at), 'MMM d, yyyy')
     },
     {
       header: 'Last Active',
       accessorKey: 'last_active_at',
-      cell: ({ row }) => format(new Date(row.original.last_active_at), 'MMM d, yyyy HH:mm')
+      cell: ({ row }: { row: any }) => format(new Date(row.original.last_active_at), 'MMM d, yyyy HH:mm')
     },
     {
       header: 'Actions',
-      cell: ({ row }) => (
+      cell: ({ row }: { row: any }) => (
         <div className="flex gap-2">
           <Dialog>
             <DialogTrigger asChild>
@@ -349,7 +349,7 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Status</SelectItem>
+              <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="active">Active</SelectItem>
               <SelectItem value="suspended">Suspended</SelectItem>
               <SelectItem value="muted">Muted</SelectItem>
@@ -363,7 +363,7 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
               <SelectValue placeholder="Filter by role" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Roles</SelectItem>
+              <SelectItem value="all">All Roles</SelectItem>
               <SelectItem value="member">Member</SelectItem>
               <SelectItem value="moderator">Moderator</SelectItem>
               <SelectItem value="admin">Admin</SelectItem>
@@ -416,12 +416,42 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
           <CardTitle>Members</CardTitle>
         </CardHeader>
         <CardContent>
-          <DataTable
-            columns={columns}
-            data={members}
-            loading={loading}
-            pagination
-          />
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {columns.map((column, index) => (
+                    <TableHead key={index}>{column.header}</TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                      Loading...
+                    </TableCell>
+                  </TableRow>
+                ) : members.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                      No members found.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  members.map((member, index) => (
+                    <TableRow key={member.user_id || index}>
+                      {columns.map((column, colIndex) => (
+                        <TableCell key={colIndex}>
+                          {column.cell ? column.cell({ row: { original: member } }) : (member as any)[column.accessorKey || '']}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

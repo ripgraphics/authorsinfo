@@ -44,7 +44,7 @@ export function FeedExample() {
                 avatar_url: `/api/avatar/${item.userId}`,
                 created_at: new Date().toISOString()
               }}
-              userStats={userStats} // Pass the pre-fetched user stats
+              userStats={userStats || undefined} // Pass the pre-fetched user stats
             >
               <span className="user-name-link">{item.userName}</span>
             </EntityHoverCard>

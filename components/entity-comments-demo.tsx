@@ -1,6 +1,6 @@
 'use client'
 
-import { EntityComments } from '@/components/entity-comments'
+import EntityComments from '@/components/entity-comments'
 
 interface EntityCommentsDemoProps {
   entityType: 'photo' | 'book' | 'author' | 'publisher' | 'user' | 'group'

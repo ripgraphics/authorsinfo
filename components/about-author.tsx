@@ -81,7 +81,7 @@ export function AboutAuthor({
                 entity={{
                   id: author.id,
                   name: author.name,
-                  author_image: author.author_image,
+                  author_image: author.author_image ? { url: author.author_image.url } : undefined,
                   bookCount: authorBookCounts[author.id] || books.length || 0
                 }}
               >

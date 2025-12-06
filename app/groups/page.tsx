@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createBrowserClient } from "@supabase/ssr"
+import type { Database } from "@/types/database"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -101,7 +102,7 @@ export default function GroupsPage() {
     description: '',
     is_private: false
   })
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
   useEffect(() => {
     loadGroups()
@@ -216,8 +217,8 @@ export default function GroupsPage() {
         let errorMessage = 'Database query failed'
         if (groupsError?.message) {
           errorMessage = groupsError.message
-        } else if (groupsError?.error_description) {
-          errorMessage = groupsError.error_description
+        } else if ((groupsError as any)?.error_description) {
+          errorMessage = (groupsError as any).error_description
         } else if (groupsError?.details) {
           errorMessage = groupsError.details
         } else if (typeof groupsError === 'string') {

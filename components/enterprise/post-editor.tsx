@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useCallback, useEffect } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/ssr'
 import { useAuth } from '@/hooks/useAuth'
 import { Post, CreatePostData, PostContentType, PostVisibility } from '@/types/post'
 import { Button } from '@/components/ui/button'
@@ -31,7 +31,7 @@ export default function PostEditor({
   existingPost
 }: PostEditorProps) {
   const { user } = useAuth()
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   
   const [content, setContent] = useState(initialData?.content?.text || existingPost?.content?.text || '')
@@ -53,7 +53,7 @@ export default function PostEditor({
     setErrors([])
     
     try {
-      const postData: CreatePostData = {
+      const postData: any = {
         user_id: user.id,
         text: content,  // Store text directly in the text column
         data: {

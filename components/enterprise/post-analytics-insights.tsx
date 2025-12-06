@@ -490,7 +490,7 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
                     
                     <div className="flex-1">
                       <h4 className="font-medium truncate">
-                        {performance.post.text || performance.post.data?.text || 'No content'}
+                        {performance.post.content?.text || (performance.post as any).text || (performance.post as any).data?.text || 'No content'}
                       </h4>
                       <p className="text-sm text-muted-foreground">
                         {new Date(performance.post.created_at).toLocaleDateString()}

@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
-import { DataTable } from '@/components/ui/data-table'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { supabaseClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
 
@@ -141,7 +141,7 @@ export function PermissionsManager({ groupId }: PermissionsManagerProps) {
     {
       header: 'Role Name',
       accessorKey: 'name',
-      cell: ({ row }) => (
+      cell: ({ row }: { row: any }) => (
         <div>
           <div className="font-semibold">{row.original.name}</div>
           <div className="text-sm text-muted-foreground">{row.original.description}</div>
@@ -150,7 +150,7 @@ export function PermissionsManager({ groupId }: PermissionsManagerProps) {
     },
     {
       header: 'Permissions',
-      cell: ({ row }) => (
+      cell: ({ row }: { row: any }) => (
         <div className="flex flex-wrap gap-1">
           {row.original.permissions.map((permission: string) => (
             <Badge key={permission} variant="secondary">
@@ -162,7 +162,7 @@ export function PermissionsManager({ groupId }: PermissionsManagerProps) {
     },
     {
       header: 'Type',
-      cell: ({ row }) => (
+      cell: ({ row }: { row: any }) => (
         <Badge variant={row.original.is_custom ? 'outline' : 'default'}>
           {row.original.is_custom ? 'Custom' : 'Default'}
         </Badge>
@@ -171,11 +171,11 @@ export function PermissionsManager({ groupId }: PermissionsManagerProps) {
     {
       header: 'Last Updated',
       accessorKey: 'updated_at',
-      cell: ({ row }) => format(new Date(row.original.updated_at), 'MMM d, yyyy HH:mm')
+      cell: ({ row }: { row: any }) => format(new Date(row.original.updated_at), 'MMM d, yyyy HH:mm')
     },
     {
       header: 'Actions',
-      cell: ({ row }) => (
+      cell: ({ row }: { row: any }) => (
         <div className="flex gap-2">
           <Dialog>
             <DialogTrigger asChild>
@@ -327,11 +327,42 @@ export function PermissionsManager({ groupId }: PermissionsManagerProps) {
           <CardTitle>Roles & Permissions</CardTitle>
         </CardHeader>
         <CardContent>
-          <DataTable
-            columns={columns}
-            data={roles}
-            loading={loading}
-          />
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {columns.map((column, index) => (
+                    <TableHead key={index}>{column.header}</TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                      Loading...
+                    </TableCell>
+                  </TableRow>
+                ) : roles.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                      No roles found.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  roles.map((role, index) => (
+                    <TableRow key={role.id || index}>
+                      {columns.map((column, colIndex) => (
+                        <TableCell key={colIndex}>
+                          {column.cell ? column.cell({ row: { original: role } }) : (role as any)[column.accessorKey || '']}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

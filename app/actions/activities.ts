@@ -1,7 +1,7 @@
 'use server'
 
-import { createServerActionClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createServerActionClientAsync } from '@/lib/supabase/client-helper'
+
 import { revalidatePath } from 'next/cache'
 
 export interface CreateActivityParams {
@@ -60,7 +60,7 @@ export async function createActivity(params: CreateActivityParams): Promise<{
   error?: string
 }> {
   try {
-    const supabase = createServerActionClient({ cookies })
+    const supabase = await createServerActionClientAsync()
     
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -123,7 +123,7 @@ export async function getUserFeedActivities(
   hasMore?: boolean
 }> {
   try {
-    const supabase = createServerActionClient({ cookies })
+    const supabase = await createServerActionClientAsync()
     
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -171,7 +171,7 @@ export async function getPublicFeedActivities(
   hasMore?: boolean
 }> {
   try {
-    const supabase = createServerActionClient({ cookies })
+    const supabase = await createServerActionClientAsync()
     
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -221,7 +221,7 @@ export async function toggleActivityLike(
   error?: string
 }> {
   try {
-    const supabase = createServerActionClient({ cookies })
+    const supabase = await createServerActionClientAsync()
     
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -267,7 +267,7 @@ export async function addActivityComment(
   error?: string
 }> {
   try {
-    const supabase = createServerActionClient({ cookies })
+    const supabase = await createServerActionClientAsync()
     
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -315,7 +315,7 @@ export async function getActivityEngagement(
   error?: string
 }> {
   try {
-    const supabase = createServerActionClient({ cookies })
+    const supabase = await createServerActionClientAsync()
     
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()

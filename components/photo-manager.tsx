@@ -1,7 +1,8 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createBrowserClient } from "@supabase/ssr"
+import type { Database } from "@/types/database"
 import { Trash2, GripVertical, Eye } from "lucide-react"
 import { PhotoViewerModal } from "./photo-viewer-modal"
 import {
@@ -23,7 +24,7 @@ interface PhotoManagerProps {
     order?: number
   }[]
   albumId?: string
-  onPhotosUpdated: () => void
+  onPhotosUpdated?: () => void
 }
 
 export function PhotoManager({
@@ -38,7 +39,7 @@ export function PhotoManager({
   const [isDragging, setIsDragging] = useState(false)
   const [draggedPhotoId, setDraggedPhotoId] = useState<string | null>(null)
   const { toast } = useToast()
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
   const handlePhotoClick = (index: number) => {
     setSelectedPhotoIndex(index)
@@ -77,7 +78,7 @@ export function PhotoManager({
         title: "Success",
         description: "Photo deleted successfully"
       })
-      onPhotosUpdated()
+      onPhotosUpdated?.()
     } catch (error) {
       toast({
         title: "Error",
@@ -127,7 +128,7 @@ export function PhotoManager({
 
       if (error2) throw error2
 
-      onPhotosUpdated()
+      onPhotosUpdated?.()
     } catch (error) {
       toast({
         title: "Error",

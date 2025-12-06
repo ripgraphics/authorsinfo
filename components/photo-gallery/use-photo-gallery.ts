@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { UsePhotoGalleryProps, UsePhotoGalleryReturn, AlbumImage } from './types';
+import { createBrowserClient } from '@supabase/ssr';
+import { UsePhotoGalleryProps, UsePhotoGalleryReturn, AlbumImageLegacy } from './types';
 
 export function usePhotoGallery({
   albumId,
@@ -8,12 +8,12 @@ export function usePhotoGallery({
   entityId,
   maxImages,
 }: UsePhotoGalleryProps): UsePhotoGalleryReturn {
-  const [images, setImages] = useState<AlbumImage[]>([]);
+  const [images, setImages] = useState<AlbumImageLegacy[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
-  const supabase = createClientComponentClient();
+  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
   const fetchImages = useCallback(async (pageNum: number) => {
     try {
@@ -67,22 +67,28 @@ export function usePhotoGallery({
 
       if (fetchError) throw fetchError;
 
-      const formattedImages: AlbumImage[] = data.map((item: any) => ({
+      const formattedImages: AlbumImageLegacy[] = data.map((item: any) => ({
         id: item.images.id,
         url: item.images.url,
-        thumbnailUrl: item.images.thumbnail_url,
-        mediumUrl: item.images.medium_url,
-        largeUrl: item.images.large_url,
+        filename: item.images.original_filename || item.images.url.split('/').pop() || '',
+        filePath: item.images.storage_path || item.images.url,
+        size: item.images.file_size || 0,
+        type: item.images.mime_type || 'image/jpeg',
+        metadata: {
+          width: item.images.width || 0,
+          height: item.images.height || 0,
+          uploaded_at: item.images.created_at || new Date().toISOString(),
+          ...(item.images.metadata || {})
+        },
+        albumId: item.album_id,
+        entityType: entityType,
+        entityId: entityId,
         altText: item.images.alt_text,
         caption: item.images.caption,
-        width: item.images.width,
-        height: item.images.height,
-        format: item.images.format,
-        mimeType: item.images.mime_type,
-        fileSize: item.images.file_size,
-        metadata: item.images.metadata,
-        tags: item.image_tag_mappings.map((mapping: any) => mapping.image_tags),
-        isCover: item.is_cover,
+        tags: item.image_tag_mappings?.map((mapping: any) => ({
+          id: mapping.image_tags?.id || '',
+          name: mapping.image_tags?.name || ''
+        })) || [],
         isFeatured: item.is_featured,
         displayOrder: item.display_order,
         createdAt: item.images.created_at,
@@ -192,7 +198,7 @@ export function usePhotoGallery({
 
       if (deleteError) throw deleteError;
 
-      setImages(prev => prev.filter(img => img.id !== imageId));
+      setImages(prev => prev.filter(img => Number(img.id) !== imageId));
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to delete image'));
     } finally {
@@ -214,7 +220,7 @@ export function usePhotoGallery({
 
       setImages(prev => {
         const newImages = [...prev];
-        const imageIndex = newImages.findIndex(img => img.id === imageId);
+        const imageIndex = newImages.findIndex(img => Number(img.id) === imageId);
         if (imageIndex === -1) return prev;
 
         const [movedImage] = newImages.splice(imageIndex, 1);
@@ -274,8 +280,8 @@ export function usePhotoGallery({
 
       const newTags = await Promise.all(tagPromises);
 
-      setImages(prev => prev.map(img => 
-        img.id === imageId
+      setImages(prev => prev.map(img =>
+        Number(img.id) === imageId
           ? { ...img, tags: newTags }
           : img
       ));

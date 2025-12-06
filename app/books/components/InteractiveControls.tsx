@@ -62,7 +62,7 @@ export function InteractiveControls({ languages, years, search, language, sort, 
                 defaultValue={language}
                 onValueChange={(value) => {
                   const params = new URLSearchParams(window.location.search)
-                  if (value) {
+                  if (value && value !== 'all') {
                     params.set("language", value)
                   } else {
                     params.delete("language")
@@ -75,7 +75,7 @@ export function InteractiveControls({ languages, years, search, language, sort, 
                   <SelectValue placeholder="Select language" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All languages</SelectItem>
+                  <SelectItem value="all">All languages</SelectItem>
                   {languages.map((lang) => (
                     <SelectItem key={lang} value={lang}>
                       {lang}
@@ -90,7 +90,7 @@ export function InteractiveControls({ languages, years, search, language, sort, 
                 defaultValue={year}
                 onValueChange={(value) => {
                   const params = new URLSearchParams(window.location.search)
-                  if (value) {
+                  if (value && value !== 'all') {
                     params.set("year", value)
                   } else {
                     params.delete("year")
@@ -103,7 +103,7 @@ export function InteractiveControls({ languages, years, search, language, sort, 
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All years</SelectItem>
+                  <SelectItem value="all">All years</SelectItem>
                   {years.map((y) => (
                     <SelectItem key={y} value={y}>
                       {y}

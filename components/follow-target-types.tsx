@@ -10,11 +10,11 @@ export function FollowTargetTypes() {
 
   useEffect(() => {
     async function loadTypes() {
-      const { types, error } = await getFollowTargetTypes()
-      if (error) {
-        setError(error)
-      } else {
+      try {
+        const types = await getFollowTargetTypes()
         setTypes(types)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load follow target types')
       }
       setLoading(false)
     }

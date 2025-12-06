@@ -17,7 +17,9 @@ import {
   ThumbsUp,
   Smile,
   Image as ImageIcon,
-  Share2
+  Share2,
+  Star,
+  AlertTriangle
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/useAuth"
@@ -163,7 +165,7 @@ export function EnhancedEngagementActions({
         variant: "destructive"
       })
     } finally {
-      setLoading(false)
+      setLoading(null)
     }
   }, [user, entityId, entityType, currentReactionState, onEngagement, toast])
 

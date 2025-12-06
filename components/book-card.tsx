@@ -40,6 +40,7 @@ export function BookCard({
               alt={title}
               fill
               className="object-cover"
+              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
             />
           ) : (
             <div className="w-full h-full bg-muted flex items-center justify-center">

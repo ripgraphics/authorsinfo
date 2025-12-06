@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/components/ui/use-toast"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createBrowserClient } from "@supabase/ssr"
+import type { Database } from "@/types/database"
 import { useAuth } from '@/hooks/useAuth'
 import { ImageIcon, Globe, Users, Lock, Eye, EyeOff, Share2 } from "lucide-react"
 
@@ -25,7 +26,7 @@ interface AlbumSettingsDialogProps {
     url: string
     alt?: string
   }[]
-  onSettingsUpdated: () => void
+  onSettingsUpdated?: () => void
 }
 
 type PrivacyLevel = 'public' | 'friends' | 'private' | 'custom'
@@ -46,7 +47,7 @@ export function AlbumSettingsDialog({
   
   const { toast } = useToast()
   const { user } = useAuth()
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
   const privacyOptions = [
     {
@@ -246,7 +247,7 @@ export function AlbumSettingsDialog({
         title: "Success",
         description: "Album settings updated successfully"
       })
-      onSettingsUpdated()
+      onSettingsUpdated?.()
       onClose()
     } catch (error) {
       console.error('Error updating album settings:', error)

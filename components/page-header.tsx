@@ -17,7 +17,8 @@ import { FriendRequestNotification } from "./friend-request-notification"
 import { Avatar } from "@/components/ui/avatar"
 import { Navigation } from "@/components/navigation"
 import { SearchModal } from "@/components/search-modal"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createBrowserClient } from "@supabase/ssr"
+import type { Database } from "@/types/database"
 import { useAuth } from "@/hooks/useAuth"
 import { useCurrentUserAvatar, useCurrentUserName } from "@/components/user-avatar"
 import { getProfileUrlFromUser } from "@/lib/utils/profile-url-client"
@@ -38,7 +39,7 @@ export function PageHeader({ title, description }: PageHeaderProps) {
   const currentUserName = useCurrentUserName()
 
   const handleSignOut = async () => {
-    const supabase = createClientComponentClient()
+    const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
     await supabase.auth.signOut()
     router.push('/login')
   }

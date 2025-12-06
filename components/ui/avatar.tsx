@@ -50,8 +50,21 @@ export function Avatar({
   size = "sm",
   linkToProfile = false,
   className = "",
-}: AvatarProps) {
+  children,
+}: AvatarProps & { children?: React.ReactNode }) {
   const conf = (sizeMap as any)[size] || sizeMap.sm
+  
+  // If children are provided (shadcn/ui style), render them
+  if (children) {
+    return (
+      <div
+        className={`avatar-container relative ${conf.container} overflow-hidden rounded-full border-2 border-white shadow-md ${className}`}
+      >
+        {children}
+      </div>
+    )
+  }
+  
   const avatarContent = (
     <div
       className={`avatar-container relative ${conf.container} overflow-hidden rounded-full border-2 border-white shadow-md ${className}`}
@@ -64,6 +77,7 @@ export function Avatar({
           height={conf.img}
           className="object-cover rounded-full"
           style={{ aspectRatio: '1 / 1' }}
+          unoptimized={src.startsWith('/api/avatar/')}
         />
       ) : (
         <div className="avatar-placeholder w-full h-full bg-muted flex items-center justify-center rounded-full">

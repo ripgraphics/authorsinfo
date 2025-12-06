@@ -77,9 +77,19 @@ type EngagementActionType =
   | { type: 'RESET_ALL' }
 
 function engagementReducer(state: EngagementContextState, action: EngagementActionType): EngagementContextState {
-  const entityKey = `${action.payload?.entityType}:${action.payload?.entityId}`
-  
   switch (action.type) {
+    case 'RESET_ALL':
+      return {
+        entities: new Map(),
+        globalLoading: false,
+        globalError: null
+      }
+    
+    case 'SET_GLOBAL_LOADING':
+      return { ...state, globalLoading: action.payload }
+    
+    case 'SET_GLOBAL_ERROR':
+      return { ...state, globalError: action.payload }
     case 'SET_ENTITY_ENGAGEMENT': {
       const { entityId, entityType, state: newState } = action.payload
       const key = `${entityType}:${entityId}`
@@ -197,9 +207,6 @@ function engagementReducer(state: EngagementContextState, action: EngagementActi
       return { ...state, entities: updatedEntities }
     }
     
-    case 'RESET_ALL':
-      return { entities: new Map(), globalLoading: false, globalError: null }
-      
     default:
       return state
   }

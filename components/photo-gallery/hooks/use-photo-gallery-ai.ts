@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/ssr'
 
 interface AIAnalysisResult {
   id: string
@@ -34,7 +34,7 @@ export function usePhotoGalleryAI(albumId?: string) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
   const analyzeImage = useCallback(async (imageId: string, analysisTypes: string[] = ['content', 'quality', 'sentiment']) => {
     setIsLoading(true)

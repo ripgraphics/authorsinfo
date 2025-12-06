@@ -10,7 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createBrowserClient } from '@supabase/ssr';
 import { useToast } from '@/hooks/use-toast';
 import type { Database } from '@/types/database';
 
@@ -56,7 +56,7 @@ export default function AuditLog({ groupId, limit, className }: AuditLogProps) {
     userId: '',
   });
 
-  const supabase = createClientComponentClient<Database>();
+  const supabase = createBrowserClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -77,10 +77,10 @@ export default function AuditLog({ groupId, limit, className }: AuditLogProps) {
         .lte('created_at', dateRange.to.toISOString())
         .order('created_at', { ascending: false });
 
-      if (filters.action) {
+      if (filters.action && filters.action !== 'all') {
         query = query.eq('action', filters.action);
       }
-      if (filters.entityType) {
+      if (filters.entityType && filters.entityType !== 'all') {
         query = query.eq('entity_type', filters.entityType);
       }
       if (filters.userId) {
@@ -191,7 +191,7 @@ export default function AuditLog({ groupId, limit, className }: AuditLogProps) {
                   <SelectValue placeholder="Action" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Actions</SelectItem>
+                  <SelectItem value="all">All Actions</SelectItem>
                   <SelectItem value="create">Create</SelectItem>
                   <SelectItem value="update">Update</SelectItem>
                   <SelectItem value="delete">Delete</SelectItem>
@@ -211,7 +211,7 @@ export default function AuditLog({ groupId, limit, className }: AuditLogProps) {
                   <SelectValue placeholder="Entity Type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Types</SelectItem>
+                  <SelectItem value="all">All Types</SelectItem>
                   <SelectItem value="member">Member</SelectItem>
                   <SelectItem value="role">Role</SelectItem>
                   <SelectItem value="setting">Setting</SelectItem>

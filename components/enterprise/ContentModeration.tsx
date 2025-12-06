@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { DataTable } from '@/components/ui/data-table'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { supabaseClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
@@ -92,24 +92,24 @@ export function ContentModeration({ groupId }: ContentModerationProps) {
     {
       header: 'Type',
       accessorKey: 'content_type',
-      cell: ({ row }) => (
+      cell: ({ row }: { row: any }) => (
         <Badge variant="outline">{row.original.content_type}</Badge>
       )
     },
     {
       header: 'Reported',
       accessorKey: 'created_at',
-      cell: ({ row }) => format(new Date(row.original.created_at), 'MMM d, yyyy HH:mm')
+      cell: ({ row }: { row: any }) => format(new Date(row.original.created_at), 'MMM d, yyyy HH:mm')
     },
     {
       header: 'Status',
       accessorKey: 'status',
-      cell: ({ row }) => (
+      cell: ({ row }: { row: any }) => (
         <Badge variant={
           row.original.status === 'pending' ? 'default' :
-          row.original.status === 'approved' ? 'success' :
+          row.original.status === 'approved' ? 'secondary' :
           row.original.status === 'rejected' ? 'destructive' :
-          'warning'
+          'outline'
         }>
           {row.original.status}
         </Badge>
@@ -117,13 +117,13 @@ export function ContentModeration({ groupId }: ContentModerationProps) {
     },
     {
       header: 'AI Risk Score',
-      cell: ({ row }) => {
+      cell: ({ row }: { row: any }) => {
         const toxicity = row.original.metadata?.ai_analysis?.toxicity_score || 0
         return (
           <Badge variant={
             toxicity > 0.8 ? 'destructive' :
-            toxicity > 0.5 ? 'warning' :
-            'success'
+            toxicity > 0.5 ? 'outline' :
+            'secondary'
           }>
             {(toxicity * 100).toFixed(0)}%
           </Badge>
@@ -132,7 +132,7 @@ export function ContentModeration({ groupId }: ContentModerationProps) {
     },
     {
       header: 'Actions',
-      cell: ({ row }) => (
+      cell: ({ row }: { row: any }) => (
         <div className="flex gap-2">
           <Dialog>
             <DialogTrigger asChild>
@@ -181,7 +181,7 @@ export function ContentModeration({ groupId }: ContentModerationProps) {
                     <div className="mt-4">
                       <h5 className="font-semibold mb-2">Flagged Keywords</h5>
                       <div className="flex gap-2 flex-wrap">
-                        {row.original.metadata.ai_analysis.flagged_keywords.map((keyword, i) => (
+                        {row.original.metadata.ai_analysis.flagged_keywords.map((keyword: string, i: number) => (
                           <Badge key={i} variant="outline">{keyword}</Badge>
                         ))}
                       </div>
@@ -247,11 +247,106 @@ export function ContentModeration({ groupId }: ContentModerationProps) {
           <CardTitle>Moderation Queue</CardTitle>
         </CardHeader>
         <CardContent>
-          <DataTable
-            columns={columns}
-            data={items}
-            loading={loading}
-          />
+          {loading ? (
+            <div className="text-center py-8">Loading...</div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Reported</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>AI Risk Score</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {items.map((item: any) => (
+                    <TableRow key={item.id}>
+                      <TableCell>
+                        <Badge variant="outline">{item.content_type}</Badge>
+                      </TableCell>
+                      <TableCell>{format(new Date(item.created_at), 'MMM d, yyyy HH:mm')}</TableCell>
+                      <TableCell>
+                        <Badge variant={
+                          item.status === 'pending' ? 'default' :
+                          item.status === 'approved' ? 'secondary' :
+                          item.status === 'rejected' ? 'destructive' :
+                          'outline'
+                        }>
+                          {item.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {(() => {
+                          const toxicity = item.metadata?.ai_analysis?.toxicity_score || 0
+                          return (
+                            <Badge variant={
+                              toxicity > 0.8 ? 'destructive' :
+                              toxicity > 0.5 ? 'outline' :
+                              'secondary'
+                            }>
+                              {(toxicity * 100).toFixed(0)}%
+                            </Badge>
+                          )
+                        })()}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedItem(item)}
+                              >
+                                Review
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl">
+                              <DialogHeader>
+                                <DialogTitle>Content Review</DialogTitle>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <div>
+                                  <strong>Type:</strong> {item.content_type}
+                                </div>
+                                <div>
+                                  <strong>Content:</strong>
+                                  <p className="mt-1 p-2 bg-muted rounded">{item.metadata?.content_preview || 'No preview available'}</p>
+                                </div>
+                                {item.metadata?.ai_analysis && (
+                                  <div>
+                                    <h5 className="font-semibold mb-2">AI Analysis</h5>
+                                    <div className="space-y-2">
+                                      <div>
+                                        <strong>Toxicity Score:</strong> {(item.metadata.ai_analysis.toxicity_score * 100).toFixed(0)}%
+                                      </div>
+                                      {item.metadata.ai_analysis.flagged_keywords && (
+                                        <div>
+                                          <h5 className="font-semibold mb-2">Flagged Keywords</h5>
+                                          <div className="flex gap-2 flex-wrap">
+                                            {item.metadata.ai_analysis.flagged_keywords.map((keyword: string, i: number) => (
+                                              <Badge key={i} variant="outline">{keyword}</Badge>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/components/ui/use-toast"
 import { createClient } from "@/lib/supabase-client"
 
@@ -135,8 +136,7 @@ export default function GroupAnnouncementsPage() {
             placeholder="Title"
             required
           />
-          <Input
-            as="textarea"
+          <Textarea
             name="body"
             value={form.body}
             onChange={handleChange}
@@ -181,8 +181,7 @@ export default function GroupAnnouncementsPage() {
                       placeholder="Title"
                       required
                     />
-                    <Input
-                      as="textarea"
+                    <Textarea
                       name="body"
                       value={editForm.body}
                       onChange={handleEditChange}
@@ -201,8 +200,8 @@ export default function GroupAnnouncementsPage() {
                       />
                     </div>
                     <div className="flex gap-2">
-                      <Button size="xs" type="submit">Save</Button>
-                      <Button size="xs" variant="ghost" onClick={() => setEditingId(null)}>Cancel</Button>
+                      <Button size="sm" type="submit">Save</Button>     
+                      <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>Cancel</Button>
                     </div>
                   </form>
                 ) : (
@@ -211,12 +210,12 @@ export default function GroupAnnouncementsPage() {
                     <div className="text-gray-700 mb-2 whitespace-pre-line">{a.body}</div>
                     <div className="text-xs text-gray-500">{a.scheduled_at ? `Scheduled: ${a.scheduled_at.replace('T', ' ').slice(0, 16)}` : a.created_at?.slice(0, 16).replace("T", " ")}</div>
                     <div className="flex gap-2 mt-2">
-                      <Button size="xs" variant={a.pinned ? "secondary" : "outline"} onClick={() => handlePin(a.id, !a.pinned)}>
+                      <Button size="sm" variant={a.pinned ? "secondary" : "outline"} onClick={() => handlePin(a.id, !a.pinned)}>
                         {a.pinned ? "Unpin" : "Pin"}
                       </Button>
-                      <Button size="xs" variant="ghost" onClick={() => handleEdit(a)}>Edit</Button>
+                      <Button size="sm" variant="ghost" onClick={() => handleEdit(a)}>Edit</Button>
                       {(a.created_by === user.id || user.role === "admin") && (
-                        <Button size="xs" variant="destructive" onClick={() => handleDelete(a.id)}>Delete</Button>
+                        <Button size="sm" variant="destructive" onClick={() => handleDelete(a.id)}>Delete</Button>
                       )}
                     </div>
                   </>

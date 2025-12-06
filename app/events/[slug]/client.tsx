@@ -166,9 +166,13 @@ export function ClientEventPage({
               tabs={tabs}
               activeTab={activeTab}
               onTabChange={handleTabChange}
-              entity={event}
               entityType="event"
+              name={event.title || "Event"}
+              description={event.description}
               coverImageUrl={coverImageUrl}
+              profileImageUrl={event.image_url || coverImageUrl || ""}
+              location={event.location?.name}
+              website={event.website}
             />
           </div>
         </div>
@@ -262,15 +266,11 @@ export function ClientEventPage({
               <EnterpriseTimelineActivities
                 entityId={params.slug}
                 entityType="event"
-                isOwnEntity={user && user.role === "admin"}
+                isOwnEntity={user && user.role === "admin" ? true : undefined}
                 entityDisplayInfo={{
                   id: params.slug,
                   name: event.title,
-                  type: 'event' as const,
-                  event_image: coverImageUrl ? { url: coverImageUrl } : undefined,
-                  start_date: event.start_date,
-                  end_date: event.end_date,
-                  location: event.location?.name
+                  type: 'event' as const
                 }}
               />
             </div>
@@ -427,7 +427,7 @@ export function ClientEventPage({
           <EntityPhotoAlbums
             entityId={params.slug}
             entityType="event"
-            isOwnEntity={user && user.role === "admin"}
+            isOwnEntity={user && user.role === "admin" ? true : undefined}
           />
         </div>
       )}

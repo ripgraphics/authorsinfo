@@ -29,7 +29,7 @@ export function EditSectionModal({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    setFormData(prev => ({
+    setFormData((prev: typeof initialData) => ({
       ...prev,
       [name]: value
     }))

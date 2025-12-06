@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerActionClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createServerActionClientAsync } from '@/lib/supabase/client-helper'
+
 import { Post, CreatePostData, PostQueryFilters, PostQueryOptions } from '@/types/post'
 
 // GET /api/posts - List posts with filtering and pagination
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerActionClient({ cookies })
+    const supabase = await createServerActionClientAsync()
     
     // Get query parameters
     const { searchParams } = new URL(request.url)
@@ -112,7 +112,7 @@ export async function GET(request: NextRequest) {
 // POST /api/posts - Create new post with server-side permission enforcement
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createServerActionClient({ cookies })
+    const supabase = await createServerActionClientAsync()
     
     // Get the current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()

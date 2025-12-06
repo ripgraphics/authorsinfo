@@ -111,6 +111,11 @@ export function EnterpriseAlbumManager({
   const [isCreatingAlbum, setIsCreatingAlbum] = useState(false)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filterCategory, setFilterCategory] = useState('all')
+  const [sortBy, setSortBy] = useState('date')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [newAlbum, setNewAlbum] = useState({
     name: '',
     description: '',
@@ -449,7 +454,7 @@ export function EnterpriseAlbumManager({
                     <Label htmlFor="privacy-level">Privacy</Label>
                     <Select
                       value={newAlbum.privacy_level}
-                      onValueChange={(value) => setNewAlbum(prev => ({ ...prev, privacy_level: value }))}
+                      onValueChange={(value) => setNewAlbum(prev => ({ ...prev, privacy_level: value as 'public' | 'private' }))}
                     >
                       <SelectTrigger>
                         <SelectValue />

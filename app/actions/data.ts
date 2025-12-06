@@ -61,13 +61,18 @@ export async function getRecentBooks(limit = 10, offset = 0): Promise<Book[]> {
       .from("books")
       .select(`
         *,
-        cover_image:images!books_cover_image_id_fkey(url, alt_text),
-        author:authors!books_author_id_fkey(id, name, author_image:images!authors_author_image_id_fkey(url, alt_text))
+        cover_image:images!cover_image_id(id, url, alt_text),
+        author:authors!author_id(id, name, author_image:images!author_image_id(id, url, alt_text))
       `)
       .range(offset, offset + limit - 1)
 
     if (error) {
-      console.error("Error fetching books:", error)
+      console.error("Error fetching books:", {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+      })
       return []
     }
 
@@ -86,7 +91,11 @@ export async function getRecentBooks(limit = 10, offset = 0): Promise<Book[]> {
 
     return books
   } catch (error) {
-    console.error("Error fetching books:", error)
+    console.error("Error fetching books:", error instanceof Error ? {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+    } : error)
     return []
   }
 }
@@ -113,7 +122,7 @@ export async function getBookById(id: string): Promise<Book | null> {
           .from("books")
           .select(`
             *,
-            cover_image:images!books_cover_image_id_fkey(url, alt_text)
+            cover_image:images!cover_image_id(id, url, alt_text)
           `)
           .eq("id", id)
           .single()

@@ -39,7 +39,7 @@ export function SearchAndFilter({ languages, years }: SearchAndFilterProps) {
 
   const handleFilterChange = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString())
-    if (value) {
+    if (value && value !== 'all') {
       params.set(key, value)
     } else {
       params.delete(key)
@@ -86,7 +86,7 @@ export function SearchAndFilter({ languages, years }: SearchAndFilterProps) {
                   <SelectValue placeholder="Select language" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All languages</SelectItem>
+                  <SelectItem value="all">All languages</SelectItem>
                   {languages.map((lang) => (
                     <SelectItem key={lang} value={lang}>
                       {lang}
@@ -105,7 +105,7 @@ export function SearchAndFilter({ languages, years }: SearchAndFilterProps) {
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All years</SelectItem>
+                  <SelectItem value="all">All years</SelectItem>
                   {years.map((y) => (
                     <SelectItem key={y} value={y}>
                       {y}

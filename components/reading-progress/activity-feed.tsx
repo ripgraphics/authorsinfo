@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { getRecentReadingActivity, getFriendsReadingActivity } from "@/app/actions/reading-progress"
 import { formatDistanceToNow } from "date-fns"
 import { BookOpen, User } from "lucide-react"
@@ -155,12 +154,15 @@ export function ActivityFeed({ type, limit = 5, className }: ActivityFeedProps) 
           {activity.map((item) => (
             <div key={item.id} className="flex items-start space-x-4">
               {type === "friends" ? (
-                <Avatar>
-                  <AvatarImage src={item.user_avatar || "/placeholder.svg"} alt={item.user_name} />
-                  <AvatarFallback>
-                    <User className="h-4 w-4" />
-                  </AvatarFallback>
-                </Avatar>
+                <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-white shadow-md">
+                  {item.user_avatar ? (
+                    <img src={item.user_avatar} alt={item.user_name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-muted flex items-center justify-center">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
               ) : (
                 <div className="relative h-10 w-10 overflow-hidden rounded-md">
                   {item.cover_image_url ? (

@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { EntityHeader } from "@/components/entity-header";
 import { Users, Globe, Star } from "lucide-react";
 import type { Group } from "@/types/group";
+import { useState } from "react";
 
 interface GroupHeaderProps {
   group: Group;
@@ -10,6 +11,8 @@ interface GroupHeaderProps {
   isEditable: boolean;
   onCoverImageChange: () => void;
   onProfileImageChange: () => void;
+  activeTab?: string;
+  onTabChange?: (tabId: string) => void;
 }
 
 export function GroupHeader({
@@ -19,7 +22,18 @@ export function GroupHeader({
   isEditable,
   onCoverImageChange,
   onProfileImageChange,
+  activeTab: initialActiveTab,
+  onTabChange: initialOnTabChange,
 }: GroupHeaderProps) {
+  const [activeTab, setActiveTab] = useState(initialActiveTab || "timeline");
+  
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+    if (initialOnTabChange) {
+      initialOnTabChange(tabId);
+    }
+  };
+
   const tabs = [
     { id: "timeline", label: "Timeline" },
     { id: "about", label: "About" },
@@ -48,6 +62,8 @@ export function GroupHeader({
       profileImageUrl={avatarUrl}
       stats={groupStats}
       tabs={tabs}
+      activeTab={activeTab}
+      onTabChange={handleTabChange}
       creator={{
         id: group.created_by,
         name: '',

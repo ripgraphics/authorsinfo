@@ -246,7 +246,7 @@ export function EnterprisePhotoGallery({
       if (imagesError) throw imagesError
 
       // Calculate enterprise analytics
-      const analytics = {
+      const analyticsData = {
         total_views: albumImages?.reduce((sum, ai) => sum + (ai.view_count || 0), 0) || 0,
         total_likes: albumImages?.reduce((sum, ai) => sum + (ai.like_count || 0), 0) || 0,
         total_shares: albumImages?.reduce((sum, ai) => sum + (ai.share_count || 0), 0) || 0,
@@ -257,16 +257,16 @@ export function EnterprisePhotoGallery({
       }
 
       // Calculate monetization metrics
-      const monetization = {
+      const monetizationData = {
         total_earnings: albumImages?.reduce((sum, ai) => sum + (ai.revenue_generated || 0), 0) || 0,
         premium_subscribers: album?.metadata?.premium_subscribers || 0,
         revenue_share: album?.metadata?.revenue_share || 0
       }
 
       // Calculate community metrics
-      const community = {
+      const communityData = {
         active_followers: album?.metadata?.active_followers || 0,
-        total_interactions: analytics.total_likes + analytics.total_shares,
+        total_interactions: analyticsData.total_likes + analyticsData.total_shares,
         community_score: album?.metadata?.community_score || 0
       }
 
@@ -275,9 +275,9 @@ export function EnterprisePhotoGallery({
         error: null,
         album,
         images: albumImages || [],
-        analytics,
-        monetization,
-        community
+        analytics: analyticsData,
+        monetization: monetizationData,
+        community: communityData
       })
 
       // Track analytics

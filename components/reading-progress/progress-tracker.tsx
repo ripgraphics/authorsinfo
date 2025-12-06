@@ -130,7 +130,6 @@ export function ProgressTracker({ bookId, totalPages = 0, className }: ProgressT
         current_page: currentPage,
         total_pages: totalPages > 0 ? totalPages : undefined,
         notes,
-        is_public: isPublic,
         start_date: startDate?.toISOString(),
         finish_date: finishDate?.toISOString(),
       })

@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createBrowserClient } from '@supabase/ssr';
 import { useToast } from '@/hooks/use-toast';
 import type { Database } from '@/types/database';
 
@@ -66,7 +66,7 @@ export default function PermissionsManager({ groupId }: PermissionsManagerProps)
   });
   const [showNewRoleDialog, setShowNewRoleDialog] = useState(false);
 
-  const supabase = createClientComponentClient<Database>();
+  const supabase = createBrowserClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
   const { toast } = useToast();
 
   useEffect(() => {

@@ -36,10 +36,10 @@ export function CollaborativeEditor({ groupId, contentId, initialBody, user }: {
         const state = channel.current.presenceState()
         setPresence(state)
       })
-      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+      .on('presence', { event: 'join' }, ({ key, newPresences }: { key: string; newPresences: any }) => {
         setPresence((prev: any) => ({ ...prev, [key]: newPresences }))
       })
-      .on('presence', { event: 'leave' }, ({ key }) => {
+      .on('presence', { event: 'leave' }, ({ key }: { key: string }) => {
         setPresence((prev: any) => {
           const copy = { ...prev }
           delete copy[key]

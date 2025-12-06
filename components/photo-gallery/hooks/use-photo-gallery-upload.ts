@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { AlbumImage } from '../types';
+import { createBrowserClient } from '@supabase/ssr';
+import { AlbumImageLegacy } from '../types';
 
 interface UploadState {
   isUploading: boolean;
@@ -29,7 +29,7 @@ export function usePhotoGalleryUpload(options: UploadOptions = {}) {
     error: null,
   });
 
-  const supabase = createClientComponentClient();
+  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
   // Validate file
   const validateFile = useCallback((file: File): string | null => {
@@ -50,7 +50,7 @@ export function usePhotoGalleryUpload(options: UploadOptions = {}) {
     albumId?: string,
     entityType?: string,
     entityId?: string
-  ): Promise<AlbumImage> => {
+  ): Promise<AlbumImageLegacy> => {
     const error = validateFile(file);
     if (error) {
       throw new Error(error);
@@ -144,10 +144,12 @@ export function usePhotoGalleryUpload(options: UploadOptions = {}) {
         filePath,
         size: file.size,
         type: file.type,
-        metadata: imageData.metadata,
+        metadata: imageData.metadata || {},
         albumId,
         entityType,
         entityId,
+        createdAt: imageData.created_at || new Date().toISOString(),
+        updatedAt: imageData.updated_at || new Date().toISOString(),
       };
     } catch (error) {
       setUploadState((prev) => ({
@@ -165,7 +167,7 @@ export function usePhotoGalleryUpload(options: UploadOptions = {}) {
     albumId?: string,
     entityType?: string,
     entityId?: string
-  ): Promise<AlbumImage[]> => {
+  ): Promise<AlbumImageLegacy[]> => {
     setUploadState((prev) => ({
       ...prev,
       isUploading: true,
@@ -174,7 +176,7 @@ export function usePhotoGalleryUpload(options: UploadOptions = {}) {
     }));
 
     try {
-      const results: AlbumImage[] = [];
+      const results: AlbumImageLegacy[] = [];
       const totalFiles = files.length;
       let completedFiles = 0;
 
@@ -213,7 +215,7 @@ export function usePhotoGalleryUpload(options: UploadOptions = {}) {
   }, [uploadFile, maxConcurrentUploads]);
 
   // Delete file
-  const deleteFile = useCallback(async (image: AlbumImage): Promise<void> => {
+  const deleteFile = useCallback(async (image: AlbumImageLegacy): Promise<void> => {
     try {
       // Delete from storage
       const { error: storageError } = await supabase.storage

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
 import { Camera, Crop } from 'lucide-react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/ssr'
 import { clearCache } from '@/lib/request-utils'
 import {
   Dialog,
@@ -80,7 +80,7 @@ export function EntityImageUpload({
   const [showCropper, setShowCropper] = useState(false)
   const [croppedImage, setCroppedImage] = useState<string | null>(null)
   const { toast } = useToast()
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
   useEffect(() => {
     // Load Cloudinary Upload Widget script

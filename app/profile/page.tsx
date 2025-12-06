@@ -1,13 +1,11 @@
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createServerComponentClientAsync } from '@/lib/supabase/client-helper'
 import { supabaseAdmin } from "@/lib/supabase/server"
 
 export default async function ProfilePage() {
-  const cookieStore = await cookies()
-  const supabase = createServerComponentClient({ cookies: () => cookieStore })
+  const supabase = await createServerComponentClientAsync()
   
   try {
     // Get the current user from the session using getUser() for better security

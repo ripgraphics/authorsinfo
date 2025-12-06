@@ -1,7 +1,6 @@
 "use server"
 
-import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
+import { createServerActionClientAsync } from "@/lib/supabase/client-helper"
 import { getBooksByAuthor, getBooksByPublisher, getFullBookDetailsByISBNs } from "@/lib/isbndb"
 import { revalidatePath } from "next/cache"
 import { checkForDuplicates } from "./bulk-import-books"
@@ -14,7 +13,7 @@ interface ImportResult {
 }
 
 export async function getDbAuthors() {
-  const supabase = createServerActionClient({ cookies })
+  const supabase = await createServerActionClientAsync()
 
   const { data, error } = await supabase.from("authors").select("id, name").order("name")
 
@@ -27,7 +26,7 @@ export async function getDbAuthors() {
 }
 
 export async function getDbPublishers() {
-  const supabase = createServerActionClient({ cookies })
+  const supabase = await createServerActionClientAsync()
 
   const { data, error } = await supabase.from("publishers").select("id, name").order("name")
 
@@ -88,7 +87,7 @@ export async function importBooksByEntity(
   entityName: string,
   isbns: string[],
 ): Promise<ImportResult> {
-  const supabase = createServerActionClient({ cookies })
+  const supabase = await createServerActionClientAsync()
   const result: ImportResult = { added: 0, duplicates: 0, errors: 0, errorDetails: [] }
 
   try {

@@ -85,9 +85,10 @@ import {
   Check,
   Info
 } from 'lucide-react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/ssr'
 import { SophisticatedPhotoGrid } from '../photo-gallery/sophisticated-photo-grid'
 import PostButton from '../ui/post-button'
+import { FeedPost } from '@/types/feed'
 
 // ============================================================================
 // PERFORMANCE OPTIMIZED INTERFACES
@@ -214,7 +215,7 @@ const EnterpriseTimelineActivities = React.memo(({
 }) => {
   const { user } = useAuth()
   const { toast } = useToast()
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
   const currentUserAvatar = useCurrentUserAvatar()
   const currentUserName = useCurrentUserName()
   
@@ -606,7 +607,7 @@ const EnterpriseTimelineActivities = React.memo(({
     metadata: activity.metadata,
     created_at: activity.created_at,
     user_name: activity.user_name,
-    user_avatar_url: activity.user_avatar_url,
+    user_avatar_url: activity.user_avatar_url || undefined,
     like_count: activity.like_count,
     comment_count: activity.comment_count,
     share_count: activity.share_count,

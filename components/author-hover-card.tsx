@@ -22,10 +22,12 @@ export function AuthorHoverCard({ author, bookCount, children }: AuthorHoverCard
       <HoverCardContent className="w-80">
         <Link href={`/authors/${author.id}`} className="block no-underline">
           <div className="flex items-start space-x-4">
-            <Avatar className="h-12 w-12">
-              <Image src={imageUrl || "/placeholder.svg"} alt={author.name} width={48} height={48} className="object-cover rounded-full" style={{ aspectRatio: '1 / 1' }} />
-              <AvatarFallback>{author.name.charAt(0)}</AvatarFallback>
-            </Avatar>
+            <Avatar
+              src={imageUrl || "/placeholder.svg"}
+              name={author.name}
+              size="md"
+              className="h-12 w-12"
+            />
             <div className="flex flex-col">
               <h4 className="text-sm font-semibold">{author.name}</h4>
               <div className="flex items-center text-xs text-muted-foreground mt-1">

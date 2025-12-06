@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createBrowserClient } from '@supabase/ssr';
 import { AlbumImage } from '../types';
 
 interface ImageVariant {
@@ -18,7 +18,7 @@ interface ProcessedImage {
 }
 
 export function usePhotoGalleryProcessing() {
-  const supabase = createClientComponentClient();
+  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
   const processImage = useCallback(async (file: File): Promise<ProcessedImage> => {
     try {

@@ -1,6 +1,6 @@
 import { supabaseAdmin } from "@/lib/supabase"
 import { notFound } from "next/navigation"
-import { ClientProfilePage as ClientDiscussionPage } from "./client"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export const dynamic = "force-dynamic"
 
@@ -23,9 +23,17 @@ export default async function DiscussionPage({ params }: DiscussionPageProps) {
   }
 
   return (
-    <ClientDiscussionPage
-      discussion={discussion}
-      params={{ id }}
-    />
+    <div className="container mx-auto py-8 max-w-4xl">
+      <Card>
+        <CardHeader>
+          <CardTitle>{discussion.title || 'Discussion'}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="prose max-w-none">
+            <p>{discussion.content || discussion.description || 'No content available.'}</p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   )
 }

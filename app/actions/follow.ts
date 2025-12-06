@@ -1,7 +1,6 @@
 'use server'
 
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createServerActionClientAsync } from '@/lib/supabase/client-helper'
 import { revalidatePath } from 'next/cache'
 import { supabaseAdmin } from '@/lib/supabase/server'
 
@@ -48,7 +47,7 @@ async function getTargetTypeId(targetType: string): Promise<string | null> {
 
 export async function followEntity(followingId: string | number, targetType: string): Promise<FollowResponse> {
   try {
-    const supabase = createServerComponentClient({ cookies })
+    const supabase = await createServerActionClientAsync()
     
     // Get current user
     const { data: { user }, error: userError } = await supabase.auth.getUser()
@@ -109,7 +108,7 @@ export async function followEntity(followingId: string | number, targetType: str
 
 export async function unfollowEntity(followingId: string | number, targetType: string): Promise<FollowResponse> {
   try {
-    const supabase = createServerComponentClient({ cookies })
+    const supabase = await createServerActionClientAsync()
     
     // Get current user
     const { data: { user }, error: userError } = await supabase.auth.getUser()
@@ -162,7 +161,7 @@ export async function unfollowEntity(followingId: string | number, targetType: s
 
 export async function isFollowing(followingId: string | number, targetType: string): Promise<FollowResponse> {
   try {
-    const supabase = createServerComponentClient({ cookies })
+    const supabase = await createServerActionClientAsync()
     
     // Get current user
     const { data: { user }, error: userError } = await supabase.auth.getUser()

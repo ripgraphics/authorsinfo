@@ -66,10 +66,12 @@ export default async function UserListPage() {
             <Card key={user.id} className="overflow-hidden">
               <CardHeader className="pb-2">
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={`/placeholder.svg?text=${user.name?.[0] || 'U'}`} alt={user.name || "User"} />
-                    <AvatarFallback>{user.name?.[0] || "U"}</AvatarFallback>
-                  </Avatar>
+                  <Avatar
+                    src={`/placeholder.svg?text=${user.name?.[0] || 'U'}`}
+                    name={user.name || "User"}
+                    size="md"
+                    className="h-12 w-12"
+                  />
                   <div>
                     <CardTitle className="text-xl">{user.name || "Unnamed User"}</CardTitle>
                     <p className="text-sm text-muted-foreground">Joined {new Date(user.created_at).toLocaleDateString()}</p>
@@ -78,7 +80,7 @@ export default async function UserListPage() {
               </CardHeader>
               <CardContent>
                 <div className="flex justify-end">
-                  <Link href={user.permalink ? `/profile/${user.permalink}` : `/profile/${user.id}`}>
+                  <Link href={(user as any).permalink ? `/profile/${(user as any).permalink}` : `/profile/${user.id}`}>
                     <Button>View Profile</Button>
                   </Link>
                 </div>

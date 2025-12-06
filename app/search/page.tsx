@@ -21,10 +21,10 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
   // For demonstration purposes, we'll just show recent items
   // In a real app, you would implement actual search functionality
-  let books = []
-  let authors = []
-  let publishers = []
-  let isbndbBooks = []
+  let books: any[] = []
+  let authors: any[] = []
+  let publishers: any[] = []
+  let isbndbBooks: any[] = []
 
   if (query) {
     // Search in ISBNDB

@@ -212,7 +212,7 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
         entityId={user.id}
         targetType="user"
         userStats={userStats}
-        isEditable={canEdit}
+        isEditable={canEdit ? true : undefined}
       />
       
       <div className="profile-page__content">
@@ -325,8 +325,7 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
                 
                 {/* Enterprise Timeline Activities - Only render when we have a valid UUID */}
                 {/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(user.id) ? (
-                  <EnterpriseTimelineActivities 
-                    userId={user.id}
+                  <EnterpriseTimelineActivities
                     entityType="user"
                     entityId={user.id}
                     showAnalytics={true}

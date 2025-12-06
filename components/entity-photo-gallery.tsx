@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/ssr'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/components/ui/use-toast'
 import { Button } from '@/components/ui/button'
@@ -108,7 +108,7 @@ export function EntityPhotoGallery({
 }: EntityPhotoGalleryProps) {
   const { user } = useAuth()
   const { toast } = useToast()
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
   // State management
   const [albums, setAlbums] = useState<EntityAlbum[]>([])
@@ -399,7 +399,7 @@ export function EntityPhotoGallery({
           <div className="flex items-center gap-2">
             <PhotoAlbumCreator
               onAlbumCreated={loadEntityAlbums}
-              entityType={entityType}
+              entityType={entityType === 'book' ? undefined : (entityType as 'user' | 'publisher' | 'author' | 'group')}
               entityId={entityId}
               trigger={
                 <Button size="sm" variant="default">
@@ -566,7 +566,7 @@ export function EntityPhotoGallery({
           <CardContent>
             <EnterprisePhotoGallery
               entityId={entityId}
-              entityType={entityType}
+              entityType={entityType === 'book' ? 'user' : (entityType as 'user' | 'publisher' | 'author' | 'group')}
               initialAlbumId={selectedAlbum.id}
               isEditable={isOwner}
               showStats={true}

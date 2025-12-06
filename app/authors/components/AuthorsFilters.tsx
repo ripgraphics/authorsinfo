@@ -33,7 +33,7 @@ export function AuthorsFilters({
 
   const updateSearchParams = (key: string, value: string | null) => {
     const params = new URLSearchParams(searchParams.toString())
-    if (value) {
+    if (value && value !== 'all') {
       params.set(key, value)
     } else {
       params.delete(key)
@@ -80,7 +80,7 @@ export function AuthorsFilters({
                   <SelectValue placeholder="Select nationality" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All nationalities</SelectItem>
+                  <SelectItem value="all">All nationalities</SelectItem>
                   {nationalities.map((nat) => (
                     <SelectItem key={nat} value={nat}>
                       {nat}

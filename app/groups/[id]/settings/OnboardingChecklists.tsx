@@ -71,7 +71,7 @@ export default function OnboardingChecklists({ groupId, userId, isAdmin }: Props
     // Combine the data
     const result = data.map(checklist => ({
       ...checklist,
-      tasks: checklist.group_onboarding_tasks.map(task => ({
+      tasks: checklist.group_onboarding_tasks.map((task: any) => ({
         ...task,
         completed: progress?.some(p => p.task_id === task.id) || false
       }))
@@ -88,7 +88,7 @@ export default function OnboardingChecklists({ groupId, userId, isAdmin }: Props
       return;
     }
 
-    const { error } = await supabase
+    const { data: checklistData, error } = await supabase
       .from('group_onboarding_checklists')
       .insert({
         group_id: groupId,
@@ -98,7 +98,7 @@ export default function OnboardingChecklists({ groupId, userId, isAdmin }: Props
       .select()
       .single();
 
-    if (error) {
+    if (error || !checklistData) {
       toast.error('Failed to create checklist');
       return;
     }
@@ -107,7 +107,7 @@ export default function OnboardingChecklists({ groupId, userId, isAdmin }: Props
     const tasks = formData.tasks
       .filter(task => task.trim())
       .map((task, index) => ({
-        checklist_id: data.id,
+        checklist_id: checklistData.id,
         task,
         order_index: index
       }));

@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
+
 
 export async function POST(request: NextRequest) {
   try {
     console.log('=== Like API Called ===')
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createRouteHandlerClientAsync()
     
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -205,7 +205,7 @@ export async function GET(request: NextRequest) {
       }, { status: 400 })
     }
 
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createRouteHandlerClientAsync()
 
     if (user_id) {
       // Check if specific user liked this activity

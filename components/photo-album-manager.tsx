@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useToast } from "@/components/ui/use-toast"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createBrowserClient } from "@supabase/ssr"
+import type { Database } from "@/types/database"
 import { FolderPlus } from "lucide-react"
 
 interface PhotoAlbumManagerProps {
@@ -23,7 +24,7 @@ export function PhotoAlbumManager({
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const { toast } = useToast()
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
   const handleCreateAlbum = async () => {
     if (!title.trim()) {

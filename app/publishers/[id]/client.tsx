@@ -323,7 +323,7 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={handleTabChange}
-        isEditable={user && user.role === "admin"}
+        isEditable={user && user.role === "admin" ? true : undefined}
         entityId={publisher?.id}
         targetType="publisher"
       />
@@ -339,8 +339,8 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
                 bio={publisher?.about || undefined}
                 nationality={publisher?.state || publisher?.country || (publisher?.country_details ? publisher.country_details.name : undefined)}
                 website={publisher?.website || undefined}
-                onViewMore={() => setActiveTab("about")}
-                onViewFullDetails={() => setActiveTab("about")}
+                onViewMore={() => handleTabChange("about")}
+                onViewFullDetails={() => handleTabChange("about")}
               />
                     {/* Friends/Followers Section */}
                     <FollowersList
@@ -421,12 +421,11 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
                       <EnterpriseTimelineActivities
                         entityId={params.id}
                         entityType="publisher"
-                        isOwnEntity={user && user.role === "admin"}
+                        isOwnEntity={user && user.role === "admin" ? true : undefined}
                         entityDisplayInfo={publisher ? {
                           id: params.id,
                           name: publisher.name,
                           type: 'publisher' as const,
-                          publisher_image: publisher.publisher_image,
                           bookCount: booksCount || 0
                         } : undefined}
                       />
@@ -448,7 +447,7 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
             <BooksSection 
               books={books} 
               booksCount={booksCount}
-              onViewAllBooks={() => setActiveTab("books")} 
+              onViewAllBooks={() => handleTabChange("books")} 
                             />
                           </div>
                             </div>
@@ -504,7 +503,7 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
           <EntityPhotoAlbums
             entityId={params.id}
             entityType="publisher"
-            isOwnEntity={user && user.role === "admin"}
+            isOwnEntity={user && user.role === "admin" ? true : undefined}
             entityDisplayInfo={publisher ? {
               id: params.id,
               name: publisher.name,

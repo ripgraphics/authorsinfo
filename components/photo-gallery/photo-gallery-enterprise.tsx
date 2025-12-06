@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/ssr'
 import { uploadPhoto } from '@/app/actions/upload-photo'
 import { PhotoGalleryHeader } from './photo-gallery-header'
 import { PhotoGalleryGrid } from './photo-gallery-grid'
@@ -103,7 +103,7 @@ export function PhotoGallery({
   const [showCreateAlbum, setShowCreateAlbum] = useState(false)
   const [newAlbumName, setNewAlbumName] = useState('')
 
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
   // Load album and images
   const loadAlbum = useCallback(async (albumId: string) => {

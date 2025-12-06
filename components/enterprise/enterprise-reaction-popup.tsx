@@ -184,7 +184,7 @@ export function EnterpriseReactionPopup({
   
   // Refs
   const popupRef = useRef<HTMLDivElement>(null)
-  const timeoutRef = useRef<NodeJS.Timeout>()
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   
   // ============================================================================
   // EFFECTS AND INITIALIZATION
@@ -661,13 +661,31 @@ export function ReactionSummary({
 }) {
   const { getEngagement } = useEngagement()
   const engagement = getEngagement(entityId, entityType)
+  const [reactionCounts, setReactionCounts] = useState<Record<ReactionType, number>>({} as Record<ReactionType, number>)
+  
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const response = await fetch(`/api/engagement/reactions/counts?entity_id=${entityId}&entity_type=${entityType}`)
+        if (response.ok) {
+          const data = await response.json()
+          setReactionCounts(data.counts || {})
+        }
+      } catch (error) {
+        console.error('Error fetching reaction counts:', error)
+      }
+    }
+    fetchCounts()
+  }, [entityId, entityType])
   
   if (!engagement || engagement.reactionCount === 0) return null
   
   const topReactions = Object.entries(reactionCounts || {})
     .filter(([_, count]) => count > 0)
-    .sort(([_, a], [__, b]) => b - a)
+    .sort(([_, a], [__, b]) => (b as number) - (a as number))
     .slice(0, maxReactions)
+  
+  if (topReactions.length === 0) return null
   
   return (
     <div className={cn("flex items-center gap-1", className)}>

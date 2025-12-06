@@ -1,14 +1,13 @@
 import { redirect } from 'next/navigation'
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createServerComponentClientAsync } from '@/lib/supabase/client-helper'
+
 import { PermalinkSettings } from '@/components/permalink-settings'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { User, Link, Shield, Bell, Palette } from 'lucide-react'
 
 export default async function SettingsPage() {
-  const cookieStore = await cookies()
-  const supabase = createServerComponentClient({ cookies: () => cookieStore })
+  const supabase = await createServerComponentClientAsync()
   
   // Get the current user from the session
   const { data: { user }, error } = await supabase.auth.getUser()

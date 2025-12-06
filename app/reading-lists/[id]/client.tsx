@@ -90,7 +90,7 @@ export function ReadingListClient({
   return (
     <div className="reading-list-page">
       <EntityHeader
-        entityType="reading_list"
+        entityType="user"
         name={readingList.name}
         description={readingList.description}
         coverImageUrl="/placeholder.svg?height=400&width=1200"
@@ -101,7 +101,7 @@ export function ReadingListClient({
         onTabChange={setActiveTab}
         isEditable={canEdit}
         entityId={readingList.id}
-        targetType="reading_list"
+        targetType="user"
       />
 
       <div className="reading-list-page__content">

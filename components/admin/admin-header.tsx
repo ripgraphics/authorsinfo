@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { SearchModal } from "@/components/admin/search-modal"
 import { useTheme } from "next-themes"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createBrowserClient } from "@supabase/ssr"
+import type { Database } from "@/types/database"
 import Link from "next/link"
 import {
   DropdownMenu,
@@ -92,7 +93,7 @@ export function AdminHeader() {
                 </Link>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={async () => {
-                  const supabase = createClientComponentClient()
+                  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
                   await supabase.auth.signOut()
                   window.location.reload()
                 }}>

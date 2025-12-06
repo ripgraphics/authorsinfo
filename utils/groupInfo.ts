@@ -1,4 +1,4 @@
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createBrowserClient } from '@supabase/ssr';
 import { Database } from '@/types/database';
 import { ContactInfo, ContactInfoInput } from '@/types/contact';
 
@@ -15,7 +15,7 @@ export interface GroupUpdateInput {
 }
 
 export async function updateGroupInfo(groupId: string, updates: GroupUpdateInput): Promise<boolean> {
-    const supabase = createClientComponentClient<Database>();
+    const supabase = createBrowserClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
     
     const { error } = await supabase
         .from('groups')
@@ -46,7 +46,7 @@ export async function getGroupInfo(groupId: string) {
         throw new Error('Group ID is required');
     }
 
-    const supabase = createClientComponentClient<Database>();
+    const supabase = createBrowserClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
     
     try {
         // Fetch basic group data only - no complex joins
@@ -155,7 +155,7 @@ export async function getGroupInfo(groupId: string) {
 }
 
 export async function updateGroupMemberRole(groupId: string, userId: string, roleId: number): Promise<boolean> {
-    const supabase = createClientComponentClient<Database>();
+    const supabase = createBrowserClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
     
     const { error } = await supabase
         .from('group_members')
@@ -180,7 +180,7 @@ export async function updateGroupMemberRole(groupId: string, userId: string, rol
 }
 
 export async function updateGroupMemberStatus(groupId: string, userId: string, status: string): Promise<boolean> {
-    const supabase = createClientComponentClient<Database>();
+    const supabase = createBrowserClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
     
     const { error } = await supabase
         .from('group_members')
@@ -210,7 +210,7 @@ export async function addGroupCustomField(
     fieldType: string, 
     fieldOptions: any
 ): Promise<boolean> {
-    const supabase = createClientComponentClient<Database>();
+    const supabase = createBrowserClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
     
     const { error } = await supabase
         .from('group_custom_fields')
@@ -247,7 +247,7 @@ export async function updateGroupCustomField(
         field_options?: any;
     }
 ): Promise<boolean> {
-    const supabase = createClientComponentClient<Database>();
+    const supabase = createBrowserClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
     
     const { error } = await supabase
         .from('group_custom_fields')
@@ -270,7 +270,7 @@ export async function updateGroupCustomField(
 }
 
 export async function deleteGroupCustomField(fieldId: string): Promise<boolean> {
-    const supabase = createClientComponentClient<Database>();
+    const supabase = createBrowserClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
     
     const { error } = await supabase
         .from('group_custom_fields')
@@ -300,7 +300,7 @@ export async function updateGroupContactInfo(groupId: string, contactInfo: Conta
         throw new Error('Contact information is required');
     }
 
-    const supabase = createClientComponentClient<Database>();
+    const supabase = createBrowserClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
     
     try {
         // First check if the group exists
@@ -368,7 +368,7 @@ export async function updateGroupContactInfo(groupId: string, contactInfo: Conta
 }
 
 export async function getGroupContactInfo(groupId: string): Promise<ContactInfo | null> {
-    const supabase = createClientComponentClient<Database>();
+    const supabase = createBrowserClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
     
     const { data, error } = await supabase
         .from('contact_info')
@@ -396,7 +396,7 @@ export async function getGroupContactInfo(groupId: string): Promise<ContactInfo 
 }
 
 export async function deleteGroupContactInfo(groupId: string): Promise<boolean> {
-    const supabase = createClientComponentClient<Database>();
+    const supabase = createBrowserClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
     
     const { error } = await supabase
         .from('contact_info')

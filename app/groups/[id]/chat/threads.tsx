@@ -340,15 +340,15 @@ export default function GroupChatThreadsPage({ params, onSelectThread }: { param
                 <div className="text-xs text-gray-500">{thread.created_at?.slice(0, 16).replace("T", " ")}</div>
                 <div className="text-sm text-gray-700 mt-1">{thread.body}</div>
                 <div className="flex gap-2 mt-2 items-center">
-                  <Button size="xs" variant="outline" onClick={() => handleAddParticipant(thread.id)}>Join</Button>
-                  <Button size="xs" variant="destructive" onClick={() => handleRemoveParticipant(thread.id)}>Leave</Button>
+                  <Button size="sm" variant="outline" onClick={() => handleAddParticipant(thread.id)}>Join</Button>
+                  <Button size="sm" variant="destructive" onClick={() => handleRemoveParticipant(thread.id)}>Leave</Button>
                   <span className="text-xs text-gray-500">Participants: {(participants[thread.id] || []).map((p) => p.user_id).join(", ")}</span>
                   {/* Mute toggle */}
-                  <Button size="xs" variant={muted[thread.id] ? "secondary" : "outline"} onClick={() => handleToggleMute(thread.id)}>
+                  <Button size="sm" variant={muted[thread.id] ? "secondary" : "outline"} onClick={() => handleToggleMute(thread.id)}>
                     {muted[thread.id] ? "Unmute" : "Mute"}
                   </Button>
                   {/* Snooze button */}
-                  <Button size="xs" variant="ghost" onClick={() => snoozed[thread.id] ? handleUnsnooze(thread.id) : handleSnooze(thread.id)}>
+                  <Button size="sm" variant="ghost" onClick={() => snoozed[thread.id] ? handleUnsnooze(thread.id) : handleSnooze(thread.id)}>
                     {snoozed[thread.id] ? "Snoozed" : "Snooze"}
                   </Button>
                 </div>

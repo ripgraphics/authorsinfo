@@ -69,10 +69,11 @@ export function RealTimeNotifications() {
             toast({
               title: "New Friend Request",
               description: `${request.user.name} sent you a friend request`,
-              action: {
-                label: "View",
-                onClick: () => window.location.href = '/friend-requests'
-              }
+              action: (
+                <button onClick={() => window.location.href = '/friend-requests'}>
+                  View
+                </button>
+              )
             })
             
             // Add to notifications list
@@ -91,8 +92,8 @@ export function RealTimeNotifications() {
         // This prevents showing the same requests as "new" in future polls
         setNotifications(prev => {
           const existingNotifications = prev.filter(n => n.type !== 'friend_request')
-          const currentNotifications = currentRequestIds.map(id => {
-            const request = newRequests.find(r => r.id === id)
+          const currentNotifications = currentRequestIds.map((id: string) => {
+            const request = newRequests.find((r: any) => r.id === id)
             return {
               id: id,
               type: 'friend_request' as const,

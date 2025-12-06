@@ -252,10 +252,7 @@ export function ClientGroupPage({
               entityDisplayInfo={{
                 id: group.id,
                 name: group.name,
-                type: 'group' as const,
-                group_image: groupImageUrl ? { url: groupImageUrl } : undefined,
-                member_count: membersCount,
-                is_private: group.is_private
+                type: 'group' as const
               }}
             />
           </div>
@@ -290,10 +287,7 @@ export function ClientGroupPage({
               entityDisplayInfo={{
                 id: group.id,
                 name: group.name,
-                type: 'group' as const,
-                group_image: groupImageUrl ? { url: groupImageUrl } : undefined,
-                member_count: membersCount,
-                is_private: group.is_private
+                type: 'group' as const
               }}
             />
           </div>
@@ -344,7 +338,7 @@ export function ClientGroupPage({
 const GroupTimeline = ({ activities }: { activities: GroupActivity[] }) => {
   const timelineItems: TimelineItem[] = activities.map(activity => ({
     id: activity.id,
-    avatarUrl: activity.user?.avatar_url,
+    avatarUrl: activity.user?.avatar_url || undefined,
     name: activity.user?.name || 'System',
     timestamp: formatDate(activity.created_at),
     content: (
@@ -460,12 +454,11 @@ const MembersSection = ({ members }: { members: GroupMember[] }) => (
         {members.map((member) => (
           <Card key={member.user_id} className="p-4">
             <div className="flex items-center space-x-3">
-              <Avatar>
-                <AvatarImage src={member.user.avatar_url || undefined} />
-                <AvatarFallback>
-                  {member.user.name?.charAt(0) || 'U'}
-                </AvatarFallback>
-              </Avatar>
+              <Avatar
+                src={member.user.avatar_url || undefined}
+                name={member.user.name || 'User'}
+                size="sm"
+              />
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-sm truncate">
                   {member.user.name}
@@ -504,12 +497,12 @@ const DiscussionsSection = ({ discussions, groupId }: { discussions: GroupDiscus
         {discussions.map((discussion) => (
           <Card key={discussion.id} className="p-4">
             <div className="flex items-start space-x-3">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={discussion.user.avatar_url || undefined} />
-                <AvatarFallback>
-                  {discussion.user.name?.charAt(0) || 'U'}
-                </AvatarFallback>
-              </Avatar>
+              <Avatar
+                src={discussion.user.avatar_url || undefined}
+                name={discussion.user.name || 'User'}
+                size="sm"
+                className="h-8 w-8"
+              />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2 mb-1">
                   <p className="font-medium text-sm">

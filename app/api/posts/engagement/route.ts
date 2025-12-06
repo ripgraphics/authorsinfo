@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
+
 
 /**
  * Enterprise-Grade Engagement API
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     console.log('=== ENTERPRISE ENGAGEMENT API START ===')
     
     // Authentication
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createRouteHandlerClientAsync()
     
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
     if (sessionError || !session?.user) {
@@ -354,7 +354,7 @@ async function updatePostEngagementCounts(supabase: any, postId: string) {
 export async function GET(request: NextRequest) {
   try {
     // Authentication
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createRouteHandlerClientAsync()
     
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
     if (sessionError || !session?.user) {

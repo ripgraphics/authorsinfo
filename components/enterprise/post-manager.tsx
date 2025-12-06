@@ -43,8 +43,8 @@ export default function PostManager({
   
   // Edit form state
   const [editForm, setEditForm] = useState({
-    content: post.text || post.data?.text || '',
-    hashtags: post.hashtags || [],
+    content: post.content?.text || (post as any).text || (post as any).data?.text || '',
+    hashtags: (post as any).hashtags || [],
     visibility: post.visibility || 'public',
     tags: post.tags || []
   })
@@ -59,8 +59,8 @@ export default function PostManager({
     if (isEditing) {
       // Reset form to original values
       setEditForm({
-        content: post.text || post.data?.text || '',
-        hashtags: post.hashtags || [],
+        content: post.content?.text || (post as any).text || (post as any).data?.text || '',
+        hashtags: (post as any).hashtags || post.content?.hashtags || [],
         visibility: post.visibility || 'public',
         tags: post.tags || []
       })
@@ -88,7 +88,7 @@ export default function PostManager({
   const removeHashtag = useCallback((tagToRemove: string) => {
     setEditForm(prev => ({
       ...prev,
-      hashtags: prev.hashtags.filter(tag => tag !== tagToRemove)
+      hashtags: prev.hashtags.filter((tag: string) => tag !== tagToRemove)
     }))
   }, [])
 
@@ -299,7 +299,7 @@ export default function PostManager({
             <div className="space-y-2">
               <label className="text-sm font-medium">Hashtags</label>
               <div className="flex flex-wrap gap-2">
-                {editForm.hashtags.map((tag, index) => (
+                {editForm.hashtags.map((tag: string, index: number) => (
                   <Badge key={index} variant="secondary" className="cursor-pointer">
                     #{tag}
                     <button
@@ -365,11 +365,11 @@ export default function PostManager({
           /* View Mode */
           <div className="space-y-4">
             <div className="p-4 bg-muted/30 rounded-md">
-              <p className="whitespace-pre-wrap">{post.text || post.data?.text || 'Shared an update'}</p>
+              <p className="whitespace-pre-wrap">{post.content?.text || (post as any).text || (post as any).data?.text || 'Shared an update'}</p>
               
-              {post.hashtags && post.hashtags.length > 0 && (
+              {((post as any).hashtags || post.content?.hashtags) && ((post as any).hashtags || post.content?.hashtags || []).length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-3">
-                  {post.hashtags.map((tag, index) => (
+                  {((post as any).hashtags || post.content?.hashtags || []).map((tag: string, index: number) => (
                     <Badge key={index} variant="secondary">
                       #{tag}
                     </Badge>

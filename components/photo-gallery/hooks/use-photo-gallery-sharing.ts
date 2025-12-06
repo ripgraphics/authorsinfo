@@ -1,10 +1,11 @@
 import { useCallback, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { AlbumImage } from '../types';
+import { createBrowserClient } from '@supabase/ssr';
+import { AlbumImageLegacy } from '../types';
 
 interface ShareLink {
   id: string;
   token: string;
+  image_id: string;
   expires_at: string;
   max_views?: number;
   password?: string;
@@ -37,7 +38,7 @@ export function usePhotoGallerySharing(options: ShareOptions = {}) {
     shareLink: null,
   });
 
-  const supabase = createClientComponentClient();
+  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
   // Generate share link
   const generateShareLink = useCallback(async (
@@ -183,7 +184,7 @@ export function usePhotoGallerySharing(options: ShareOptions = {}) {
   }, [supabase]);
 
   // Get shared image
-  const getSharedImage = useCallback(async (token: string): Promise<AlbumImage> => {
+  const getSharedImage = useCallback(async (token: string): Promise<AlbumImageLegacy> => {
     try {
       // Get share link
       const shareLink = await getShareLink(token);

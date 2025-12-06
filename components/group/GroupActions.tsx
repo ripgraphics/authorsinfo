@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/ssr'
 import { Loader2, UserPlus, Heart } from 'lucide-react'
 import { FollowButton } from '@/components/follow-button'
 
@@ -24,7 +24,7 @@ export function GroupActions({
 }: GroupActionsProps) {
   const [isJoining, setIsJoining] = useState(false)
   const { toast } = useToast()
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
   const handleJoin = async () => {
     setIsJoining(true)

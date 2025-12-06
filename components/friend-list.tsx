@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar } from '@/components/ui/avatar'
 import { UserListLayout } from '@/components/ui/user-list-layout'
 import { UserActionButtons } from '@/components/user-action-buttons'
 import { 
@@ -208,15 +208,13 @@ export function FriendList({
               className="flex items-center gap-3 p-3 flex-1 min-w-0"
             >
               <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14 bg-muted">
-                <Avatar className="h-14 w-14">
-                  <AvatarImage 
-                    src={friend.friend.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(friend.friend.name)}`} 
-                    alt={friend.friend.name}
-                  />
-                  <AvatarFallback>
-                    {friend.friend.name.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                <Avatar
+                  src={friend.friend.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(friend.friend.name)}`}
+                  alt={friend.friend.name}
+                  name={friend.friend.name}
+                  size="lg"
+                  className="h-14 w-14"
+                />
               </span>
               <div className="flex-1 min-w-0">
                 <h3 className="font-medium truncate">{friend.friend.name}</h3>

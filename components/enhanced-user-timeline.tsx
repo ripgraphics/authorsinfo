@@ -110,9 +110,14 @@ export function EnhancedUserTimeline({ userId, isOwnProfile, privacySettings }: 
 
   // Privacy-aware timeline configuration
   const getTimelineConfig = () => {
-    if (!privacySettings) return {}
+    if (!privacySettings) return {
+      entityId: userId,
+      entityType: 'user' as const
+    }
 
     return {
+      entityId: userId,
+      entityType: 'user' as const,
       showAnalytics: privacySettings.show_reading_stats_publicly || isOwnProfile,
       enableModeration: isOwnProfile,
       enableAI: isOwnProfile,
@@ -302,8 +307,7 @@ export function EnhancedUserTimeline({ userId, isOwnProfile, privacySettings }: 
             </div>
 
             {/* Enhanced Timeline Activities */}
-            <EnterpriseTimelineActivities 
-              userId={userId}
+            <EnterpriseTimelineActivities
               {...getTimelineConfig()}
             />
 

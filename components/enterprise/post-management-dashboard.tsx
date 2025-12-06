@@ -131,7 +131,7 @@ export default function PostManagementDashboard({ className }: PostManagementDas
   const applyFilters = useCallback((postsData: Post[], filterSettings: PostFilters) => {
     return postsData.filter(post => {
       // Search filter
-      if (filterSettings.search && !(post.text || post.data?.text || '').toLowerCase().includes(filterSettings.search.toLowerCase())) {
+      if (filterSettings.search && !(post.content?.text || (post as any).text || (post as any).data?.text || '').toLowerCase().includes(filterSettings.search.toLowerCase())) {
         return false
       }
       
@@ -263,7 +263,8 @@ export default function PostManagementDashboard({ className }: PostManagementDas
       case 'public': return <Eye className="h-4 w-4" />
       case 'friends': return <Users className="h-4 w-4" />
       case 'private': return <Lock className="h-4 w-4" />
-      case 'followers': return <Users className="h-4 w-4" />
+      case 'group': return <Users className="h-4 w-4" />
+      case 'custom': return <Users className="h-4 w-4" />
       default: return <Eye className="h-4 w-4" />
     }
   }
@@ -512,7 +513,7 @@ export default function PostManagementDashboard({ className }: PostManagementDas
                         </div>
                         
                         <p className="font-medium truncate">
-                          {post.text || post.data?.text || 'No content'}
+                          {post.content?.text || (post as any).text || (post as any).data?.text || 'No content'}
                         </p>
                         
                         <div className="flex items-center space-x-4 text-sm text-muted-foreground mt-2">
@@ -613,9 +614,14 @@ export default function PostManagementDashboard({ className }: PostManagementDas
           <div className="bg-background rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <PostManager
               post={editingPost}
-              onPostUpdated={handlePostUpdated}
-              onPostDeleted={handlePostDeleted}
-              onCancel={() => setEditingPost(null)}
+              onPostUpdated={(updatedPost) => {
+                handlePostUpdated(updatedPost)
+                setEditingPost(null)
+              }}
+              onPostDeleted={(postId) => {
+                handlePostDeleted(postId)
+                setEditingPost(null)
+              }}
             />
           </div>
         </div>

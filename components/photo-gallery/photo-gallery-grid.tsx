@@ -36,7 +36,7 @@ export function PhotoGalleryGrid({
           onReorder={(newOrder) => {
             newOrder.forEach((image, index) => {
               if (image.displayOrder !== index + 1) {
-                onImageReorder(image.id, index + 1);
+                onImageReorder(Number(image.id), index + 1);
               }
             });
           }}

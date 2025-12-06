@@ -265,6 +265,7 @@ export function BookDataTable({
                             alt={book.cover_image.alt_text || book.title}
                             fill
                             className="object-cover"
+                            sizes="32px"
                           />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center bg-muted">
@@ -346,6 +347,7 @@ export function BookDataTable({
                     alt={book.cover_image.alt_text || book.title}
                     fill
                     className="object-cover rounded-lg"
+                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16vw"
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center bg-muted rounded-lg">

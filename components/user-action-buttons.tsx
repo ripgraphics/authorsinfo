@@ -324,7 +324,6 @@ export function UserActionButtons({
           size={size}
           showIcon={true}
           showText={false}
-          onFollowChange={onFollowChange}
         />
       )}
     </div>

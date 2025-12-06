@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createBrowserClient } from '@supabase/ssr';
 import { AlbumImage } from '../types';
 
 interface BatchOperation {
@@ -12,7 +12,7 @@ export function usePhotoGalleryBatch(albumId: string) {
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
   const [isSelecting, setIsSelecting] = useState(false);
   const [currentOperation, setCurrentOperation] = useState<BatchOperation | null>(null);
-  const supabase = createClientComponentClient();
+  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
   const toggleImageSelection = useCallback((imageId: string) => {
     setSelectedImages((prev) => {

@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createRouteHandlerClientAsync()
 
     const { searchParams } = new URL(request.url)
     const entityType = searchParams.get('entity_type')
@@ -173,13 +172,20 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createRouteHandlerClientAsync()
     
-    // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
+    // Check authentication - use getSession for consistency with other routes
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    if (sessionError) {
+      console.error('Error getting session:', sessionError)
+      return NextResponse.json({ error: 'Failed to get session' }, { status: 500 })
+    }
+    
+    if (!session?.user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
+    
+    const user = session.user
 
     const body = await request.json()
     console.log('📝 POST /api/engagement - Request body:', body)

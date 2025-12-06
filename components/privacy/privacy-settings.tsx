@@ -17,7 +17,8 @@ import type { PrivacySettingsForm, PrivacyStats, PrivacyAuditSummary, PrivacyLev
 import { 
   Shield, 
   Users, 
-  UserCheck, 
+  UserCheck,
+  Book, 
   Eye, 
   EyeOff, 
   Lock, 
@@ -73,14 +74,18 @@ export function PrivacySettings({
         // For now, use default stats and audit data
         // These could be enhanced with entity-specific APIs later
         setStats({
-          totalSettings: Object.keys(settingsData).length,
-          privacyLevel: settingsData.default_privacy_level || 'private',
-          lastUpdated: new Date().toISOString()
+          total_entries: Object.keys(settingsData).length,
+          public_entries: settingsData.default_privacy_level === 'public' ? 1 : 0,
+          friends_only_entries: settingsData.default_privacy_level === 'friends' ? 1 : 0,
+          followers_only_entries: settingsData.default_privacy_level === 'followers' ? 1 : 0,
+          private_entries: settingsData.default_privacy_level === 'private' ? 1 : 0,
+          custom_entries: 0
         })
         setAuditSummary({
-          totalChanges: 0,
-          lastChange: new Date().toISOString(),
-          changeFrequency: 'low'
+          total_views: 0,
+          total_updates: 0,
+          total_permission_changes: 0,
+          recent_activity: []
         })
       } else {
         throw new Error('Failed to fetch privacy settings')

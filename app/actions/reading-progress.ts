@@ -1,7 +1,7 @@
 "use server"
 import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
-import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
+import { createServerActionClientAsync } from "@/lib/supabase/client-helper"
 
 export type ReadingProgressStatus = "not_started" | "in_progress" | "completed" | "on_hold" | "abandoned"
 
@@ -25,7 +25,7 @@ export type ReadingProgress = {
 
 export async function getUserReadingProgress(bookId: string) {
   try {
-    const supabase = createServerActionClient({ cookies })
+    const supabase = await createServerActionClientAsync()
 
     // Get the current user
     const {
@@ -58,7 +58,7 @@ export async function getUserReadingProgress(bookId: string) {
 
 export async function updateReadingProgress(progress: Partial<ReadingProgress>) {
   try {
-    const supabase = createServerActionClient({ cookies })
+    const supabase = await createServerActionClientAsync()
 
     // Get the current user
     const {
@@ -209,7 +209,7 @@ export async function updateReadingProgress(progress: Partial<ReadingProgress>) 
 
 export async function deleteReadingProgress(bookId: string) {
   try {
-    const supabase = createServerActionClient({ cookies })
+    const supabase = await createServerActionClientAsync()
 
     // Get the current user
     const {
@@ -256,7 +256,7 @@ export async function deleteReadingProgress(bookId: string) {
 
 export async function getRecentReadingActivity(limit = 5) {
   try {
-    const supabase = createServerActionClient({ cookies })
+    const supabase = await createServerActionClientAsync()
 
     // Get the current user
     const {
@@ -300,7 +300,7 @@ export async function getRecentReadingActivity(limit = 5) {
 
 export async function getReadingStats() {
   try {
-    const supabase = createServerActionClient({ cookies })
+    const supabase = await createServerActionClientAsync()
 
     // Get the current user
     const {
@@ -341,7 +341,7 @@ export async function getReadingStats() {
 
 export async function getFriendsReadingActivity(limit = 10) {
   try {
-    const supabase = createServerActionClient({ cookies })
+    const supabase = await createServerActionClientAsync()
 
     // Get the current user
     const {

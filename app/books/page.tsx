@@ -111,7 +111,7 @@ async function getPublicationYears() {
       const match = String(item[dateField!]).match(/(\d{4})/)
       return match ? match[1] : null
     })
-    .filter(Boolean)
+    .filter((year): year is string => year !== null && year !== undefined && typeof year === 'string')
 
   const uniqueYears = Array.from(new Set(years)).sort((a, b) => Number(b) - Number(a)) // Sort descending
 
@@ -137,10 +137,10 @@ async function BooksList({
   // Get publication years and the correct date field
   const { years, dateField } = await getPublicationYears()
 
-  // Build the query
+  // Build the query - using simpler syntax that matches other pages
   let query = supabaseAdmin.from("books").select(`
       *,
-      cover_image:images!cover_image_id(id, url, alt_text)
+      cover_image:cover_image_id(id, url, alt_text)
     `)
 
   // Apply search filter if provided
@@ -159,8 +159,11 @@ async function BooksList({
     if (dateField === "year" || dateField === "publication_year") {
       query = query.eq(dateField, year)
     } else {
-      // Otherwise, use LIKE to match the year in a date string
-      query = query.ilike(dateField, `%${year}%`)
+      // For date fields, use date range filter instead of ilike
+      // Filter for dates within the specified year
+      const yearStart = `${year}-01-01`
+      const yearEnd = `${year}-12-31`
+      query = query.gte(dateField, yearStart).lte(dateField, yearEnd)
     }
   }
 
@@ -185,8 +188,18 @@ async function BooksList({
   const { data: books, error } = await query
 
   if (error) {
-    console.error("Error fetching books:", error)
-    return <div>Error loading books</div>
+    // Log the full error object to understand its structure
+    console.error("Error fetching books - Full error:", JSON.stringify(error, null, 2))
+    console.error("Error fetching books - Error type:", typeof error)
+    console.error("Error fetching books - Error keys:", Object.keys(error))
+    console.error("Error fetching books - Error properties:", {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code,
+      error: error,
+    })
+    return <div>Error loading books. Please check the console for details.</div>
   }
 
   // Process books to include cover image URL (only from Cloudinary via cover_image_id)
@@ -232,7 +245,10 @@ async function BooksList({
     if (dateField === "year" || dateField === "publication_year") {
       countQuery = countQuery.eq(dateField, year)
     } else {
-      countQuery = countQuery.ilike(dateField, `%${year}%`)
+      // For date fields, use date range filter instead of ilike
+      const yearStart = `${year}-01-01`
+      const yearEnd = `${year}-12-31`
+      countQuery = countQuery.gte(dateField, yearStart).lte(dateField, yearEnd)
     }
   }
 
@@ -340,6 +356,8 @@ export default async function BooksPage({ searchParams }: BooksPageProps) {
         sort={sort}
         languages={languages}
         years={years}
+        language={language}
+        year={year}
       />
       <Suspense fallback={<div>Loading...</div>}>
         <BooksList

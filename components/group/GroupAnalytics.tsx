@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createBrowserClient } from '@supabase/ssr';
 import { useToast } from '@/hooks/use-toast';
 import type { Database } from '@/types/database';
 
@@ -43,7 +43,7 @@ export default function GroupAnalytics({ groupId }: GroupAnalyticsProps) {
   const [loading, setLoading] = useState(true);
   const [selectedMetric, setSelectedMetric] = useState('members');
 
-  const supabase = createClientComponentClient<Database>();
+  const supabase = createBrowserClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
   const { toast } = useToast();
 
   useEffect(() => {

@@ -1,8 +1,8 @@
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createBrowserClient } from '@supabase/ssr';
 import type { ContactInfo, ContactInfoInput, EntityType } from '@/types/contact';
 import { Database } from '@/types/database';
 
-const supabase = createClientComponentClient<Database>();
+const supabase = createBrowserClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
 export async function getContactInfo(entityType: EntityType, entityId: string | number): Promise<ContactInfo | null> {
     if (!entityType || !entityId) {

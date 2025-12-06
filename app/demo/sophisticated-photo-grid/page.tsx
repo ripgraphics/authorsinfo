@@ -16,10 +16,10 @@ const samplePhotos = [
     alt_text: 'Mountain landscape',
     description: 'Beautiful mountain landscape at sunset',
     created_at: '2024-01-15T10:00:00Z',
-    likes: [{ id: '1', user_id: 'user1', user_name: 'John Doe', created_at: '2024-01-15T11:00:00Z' }],
-    comments: [{ id: '1', user_id: 'user2', user_name: 'Jane Smith', content: 'Stunning view!', created_at: '2024-01-15T12:00:00Z' }],
-    shares: [{ id: '1', user_id: 'user3', user_name: 'Bob Johnson', platform: 'twitter', created_at: '2024-01-15T13:00:00Z' }],
-    analytics: { views: 1250, downloads: 45, engagement_rate: 0.08 },
+    likes: [{ id: '1', photo_id: '1', user_id: 'user1', created_at: '2024-01-15T11:00:00Z', user: { name: 'John Doe' } }],
+    comments: [{ id: '1', photo_id: '1', user_id: 'user2', content: 'Stunning view!', created_at: '2024-01-15T12:00:00Z', user: { name: 'Jane Smith' } }],
+    shares: [{ id: '1', photo_id: '1', user_id: 'user3', created_at: '2024-01-15T13:00:00Z' }],
+    analytics: { views: 1250, unique_views: 980, downloads: 45, shares: 12, engagement_rate: 0.08 },
     is_cover: true,
     is_featured: false
   },
@@ -30,10 +30,10 @@ const samplePhotos = [
     alt_text: 'Forest path',
     description: 'Peaceful forest path in autumn',
     created_at: '2024-01-15T10:00:00Z',
-    likes: [{ id: '2', user_id: 'user4', user_name: 'Alice Brown', created_at: '2024-01-15T14:00:00Z' }],
+    likes: [{ id: '2', photo_id: '2', user_id: 'user4', created_at: '2024-01-15T14:00:00Z', user: { name: 'Alice Brown' } }],
     comments: [],
     shares: [],
-    analytics: { views: 890, downloads: 23, engagement_rate: 0.06 },
+    analytics: { views: 890, unique_views: 720, downloads: 23, shares: 8, engagement_rate: 0.06 },
     is_cover: false,
     is_featured: true
   },
@@ -47,7 +47,7 @@ const samplePhotos = [
     likes: [],
     comments: [],
     shares: [],
-    analytics: { views: 567, downloads: 12, engagement_rate: 0.04 },
+    analytics: { views: 567, unique_views: 450, downloads: 12, shares: 5, engagement_rate: 0.04 },
     is_cover: false,
     is_featured: false
   },
@@ -61,7 +61,7 @@ const samplePhotos = [
     likes: [],
     comments: [],
     shares: [],
-    analytics: { views: 432, downloads: 8, engagement_rate: 0.03 },
+    analytics: { views: 432, unique_views: 380, downloads: 8, shares: 3, engagement_rate: 0.03 },
     is_cover: false,
     is_featured: false
   },
@@ -75,7 +75,7 @@ const samplePhotos = [
     likes: [],
     comments: [],
     shares: [],
-    analytics: { views: 298, downloads: 5, engagement_rate: 0.02 },
+    analytics: { views: 298, unique_views: 250, downloads: 5, shares: 2, engagement_rate: 0.02 },
     is_cover: false,
     is_featured: false
   }

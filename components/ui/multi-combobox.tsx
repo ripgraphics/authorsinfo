@@ -61,7 +61,7 @@ export function MultiCombobox({
   }, [onScrollEnd])
 
   // Use a ref to store the timeout ID for proper cleanup
-  const searchTimeoutRef = React.useRef<NodeJS.Timeout>()
+  const searchTimeoutRef = React.useRef<NodeJS.Timeout | undefined>(undefined)
 
   // Handle search input with proper debouncing
   const handleSearchChange = React.useCallback((value: string) => {

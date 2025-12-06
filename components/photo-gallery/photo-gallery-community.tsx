@@ -2,7 +2,6 @@ import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { 
   Users, 
   MessageCircle, 
@@ -102,10 +101,17 @@ export function PhotoGalleryCommunity({ community, className = '' }: PhotoGaller
                 <div key={contributor.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="relative">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={contributor.avatar} alt={contributor.name} />
-                        <AvatarFallback>{contributor.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                      </Avatar>
+                      <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-white shadow-md">
+                        {contributor.avatar ? (
+                          <img src={contributor.avatar} alt={contributor.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-muted flex items-center justify-center">
+                            <span className="text-sm font-semibold text-muted-foreground">
+                              {contributor.name.split(' ').map(n => n[0]).join('')}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                       {index < 3 && (
                         <div className="absolute -top-1 -right-1">
                           <Badge variant="secondary" className="text-xs">
@@ -139,10 +145,17 @@ export function PhotoGalleryCommunity({ community, className = '' }: PhotoGaller
             <div className="space-y-4">
               {recentActivities.map((activity) => (
                 <div key={activity.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={activity.avatar} alt={activity.user} />
-                    <AvatarFallback>{activity.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                  </Avatar>
+                  <div className="h-8 w-8 rounded-full overflow-hidden border-2 border-white shadow-md">
+                    {activity.avatar ? (
+                      <img src={activity.avatar} alt={activity.user} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-muted flex items-center justify-center">
+                        <span className="text-xs font-semibold text-muted-foreground">
+                          {activity.user.split(' ').map(n => n[0]).join('')}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                   <div className="flex-1">
                     <div className="text-sm">
                       <span className="font-medium">{activity.user}</span>

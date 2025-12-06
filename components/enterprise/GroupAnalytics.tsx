@@ -3,10 +3,13 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { DateRangePicker } from '@/components/ui/date-range-picker'
-import { LineChart, BarChart, PieChart } from '@/components/ui/charts'
+import { DateRangePicker } from '@/components/admin/date-range-picker'
+import { LineChart } from '@/components/admin/line-chart'
+import { BarChart } from '@/components/admin/bar-chart'
+import { PieChart } from '@/components/admin/pie-chart'
 import { supabaseClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
+import type { DateRange } from 'react-day-picker'
 
 interface GroupAnalyticsProps {
   groupId: string
@@ -18,36 +21,31 @@ interface Metric {
   metadata: any
 }
 
-interface ChartData {
-  labels: string[]
-  datasets: {
-    label: string
-    data: number[]
-    borderColor?: string
-    backgroundColor?: string
-  }[]
-}
 
 export function GroupAnalytics({ groupId }: GroupAnalyticsProps) {
   const [timeRange, setTimeRange] = useState('7d')
-  const [startDate, setStartDate] = useState<Date>(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
-  const [endDate, setEndDate] = useState<Date>(new Date())
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+    to: new Date()
+  })
   const [metrics, setMetrics] = useState<Record<string, Metric[]>>({})
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchAnalytics()
-  }, [groupId, timeRange, startDate, endDate])
+  }, [groupId, timeRange, dateRange])
 
   const fetchAnalytics = async () => {
+    if (!dateRange?.from || !dateRange?.to) return
+    
     try {
       setLoading(true)
       const { data, error } = await supabaseClient
         .from('group_analytics')
         .select('*')
         .eq('group_id', groupId)
-        .gte('date', format(startDate, 'yyyy-MM-dd'))
-        .lte('date', format(endDate, 'yyyy-MM-dd'))
+        .gte('date', format(dateRange.from, 'yyyy-MM-dd'))
+        .lte('date', format(dateRange.to, 'yyyy-MM-dd'))
         .order('date', { ascending: true })
 
       if (error) throw error
@@ -73,16 +71,11 @@ export function GroupAnalytics({ groupId }: GroupAnalyticsProps) {
     }
   }
 
-  const prepareChartData = (metricName: string): ChartData => {
+  const prepareChartData = (metricName: string) => {
     const metricData = metrics[metricName] || []
     return {
       labels: metricData.map(m => format(new Date(m.date), 'MMM d')),
-      datasets: [{
-        label: metricName,
-        data: metricData.map(m => m.value),
-        borderColor: '#2563eb',
-        backgroundColor: 'rgba(37, 99, 235, 0.1)'
-      }]
+      data: metricData.map(m => m.value)
     }
   }
 
@@ -107,18 +100,21 @@ export function GroupAnalytics({ groupId }: GroupAnalyticsProps) {
           <Select value={timeRange} onValueChange={value => {
             setTimeRange(value)
             const now = new Date()
+            let fromDate: Date
             switch (value) {
               case '7d':
-                setStartDate(new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000))
+                fromDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
                 break
               case '30d':
-                setStartDate(new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000))
+                fromDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
                 break
               case '90d':
-                setStartDate(new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000))
+                fromDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
                 break
+              default:
+                fromDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
             }
-            setEndDate(now)
+            setDateRange({ from: fromDate, to: now })
           }}>
             <SelectTrigger>
               <SelectValue placeholder="Select time range" />
@@ -130,10 +126,8 @@ export function GroupAnalytics({ groupId }: GroupAnalyticsProps) {
             </SelectContent>
           </Select>
           <DateRangePicker
-            from={startDate}
-            to={endDate}
-            onFromChange={setStartDate}
-            onToChange={setEndDate}
+            dateRange={dateRange}
+            onDateRangeChange={setDateRange}
           />
         </div>
       </div>
@@ -183,7 +177,12 @@ export function GroupAnalytics({ groupId }: GroupAnalyticsProps) {
             <CardTitle>Member Growth</CardTitle>
           </CardHeader>
           <CardContent>
-            <LineChart data={prepareChartData('membership')} />
+            <LineChart
+              title=""
+              labels={prepareChartData('membership').labels}
+              data={prepareChartData('membership').data}
+              loading={loading}
+            />
           </CardContent>
         </Card>
         <Card>
@@ -191,7 +190,13 @@ export function GroupAnalytics({ groupId }: GroupAnalyticsProps) {
             <CardTitle>Daily Engagement</CardTitle>
           </CardHeader>
           <CardContent>
-            <BarChart data={prepareChartData('engagement')} />
+            <BarChart
+              title=""
+              data={prepareChartData('engagement').labels.map((label, i) => ({
+                label,
+                value: prepareChartData('engagement').data[i] || 0
+              }))}
+            />
           </CardContent>
         </Card>
         <Card>
@@ -199,23 +204,17 @@ export function GroupAnalytics({ groupId }: GroupAnalyticsProps) {
             <CardTitle>Content Distribution</CardTitle>
           </CardHeader>
           <CardContent>
-            <PieChart data={{
-              labels: ['Posts', 'Comments', 'Reactions', 'Shares'],
-              datasets: [{
-                data: [
-                  metrics['posts']?.[metrics['posts'].length - 1]?.value || 0,
-                  metrics['comments']?.[metrics['comments'].length - 1]?.value || 0,
-                  metrics['reactions']?.[metrics['reactions'].length - 1]?.value || 0,
-                  metrics['shares']?.[metrics['shares'].length - 1]?.value || 0
-                ],
-                backgroundColor: [
-                  '#3b82f6',
-                  '#10b981',
-                  '#f59e0b',
-                  '#ef4444'
-                ]
-              }]
-            }} />
+            <PieChart
+              title=""
+              labels={['Posts', 'Comments', 'Reactions', 'Shares']}
+              data={[
+                metrics['posts']?.[metrics['posts'].length - 1]?.value || 0,
+                metrics['comments']?.[metrics['comments'].length - 1]?.value || 0,
+                metrics['reactions']?.[metrics['reactions'].length - 1]?.value || 0,
+                metrics['shares']?.[metrics['shares'].length - 1]?.value || 0
+              ]}
+              colors={['#3b82f6', '#10b981', '#f59e0b', '#ef4444']}
+            />
           </CardContent>
         </Card>
         <Card>
@@ -223,7 +222,12 @@ export function GroupAnalytics({ groupId }: GroupAnalyticsProps) {
             <CardTitle>Member Activity</CardTitle>
           </CardHeader>
           <CardContent>
-            <LineChart data={prepareChartData('active_members')} />
+            <LineChart
+              title=""
+              labels={prepareChartData('active_members').labels}
+              data={prepareChartData('active_members').data}
+              loading={loading}
+            />
           </CardContent>
         </Card>
       </div>

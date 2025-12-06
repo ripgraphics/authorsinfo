@@ -125,7 +125,10 @@ export function ContactSection({ publisher, onRefresh }: { publisher: PublisherD
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null);
-  const [editedContact, setEditedContact] = useState<ContactInfoInput>({});
+  const [editedContact, setEditedContact] = useState<ContactInfoInput>({
+    entity_type: 'publisher',
+    entity_id: publisher.id?.toString() || ''
+  });
   const { toast } = useToast();
   
   useEffect(() => {
@@ -134,6 +137,8 @@ export function ContactSection({ publisher, onRefresh }: { publisher: PublisherD
       if (info) {
         setContactInfo(info);
         setEditedContact({
+          entity_type: 'publisher',
+          entity_id: publisher.id?.toString() || '',
           email: info.email,
           phone: info.phone,
           website: info.website,
@@ -151,7 +156,9 @@ export function ContactSection({ publisher, onRefresh }: { publisher: PublisherD
 
   const handleUpdateContact = async () => {
     try {
-      const updatedContact = await upsertContactInfo('publisher', publisher.id?.toString() || '', {
+      const updatedContact = await upsertContactInfo({
+        entity_type: 'publisher',
+        entity_id: publisher.id?.toString() || '',
         email: editedContact.email || undefined,
         phone: editedContact.phone || undefined,
         website: editedContact.website || undefined,

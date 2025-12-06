@@ -46,6 +46,7 @@ export function BookCover({
           alt={title}
           fill
           className="object-cover"
+          sizes={`${config.width}px`}
         />
       ) : (
         <div className="w-full h-full bg-muted flex items-center justify-center">

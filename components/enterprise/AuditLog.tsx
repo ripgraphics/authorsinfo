@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { DataTable } from '@/components/ui/data-table'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
@@ -61,16 +61,16 @@ export function AuditLog({ groupId }: AuditLogProps) {
         .order('created_at', { ascending: false })
 
       // Apply filters
-      if (filter.action) {
+      if (filter.action && filter.action !== 'all') {
         query = query.eq('action', filter.action)
       }
-      if (filter.targetType) {
+      if (filter.targetType && filter.targetType !== 'all') {
         query = query.eq('target_type', filter.targetType)
       }
 
       // Date range filter
       const now = new Date()
-      let startDate
+      let startDate: Date | undefined
       switch (filter.dateRange) {
         case '24h':
           startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000)
@@ -84,8 +84,12 @@ export function AuditLog({ groupId }: AuditLogProps) {
         case '90d':
           startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
           break
+        default:
+          startDate = undefined
       }
-      query = query.gte('created_at', startDate.toISOString())
+      if (startDate) {
+        query = query.gte('created_at', startDate.toISOString())
+      }
 
       const { data, error } = await query
 
@@ -139,11 +143,11 @@ export function AuditLog({ groupId }: AuditLogProps) {
     {
       header: 'Time',
       accessorKey: 'created_at',
-      cell: ({ row }) => format(new Date(row.original.created_at), 'MMM d, yyyy HH:mm:ss')
+      cell: ({ row }: { row: any }) => format(new Date(row.original.created_at), 'MMM d, yyyy HH:mm:ss')
     },
     {
       header: 'Actor',
-      cell: ({ row }) => (
+      cell: ({ row }: { row: any }) => (
         <div>
           <div>{row.original.actor?.name || 'Unknown'}</div>
           <div className="text-sm text-muted-foreground">{row.original.actor?.email}</div>
@@ -153,13 +157,13 @@ export function AuditLog({ groupId }: AuditLogProps) {
     {
       header: 'Action',
       accessorKey: 'action',
-      cell: ({ row }) => (
+      cell: ({ row }: { row: any }) => (
         <Badge variant="outline">{row.original.action}</Badge>
       )
     },
     {
       header: 'Target',
-      cell: ({ row }) => (
+      cell: ({ row }: { row: any }) => (
         <div>
           <Badge variant="secondary">{row.original.target_type}</Badge>
           <div className="text-sm text-muted-foreground mt-1">{row.original.target_id}</div>
@@ -168,7 +172,7 @@ export function AuditLog({ groupId }: AuditLogProps) {
     },
     {
       header: 'Details',
-      cell: ({ row }) => (
+      cell: ({ row }: { row: any }) => (
         <Dialog>
           <DialogTrigger asChild>
             <Button
@@ -222,7 +226,7 @@ export function AuditLog({ groupId }: AuditLogProps) {
               <SelectValue placeholder="Filter by action" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Actions</SelectItem>
+              <SelectItem value="all">All Actions</SelectItem>
               <SelectItem value="create">Create</SelectItem>
               <SelectItem value="update">Update</SelectItem>
               <SelectItem value="delete">Delete</SelectItem>
@@ -237,7 +241,7 @@ export function AuditLog({ groupId }: AuditLogProps) {
               <SelectValue placeholder="Filter by target" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Types</SelectItem>
+              <SelectItem value="all">All Types</SelectItem>
               <SelectItem value="member">Member</SelectItem>
               <SelectItem value="content">Content</SelectItem>
               <SelectItem value="setting">Setting</SelectItem>
@@ -266,12 +270,87 @@ export function AuditLog({ groupId }: AuditLogProps) {
           <CardTitle>Activity History</CardTitle>
         </CardHeader>
         <CardContent>
-          <DataTable
-            columns={columns}
-            data={entries}
-            loading={loading}
-            pagination
-          />
+          {loading ? (
+            <div className="text-center py-8">Loading...</div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Time</TableHead>
+                    <TableHead>Actor</TableHead>
+                    <TableHead>Action</TableHead>
+                    <TableHead>Target</TableHead>
+                    <TableHead>Details</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {entries.map((entry) => (
+                    <TableRow key={entry.id}>
+                      <TableCell>{format(new Date(entry.created_at), 'MMM d, yyyy HH:mm:ss')}</TableCell>
+                      <TableCell>
+                        <div>
+                          <div>{entry.actor?.name || 'Unknown'}</div>
+                          <div className="text-sm text-muted-foreground">{entry.actor?.email}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{entry.action}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <Badge variant="secondary">{entry.target_type}</Badge>
+                          <div className="text-sm text-muted-foreground mt-1">{entry.target_id}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSelectedEntry(entry)}
+                            >
+                              View Changes
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Audit Entry Details</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4">
+                              <div>
+                                <strong>Action:</strong> {entry.action}
+                              </div>
+                              <div>
+                                <strong>Target:</strong> {entry.target_type} ({entry.target_id})
+                              </div>
+                              {entry.changes && (
+                                <div>
+                                  <strong>Changes:</strong>
+                                  <pre className="mt-2 p-2 bg-muted rounded text-sm overflow-auto">
+                                    {JSON.stringify(entry.changes, null, 2)}
+                                  </pre>
+                                </div>
+                              )}
+                              {entry.metadata && (
+                                <div>
+                                  <strong>Metadata:</strong>
+                                  <pre className="mt-2 p-2 bg-muted rounded text-sm overflow-auto">
+                                    {JSON.stringify(entry.metadata, null, 2)}
+                                  </pre>
+                                </div>
+                              )}
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

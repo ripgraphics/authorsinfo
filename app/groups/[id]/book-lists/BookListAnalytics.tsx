@@ -59,11 +59,11 @@ export default function BookListAnalytics({ listId, groupId }: Props) {
         return acc;
       }, {});
 
-      const mostVotedBookId = Object.entries(bookVotes || {}).sort((a, b) => b[1] - a[1])[0];
+      const mostVotedBookId = Object.entries(bookVotes || {}).sort((a, b) => (b[1] as number) - (a[1] as number))[0];
       const mostVotedBook = mostVotedBookId
         ? {
             title: booksData?.find((b) => b.book_id === mostVotedBookId[0])?.books.title || '',
-            votes: mostVotedBookId[1],
+            votes: mostVotedBookId[1] as number,
           }
         : null;
 

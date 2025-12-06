@@ -2,7 +2,7 @@
 // Provides backward compatibility during the transition from activities to posts table
 
 import { Post, ActivityPost, isPost, isActivityPost } from '@/types/post'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/ssr'
 
 // Performance optimization: Define only the columns we actually need
 const ACTIVITIES_SELECT_COLUMNS = 'id, user_id, text, image_url, link_url, created_at, updated_at, visibility, content_type, hashtags, entity_type, entity_id, like_count, comment_count, share_count, view_count, engagement_score, publish_status, activity_type'
@@ -38,7 +38,7 @@ export interface UnifiedPost {
 }
 
 export class PostCompatibilityLayer {
-  private supabase = createClientComponentClient()
+  private supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
   /**
    * Convert a Post object to UnifiedPost format

@@ -1,7 +1,7 @@
 import { supabaseClient } from '@/lib/supabase-client'
 import { Database } from '@/types/database'
 import { FollowTargetType } from './follows-server'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/ssr'
 
 interface FollowData {
   id: string
@@ -12,7 +12,7 @@ interface FollowData {
   updated_at: string
 }
 
-interface FollowTargetTypeData {
+export interface FollowTargetTypeData {
   id: number
   name: string
   description: string
@@ -64,7 +64,7 @@ export async function getFollowTargetType(name: FollowTargetType): Promise<Follo
 export async function followEntity(followingId: string | number, targetType: FollowTargetType): Promise<FollowResponse> {
   try {
     // Get current user
-    const supabase = createClientComponentClient()
+    const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     
     if (userError || !user) {
@@ -117,7 +117,7 @@ export async function followEntity(followingId: string | number, targetType: Fol
 export async function unfollowEntity(followingId: string | number, targetType: FollowTargetType): Promise<FollowResponse> {
   try {
     // Get current user
-    const supabase = createClientComponentClient()
+    const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     
     if (userError || !user) {
@@ -159,7 +159,7 @@ export async function unfollowEntity(followingId: string | number, targetType: F
 export async function isFollowing(followingId: string | number, targetType: FollowTargetType) {
   try {
     // Get current user
-    const supabase = createClientComponentClient()
+    const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     
     if (userError || !user) {

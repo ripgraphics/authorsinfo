@@ -73,8 +73,10 @@ export function FriendRequestNotification() {
 
     try {
       setError(null)
-      console.log('🔍 Fetching pending friend requests for user:', user.id)
-      console.log('🔍 API endpoint: /api/friends/pending')
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔍 Fetching pending friend requests for user:', user.id)
+        console.log('🔍 API endpoint: /api/friends/pending')
+      }
       
       const response = await fetch('/api/friends/pending', {
         method: 'GET',
@@ -85,33 +87,45 @@ export function FriendRequestNotification() {
         signal: AbortSignal.timeout(10000) // 10 second timeout
       })
       
-      console.log('📡 Response received:', {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok,
-        headers: Object.fromEntries(response.headers.entries())
-      })
+      if (process.env.NODE_ENV === 'development') {
+        console.log('📡 Response received:', {
+          status: response.status,
+          statusText: response.statusText,
+          ok: response.ok,
+          headers: Object.fromEntries(response.headers.entries())
+        })
+      }
       
       if (response.ok) {
         const data = await response.json()
-        console.log('✅ FriendRequestNotification - Received data:', data)
+        if (process.env.NODE_ENV === 'development') {
+          console.log('✅ FriendRequestNotification - Received data:', data)
+        }
         setRequests(data.requests || [])
       } else {
-        console.error('❌ Failed to fetch pending requests')
-        console.error('Response status:', response.status)
-        console.error('Response status text:', response.statusText)
-        
-        // Try to get error details from response
-        try {
-          const errorData = await response.json()
-          console.error('Error response data:', errorData)
-        } catch (parseError) {
-          console.error('Could not parse error response:', parseError)
+        // Handle 401 gracefully - it's expected when user is not authenticated
+        if (response.status === 401) {
+          setRequests([])
+          setError(null)
+          return
         }
         
-        if (response.status === 401) {
-          setError('Authentication required')
-        } else if (response.status === 403) {
+        // Only log non-401 errors
+        if (process.env.NODE_ENV === 'development') {
+          console.error('❌ Failed to fetch pending requests')
+          console.error('Response status:', response.status)
+          console.error('Response status text:', response.statusText)
+          
+          // Try to get error details from response
+          try {
+            const errorData = await response.json()
+            console.error('Error response data:', errorData)
+          } catch (parseError) {
+            console.error('Could not parse error response:', parseError)
+          }
+        }
+        
+        if (response.status === 403) {
           setError('Access denied')
         } else if (response.status >= 500) {
           setError('Server error')
@@ -120,7 +134,10 @@ export function FriendRequestNotification() {
         }
       }
     } catch (error) {
-      console.error('❌ Error fetching pending requests:', error)
+      // Only log errors in development, and skip network errors for 401s
+      if (process.env.NODE_ENV === 'development' && error instanceof Error && !error.message.includes('401')) {
+        console.error('❌ Error fetching pending requests:', error)
+      }
       
       if (error instanceof Error) {
         if (error.name === 'AbortError') {

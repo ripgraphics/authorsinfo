@@ -1,5 +1,4 @@
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
+import { createServerComponentClientAsync } from "@/lib/supabase/client-helper"
 import { notFound, redirect } from "next/navigation"
 import { supabaseAdmin } from "@/lib/supabase"
 import type { Group } from "@/types/group"
@@ -284,8 +283,7 @@ function getTimeAgo(date: Date): string {
 
 export default async function GroupPage({ params }: GroupPageProps) {
   const { id } = await params
-  const cookieStore = await cookies()
-  const supabase = createServerComponentClient({ cookies: () => cookieStore })
+  const supabase = await createServerComponentClientAsync()
 
   // Special case: if id is "add", redirect to the add page
   if (id === "add") {

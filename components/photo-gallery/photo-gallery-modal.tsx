@@ -76,7 +76,7 @@ export function PhotoGalleryModal({
           {/* Image */}
           <div className="photo-gallery__modal-image-wrapper relative aspect-[4/3] w-full">
             <Image
-              src={image.largeUrl || image.url}
+              src={image.url}
               alt={image.altText || ''}
               fill
               className="photo-gallery__modal-image object-contain"
@@ -140,7 +140,7 @@ export function PhotoGalleryModal({
                   {image.caption}
                 </p>
               )}
-              {showTags && image.tags.length > 0 && (
+              {showTags && image.tags && image.tags.length > 0 && (
                 <div className="photo-gallery__modal-tags mt-2 flex flex-wrap gap-2">
                   {image.tags.map((tag) => (
                     <Badge

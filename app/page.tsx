@@ -15,7 +15,7 @@ async function RecentBooks() {
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {books.length > 0 ? (
-          books.map((book) => (
+          books.map((book, index) => (
             <Link href={`/books/${book.id}`} key={book.id} className="block">
               <Card className="overflow-hidden h-full transition-transform hover:scale-105">
                 {/* Image container with 2:3 aspect ratio */}
@@ -27,6 +27,8 @@ async function RecentBooks() {
                       fill
                       className="object-cover"
                       sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
+                      loading={index === 0 ? "eager" : "lazy"}
+                      priority={index === 0}
                     />
                   ) : (
                     <div className="w-full h-full bg-muted flex items-center justify-center">

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/ssr'
 
 interface ProfileLinkProps {
   userId: string
@@ -14,7 +14,7 @@ interface ProfileLinkProps {
 export function ProfileLink({ userId, userName, className, children }: ProfileLinkProps) {
   const [profileUrl, setProfileUrl] = useState(`/profile/${userId}`)
   const [isLoading, setIsLoading] = useState(true)
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
   useEffect(() => {
     const getProfileUrl = async () => {

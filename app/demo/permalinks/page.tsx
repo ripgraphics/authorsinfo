@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createServerComponentClientAsync } from '@/lib/supabase/client-helper'
+
 import { PermalinkSettings } from '@/components/permalink-settings'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -8,8 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Link, ExternalLink, Copy, CheckCircle, AlertCircle } from 'lucide-react'
 
 export default async function PermalinkDemoPage() {
-  const cookieStore = await cookies()
-  const supabase = createServerComponentClient({ cookies: () => cookieStore })
+  const supabase = await createServerComponentClientAsync()
   
   // Get the current user from the session
   const { data: { user }, error } = await supabase.auth.getUser()

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { AlbumImage } from './types';
+import { AlbumImageLegacy } from './types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -12,11 +12,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Trash2, Tag, Edit2, Move } from 'lucide-react';
 
 interface PhotoGalleryImageProps {
-  image: AlbumImage;
+  image: AlbumImageLegacy;
   isEditable: boolean;
   showTags: boolean;
   isDragging?: boolean;
-  onImageClick: (image: AlbumImage) => void;
+  onImageClick: (image: AlbumImageLegacy) => void;
   onImageDelete: (imageId: number) => Promise<void>;
   onImageTag: (imageId: number, tags: string[]) => Promise<void>;
 }
@@ -40,7 +40,7 @@ export function PhotoGalleryImage({
       .map(tag => tag.trim())
       .filter(tag => tag.length > 0);
     
-    await onImageTag(image.id, tags);
+    await onImageTag(Number(image.id), tags);
     setIsTagging(false);
     setNewTags('');
   };
@@ -91,7 +91,7 @@ export function PhotoGalleryImage({
                   className="photo-gallery__image-action-button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onImageDelete(image.id);
+                    onImageDelete(Number(image.id));
                   }}
                 >
                   <Trash2 className="h-4 w-4" />

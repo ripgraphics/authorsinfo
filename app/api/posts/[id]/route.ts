@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerActionClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 import { Post, UpdatePostData } from '@/types/post'
 
 // GET /api/posts/[id] - Get single post
@@ -10,7 +9,7 @@ export async function GET(
 ) {
   try {
     const { id: postId } = await params
-    const supabase = createServerActionClient({ cookies })
+    const supabase = await createRouteHandlerClientAsync()
     
     // Get current user for visibility checks
     const { data: { user } } = await supabase.auth.getUser()
@@ -77,7 +76,7 @@ export async function PUT(
 ) {
   try {
     const { id: postId } = await params
-    const supabase = createServerActionClient({ cookies })
+    const supabase = await createRouteHandlerClientAsync()
     
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -246,7 +245,7 @@ export async function DELETE(
 ) {
   try {
     const { id: postId } = await params
-    const supabase = createServerActionClient({ cookies })
+    const supabase = await createRouteHandlerClientAsync()
     
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()

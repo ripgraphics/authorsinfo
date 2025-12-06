@@ -1,4 +1,4 @@
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/ssr'
 
 export type EntityType = 'user' | 'group' | 'event' | 'book' | 'author' | 'publisher'
 
@@ -199,7 +199,7 @@ export async function getEntityByPermalink(
   entityType: EntityType
 ): Promise<string | null> {
   try {
-    const supabase = createClientComponentClient()
+    const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
     
     const { data, error } = await supabase
       .from(getTableName(entityType))

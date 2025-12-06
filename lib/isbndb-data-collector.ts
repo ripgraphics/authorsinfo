@@ -425,8 +425,13 @@ export class ISBNdbDataCollector {
                   book_id: bookId,
                   author_id: author.id,
                 })
-                .onConflict('book_id,author_id')
-                .ignore();
+                .upsert({
+                  book_id: book.id,
+                  author_id: author.id,
+                }, {
+                  onConflict: 'book_id,author_id',
+                  ignoreDuplicates: true
+                });
             }
           } catch (error) {
             console.warn(`Error processing author ${authorName}:`, error);

@@ -11,6 +11,8 @@ import type {
   PrivacyPermissionRequest
 } from '@/types/privacy'
 
+import { cookies } from 'next/headers'
+
 export class PrivacyService {
   private static async getSupabase() {
     const cookieStore = await cookies()

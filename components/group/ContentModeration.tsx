@@ -138,7 +138,7 @@ export default function ContentModeration({ groupId, userRole }: ContentModerati
           {Object.entries(flags).map(([key, value]: [string, any]) => (
             <Badge
               key={key}
-              variant={value > 0.7 ? 'destructive' : value > 0.4 ? 'warning' : 'secondary'}
+              variant={value > 0.7 ? 'destructive' : 'secondary'}
             >
               {key}: {(value * 100).toFixed(1)}%
             </Badge>

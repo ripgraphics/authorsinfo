@@ -462,12 +462,13 @@ export class ISBNdbDataCollector {
               // Link subject to book
               await supabase
                 .from('book_subjects')
-                .insert({
+                .upsert({
                   book_id: bookId,
-                  subject_id: subject.id,
-                })
-                .onConflict('book_id,subject_id')
-                .ignore();
+                  subject_id: subject.id,       
+                }, {
+                  onConflict: 'book_id,subject_id',
+                  ignoreDuplicates: true
+                });
             }
           } catch (error) {
             console.warn(`Error processing subject ${subjectName}:`, error);

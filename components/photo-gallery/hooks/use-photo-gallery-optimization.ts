@@ -117,7 +117,7 @@ export function usePhotoGalleryOptimization(options: OptimizationOptions = {}) {
     }
 
     try {
-      const optimized = await optimizeImage(image.url, width, height);
+      const optimized = await optimizeImage((image as any).url || '', width, height);
       
       // Update cache
       setCache((prevCache) => {

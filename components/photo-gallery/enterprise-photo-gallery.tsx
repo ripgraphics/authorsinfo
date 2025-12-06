@@ -513,16 +513,16 @@ export function EnterprisePhotoGallery({
         ) : (
           <PhotoGalleryGrid
             images={albumState.images.map(ai => ({
-              id: ai.image.id,
-              url: ai.image.url,
-              filename: ai.image.original_filename || 'image',
-              filePath: ai.image.storage_path || '',
-              size: ai.image.file_size || 0,
-              type: ai.image.mime_type || 'image/jpeg',
+              id: ai.image?.id || ai.image_id,
+              url: ai.image?.url || '',
+              filename: ai.image?.original_filename || 'image',
+              filePath: ai.image?.storage_path || '',
+              size: ai.image?.file_size || 0,
+              type: ai.image?.mime_type || 'image/jpeg',
               metadata: {
-                width: ai.image.width || 0,
-                height: ai.image.height || 0,
-                uploaded_at: ai.image.created_at,
+                width: ai.image?.width || 0,
+                height: ai.image?.height || 0,
+                uploaded_at: ai.image?.created_at || ai.created_at,
                 view_count: ai.view_count,
                 like_count: ai.like_count,
                 share_count: ai.share_count,

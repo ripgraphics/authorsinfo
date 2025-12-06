@@ -48,10 +48,9 @@ export function GroupHeader({
       profileImageUrl={avatarUrl}
       stats={groupStats}
       tabs={tabs}
-      creatorName={group.creatorName}
       creator={{
         id: group.created_by,
-        name: group.creatorName || '',
+        name: '',
         email: group.creatorEmail || '',
         joined_at: group.creatorJoinedAt || group.created_at
       }}

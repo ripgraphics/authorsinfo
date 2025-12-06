@@ -1223,7 +1223,7 @@ export function EnterprisePhotoViewer({
                   <div className="photo-tags-section">
                     <h4 className="photo-tags-label font-semibold mb-2">Tags</h4>
                     <div className="photo-tags-container flex flex-wrap gap-2">
-                      {photoData.tags.map((tag, index) => (
+                      {photoData.tags.map((tag: string, index: number) => (
                         <Badge key={index} variant="secondary" className="photo-tag-badge">
                           {tag}
                         </Badge>

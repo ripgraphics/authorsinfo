@@ -576,36 +576,18 @@ export function EnterprisePhotoGallery({
       {activeTab === 'analytics' && showAnalytics && enableAnalytics && (
         <PhotoGalleryAnalytics
           analytics={albumState.analytics}
-          album={albumState.album}
-          images={albumState.images}
-          onExport={() => {
-            // Implement analytics export
-            console.log('Exporting analytics')
-          }}
         />
       )}
 
       {activeTab === 'monetization' && showMonetization && enableMonetization && (
         <PhotoGalleryMonetization
           monetization={albumState.monetization}
-          album={albumState.album}
-          images={albumState.images}
-          onEnableMonetization={() => {
-            // Implement monetization enable
-            console.log('Enabling monetization')
-          }}
         />
       )}
 
       {activeTab === 'community' && showCommunity && enableCommunity && (
         <PhotoGalleryCommunity
           community={albumState.community}
-          album={albumState.album}
-          images={albumState.images}
-          onShare={() => {
-            // Implement community sharing
-            console.log('Sharing to community')
-          }}
         />
       )}
     </div>

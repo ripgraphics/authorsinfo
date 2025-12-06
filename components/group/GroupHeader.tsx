@@ -52,7 +52,7 @@ export function GroupHeader({
         id: group.created_by,
         name: '',
         email: '',
-        joined_at: group.created_at
+        created_at: group.created_at
       }}
       group={group}
       isEditable={isEditable}

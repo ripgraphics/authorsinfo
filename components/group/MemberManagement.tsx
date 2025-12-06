@@ -380,9 +380,7 @@ export default function MemberManagement({ groupId, userRole }: MemberManagement
                               <Badge
                                 variant={
                                   member.status === 'active'
-                                    ? 'default'
-                                    : member.status === 'suspended'
-                                    ? 'warning'
+                                    ? 'default' 
                                     : 'destructive'
                                 }
                               >

@@ -68,7 +68,7 @@ export function usePhotoGalleryFilters(initialImages: AlbumImage[] = []) {
 
     // Apply featured filter
     if (filterState.filterBy === 'featured') {
-      result = result.filter((image) => image.isFeatured);
+      result = result.filter((image) => (image as any).isFeatured || image.is_featured);
     }
 
     // Apply tagged/untagged filter

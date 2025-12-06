@@ -55,7 +55,7 @@ export function usePhotoGalleryFilters(initialImages: AlbumImage[] = []) {
     // Apply date range filter
     if (filterState.dateRange.start || filterState.dateRange.end) {
       result = result.filter((image) => {
-        const imageDate = new Date(image.createdAt);
+        const imageDate = new Date((image as any).createdAt || image.created_at);
         if (filterState.dateRange.start && imageDate < filterState.dateRange.start) {
           return false;
         }
@@ -73,9 +73,9 @@ export function usePhotoGalleryFilters(initialImages: AlbumImage[] = []) {
 
     // Apply tagged/untagged filter
     if (filterState.filterBy === 'tagged') {
-      result = result.filter((image) => image.tags && image.tags.length > 0);
+      result = result.filter((image) => (image as any).tags && (image as any).tags.length > 0);
     } else if (filterState.filterBy === 'untagged') {
-      result = result.filter((image) => !image.tags || image.tags.length === 0);
+      result = result.filter((image) => !(image as any).tags || (image as any).tags.length === 0);
     }
 
     // Apply sorting
@@ -123,7 +123,7 @@ export function usePhotoGalleryFilters(initialImages: AlbumImage[] = []) {
     const tags = new Map<string, { id: string; name: string; count: number }>();
     
     images.forEach((image) => {
-      image.tags?.forEach((tag) => {
+      (image as any).tags?.forEach((tag: any) => {
         if (!tags.has(tag.id)) {
           tags.set(tag.id, { ...tag, count: 1 });
         } else {

@@ -44,7 +44,7 @@ export function usePhotoGalleryEditor() {
 
       // Load the image
       const img = new Image();
-      img.src = image.url;
+      img.src = (image as any).url || '';
       await new Promise((resolve, reject) => {
         img.onload = resolve;
         img.onerror = reject;

@@ -299,7 +299,7 @@ export class ISBNdbDataCollector {
         const { data: updatedBook, error: updateError } = await supabase
           .from('books')
           .update({
-            title: bookData.title || existingBook.title,
+            title: bookData.title || (existingBook as any).title,
             title_long: bookData.title_long,
             publisher: bookData.publisher,
             language: bookData.language,

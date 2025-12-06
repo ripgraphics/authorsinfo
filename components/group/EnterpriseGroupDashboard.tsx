@@ -254,7 +254,7 @@ export default function EnterpriseGroupDashboard({
 
             {permissions.manageMembers && (
               <TabsContent value="members">
-                <MemberManagement groupId={groupId} />
+                <MemberManagement groupId={groupId} userRole={userRole} />
               </TabsContent>
             )}
           </Tabs>

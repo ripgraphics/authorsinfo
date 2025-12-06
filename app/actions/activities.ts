@@ -78,8 +78,9 @@ export async function createActivity(params: CreateActivityParams): Promise<{
       .from('activities')
       .insert({
         user_id: user.id,
-        activity_type: params.activity_type,
+        activity_type: params.activity_type,     
         entity_type: params.entity_type || 'unknown',
+      } as any)
         entity_id: params.entity_id || null,
         is_public: params.is_public ?? true,
         metadata: params.metadata || {},

@@ -353,7 +353,7 @@ export function EnterprisePhotoGallery({
           
           // AI analysis if enabled
           if (enableAI && result.imageId) {
-            await ai.analyzeImage(result.imageId, file)
+            await ai.analyzeImage(result.imageId)
           }
 
           // Analytics tracking

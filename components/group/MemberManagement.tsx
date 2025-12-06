@@ -500,7 +500,7 @@ export default function MemberManagement({ groupId, userRole }: MemberManagement
                               variant={
                                 invitation.status === 'pending'
                                   ? 'default'
-                                  : 'success'
+                                  : 'secondary'
                               }
                             >
                               {invitation.status}

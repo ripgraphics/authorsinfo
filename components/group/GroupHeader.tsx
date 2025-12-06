@@ -51,8 +51,8 @@ export function GroupHeader({
       creator={{
         id: group.created_by,
         name: '',
-        email: group.creatorEmail || '',
-        joined_at: group.creatorJoinedAt || group.created_at
+        email: '',
+        joined_at: group.created_at
       }}
       group={group}
       isEditable={isEditable}

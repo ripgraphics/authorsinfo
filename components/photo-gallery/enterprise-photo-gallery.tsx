@@ -529,17 +529,17 @@ export function EnterprisePhotoGallery({
                 revenue_generated: ai.revenue_generated,
                 ai_tags: ai.ai_tags,
                 community_engagement: ai.community_engagement,
-                ...ai.image.metadata
+                ...(ai.image?.metadata || {})
               },
               albumId: ai.album_id,
               entityType: entityType,
               entityId: entityId,
-              altText: ai.image.alt_text,
-              caption: ai.image.caption,
+              altText: ai.image?.alt_text,
+              caption: ai.image?.caption,
               isFeatured: ai.is_featured,
               displayOrder: ai.display_order,
-              createdAt: ai.image.created_at,
-              updatedAt: ai.image.updated_at
+              createdAt: ai.image?.created_at || ai.created_at,
+              updatedAt: ai.image?.updated_at || ai.updated_at
             }))}
             gridCols={3}
             isEditable={isEditable}

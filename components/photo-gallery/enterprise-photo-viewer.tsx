@@ -386,7 +386,7 @@ export function EnterprisePhotoViewer({
             alt_text: currentPhoto.alt_text || '',
             description: currentPhoto.description || '',
             created_at: currentPhoto.created_at || new Date().toISOString(),
-            updated_at: currentPhoto.updated_at || new Date().toISOString(),
+            updated_at: (currentPhoto as any).updated_at || new Date().toISOString(),
             uploader_id: null,
             view_count: 0,
             like_count: 0,

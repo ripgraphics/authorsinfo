@@ -145,13 +145,19 @@ export function usePhotoGalleryShare() {
     try {
       const { data, error } = await supabase
         .from('image_shares')
-        .select('platform, count')
-        .eq('image_id', imageId)
-        .group('platform');
+        .select('platform')
+        .eq('image_id', imageId);
 
       if (error) throw error;
 
-      return data;
+      // Group by platform and count manually
+      const grouped = (data || []).reduce((acc: Record<string, number>, item: any) => {
+        const platform = item.platform || 'unknown';
+        acc[platform] = (acc[platform] || 0) + 1;
+        return acc;
+      }, {});
+
+      return Object.entries(grouped).map(([platform, count]) => ({ platform, count }));
     } catch (error) {
       setShareState((prev) => ({
         ...prev,

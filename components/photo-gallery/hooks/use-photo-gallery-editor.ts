@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createBrowserClient } from '@supabase/ssr';
+import type { Database } from '@/types/database';
 import { AlbumImage } from '../types';
 
 interface ImageEdit {
@@ -23,7 +24,10 @@ export function usePhotoGalleryEditor() {
     error: null,
   });
 
-  const supabase = createClientComponentClient();
+  const supabase = createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   const applyEdit = useCallback(async (image: AlbumImage, edit: ImageEdit) => {
     setEditorState((prev) => ({

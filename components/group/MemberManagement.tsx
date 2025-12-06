@@ -11,9 +11,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { useToast } from '@/hooks/use-toast';
+import { createBrowserClient } from '@supabase/ssr';
 import type { Database } from '@/types/database';
+import { useToast } from '@/hooks/use-toast';
 
 interface MemberManagementProps {
   groupId: string;
@@ -70,7 +70,10 @@ export default function MemberManagement({ groupId, userRole }: MemberManagement
   const [inviteRole, setInviteRole] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'suspended' | 'banned'>('all');
 
-  const supabase = createClientComponentClient<Database>();
+  const supabase = createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
   const { toast } = useToast();
 
   useEffect(() => {

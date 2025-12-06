@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/ssr'
+import type { Database } from '@/types/database'
 import { useAuth } from '@/hooks/useAuth'
 import { PhotoGallery } from './photo-gallery'
 import { 
@@ -59,7 +60,10 @@ export function PhotoAlbumFeedItem({
   const [isLoadingAlbum, setIsLoadingAlbum] = useState(false)
   
   const { user } = useAuth()
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   const handleLike = async () => {
     if (!user) return

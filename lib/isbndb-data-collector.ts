@@ -421,12 +421,8 @@ export class ISBNdbDataCollector {
               // Link author to book
               await supabase
                 .from('book_authors')
-                .insert({
-                  book_id: bookId,
-                  author_id: author.id,
-                })
                 .upsert({
-                  book_id: book.id,
+                  book_id: bookId,
                   author_id: author.id,
                 }, {
                   onConflict: 'book_id,author_id',

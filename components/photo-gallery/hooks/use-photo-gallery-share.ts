@@ -32,9 +32,9 @@ export function usePhotoGalleryShare() {
 
   const generateShareUrl = useCallback((image: AlbumImage, options: ShareOptions) => {
     const baseUrl = window.location.origin;
-    const imageUrl = encodeURIComponent(image.url);
-    const title = encodeURIComponent(options.title || image.altText || '');
-    const description = encodeURIComponent(options.description || image.caption || '');
+    const imageUrl = encodeURIComponent((image as any).url || '');
+    const title = encodeURIComponent(options.title || (image as any).altText || (image as any).alt_text || '');
+    const description = encodeURIComponent(options.description || (image as any).caption || (image as any).description || '');
     const hashtags = options.hashtags?.map(tag => `%23${tag}`).join('') || '';
 
     switch (options.platform) {

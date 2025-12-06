@@ -48,7 +48,7 @@ export function usePhotoGalleryFilters(initialImages: AlbumImage[] = []) {
     // Apply tag filter
     if (filterState.selectedTags.length > 0) {
       result = result.filter((image) =>
-        image.tags?.some((tag) => filterState.selectedTags.includes(tag.id))
+        (image as any).tags?.some((tag: any) => filterState.selectedTags.includes(tag.id))
       );
     }
 

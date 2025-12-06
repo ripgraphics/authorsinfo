@@ -844,7 +844,6 @@ export function EnterprisePhotoGrid({
             </div>
           </div>
         </div>
-      )}
 
       {/* Photo Grid */}
       <div className="flex-grow overflow-auto p-4 pb-8">

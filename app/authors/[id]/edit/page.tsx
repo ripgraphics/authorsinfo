@@ -58,8 +58,9 @@ export default function EditAuthorPage() {
         setSelectedNationality(authorData.nationality || "")
 
         // Set the image URL from the joined author_image table
-        if (authorData.author_image && authorData.author_image.url) {
-          setAuthorImageUrl(authorData.author_image.url)
+        const authorImage = (authorData as any).author_image as any;
+        if (authorImage && authorImage.url) {
+          setAuthorImageUrl(authorImage.url)
         }
 
         // Fetch books by this author

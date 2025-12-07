@@ -124,9 +124,9 @@ export async function updateReadingProgress(progress: Partial<ReadingProgress>) 
         .single()
 
       if (book) {
-        // Get author details if available
-        let authorName = "Unknown Author"
-        if (book.author_id) {
+        // Get author details if available      
+        let authorName = "Unknown Author"       
+        if ((book as any).author_id) {
           const { data: author } = await supabase
             .from("authors")
             .select("id, name")

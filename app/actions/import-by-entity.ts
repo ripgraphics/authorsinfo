@@ -130,7 +130,7 @@ export async function importBooksByEntity(
             .maybeSingle()
 
           if (existingPublisher) {
-            entityId = existingPublisher.id
+            entityId = (existingPublisher as any).id
           } else {
             const { data: newPublisher, error: publisherError } = await supabase
               .from("publishers")
@@ -157,7 +157,7 @@ export async function importBooksByEntity(
               .maybeSingle()
 
             if (existingAuthor) {
-              authorIds.push(existingAuthor.id)
+              authorIds.push((existingAuthor as any).id)
             } else {
               const { data: newAuthor, error: authorError } = await supabase
                 .from("authors")
@@ -168,7 +168,7 @@ export async function importBooksByEntity(
               if (authorError) {
                 console.error("Error creating author:", authorError)
               } else if (newAuthor) {
-                authorIds.push(newAuthor.id)
+                authorIds.push((newAuthor as any).id)
               }
             }
           }

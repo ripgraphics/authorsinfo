@@ -103,7 +103,7 @@ export async function updateReadingProgress(progress: Partial<ReadingProgress>) 
           privacy_level: progress.privacy_level || 'private',
           allow_friends: progress.allow_friends !== undefined ? progress.allow_friends : false,
           allow_followers: progress.allow_followers !== undefined ? progress.allow_followers : false,
-        })
+        } as any)
         .select()
 
       result = { data, error }

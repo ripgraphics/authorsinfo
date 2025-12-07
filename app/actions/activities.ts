@@ -144,7 +144,7 @@ export async function getUserFeedActivities(
       return { success: false, error: 'Failed to fetch activities' }
     }
 
-    const activities = data || []
+    const activities = (data || []) as any[]
     const hasMore = activities.length === limit
 
     return { 
@@ -192,7 +192,7 @@ export async function getPublicFeedActivities(
       return { success: false, error: 'Failed to fetch activities' }
     }
 
-    const activities = data || []
+    const activities = (data || []) as any[]
     const hasMore = activities.length === limit
 
     return { 

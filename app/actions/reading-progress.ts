@@ -141,7 +141,7 @@ export async function updateReadingProgress(progress: Partial<ReadingProgress>) 
         // Determine activity type based on status
         let activityType = "book_added"
         let activityData: any = {
-          book_title: book.title,
+          book_title: (book as any).title,
           book_author: authorName,
           shelf: progress.status === "not_started" ? "Want to Read" : 
                  progress.status === "in_progress" ? "Currently Reading" :

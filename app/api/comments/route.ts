@@ -459,67 +459,69 @@ export async function POST(request: NextRequest) {
     }
 
     // Format the response based on the comment type
+    const commentData = comment as any;
+    const userData = commentData.user as any;
     let formattedComment;
     if (entity_type === 'event') {
       formattedComment = {
-        id: comment.id,
-        content: comment.content,
-        created_at: comment.created_at,
-        updated_at: comment.updated_at,
+        id: commentData.id,
+        content: commentData.content,
+        created_at: commentData.created_at,
+        updated_at: commentData.updated_at,
         user: {
-          id: comment.user?.id,
-          name: comment.user?.name || comment.user?.email || 'User',
+          id: userData?.id,
+          name: userData?.name || userData?.email || 'User',
           avatar_url: null
         },
-        post_id: comment.event_id,
+        post_id: commentData.event_id,
         entity_type: 'event',
-        entity_id: comment.event_id
+        entity_id: commentData.event_id
       }
     } else if (entity_type === 'photo') {
       formattedComment = {
-        id: comment.id,
-        content: comment.content,
-        created_at: comment.created_at,
-        updated_at: comment.updated_at,
+        id: commentData.id,
+        content: commentData.content,
+        created_at: commentData.created_at,
+        updated_at: commentData.updated_at,
         user: {
-          id: comment.user?.id,
-          name: comment.user?.name || comment.user?.email || 'User',
+          id: userData?.id,
+          name: userData?.name || userData?.email || 'User',
           avatar_url: null
         },
-        post_id: comment.photo_id,
+        post_id: commentData.photo_id,
         entity_type: 'photo',
-        entity_id: comment.photo_id
+        entity_id: commentData.photo_id
       }
     } else if (entity_type === 'post') {
       formattedComment = {
-        id: comment.id,
-        content: comment.content,
-        created_at: comment.created_at,
-        updated_at: comment.updated_at,
+        id: commentData.id,
+        content: commentData.content,
+        created_at: commentData.created_at,
+        updated_at: commentData.updated_at,
         user: {
-          id: comment.user?.id,
-          name: comment.user?.name || comment.user?.email || 'User',
+          id: userData?.id,
+          name: userData?.name || userData?.email || 'User',
           avatar_url: null
         },
-        post_id: comment.post_id,
+        post_id: commentData.post_id,
         entity_type: 'post',
-        entity_id: comment.post_id
+        entity_id: commentData.post_id
       }
     } else {
       // Generic comment format
       formattedComment = {
-        id: comment.id,
-        content: comment.content,
-        created_at: comment.created_at,
-        updated_at: comment.updated_at,
+        id: commentData.id,
+        content: commentData.content,
+        created_at: commentData.created_at,
+        updated_at: commentData.updated_at,
         user: {
-          id: comment.user?.id,
-          name: comment.user?.name || comment.user?.email || 'User',
+          id: userData?.id,
+          name: userData?.name || userData?.email || 'User',
           avatar_url: null
         },
-        post_id: comment.feed_entry_id,
-        entity_type: comment.entity_type,
-        entity_id: comment.entity_id
+        post_id: commentData.feed_entry_id,
+        entity_type: commentData.entity_type,
+        entity_id: commentData.entity_id
       }
     }
 

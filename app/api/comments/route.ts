@@ -717,105 +717,123 @@ export async function GET(request: NextRequest) {
     // Format the comments based on the entity type
     let formattedComments;
     if (entity_type === 'event') {
-      formattedComments = comments?.map(comment => ({
-        id: comment.id,
-        content: comment.content,
-        created_at: comment.created_at,
-        updated_at: comment.updated_at,
-        user: {
-          id: comment.user?.id,
-          name: comment.user?.name || comment.user?.email || 'User',
-          avatar_url: null
-        },
-        post_id: comment.event_id,
-        entity_type: 'event',
-        entity_id: comment.event_id
-      })) || []
-    } else if (entity_type === 'photo') {
-      formattedComments = comments?.map(comment => ({
-        id: comment.id,
-        content: comment.content,
-        created_at: comment.created_at,
-        updated_at: comment.updated_at,
-        user: {
-          id: comment.user?.id,
-          name: comment.user?.name || comment.user?.email || 'User',
-          avatar_url: null
-        },
-        post_id: comment.photo_id,
-        entity_type: 'photo',
-        entity_id: comment.photo_id
-      })) || []
-    } else if (entity_type === 'post') {
-      formattedComments = comments?.map(comment => ({
-        id: comment.id,
-        content: comment.content,
-        created_at: comment.created_at,
-        updated_at: comment.updated_at,
-        user: {
-          id: comment.user?.id,
-          name: comment.user?.name || comment.user?.email || 'User',
-          avatar_url: null
-        },
-        post_id: comment.post_id,
-        entity_type: 'post',
-        entity_id: comment.post_id,
-        // Add missing fields with default values for backward compatibility
-        parent_comment_id: comment.parent_comment_id || null,
-        comment_depth: comment.comment_depth || 0,
-        thread_id: comment.thread_id || comment.id, // Use comment ID as fallback thread ID
-        reply_count: comment.replies?.length || 0,
-        replies: comment.replies?.map((reply: any) => ({
-          id: reply.id,
-          content: reply.content,
-          created_at: reply.created_at,
-          updated_at: reply.updated_at,
+      formattedComments = comments?.map((comment: any) => {
+        const userData = comment.user as any;
+        return {
+          id: comment.id,
+          content: comment.content,
+          created_at: comment.created_at,
+          updated_at: comment.updated_at,
           user: {
-            id: reply.user?.id,
-            name: reply.user?.name || reply.user?.email || 'User',
+            id: userData?.id,
+            name: userData?.name || userData?.email || 'User',
             avatar_url: null
           },
-          parent_comment_id: reply.parent_comment_id || null,
-          comment_depth: reply.comment_depth || 1,
-          thread_id: reply.thread_id || comment.id,
-          reply_count: 0
-        })) || []
-      })) || []
+          post_id: comment.event_id,
+          entity_type: 'event',
+          entity_id: comment.event_id
+        };
+      }) || []
+    } else if (entity_type === 'photo') {
+      formattedComments = comments?.map((comment: any) => {
+        const userData = comment.user as any;
+        return {
+          id: comment.id,
+          content: comment.content,
+          created_at: comment.created_at,
+          updated_at: comment.updated_at,
+          user: {
+            id: userData?.id,
+            name: userData?.name || userData?.email || 'User',
+            avatar_url: null
+          },
+          post_id: comment.photo_id,
+          entity_type: 'photo',
+          entity_id: comment.photo_id
+        };
+      }) || []
+    } else if (entity_type === 'post') {
+      formattedComments = comments?.map((comment: any) => {
+        const userData = comment.user as any;
+        return {
+          id: comment.id,
+          content: comment.content,
+          created_at: comment.created_at,
+          updated_at: comment.updated_at,
+          user: {
+            id: userData?.id,
+            name: userData?.name || userData?.email || 'User',
+            avatar_url: null
+          },
+          post_id: comment.post_id,
+          entity_type: 'post',
+          entity_id: comment.post_id,
+          // Add missing fields with default values for backward compatibility
+          parent_comment_id: comment.parent_comment_id || null,
+          comment_depth: comment.comment_depth || 0,
+          thread_id: comment.thread_id || comment.id, // Use comment ID as fallback thread ID
+          reply_count: comment.replies?.length || 0,
+          replies: comment.replies?.map((reply: any) => {
+            const replyUserData = reply.user as any;
+            return {
+              id: reply.id,
+              content: reply.content,
+              created_at: reply.created_at,
+              updated_at: reply.updated_at,
+              user: {
+                id: replyUserData?.id,
+                name: replyUserData?.name || replyUserData?.email || 'User',
+                avatar_url: null
+              },
+              parent_comment_id: reply.parent_comment_id || null,
+              comment_depth: reply.comment_depth || 1,
+              thread_id: reply.thread_id || comment.id,
+              reply_count: 0
+            };
+          }) || []
+        };
+      }) || []
     } else if (entity_type === 'author') {
-      formattedComments = comments?.map(comment => ({
-        id: comment.id,
-        content: comment.comment_text,
-        created_at: comment.created_at,
-        updated_at: comment.updated_at,
-        user: {
-          id: comment.user?.id,
-          name: comment.user?.name || comment.user?.email || 'User',
-          avatar_url: null
-        },
-        post_id: comment.entity_id,
-        entity_type: 'author',
-        entity_id: comment.entity_id,
-        parent_comment_id: comment.parent_comment_id || null,
-        comment_depth: comment.comment_depth || 0,
-        thread_id: comment.thread_id || comment.id,
-        reply_count: comment.reply_count || 0
-      })) || []
+      formattedComments = comments?.map((comment: any) => {
+        const userData = comment.user as any;
+        return {
+          id: comment.id,
+          content: comment.comment_text,
+          created_at: comment.created_at,
+          updated_at: comment.updated_at,
+          user: {
+            id: userData?.id,
+            name: userData?.name || userData?.email || 'User',
+            avatar_url: null
+          },
+          post_id: comment.entity_id,
+          entity_type: 'author',
+          entity_id: comment.entity_id,
+          parent_comment_id: comment.parent_comment_id || null,
+          comment_depth: comment.comment_depth || 0,
+          thread_id: comment.thread_id || comment.id,
+          reply_count: comment.reply_count || 0
+        };
+      }) || []
     } else {
       // Generic comment format
-      formattedComments = comments?.map(comment => ({
-        id: comment.id,
-        content: comment.content,
-        created_at: comment.created_at,
-        updated_at: comment.updated_at,
-        user: {
-          id: comment.user?.id,
-          name: comment.user?.name || comment.user?.email || 'User',
-          avatar_url: null
-        },
-        post_id: comment.feed_entry_id,
-        entity_type: comment.entity_type,
-        entity_id: comment.entity_id
-      })) || []
+      formattedComments = comments?.map((comment: any) => {
+        const userData = comment.user as any;
+        return {
+          id: comment.id,
+          content: comment.content,
+          created_at: comment.created_at,
+          updated_at: comment.updated_at,
+          user: {
+            id: userData?.id,
+            name: userData?.name || userData?.email || 'User',
+            avatar_url: null
+          },
+          post_id: comment.feed_entry_id,
+          entity_type: comment.entity_type,
+          entity_id: comment.entity_id
+        };
+      }) || []
     }
 
     return NextResponse.json({

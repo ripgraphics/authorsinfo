@@ -120,7 +120,7 @@ export async function updateReadingProgress(progress: Partial<ReadingProgress>) 
       const { data: book } = await supabase
         .from("books")
         .select("id, title, author_id")
-        .eq("id", progress.book_id)
+        .eq("id", progress.book_id || '')
         .single()
 
       if (book) {

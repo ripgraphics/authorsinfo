@@ -309,7 +309,7 @@ export function ImageCropper({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
-      <div className="relative max-h-[90vh] max-w-[90vw] flex flex-col rounded-lg bg-white overflow-hidden">
+      <div className="relative max-h-[95vh] max-w-[95vw] flex flex-col rounded-lg bg-white overflow-hidden">
         {/* Fixed Header */}
         <div className="flex-shrink-0 flex items-center justify-between px-3 py-2 border-b">
           <h3 className="text-sm font-semibold">Crop Image</h3>

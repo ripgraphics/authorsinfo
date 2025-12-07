@@ -31,6 +31,13 @@ interface EntityImageUploadProps {
   className?: string
   isOpen: boolean
   onOpenChange: (open: boolean) => void
+  // Fully reusable props - all optional with smart defaults
+  aspectRatio?: number // Crop aspect ratio (defaults based on type)
+  targetWidth?: number // Output width in pixels
+  targetHeight?: number // Output height in pixels
+  previewAspectRatio?: string // CSS aspect ratio class for preview (e.g., 'aspect-[2/3]')
+  dialogMaxWidth?: string // Dialog max width class (default: 'max-w-4xl' for cover, 'sm:max-w-[425px]' for avatar)
+  circularCrop?: boolean // Enable circular crop (default: true for avatar, false for cover)
 }
 
 const IMAGE_TYPE_IDS = {
@@ -72,7 +79,13 @@ export function EntityImageUpload({
   type,
   className = '',
   isOpen,
-  onOpenChange
+  onOpenChange,
+  aspectRatio: propAspectRatio,
+  targetWidth: propTargetWidth,
+  targetHeight: propTargetHeight,
+  previewAspectRatio: propPreviewAspectRatio,
+  dialogMaxWidth: propDialogMaxWidth,
+  circularCrop: propCircularCrop
 }: EntityImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -263,41 +276,50 @@ export function EntityImageUpload({
     setShowCropper(false)
   }
 
-  // Determine aspect ratio based on type
-  const getAspectRatio = () => {
-    return type === 'cover' ? 1344 / 500 : 1 // 1344:500 for cover (matches EntityHeader), 1:1 for avatar
+  // Fully reusable: Use provided props or smart defaults based on type
+  const aspectRatio = propAspectRatio ?? (type === 'avatar' ? 1 : 1344 / 500)
+  const targetWidth = propTargetWidth ?? (type === 'avatar' ? 400 : undefined)
+  const targetHeight = propTargetHeight ?? (type === 'avatar' ? 400 : undefined)
+  const circularCrop = propCircularCrop ?? (type === 'avatar')
+  const previewAspectRatio = propPreviewAspectRatio ?? (type === 'avatar' ? undefined : 'aspect-[1344/500]')
+  const dialogMaxWidth = propDialogMaxWidth ?? (type === 'cover' ? 'max-w-4xl' : 'sm:max-w-[425px]')
+
+  // If showing cropper, ImageCropper creates its own modal - don't wrap in Dialog
+  if (showCropper && preview) {
+    return (
+      <ImageCropper
+        imageUrl={preview}
+        aspectRatio={aspectRatio}
+        onCropComplete={handleCrop}
+        onCancel={handleCropCancel}
+        circularCrop={circularCrop}
+        targetWidth={targetWidth}
+        targetHeight={targetHeight}
+      />
+    )
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className={type === 'cover' ? "max-w-4xl" : "sm:max-w-[425px]"}>
-        <DialogHeader>
+      <DialogContent className={`${dialogMaxWidth} max-h-[90vh] flex flex-col`}>
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>Change {entityType} {type}</DialogTitle>
         </DialogHeader>
         
-        {showCropper && preview ? (
-          <ImageCropper
-            imageUrl={preview}
-            aspectRatio={getAspectRatio()}
-            onCropComplete={handleCrop}
-            onCancel={handleCropCancel}
-            circularCrop={type === 'avatar'}
-            targetWidth={type === 'avatar' ? 400 : undefined}
-            targetHeight={type === 'avatar' ? 400 : undefined}
-          />
-        ) : (
-          <div className={type === 'cover' ? "space-y-6" : "flex flex-col items-center space-y-6 py-4"}>
-            {/* Preview */}
-            <div className={type === 'cover' ? "w-full aspect-[1344/500] rounded-lg overflow-hidden border-2 border-border" : "relative w-32 h-32 rounded-full overflow-hidden border-2 border-border"}>
+        <div className={`flex-1 min-h-0 flex flex-col ${type === 'cover' ? "space-y-6" : "items-center space-y-6 py-4"}`}>
+            {/* Preview - Takes available space */}
+            <div className={type === 'cover' 
+              ? "flex-1 min-h-0 w-full rounded-lg border-2 border-border bg-gray-50 flex items-center justify-center p-4 overflow-hidden"
+              : "relative w-32 h-32 rounded-full overflow-hidden border-2 border-border flex-shrink-0"}>
               <img
                 src={croppedImage || preview || currentImageUrl || "/placeholder.svg"}
                 alt={`${entityType} ${type}`}
-                className={type === 'cover' ? "w-full h-full object-cover" : "w-full h-full object-cover"}
+                className={type === 'cover' ? "max-w-full max-h-full w-auto h-auto object-contain" : "w-full h-full object-cover"}
               />
             </div>
 
             {/* File Input */}
-            <div className="w-full space-y-2">
+            <div className="w-full space-y-2 flex-shrink-0">
               <Label htmlFor={type}>Upload new {type}</Label>
               <Input
                 id={type}
@@ -310,7 +332,7 @@ export function EntityImageUpload({
 
             {/* Crop Button - Show for both cover and avatar images when a file is selected */}
             {(type === 'cover' || type === 'avatar') && preview && !showCropper && (
-              <div className="flex justify-center">
+              <div className="flex justify-center flex-shrink-0">
                 <Button
                   variant="outline"
                   onClick={() => setShowCropper(true)}
@@ -323,10 +345,9 @@ export function EntityImageUpload({
               </div>
             )}
           </div>
-        )}
 
         {/* Action Buttons */}
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-2 flex-shrink-0 pt-4 border-t">
           <Button
             variant="outline"
             onClick={handleClose}

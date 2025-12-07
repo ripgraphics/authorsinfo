@@ -933,9 +933,6 @@ export function ClientBookPage({
                     </DialogHeader>
                     <ImageCropper
                       imageUrl={bookData.cover_image.url}
-                      aspectRatio={2/3} // Book cover aspect ratio
-                      targetWidth={800}
-                      targetHeight={1200}
                       onCropComplete={async (croppedImageBlob: Blob) => {
                         setIsProcessingCover(true)
                         try {

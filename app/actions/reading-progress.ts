@@ -287,8 +287,8 @@ export async function getRecentReadingActivity(limit = 5) {
     // Process the data to include cover image URL
     const processedActivity = data.map((item) => ({
       ...item,
-      book_title: item.book?.title || "Unknown Book",
-      cover_image_url: item.book_cover?.cover_image?.url || null,
+      book_title: "Book", // Will be enriched client-side if needed
+      cover_image_url: null,
     }))
 
     return { activity: processedActivity, error: null }

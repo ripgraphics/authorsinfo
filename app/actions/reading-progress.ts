@@ -393,9 +393,8 @@ export async function getFriendsReadingActivity(limit = 10) {
       .from("reading_progress")
       .select(`
         *,
-        user:user_id(id, name, avatar_url),
-        book:book_id(id, title, cover_image_id),
-        book_cover:book_id(cover_image:cover_image_id(url))
+        users(id, name, avatar_url),
+        books(id, title, cover_image_id, cover_image_url)
       `)
       .in("user_id", friendIds)
       .or('privacy_level.eq.public,privacy_level.eq.friends')
@@ -408,11 +407,11 @@ export async function getFriendsReadingActivity(limit = 10) {
     }
 
     // Process the data to include cover image URL and user name
-    const processedActivity = data.map((item) => ({
+    const processedActivity = (data || []).map((item: any) => ({
       ...item,
-      book_title: item.book?.title || "Unknown Book",
-      user_name: item.user?.name || "Unknown User",
-      cover_image_url: item.book_cover?.cover_image?.url || null,
+      book_title: item.books?.title || "Unknown Book",
+      user_name: item.users?.name || "Unknown User",
+      cover_image_url: item.books?.cover_image_url || null,
     }))
 
     return { activity: processedActivity, error: null }

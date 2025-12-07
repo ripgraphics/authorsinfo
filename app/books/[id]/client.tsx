@@ -141,6 +141,7 @@ export function ClientBookPage({
   const [isCropModalOpen, setIsCropModalOpen] = useState(false)
   const [isHoveringCover, setIsHoveringCover] = useState(false)
   const [isProcessingCover, setIsProcessingCover] = useState(false)
+  const [isCoverDropdownOpen, setIsCoverDropdownOpen] = useState(false)
 
   // Sync bookData with book prop when it changes (e.g., after page refresh)
   useEffect(() => {
@@ -829,9 +830,17 @@ export function ClientBookPage({
                       className="w-full aspect-[2/3] object-cover"
                     />
                     {/* Camera Icon Overlay - Only show on hover and if editable */}
-                    {canEdit && isHoveringCover && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity">
-                        <DropdownMenu>
+                    {canEdit && (isHoveringCover || isCoverDropdownOpen) && (
+                      <div 
+                        className="absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity"
+                        onMouseEnter={() => setIsHoveringCover(true)}
+                        onMouseLeave={() => {
+                          if (!isCoverDropdownOpen) {
+                            setIsHoveringCover(false)
+                          }
+                        }}
+                      >
+                        <DropdownMenu open={isCoverDropdownOpen} onOpenChange={setIsCoverDropdownOpen}>
                           <DropdownMenuTrigger asChild>
                             <Button
                               variant="outline"
@@ -841,13 +850,25 @@ export function ClientBookPage({
                               <Camera className="h-6 w-6" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="center">
-                            <DropdownMenuItem onClick={() => setIsCoverImageModalOpen(true)}>
+                          <DropdownMenuContent 
+                            align="center"
+                            onCloseAutoFocus={(e) => {
+                              e.preventDefault()
+                              setIsHoveringCover(false)
+                            }}
+                          >
+                            <DropdownMenuItem onClick={() => {
+                              setIsCoverImageModalOpen(true)
+                              setIsCoverDropdownOpen(false)
+                            }}>
                               <Camera className="h-4 w-4 mr-2" />
                               Change Cover Image
                             </DropdownMenuItem>
                             {bookData.cover_image?.url && (
-                              <DropdownMenuItem onClick={() => setIsCropModalOpen(true)}>
+                              <DropdownMenuItem onClick={() => {
+                                setIsCropModalOpen(true)
+                                setIsCoverDropdownOpen(false)
+                              }}>
                                 <Crop className="h-4 w-4 mr-2" />
                                 Crop Cover Image
                               </DropdownMenuItem>
@@ -861,9 +882,17 @@ export function ClientBookPage({
                     <div className="book-page__cover-placeholder w-full aspect-[2/3] bg-muted flex items-center justify-center relative">
                     <BookOpen className="h-16 w-16 text-muted-foreground" />
                     {/* Camera Icon Overlay - Only show on hover and if editable */}
-                    {canEdit && isHoveringCover && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity">
-                        <DropdownMenu>
+                    {canEdit && (isHoveringCover || isCoverDropdownOpen) && (
+                      <div 
+                        className="absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity"
+                        onMouseEnter={() => setIsHoveringCover(true)}
+                        onMouseLeave={() => {
+                          if (!isCoverDropdownOpen) {
+                            setIsHoveringCover(false)
+                          }
+                        }}
+                      >
+                        <DropdownMenu open={isCoverDropdownOpen} onOpenChange={setIsCoverDropdownOpen}>
                           <DropdownMenuTrigger asChild>
                             <Button
                               variant="outline"
@@ -873,8 +902,17 @@ export function ClientBookPage({
                               <Camera className="h-6 w-6" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="center">
-                            <DropdownMenuItem onClick={() => setIsCoverImageModalOpen(true)}>
+                          <DropdownMenuContent 
+                            align="center"
+                            onCloseAutoFocus={(e) => {
+                              e.preventDefault()
+                              setIsHoveringCover(false)
+                            }}
+                          >
+                            <DropdownMenuItem onClick={() => {
+                              setIsCoverImageModalOpen(true)
+                              setIsCoverDropdownOpen(false)
+                            }}>
                               <Camera className="h-4 w-4 mr-2" />
                               Change Cover Image
                             </DropdownMenuItem>

@@ -87,7 +87,7 @@ export async function updateReadingProgress(progress: Partial<ReadingProgress>) 
           ...progress,
           updated_at: new Date().toISOString(),  
         })
-        .eq("id", existingProgress.id)
+        .eq("id", (existingProgress as any).id)
         .select()
 
       result = { data, error }

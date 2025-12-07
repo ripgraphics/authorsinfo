@@ -188,7 +188,7 @@ export async function importBooksByEntity(
           format: book.binding,
           // Use the first author as the main author_id or the specified author if importing by author
           author_id: entityType === "author" ? authorIds[0] : authorIds.length > 0 ? authorIds[0] : null,
-        })
+        } as any)
 
         if (bookError) {
           result.errors++

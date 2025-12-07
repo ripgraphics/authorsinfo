@@ -1,6 +1,6 @@
 // Generated Supabase types
 // This file should be populated by running: npm run types:generate
-// For now, we provide a minimal type definition
+// For now, we provide a permissive type definition to avoid build errors
 
 export type Json =
   | string
@@ -12,26 +12,21 @@ export type Json =
 
 export interface Database {
   public: {
-    Tables: {
-      [key: string]: {
-        Row: Record<string, any>
-        Insert: Record<string, any>
-        Update: Record<string, any>
-      }
-    }
-    Views: {
-      [key: string]: {
-        Row: Record<string, any>
-      }
-    }
-    Functions: {
-      [key: string]: {
-        Args: Record<string, any>
-        Returns: any
-      }
-    }
-    Enums: {
-      [key: string]: string
-    }
+    Tables: Record<string, {
+      Row: Record<string, any>
+      Insert: Record<string, any>
+      Update: Record<string, any>
+      Relationships: any[]
+    }>
+    Views: Record<string, {
+      Row: Record<string, any>
+      Relationships: any[]
+    }>
+    Functions: Record<string, {
+      Args: Record<string, any>
+      Returns: any
+    }>
+    Enums: Record<string, string>
+    CompositeTypes: Record<string, any>
   }
 }

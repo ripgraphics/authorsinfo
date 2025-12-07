@@ -141,7 +141,7 @@ export async function importBooksByEntity(
             if (publisherError) {
               console.error("Error creating publisher:", publisherError)
             } else {
-              entityId = newPublisher.id
+              entityId = (newPublisher as any).id
             }
           }
         }

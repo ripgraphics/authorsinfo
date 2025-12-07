@@ -421,6 +421,14 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
 
+    if (!comment) {
+      console.error('Comment is null after insertion')
+      return NextResponse.json({ 
+        error: 'Failed to create comment',
+        details: 'Comment was not created successfully'
+      }, { status: 500 })
+    }
+
     console.log('Comment created successfully:', comment.id)
 
     // Try to update the comment count in the activities table if this is an activity post

@@ -13,7 +13,7 @@ async function RecentBooks() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {books.length > 0 ? (
           books.map((book, index) => (
             <Link href={`/books/${book.id}`} key={book.id} className="block">
@@ -26,7 +26,7 @@ async function RecentBooks() {
                       alt={book.title}
                       fill
                       className="object-cover"
-                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
+                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
                       loading={index === 0 ? "eager" : "lazy"}
                       priority={index === 0}
                     />
@@ -62,7 +62,7 @@ async function RecentAuthors() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {authors.length > 0 ? (
           authors.map((author) => (
             <Link href={`/authors/${author.id}`} key={author.id} className="block">
@@ -74,7 +74,7 @@ async function RecentAuthors() {
                       alt={author.name}
                       fill
                       className="object-cover"
-                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
+                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
                     />
                   ) : (
                     <div className="w-full h-full bg-muted flex items-center justify-center">
@@ -108,7 +108,7 @@ async function RecentPublishers() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {publishers.length > 0 ? (
           publishers.map((publisher) => (
             <Link href={`/publishers/${publisher.id}`} key={publisher.id} className="block">
@@ -120,6 +120,7 @@ async function RecentPublishers() {
                       alt={publisher.name}
                       fill
                       className="object-contain p-4"
+                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
                     />
                   ) : (
                     <div className="w-full h-full bg-muted flex items-center justify-center">

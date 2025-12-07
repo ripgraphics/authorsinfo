@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
 import { EntityTabs } from "@/components/ui/entity-tabs"
-import { deduplicatedRequest } from '@/lib/request-utils'
+import { deduplicatedRequest, clearCache } from '@/lib/request-utils'
 
 export type EntityType = 'author' | 'publisher' | 'book' | 'group' | 'user' | 'event' | 'photo'
 
@@ -224,7 +224,8 @@ export function EntityHeader({
   const [isCoverModalOpen, setIsCoverModalOpen] = useState(false)
   const [isCropModalOpen, setIsCropModalOpen] = useState(false)
   const [isAvatarCropModalOpen, setIsAvatarCropModalOpen] = useState(false)
-  const [coverImage, setCoverImage] = useState<string | undefined>(coverImageUrl)
+  // Initialize as undefined - we'll fetch entity header image first, then fallback to book cover
+  const [coverImage, setCoverImage] = useState<string | undefined>(undefined)
   const [avatarImage, setAvatarImage] = useState<string | undefined>(profileImageUrl)
   const [isProcessing, setIsProcessing] = useState(false)
   const [imageVersion, setImageVersion] = useState(0)
@@ -265,21 +266,24 @@ export function EntityHeader({
     try {
       console.log('📡 Fetching entity images with optimization...');
       
-      // Use deduplicated requests for better performance
+      // Use deduplicated requests with shorter cache for entity images
+      // Shorter cache ensures fresh data after image uploads
       const [headerData, avatarData] = await Promise.all([
         deduplicatedRequest(
           `entity-header-${entityType}-${entityId}`,
           () => fetch(`/api/entity-images?entityId=${entityId}&entityType=${entityType}&albumPurpose=entity_header`).then(r => r.json()),
-          5 * 60 * 1000 // 5 minutes cache
+          30 * 1000 // 30 seconds cache - shorter for entity header images
         ),
         deduplicatedRequest(
           `entity-avatar-${entityType}-${entityId}`,
           () => fetch(`/api/entity-images?entityId=${entityId}&entityType=${entityType}&albumPurpose=avatar`).then(r => r.json()),
-          5 * 60 * 1000 // 5 minutes cache
+          30 * 1000 // 30 seconds cache - shorter for entity avatar images
         )
       ]);
 
-      // Process header images
+      // Process header images - FIRST PRIORITY: entity header image
+      let foundEntityHeaderImage = false;
+      
       if (headerData.success && headerData.albums && headerData.albums.length > 0) {
         const headerAlbum = headerData.albums[0];
         
@@ -296,11 +300,20 @@ export function EntityHeader({
           }
           
           if (headerImage && headerImage.image) {
-            console.log('✅ Setting header image:', headerImage.image.url);
+            console.log('✅ Found entity header image, setting:', headerImage.image.url);
             setEntityImages(prev => ({ ...prev, header: headerImage.image.url }));
             setCoverImage(headerImage.image.url);
+            setImageVersion(prev => prev + 1); // Force image reload
+            foundEntityHeaderImage = true;
           }
         }
+      }
+      
+      // FALLBACK: Only use book cover if no entity header image was found
+      if (!foundEntityHeaderImage) {
+        console.log('⚠️ No entity header image found, falling back to book cover');
+        setEntityImages(prev => ({ ...prev, header: undefined }));
+        setCoverImage(coverImageUrl);
       }
       
       // Process avatar images
@@ -329,6 +342,8 @@ export function EntityHeader({
       
     } catch (error) {
       console.error('❌ Error fetching entity images:', error);
+      // On error, fall back to book cover
+      setCoverImage(coverImageUrl);
     }
   }, [entityId, entityType]);
 
@@ -458,11 +473,12 @@ export function EntityHeader({
       console.log('DEBUG - entityId type:', typeof entityId)
       console.log('DEBUG - entityId truthy check:', !!entityId)
       
-      console.log('Calling entity-images API with:', {
+      console.log('📤 Calling entity-images API with:', {
         entityId: entityId || '',
         entityType: entityType,
         albumPurpose: albumPurpose,
         imageId: imageData.id,
+        imageUrl: uploadResult.secure_url,
         isCover: true,
         isFeatured: true
       })
@@ -488,31 +504,59 @@ export function EntityHeader({
         })
       })
 
-      console.log('Album response status:', albumResponse.status)
-      console.log('Album response ok:', albumResponse.ok)
+      console.log('📥 Album API response status:', albumResponse.status)
+      console.log('📥 Album API response ok:', albumResponse.ok)
+      console.log('📥 Album API response headers:', Object.fromEntries(albumResponse.headers.entries()))
 
       if (!albumResponse.ok) {
         const errorText = await albumResponse.text()
+        let errorMessage = 'Failed to add image to album'
+        try {
+          const errorData = JSON.parse(errorText)
+          errorMessage = errorData.error || errorMessage
+        } catch {
+          errorMessage = errorText || errorMessage
+        }
         console.error('Failed to add image to album:', errorText)
         console.error('Album response status:', albumResponse.status)
         console.error('Album response headers:', Object.fromEntries(albumResponse.headers.entries()))
-        // Don't throw error here, just log it
-      } else {
-        const albumResult = await albumResponse.json()
-        console.log('Successfully added image to album:', albumResult)
+        
+        // Throw error so user sees it
+        throw new Error(errorMessage)
+      }
+      
+      const albumResult = await albumResponse.json()
+      console.log('Successfully added image to album:', albumResult)
+      
+      if (!albumResult.success) {
+        throw new Error(albumResult.error || 'Failed to create album or add image')
       }
 
+      // Clear cache to force fresh fetch on next load
+      clearCache(`entity-header-${entityType}-${entityId}`)
+      
       // Update local state with the new image URL
       setCoverImage(uploadResult.secure_url)
       setImageVersion(prev => prev + 1)
       setIsCropModalOpen(false)
+
+      // Trigger a fresh fetch of entity images to ensure consistency
+      // Use setTimeout to ensure the album update has propagated
+      setTimeout(() => {
+        fetchEntityImages()
+      }, 1000)
 
       // Call the onCoverImageChange callback if provided
       if (onCoverImageChange) {
         onCoverImageChange()
       }
 
-      // Show success message
+      // Dispatch event to notify other components
+      window.dispatchEvent(new CustomEvent('entityImageChanged', {
+        detail: { entityType, entityId, imageType: 'header' }
+      }))
+
+      // Show success message only after everything succeeded
       toast({
         title: "Success",
         description: `${entityType} entity header cover has been updated successfully and added to album.`

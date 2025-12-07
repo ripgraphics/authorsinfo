@@ -134,7 +134,7 @@ export async function importBooksByEntity(
           } else {
             const { data: newPublisher, error: publisherError } = await supabase
               .from("publishers")
-              .insert({ name: book.publisher })
+              .insert({ name: book.publisher } as any)
               .select("id")
               .single()
 
@@ -161,7 +161,7 @@ export async function importBooksByEntity(
             } else {
               const { data: newAuthor, error: authorError } = await supabase
                 .from("authors")
-                .insert({ name: authorName })
+                .insert({ name: authorName } as any)
                 .select("id")
                 .single()
 

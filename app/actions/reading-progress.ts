@@ -83,10 +83,10 @@ export async function updateReadingProgress(progress: Partial<ReadingProgress>) 
       // Update existing record
       const { data, error } = await supabase     
         .from("reading_progress")
-        .update({
+        .update(({
           ...progress,
           updated_at: new Date().toISOString(),  
-        } as any)
+        }) as any)
         .eq("id", existingProgress.id)
         .select()
 

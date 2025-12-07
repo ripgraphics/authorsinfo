@@ -91,8 +91,9 @@ export default function AuthorPage() {
         setEditedAuthor(authorData as Author)
 
         // Set photo URL from the joined image data
-        if (authorData.author_image && authorData.author_image.url) {
-          setPhotoPreview(authorData.author_image.url)
+        const authorImage = (authorData as any).author_image as any;
+        if (authorImage && authorImage.url) {
+          setPhotoPreview(authorImage.url)
         } else if (authorData.photo_url) {
           // Fallback to legacy photo_url if available
           setPhotoPreview(authorData.photo_url)

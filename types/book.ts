@@ -64,7 +64,7 @@ export type Book = {
   dimensions: string | null;
   weight: number | null;
   lexile_measure: string | null;
-  cover_image_id: number | null;
+  cover_image_id: string | null;
   original_image_url: string | null; // ADMIN USE ONLY - for troubleshooting/regeneration
   cover_image_url: string | null; // DEPRECATED - use cover_image relation instead
   cover_image?: {

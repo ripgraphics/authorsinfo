@@ -19,7 +19,7 @@ export async function GET(
       .from('books')
       .select(`
         *,
-        cover_image:images!books_cover_image_id_fkey(id, url, alt_text),
+        cover_image:images!cover_image_id(id, url, alt_text),
         binding_type:binding_types(id, name),
         format_type:format_types(id, name)
       `)

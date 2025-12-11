@@ -125,8 +125,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Create the activity
-    const { data: activity, error } = await supabase
-      .from('activities')
+    const { data: activity, error } = await (supabase
+      .from('activities') as any)
       .insert({
         user_id: user.id,
         activity_type,

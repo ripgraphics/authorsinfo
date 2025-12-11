@@ -205,14 +205,15 @@ export async function POST(request: NextRequest) {
 
     console.log(`✅ Cloudinary upload successful: ${data.secure_url}, public_id: ${data.public_id}`)
 
-    // Get actual schema columns from Supabase
-    const { data: columnsData } = await supabaseAdmin
-      .from("information_schema.columns")
-      .select("column_name")
-      .eq("table_name", "images")
-      .eq("table_schema", "public")
+    // Get actual schema columns from Supabase by querying a sample row
+    // (information_schema is not accessible via PostgREST)
+    const { data: sampleImageRow } = await supabaseAdmin
+      .from("images")
+      .select('*')
+      .limit(1)
+      .maybeSingle()
 
-    const availableColumns = new Set(columnsData?.map((col: { column_name: string }) => col.column_name) || [])
+    const availableColumns = new Set(sampleImageRow ? Object.keys(sampleImageRow) : [])
 
     // Build insert object using only columns that exist in the schema
     const insertObject: Record<string, any> = {
@@ -326,13 +327,15 @@ export async function POST(request: NextRequest) {
     // Map entity type to actual table name (users -> profiles)
     const entityTableName = entityType === 'user' ? 'profiles' : `${entityType}s`
     const entityIdColumn = entityType === 'user' ? 'user_id' : 'id'
-    const { data: entityColumnsData } = await supabaseAdmin
-      .from("information_schema.columns")
-      .select("column_name")
-      .eq("table_name", entityTableName)
-      .eq("table_schema", "public")
+    
+    // Get a sample row to determine what columns exist (information_schema is not accessible via PostgREST)
+    const { data: sampleRow } = await supabaseAdmin
+      .from(entityTableName)
+      .select('*')
+      .limit(1)
+      .maybeSingle()
 
-    const entityColumns = new Set(entityColumnsData?.map((col: { column_name: string }) => col.column_name) || [])
+    const entityColumns = new Set(sampleRow ? Object.keys(sampleRow) : [])
     
     // Map imageType to actual column names that might exist
     // For books: 'cover' -> 'cover_image_id', 'avatar' might not exist

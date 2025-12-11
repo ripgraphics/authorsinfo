@@ -44,12 +44,12 @@ export async function syncPublisherAvatars(): Promise<SyncResult> {
     console.log(`📊 Found ${publishers.length} publishers`)
 
     // Process each publisher
-    for (const publisher of publishers) {
+    for (const publisher of (publishers as any[])) {
       try {
         // Skip if already has publisher_image_id
-        if (publisher.publisher_image_id) {
+        if ((publisher as any).publisher_image_id) {
           result.skippedCount++
-          console.log(`⏭️  Skipping ${publisher.name} - already has publisher_image_id`)
+          console.log(`⏭️  Skipping ${(publisher as any).name} - already has publisher_image_id`)
           continue
         }
 
@@ -58,19 +58,19 @@ export async function syncPublisherAvatars(): Promise<SyncResult> {
           .from('photo_albums')
           .select('id')
           .eq('entity_type', 'publisher')
-          .eq('entity_id', publisher.id)
+          .eq('entity_id', (publisher as any).id)
           .eq('name', 'Avatar Images')
           .limit(1)
           .maybeSingle()
 
         if (albumsError) {
-          result.errors.push(`Error fetching album for ${publisher.name}: ${albumsError.message}`)
+          result.errors.push(`Error fetching album for ${(publisher as any).name}: ${albumsError.message}`)
           continue
         }
 
         if (!avatarAlbums) {
           result.skippedCount++
-          console.log(`⏭️  Skipping ${publisher.name} - no avatar album found`)
+          console.log(`⏭️  Skipping ${(publisher as any).name} - no avatar album found`)
           continue
         }
 
@@ -82,40 +82,40 @@ export async function syncPublisherAvatars(): Promise<SyncResult> {
             is_cover,
             image:images(id)
           `)
-          .eq('album_id', avatarAlbums.id)
+          .eq('album_id', (avatarAlbums as any).id)
           .order('is_cover', { ascending: false })
           .order('display_order', { ascending: true })
           .limit(1)
           .maybeSingle()
 
         if (coverError) {
-          result.errors.push(`Error fetching cover image for ${publisher.name}: ${coverError.message}`)
+          result.errors.push(`Error fetching cover image for ${(publisher as any).name}: ${coverError.message}`)
           continue
         }
 
-        if (!coverImage || !coverImage.image_id) {
+        if (!coverImage || !(coverImage as any).image_id) {
           result.skippedCount++
-          console.log(`⏭️  Skipping ${publisher.name} - no images in album`)
+          console.log(`⏭️  Skipping ${(publisher as any).name} - no images in album`)
           continue
         }
 
         // Update publisher_image_id
-        const { error: updateError } = await supabaseAdmin
-          .from('publishers')
-          .update({ publisher_image_id: coverImage.image_id })
-          .eq('id', publisher.id)
+        const { error: updateError } = await (supabaseAdmin
+          .from('publishers') as any)
+          .update({ publisher_image_id: (coverImage as any).image_id })
+          .eq('id', (publisher as any).id)
 
         if (updateError) {
-          result.errors.push(`Error updating ${publisher.name}: ${updateError.message}`)
+          result.errors.push(`Error updating ${(publisher as any).name}: ${updateError.message}`)
           continue
         }
 
         result.updatedCount++
-        console.log(`✅ Updated ${publisher.name} with image_id: ${coverImage.image_id}`)
+        console.log(`✅ Updated ${(publisher as any).name} with image_id: ${(coverImage as any).image_id}`)
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error)
-        result.errors.push(`Error processing ${publisher.name}: ${errorMessage}`)
-        console.error(`❌ Error processing ${publisher.name}:`, error)
+        result.errors.push(`Error processing ${(publisher as any).name}: ${errorMessage}`)
+        console.error(`❌ Error processing ${(publisher as any).name}:`, error)
       }
     }
 

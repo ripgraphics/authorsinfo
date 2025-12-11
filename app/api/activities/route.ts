@@ -26,8 +26,8 @@ export async function GET(request: NextRequest) {
 
     if (type === 'public') {
       // Get public feed activities
-      const result = await supabase
-        .rpc('get_public_feed_activities', {
+      const result = await (supabase
+        .rpc as any)('get_public_feed_activities', {
           p_current_user_id: user.id,
           p_limit: limit,
           p_offset: offset
@@ -37,8 +37,8 @@ export async function GET(request: NextRequest) {
       error = result.error
     } else {
       // Get user-specific activities
-      const result = await supabase
-        .rpc('get_user_feed_activities', {
+      const result = await (supabase
+        .rpc as any)('get_user_feed_activities', {
           p_user_id: user.id,
           p_limit: limit,
           p_offset: offset

@@ -17,15 +17,13 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    if (!session?.user) {
+    if (!user) {
       console.error('No authenticated user')
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       )
     }
-    
-    const user = session.user
 
     const { action, entity_id, entity_type, timestamp } = await request.json()
 
@@ -90,15 +88,13 @@ export async function GET(request: NextRequest) {
       )
     }
     
-    if (!session?.user) {
+    if (!user) {
       console.error('No authenticated user')
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       )
     }
-    
-    const user = session.user
 
     const { searchParams } = new URL(request.url)
     const entityId = searchParams.get('entity_id')

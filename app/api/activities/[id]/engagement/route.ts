@@ -40,10 +40,10 @@ export async function POST(
       }
 
       // Check if user already liked this activity
-      const hasLiked = existingActivity.user_has_reacted || false
+      const hasLiked = (existingActivity as any).user_has_reacted || false
       const newLikeCount = hasLiked 
-        ? Math.max(0, (existingActivity.like_count || 0) - 1)
-        : (existingActivity.like_count || 0) + 1
+        ? Math.max(0, ((existingActivity as any).like_count || 0) - 1)
+        : ((existingActivity as any).like_count || 0) + 1
 
       // Update the activity with new like count and user reaction status
       // Check if user_has_reacted column exists
@@ -56,10 +56,10 @@ export async function POST(
       
       if (hasUserHasReactedColumn) {
         // Update like_count and user_has_reacted
-        const { error: updateError } = await supabase
-          .from('activities')
+        const { error: updateError } = await (supabase
+          .from('activities') as any)
           .update({
-            like_count: hasLiked ? existingActivity.like_count - 1 : existingActivity.like_count + 1,
+            like_count: hasLiked ? ((existingActivity as any).like_count - 1) : ((existingActivity as any).like_count + 1),
             user_has_reacted: !hasLiked
           })
           .eq('id', activityId);
@@ -70,10 +70,10 @@ export async function POST(
         }
       } else {
         // Fallback: only update like_count if user_has_reacted column doesn't exist
-        const { error: updateError } = await supabase
-          .from('activities')
+        const { error: updateError } = await (supabase
+          .from('activities') as any)
           .update({
-            like_count: hasLiked ? existingActivity.like_count - 1 : existingActivity.like_count + 1
+            like_count: hasLiked ? ((existingActivity as any).like_count - 1) : ((existingActivity as any).like_count + 1)
           })
           .eq('id', activityId);
 
@@ -112,11 +112,11 @@ export async function POST(
         return NextResponse.json({ error: 'Activity not found' }, { status: 404 })
       }
 
-      const newCommentCount = (existingActivity.comment_count || 0) + 1
+      const newCommentCount = ((existingActivity as any).comment_count || 0) + 1
 
       // Update the activity with new comment count
-      const { error: updateError } = await supabase
-        .from('activities')
+      const { error: updateError } = await (supabase
+        .from('activities') as any)
         .update({ comment_count: newCommentCount })
         .eq('id', activityId)
 
@@ -209,11 +209,11 @@ export async function GET(
 
     // Prepare response data
     const responseData = {
-      like_count: activity.like_count || 0,
-      comment_count: activity.comment_count || 0,
-      share_count: activity.share_count || 0,
-      bookmark_count: activity.bookmark_count || 0,
-      user_has_reacted: hasUserHasReactedColumn ? (activity.user_has_reacted || false) : false
+      like_count: (activity as any).like_count || 0,
+      comment_count: (activity as any).comment_count || 0,
+      share_count: (activity as any).share_count || 0,
+      bookmark_count: (activity as any).bookmark_count || 0,
+      user_has_reacted: hasUserHasReactedColumn ? ((activity as any).user_has_reacted || false) : false
     }
 
     console.log('✅ GET /api/activities/[id]/engagement - Returning engagement data:', responseData)

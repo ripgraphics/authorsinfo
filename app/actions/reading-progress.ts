@@ -156,14 +156,14 @@ export async function updateReadingProgress(progress: Partial<ReadingProgress>) 
             user_id: user.id,
             activity_type: activityType,
             entity_type: "book",
-            entity_id: book.id,
+            entity_id: (book as any).id,
             data: activityData,
             metadata: {
               privacy_level: progress.privacy_level || "private",
               engagement_count: 0,
               is_premium: false
             }
-          })
+          } as any)
 
         if (activityError) {
           console.error("Error creating activity:", activityError)
@@ -189,7 +189,7 @@ export async function updateReadingProgress(progress: Partial<ReadingProgress>) 
         user_id: user.id,
         book_id: progress.book_id,
         status: statusMapping[progress.status as ReadingProgressStatus] || "want_to_read",
-      })
+      } as any)
     } catch (error) {
       console.log("Reading status table might not exist:", error)
       // Continue even if this fails
@@ -285,7 +285,7 @@ export async function getRecentReadingActivity(limit = 5) {
     }
 
     // Process the data to include cover image URL
-    const processedActivity = data.map((item) => ({
+    const processedActivity = data.map((item: any) => ({
       ...item,
       book_title: "Book", // Will be enriched client-side if needed
       cover_image_url: null,
@@ -325,11 +325,11 @@ export async function getReadingStats() {
     // Calculate statistics
     const stats = {
       total_books: data.length,
-      completed: data.filter((item) => item.status === "completed").length,
-      in_progress: data.filter((item) => item.status === "in_progress").length,
-      want_to_read: data.filter((item) => item.status === "not_started").length,
-      on_hold: data.filter((item) => item.status === "on_hold").length,
-      abandoned: data.filter((item) => item.status === "abandoned").length,
+      completed: (data as any[]).filter((item: any) => item.status === "completed").length,
+      in_progress: (data as any[]).filter((item: any) => item.status === "in_progress").length,
+      want_to_read: (data as any[]).filter((item: any) => item.status === "not_started").length,
+      on_hold: (data as any[]).filter((item: any) => item.status === "on_hold").length,
+      abandoned: (data as any[]).filter((item: any) => item.status === "abandoned").length,
     }
 
     return { stats, error: null }
@@ -364,13 +364,13 @@ export async function getFriendsReadingActivity(limit = 10) {
         .eq("status", "accepted")
 
       if (friends && friends.length > 0) {
-        friendIds = friends.map((f) => f.friend_id)
+        friendIds = (friends as any[]).map((f: any) => f.friend_id)
       } else {
         // If no friends found, use a fallback to show some activity
         const { data: otherUsers } = await supabase.from("users").select("id").neq("id", user.id).limit(5)
 
         if (otherUsers && otherUsers.length > 0) {
-          friendIds = otherUsers.map((u) => u.id)
+          friendIds = (otherUsers as any[]).map((u: any) => u.id)
         }
       }
     } catch (error) {
@@ -380,7 +380,7 @@ export async function getFriendsReadingActivity(limit = 10) {
       const { data: otherUsers } = await supabase.from("users").select("id").neq("id", user.id).limit(5)
 
       if (otherUsers && otherUsers.length > 0) {
-        friendIds = otherUsers.map((u) => u.id)
+        friendIds = (otherUsers as any[]).map((u: any) => u.id)
       }
     }
 

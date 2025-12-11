@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getRecentBooks, getRecentAuthors, getRecentPublishers } from "./actions/data"
 import { BookOpen, User, Building } from "lucide-react"
+import { PublisherAvatar } from "@/components/publisher-avatar"
 import FeaturedEvents from "@/components/featured-events"
 import { FriendRequestsWidget } from "@/components/friend-requests-widget"
 
@@ -111,28 +112,15 @@ async function RecentPublishers() {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {publishers.length > 0 ? (
           publishers.map((publisher) => (
-            <Link href={`/publishers/${publisher.id}`} key={publisher.id} className="block">
-              <Card className="overflow-hidden h-full transition-transform hover:scale-105">
-                <div className="relative aspect-[3/2] w-full">
-                  {publisher.publisher_image?.url ? (
-                    <Image
-                      src={publisher.publisher_image.url || "/placeholder.svg"}
-                      alt={publisher.name}
-                      fill
-                      className="object-contain p-4"
-                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-muted flex items-center justify-center">
-                      <Building className="h-12 w-12 text-muted-foreground" />
-                    </div>
-                  )}
-                </div>
-                <div className="p-3 text-center">
-                  <h3 className="font-medium text-sm line-clamp-1">{publisher.name}</h3>
-                </div>
-              </Card>
-            </Link>
+            <PublisherAvatar
+              key={publisher.id}
+              publisherId={publisher.id}
+              name={publisher.name || "Unknown Publisher"}
+              avatarUrl={publisher.publisher_image?.url}
+              size="md"
+              showName={true}
+              linkToProfile={true}
+            />
           ))
         ) : (
           <div className="col-span-full text-center py-12">

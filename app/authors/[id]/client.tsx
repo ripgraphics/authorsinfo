@@ -2,7 +2,7 @@
 
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -11,7 +11,6 @@ import {
   Users,
   MapPin,
   Globe,
-  Camera,
   MessageSquare,
   UserPlus,
   MoreHorizontal,
@@ -31,7 +30,6 @@ import {
   Settings
 } from "lucide-react"
 import { BookCard } from "@/components/book-card"
-import { Avatar } from "@/components/ui/avatar"
 import { useToast } from "@/components/ui/use-toast"
 import type { Author } from "@/types/book"
 import { Timeline, TimelineItem } from "@/components/timeline"
@@ -54,10 +52,11 @@ import { getContactInfo, upsertContactInfo } from '@/utils/contactInfo'
 import { useAuth } from '@/hooks/useAuth'
 import { FollowButton } from '@/components/follow-button'
 import { canUserEditEntity } from '@/lib/auth-utils'
-import { EntityTabs, EntityTab } from '@/components/ui/entity-tabs'
+import { EntityTab } from '@/components/ui/entity-tabs'
 import EnterpriseTimelineActivities from '@/components/enterprise/enterprise-timeline-activities-optimized'
 import { CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import EntityComments from "@/components/entity-comments"
+import { EntityHeader, TabConfig } from '@/components/entity-header'
+import { deduplicatedRequest } from '@/lib/request-utils'
 
 interface ClientAuthorPageProps {
   author: Author
@@ -175,6 +174,33 @@ export function ClientAuthorPage({
   const [showFullTimelineAbout, setShowFullTimelineAbout] = useState(false)
   const [needsTimelineTruncation, setNeedsTimelineTruncation] = useState(false)
   const [canEdit, setCanEdit] = useState(false)
+  const [coverImageUrlState, setCoverImageUrlState] = useState(coverImageUrl)
+  const [authorImageUrlState, setAuthorImageUrlState] = useState(authorImageUrl)
+
+  // Convert tabs to TabConfig format for EntityHeader
+  const tabs: TabConfig[] = validTabs.map(tab => ({
+    id: tab.id,
+    label: tab.label,
+    disabled: tab.disabled
+  }))
+
+  // Create stats array for EntityHeader
+  const stats = [
+    { 
+      icon: <BookOpen className="h-4 w-4 mr-1" />, 
+      text: `${booksCount} books written` 
+    },
+    { 
+      icon: <Users className="h-4 w-4 mr-1" />, 
+      text: `${followersCount} followers` 
+    }
+  ]
+
+  // Follow handler
+  const handleFollow = async () => {
+    // FollowButton component handles this internally, but we need the handler for EntityHeader
+    // The actual follow logic is in FollowButton component
+  }
 
   // Check edit permissions
   useEffect(() => {
@@ -291,6 +317,194 @@ export function ClientAuthorPage({
     };
     fetchContactInfo();
   }, [params.id, author?.name, toast]);
+
+  // Fetch entity images from photo albums
+  const fetchEntityImages = useCallback(async () => {
+    if (!params.id) {
+      console.log('❌ Missing author ID, skipping entity image fetch');
+      return;
+    }
+    
+    try {
+      console.log('📡 Fetching entity images for author...');
+      
+      // Use deduplicated requests with shorter cache for entity images
+      // Shorter cache ensures fresh data after image uploads
+      const [headerData, avatarData] = await Promise.all([
+        deduplicatedRequest(
+          `entity-header-author-${params.id}`,
+          () => fetch(`/api/entity-images?entityId=${params.id}&entityType=author&albumPurpose=entity_header`).then(r => r.json()),
+          30 * 1000 // 30 seconds cache - shorter for entity header images
+        ),
+        deduplicatedRequest(
+          `entity-avatar-author-${params.id}`,
+          () => fetch(`/api/entity-images?entityId=${params.id}&entityType=author&albumPurpose=avatar`).then(r => r.json()),
+          30 * 1000 // 30 seconds cache - shorter for entity avatar images
+        )
+      ]);
+
+      // Process header images - FIRST PRIORITY: entity header image
+      let foundEntityHeaderImage = false;
+      
+      console.log('🔍 Header data response:', { 
+        success: headerData.success, 
+        albumsCount: headerData.albums?.length || 0,
+        albums: headerData.albums?.map((a: any) => ({ id: a.id, name: a.name, imagesCount: a.images?.length || 0 }))
+      });
+      
+      if (headerData.success && headerData.albums && headerData.albums.length > 0) {
+        const headerAlbum = headerData.albums[0];
+        console.log('🔍 Header album details:', { 
+          id: headerAlbum.id, 
+          name: headerAlbum.name, 
+          imagesCount: headerAlbum.images?.length || 0,
+          images: headerAlbum.images?.map((img: any) => ({ 
+            id: img.id, 
+            is_cover: img.is_cover, 
+            hasImage: !!img.image,
+            imageUrl: img.image?.url || 'NO URL',
+            imageId: img.image?.id || 'NO ID'
+          }))
+        });
+        
+        if (headerAlbum.images && headerAlbum.images.length > 0) {
+          // Filter out images with null image objects
+          const validImages = headerAlbum.images.filter((img: any) => img.image && img.image.url);
+          console.log(`🔍 Filtered ${validImages.length} valid images from ${headerAlbum.images.length} total`);
+          
+          if (validImages.length > 0) {
+            let headerImage = validImages.find((img: any) => img.is_cover);
+            
+            if (!headerImage) {
+              headerImage = validImages.reduce((latest: any, current: any) => {
+                if (!latest) return current;
+                const latestDate = new Date(latest.image?.created_at || 0);
+                const currentDate = new Date(current.image?.created_at || 0);
+                return currentDate > latestDate ? current : latest;
+              });
+            }
+            
+            if (headerImage && headerImage.image) {
+              console.log('✅ Found entity header image, setting:', headerImage.image.url);
+              setCoverImageUrlState(headerImage.image.url);
+              foundEntityHeaderImage = true;
+            } else {
+              console.warn('⚠️ Header image found but missing image object:', headerImage);
+            }
+          } else {
+            console.warn('⚠️ No valid images found in header album (all images have null image objects)');
+          }
+        } else {
+          console.warn('⚠️ Header album has no images array or empty images array');
+        }
+      } else {
+        console.warn('⚠️ No header albums found or request failed:', { 
+          success: headerData.success, 
+          error: headerData.error,
+          albumsCount: headerData.albums?.length || 0
+        });
+      }
+      
+      // FALLBACK: Only use original coverImageUrl if no entity header image was found
+      if (!foundEntityHeaderImage) {
+        console.log('⚠️ No entity header image found, falling back to original cover image');
+        setCoverImageUrlState(coverImageUrl);
+      }
+      
+      // Process avatar images
+      console.log('🔍 Avatar data response:', { 
+        success: avatarData.success, 
+        albumsCount: avatarData.albums?.length || 0,
+        albums: avatarData.albums?.map((a: any) => ({ id: a.id, name: a.name, imagesCount: a.images?.length || 0 }))
+      });
+      
+      if (avatarData.success && avatarData.albums && avatarData.albums.length > 0) {
+        const avatarAlbum = avatarData.albums[0];
+        console.log('🔍 Avatar album details:', { 
+          id: avatarAlbum.id, 
+          name: avatarAlbum.name, 
+          imagesCount: avatarAlbum.images?.length || 0,
+          images: avatarAlbum.images?.map((img: any) => ({ 
+            id: img.id, 
+            is_cover: img.is_cover, 
+            hasImage: !!img.image,
+            imageUrl: img.image?.url || 'NO URL',
+            imageId: img.image?.id || 'NO ID'
+          }))
+        });
+        
+        if (avatarAlbum.images && avatarAlbum.images.length > 0) {
+          // Filter out images with null image objects
+          const validImages = avatarAlbum.images.filter((img: any) => img.image && img.image.url);
+          console.log(`🔍 Filtered ${validImages.length} valid images from ${avatarAlbum.images.length} total`);
+          
+          if (validImages.length > 0) {
+            let avatarImage = validImages.find((img: any) => img.is_cover);
+            
+            if (!avatarImage) {
+              avatarImage = validImages.reduce((latest: any, current: any) => {
+                if (!latest) return current;
+                const latestDate = new Date(latest.image?.created_at || 0);
+                const currentDate = new Date(current.image?.created_at || 0);
+                return currentDate > latestDate ? current : latest;
+              });
+            }
+            
+            if (avatarImage && avatarImage.image) {
+              console.log('✅ Setting avatar image:', avatarImage.image.url);
+              setAuthorImageUrlState(avatarImage.image.url);
+            } else {
+              console.warn('⚠️ Avatar image found but missing image object:', avatarImage);
+              // Fallback to original avatar image
+              setAuthorImageUrlState(authorImageUrl);
+            }
+          } else {
+            console.warn('⚠️ No valid images found in avatar album (all images have null image objects)');
+            // Fallback to original avatar image
+            setAuthorImageUrlState(authorImageUrl);
+          }
+        } else {
+          console.warn('⚠️ Avatar album has no images array or empty images array');
+          // Fallback to original avatar image
+          setAuthorImageUrlState(authorImageUrl);
+        }
+      } else {
+        console.warn('⚠️ No avatar albums found or request failed:', { 
+          success: avatarData.success, 
+          error: avatarData.error,
+          albumsCount: avatarData.albums?.length || 0
+        });
+        // Fallback to original avatar image if no album images found
+        setAuthorImageUrlState(authorImageUrl);
+      }
+      
+    } catch (error) {
+      console.error('❌ Error fetching entity images:', error);
+      // On error, fall back to original images
+      setCoverImageUrlState(coverImageUrl);
+      setAuthorImageUrlState(authorImageUrl);
+    }
+  }, [params.id, coverImageUrl, authorImageUrl]);
+
+  // Fetch entity images from photo albums when component mounts
+  useEffect(() => {
+    console.log('🚀 useEffect triggered, calling fetchEntityImages');
+    fetchEntityImages();
+  }, [fetchEntityImages]);
+
+  // Listen for entity image changes (when user sets new cover in photos tab)
+  useEffect(() => {
+    const handleEntityImageChanged = () => {
+      console.log('🔄 Entity image changed event received, refreshing images...');
+      fetchEntityImages();
+    };
+
+    window.addEventListener('entityImageChanged', handleEntityImageChanged);
+    
+    return () => {
+      window.removeEventListener('entityImageChanged', handleEntityImageChanged);
+    };
+  }, [fetchEntityImages]);
 
   // Function to refresh author data
   const refreshAuthorData = async () => {
@@ -418,114 +632,46 @@ export function ClientAuthorPage({
 
   return (
     <div className="author-page author-page__container py-6">
-      {/* Cover Photo and Profile Section */}
-      <div className="author-page__header bg-white rounded-lg shadow overflow-hidden mb-6">
-        <div className="author-page__cover-image relative h-auto aspect-[1344/500]">
-          <img
-            src={coverImageUrl || "/placeholder.svg?height=400&width=1200"}
-            alt="Cover"
-            className="author-page__cover-image-content object-cover absolute inset-0 w-full h-full"
-          />
-          {user && user.role === 'admin' && (
-            <Button variant="outline" size="sm" className="author-page__cover-image-button absolute bottom-4 right-4 bg-white/80 hover:bg-white">
-              <Camera className="h-4 w-4 mr-2" />
-              Change Cover
-            </Button>
-          )}
-        </div>
-
-        <div className="author-page__header-content px-6 pb-6">
-          <div className="author-page__profile-section flex flex-col md:flex-row md:items-end -mt-10 relative z-10">
-            <div className="author-page__avatar-container relative">
-              <Avatar src={authorImageUrl || "/placeholder.svg?height=200&width=200"} alt={author?.name || "Author"} name={author?.name} size="lg" id={author?.id} />
-              {user && user.role === 'admin' && (
-                <Button variant="outline" size="icon" className="author-page__avatar-button absolute bottom-2 right-2 rounded-full h-8 w-8 bg-white/80 hover:bg-white">
-                  <Camera className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-
-            <div className="author-page__profile-info mt-4 md:mt-0 md:ml-6 flex-1">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                <div>
-                  <EntityHoverCard
-                    type="author"
-                    entity={{
-                      id: author.id,
-                      name: author.name,
-                      author_image: author.author_image || undefined,
-                      bookCount: booksCount
-                    }}
-                  >
-                  <h1 className="text-[1.1rem] font-bold truncate">{author?.name}</h1>
-                  </EntityHoverCard>
-                  <p className="text-muted-foreground">@{author?.name?.toLowerCase().replace(/\s+/g, '') || "author"}</p>
-                </div>
-                <div className="author-page__actions flex space-x-2 mt-4 md:mt-0">
-                  <FollowButton 
-                    entityId={author.id}
-                    targetType="author"
-                    variant="default"
-                    className="flex items-center"
-                  />
-                  <Button className="flex items-center">
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Message
-                  </Button>
-                  <Button variant="outline" size="icon">
-                    <Ellipsis className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-x-6 gap-y-2 mt-4">
-                <div className="flex items-center text-muted-foreground">
-                  <BookOpen className="h-4 w-4 mr-1" />
-                  <span>{booksCount} books written</span>
-                </div>
-                <div className="flex items-center text-muted-foreground">
-                  <Users className="h-4 w-4 mr-1" />
-                  <span>{followersCount} followers</span>
-                </div>
-                {author?.nationality && (
-                <div className="flex items-center text-muted-foreground">
-                  <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <span>{author.nationality}</span>
-                </div>
-                )}
-                {author?.website && (
-                <div className="flex items-center text-muted-foreground">
-                  <a
-                    href={author.website.startsWith('http') ? author.website : `https://${author.website}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Globe className="h-4 w-4" />
-                  </a>
-                </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="author-page__header-nav border-t">
-          <div className="author-page__header-nav-container">
-            <EntityTabs
-              tabs={validTabs}
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-            />
-          </div>
-        </div>
-      </div>
+      <EntityHeader
+        entityType="author"
+        name={author?.name || "Author"}
+        username={`@${author?.name?.toLowerCase().replace(/\s+/g, '') || "author"}`}
+        coverImageUrl={coverImageUrlState || "/placeholder.svg?height=400&width=1200"}
+        profileImageUrl={authorImageUrlState || "/placeholder.svg?height=200&width=200"}
+        stats={stats}
+        location={author?.nationality || undefined}
+        website={author?.website || undefined}
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        isEditable={canEdit}
+        entityId={params.id}
+        targetType="author"
+        author={{
+          id: author.id,
+          name: author.name,
+          author_image: author.author_image || undefined
+        }}
+        authorBookCount={booksCount}
+        isFollowing={isFollowing}
+        onFollow={handleFollow}
+        isMessageable={true}
+        onCoverImageChange={() => {
+          // EntityHeader handles this internally
+          window.dispatchEvent(new CustomEvent('entityImageChanged'))
+        }}
+        onProfileImageChange={() => {
+          // EntityHeader handles this internally
+          window.dispatchEvent(new CustomEvent('entityImageChanged'))
+        }}
+      />
 
       {/* Content Section with Sidebar on Left + Main Content on Right */}
       {activeTab === "timeline" && (
       <div className="author-page__content">
         <div className="author-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* LEFT SIDEBAR - 1 Column */}
-          <div className="lg:col-span-1 space-y-6">
+          <div className="lg:col-span-1 space-y-6 self-end sticky bottom-0">
             {/* About Section */}
             <TimelineAboutSection
               bio={author?.bio}
@@ -616,33 +762,12 @@ export function ClientAuthorPage({
               followersCount={followersCount}
               entityId={params.id}
               entityType="author"
+              onViewMore={() => setActiveTab("followers")}
             />
           </div>
 
           {/* MAIN CONTENT - 2 Columns */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Comments Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Comments & Discussion</CardTitle>
-                <CardDescription>Join the conversation about this author</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <EntityComments
-                  entityId={params.id}
-                  entityType="author"
-                  entityName={author?.name || "Author"}
-                  entityAvatar={authorImageUrl}
-                  entityCreatedAt={author?.created_at}
-                  isOwner={canEdit}
-                  entityDisplayInfo={{
-                    name: author?.name || "Author",
-                    type: 'author',
-                    avatar: author?.author_image?.url || undefined
-                  }}
-                />
-              </CardContent>
-            </Card>
             {/* Timeline Feed - This has full posting functionality */}
             <EnterpriseTimelineActivities
               entityType="author"
@@ -1015,6 +1140,7 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
           {/* Add more content here */}
         </div>
       )}
+
     </div>
   )
 }

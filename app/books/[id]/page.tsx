@@ -8,6 +8,9 @@ import { ClientBookPage } from "./client"
 import { getFollowers, getFollowersCount } from "@/lib/follows-server"
 import { createServerComponentClientAsync } from "@/lib/supabase/client-helper"
 
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 interface BookPageProps {
   params: {
     id: string

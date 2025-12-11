@@ -57,7 +57,7 @@ export async function PATCH(
     }
 
     const supabase = await createRouteHandlerClientAsync();
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { user } } = await supabase.auth.getUser();
     
     const allowedFields = [
       'name', 
@@ -97,7 +97,7 @@ export async function PATCH(
 
     try {
       await supabaseAdmin.from('activities').insert({
-        user_id: session?.user?.id,
+        user_id: user?.id,
         activity_type: 'author_profile_updated',
         data: {
           author_id: id,

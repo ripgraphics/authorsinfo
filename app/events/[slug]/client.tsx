@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { EntityHeader, TabConfig } from "@/components/entity-header"
 import { EntityPhotoAlbums } from "@/components/user-photo-albums"
+import { FollowersList } from "@/components/followers-list"
 import { FollowersListTab } from "@/components/followers-list-tab"
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter, useSearchParams } from "next/navigation"
@@ -163,16 +164,32 @@ export function ClientEventPage({
         <div className="event-page__header-nav border-t">
           <div className="event-page__header-nav-container">
             <EntityHeader
-              tabs={tabs}
-              activeTab={activeTab}
-              onTabChange={handleTabChange}
               entityType="event"
               name={event.title || "Event"}
               description={event.description}
               coverImageUrl={coverImageUrl}
               profileImageUrl={event.image_url || coverImageUrl || ""}
+              stats={[
+                { 
+                  icon: <Users className="h-4 w-4 mr-1" />, 
+                  text: `${followersCount} followers` 
+                }
+              ]}
               location={event.location?.name}
               website={event.website}
+              tabs={tabs}
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
+              entityId={event.id || params.slug}
+              targetType="user"
+              isEditable={user && (user.role === 'admin' || user.role === 'super_admin')}
+              isMessageable={true}
+              onCoverImageChange={() => {
+                window.dispatchEvent(new CustomEvent('entityImageChanged'))
+              }}
+              onProfileImageChange={() => {
+                window.dispatchEvent(new CustomEvent('entityImageChanged'))
+              }}
             />
           </div>
         </div>
@@ -183,7 +200,7 @@ export function ClientEventPage({
         <div className="event-page__content">
           <div className="event-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* LEFT SIDEBAR - 1 Column */}
-            <div className="lg:col-span-1 space-y-6">
+            <div className="lg:col-span-1 space-y-6 self-end sticky bottom-0">
               {/* About Section */}
               <Card>
                 <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
@@ -259,6 +276,15 @@ export function ClientEventPage({
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Followers Section */}
+              <FollowersList
+                followers={followers}
+                followersCount={followersCount}
+                entityId={params.slug}
+                entityType="event"
+                onViewMore={() => handleTabChange("followers")}
+              />
             </div>
 
             {/* MAIN CONTENT - Timeline */}

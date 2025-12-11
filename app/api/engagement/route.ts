@@ -174,18 +174,17 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClientAsync()
     
-    // Check authentication - use getSession for consistency with other routes
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    if (sessionError) {
-      console.error('Error getting session:', sessionError)
-      return NextResponse.json({ error: 'Failed to get session' }, { status: 500 })
+    // Check authentication - use getUser() to authenticate with Supabase Auth server
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError) {
+      console.error('Error authenticating user:', userError)
+      return NextResponse.json({ error: 'Failed to authenticate user' }, { status: 500 })
     }
     
-    if (!session?.user) {
+    if (!user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
     
-    const user = session.user
 
     const body = await request.json()
     console.log('📝 POST /api/engagement - Request body:', body)

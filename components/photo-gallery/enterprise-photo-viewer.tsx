@@ -1447,6 +1447,36 @@ export function EnterprisePhotoViewer({
                           }
                           
                           console.log('✅ Album image settings updated:', albumUpdateResult)
+                          
+                          // Update publisher_image_id when setting avatar as cover for publishers
+                          if (entityType === 'publisher' && entityId && editForm.shouldSetAsCover && albumId) {
+                            // Check if this is an avatar album by querying the album
+                            const { data: albumData, error: albumCheckError } = await supabase
+                              .from('photo_albums')
+                              .select('name, metadata')
+                              .eq('id', albumId)
+                              .single()
+                            
+                            if (!albumCheckError && albumData) {
+                              const isAvatarAlbum = albumData.name === 'Avatar Images' || 
+                                                   albumData.metadata?.album_purpose === 'avatar'
+                              
+                              if (isAvatarAlbum) {
+                                console.log(`🔄 Updating publisher_image_id for publisher ${entityId} with image ${photo.id}`)
+                                const { error: publisherUpdateError } = await supabase
+                                  .from('publishers')
+                                  .update({ publisher_image_id: photo.id })
+                                  .eq('id', entityId)
+                                
+                                if (publisherUpdateError) {
+                                  console.error('❌ Error updating publisher_image_id:', publisherUpdateError)
+                                  // Don't fail - the album image is already updated
+                                } else {
+                                  console.log(`✅ publisher_image_id updated for publisher ${entityId}`)
+                                }
+                              }
+                            }
+                          }
                         }
                        
                         // Update local photo state to reflect changes

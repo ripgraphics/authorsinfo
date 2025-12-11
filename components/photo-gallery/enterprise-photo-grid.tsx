@@ -9,7 +9,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useToast } from '@/hooks/use-toast'
+import { useAuth } from '@/hooks/useAuth'
+import { isUserAdmin, isUserSuperAdmin } from '@/lib/auth-utils'
+import { addCacheBusting } from '@/lib/utils/image-url-validation'
 import { EnterprisePhotoViewer } from './enterprise-photo-viewer'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { 
   Grid3X3, 
   Grid2X2, 
@@ -31,7 +44,8 @@ import {
   Calendar,
   User,
   ImageIcon,
-  Star
+  Star,
+  Trash2
 } from 'lucide-react'
 
 interface Photo {
@@ -167,52 +181,88 @@ export function EnterprisePhotoGrid({
   const [selectedPhotos, setSelectedPhotos] = useState<string[]>([])
   const [viewerOpen, setViewerOpen] = useState(false)
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deletePhotoId, setDeletePhotoId] = useState<string | null>(null)
+  const [deletePhotoUrl, setDeletePhotoUrl] = useState<string | null>(null)
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false)
   
   const supabase = supabaseClient
   const { toast } = useToast()
+  const { user } = useAuth()
   const observerRef = useRef<IntersectionObserver | null>(null)
   const loadingRef = useRef<HTMLDivElement>(null)
 
-  const loadPhotos = useCallback(async (pageNum: number = 0, reset: boolean = false) => {
-    console.log('🖼️ loadPhotos called with:', { pageNum, reset, enhancedAlbumData: !!enhancedAlbumData })
+  // Check admin permissions
+  useEffect(() => {
+    if (user) {
+      isUserAdmin(user.id).then(setIsAdmin)
+      isUserSuperAdmin(user.id).then(setIsSuperAdmin)
+    } else {
+      setIsAdmin(false)
+      setIsSuperAdmin(false)
+    }
+  }, [user])
+
+  const loadPhotos = useCallback(async (pageNum: number = 0, reset: boolean = false, forceDatabaseQuery: boolean = false) => {
+    console.log('🖼️ loadPhotos called with:', { pageNum, reset, forceDatabaseQuery, enhancedAlbumData: !!enhancedAlbumData, albumId })
     try {
       setLoading(true)
       
-      // If we have enhanced album data, use it directly instead of querying the database
-      if (enhancedAlbumData && enhancedAlbumData.images && pageNum === 0) {
-        console.log('🖼️ Using enhanced album data for photos:', enhancedAlbumData.images.length)
+      // SUPABASE IS THE SOURCE OF TRUTH
+      // Only use enhancedAlbumData if it matches the current albumId AND we're not forcing a database query
+      // If albumId doesn't match or enhancedAlbumData is missing, always query from Supabase
+      // forceDatabaseQuery=true bypasses enhancedAlbumData to ensure fresh data (e.g., after deletion)
+      if (!forceDatabaseQuery && enhancedAlbumData && enhancedAlbumData.images && pageNum === 0 && enhancedAlbumData.id === albumId) {
+        console.log('🖼️ Using enhanced album data for photos (verified album ID match):', enhancedAlbumData.images.length)
         console.log('🖼️ Enhanced album data sample:', enhancedAlbumData.images[0])
         
-        const processedPhotos: Photo[] = enhancedAlbumData.images.map((item: any) => {
-          const image = item.image
-          
-          return {
-            id: image.id,
-            url: image.url,
-            thumbnail_url: image.url, // Use full URL as thumbnail for now
-            alt_text: item.alt_text || image.alt_text,
-            description: item.description || image.description || image.caption,
-            created_at: image.created_at,
-            metadata: image.metadata,
-            is_cover: item.is_cover,
-            is_featured: item.is_featured,
-            tags: [],
-            likes: [],
-            comments: [],
-            shares: [],
-            analytics: {
-              views: 0,
-              unique_views: 0,
-              downloads: 0,
-              shares: 0,
-              engagement_rate: 0
+        // Filter out items where image lookup completely failed (image is null)
+        // But include images with blob URLs so they can be displayed (even if invalid)
+        const processedPhotos: Photo[] = enhancedAlbumData.images
+          .filter((item: any) => {
+            // Only exclude if image is completely null (lookup failed)
+            // Include images even if they have blob URLs (so user can see them)
+            return item.image && item.image.id && item.image.url
+          })
+          .map((item: any) => {
+            const image = item.image
+            
+            return {
+              id: image.id,
+              url: image.url,
+              thumbnail_url: image.url, // Use full URL as thumbnail for now
+              alt_text: item.alt_text || image.alt_text,
+              description: item.description || image.description || image.caption,
+              created_at: image.created_at,
+              metadata: image.metadata,
+              is_cover: item.is_cover,
+              is_featured: item.is_featured,
+              tags: [],
+              likes: [],
+              comments: [],
+              shares: [],
+              analytics: {
+                views: 0,
+                unique_views: 0,
+                downloads: 0,
+                shares: 0,
+                engagement_rate: 0
+              }
             }
-          }
-        })
+          })
         
+        console.log('🖼️ Processed photos count:', processedPhotos.length, 'out of', enhancedAlbumData.images.length, 'total items')
         setPhotos(processedPhotos)
         setLoading(false)
         return
+      } else if (enhancedAlbumData && enhancedAlbumData.id !== albumId) {
+        // Enhanced data exists but doesn't match current album - ignore it and query from Supabase
+        console.log('🖼️ Enhanced album data ID mismatch - querying from Supabase instead', { 
+          enhancedDataId: enhancedAlbumData.id, 
+          currentAlbumId: albumId 
+        })
       }
       
       // If no albumId provided and no enhanced data, skip querying
@@ -486,7 +536,9 @@ export function EnterprisePhotoGrid({
   }
 
   const handlePhotoClick = (photo: Photo, index: number) => {
-    if (enableSelection) {
+    // Enable selection mode if owner/admin/super admin, or if enableSelection is true
+    const canSelect = enableSelection || isOwner || isAdmin || isSuperAdmin
+    if (canSelect) {
       handlePhotoSelect(photo.id, !selectedPhotos.includes(photo.id))
     } else {
       setCurrentPhotoIndex(index)
@@ -547,6 +599,314 @@ export function EnterprisePhotoGrid({
     }
   }
 
+  // Handle bulk deleting photos
+  const handleBulkDelete = async () => {
+    if (selectedPhotos.length === 0) return
+    setBulkDeleteDialogOpen(true)
+  }
+
+  const confirmBulkDelete = async () => {
+    if (selectedPhotos.length === 0) return
+    setBulkDeleteDialogOpen(false)
+
+    try {
+      let successCount = 0
+      let failCount = 0
+      const errors: string[] = []
+
+      // Delete each photo sequentially to avoid overwhelming the server
+      for (const photoId of selectedPhotos) {
+        try {
+          const photo = photos.find(p => p.id === photoId)
+          if (!photo) {
+            failCount++
+            continue
+          }
+
+          // Get the image record to find Cloudinary public_id
+          const { data: imageData, error: imageError } = await supabase
+            .from('images')
+            .select('id, url, storage_path')
+            .eq('id', photoId)
+            .single()
+
+          if (imageError) {
+            throw new Error('Failed to fetch image data')
+          }
+
+          // Extract Cloudinary public_id from URL or storage_path
+          let publicId: string | null = null
+          if (imageData.storage_path) {
+            const pathParts = imageData.storage_path.split('/')
+            const uploadIndex = pathParts.findIndex(part => part === 'upload')
+            if (uploadIndex > -1 && uploadIndex < pathParts.length - 1) {
+              const folderParts = pathParts.slice(uploadIndex + 1, -1)
+              const filename = pathParts[pathParts.length - 1]
+              const nameWithoutExt = filename.split('.')[0]
+              publicId = folderParts.length > 0 
+                ? `${folderParts.join('/')}/${nameWithoutExt}`
+                : nameWithoutExt
+            }
+          } else if (photo.url) {
+            const urlParts = photo.url.split('/')
+            const uploadIndex = urlParts.findIndex(part => part === 'upload')
+            if (uploadIndex > -1 && uploadIndex < urlParts.length - 1) {
+              const pathParts = urlParts.slice(uploadIndex + 1)
+              const filename = pathParts[pathParts.length - 1]
+              const nameWithoutExt = filename.split('.')[0]
+              const folderPath = pathParts.slice(0, -1).join('/')
+              publicId = folderPath ? `${folderPath}/${nameWithoutExt}` : nameWithoutExt
+            }
+          }
+
+          // Step 1: Remove from album_images
+          const { error: albumImageError } = await supabase
+            .from('album_images')
+            .delete()
+            .eq('album_id', albumId)
+            .eq('image_id', photoId)
+
+          if (albumImageError) {
+            throw new Error('Failed to remove photo from album')
+          }
+
+          // Step 2: Check if image is used in other albums
+          const { data: otherAlbums } = await supabase
+            .from('album_images')
+            .select('id')
+            .eq('image_id', photoId)
+            .limit(1)
+
+          // Step 3: Delete from Cloudinary if public_id found
+          if (publicId) {
+            try {
+              await fetch('/api/cloudinary/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ publicId })
+              })
+            } catch (cloudinaryError) {
+              console.error('Error deleting from Cloudinary:', cloudinaryError)
+            }
+          }
+
+          // Step 4: Delete from images table if not used in other albums
+          if (!otherAlbums || otherAlbums.length === 0) {
+            const { data: entityImages } = await supabase
+              .from('entity_images')
+              .select('id')
+              .eq('image_id', photoId)
+              .limit(1)
+
+            if (!entityImages || entityImages.length === 0) {
+              await supabase
+                .from('images')
+                .delete()
+                .eq('id', photoId)
+            }
+          }
+
+          successCount++
+        } catch (error) {
+          failCount++
+          const errorMsg = error instanceof Error ? error.message : String(error)
+          errors.push(`Photo ${photoId}: ${errorMsg}`)
+          console.error(`Error deleting photo ${photoId}:`, error)
+        }
+      }
+
+      // Store selected photo IDs before clearing selection
+      const deletedPhotoIds = [...selectedPhotos]
+
+      // Remove deleted photos from local state
+      setPhotos(prevPhotos => prevPhotos.filter(photo => !selectedPhotos.includes(photo.id)))
+      setSelectedPhotos([])
+
+      // Show result message
+      if (failCount === 0) {
+        toast({
+          title: "Success!",
+          description: `${successCount} photo${successCount !== 1 ? 's' : ''} deleted successfully`,
+        })
+      } else {
+        toast({
+          title: "Partial Success",
+          description: `${successCount} deleted, ${failCount} failed`,
+          variant: "destructive"
+        })
+        console.error('Bulk delete errors:', errors)
+      }
+
+      // Reload photos from database
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          loadPhotos(0, true, true)
+        }, 150)
+      })
+
+      // Trigger refresh events
+      window.dispatchEvent(new CustomEvent('albumRefresh'))
+      window.dispatchEvent(new CustomEvent('photoDeleted', { detail: { photoIds: deletedPhotoIds, albumId } }))
+      if (onCoverImageChange) {
+        onCoverImageChange()
+      }
+    } catch (error) {
+      console.error('Error in bulk delete:', error)
+      toast({
+        title: "Error",
+        description: "Failed to delete photos",
+        variant: "destructive"
+      })
+    }
+  }
+
+  // Handle deleting a photo
+  const handleDeletePhoto = async (photoId: string, photoUrl: string) => {
+    if (!confirm('Are you sure you want to delete this photo? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      // Get the image record to find Cloudinary public_id
+      const { data: imageData, error: imageError } = await supabase
+        .from('images')
+        .select('id, url, storage_path')
+        .eq('id', photoId)
+        .single()
+
+      if (imageError) {
+        throw new Error('Failed to fetch image data')
+      }
+
+      // Extract Cloudinary public_id from URL or storage_path
+      let publicId: string | null = null
+      if (imageData.storage_path) {
+        // Extract from storage_path (format: upload/v1234567890/folder/image.jpg)
+        const pathParts = imageData.storage_path.split('/')
+        const uploadIndex = pathParts.findIndex(part => part === 'upload')
+        if (uploadIndex > -1 && uploadIndex < pathParts.length - 1) {
+          const folderParts = pathParts.slice(uploadIndex + 1, -1)
+          const filename = pathParts[pathParts.length - 1]
+          const nameWithoutExt = filename.split('.')[0]
+          publicId = folderParts.length > 0 
+            ? `${folderParts.join('/')}/${nameWithoutExt}`
+            : nameWithoutExt
+        }
+      } else if (photoUrl) {
+        // Extract from URL
+        const urlParts = photoUrl.split('/')
+        const uploadIndex = urlParts.findIndex(part => part === 'upload')
+        if (uploadIndex > -1 && uploadIndex < urlParts.length - 1) {
+          const pathParts = urlParts.slice(uploadIndex + 1)
+          const filename = pathParts[pathParts.length - 1]
+          const nameWithoutExt = filename.split('.')[0]
+          const folderPath = pathParts.slice(0, -1).join('/')
+          publicId = folderPath ? `${folderPath}/${nameWithoutExt}` : nameWithoutExt
+        }
+      }
+
+      // Step 1: Remove from album_images
+      const { error: albumImageError } = await supabase
+        .from('album_images')
+        .delete()
+        .eq('album_id', albumId)
+        .eq('image_id', photoId)
+
+      if (albumImageError) {
+        throw new Error('Failed to remove photo from album')
+      }
+
+      // Step 2: Check if image is used in other albums
+      const { data: otherAlbums, error: checkError } = await supabase
+        .from('album_images')
+        .select('id')
+        .eq('image_id', photoId)
+        .limit(1)
+
+      if (checkError) {
+        console.error('Error checking image usage:', checkError)
+      }
+
+      // Step 3: Delete from Cloudinary if public_id found
+      if (publicId) {
+        try {
+          const deleteResponse = await fetch('/api/cloudinary/delete', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ publicId })
+          })
+
+          if (!deleteResponse.ok) {
+            console.error('Failed to delete from Cloudinary, but continuing...')
+          }
+        } catch (cloudinaryError) {
+          console.error('Error deleting from Cloudinary:', cloudinaryError)
+          // Continue even if Cloudinary deletion fails
+        }
+      }
+
+      // Step 4: Delete from images table if not used in other albums
+      if (!otherAlbums || otherAlbums.length === 0) {
+        // Also check entity_images
+        const { data: entityImages, error: entityCheckError } = await supabase
+          .from('entity_images')
+          .select('id')
+          .eq('image_id', photoId)
+          .limit(1)
+
+        if (!entityCheckError && (!entityImages || entityImages.length === 0)) {
+          const { error: deleteImageError } = await supabase
+            .from('images')
+            .delete()
+            .eq('id', photoId)
+
+          if (deleteImageError) {
+            console.error('Error deleting image record:', deleteImageError)
+          }
+        }
+      }
+
+      // Remove from local state immediately for instant UI feedback
+      setPhotos(prevPhotos => prevPhotos.filter(photo => photo.id !== photoId))
+      
+      // Also remove from selected photos if it was selected
+      setSelectedPhotos(prev => prev.filter(id => id !== photoId))
+
+      // Show success message
+      toast({
+        title: "Success!",
+        description: "Photo deleted successfully",
+      })
+
+      // Immediately reload photos from database to ensure UI matches database state
+      // Force database query to bypass stale enhancedAlbumData
+      console.log('🔄 Reloading photos after deletion to sync with database...')
+      // Use requestAnimationFrame to ensure state update happens first, then reload
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          loadPhotos(0, true, true) // forceDatabaseQuery=true to bypass enhancedAlbumData
+        }, 150) // Small delay to ensure database transaction is committed
+      })
+
+      // Trigger refresh events for other components
+      window.dispatchEvent(new CustomEvent('albumRefresh'))
+      window.dispatchEvent(new CustomEvent('photoDeleted', { detail: { photoId, albumId } }))
+      if (onCoverImageChange) {
+        onCoverImageChange()
+      }
+
+    } catch (error) {
+      console.error('Error deleting photo:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to delete photo",
+        variant: "destructive"
+      })
+    }
+  }
+
   const getGridClass = () => {
     switch (viewMode) {
       case 'grid-large':
@@ -575,6 +935,7 @@ export function EnterprisePhotoGrid({
 
   const PhotoCard = ({ photo, index }: { photo: Photo; index: number }) => {
     const isSelected = selectedPhotos.includes(photo.id)
+    const canSelect = enableSelection || isOwner || isAdmin || isSuperAdmin
     const isListView = viewMode === 'list'
 
     return (
@@ -584,9 +945,9 @@ export function EnterprisePhotoGrid({
         } ${isListView ? 'flex gap-4 p-4 bg-card rounded-lg' : ''}`}
         onClick={() => handlePhotoClick(photo, index)}
       >
-        {/* Selection Checkbox */}
-        {enableSelection && (
-          <div className="absolute top-2 left-2 z-10">
+        {/* Selection Checkbox - Show for owners/admins or when enableSelection is true */}
+        {canSelect && (
+          <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
             <Checkbox
               checked={isSelected}
               onCheckedChange={(checked) => handlePhotoSelect(photo.id, checked as boolean)}
@@ -600,7 +961,7 @@ export function EnterprisePhotoGrid({
           isListView ? 'w-32 h-32 flex-shrink-0' : 'aspect-square'
         }`}>
           <img
-            src={photo.thumbnail_url || photo.url}
+            src={addCacheBusting(photo.thumbnail_url || photo.url) || (photo.thumbnail_url || photo.url)}
             alt={photo.alt_text || 'Photo'}
             className="w-full h-full object-cover"
             loading="lazy"
@@ -610,7 +971,14 @@ export function EnterprisePhotoGrid({
           <div className="absolute top-2 right-2 flex flex-col gap-1">
             {photo.is_cover && (
               <Badge variant="secondary" className="text-xs bg-blue-600 text-white">
-                Cover Image
+                {(() => {
+                  // Determine badge text based on album name
+                  const albumName = enhancedAlbumData?.name || ''
+                  if (albumName.includes('Avatar')) return 'Avatar Image'
+                  if (albumName.includes('Header Cover')) return 'Header Cover Image'
+                  if (albumName.includes('Cover')) return 'Cover Image'
+                  return 'Cover Image' // Default fallback
+                })()}
               </Badge>
             )}
             {photo.is_featured && (
@@ -639,20 +1007,36 @@ export function EnterprisePhotoGrid({
                 </div>
               </div>
               
-              {/* Set as Cover Button - Only show if not already cover and owner */}
-              {isOwner && !photo.is_cover && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="text-xs h-7 px-2 bg-white/20 hover:bg-white/30 text-white border-white/30"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleSetAsCover(photo.id)
-                  }}
-                >
-                  <Star className="h-3 w-3 mr-1" />
-                  Set as Cover
-                </Button>
+              {/* Action Buttons - Only show if owner, admin, or super admin */}
+              {(isOwner || isAdmin || isSuperAdmin) && (
+                <div className="flex gap-2">
+                  {!photo.is_cover && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="text-xs h-7 px-2 bg-white/20 hover:bg-white/30 text-white border-white/30"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleSetAsCover(photo.id)
+                      }}
+                    >
+                      <Star className="h-3 w-3 mr-1" />
+                      Set as Cover
+                    </Button>
+                  )}
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="text-xs h-7 px-2 bg-red-600/80 hover:bg-red-600 text-white border-red-500/30"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDeletePhoto(photo.id, photo.url)
+                    }}
+                  >
+                    <Trash2 className="h-3 w-3 mr-1" />
+                    Delete
+                  </Button>
+                </div>
               )}
               
 
@@ -715,6 +1099,38 @@ export function EnterprisePhotoGrid({
                     +{photo.tags.length - 3} more
                   </Badge>
                 )}
+              </div>
+            )}
+
+            {/* Action Buttons in List View - Only show if owner, admin, or super admin */}
+            {(isOwner || isAdmin || isSuperAdmin) && (
+              <div className="flex gap-2 mt-2">
+                {!photo.is_cover && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs h-7"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleSetAsCover(photo.id)
+                    }}
+                  >
+                    <Star className="h-3 w-3 mr-1" />
+                    Set as Cover
+                  </Button>
+                )}
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="text-xs h-7"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleDeletePhoto(photo.id, photo.url)
+                  }}
+                >
+                  <Trash2 className="h-3 w-3 mr-1" />
+                  Delete
+                </Button>
               </div>
             )}
           </div>
@@ -791,19 +1207,33 @@ export function EnterprisePhotoGrid({
               </div>
 
               <div className="flex items-center gap-2">
-                {enableSelection && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleSelectAll}
-                  >
-                    {selectedPhotos.length === photos.length ? (
-                      <CheckSquare className="h-4 w-4 mr-2" />
-                    ) : (
-                      <Square className="h-4 w-4 mr-2" />
+                {/* Always show selection controls for owners/admins */}
+                {(enableSelection || isOwner || isAdmin || isSuperAdmin) && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSelectAll}
+                    >
+                      {selectedPhotos.length === photos.length ? (
+                        <CheckSquare className="h-4 w-4 mr-2" />
+                      ) : (
+                        <Square className="h-4 w-4 mr-2" />
+                      )}
+                      Select All
+                    </Button>
+                    
+                    {selectedPhotos.length > 0 && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={handleBulkDelete}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete {selectedPhotos.length}
+                      </Button>
                     )}
-                    Select All
-                  </Button>
+                  </>
                 )}
 
                 <div className="flex border rounded-lg">

@@ -152,19 +152,19 @@ export async function POST(request: Request) {
   try {
     const supabase = await createRouteHandlerClientAsync()
     
-    // Get current user from session
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    if (sessionError) {
-      console.error('Error getting session:', sessionError)
-      return NextResponse.json({ error: 'Failed to get session' }, { status: 500 })
+    // Get current user - use getUser() to authenticate with Supabase Auth server
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError) {
+      console.error('Error authenticating user:', userError)
+      return NextResponse.json({ error: 'Failed to authenticate user' }, { status: 500 })
     }
     
-    if (!session?.user) {
+    if (!user) {
       return NextResponse.json({ error: 'No authenticated user' }, { status: 401 })
     }
     
     // Get user data from users table
-    const { data: user, error: userError } = await supabase
+    const { data: userData, error: userDataError } = await supabase
       .from('users')
       .select(`
         id,
@@ -175,32 +175,36 @@ export async function POST(request: Request) {
         role_id,
         permalink
       `)
-      .eq('id', session.user.id)
+      .eq('id', user.id)
       .single()
     
-    if (userError) {
-      console.error('Error fetching user:', userError)
+    if (userDataError) {
+      console.error('Error fetching user:', userDataError)
       return NextResponse.json({ error: 'Failed to fetch user' }, { status: 500 })
     }
       
     // Get profile for role and avatar_image_id
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select(`
-          id,
-          user_id,
-          role,
+    // Profile might not exist for all users - handle gracefully
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select(`
+        id,
+        user_id,
+        role,
         avatar_image_id,
-          created_at
-        `)
-        .eq('user_id', session.user.id)
-        .single()
+        created_at
+      `)
+      .eq('user_id', user.id)
+      .maybeSingle() // Use maybeSingle() instead of single() - returns null if not found instead of error
       
-      let userRole = 'user'
-      if (!profileError && profile && profile.role) {
-        userRole = profile.role
-      }
-      
+    let userRole = 'user'
+    if (profileError && profileError.code !== 'PGRST116') {
+      // PGRST116 means no rows found, which is fine - profile is optional
+      console.error('Error fetching profile (non-fatal):', profileError)
+    } else if (profile && profile.role) {
+      userRole = profile.role
+    }
+    
     // Fetch avatar from images table via profiles.avatar_image_id
     let avatarUrl: string | null = null
     if (profile?.avatar_image_id) {
@@ -209,8 +213,8 @@ export async function POST(request: Request) {
           .from('images')
           .select('url')
           .eq('id', profile.avatar_image_id)
-        .single()
-      
+          .single()
+        
         if (image?.url) {
           avatarUrl = image.url
         }
@@ -218,15 +222,15 @@ export async function POST(request: Request) {
         // Non-fatal; avatar will be null if not found
         console.log('Avatar not found or error fetching:', avatarError)
       }
-      }
-      
-      const transformedUser = {
-        id: user.id,
-        email: user.email || 'No email',
-        name: user.name || 'Unknown User',
-        created_at: user.created_at,
+    }
+    
+    const transformedUser = {
+        id: userData.id,
+        email: userData.email || 'No email',
+        name: userData.name || 'Unknown User',
+        created_at: userData.created_at,
         role: userRole,
-      permalink: user.permalink,
+      permalink: userData.permalink,
       avatar_url: avatarUrl
     }
     

@@ -32,19 +32,19 @@ export function CreateAlbumDialog({ entityId, entityType, onAlbumCreated }: Crea
         const client = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
         setSupabase(client)
 
-        const { data: { session }, error: sessionError } = await client.auth.getSession()
-        if (sessionError) {
-          console.error('Error getting session:', sessionError)
+        const { data: { user }, error: userError } = await client.auth.getUser()
+        if (userError) {
+          console.error('Error authenticating user:', userError)
           return
         }
 
-        if (!session) {
+        if (!user) {
           console.log('No active session found')
           return
         }
 
-        console.log('User authenticated:', session.user.id)
-        setUserId(session.user.id)
+        console.log('User authenticated:', user.id)
+        setUserId(user.id)
       } catch (error) {
         console.error('Error initializing client:', error)
       }

@@ -140,9 +140,25 @@ export function useCurrentUserAvatar(): string | null {
 
 /**
  * Hook to get current user's display name
+ * Returns the name from the user object (from API or fallback)
  */
 export function useCurrentUserName(): string {
-  const { user } = useAuth()
-  return (user as any)?.name || (user as any)?.user_metadata?.full_name || user?.email || 'You'
+  const { user, loading } = useAuth()
+  
+  if (loading || !user) {
+    return ''
+  }
+  
+  // The user object should have name property (either from API or fallback)
+  if ((user as any)?.name && typeof (user as any).name === 'string' && (user as any).name.length > 0) {
+    return (user as any).name
+  }
+  
+  // Fallback to email username if name is not available
+  if (user?.email) {
+    return user.email.split('@')[0]
+  }
+  
+  return ''
 }
 

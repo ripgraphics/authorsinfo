@@ -145,6 +145,39 @@ export async function getBookById(id: string): Promise<Book | null> {
           return
         }
 
+        // If cover_image is not available from foreign key, try to get it from album
+        if (!data.cover_image) {
+          console.log('Cover image not found via foreign key, checking album...');
+          
+          // Find the "Cover Images" album for this book
+          const { data: album } = await supabaseAdmin
+            .from('photo_albums')
+            .select('id')
+            .eq('entity_type', 'book')
+            .eq('entity_id', id)
+            .eq('name', 'Cover Images')
+            .maybeSingle();
+
+          if (album) {
+            // Get the cover image from the album
+            const { data: albumImage } = await supabaseAdmin
+              .from('album_images')
+              .select(`
+                image_id,
+                images!inner(id, url, alt_text)
+              `)
+              .eq('album_id', album.id)
+              .eq('is_cover', true)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            if (albumImage && albumImage.images) {
+              data.cover_image = albumImage.images as any;
+              console.log('✅ Found cover image from album:', data.cover_image.url);
+            }
+          }
+        }
 
         // Return book as-is, without trying to join with images
         resolve({

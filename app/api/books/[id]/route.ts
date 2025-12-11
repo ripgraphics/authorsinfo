@@ -37,6 +37,40 @@ export async function GET(
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // If cover_image is not available from foreign key, try to get it from album
+    if (!data.cover_image) {
+      console.log('Cover image not found via foreign key, checking album...');
+      
+      // Find the "Cover Images" album for this book
+      const { data: album } = await supabaseAdmin
+        .from('photo_albums')
+        .select('id')
+        .eq('entity_type', 'book')
+        .eq('entity_id', bookId)
+        .eq('name', 'Cover Images')
+        .maybeSingle();
+
+      if (album) {
+        // Get the cover image from the album
+        const { data: albumImage } = await supabaseAdmin
+          .from('album_images')
+          .select(`
+            image_id,
+            images!inner(id, url, alt_text)
+          `)
+          .eq('album_id', album.id)
+          .eq('is_cover', true)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (albumImage && albumImage.images) {
+          data.cover_image = albumImage.images as any;
+          console.log('✅ Found cover image from album:', data.cover_image.url);
+        }
+      }
+    }
+
     console.log('Book fetched successfully');
     console.log('Book data:', data);
     return NextResponse.json({ success: true, data });

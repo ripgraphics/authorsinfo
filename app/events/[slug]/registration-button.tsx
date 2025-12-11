@@ -36,9 +36,9 @@ export default function EventRegistrationButton({
       try {
         setIsLoading(true);
         // First, check if user is authenticated
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { user } } = await supabase.auth.getUser();
         
-        if (!session) {
+        if (!user) {
           setIsRegistered(null);
           return;
         }
@@ -72,9 +72,9 @@ export default function EventRegistrationButton({
       setError(null);
       
       // First, check if user is authenticated
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { user } } = await supabase.auth.getUser();
       
-      if (!session) {
+      if (!user) {
         // Redirect to login page
         router.push(`/login?redirect=/events/${eventId}`);
         return;

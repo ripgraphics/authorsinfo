@@ -81,8 +81,8 @@ export function Avatar({
         />
       ) : (
         <div className="avatar-placeholder w-full h-full bg-muted flex items-center justify-center rounded-full">
-          {name ? (
-            <span className="text-lg font-semibold text-muted-foreground">{name.charAt(0)}</span>
+          {name && name.length > 0 && name !== 'You' ? (
+            <span className="text-lg font-semibold text-muted-foreground uppercase">{name.charAt(0)}</span>
           ) : (
             <User className={`${conf.icon} text-muted-foreground`} />
           )}

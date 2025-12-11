@@ -28,10 +28,10 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClientAsync();
 
-    // Get current user from session
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError) {
-      console.error('Error getting session:', sessionError);
+    // Get current user - use getUser() to authenticate with Supabase Auth server
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError) {
+      console.error('Error authenticating user:', userError);
       // Return placeholder image data directly
       const placeholder = await getPlaceholderImage();
       return new NextResponse(placeholder, {
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    if (!session?.user) {
+    if (!user) {
       // Return placeholder image data directly
       const placeholder = await getPlaceholderImage();
       return new NextResponse(placeholder, {
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('avatar_image_id')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .single();
 
     if (profileError || !profile?.avatar_image_id) {

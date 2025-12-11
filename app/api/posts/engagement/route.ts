@@ -20,12 +20,10 @@ export async function POST(request: NextRequest) {
     // Authentication
     const supabase = await createRouteHandlerClientAsync()
     
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    if (sessionError || !session?.user) {
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    
-    const user = session.user
     console.log('User authenticated:', user.id)
 
     // Parse request
@@ -356,12 +354,10 @@ export async function GET(request: NextRequest) {
     // Authentication
     const supabase = await createRouteHandlerClientAsync()
     
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    if (sessionError || !session?.user) {
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    
-    const user = session.user
 
     // Query parameters
     const { searchParams } = new URL(request.url)

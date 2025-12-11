@@ -1,9 +1,7 @@
 import { Suspense } from "react"
-import Link from "next/link"
-import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Building, Search, Filter } from "lucide-react"
+import { Search, Filter } from "lucide-react"
+import { PublisherAvatar } from "@/components/publisher-avatar"
 import {
   Pagination,
   PaginationContent,
@@ -75,7 +73,7 @@ async function detectLocationField() {
         ttl: 3600, // Cache for 1 hour
         cacheKey: "sample_publisher",
         limit: 1,
-        select: "*, country_details:country_id(id, name, code)"
+        select: "*, publisher_image:publisher_image_id(id, url, alt_text), country_details:country_id(id, name, code)"
       }
     )
 
@@ -116,7 +114,7 @@ async function getUniqueLocations() {
         ttl: 3600, // Cache for 1 hour
         cacheKey: `unique_locations_${locationField}`,
         orderBy: { [locationField]: "asc" },
-        select: "*, country_details:country_id(id, name, code)"
+        select: "*, publisher_image:publisher_image_id(id, url, alt_text), country_details:country_id(id, name, code)"
       }
     )
 
@@ -177,11 +175,11 @@ async function PublishersList({
       query,
       {
         ttl: 300, // Cache for 5 minutes
-        cacheKey: `publishers:${JSON.stringify({ page, search, location, sort })}`,
+        cacheKey: `publishers_v2:${JSON.stringify({ page, search, location, sort })}`,
         orderBy,
         limit: pageSize,
         offset,
-        select: "*, country_details:country_id(id, name, code)"
+        select: "*, publisher_image:publisher_image_id(id, url, alt_text), country_details:country_id(id, name, code)"
       }
     ),
     db.query<Publisher>(
@@ -199,6 +197,9 @@ async function PublishersList({
     return null
   }
 
+  // publisher_image_id is now synced with albums, so we can use it directly
+  const publishersWithAvatars = publishers
+
   const totalPages = Math.ceil((countResponse.count || 0) / pageSize)
 
   // Get unique locations for the filter
@@ -207,35 +208,17 @@ async function PublishersList({
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
-        {publishers.length > 0 ? (
-          publishers.map((publisher) => (
-            <Link href={`/publishers/${publisher.id}`} key={publisher.id} className="block">
-              <Card className="overflow-hidden h-full transition-transform hover:scale-105">
-                <div className="relative aspect-[3/2] w-full">
-                  {publisher.publisher_image?.url ? (
-                    <Image
-                      src={publisher.publisher_image.url || "/placeholder.svg"}
-                      alt={publisher.name}
-                      fill
-                      className="object-contain p-4"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-muted flex items-center justify-center">
-                      <Building className="h-12 w-12 text-muted-foreground" />
-                    </div>
-                  )}
-                </div>
-                <CardContent className="p-3">
-                  <h3 className="font-medium text-sm line-clamp-1">{publisher.name}</h3>
-                  {publisher.country_details && (
-                    <p className="text-sm text-muted-foreground line-clamp-1">{publisher.country_details.name}</p>
-                  )}
-                  {publisher.founded_year && (
-                    <p className="text-xs text-muted-foreground mt-1">Founded: {publisher.founded_year}</p>
-                  )}
-                </CardContent>
-              </Card>
-            </Link>
+        {publishersWithAvatars.length > 0 ? (
+          publishersWithAvatars.map((publisher) => (
+            <PublisherAvatar
+              key={publisher.id}
+              publisherId={publisher.id}
+              name={publisher.name || "Unknown Publisher"}
+              avatarUrl={publisher.publisher_image?.url}
+              size="md"
+              showName={true}
+              linkToProfile={true}
+            />
           ))
         ) : (
           <div className="col-span-full text-center py-12">

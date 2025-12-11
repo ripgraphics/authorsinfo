@@ -7,15 +7,14 @@ export async function GET(request: NextRequest) {
     const supabase = await createRouteHandlerClientAsync()
     
     // Get the current user from session
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    if (sessionError) {
-      console.error('Session error:', sessionError)
-      return NextResponse.json({ error: 'Failed to get session' }, { status: 500 })
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError) {
+      console.error('User authentication error:', userError)
+      return NextResponse.json({ error: 'Failed to authenticate user' }, { status: 500 })
     }
-    if (!session?.user) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    const user = session.user
 
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '10')
@@ -81,15 +80,14 @@ export async function POST(request: NextRequest) {
     const supabase = await createRouteHandlerClientAsync()
     
     // Get the current user from session
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    if (sessionError) {
-      console.error('Session error:', sessionError)
-      return NextResponse.json({ error: 'Failed to get session' }, { status: 500 })
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError) {
+      console.error('User authentication error:', userError)
+      return NextResponse.json({ error: 'Failed to authenticate user' }, { status: 500 })
     }
-    if (!session?.user) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    const user = session.user
 
     // Generate new suggestions
     const { error } = await supabase.rpc('generate_friend_suggestions', {
@@ -117,15 +115,14 @@ export async function PUT(request: NextRequest) {
     const supabase = await createRouteHandlerClientAsync()
     
     // Get the current user from session
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    if (sessionError) {
-      console.error('Session error:', sessionError)
-      return NextResponse.json({ error: 'Failed to get session' }, { status: 500 })
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError) {
+      console.error('User authentication error:', userError)
+      return NextResponse.json({ error: 'Failed to authenticate user' }, { status: 500 })
     }
-    if (!session?.user) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    const user = session.user
 
     const { suggestionId, action } = await request.json()
     

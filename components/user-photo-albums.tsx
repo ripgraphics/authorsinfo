@@ -13,6 +13,7 @@ import { PhotoAlbumCreator } from './photo-album-creator'
 import { AlbumSettingsDialog } from './album-settings-dialog'
 import { EnterprisePhotoGrid } from './photo-gallery/enterprise-photo-grid'
 import { EnterpriseImageUpload } from '@/components/ui/enterprise-image-upload'
+import { addCacheBusting } from '@/lib/utils/image-url-validation'
 import { 
   FolderPlus, 
   Settings, 
@@ -82,6 +83,20 @@ export function EntityPhotoAlbums({
   useEffect(() => {
     loadAlbums()
   }, [entityId])
+
+  // Force refresh when album refresh event is triggered
+  useEffect(() => {
+    const handleAlbumRefresh = () => {
+      console.log('🔄 Album refresh event received, reloading albums...')
+      loadAlbums()
+    }
+    
+    window.addEventListener('albumRefresh', handleAlbumRefresh)
+    
+    return () => {
+      window.removeEventListener('albumRefresh', handleAlbumRefresh)
+    }
+  }, [entityId])
   
   // Listen for cover image changes to refresh albums
   useEffect(() => {
@@ -111,13 +126,24 @@ export function EntityPhotoAlbums({
     }
   }, [])
   
-  // Update selectedAlbum when albums are refreshed
+  // Update selectedAlbum when albums are refreshed - SUPABASE IS SOURCE OF TRUTH
+  // If selectedAlbum no longer exists in albums, clear it
   useEffect(() => {
-    if (selectedAlbum && albums.length > 0) {
-      const updatedAlbum = albums.find(album => album.id === selectedAlbum.id)
-      if (updatedAlbum) {
-        console.log('🔄 Updating selectedAlbum with refreshed data')
-        setSelectedAlbum(updatedAlbum)
+    if (selectedAlbum) {
+      if (albums.length === 0) {
+        // Albums cleared - clear selection (Supabase source of truth)
+        console.log('🔄 Albums cleared - clearing selectedAlbum (Supabase source of truth)')
+        setSelectedAlbum(null)
+      } else {
+        const updatedAlbum = albums.find(album => album.id === selectedAlbum.id)
+        if (updatedAlbum) {
+          console.log('🔄 Updating selectedAlbum with refreshed data from Supabase')
+          setSelectedAlbum(updatedAlbum)
+        } else {
+          // Selected album no longer exists in Supabase - clear it
+          console.log('🔄 Selected album no longer exists in Supabase - clearing selection')
+          setSelectedAlbum(null)
+        }
       }
     }
   }, [albums, selectedAlbum])
@@ -142,18 +168,28 @@ export function EntityPhotoAlbums({
         try {
           console.log('🖼️ Loading albums via /api/entity-images for entity:', { entityId: actualEntityId, entityType })
           
-          // Load entity_header albums
-          const headerResponse = await fetch(`/api/entity-images?entityId=${actualEntityId}&entityType=${entityType}&albumPurpose=entity_header`)
+          // Load entity_header albums with cache-busting
+          const headerResponse = await fetch(`/api/entity-images?entityId=${actualEntityId}&entityType=${entityType}&albumPurpose=entity_header&_cb=${Date.now()}`)
           const headerData = await headerResponse.json()
           
-          // Load avatar albums  
-          const avatarResponse = await fetch(`/api/entity-images?entityId=${actualEntityId}&entityType=${entityType}&albumPurpose=avatar`)
+          // Load avatar albums with cache-busting
+          const avatarResponse = await fetch(`/api/entity-images?entityId=${actualEntityId}&entityType=${entityType}&albumPurpose=avatar&_cb=${Date.now()}`)
           const avatarData = await avatarResponse.json()
           
           console.log('🖼️ Header albums response:', headerData)
           console.log('🖼️ Avatar albums response:', avatarData)
           
           const allAlbums = [...(headerData.albums || []), ...(avatarData.albums || [])]
+          
+          // ALWAYS clear albums first to ensure Supabase is the source of truth
+          // If API returns empty, we show empty - no stale data
+          if (allAlbums.length === 0) {
+            console.log('🖼️ No albums found in API response - clearing albums state')
+            setAlbums([])
+            setSelectedAlbum(null)
+            setIsLoading(false)
+            return
+          }
           
           // Transform the enhanced album data to match our Album interface
           const formattedAlbums: Album[] = allAlbums.map((album: any) => ({
@@ -175,6 +211,11 @@ export function EntityPhotoAlbums({
           
           console.log('🖼️ Formatted albums:', formattedAlbums)
           setAlbums(formattedAlbums)
+          // Clear selected album if it's no longer in the list (Supabase source of truth)
+          if (selectedAlbum && !formattedAlbums.find(a => a.id === selectedAlbum.id)) {
+            console.log('🖼️ Selected album no longer exists - clearing selection')
+            setSelectedAlbum(null)
+          }
           setIsLoading(false)
           return
           
@@ -443,7 +484,7 @@ export function EntityPhotoAlbums({
               <div className="aspect-square overflow-hidden">
                 {album.cover_image_url ? (
                   <img
-                    src={album.cover_image_url}
+                    src={addCacheBusting(album.cover_image_url) || album.cover_image_url}
                     alt={album.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                   />

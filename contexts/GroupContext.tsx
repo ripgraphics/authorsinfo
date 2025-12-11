@@ -39,18 +39,18 @@ export function GroupProvider({
     const initializeUser = async () => {
       try {
         console.log('Initializing user session...')
-        const { data: { session }, error } = await supabaseClient.auth.getSession()
+        const { data: { user }, error } = await supabaseClient.auth.getUser()
         if (error) {
-          console.error('Error getting session:', error)
+          console.error('Error authenticating user:', error)
           throw error
         }
         
-        console.log('Session data:', session)
-        if (session?.user) {
-          console.log('Current user:', session.user)
-          setUserId(session.user.id)
+        console.log('User data:', user)
+        if (user) {
+          console.log('Current user:', user)
+          setUserId(user.id)
         } else {
-          console.log('No user in session')
+          console.log('No authenticated user')
         }
 
         // Set up auth state change listener

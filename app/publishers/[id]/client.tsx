@@ -326,6 +326,7 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
         isEditable={user && user.role === "admin" ? true : undefined}
         entityId={publisher?.id}
         targetType="publisher"
+        isMessageable={true}
       />
       
       {/* Conditionally render content based on active tab */}
@@ -333,7 +334,7 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
         <div className="publisher-page__content">
           <div className="publisher-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
                   {/* Left Sidebar */}
-                  <div className="lg:col-span-1 space-y-6">
+                  <div className="lg:col-span-1 space-y-6 self-end sticky bottom-0">
                     {/* About Section */}
               <TimelineAboutSection
                 bio={publisher?.about || undefined}
@@ -348,7 +349,7 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
                       followersCount={followersCount}
                       entityId={params.id}
                       entityType="publisher"
-                      hideContainer={true}
+                      onViewMore={() => handleTabChange("followers")}
                     />
 
                     {/* Currently Reading Section */}

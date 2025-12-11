@@ -8,11 +8,11 @@ export async function POST(request: NextRequest) {
     // Get authenticated user from session
     const supabase = await createRouteHandlerClientAsync()
     
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    if (sessionError) {
-      console.error('Session error:', sessionError)
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError) {
+      console.error('User authentication error:', userError)
       return NextResponse.json(
-        { error: 'Failed to get session' },
+        { error: 'Failed to authenticate user' },
         { status: 500 }
       )
     }
@@ -81,11 +81,11 @@ export async function GET(request: NextRequest) {
     // Get authenticated user from session
     const supabase = await createRouteHandlerClientAsync()
     
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    if (sessionError) {
-      console.error('Session error:', sessionError)
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError) {
+      console.error('User authentication error:', userError)
       return NextResponse.json(
-        { error: 'Failed to get session' },
+        { error: 'Failed to authenticate user' },
         { status: 500 }
       )
     }

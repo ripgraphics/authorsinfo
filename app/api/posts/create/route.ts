@@ -7,12 +7,12 @@ export async function POST(request: NextRequest) {
     // 1. Authentication
     const supabase = await createRouteHandlerClientAsync()
     
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    if (sessionError || !session) {
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const userId = session.user.id
+    const userId = user.id
 
     // 2. Get request data
     const { content, entity_type, entity_id, visibility = 'public' } = await request.json()

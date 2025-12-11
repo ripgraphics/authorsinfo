@@ -1,10 +1,11 @@
 "use client"
 
-import React, { useState, useRef, useCallback } from 'react'
-import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop'
-import 'react-image-crop/dist/ReactCrop.css'
+import React, { useState, useCallback } from 'react'
+import Cropper from 'react-easy-crop'
+import type { Area, Point } from 'react-easy-crop'
 import { Button } from '@/components/ui/button'
-import { X, Loader2 } from 'lucide-react'
+import { Slider } from '@/components/ui/slider'
+import { X, Loader2, ZoomIn, ZoomOut } from 'lucide-react'
 
 interface ImageCropperProps {
   imageUrl: string
@@ -15,152 +16,105 @@ interface ImageCropperProps {
   targetHeight?: number
   isProcessing?: boolean
   circularCrop?: boolean
+  // Fully customizable text content
+  title?: string
+  cancelButtonText?: string
+  cropButtonText?: string
+  processingText?: string
+  helpText?: string
+  imageAltText?: string
+  // Fully customizable styling
+  modalWrapperClassName?: string
+  modalClassName?: string
+  headerClassName?: string
+  containerClassName?: string
+  footerClassName?: string
+  cancelButtonClassName?: string
+  cropButtonClassName?: string
+  minZoom?: number
+  maxZoom?: number
+  zoomStep?: number
 }
 
 export function ImageCropper({
   imageUrl,
   onCropComplete,
   onCancel,
-  aspectRatio = 1344 / 500, // Default aspect ratio
+  aspectRatio = 1344 / 500, // Default aspect ratio (wide/landscape for entity headers)
   targetWidth = 1344,
   targetHeight = 500,
   isProcessing = false,
-  circularCrop = false
+  circularCrop = false,
+  // Fully customizable text content with defaults
+  title = "Crop Image",
+  cancelButtonText = "Cancel",
+  cropButtonText = "Crop Image",
+  processingText = "Processing...",
+  helpText = "Click and drag to adjust crop area",
+  imageAltText = "Crop me",
+  // Fully customizable styling with defaults
+  modalWrapperClassName = "fixed inset-0 z-50 flex items-center justify-center bg-black/80",
+  modalClassName = "relative h-[95vh] max-h-[95vh] w-[95vw] max-w-[95vw] flex flex-col rounded-lg bg-white overflow-hidden",
+  headerClassName = "flex-shrink-0 flex items-center justify-between px-3 py-2 border-b",
+  containerClassName = "flex-1 min-h-0 overflow-hidden flex items-center justify-center bg-gray-50 p-4",
+  footerClassName = "flex-shrink-0 flex items-center justify-between px-3 py-2 border-t bg-white",
+  cancelButtonClassName = "h-7 px-3 text-xs",
+  cropButtonClassName = "h-7 px-3 text-xs",
+  minZoom = 1,
+  maxZoom = 3,
+  zoomStep = 0.1
 }: ImageCropperProps) {
-  const [crop, setCrop] = useState<Crop>()
-  const [completedCrop, setCompletedCrop] = useState<PixelCrop>()
-  const [imageLoaded, setImageLoaded] = useState(false)
+  const [crop, setCrop] = useState<Point>({ x: 0, y: 0 })
+  const [zoom, setZoom] = useState(1)
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
   const [internalProcessing, setInternalProcessing] = useState(false)
-  const imgRef = useRef<HTMLImageElement>(null)
-  const cropContainerRef = useRef<HTMLDivElement>(null)
 
   // Use external isProcessing if provided, otherwise use internal state
   const processing = isProcessing !== undefined ? isProcessing : internalProcessing
 
-  // Function to initialize crop - use full width for tall images
-  const initializeCrop = useCallback(
-    (mediaWidth: number, mediaHeight: number) => {
-      // Calculate if image is tall (height > width / aspectRatio means crop height > image height)
-      const cropHeightAtFullWidth = mediaWidth / aspectRatio
-      const isTallImage = mediaHeight > cropHeightAtFullWidth
-      
-      if (isTallImage) {
-        // For tall images: use full width, position at top
-        return makeAspectCrop(
-          {
-            unit: '%',
-            width: 100,
-            x: 0,
-            y: 0,
-          },
-          aspectRatio,
-          mediaWidth,
-          mediaHeight,
-        )
-      } else {
-        // For wide images: center the crop
-        return centerCrop(
-          makeAspectCrop(
-            {
-              unit: '%',
-              width: 90,
-            },
-            aspectRatio,
-            mediaWidth,
-            mediaHeight,
-          ),
-          mediaWidth,
-          mediaHeight,
-        )
-      }
-    },
-    [aspectRatio],
-  )
-
-  // Handle image load
-  const onImageLoad = useCallback(
-    (e: React.SyntheticEvent<HTMLImageElement>) => {
-      setImageLoaded(true)
-      if (aspectRatio) {
-        const { width, height } = e.currentTarget
-        setCrop(initializeCrop(width, height))
-      }
-    },
-    [aspectRatio, initializeCrop],
-  )
-
-  // Handle image error
-  const onImageError = useCallback(() => {
-    setImageLoaded(false)
-    console.error('Failed to load image')
+  // Handle crop complete from react-easy-crop
+  const onCropChange = useCallback((crop: Point) => {
+    setCrop(crop)
   }, [])
 
-  // Handle click outside crop area to start new crop
-  const handleImageClick = useCallback((e: React.MouseEvent<HTMLImageElement>) => {
-    if (!imgRef.current || !imageLoaded || processing) return
-    
-    const img = imgRef.current
-    const rect = img.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-    
-    // Check if click is within image bounds
-    if (x < 0 || y < 0 || x > rect.width || y > rect.height) return
-    
-    // Convert click position to percentage
-    const percentX = (x / rect.width) * 100
-    const percentY = (y / rect.height) * 100
-    
-    // Check if click is outside the current crop area
-    if (crop) {
-      const cropLeft = crop.x
-      const cropTop = crop.y
-      const cropRight = crop.x + crop.width
-      const cropBottom = crop.y + crop.height
-      
-      // If click is outside crop area, create new crop from click position
-      if (
-        percentX < cropLeft ||
-        percentX > cropRight ||
-        percentY < cropTop ||
-        percentY > cropBottom
-      ) {
-        // Create a new crop starting from the click position
-        const newCrop = makeAspectCrop(
-          {
-            unit: '%',
-            x: Math.max(0, Math.min(percentX, 100)),
-            y: Math.max(0, Math.min(percentY, 100)),
-            width: 30, // Start with 30% width
-          },
-          aspectRatio,
-          img.width,
-          img.height,
-        )
-        setCrop(newCrop)
-      }
-    } else {
-      // No existing crop, create one from click position
-      const newCrop = makeAspectCrop(
-        {
-          unit: '%',
-          x: Math.max(0, Math.min(percentX, 100)),
-          y: Math.max(0, Math.min(percentY, 100)),
-          width: 30, // Start with 30% width
-        },
-        aspectRatio,
-        img.width,
-        img.height,
-      )
-      setCrop(newCrop)
-    }
-  }, [crop, imageLoaded, processing, aspectRatio])
+  const onZoomChange = useCallback((zoom: number) => {
+    setZoom(Math.min(Math.max(zoom, minZoom), maxZoom))
+  }, [minZoom, maxZoom])
 
-  // Generate cropped image
-  const generateCroppedImage = async () => {
-    if (!imgRef.current || !completedCrop) return
+  const handleZoomIn = useCallback(() => {
+    setZoom(prev => Math.min(prev + zoomStep, maxZoom))
+  }, [zoomStep, maxZoom])
+
+  const handleZoomOut = useCallback(() => {
+    setZoom(prev => Math.max(prev - zoomStep, minZoom))
+  }, [zoomStep, minZoom])
+
+  const handleZoomSliderChange = useCallback((value: number[]) => {
+    setZoom(value[0])
+  }, [])
+
+  const onCropCompleteCallback = useCallback(
+    (croppedArea: Area, croppedAreaPixels: Area) => {
+      setCroppedAreaPixels(croppedAreaPixels)
+    },
+    []
+  )
+
+  // Generate cropped image from croppedAreaPixels
+  const generateCroppedImage = useCallback(async () => {
+    if (!croppedAreaPixels) return
 
     setInternalProcessing(true)
+
+    try {
+      const image = new Image()
+      image.crossOrigin = 'anonymous'
+      
+      await new Promise((resolve, reject) => {
+        image.onload = resolve
+        image.onerror = reject
+        image.src = imageUrl
+      })
 
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')
@@ -170,23 +124,24 @@ export function ImageCropper({
       return
     }
 
-    const scaleX = imgRef.current.naturalWidth / imgRef.current.width
-    const scaleY = imgRef.current.naturalHeight / imgRef.current.height
+      // Use target dimensions if provided, otherwise use cropped area dimensions
+      const outputWidth = targetWidth || croppedAreaPixels.width
+      const outputHeight = targetHeight || croppedAreaPixels.height
 
-    canvas.width = targetWidth
-    canvas.height = targetHeight
+      canvas.width = outputWidth
+      canvas.height = outputHeight
 
-    try {
+      // Draw the cropped image
       ctx.drawImage(
-        imgRef.current,
-        completedCrop.x * scaleX,
-        completedCrop.y * scaleY,
-        completedCrop.width * scaleX,
-        completedCrop.height * scaleY,
+        image,
+        croppedAreaPixels.x,
+        croppedAreaPixels.y,
+        croppedAreaPixels.width,
+        croppedAreaPixels.height,
         0,
         0,
-        targetWidth,
-        targetHeight,
+        outputWidth,
+        outputHeight
       )
 
       // Convert to blob
@@ -195,124 +150,23 @@ export function ImageCropper({
           if (blob) {
             onCropComplete(blob)
           }
-          // Don't reset processing state here - let parent component handle it
+          setInternalProcessing(false)
         },
         'image/jpeg',
         0.95
       )
     } catch (error) {
-      console.error('Error drawing image to canvas:', error)
+      console.error('Error generating cropped image:', error)
       setInternalProcessing(false)
-      // If CORS error, try to create a new image with crossOrigin
-      if (error instanceof Error && error.message.includes('tainted')) {
-        try {
-          // Create a new image element with crossOrigin
-          const newImg = new Image()
-          newImg.crossOrigin = 'anonymous'
-          
-          newImg.onload = () => {
-            const newCanvas = document.createElement('canvas')
-            const newCtx = newCanvas.getContext('2d')
-            
-            if (!newCtx) {
-              setInternalProcessing(false)
-              return
-            }
-            
-            newCanvas.width = targetWidth
-            newCanvas.height = targetHeight
-            
-            newCtx.drawImage(
-              newImg,
-              completedCrop.x * scaleX,
-              completedCrop.y * scaleY,
-              completedCrop.width * scaleX,
-              completedCrop.height * scaleY,
-              0,
-              0,
-              targetWidth,
-              targetHeight,
-            )
-            
-            newCanvas.toBlob(
-              (blob) => {
-                if (blob) {
-                  onCropComplete(blob)
-                }
-                // Don't reset processing state here - let parent component handle it
-              },
-              'image/jpeg',
-              0.95
-            )
-          }
-          
-          newImg.onerror = () => {
-            console.error('Failed to load image with crossOrigin')
-            setInternalProcessing(false)
-            // Fallback: try to fetch the image and create a blob URL
-            fetch(imageUrl)
-              .then(response => response.blob())
-              .then(blob => {
-                const url = URL.createObjectURL(blob)
-                const fallbackImg = new Image()
-                fallbackImg.onload = () => {
-                  const fallbackCanvas = document.createElement('canvas')
-                  const fallbackCtx = fallbackCanvas.getContext('2d')
-                  
-                  if (!fallbackCtx) {
-                    setInternalProcessing(false)
-                    return
-                  }
-                  
-                  fallbackCanvas.width = targetWidth
-                  fallbackCanvas.height = targetHeight
-                  
-                  fallbackCtx.drawImage(
-                    fallbackImg,
-                    completedCrop.x * scaleX,
-                    completedCrop.y * scaleY,
-                    completedCrop.width * scaleX,
-                    completedCrop.height * scaleY,
-                    0,
-                    0,
-                    targetWidth,
-                    targetHeight,
-                  )
-                  
-                  fallbackCanvas.toBlob(
-                    (blob) => {
-                      if (blob) {
-                        onCropComplete(blob)
-                      }
-                      // Don't reset processing state here - let parent component handle it
-                    },
-                    'image/jpeg',
-                    0.95
-                  )
-                }
-                fallbackImg.src = url
-              })
-              .catch(fetchError => {
-                console.error('Failed to fetch image:', fetchError)
-                setInternalProcessing(false)
-              })
-          }
-          
-          newImg.src = imageUrl
-        } catch (fallbackError) {
-          console.error('Fallback error:', fallbackError)
-          setInternalProcessing(false)
-        }
-      }
     }
-  }
+  }, [croppedAreaPixels, imageUrl, targetWidth, targetHeight, onCropComplete])
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
-      <div className="relative max-h-[95vh] max-w-[95vw] flex flex-col rounded-lg bg-white overflow-hidden">
-        {/* Fixed Header */}
-        <div className="flex-shrink-0 flex items-center justify-between px-3 py-2 border-b">
-          <h3 className="text-sm font-semibold">Crop Image</h3>
+    <div className={modalWrapperClassName}>
+      <div className={modalClassName}>
+        {/* Fully Customizable Header */}
+        <div className={headerClassName}>
+          <h3 className="text-sm font-semibold">{title}</h3>
           <Button
             variant="ghost"
             size="sm"
@@ -324,75 +178,121 @@ export function ImageCropper({
           </Button>
         </div>
 
-        {/* Scrollable Image Cropper Container */}
+        {/* Fully Customizable Image Cropper Container */}
         <div 
-          ref={cropContainerRef} 
-          className="flex-1 overflow-auto flex items-start justify-center bg-gray-50"
-          style={{ minHeight: 0 }}
+          className={containerClassName}
+          style={{ 
+            minHeight: 0,
+            height: '100%',
+            maxHeight: '100%',
+            width: '100%',
+            maxWidth: '100%',
+            position: 'relative',
+            overflow: 'hidden',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
         >
-          <div className="p-2">
-            <ReactCrop
-              crop={crop}
-              onChange={(_, percentCrop) => setCrop(percentCrop)}
-              onComplete={(c) => setCompletedCrop(c)}
-              aspect={aspectRatio}
-              minWidth={50}
-              minHeight={50}
-              ruleOfThirds
-              circularCrop={circularCrop}
-              className="max-w-full"
-              disabled={!imageLoaded || processing}
-            >
-              <img
-                ref={imgRef}
-                alt="Crop me"
-                src={imageUrl}
-                crossOrigin="anonymous"
-                style={{
-                  maxWidth: '100%',
-                  height: 'auto',
-                  display: 'block',
-                  cursor: 'crosshair',
-                  margin: '0 auto',
-                }}
-                onLoad={onImageLoad}
-                onError={onImageError}
-                onClick={handleImageClick}
-              />
-            </ReactCrop>
-          </div>
+          <Cropper
+            image={imageUrl}
+            crop={crop}
+            zoom={zoom}
+            aspect={aspectRatio}
+            onCropChange={onCropChange}
+            onZoomChange={onZoomChange}
+            onCropComplete={onCropCompleteCallback}
+            cropShape={circularCrop ? 'round' : 'rect'}
+            showGrid={true}
+            restrictPosition={true}
+            style={{
+              containerStyle: {
+                width: '100%',
+                height: '100%',
+                position: 'relative'
+              },
+              cropAreaStyle: {
+                border: '2px solid #fff'
+              }
+            }}
+          />
         </div>
 
-        {/* Fixed Footer */}
-        <div className="flex-shrink-0 flex items-center justify-between px-3 py-2 border-t bg-white">
+        {/* Fully Customizable Footer */}
+        <div className={footerClassName}>
+          <div className="flex-1 flex flex-col gap-3">
+            {/* Zoom Controls */}
+            <div className="flex items-center gap-3 px-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleZoomOut}
+                disabled={processing || zoom <= minZoom}
+                className="h-7 w-7 p-0"
+                title="Zoom Out"
+              >
+                <ZoomOut className="h-4 w-4" />
+              </Button>
+              <div className="flex-1 flex items-center gap-2">
+                <span className="text-xs text-gray-500 min-w-[3rem] text-right">
+                  {Math.round(zoom * 100)}%
+                </span>
+                <Slider
+                  value={[zoom]}
+                  onValueChange={handleZoomSliderChange}
+                  min={minZoom}
+                  max={maxZoom}
+                  step={zoomStep}
+                  disabled={processing}
+                  className="flex-1"
+                />
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleZoomIn}
+                disabled={processing || zoom >= maxZoom}
+                className="h-7 w-7 p-0"
+                title="Zoom In"
+              >
+                <ZoomIn className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            {/* Help Text and Action Buttons */}
+            <div className="flex items-center justify-between">
+              {helpText && (
           <div className="text-xs text-gray-500">
-            Click and drag to adjust crop area
+                  {helpText}
           </div>
-          <div className="flex gap-2">
+              )}
+              <div className="flex gap-2 ml-auto">
             <Button 
               variant="outline" 
               size="sm"
               onClick={onCancel} 
               disabled={processing}
-              className="h-7 px-3 text-xs"
+                  className={cancelButtonClassName}
             >
-              Cancel
+                  {cancelButtonText}
             </Button>
             <Button
               size="sm"
               onClick={generateCroppedImage}
-              disabled={!completedCrop || !imageLoaded || processing}
-              className="h-7 px-3 text-xs"
+                  disabled={!croppedAreaPixels || processing}
+                  className={cropButtonClassName}
             >
               {processing ? (
                 <>
                   <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
-                  Processing...
+                      {processingText}
                 </>
               ) : (
-                'Crop Image'
+                    cropButtonText
               )}
             </Button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

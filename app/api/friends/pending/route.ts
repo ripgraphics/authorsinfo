@@ -15,25 +15,23 @@ export async function GET(request: NextRequest) {
       }, { status: 500 })
     }
 
-    // Get the current user from session - use getSession for consistency with other routes
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    // Get the current user - use getUser() to authenticate with Supabase Auth server
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
     
-    if (sessionError) {
-      console.error('❌ Session error:', sessionError)
+    if (userError) {
+      console.error('❌ User authentication error:', userError)
       return NextResponse.json({ 
-        error: 'Failed to get session',
-        details: sessionError.message
+        error: 'Failed to authenticate user',
+        details: userError.message
       }, { status: 500 })
     }
     
-    if (!session?.user) {
-      console.log('❌ No user found in session')
+    if (!user) {
+      console.log('❌ No authenticated user found')
       return NextResponse.json({ 
-        error: 'Unauthorized - No user session found'
+        error: 'Unauthorized - No authenticated user found'
       }, { status: 401 })
     }
-    
-    const user = session.user
 
     
 

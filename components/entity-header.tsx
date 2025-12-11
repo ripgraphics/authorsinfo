@@ -25,6 +25,8 @@ import { FollowButton } from '@/components/follow-button'
 import { EntityImageUpload } from '@/components/entity/EntityImageUpload'
 import { AddFriendButton } from '@/components/add-friend-button'
 import { ImageCropper } from '@/components/ui/image-cropper'
+import { CameraIconButton } from '@/components/ui/camera-icon-button'
+import { HoverOverlay } from '@/components/ui/hover-overlay'
 import {
   Dialog,
   DialogContent,
@@ -233,6 +235,8 @@ export function EntityHeader({
     header?: string
     avatar?: string
   }>({})
+  const [isHoveringCover, setIsHoveringCover] = useState(false)
+  const [isCoverDropdownOpen, setIsCoverDropdownOpen] = useState(false)
   const { toast } = useToast()
 
   useEffect(() => {
@@ -284,29 +288,65 @@ export function EntityHeader({
       // Process header images - FIRST PRIORITY: entity header image
       let foundEntityHeaderImage = false;
       
+      console.log('🔍 Header data response:', { 
+        success: headerData.success, 
+        albumsCount: headerData.albums?.length || 0,
+        albums: headerData.albums?.map((a: any) => ({ id: a.id, name: a.name, imagesCount: a.images?.length || 0 }))
+      });
+      
       if (headerData.success && headerData.albums && headerData.albums.length > 0) {
         const headerAlbum = headerData.albums[0];
+        console.log('🔍 Header album details:', { 
+          id: headerAlbum.id, 
+          name: headerAlbum.name, 
+          imagesCount: headerAlbum.images?.length || 0,
+          images: headerAlbum.images?.map((img: any) => ({ 
+            id: img.id, 
+            is_cover: img.is_cover, 
+            hasImage: !!img.image,
+            imageUrl: img.image?.url || 'NO URL',
+            imageId: img.image?.id || 'NO ID'
+          }))
+        });
         
         if (headerAlbum.images && headerAlbum.images.length > 0) {
-          let headerImage = headerAlbum.images.find((img: any) => img.is_cover);
+          // Filter out images with null image objects
+          const validImages = headerAlbum.images.filter((img: any) => img.image && img.image.url);
+          console.log(`🔍 Filtered ${validImages.length} valid images from ${headerAlbum.images.length} total`);
           
-          if (!headerImage) {
-            headerImage = headerAlbum.images.reduce((latest: any, current: any) => {
-              if (!latest) return current;
-              const latestDate = new Date(latest.image?.created_at || 0);
-              const currentDate = new Date(current.image?.created_at || 0);
-              return currentDate > latestDate ? current : latest;
-            });
+          if (validImages.length > 0) {
+            let headerImage = validImages.find((img: any) => img.is_cover);
+            
+            if (!headerImage) {
+              headerImage = validImages.reduce((latest: any, current: any) => {
+                if (!latest) return current;
+                const latestDate = new Date(latest.image?.created_at || 0);
+                const currentDate = new Date(current.image?.created_at || 0);
+                return currentDate > latestDate ? current : latest;
+              });
+            }
+            
+            if (headerImage && headerImage.image) {
+              console.log('✅ Found entity header image, setting:', headerImage.image.url);
+              setEntityImages(prev => ({ ...prev, header: headerImage.image.url }));
+              setCoverImage(headerImage.image.url);
+              setImageVersion(prev => prev + 1); // Force image reload
+              foundEntityHeaderImage = true;
+            } else {
+              console.warn('⚠️ Header image found but missing image object:', headerImage);
+            }
+          } else {
+            console.warn('⚠️ No valid images found in header album (all images have null image objects)');
           }
-          
-          if (headerImage && headerImage.image) {
-            console.log('✅ Found entity header image, setting:', headerImage.image.url);
-            setEntityImages(prev => ({ ...prev, header: headerImage.image.url }));
-            setCoverImage(headerImage.image.url);
-            setImageVersion(prev => prev + 1); // Force image reload
-            foundEntityHeaderImage = true;
-          }
+        } else {
+          console.warn('⚠️ Header album has no images array or empty images array');
         }
+      } else {
+        console.warn('⚠️ No header albums found or request failed:', { 
+          success: headerData.success, 
+          error: headerData.error,
+          albumsCount: headerData.albums?.length || 0
+        });
       }
       
       // FALLBACK: Only use book cover if no entity header image was found
@@ -317,27 +357,63 @@ export function EntityHeader({
       }
       
       // Process avatar images
+      console.log('🔍 Avatar data response:', { 
+        success: avatarData.success, 
+        albumsCount: avatarData.albums?.length || 0,
+        albums: avatarData.albums?.map((a: any) => ({ id: a.id, name: a.name, imagesCount: a.images?.length || 0 }))
+      });
+      
       if (avatarData.success && avatarData.albums && avatarData.albums.length > 0) {
         const avatarAlbum = avatarData.albums[0];
+        console.log('🔍 Avatar album details:', { 
+          id: avatarAlbum.id, 
+          name: avatarAlbum.name, 
+          imagesCount: avatarAlbum.images?.length || 0,
+          images: avatarAlbum.images?.map((img: any) => ({ 
+            id: img.id, 
+            is_cover: img.is_cover, 
+            hasImage: !!img.image,
+            imageUrl: img.image?.url || 'NO URL',
+            imageId: img.image?.id || 'NO ID'
+          }))
+        });
         
         if (avatarAlbum.images && avatarAlbum.images.length > 0) {
-          let avatarImage = avatarAlbum.images.find((img: any) => img.is_cover);
+          // Filter out images with null image objects
+          const validImages = avatarAlbum.images.filter((img: any) => img.image && img.image.url);
+          console.log(`🔍 Filtered ${validImages.length} valid images from ${avatarAlbum.images.length} total`);
           
-          if (!avatarImage) {
-            avatarImage = avatarAlbum.images.reduce((latest: any, current: any) => {
-              if (!latest) return current;
-              const latestDate = new Date(latest.image?.created_at || 0);
-              const currentDate = new Date(current.image?.created_at || 0);
-              return currentDate > latestDate ? current : latest;
-            });
+          if (validImages.length > 0) {
+            let avatarImage = validImages.find((img: any) => img.is_cover);
+            
+            if (!avatarImage) {
+              avatarImage = validImages.reduce((latest: any, current: any) => {
+                if (!latest) return current;
+                const latestDate = new Date(latest.image?.created_at || 0);
+                const currentDate = new Date(current.image?.created_at || 0);
+                return currentDate > latestDate ? current : latest;
+              });
+            }
+            
+            if (avatarImage && avatarImage.image) {
+              console.log('✅ Setting avatar image:', avatarImage.image.url);
+              setEntityImages(prev => ({ ...prev, avatar: avatarImage.image.url }));
+              setAvatarImage(avatarImage.image.url);
+            } else {
+              console.warn('⚠️ Avatar image found but missing image object:', avatarImage);
+            }
+          } else {
+            console.warn('⚠️ No valid images found in avatar album (all images have null image objects)');
           }
-          
-          if (avatarImage && avatarImage.image) {
-            console.log('✅ Setting avatar image:', avatarImage.image.url);
-            setEntityImages(prev => ({ ...prev, avatar: avatarImage.image.url }));
-            setAvatarImage(avatarImage.image.url);
-          }
+        } else {
+          console.warn('⚠️ Avatar album has no images array or empty images array');
         }
+      } else {
+        console.warn('⚠️ No avatar albums found or request failed:', { 
+          success: avatarData.success, 
+          error: avatarData.error,
+          albumsCount: avatarData.albums?.length || 0
+        });
       }
       
     } catch (error) {
@@ -911,12 +987,7 @@ export function EntityHeader({
             size="sm"
           />
         )}
-        {isMessageable && onMessage && (
-          <Button className="entity-header__message-button flex items-center" onClick={onMessage}>
-            <MessageSquare className="h-4 w-4 mr-2" />
-            <span className="entity-header__message-text hidden sm:inline">Message</span>
-          </Button>
-        )}
+        {/* Follow button */}
         {entityId && targetType && (
           <FollowButton
             entityId={entityId}
@@ -927,11 +998,29 @@ export function EntityHeader({
             onFollowChange={onFollow}
           />
         )}
-        {!isEditable && (
-          <Button variant="outline" size="icon">
-            <MoreHorizontal className="h-4 w-4" />
+        {/* Message button - shown by default when isMessageable is true */}
+        {isMessageable && (
+          <Button className="entity-header__message-button flex items-center" onClick={onMessage}>
+            <MessageSquare className="h-4 w-4 mr-2" />
+            Message
           </Button>
         )}
+        {/* More options dropdown - always visible */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon" className="entity-header__more-button">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem className="entity-header__share-option flex items-center cursor-pointer">
+              Share
+            </DropdownMenuItem>
+            <DropdownMenuItem className="entity-header__report-option flex items-center cursor-pointer">
+              Report
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </>
     )
   }
@@ -943,7 +1032,15 @@ export function EntityHeader({
     const imageUrl = coverImage ? `${coverImage}?t=${imageVersion}` : ''
 
     return (
-      <div className="entity-header__cover-container relative w-full aspect-[1344/500] bg-muted">
+      <div 
+        className="entity-header__cover-container relative w-full aspect-[1344/500] bg-muted"
+        onMouseEnter={() => setIsHoveringCover(true)}
+        onMouseLeave={() => {
+          if (!isCoverDropdownOpen) {
+            setIsHoveringCover(false)
+          }
+        }}
+      >
         {coverImage && (
           <Image
             src={imageUrl}
@@ -955,35 +1052,34 @@ export function EntityHeader({
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
           />
         )}
-        {isEditable && (
-          <div className="absolute bottom-4 right-4 flex gap-2">
-            {coverImage && (
-              <button
-                className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input hover:text-accent-foreground h-9 rounded-md px-3 entity-header__crop-cover-button bg-white/80 hover:bg-white"
-                onClick={() => setIsCropModalOpen(true)}
-                disabled={isProcessing}
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <Crop className="h-4 w-4 mr-2" />
-                    Crop
-                  </>
-                )}
-              </button>
-            )}
-            <button
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input hover:text-accent-foreground h-9 rounded-md px-3 entity-header__cover-image-button bg-white/80 hover:bg-white"
-              onClick={() => setIsCoverModalOpen(true)}
-            >
-              <Camera className="h-4 w-4 mr-2" />
-              Change Cover
-            </button>
-          </div>
+        {isEditable && (isHoveringCover || isCoverDropdownOpen) && (
+          <HoverOverlay
+            isVisible={isHoveringCover || isCoverDropdownOpen}
+            onMouseEnter={() => setIsHoveringCover(true)}
+            onMouseLeave={() => {
+              if (!isCoverDropdownOpen) {
+                setIsHoveringCover(false)
+              }
+            }}
+          >
+            <CameraIconButton
+              onChangeCover={() => {
+                setIsCoverModalOpen(true)
+                setIsCoverDropdownOpen(false)
+              }}
+              onCrop={coverImage ? () => {
+                setIsCropModalOpen(true)
+                setIsCoverDropdownOpen(false)
+              } : undefined}
+              showCrop={!!coverImage}
+              onOpenChange={(open) => {
+                setIsCoverDropdownOpen(open)
+                if (!open) {
+                  setIsHoveringCover(false)
+                }
+              }}
+            />
+          </HoverOverlay>
         )}
       </div>
     )
@@ -1145,8 +1241,8 @@ export function EntityHeader({
             entityId={entityType === 'group' ? group?.id || '' : (entityId || '')}
             entityType={entityType}
             currentImageUrl={coverImage}
-            onImageChange={setCoverImage}
-            type="cover"
+            onImageChange={(url) => setCoverImage(url)}
+            type="entityHeaderCover"
             isOpen={isCoverModalOpen}
             onOpenChange={setIsCoverModalOpen}
           />
@@ -1154,7 +1250,7 @@ export function EntityHeader({
             entityId={entityType === 'group' ? group?.id || '' : (entityId || '')}
             entityType={entityType}
             currentImageUrl={avatarImage}
-            onImageChange={setAvatarImage}
+            onImageChange={(url) => setAvatarImage(url)}
             type="avatar"
             isOpen={isAvatarModalOpen}
             onOpenChange={setIsAvatarModalOpen}
@@ -1162,13 +1258,8 @@ export function EntityHeader({
         </>
       )}
 
-      {/* Crop Cover Image Modal */}
-      {isEditable && coverImage && (
-        <Dialog open={isCropModalOpen} onOpenChange={setIsCropModalOpen}>
-          <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>Crop Entity Header Cover</DialogTitle>
-            </DialogHeader>
+      {/* Crop Cover Image Modal - ImageCropper creates its own modal */}
+      {isEditable && coverImage && isCropModalOpen && (
             <ImageCropper
               imageUrl={coverImage}
               aspectRatio={1344 / 500}
@@ -1177,9 +1268,9 @@ export function EntityHeader({
               onCropComplete={handleCropCover}
               onCancel={handleCropCancel}
               isProcessing={isProcessing}
+          title="Crop Entity Header Cover"
+          helpText="Adjust the crop area to frame your cover image"
             />
-          </DialogContent>
-        </Dialog>
       )}
 
       {/* Crop Avatar Image Modal */}

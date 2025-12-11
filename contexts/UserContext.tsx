@@ -91,17 +91,17 @@ export function UserProvider({ children }: { children: ReactNode }) {
     isInitialized.current = true
 
     try {
-      const { data: { session }, error } = await supabase.auth.getSession()
+      const { data: { user }, error } = await supabase.auth.getUser()
       if (error) throw error
       
-      if (session?.user) {
+      if (user) {
         const userData = await fetchUserData()
         if (userData) {
           debouncedSetUser(userData)
         } else {
           // Fallback to user without role and permalink
           const userWithRole = {
-            ...session.user,
+            ...user,
             role: 'user',
             permalink: null
           }
@@ -131,7 +131,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         } else {
           // Fallback to user without role and permalink
           const userWithRole = {
-            ...session.user,
+            ...user,
             role: 'user',
             permalink: null
           }

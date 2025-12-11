@@ -40,46 +40,131 @@ export async function GET(request: NextRequest) {
     
     
     const { searchParams } = new URL(request.url)
+    const albumId = searchParams.get('albumId')  // ✅ If albumId is provided, use it directly
     let entityId = searchParams.get('entityId')
     const entityType = searchParams.get('entityType') as EntityType
     const albumPurpose = searchParams.get('albumPurpose') as AlbumPurpose
 
-    
+    const supabase = await createRouteHandlerClientAsync()
 
+    // If albumId is provided, just get that album - no need for entity_id/entity_type
+    if (albumId) {
+      const { data: album, error: albumError } = await supabase
+        .from('photo_albums')
+        .select(`
+          id,
+          name,
+          description,
+          is_public,
+          cover_image_id,
+          created_at,
+          updated_at,
+          metadata,
+          entity_id,
+          entity_type
+        `)
+        .eq('id', albumId)
+        .single()
+
+      if (albumError || !album) {
+        return NextResponse.json({
+          success: false,
+          error: 'Album not found'
+        }, { status: 404 })
+      }
+
+      // Use the album's entity_id and entity_type if not provided
+      if (!entityId) entityId = album.entity_id
+      if (!entityType && album.entity_type) {
+        const albums = [album]
+        // Continue to get images for this album
+        const albumsWithImages = await Promise.all(
+          albums.map(async (alb) => {
+            // Get images for this album
+            const { data: albumImages } = await supabase
+              .from('album_images')
+              .select(`
+                id,
+                image_id,
+                entity_id,
+                display_order,
+                is_cover,
+                is_featured,
+                created_at,
+                metadata
+              `)
+              .eq('album_id', alb.id)
+              .order('display_order', { ascending: true })
+
+            if (!albumImages || albumImages.length === 0) {
+              return { ...alb, images: [] }
+            }
+
+            const imageIds = albumImages.map(ai => ai.image_id).filter(Boolean)
+            const { data: allImages } = await supabase
+              .from('images')
+              .select(`
+                id,
+                url,
+                alt_text,
+                description,
+                caption,
+                metadata,
+                created_at
+              `)
+              .in('id', imageIds)
+
+            const imageMap = new Map((allImages || []).map(img => [img.id, img]))
+            const imagesWithDetails = albumImages.map((albumImage) => {
+              const imageDetails = imageMap.get(albumImage.image_id)
+              if (!imageDetails) {
+                return { ...albumImage, image: null }
+              }
+              return {
+                ...albumImage,
+                image: imageDetails,
+                alt_text: imageDetails.alt_text,
+                description: imageDetails.description || imageDetails.caption
+              }
+            }).filter(item => item.image !== null)
+
+            return { ...alb, images: imagesWithDetails }
+          })
+        )
+
+        return NextResponse.json({
+          success: true,
+          albums: albumsWithImages
+        })
+      }
+    }
+
+    // If no albumId, fall back to entity-based query
     if (!entityId || !entityType) {
-      
       return NextResponse.json({
         success: false,
-        error: 'entityId and entityType are required'
+        error: 'Either albumId or (entityId and entityType) are required'
       }, { status: 400 })
     }
 
-    const supabase = await createRouteHandlerClientAsync()
-
-    // Resolve permalink to UUID if necessary (users/books/authors/publishers/events)
+    // Resolve permalink to UUID if necessary
     if (entityId && entityType) {
-      // If entityId does not look like a UUID, try to resolve by permalink
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
       if (!uuidRegex.test(entityId)) {
-        const supabaseResolve = supabase
         const table = entityType === 'user' ? 'users' : entityType + 's'
-        const idCol = 'id'
-        const { data: resolved, error: resolveError } = await supabaseResolve
+        const { data: resolved } = await supabase
           .from(table)
           .select('id, permalink')
           .or(`id.eq.${entityId},permalink.eq.${entityId}`)
           .maybeSingle()
 
-        if (resolveError) {
-          
-        }
         if (resolved?.id) {
           entityId = resolved.id
         }
       }
     }
 
-    // Build query to find albums based on entity and purpose
+    // Build query to find albums - SIMPLIFIED: just by entity_id, no entity_type filter
     try {
       let query = supabase
         .from('photo_albums')
@@ -91,78 +176,39 @@ export async function GET(request: NextRequest) {
           cover_image_id,
           created_at,
           updated_at,
-          metadata
+          metadata,
+          entity_id,
+          entity_type
         `)
-        .eq('entity_id', entityId)
-        .eq('entity_type', entityType)
+        .eq('entity_id', entityId)  // Only filter by entity_id
 
-      // If albumPurpose is specified, filter by metadata
+      // If albumPurpose is specified, find by name (exact match required)
       if (albumPurpose) {
-        query = query.contains('metadata', { album_purpose: albumPurpose })
-      }
-
-      // Debug: Let's also check what albums exist without any filters
-      
-      const { data: allAlbumsForEntity, error: allAlbumsError } = await supabase
-        .from('photo_albums')
-        .select('id, name, entity_id, entity_type, metadata')
-        .eq('entity_id', entityId)
-        .eq('entity_type', entityType)
-    
-    if (allAlbumsError) {
-      console.error('Error fetching albums:', allAlbumsError)
-      return NextResponse.json({
-        success: false,
-        error: `Failed to fetch albums: ${allAlbumsError.message}`
-      }, { status: 500 })
-    }
-    
-    
-    
-    // 🔧 ONE-TIME FIX: Repair existing albums that are missing album_purpose metadata
-    if (allAlbumsForEntity && allAlbumsForEntity.length > 0) {
-      
-      
-      for (const album of allAlbumsForEntity) {
-        if (!album.metadata?.album_purpose) {
-          // Determine album purpose from name
-          let inferredAlbumPurpose: string | null = null
-          if (album.name === 'Header Cover Images') {
-            inferredAlbumPurpose = 'entity_header'
-          } else if (album.name === 'Avatar Images') {
-            inferredAlbumPurpose = 'avatar'
-          } else if (album.name === 'Cover Images') {
-            inferredAlbumPurpose = 'cover'
-          } else if (album.name === 'Gallery Images') {
-            inferredAlbumPurpose = 'gallery'
-          } else if (album.name === 'Post Images') {
-            inferredAlbumPurpose = 'posts'
-          }
-          
-          if (inferredAlbumPurpose) {
-            
-            await supabase
-              .from('photo_albums')
-              .update({
-                metadata: {
-                  ...(album.metadata || {}),
-                  album_purpose: inferredAlbumPurpose
-                }
-              })
-              .eq('id', album.id)
-            
-            // Update the local album object so the query below works
-            album.metadata = {
-              ...(album.metadata || {}),
-              album_purpose: inferredAlbumPurpose
-            }
-          }
+        const albumNameMap: Record<AlbumPurpose, string> = {
+          cover: 'Cover Images',
+          avatar: 'Avatar Images',
+          entity_header: 'Header Cover Images',
+          gallery: 'Gallery Images',
+          posts: 'Post Images'
         }
+        const expectedAlbumName = albumNameMap[albumPurpose]
+        console.log(`🔍 Querying albums for: entityId=${entityId}, entityType=${entityType}, albumPurpose=${albumPurpose}, expectedName="${expectedAlbumName}"`)
+        query = query.eq('name', expectedAlbumName)
+      } else {
+        console.log(`🔍 Querying albums for: entityId=${entityId}, entityType=${entityType}, albumPurpose=ALL`)
       }
-    }
+      
+      // If no album found and albumPurpose is specified, return empty - don't show wrong album
 
-    
-    const { data: albums, error } = await query
+      const { data: albums, error } = await query
+      
+      console.log(`🔍 Album query result: ${albums?.length || 0} albums found`, {
+        entityId,
+        entityType,
+        albumPurpose,
+        albumNames: albums?.map(a => a.name) || [],
+        error: error?.message
+      })
 
     
 
@@ -175,24 +221,60 @@ export async function GET(request: NextRequest) {
     }
 
     // Get images for each album with full image details
+    // Also query album_images directly by entity_id to catch any orphaned records
     
     const albumsWithImages = await Promise.all(
       (albums || []).map(async (album) => {
         try {
           console.log(`🖼️ Fetching album_images for album ${album.id} (${album.name})...`)
+          
+          // If album.entity_type is missing, try to extract from images.storage_path
+          let actualEntityType = album.entity_type || entityType;
+          if (!actualEntityType) {
+            // Get a sample image to extract entity_type from storage_path
+            const { data: sampleImage } = await supabase
+              .from('album_images')
+              .select('images(storage_path)')
+              .eq('album_id', album.id)
+              .limit(1)
+              .single();
+            
+            if (sampleImage?.images?.storage_path) {
+              const path = sampleImage.images.storage_path.toLowerCase();
+              if (path.includes('book_')) actualEntityType = 'book';
+              else if (path.includes('author_')) actualEntityType = 'author';
+              else if (path.includes('publisher_')) actualEntityType = 'publisher';
+              else if (path.includes('event_')) actualEntityType = 'event';
+              else if (path.includes('user_') || path.includes('user_photos') || path.includes('user_album')) actualEntityType = 'user';
+            }
+          }
+          
+          // Query album_images by album_id only - we don't need entity_id filter
+          // The album already belongs to the entity, so all images in the album should be shown
           const { data: albumImages, error: albumImagesError } = await supabase
             .from('album_images')
             .select(`
               id,
               image_id,
+              entity_id,
               display_order,
               is_cover,
               is_featured,
               created_at,
               metadata
             `)
-            .eq('album_id', album.id)
+            .eq('album_id', album.id)  // Only filter by album_id - that's all we need
             .order('display_order', { ascending: true })
+          
+          console.log(`🖼️ Found ${albumImages?.length || 0} album_images for album ${album.id}`)
+          
+          if (!albumImages || albumImages.length === 0) {
+            console.log(`⚠️ No album_images found for album ${album.id}, returning empty images array`)
+            return {
+              ...album,
+              images: []
+            }
+          }
 
           if (albumImagesError) {
             console.error(`❌ Error fetching images for album ${album.id}:`, albumImagesError)
@@ -237,55 +319,76 @@ export async function GET(request: NextRequest) {
             }
           }
 
-          // Get full image details for each album image
+          // Get all images from images table in one query (more efficient)
+          const imageIds = albumImages.map(ai => ai.image_id).filter(Boolean)
           
-          const imagesWithDetails = await Promise.all(
-            (albumImages || []).map(async (albumImage) => {
-              try {
-                console.log(`🖼️ Fetching image details for image_id: ${albumImage.image_id}`)
-                const { data: imageDetails, error: imageError } = await supabase
-                  .from('images')
-                  .select(`
-                    id,
-                    url,
-                    alt_text,
-                    description,
-                    caption,
-                    metadata,
-                    created_at
-                  `)
-                  .eq('id', albumImage.image_id)
-                  .single()
-
-                if (imageError) {
-                  console.error(`❌ Error fetching image ${albumImage.image_id}:`, imageError)
-                  return {
-                    ...albumImage,
-                    image: null
-                  }
-                }
-
-                
-                return {
-                  ...albumImage,
-                  image: imageDetails,
-                  // Include the image alt_text and description
-                  alt_text: imageDetails?.alt_text,
-                  description: imageDetails?.description || imageDetails?.caption
-                }
-              } catch (imageError) {
-                console.error(`❌ Error processing image ${albumImage.image_id}:`, imageError)
-                return {
-                  ...albumImage,
-                  image: null
-                }
+          if (imageIds.length === 0) {
+            console.log(`⚠️ No image_ids found in album_images for album ${album.id}`)
+            return {
+              ...album,
+              images: []
+            }
+          }
+          
+          console.log(`🖼️ Fetching ${imageIds.length} images from images table...`)
+          const { data: allImages, error: imagesError } = await supabase
+            .from('images')
+            .select(`
+              id,
+              url,
+              alt_text,
+              description,
+              caption,
+              metadata,
+              created_at
+            `)
+            .in('id', imageIds)
+          
+          if (imagesError) {
+            console.error(`❌ Error fetching images:`, imagesError)
+            return {
+              ...album,
+              images: []
+            }
+          }
+          
+          // Create a map of image_id -> image for quick lookup
+          const imageMap = new Map((allImages || []).map(img => [img.id, img]))
+          
+          // Match album_images with their images
+          const imagesWithDetails = albumImages.map((albumImage) => {
+            const imageDetails = imageMap.get(albumImage.image_id)
+            
+            if (!imageDetails) {
+              console.warn(`⚠️ Image ${albumImage.image_id} not found in images table`)
+              return {
+                ...albumImage,
+                image: null,
+                error: 'Image not found in images table'
               }
-            })
-          )
+            }
+            
+            // Log if it's a blob URL for debugging
+            if (imageDetails.url && (imageDetails.url.startsWith('blob:') || imageDetails.url.startsWith('data:'))) {
+              console.warn(`⚠️ Image ${albumImage.image_id} has invalid URL (blob/data): ${imageDetails.url.substring(0, 50)}...`)
+            }
+            
+            return {
+              ...albumImage,
+              image: imageDetails,
+              alt_text: imageDetails.alt_text,
+              description: imageDetails.description || imageDetails.caption
+            }
+          })
+          
+          const validImages = imagesWithDetails.filter(item => item.image !== null)
+          const invalidImages = imagesWithDetails.filter(item => item.image === null)
+          console.log(`🖼️ Album ${album.id} (${album.name}): ${validImages.length} valid images, ${invalidImages.length} invalid/missing images`)
 
+          // Return only valid images (filter out null image objects)
           return {
             ...album,
-            images: imagesWithDetails || []
+            images: validImages || []
           }
         } catch (albumError) {
           console.error(`❌ Error processing album ${album.id}:`, albumError)
@@ -339,7 +442,10 @@ export async function POST(request: NextRequest) {
       metadata = {}
     } = body
 
+    console.log(`📥 Album addition request:`, { entityId, entityType, albumPurpose, imageId, isCover, isFeatured })
+
     if (!entityId || !entityType || !albumPurpose) {
+      console.error('❌ Missing required parameters:', { entityId, entityType, albumPurpose })
       return NextResponse.json({
         success: false,
         error: 'entityId, entityType, and albumPurpose are required'
@@ -352,19 +458,20 @@ export async function POST(request: NextRequest) {
      const { data: { user }, error: userError } = await supabase.auth.getUser()
      
      if (userError || !user) {
-       console.error('Error getting authenticated user:', userError)
+       console.error('❌ Error getting authenticated user:', userError)
        return NextResponse.json({
          success: false,
          error: 'Authentication required to create albums'
        }, { status: 401 })
      }
      
-     console.log('Authenticated user:', user.id)
+     console.log(`✅ Authenticated user: ${user.id}`)
  
      let finalImageId = imageId
 
     // If imageUrl is provided but no imageId, create image record first
     if (imageUrl && !imageId) {
+      console.log(`💾 Creating image record from URL: ${imageUrl}`)
       const { data: imageData, error: imageError } = await supabase
         .from('images')
         .insert({
@@ -372,10 +479,10 @@ export async function POST(request: NextRequest) {
           alt_text: altText,
           caption: caption,
           metadata: {
-            ...metadata,
-            entity_type: entityType,
-            entity_id: entityId,
-            album_purpose: albumPurpose,
+            // Only file metadata - NO entity info
+            ...(metadata?.file_size && { file_size: metadata.file_size }),
+            ...(metadata?.mime_type && { mime_type: metadata.mime_type }),
+            ...(metadata?.original_filename && { original_filename: metadata.original_filename }),
             uploaded_via: 'entity_image_api'
           }
         })
@@ -383,7 +490,9 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (imageError) {
-        console.error('Error creating image record:', imageError)
+        console.error('❌ Error creating image record:', imageError)
+        console.error('   Entity:', { entityId, entityType, albumPurpose })
+        console.error('   Image URL:', imageUrl)
         return NextResponse.json({
           success: false,
           error: 'Failed to create image record'
@@ -391,14 +500,36 @@ export async function POST(request: NextRequest) {
       }
 
       finalImageId = imageData.id
+      console.log(`✅ Image record created: ${finalImageId}`)
     }
 
     if (!finalImageId) {
+      console.error('❌ No imageId provided and imageUrl creation failed')
       return NextResponse.json({
         success: false,
         error: 'Either imageId or imageUrl must be provided'
       }, { status: 400 })
     }
+
+    // VERIFY: Ensure the image actually exists in the database
+    console.log(`🔍 Verifying image exists in database: ${finalImageId}`)
+    const { data: verifyImage, error: verifyError } = await supabase
+      .from('images')
+      .select('id, url')
+      .eq('id', finalImageId)
+      .single()
+
+    if (verifyError || !verifyImage) {
+      console.error('❌ Image verification failed:', verifyError)
+      console.error('   Image ID:', finalImageId)
+      console.error('   Entity:', { entityId, entityType, albumPurpose })
+      return NextResponse.json({
+        success: false,
+        error: `Image ${finalImageId} not found in database. Image must be saved to database before adding to album.`
+      }, { status: 404 })
+    }
+
+    console.log(`✅ Image verified in database: ${verifyImage.id}, URL: ${verifyImage.url}`)
 
     // Map album purpose to user-friendly names that match your existing system
     const albumNameMap: Record<AlbumPurpose, string> = {
@@ -413,11 +544,11 @@ export async function POST(request: NextRequest) {
     
     // Find or create album based on entity and purpose
     // First try to find by exact name match AND correct owner_id (more reliable)
-    console.log('Looking for existing album:', { entityId, entityType, albumName, albumPurpose })
+    console.log(`🔍 Looking for existing album: "${albumName}" for ${entityType} ${entityId}`)
     
     let { data: existingAlbum, error: searchError } = await supabase
       .from('photo_albums')
-      .select('id, metadata, owner_id')
+      .select('id, metadata, owner_id, entity_id, entity_type')
       .eq('entity_id', entityId)
       .eq('entity_type', entityType)
       .eq('owner_id', user.id) // ✅ Ensure album is owned by the authenticated user
@@ -425,57 +556,20 @@ export async function POST(request: NextRequest) {
       .single()
     
     if (searchError && searchError.code !== 'PGRST116') {
-      console.error('Error searching for album by name:', searchError)
+      console.error('❌ Error searching for album by name:', searchError)
+      console.error('   Search params:', { entityId, entityType, albumName, owner_id: user.id })
     }
     
-    // If not found by name, try metadata search as fallback
-    if (!existingAlbum) {
-      console.log('Album not found by name, trying metadata search...')
-      const { data: metadataAlbum, error: metadataError } = await supabase
-        .from('photo_albums')
-        .select('id, metadata, owner_id')
-        .eq('entity_id', entityId)
-        .eq('entity_type', entityType)
-        .eq('owner_id', user.id) // ✅ Ensure album is owned by the authenticated user
-        .contains('metadata', { album_purpose: albumPurpose })
-        .single()
-      
-      if (metadataError && metadataError.code !== 'PGRST116') {
-        console.error('Error searching for album by metadata:', metadataError)
-      }
-      
-      existingAlbum = metadataAlbum
-    }
+    // If not found by name, we'll create it - no metadata fallback needed
     
     if (existingAlbum) {
-      console.log('Found existing album:', { id: existingAlbum.id, owner_id: existingAlbum.owner_id })
-      
-      // Fix existing album metadata if album_purpose is missing
-      if (!existingAlbum.metadata?.album_purpose) {
-        console.log('Fixing existing album metadata - adding missing album_purpose')
-        await supabase
-          .from('photo_albums')
-          .update({
-            metadata: {
-              ...(existingAlbum.metadata || {}),
-              album_purpose: albumPurpose
-            }
-          })
-          .eq('id', existingAlbum.id)
-        
-        // Refresh the existing album data
-        const { data: updatedAlbum } = await supabase
-          .from('photo_albums')
-          .select('id, metadata, owner_id')
-          .eq('id', existingAlbum.id)
-          .single()
-        
-        if (updatedAlbum) {
-          existingAlbum = updatedAlbum
-        }
-      }
+      console.log(`✅ Found existing album: ${existingAlbum.id}`, { 
+        owner_id: existingAlbum.owner_id,
+        entity_id: existingAlbum.entity_id,
+        entity_type: existingAlbum.entity_type
+      })
     } else {
-      console.log('No existing album found, will create new one')
+      console.log(`📁 No existing album found, will create new album: "${albumName}"`)
     }
 
     let albumId: string
@@ -484,55 +578,36 @@ export async function POST(request: NextRequest) {
       // Create new album using the existing working system pattern
       const albumDescription = `${albumName} for ${entityType} ${entityId}`
       
-             console.log('Creating new album:', { albumName, albumDescription, entityId, entityType, albumPurpose })
+      console.log(`📁 Creating new album:`, { albumName, albumDescription, entityId, entityType, albumPurpose, owner_id: user.id })
       
-             const albumData = {
-         name: albumName,
-         description: albumDescription,
-         owner_id: user.id, // ✅ User owns the album (for RLS compliance)
-         entity_id: entityId, // ✅ Album is associated with the book
-         entity_type: entityType, // ✅ Album is for book type
-         is_public: false,
-         metadata: {
-           album_purpose: albumPurpose,
-           created_via: 'entity_image_api',
-           total_images: 0,
-           total_size: 0,
-           last_modified: new Date().toISOString(),
-           entity_type: entityType,
-           entity_id: entityId,
-           created_by: user.id
-         }
-       }
-      
-      console.log('Album data to insert:', albumData)
+      const albumData = {
+        name: albumName,
+        description: albumDescription,
+        owner_id: user.id, // ✅ User owns the album (for RLS compliance)
+        entity_id: entityId, // ✅ Album is associated with the entity
+        entity_type: entityType, // ✅ Album is for entity type
+        is_public: false,
+        metadata: {
+          album_purpose: albumPurpose,  // Keep this in metadata if no column exists
+          created_via: 'entity_image_api',
+          total_images: 0,
+          total_size: 0,
+          last_modified: new Date().toISOString(),
+          created_by: user.id
+          // NO entity_type or entity_id - those are in columns!
+        }
+      }
       
       const { data: newAlbum, error: createAlbumError } = await supabase
         .from('photo_albums')
         .insert(albumData)
-        .select('id')
+        .select('id, name, entity_id, entity_type')
         .single()
 
       if (createAlbumError) {
-        console.error('Error creating album:', createAlbumError)
-        console.error('Album creation data:', {
-          name: albumName,
-          description: albumDescription,
-          owner_id: user.id,
-          entity_id: entityId,
-          entity_type: entityType,
-          is_public: false,
-          metadata: {
-            album_purpose: albumPurpose,
-            created_via: 'entity_image_api',
-            total_images: 0,
-            total_size: 0,
-            last_modified: new Date().toISOString(),
-            entity_type: entityType,
-            entity_id: entityId,
-            created_by: user.id
-          }
-        })
+        console.error('❌ Error creating album:', createAlbumError)
+        console.error('   Album data:', albumData)
+        console.error('   Entity:', { entityId, entityType, albumPurpose })
         return NextResponse.json({
           success: false,
           error: `Failed to create album: ${createAlbumError.message}`
@@ -540,8 +615,10 @@ export async function POST(request: NextRequest) {
       }
 
       albumId = newAlbum.id
+      console.log(`✅ Album created: ${albumId}`, { name: newAlbum.name, entity_id: newAlbum.entity_id, entity_type: newAlbum.entity_type })
     } else {
       albumId = existingAlbum.id
+      console.log(`✅ Using existing album: ${albumId}`)
     }
 
     // If this image should be the cover, first unset any existing cover images
@@ -554,46 +631,71 @@ export async function POST(request: NextRequest) {
         .eq('is_cover', true)
     }
 
-    // Add image to album
-    const { error: addImageError } = await supabase
+    // Get entity_type_id for album_images
+    console.log(`🔍 Looking up entity_type_id for: ${entityType}`)
+    const { data: entityTypeData, error: entityTypeError } = await supabase
+      .from('entity_types')
+      .select('id')
+      .ilike('name', `${entityType}%`)
+      .limit(1)
+      .single()
+
+    let entityTypeId: string | null = null
+    if (!entityTypeError && entityTypeData) {
+      entityTypeId = entityTypeData.id
+      console.log(`✅ Found entity_type_id: ${entityTypeId} for ${entityType}`)
+    } else {
+      console.warn(`⚠️ Could not find entity_type_id for ${entityType}, will insert without it`)
+    }
+
+    // Add image to album - USE ACTUAL COLUMNS, NOT METADATA
+    console.log(`📎 Adding image ${finalImageId} to album ${albumId}`)
+    const albumImageData = {
+      album_id: albumId,
+      image_id: finalImageId,
+      entity_id: entityId,  // ✅ Use actual column
+      entity_type_id: entityTypeId, // ✅ Use actual column
+      display_order: displayOrder || 1,
+      is_cover: isCover,
+      is_featured: isFeatured,
+      metadata: {
+        // Only file metadata - NO entity info
+        added_via: 'entity_image_api',
+        ...(metadata?.file_size && { file_size: metadata.file_size }),
+        ...(metadata?.mime_type && { mime_type: metadata.mime_type }),
+        ...(metadata?.original_filename && { original_filename: metadata.original_filename }),
+        ...(metadata?.aspect_ratio && { aspect_ratio: metadata.aspect_ratio })
+      }
+    }
+
+    const { data: addedImage, error: addImageError } = await supabase
       .from('album_images')
-      .insert({
-        album_id: albumId,
-        image_id: finalImageId,
-        display_order: displayOrder || 1,
-        is_cover: isCover,
-        is_featured: isFeatured,
-        metadata: {
-          album_purpose: albumPurpose,
-          entity_type: entityType,
-          entity_id: entityId,
-          added_via: 'entity_image_api'
-        }
-      })
+      .insert(albumImageData)
+      .select('id, album_id, image_id, entity_id')
+      .single()
 
     if (addImageError) {
-      console.error('Error adding image to album:', addImageError)
-      console.error('Image addition data:', {
-        album_id: albumId,
-        image_id: finalImageId,
-        display_order: displayOrder || 1,
-        is_cover: isCover,
-        is_featured: isFeatured,
-        metadata: {
-          album_purpose: albumPurpose,
-          entity_type: entityType,
-          entity_id: entityId,
-          added_via: 'entity_image_api'
-        }
-      })
+      console.error('❌ Error adding image to album:', addImageError)
+      console.error('   Album image data:', albumImageData)
+      console.error('   Entity:', { entityId, entityType, albumPurpose })
+      console.error('   Album ID:', albumId)
+      console.error('   Image ID:', finalImageId)
       return NextResponse.json({
         success: false,
         error: `Failed to add image to entity album: ${addImageError.message}`
       }, { status: 500 })
     }
 
+    console.log(`✅ Image added to album:`, { 
+      album_image_id: addedImage.id, 
+      album_id: addedImage.album_id, 
+      image_id: addedImage.image_id,
+      entity_id: addedImage.entity_id
+    })
+
     // Update album metadata to reflect new image (preserve existing metadata)
-    await supabase
+    console.log(`📊 Updating album metadata for album ${albumId}`)
+    const { error: updateMetadataError } = await supabase
       .from('photo_albums')
       .update({
         metadata: {
@@ -604,9 +706,33 @@ export async function POST(request: NextRequest) {
       })
       .eq('id', albumId)
 
+    if (updateMetadataError) {
+      console.warn('⚠️ Failed to update album metadata (non-critical):', updateMetadataError)
+      // Don't fail - the image is already in the album
+    } else {
+      console.log(`✅ Album metadata updated for album ${albumId}`)
+    }
+
     // Entity images are stored in albums and should NOT update book cover images
     // Book cover images remain completely separate and unchanged
 
+    // Update publisher_image_id when adding avatar images for publishers
+    if (entityType === 'publisher' && albumPurpose === 'avatar' && (isCover || isFeatured)) {
+      console.log(`🔄 Updating publisher_image_id for publisher ${entityId} with image ${finalImageId}`)
+      const { error: publisherUpdateError } = await supabase
+        .from('publishers')
+        .update({ publisher_image_id: finalImageId })
+        .eq('id', entityId)
+
+      if (publisherUpdateError) {
+        console.error('❌ Error updating publisher_image_id:', publisherUpdateError)
+        // Don't fail the request - the image is already in the album
+      } else {
+        console.log(`✅ publisher_image_id updated for publisher ${entityId}`)
+      }
+    }
+
+    console.log(`✅ Album addition complete: Image ${finalImageId} added to album ${albumId}`)
     return NextResponse.json({
       success: true,
       albumId: albumId,
@@ -615,10 +741,12 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error in POST /api/entity-images:', error)
+    console.error('❌ Unexpected error in POST /api/entity-images:', error)
+    console.error('   Stack:', error instanceof Error ? error.stack : 'No stack trace')
     return NextResponse.json({
       success: false,
-      error: 'Internal server error'
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : String(error)
     }, { status: 500 })
   }
 }
@@ -714,6 +842,22 @@ export async function PUT(request: NextRequest) {
           success: false,
           error: 'Failed to update album image'
         }, { status: 500 })
+      }
+    }
+
+    // Update publisher_image_id when setting avatar as cover for publishers
+    if (entityType === 'publisher' && albumPurpose === 'avatar' && isCover === true) {
+      console.log(`🔄 Updating publisher_image_id for publisher ${entityId} with image ${imageId}`)
+      const { error: publisherUpdateError } = await supabase
+        .from('publishers')
+        .update({ publisher_image_id: imageId })
+        .eq('id', entityId)
+
+      if (publisherUpdateError) {
+        console.error('❌ Error updating publisher_image_id:', publisherUpdateError)
+        // Don't fail the request - the album image is already updated
+      } else {
+        console.log(`✅ publisher_image_id updated for publisher ${entityId}`)
       }
     }
 

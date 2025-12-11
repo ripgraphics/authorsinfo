@@ -42,6 +42,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
 import { EntityPhotoAlbums } from '@/components/user-photo-albums'
 import { FriendList } from '@/components/friend-list'
+import { FollowersList } from '@/components/followers-list'
 import { FollowersListTab } from '@/components/followers-list-tab'
 import { TimelineActivities } from '@/components/timeline-activities'
 import EnterpriseTimelineActivities from '@/components/enterprise/enterprise-timeline-activities-optimized'
@@ -213,6 +214,7 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
         targetType="user"
         userStats={userStats}
         isEditable={canEdit ? true : undefined}
+        isMessageable={true}
       />
       
       <div className="profile-page__content">
@@ -220,7 +222,7 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
           <div className="profile-page__timeline-tab">
             <div className="profile-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Left Sidebar */}
-              <div className="profile-page__sidebar lg:col-span-1 space-y-6">
+              <div className="profile-page__sidebar lg:col-span-1 space-y-6 self-end sticky bottom-0">
                 {/* About Section */}
                 <ContentSection title="About">
                   <div className="space-y-4">
@@ -317,6 +319,15 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
                     ))}
                   </div>
                 </ContentSection>
+
+                {/* Followers Section */}
+                <FollowersList
+                  followers={followers}
+                  followersCount={followersCount}
+                  entityId={user.id}
+                  entityType="user"
+                  onViewMore={() => setActiveTab("followers")}
+                />
               </div>
 
               {/* Main Content Area */}

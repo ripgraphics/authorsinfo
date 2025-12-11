@@ -266,7 +266,7 @@ export function ClientGroupPage({
       case 'discussions':
         return <DiscussionsSection discussions={discussions} groupId={group.id} />
       case 'followers':
-        return <FollowersList followers={followers || []} followersCount={followersCount} entityId={group.id} entityType="group" />
+        return <FollowersList followers={followers || []} followersCount={followersCount} entityId={group.id} entityType="group" onViewMore={() => handleTabChange("followers")} />
       case 'photos':
         return (
           <div className="space-y-6">
@@ -319,13 +319,8 @@ export function ClientGroupPage({
           member_count: membersCount,
           is_private: group.is_private
         }}
-      >
-        <FollowButton entityId={group.id} targetType="group" />
-        <Button variant="outline" className="ml-2">
-          <UserPlus className="h-4 w-4 mr-2" />
-          Invite
-        </Button>
-      </EntityHeader>
+        isMessageable={true}
+      />
 
       <main className="container mx-auto py-8 px-4 md:px-6 lg:px-8">
         {renderContent()}

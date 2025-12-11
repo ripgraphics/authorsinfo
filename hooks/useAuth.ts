@@ -4,6 +4,7 @@ import { User } from '@supabase/supabase-js'
 import { deduplicatedRequest, debounce, clearCache } from '@/lib/request-utils'
 
 interface UserWithRole extends User {
+  name?: string | null
   role?: string
   permalink?: string | null
   avatar_url?: string | null
@@ -21,48 +22,78 @@ export function useAuth() {
     []
   )
 
-  // Centralized user data fetching with deduplication and caching
+  // Centralized user data fetching with deduplication, caching, and retry logic
   const fetchUserData = async (): Promise<UserWithRole | null> => {
-    return deduplicatedRequest(
-      'current-user-data',
-      async () => {
-        try {
-          console.log('🚀 Fetching fresh user data')
-          
-          const controller = new AbortController()
-          const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
-          
-          const response = await fetch('/api/auth-users', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            signal: controller.signal
-          })
-          
-          clearTimeout(timeoutId)
-          
-          if (response.ok) {
-            const data = await response.json()
-            if (data.user) {
-              console.log('✅ User data fetched successfully')
-              return data.user
-            }
-          }
-          
-          console.warn('⚠️ API response not ok, using fallback')
-          return null
-        } catch (apiError) {
-          if (apiError instanceof Error && apiError.name === 'AbortError') {
-            console.warn('⏰ API request timed out')
-          } else {
-            console.error('❌ Error fetching user from API:', apiError)
-          }
-          return null
+    const MAX_RETRIES = 3
+    const RETRY_DELAY = 1000 // 1 second
+    
+    // Single request function with retry logic inside
+    const makeRequest = async (attempt: number): Promise<UserWithRole> => {
+      console.log(`🚀 Fetching user data (attempt ${attempt + 1}/${MAX_RETRIES + 1})`)
+      
+      const response = await fetch('/api/auth-users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error(`❌ API returned ${response.status}: ${errorText}`)
+        throw new Error(`API returned ${response.status}: ${errorText}`)
+      }
+      
+      const data = await response.json()
+      if (!data.user) {
+        console.error('❌ API response missing user data:', data)
+        throw new Error('API response missing user data')
+      }
+      
+      if (!data.user.name) {
+        console.error('❌ User data missing name property:', data.user)
+        throw new Error('User data missing name property')
+      }
+      
+      console.log('✅ User data fetched successfully:', { id: data.user.id, name: data.user.name })
+      return data.user
+    }
+    
+    // Use deduplication for the first attempt (concurrent requests)
+    // But retry logic happens outside to ensure retries actually execute
+    let lastError: Error | null = null
+    
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        let result: UserWithRole
+        
+        if (attempt === 0) {
+          // First attempt: use deduplication for concurrent requests
+          result = await deduplicatedRequest(
+            'current-user-data',
+            () => makeRequest(attempt),
+            5 * 60 * 1000 // 5 minutes cache
+          )
+        } else {
+          // Retry attempts: no deduplication, just retry
+          result = await makeRequest(attempt)
         }
-      },
-      5 * 60 * 1000 // 5 minutes cache
-    )
+        
+        return result
+      } catch (apiError) {
+        lastError = apiError instanceof Error ? apiError : new Error(String(apiError))
+        console.error(`❌ Error fetching user data (attempt ${attempt + 1}):`, lastError)
+        
+        if (attempt < MAX_RETRIES) {
+          console.log(`🔄 Retrying in ${RETRY_DELAY}ms...`)
+          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY))
+        }
+      }
+    }
+    
+    // After all retries failed, throw the error - don't silently fail
+    console.error('❌ All retry attempts failed. User data fetch failed completely.')
+    throw lastError || new Error('User data fetch failed after all retries')
   }
 
   // Initialize user data
@@ -71,21 +102,21 @@ export function useAuth() {
     isInitialized.current = true
 
     try {
-      const { data: { session }, error } = await supabase.auth.getSession()
+      const { data: { user }, error } = await supabase.auth.getUser()
       if (error) throw error
       
-      if (session?.user) {
-        const userData = await fetchUserData()
-        if (userData) {
-          debouncedSetUser(userData)
-        } else {
-          // Fallback to user without role and permalink
-          const userWithRole = {
-            ...session.user,
-            role: 'user',
-            permalink: null
+      if (user) {
+        try {
+          const userData = await fetchUserData()
+          if (userData && userData.name) {
+            debouncedSetUser(userData)
+          } else {
+            throw new Error('User data fetch returned invalid data')
           }
-          debouncedSetUser(userWithRole)
+        } catch (err) {
+          console.error('❌ CRITICAL: Failed to fetch user data after all retries:', err)
+          // Don't set user - let the error be visible so it can be fixed
+          // The UI should show loading state until this is resolved
         }
       }
     } catch (err) {
@@ -105,17 +136,16 @@ export function useAuth() {
       }
       
       if (session?.user) {
-        const userData = await fetchUserData()
-        if (userData) {
-          debouncedSetUser(userData)
-        } else {
-          // Fallback to user without role and permalink
-          const userWithRole = {
-            ...session.user,
-            role: 'user',
-            permalink: null
+        try {
+          const userData = await fetchUserData()
+          if (userData && userData.name) {
+            debouncedSetUser(userData)
+          } else {
+            throw new Error('User data fetch returned invalid data')
           }
-          debouncedSetUser(userWithRole)
+        } catch (err) {
+          console.error('❌ CRITICAL: Failed to fetch user data after all retries:', err)
+          // Don't set user - let the error be visible so it can be fixed
         }
       } else {
         // Clear user on logout

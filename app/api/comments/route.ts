@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
             user_id,
             content: content.trim(),
             parent_id: parent_comment_id || null
-          })
+          } as any)
           .select(`
             *,
             user:users!photo_comments_user_id_fkey(

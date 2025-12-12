@@ -323,7 +323,7 @@ export async function POST(request: NextRequest) {
               entity_type,
               entity_id,
               visibility: 'public'
-            }])
+            } as any)
             .select()
             .single()
 

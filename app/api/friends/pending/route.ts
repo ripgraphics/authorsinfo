@@ -16,20 +16,29 @@ export async function GET(request: NextRequest) {
     }
 
     // Get the current user - use getUser() to authenticate with Supabase Auth server
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    let user = null
+    let userError = null
     
-    if (userError) {
-      console.error('❌ User authentication error:', userError)
-      return NextResponse.json({ 
-        error: 'Failed to authenticate user',
-        details: userError.message
-      }, { status: 500 })
+    try {
+      const result = await supabase.auth.getUser()
+      user = result.data?.user || null
+      userError = result.error || null
+    } catch (error) {
+      // Catch any unexpected errors from getUser()
+      console.warn('Unexpected error calling getUser():', error)
+      userError = error as any
     }
     
-    if (!user) {
-      console.log('❌ No authenticated user found')
+    // If there's an error OR no user, return 401 (not logged in)
+    // Network errors and auth errors should both return 401, not 500
+    if (userError || !user) {
+      // Don't log as error unless it's a clear server/database issue
+      if (userError && !userError.message?.includes('session') && !userError.message?.includes('JWT') && !userError.message?.includes('token') && !userError.message?.includes('fetch failed')) {
+        console.warn('Auth check issue (returning 401):', userError)
+      }
       return NextResponse.json({ 
-        error: 'Unauthorized - No authenticated user found'
+        error: 'Unauthorized - No authenticated user',
+        requests: []
       }, { status: 401 })
     }
 

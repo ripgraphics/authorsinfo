@@ -11,14 +11,11 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const year = searchParams.get('year');
+    const subject = searchParams.get('subject');
     const page = searchParams.get('page') || '1';
     const pageSize = searchParams.get('pageSize') || '20';
-    const searchType = searchParams.get('searchType') || 'recent'; // 'recent' or 'year'
+    const searchType = searchParams.get('searchType') || 'subject'; // 'recent', 'year', or 'subject' - default to 'subject'
     const withPrices = searchParams.get('withPrices') === 'true';
-
-    if (!year) {
-      return NextResponse.json({ error: 'Year parameter is required' }, { status: 400 });
-    }
 
     const isbndbApiKey = process.env.ISBNDB_API_KEY;
     if (!isbndbApiKey) {
@@ -27,20 +24,45 @@ export async function GET(request: NextRequest) {
 
     const collector = new ISBNdbDataCollector(isbndbApiKey);
     
-    // Use the enhanced data collector
-    const result = await collector.fetchBooksByYear(parseInt(year), {
-      page: parseInt(page),
-      pageSize: parseInt(pageSize),
-      searchType: searchType as 'recent' | 'year',
-      withPrices,
-    });
+    let result: any;
+
+    // Handle subject search
+    if (searchType === 'subject') {
+      if (!subject || subject.trim() === '') {
+        return NextResponse.json({ error: 'Subject parameter is required for subject search' }, { status: 400 });
+      }
+
+      // Search books by subject with optional year filter
+      // Always filter by English language
+      result = await collector.searchBooks(subject.trim(), {
+        page: parseInt(page),
+        pageSize: parseInt(pageSize),
+        column: 'subjects',
+        year: year ? parseInt(year) : undefined,
+        language: 'en', // Automatically filter to English only
+        withPrices,
+      });
+    } else {
+      // Handle year-based search (existing functionality)
+      if (!year) {
+        return NextResponse.json({ error: 'Year parameter is required for year-based search' }, { status: 400 });
+      }
+
+      result = await collector.fetchBooksByYear(parseInt(year), {
+        page: parseInt(page),
+        pageSize: parseInt(pageSize),
+        searchType: searchType as 'recent' | 'year',
+        withPrices,
+      });
+    }
 
     return NextResponse.json({
       total: result.total,
       books: result.books,
       stats: result.stats,
       searchType,
-      year,
+      subject: subject || undefined,
+      year: year || undefined,
       page: parseInt(page),
       pageSize: parseInt(pageSize),
       withPrices,
@@ -70,18 +92,9 @@ export async function POST(request: NextRequest) {
 
     const collector = new ISBNdbDataCollector(isbndbApiKey);
 
-    // Fetch detailed information for each ISBN with comprehensive data collection
-    const detailedBooks = await Promise.all(
-      isbns.map(async (isbn: string) => {
-        try {
-          const bookData = await collector.fetchBookDetails(isbn, withPrices);
-          return bookData;
-        } catch (error) {
-          console.warn(`Error fetching book ${isbn}:`, error);
-          return null;
-        }
-      })
-    );
+    // Use bulk fetching instead of individual requests for better performance
+    // This batches up to 100 books per request instead of 200 individual requests
+    const detailedBooks = await collector.fetchBulkBookDetails(isbns, withPrices);
 
     const validBooks = detailedBooks.filter(book => book !== null);
 

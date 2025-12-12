@@ -72,6 +72,8 @@ export async function POST(request: NextRequest) {
     const entityId = formData.get('entityId') as string
     const imageType = formData.get('imageType') as string // 'avatar' or 'cover'
     const originalType = formData.get('originalType') as string // 'avatar', 'bookCover', or 'entityHeaderCover'
+    const isCropped = formData.get('isCropped') === 'true' // Whether this is a cropped version
+    const originalImageId = formData.get('originalImageId') as string | null // ID of original image if this is cropped
 
     if (!file) {
       return NextResponse.json(
@@ -128,9 +130,9 @@ export async function POST(request: NextRequest) {
     if (originalType === 'entityHeaderCover') {
       folderType = 'entity_header_cover'
     } else if (originalType === 'bookCover') {
-      folderType = 'cover'
+      folderType = 'book_cover'
     }
-    const folderPath = `authorsinfo/${entityType}_${folderType}`
+    const folderPath = `authorsinfo/${folderType}`
 
     // Create the parameters object for signature
     const params: Record<string, string> = {
@@ -234,6 +236,12 @@ export async function POST(request: NextRequest) {
       insertObject.processing_status = 'completed'
     }
     if (availableColumns.has('metadata')) {
+      // Use descriptive naming: 'book_cover' instead of just 'cover' to avoid conflicts
+      // originalType can be: 'avatar', 'bookCover', 'entityHeaderCover'
+      const descriptiveImageType = originalType === 'bookCover' ? 'book_cover' 
+        : originalType === 'entityHeaderCover' ? 'entity_header_cover'
+        : imageType
+      
       insertObject.metadata = {
         original_name: file.name,
         file_size: file.size,
@@ -242,7 +250,9 @@ export async function POST(request: NextRequest) {
         cloudinary_public_id: data.public_id,
         entity_type: entityType,
         entity_id: entityId,
-        image_type: imageType
+        image_type: descriptiveImageType,
+        is_cropped: isCropped,
+        ...(originalImageId && { original_image_id: originalImageId })
       }
     }
     if (availableColumns.has('img_type_id')) {

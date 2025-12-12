@@ -35,7 +35,7 @@ class EnhancedEnterpriseBackupSystem:
     def __init__(self, config_file: Optional[str] = None):
         self.project_root = Path.cwd()
         self.schemas_dir = self.project_root / "schemas"
-        self.backups_dir = self.project_root / "db_backups"
+        self.backups_dir = self.project_root / "backup_db"
         self.reports_dir = self.project_root / "reports"
         self.archive_dir = self.backups_dir / "archive"
         self.incremental_dir = self.backups_dir / "incremental"

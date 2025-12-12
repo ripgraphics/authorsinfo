@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
       .eq('user_id', user.id)
       .single();
 
-    if (profileError || !profile?.avatar_image_id) {
+    if (profileError || !(profile as any)?.avatar_image_id) {
       // No profile or no avatar_image_id, return placeholder
       const placeholder = await getPlaceholderImage();
       return new NextResponse(placeholder, {
@@ -78,10 +78,10 @@ export async function GET(request: NextRequest) {
     const { data: image, error: imageError } = await supabase
       .from('images')
       .select('url')
-      .eq('id', profile.avatar_image_id)
+      .eq('id', (profile as any).avatar_image_id)
       .single();
 
-    if (imageError || !image?.url) {
+    if (imageError || !(image as any)?.url) {
       // Image not found or error, return placeholder
       console.log('Avatar image not found or error:', imageError);
       const placeholder = await getPlaceholderImage();
@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
 
     // Proxy the image data for Next.js Image optimization compatibility
     try {
-      const imageResponse = await fetch(image.url);
+      const imageResponse = await fetch((image as any).url);
       if (!imageResponse.ok) {
         throw new Error(`Failed to fetch image: ${imageResponse.statusText}`);
       }

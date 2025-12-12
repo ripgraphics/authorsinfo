@@ -28,8 +28,8 @@ export async function POST(request: NextRequest) {
       .maybeSingle()
 
     if (!existing) {
-      const { error: insertError } = await supabase
-        .from('activity_log')
+      const { error: insertError } = await (supabase
+        .from('activity_log') as any)
         .insert({
           user_id: user.id,
           action: 'hide_comment',

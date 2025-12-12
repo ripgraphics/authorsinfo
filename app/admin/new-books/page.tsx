@@ -61,8 +61,9 @@ interface ImportResponse {
 }
 
 export default function NewBooksPage() {
-  const [year, setYear] = useState(new Date().getFullYear().toString());
-  const [searchType, setSearchType] = useState<'recent' | 'year'>('recent');
+  const [subject, setSubject] = useState('');
+  const [year, setYear] = useState('');
+  const [searchType, setSearchType] = useState<'subject'>('subject');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [books, setBooks] = useState<Book[]>([]);
@@ -74,30 +75,139 @@ export default function NewBooksPage() {
   const [importStats, setImportStats] = useState<any>(null);
   const [sortBy, setSortBy] = useState<'date' | 'title' | 'author'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [autoFetchAll, setAutoFetchAll] = useState(false);
+  const [fetchingAllPages, setFetchingAllPages] = useState(false);
+  const [allFetchedBooks, setAllFetchedBooks] = useState<Book[]>([]);
 
-  const fetchBooks = async () => {
+  const fetchBooks = async (targetPage?: number, accumulateResults: boolean = false) => {
     setLoading(true);
+    if (accumulateResults) {
+      setFetchingAllPages(true);
+    }
     try {
+      // Validate subject parameter
+      if (!subject || subject.trim() === '') {
+        throw new Error('Subject is required');
+      }
+
+      const currentPage = targetPage || page;
       const params = new URLSearchParams({
-        year,
-        page: page.toString(),
+        subject: subject.trim(),
+        page: currentPage.toString(),
         pageSize: pageSize.toString(),
-        searchType,
+        searchType: 'subject', // Explicitly set to 'subject' to avoid defaulting to 'recent'
+        ...(year && year.trim() !== '' && { year: year.trim() }),
       });
 
       const response = await fetch(`/api/isbn/fetch-by-year?${params}`);
       if (!response.ok) {
-        throw new Error('Failed to fetch books');
+        // Try to get the actual error message from the API response
+        let errorMessage = 'Failed to fetch books';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorData.details || errorMessage;
+          if (errorData.details) {
+            errorMessage += `: ${errorData.details}`;
+          }
+        } catch (e) {
+          // If we can't parse the error response, use the status text
+          errorMessage = `Failed to fetch books: ${response.status} ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
 
       const data: SearchResponse = await response.json();
-      setBooks(data.books || []);
-      setTotal(data.total || 0);
+      const fetchedBooks = data.books || [];
       
-      toast({
-        title: "Books fetched successfully",
-        description: `Found ${data.total} books for ${data.searchType === 'recent' ? 'recent publications in' : ''} ${data.year}`,
-      });
+      // Check which books are already in the system and filter them out
+      if (fetchedBooks.length > 0) {
+        const isbns = fetchedBooks.map((book) => book.isbn13 || book.isbn).filter(Boolean);
+        
+        if (isbns.length > 0) {
+          try {
+            const checkRes = await fetch('/api/books/check-existing', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ isbns }),
+            });
+            
+            if (checkRes.ok) {
+              const existingData = await checkRes.json();
+              const existingIsbns = new Set(existingData.existingIsbns || []);
+              
+              // Filter out books that are already in the system
+              const newBooks = fetchedBooks.filter((book) => {
+                const isbn = book.isbn13 || book.isbn;
+                return !isbn || !existingIsbns.has(isbn);
+              });
+              
+              if (accumulateResults) {
+                // Add to accumulated results
+                setAllFetchedBooks(prev => {
+                  const existingIsbns = new Set(prev.map(b => b.isbn13 || b.isbn));
+                  const uniqueNewBooks = newBooks.filter(b => {
+                    const isbn = b.isbn13 || b.isbn;
+                    return !isbn || !existingIsbns.has(isbn);
+                  });
+                  return [...prev, ...uniqueNewBooks];
+                });
+              } else {
+                setBooks(newBooks);
+                setTotal(newBooks.length);
+              }
+              
+              const filteredCount = fetchedBooks.length - newBooks.length;
+              toast({
+                title: "Books fetched successfully",
+                description: `Found ${newBooks.length} new books${filteredCount > 0 ? ` (${filteredCount} already in system)` : ''}${subject ? ` for subject "${subject}"` : ''}${year ? ` in ${year}` : ''}`,
+              });
+            } else {
+              // If check fails, show all books
+              if (accumulateResults) {
+                setAllFetchedBooks(prev => [...prev, ...fetchedBooks]);
+              } else {
+                setBooks(fetchedBooks);
+                setTotal(data.total || 0);
+              }
+              toast({
+                title: "Books fetched successfully",
+                description: `Found ${data.total} books${subject ? ` for subject "${subject}"` : ''}${year ? ` in ${year}` : ''}`,
+              });
+            }
+          } catch (checkError) {
+            console.error('Error checking existing books:', checkError);
+            // If check fails, show all books
+            if (accumulateResults) {
+              setAllFetchedBooks(prev => [...prev, ...fetchedBooks]);
+            } else {
+              setBooks(fetchedBooks);
+              setTotal(data.total || 0);
+            }
+            toast({
+              title: "Books fetched successfully",
+              description: `Found ${data.total} books${subject ? ` for subject "${subject}"` : ''}${year ? ` in ${year}` : ''}`,
+            });
+          }
+        } else {
+          if (accumulateResults) {
+            setAllFetchedBooks(prev => [...prev, ...fetchedBooks]);
+          } else {
+            setBooks(fetchedBooks);
+            setTotal(data.total || 0);
+          }
+          toast({
+            title: "Books fetched successfully",
+            description: `Found ${data.total} books${subject ? ` for subject "${subject}"` : ''}${year ? ` in ${year}` : ''}`,
+          });
+        }
+      } else {
+        setBooks([]);
+        setTotal(0);
+        toast({
+          title: "No books found",
+          description: `No books found${subject ? ` for subject "${subject}"` : ''}${year ? ` in ${year}` : ''}`,
+        });
+      }
     } catch (error) {
       console.error('Error fetching books:', error);
       toast({
@@ -107,6 +217,122 @@ export default function NewBooksPage() {
       });
     } finally {
       setLoading(false);
+      if (accumulateResults) {
+        setFetchingAllPages(false);
+      }
+    }
+  };
+
+  const fetchAllPages = async () => {
+    if (!subject || subject.trim() === '') {
+      toast({
+        title: "Subject required",
+        description: "Please enter a subject to search",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setFetchingAllPages(true);
+    setAllFetchedBooks([]);
+    const accumulatedBooks: Book[] = [];
+    
+    try {
+      // First, fetch page 1 to get total count
+      const firstPageParams = new URLSearchParams({
+        subject: subject.trim(),
+        page: '1',
+        pageSize: pageSize.toString(),
+        searchType: 'subject',
+        ...(year && year.trim() !== '' && { year: year.trim() }),
+      });
+
+      const firstResponse = await fetch(`/api/isbn/fetch-by-year?${firstPageParams}`);
+      if (!firstResponse.ok) {
+        throw new Error('Failed to fetch first page');
+      }
+
+      const firstData: SearchResponse = await firstResponse.json();
+      const totalResults = firstData.total || 0;
+      const totalPages = Math.ceil(totalResults / pageSize);
+
+      // Process all pages
+      for (let p = 1; p <= totalPages; p++) {
+        const params = new URLSearchParams({
+          subject: subject.trim(),
+          page: p.toString(),
+          pageSize: pageSize.toString(),
+          searchType: 'subject',
+          ...(year && year.trim() !== '' && { year: year.trim() }),
+        });
+
+        const response = await fetch(`/api/isbn/fetch-by-year?${params}`);
+        if (!response.ok) {
+          console.warn(`Failed to fetch page ${p}`);
+          continue;
+        }
+
+        const data: SearchResponse = await response.json();
+        const fetchedBooks = data.books || [];
+        accumulatedBooks.push(...fetchedBooks);
+        
+        // Small delay to avoid overwhelming the API
+        if (p < totalPages) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+
+      // After all pages are fetched, check for existing books and filter
+      if (accumulatedBooks.length > 0) {
+        const allIsbns = accumulatedBooks.map((book) => book.isbn13 || book.isbn).filter(Boolean);
+        
+        if (allIsbns.length > 0) {
+          const checkRes = await fetch('/api/books/check-existing', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isbns: allIsbns }),
+          });
+          
+          if (checkRes.ok) {
+            const existingData = await checkRes.json();
+            const existingIsbns = new Set(existingData.existingIsbns || []);
+            
+            const finalBooks = accumulatedBooks.filter((book) => {
+              const isbn = book.isbn13 || book.isbn;
+              return !isbn || !existingIsbns.has(isbn);
+            });
+            
+            setBooks(finalBooks);
+            setTotal(finalBooks.length);
+            setAllFetchedBooks(finalBooks);
+            
+            toast({
+              title: "All pages fetched",
+              description: `Fetched ${finalBooks.length} new books from ${totalPages} pages${subject ? ` for subject "${subject}"` : ''}${year ? ` in ${year}` : ''}`,
+            });
+          } else {
+            setBooks(accumulatedBooks);
+            setTotal(accumulatedBooks.length);
+            setAllFetchedBooks(accumulatedBooks);
+          }
+        } else {
+          setBooks(accumulatedBooks);
+          setTotal(accumulatedBooks.length);
+          setAllFetchedBooks(accumulatedBooks);
+        }
+      } else {
+        setBooks([]);
+        setTotal(0);
+      }
+    } catch (error) {
+      console.error('Error fetching all pages:', error);
+      toast({
+        title: "Error fetching all pages",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setFetchingAllPages(false);
     }
   };
 
@@ -224,8 +450,10 @@ export default function NewBooksPage() {
   });
 
   useEffect(() => {
-    fetchBooks();
-  }, [year, searchType, page, pageSize]);
+    if (subject.trim() !== '') {
+      fetchBooks();
+    }
+  }, [subject, year, page, pageSize]);
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'Unknown';
@@ -245,20 +473,20 @@ export default function NewBooksPage() {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Latest Books from ISBNdb</h1>
+          <h1 className="text-3xl font-bold">Search Books by Subject</h1>
           <p className="text-muted-foreground">
-            Discover and import the newest books with comprehensive data collection
+            Search and import books by subject from ISBNdb with comprehensive data collection
           </p>
         </div>
         <div className="flex items-center space-x-2">
           <Button
             onClick={fetchBooks}
-            disabled={loading}
+            disabled={loading || !subject.trim()}
             variant="outline"
             size="sm"
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
+            Search
           </Button>
         </div>
       </div>
@@ -269,29 +497,29 @@ export default function NewBooksPage() {
           <CardTitle>Search Configuration</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="year">Year</Label>
+              <Label htmlFor="subject">Subject *</Label>
+              <Input
+                id="subject"
+                type="text"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                placeholder="e.g., physics, fiction, history"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="year">Year (Optional)</Label>
               <Input
                 id="year"
                 type="number"
                 value={year}
                 onChange={(e) => setYear(e.target.value)}
+                placeholder="e.g., 2025"
                 min="1900"
                 max={new Date().getFullYear()}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="searchType">Search Type</Label>
-              <Select value={searchType} onValueChange={(value: 'recent' | 'year') => setSearchType(value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="recent">Recent Publications</SelectItem>
-                  <SelectItem value="year">Specific Year</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="pageSize">Page Size</Label>
@@ -373,13 +601,45 @@ export default function NewBooksPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <p className="text-sm text-muted-foreground">
-            Found {total} books for {searchType === 'recent' ? 'recent publications in' : ''} {year}
+            Found {total} books{subject ? ` for subject "${subject}"` : ''}{year ? ` in ${year}` : ''}
           </p>
           <Badge variant="secondary">
             Page {page} of {Math.ceil(total / pageSize)}
           </Badge>
         </div>
         <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 border-r pr-2">
+            <Label htmlFor="auto-fetch" className="flex items-center space-x-2 cursor-pointer text-sm">
+              <input
+                id="auto-fetch"
+                type="checkbox"
+                checked={autoFetchAll}
+                onChange={(e) => setAutoFetchAll(e.target.checked)}
+                className="h-4 w-4"
+              />
+              <span>Auto-fetch all pages</span>
+            </Label>
+            {autoFetchAll && (
+              <Button
+                onClick={fetchAllPages}
+                disabled={fetchingAllPages || !subject.trim()}
+                variant="outline"
+                size="sm"
+              >
+                {fetchingAllPages ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Fetching all pages...
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4 mr-2" />
+                    Fetch All Pages
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
           <Button
             onClick={selectAllBooks}
             variant="outline"
@@ -408,184 +668,58 @@ export default function NewBooksPage() {
       </div>
 
       {/* Books Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {sortedBooks.map((book) => {
           const isSelected = selectedBooks.has(book.isbn13 || book.isbn);
           const hasEnhancedData = book.excerpt || book.reviews || book.other_isbns || book.dewey_decimal;
           
           return (
             <Card key={book.isbn13 || book.isbn} className={`relative ${isSelected ? 'ring-2 ring-blue-500' : ''}`}>
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="text-lg leading-tight mb-2">
-                      {book.title}
-                    </CardTitle>
-                    {book.title_long && book.title_long !== book.title && (
-                      <p className="text-sm text-muted-foreground mb-2">
-                        {truncateText(book.title_long, 100)}
-                      </p>
-                    )}
-                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                      <Calendar className="h-3 w-3" />
-                      <span>{formatDate(book.date_published)}</span>
-                    </div>
+              {/* Checkbox */}
+              <div className="absolute top-2 right-2 z-10">
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  onChange={() => toggleBookSelection(book.isbn13 || book.isbn)}
+                  className="h-4 w-4"
+                />
+              </div>
+
+              <CardContent className="p-3 space-y-2">
+                {/* Book Cover */}
+                {book.image ? (
+                  <div className="relative w-full aspect-[2/3] rounded overflow-hidden bg-gray-100 mb-2">
+                    <Image
+                      src={book.image}
+                      alt={book.title || "Book cover"}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 16vw"
+                    />
                   </div>
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={() => toggleBookSelection(book.isbn13 || book.isbn)}
-                    className="ml-2 h-4 w-4"
-                  />
-                </div>
-              </CardHeader>
-              
-              <CardContent className="space-y-3">
-                {/* Authors */}
+                ) : (
+                  <div className="w-full aspect-[2/3] rounded bg-gray-100 flex items-center justify-center mb-2">
+                    <BookOpen className="h-8 w-8 text-gray-400" />
+                  </div>
+                )}
+
+                {/* Title - Exactly 2 lines (min and max) */}
+                <h3 className="text-sm font-semibold leading-[1.25rem] line-clamp-2 h-[2.5rem] overflow-hidden">
+                  {book.title}
+                </h3>
+
+                {/* Author - Exactly 2 lines (min and max) */}
                 {book.authors && book.authors.length > 0 && (
-                  <div className="flex items-start space-x-2">
-                    <User className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                    <div className="flex flex-wrap gap-1">
-                      {book.authors.map((author, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {author}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
+                  <p className="text-xs text-muted-foreground leading-[1rem] line-clamp-2 h-[2rem] overflow-hidden">
+                    {book.authors.join(", ")}
+                  </p>
                 )}
 
-                {/* Publisher */}
-                {book.publisher && (
-                  <div className="flex items-center space-x-2">
-                    <Building className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{book.publisher}</span>
-                  </div>
-                )}
-
-                {/* ISBNs */}
-                <div className="flex items-center space-x-2">
-                  <Hash className="h-4 w-4 text-muted-foreground" />
-                  <div className="text-sm space-y-1">
-                    {book.isbn13 && <div>ISBN-13: {book.isbn13}</div>}
-                    {book.isbn && <div>ISBN-10: {book.isbn}</div>}
-                  </div>
+                {/* Date */}
+                <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+                  <Calendar className="h-3 w-3" />
+                  <span>{formatDate(book.date_published)}</span>
                 </div>
-
-                {/* Enhanced Data Indicators */}
-                {hasEnhancedData && (
-                  <div className="flex items-center space-x-2">
-                    <Info className="h-4 w-4 text-blue-500" />
-                    <div className="flex flex-wrap gap-1">
-                      {book.excerpt && <Badge variant="secondary" className="text-xs">Excerpt</Badge>}
-                      {book.reviews && book.reviews.length > 0 && <Badge variant="secondary" className="text-xs">Reviews</Badge>}
-                      {book.other_isbns && book.other_isbns.length > 0 && <Badge variant="secondary" className="text-xs">Variants</Badge>}
-                      {book.dewey_decimal && book.dewey_decimal.length > 0 && <Badge variant="secondary" className="text-xs">Dewey</Badge>}
-                    </div>
-                  </div>
-                )}
-
-                {/* Overview/Synopsis */}
-                {(book.overview || book.synopsis) && (
-                  <div className="space-y-1">
-                    <div className="flex items-center space-x-2">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Description</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {truncateText(book.overview || book.synopsis, 120)}
-                    </p>
-                  </div>
-                )}
-
-                {/* Excerpt */}
-                {book.excerpt && (
-                  <div className="space-y-1">
-                    <div className="flex items-center space-x-2">
-                      <BookOpen className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Excerpt</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {truncateText(book.excerpt, 100)}
-                    </p>
-                  </div>
-                )}
-
-                {/* Reviews */}
-                {book.reviews && book.reviews.length > 0 && (
-                  <div className="space-y-1">
-                    <div className="flex items-center space-x-2">
-                      <Star className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Reviews ({book.reviews.length})</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {truncateText(book.reviews[0], 80)}
-                    </p>
-                  </div>
-                )}
-
-                {/* Additional Details */}
-                <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-                  {book.pages && (
-                    <div>Pages: {book.pages}</div>
-                  )}
-                  {book.language && (
-                    <div>Language: {book.language}</div>
-                  )}
-                  {book.binding && (
-                    <div>Binding: {book.binding}</div>
-                  )}
-                  {book.msrp && (
-                    <div>MSRP: ${book.msrp}</div>
-                  )}
-                </div>
-
-                {/* Subjects */}
-                {book.subjects && book.subjects.length > 0 && (
-                  <div className="space-y-1">
-                    <span className="text-xs font-medium">Subjects:</span>
-                    <div className="flex flex-wrap gap-1">
-                      {book.subjects.slice(0, 3).map((subject, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {subject}
-                        </Badge>
-                      ))}
-                      {book.subjects.length > 3 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{book.subjects.length - 3} more
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Dewey Decimal */}
-                {book.dewey_decimal && book.dewey_decimal.length > 0 && (
-                  <div className="space-y-1">
-                    <span className="text-xs font-medium">Dewey Decimal:</span>
-                    <div className="flex flex-wrap gap-1">
-                      {book.dewey_decimal.slice(0, 2).map((dewey, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {dewey}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Other ISBNs */}
-                {book.other_isbns && book.other_isbns.length > 0 && (
-                  <div className="space-y-1">
-                    <span className="text-xs font-medium">Other Formats:</span>
-                    <div className="flex flex-wrap gap-1">
-                      {book.other_isbns.slice(0, 2).map((variant, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {variant.binding} ({variant.isbn})
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </CardContent>
             </Card>
           );
@@ -622,7 +756,11 @@ export default function NewBooksPage() {
           <CardContent className="flex items-center justify-center py-12">
             <div className="text-center">
               <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">No books found for the selected criteria</p>
+              {subject.trim() === '' ? (
+                <p className="text-muted-foreground">Enter a subject above to search for books</p>
+              ) : (
+                <p className="text-muted-foreground">No books found for the selected criteria</p>
+              )}
             </div>
           </CardContent>
         </Card>

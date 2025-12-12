@@ -233,11 +233,30 @@ export default function EditBookPage() {
       if (coverImage) {
         try {
           // Convert the file to base64
-          const base64Promise = new Promise<string>((resolve) => {
+          const base64Promise = new Promise<string>((resolve, reject) => {
             const reader = new FileReader()
             reader.onloadend = () => {
-              const base64 = reader.result as string
-              resolve(base64)
+              const dataUrl = reader.result as string
+              if (dataUrl) {
+                // Extract base64 string from data URL (remove "data:image/...;base64," prefix)
+                const base64Match = dataUrl.match(/^data:image\/[^;]+;base64,(.+)$/)
+                if (base64Match && base64Match[1]) {
+                  resolve(base64Match[1])
+                } else {
+                  // If no match, try to extract just the base64 part after comma
+                  const commaIndex = dataUrl.indexOf(',')
+                  if (commaIndex !== -1) {
+                    resolve(dataUrl.substring(commaIndex + 1))
+                  } else {
+                    reject(new Error("Failed to extract base64 data from image"))
+                  }
+                }
+              } else {
+                reject(new Error("Failed to convert image to base64"))
+              }
+            }
+            reader.onerror = () => {
+              reject(new Error("Error reading image file"))
             }
             reader.readAsDataURL(coverImage)
           })
@@ -247,37 +266,49 @@ export default function EditBookPage() {
           // Upload the new image to Cloudinary with alt text
           const bookTitle = formData.get("title") as string
           
-          // Use the known Book Cover entity type ID (img_type_id from entity_types table)
+          // Use the known Book Cover entity type ID (entity_type_id from entity_types table)
           // This UUID corresponds to 'Book Cover' in the entity_types table
           const bookCoverEntityTypeId = '9d91008f-4f24-4501-b18a-922e2cfd6d34'
           
-          // Upload image and create record with img_type_id
-          const uploadResult = await uploadImage(base64Image, "bookcovers", `Cover of ${bookTitle}`, undefined, undefined, bookCoverEntityTypeId)
+          // Upload image and create record with entity_type_id
+          const uploadResult = await uploadImage(base64Image, "authorsinfo/book_cover", `Cover of ${bookTitle}`, undefined, undefined, bookCoverEntityTypeId)
 
-          if (uploadResult && uploadResult.imageId) {
-            newCoverImageUrl = uploadResult.url
-            newCoverImageId = uploadResult.imageId
+          if (!uploadResult) {
+            throw new Error("Upload function returned null - image upload may have failed silently")
+          }
 
-            // If we already have a cover_image_id, update that image record
-            if (book.cover_image_id) {
-              const { error: imageUpdateError } = await supabaseClient
-                .from("images")
-                .update({ url: uploadResult.url })
-                .eq("id", book.cover_image_id)
+          if (!uploadResult.imageId) {
+            throw new Error("Image uploaded successfully but no image ID was returned from the database")
+          }
 
-              if (imageUpdateError) {
-                console.error("Error updating image record:", imageUpdateError)
-              }
+          if (!uploadResult.url) {
+            throw new Error("Image uploaded successfully but no URL was returned")
+          }
+
+          newCoverImageUrl = uploadResult.url
+          newCoverImageId = uploadResult.imageId
+
+          // If we already have a cover_image_id, update that image record
+          if (book.cover_image_id) {
+            const { error: imageUpdateError } = await supabaseClient
+              .from("images")
+              .update({ url: uploadResult.url })
+              .eq("id", book.cover_image_id)
+
+            if (imageUpdateError) {
+              console.error("Error updating image record:", imageUpdateError)
+              // Don't fail the entire operation if update fails, just log it
             }
-          } else {
-            throw new Error("Failed to upload image or get image ID")
           }
         } catch (uploadError) {
           console.error("Upload error:", uploadError)
-          setError("Failed to upload cover image. Please try again.")
+          const errorMessage = uploadError instanceof Error 
+            ? uploadError.message 
+            : "Failed to upload cover image. Please try again."
+          setError(`Failed to upload cover image: ${errorMessage}`)
           toast({
             title: "Upload Failed",
-            description: "Failed to upload cover image. Please try again.",
+            description: errorMessage,
             variant: "destructive",
           });
           setSaving(false)
@@ -290,7 +321,9 @@ export default function EditBookPage() {
       const formatTypeId = selectedFormats.length > 0 ? Number.parseInt(selectedFormats[0], 10) : null
 
       // Prepare the update data
-      let updateData = {
+      // Note: cover_image_url is NOT a column in books table - only cover_image_id exists
+      // The URL is retrieved via foreign key relationship with images table
+      let updateData: Record<string, any> = {
         title: formData.get("title") as string,
         isbn10: formData.get("isbn10") as string,
         isbn13: formData.get("isbn13") as string,
@@ -305,10 +338,9 @@ export default function EditBookPage() {
         overview: formData.get("overview") as string,
         dimensions: formData.get("dimensions") as string,
         weight: formData.get("weight") as string,
-        cover_image_url: newCoverImageUrl,
         cover_image_id: newCoverImageId,
         featured: featured,
-      } as Partial<Book>
+      }
 
       // Debug logging for author and publisher IDs
       console.log("Selected author IDs:", selectedAuthorIds);
@@ -554,6 +586,8 @@ export default function EditBookPage() {
         const bookData = result.data;
 
         // Process the book data
+        // Compute cover_image_url from the relationship (cover_image.url)
+        // since cover_image_url is NOT a column in the books table
         const processedBook = {
           ...bookData,
           // Ensure numeric fields are properly typed
@@ -563,6 +597,8 @@ export default function EditBookPage() {
           page_count: bookData.page_count !== null ? Number(bookData.page_count) : null,
           pages: bookData.pages !== null ? Number(bookData.pages) : null,
           series_number: bookData.series_number !== null ? Number(bookData.series_number) : null,
+          // Compute cover_image_url from the relationship
+          cover_image_url: bookData.cover_image?.url || null,
         } as Book
 
         setBook(processedBook)
@@ -768,7 +804,7 @@ export default function EditBookPage() {
                 </Label>
                 <Input id="cover-image" type="file" accept="image/*" onChange={handleCoverImageChange} />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Images will be stored in Cloudinary in the authorsinfo/bookcovers folder
+                  Images will be stored in Cloudinary in the authorsinfo/book_cover folder
                 </p>
               </div>
             </div>

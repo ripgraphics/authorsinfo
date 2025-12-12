@@ -195,7 +195,7 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    if (existingActivity.user_id !== user.id) {
+    if ((existingActivity as any).user_id !== user.id) {
       return NextResponse.json(
         { error: 'You can only edit your own activities' },
         { status: 403 }
@@ -204,26 +204,26 @@ export async function PUT(request: NextRequest) {
 
     // Allow editing of various post-like activity types
     const editableActivityTypes = ['post_created', 'book_review', 'book_share', 'reading_progress', 'book_added', 'author_follow', 'book_recommendation']
-    const isEditableActivity = editableActivityTypes.includes(existingActivity.activity_type) ||
-                               existingActivity.content_type === 'text' ||
-                               existingActivity.content_type === 'image' ||
-                               existingActivity.content_type === 'video'
+    const isEditableActivity = editableActivityTypes.includes((existingActivity as any).activity_type) ||
+                               (existingActivity as any).content_type === 'text' ||
+                               (existingActivity as any).content_type === 'image' ||
+                               (existingActivity as any).content_type === 'video'
 
     if (!isEditableActivity) {
       return NextResponse.json(
-        { error: `Activity type '${existingActivity.activity_type}' cannot be edited` },
+        { error: `Activity type '${(existingActivity as any).activity_type}' cannot be edited` },
         { status: 400 }
       )
     }
 
     // Update the activity
-    const { data: updatedActivity, error: updateError } = await supabase
-      .from('activities')
+    const { data: updatedActivity, error: updateError } = await (supabase
+      .from('activities') as any)
       .update({
-        text: text || existingActivity.text,
-        image_url: image_url !== undefined ? image_url : existingActivity.image_url,
-        link_url: link_url !== undefined ? link_url : existingActivity.link_url,
-        visibility: visibility || existingActivity.visibility,
+        text: text || (existingActivity as any).text,
+        image_url: image_url !== undefined ? image_url : (existingActivity as any).image_url,
+        link_url: link_url !== undefined ? link_url : (existingActivity as any).link_url,
+        visibility: visibility || (existingActivity as any).visibility,
         updated_at: new Date().toISOString()
       })
       .eq('id', id)
@@ -305,7 +305,7 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    if (existingActivity.user_id !== user.id) {
+    if ((existingActivity as any).user_id !== user.id) {
       return NextResponse.json(
         { error: 'You can only delete your own activities' },
         { status: 403 }
@@ -314,26 +314,26 @@ export async function DELETE(request: NextRequest) {
 
     // More flexible validation - allow deletion of various activity types
     const allowedActivityTypes = ['post_created', 'book_added', 'review_created', 'list_created']
-    const isDeletableActivity = allowedActivityTypes.includes(existingActivity.activity_type) ||
-                               existingActivity.content_type === 'text' ||
-                               existingActivity.content_type === 'image' ||
-                               existingActivity.content_type === 'video'
+    const isDeletableActivity = allowedActivityTypes.includes((existingActivity as any).activity_type) ||
+                               (existingActivity as any).content_type === 'text' ||
+                               (existingActivity as any).content_type === 'image' ||
+                               (existingActivity as any).content_type === 'video'
 
     if (!isDeletableActivity) {
       console.log('Activity type not allowed for deletion:', {
-        activityType: existingActivity.activity_type,
-        contentType: existingActivity.content_type,
-        entityType: existingActivity.entity_type
+        activityType: (existingActivity as any).activity_type,
+        contentType: (existingActivity as any).content_type,
+        entityType: (existingActivity as any).entity_type
       })
       return NextResponse.json(
-        { error: `Activity type '${existingActivity.activity_type}' cannot be deleted` },
+        { error: `Activity type '${(existingActivity as any).activity_type}' cannot be deleted` },
         { status: 400 }
       )
     }
 
     // Hard delete the activity (activities table doesn't have is_deleted column)
-    const { error: deleteError } = await supabase
-      .from('activities')
+    const { error: deleteError } = await (supabase
+      .from('activities') as any)
       .delete()
       .eq('id', id)
 

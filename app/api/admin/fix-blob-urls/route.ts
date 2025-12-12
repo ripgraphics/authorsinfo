@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Filter images with blob/data URLs
-    const invalidImages = (allImages || []).filter(img => 
+    const invalidImages = (allImages || []).filter((img: any) => 
       shouldRejectUrl(img.url)
     )
 
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
       success: true,
       totalInvalidCount: totalInvalidCount || 0,
       invalidImagesFound: invalidImages.length,
-      invalidImages: invalidImages.map(img => ({
+      invalidImages: invalidImages.map((img: any) => ({
         id: img.id,
         url: img.url?.substring(0, 100), // Truncate for security
         created_at: img.created_at,
@@ -132,7 +132,7 @@ export async function DELETE(request: NextRequest) {
       })
     }
 
-    const imageIds = invalidImages.map(img => img.id)
+    const imageIds = (invalidImages as any[]).map((img: any) => img.id)
 
     // Delete album_images records first (foreign key constraint)
     const { error: albumImagesError } = await supabaseAdmin

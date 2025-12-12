@@ -259,7 +259,7 @@ export async function regenerateBookCovers(
             // Upload the new image with transformations
             uploadResult = await uploadImage(
               base64Image,
-              "bookcovers",
+              "authorsinfo/book_cover",
               `Book cover for: ${book.title}`,
               maxWidth,
               maxHeight,

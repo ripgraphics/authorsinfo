@@ -36,8 +36,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert engagement tracking record
-    const { error: insertError } = await supabase
-      .from('engagement_analytics')
+    const { error: insertError } = await (supabase
+      .from('engagement_analytics') as any)
       .insert({
         user_id: user.id,
         action,

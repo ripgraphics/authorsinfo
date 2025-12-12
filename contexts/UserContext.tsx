@@ -92,7 +92,22 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     try {
       const { data: { user }, error } = await supabase.auth.getUser()
-      if (error) throw error
+      
+      // Handle AuthSessionMissingError gracefully - this is normal for public users
+      if (error) {
+        const errorName = (error as any)?.name || error?.constructor?.name || ''
+        const errorMessage = error?.message || String(error) || ''
+        const isSessionError = errorName === 'AuthSessionMissingError' || 
+                              errorMessage.includes('session') || 
+                              errorMessage.includes('Auth session missing')
+        
+        if (isSessionError) {
+          // This is normal for public users - don't log as error
+          setLoading(false)
+          return
+        }
+        throw error
+      }
       
       if (user) {
         const userData = await fetchUserData()
@@ -108,8 +123,17 @@ export function UserProvider({ children }: { children: ReactNode }) {
           debouncedSetUser(userWithRole)
         }
       }
-    } catch (err) {
-      console.error('Error initializing user:', err)
+    } catch (err: any) {
+      // Only log non-session errors
+      const errorName = err?.name || err?.constructor?.name || ''
+      const errorMessage = err?.message || String(err) || ''
+      const isSessionError = errorName === 'AuthSessionMissingError' || 
+                            errorMessage.includes('session') || 
+                            errorMessage.includes('Auth session missing')
+      
+      if (!isSessionError) {
+        console.error('Error initializing user:', err)
+      }
     } finally {
       setLoading(false)
     }

@@ -8,7 +8,7 @@ export async function uploadImage(
   alt_text = "",
   maxWidth?: number,
   maxHeight?: number,
-  img_type_id?: string,
+  entity_type_id?: string,
 ) {
   try {
     // Get Cloudinary credentials from environment variables
@@ -62,8 +62,18 @@ export async function uploadImage(
     const signature = crypto.createHash("sha1").update(signatureString).digest("hex")
 
     // Prepare the form data
+    // Handle both raw base64 strings and data URLs
+    let base64Data = base64Image
+    if (base64Image.startsWith('data:')) {
+      // Extract base64 string from data URL if it's already a data URL
+      const commaIndex = base64Image.indexOf(',')
+      if (commaIndex !== -1) {
+        base64Data = base64Image.substring(commaIndex + 1)
+      }
+    }
+    
     const formData = new FormData()
-    formData.append("file", `data:image/jpeg;base64,${base64Image}`)
+    formData.append("file", `data:image/jpeg;base64,${base64Data}`)
     formData.append("api_key", apiKey)
     formData.append("timestamp", timestamp.toString())
     formData.append("signature", signature)
@@ -107,12 +117,22 @@ export async function uploadImage(
       throw new Error("Invalid response from Cloudinary. Could not parse JSON.")
     }
 
-    // First, check the structure of the images table
-    const { data: tableInfo, error: tableError } = await supabaseAdmin.from("images").select("*").limit(1)
+    // Get actual schema columns from Supabase by querying a sample row
+    // (information_schema is not accessible via PostgREST)
+    // Use Supabase as the one source of truth for the schema
+    const { data: sampleImageRow, error: tableError } = await supabaseAdmin
+      .from("images")
+      .select('*')
+      .limit(1)
+      .maybeSingle()
 
-    if (tableError) {
-      console.error("Error checking images table structure:", tableError)
-      // If we can't check the table structure, try a minimal insert
+    // Create a Set of available columns from the actual schema
+    const availableColumns = new Set(sampleImageRow ? Object.keys(sampleImageRow) : [])
+
+    // If we can't get the table structure, use minimal required fields
+    if (tableError || !sampleImageRow) {
+      console.warn("Could not determine images table structure, using minimal fields:", tableError?.message)
+      // Fallback to minimal insert with only required fields
       const { data: imageData, error } = await supabaseAdmin
         .from("images")
         .insert([
@@ -121,73 +141,83 @@ export async function uploadImage(
             alt_text: alt_text || "",
             storage_provider: 'cloudinary',
             storage_path: folder,
-            metadata: { cloudinary_public_id: data.public_id },
+            ...(availableColumns.has('metadata') ? { metadata: { cloudinary_public_id: data.public_id } } : {}),
           },
         ])
         .select()
 
       if (error) {
         console.error("Error inserting image record:", error)
-        return null
+        throw new Error(
+          `Failed to create image record in database: ${error.message || 'Unknown error'}. ` +
+          `Code: ${error.code || 'N/A'}. ` +
+          `Details: ${error.details || 'N/A'}. ` +
+          `Hint: ${error.hint || 'N/A'}`
+        )
+      }
+
+      if (!imageData || imageData.length === 0) {
+        throw new Error("Image upload succeeded but no image record was created in the database")
       }
 
       return {
         url: data.secure_url,
-        publicId: data.public_id, // We still return this for the function's API
+        publicId: data.public_id,
         imageId: imageData[0].id,
       }
     }
 
-    // Prepare the insert object based on the table structure
+    // Build insert object using only columns that exist in the schema
     const insertObject: Record<string, any> = {
       url: data.secure_url,
       alt_text: alt_text || "",
       storage_provider: 'cloudinary',
       storage_path: folder,
-      metadata: { cloudinary_public_id: data.public_id },
     }
 
-    // Add img_type_id if provided (should be a UUID from entity_types table)
-    if (img_type_id) {
-      insertObject.img_type_id = img_type_id
+    // Only include columns that exist in the schema
+    if (availableColumns.has('metadata')) {
+      insertObject.metadata = { cloudinary_public_id: data.public_id }
+    }
+
+    // Add entity_type_id only if the column exists in the schema
+    if (entity_type_id && availableColumns.has('entity_type_id')) {
+      insertObject.entity_type_id = entity_type_id
     }
 
     // Store the Cloudinary public_id in a field that exists
-    // Try common field names that might exist
-    if (tableInfo && tableInfo.length > 0) {
-      const sampleRow = tableInfo[0]
+    if (availableColumns.has('public_id')) {
+      insertObject.public_id = data.public_id
+    } else if (availableColumns.has('cloudinary_id')) {
+      insertObject.cloudinary_id = data.public_id
+    } else if (availableColumns.has('external_id')) {
+      insertObject.external_id = data.public_id
+    }
 
-      // Check if any of these fields exist in the table
-      if ("public_id" in sampleRow) {
-        insertObject.public_id = data.public_id
-      } else if ("cloudinary_id" in sampleRow) {
-        insertObject.cloudinary_id = data.public_id
-      } else if ("external_id" in sampleRow) {
-        insertObject.external_id = data.public_id
-      } else if ("metadata" in sampleRow) {
-        // If there's a metadata JSON field, we can store it there
-        insertObject.metadata = { cloudinary_public_id: data.public_id }
-      }
-
-      // Add additional fields if they exist
-      if ("original_filename" in sampleRow && data.original_filename) {
-        insertObject.original_filename = data.original_filename
-      }
-      if ("file_size" in sampleRow && data.bytes) {
-        insertObject.file_size = data.bytes
-      }
-      if ("width" in sampleRow && data.width) {
-        insertObject.width = data.width
-      }
-      if ("height" in sampleRow && data.height) {
-        insertObject.height = data.height
-      }
-      if ("format" in sampleRow && data.format) {
-        insertObject.format = data.format
-      }
-      if ("mime_type" in sampleRow && data.resource_type) {
-        insertObject.mime_type = `${data.resource_type}/${data.format}`
-      }
+    // Add additional fields if they exist in the schema
+    if (availableColumns.has('original_filename') && data.original_filename) {
+      insertObject.original_filename = data.original_filename
+    }
+    if (availableColumns.has('file_size') && data.bytes) {
+      insertObject.file_size = data.bytes
+    }
+    if (availableColumns.has('width') && data.width) {
+      insertObject.width = data.width
+    }
+    if (availableColumns.has('height') && data.height) {
+      insertObject.height = data.height
+    }
+    if (availableColumns.has('format') && data.format) {
+      insertObject.format = data.format
+    }
+    if (availableColumns.has('mime_type') && data.resource_type) {
+      insertObject.mime_type = `${data.resource_type}/${data.format}`
+    }
+    if (availableColumns.has('is_processed')) {
+      insertObject.is_processed = true
+    }
+    if (availableColumns.has('processing_status')) {
+      insertObject.processing_status = 'completed'
     }
 
     // Insert the image record into the database
@@ -202,12 +232,17 @@ export async function uploadImage(
         details: error.details,
         hint: error.hint
       })
-      return null
+      throw new Error(
+        `Failed to create image record in database: ${error.message || 'Unknown error'}. ` +
+        `Code: ${error.code || 'N/A'}. ` +
+        `Details: ${error.details || 'N/A'}. ` +
+        `Hint: ${error.hint || 'N/A'}`
+      )
     }
 
     if (!imageData || imageData.length === 0) {
       console.error("No image data returned from insert")
-      return null
+      throw new Error("Image upload succeeded but no image record was created in the database")
     }
 
     return {
@@ -217,7 +252,12 @@ export async function uploadImage(
     }
   } catch (error) {
     console.error("Error uploading image:", error)
-    return null
+    // Re-throw the error if it's already an Error instance with a message
+    if (error instanceof Error) {
+      throw error
+    }
+    // Otherwise, wrap it in a new Error
+    throw new Error(`Failed to upload image: ${String(error)}`)
   }
 }
 

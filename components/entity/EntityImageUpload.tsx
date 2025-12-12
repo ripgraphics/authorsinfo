@@ -158,91 +158,117 @@ export function EntityImageUpload({
       return
     }
 
+    if (!selectedFile) {
+      console.error('❌ [UPLOAD] No file selected')
+      return
+    }
+
     console.log(`🚀 [UPLOAD] Starting upload process for ${entityType} ${entityId}, type: ${type}`)
     setIsUploading(true)
     try {
-      // If we have a cropped image, we need to convert it to a file first
-      let fileToUpload = selectedFile
-      if (croppedImage) {
-        // Convert blob URL to file
-        const response = await fetch(croppedImage)
-        const blob = await response.blob()
-        fileToUpload = new File([blob], 'cropped-image.jpg', { type: 'image/jpeg' })
-      }
-
-      if (!fileToUpload) {
-        throw new Error('No file to upload')
-      }
-
       // Store the old image URL for potential cleanup
       const oldImageUrl = currentImageUrl
 
-      // Always use server-side API route for uploads (works for both cropped and non-cropped)
       // Map component type to API imageType (both bookCover and entityHeaderCover use 'cover' for column mapping)
       const imageType = type === 'bookCover' || type === 'entityHeaderCover' ? 'cover' : type
-      console.log(`📤 [UPLOAD] Preparing upload to Cloudinary...`)
-      console.log(`📤 [UPLOAD] File name: ${fileToUpload.name}, size: ${fileToUpload.size} bytes`)
-      console.log(`📤 [UPLOAD] Entity: ${entityType} ${entityId}, imageType: ${imageType}, originalType: ${type}`)
       
-      const formData = new FormData()
-      formData.append('file', fileToUpload)
-      formData.append('entityType', entityType)
-      formData.append('entityId', entityId)
-      formData.append('imageType', imageType)
-      formData.append('originalType', type) // Pass original type so upload route can determine correct folder
+      let uploadResult: any = null
 
-      console.log(`📤 [UPLOAD] Calling POST /api/upload/entity-image...`)
-      const uploadResponse = await fetch('/api/upload/entity-image', {
-        method: 'POST',
-        body: formData
-      })
-      
-      console.log(`📤 [UPLOAD] Upload response status: ${uploadResponse.status} ${uploadResponse.statusText}`)
+      // If we have a cropped image, upload ONLY the cropped image (not the original)
+      if (croppedImage) {
+        console.log(`📤 [UPLOAD] Cropped image detected - uploading cropped version only`)
+        
+        // Convert blob URL to file
+        const response = await fetch(croppedImage)
+        const blob = await response.blob()
+        const croppedFile = new File([blob], 'cropped-image.jpg', { type: 'image/jpeg' })
 
-      if (!uploadResponse.ok) {
-        const errorData = await uploadResponse.json().catch(() => ({}))
-        console.error(`❌ [UPLOAD] Cloudinary upload failed:`, errorData)
-        throw new Error(errorData.error || 'Failed to upload to Cloudinary')
-      }
+        const croppedFormData = new FormData()
+        croppedFormData.append('file', croppedFile)
+        croppedFormData.append('entityType', entityType)
+        croppedFormData.append('entityId', entityId)
+        croppedFormData.append('imageType', imageType)
+        croppedFormData.append('originalType', type)
+        croppedFormData.append('isCropped', 'false') // This is a new upload, not a crop of existing image
 
-      const uploadResult = await uploadResponse.json()
-      console.log(`✅ [UPLOAD] Cloudinary upload successful`)
-      console.log(`✅ [UPLOAD] Image URL: ${uploadResult.url}`)
-      console.log(`✅ [UPLOAD] Image ID: ${uploadResult.image_id}`)
-      console.log(`✅ [UPLOAD] Public ID: ${uploadResult.public_id}`)
+        const croppedResponse = await fetch('/api/upload/entity-image', {
+          method: 'POST',
+          body: croppedFormData
+        })
 
-      // Validate that the upload result contains a valid Cloudinary URL
-      if (!uploadResult.url || !isValidCloudinaryUrl(uploadResult.url)) {
-        console.error('❌ Invalid URL received from upload API:', uploadResult.url)
-        throw new Error('Invalid image URL received from server. Please try again.')
-      }
-
-      // CRITICAL: Verify that image_id exists - this confirms the image was saved to Supabase
-      if (!uploadResult.image_id) {
-        console.error('❌ Upload API did not return image_id - image may not be in database')
-        throw new Error('Image upload failed: Image was not saved to database. Please try again.')
-      }
-
-      console.log(`✅ Upload successful: Image ID ${uploadResult.image_id} saved to Supabase`)
-
-      // VERIFY: Confirm the image actually exists in the database before proceeding
-      try {
-        const verifyResponse = await fetch(`/api/debug/table-schema?table=images`)
-        if (verifyResponse.ok) {
-          const verifyData = await verifyResponse.json()
-          const imageExists = verifyData.allData?.some((img: any) => img.id === uploadResult.image_id)
-          if (!imageExists) {
-            console.error('❌ Verification failed: Image not found in database after upload')
-            throw new Error('Image upload verification failed: Image was not found in database. Please try again.')
-          }
-          console.log(`✅ Verification passed: Image ${uploadResult.image_id} confirmed in database`)
+        if (!croppedResponse.ok) {
+          const errorData = await croppedResponse.json().catch(() => ({}))
+          console.error(`❌ [UPLOAD] Cropped image upload failed:`, errorData)
+          throw new Error(errorData.error || 'Failed to upload cropped image')
         }
-      } catch (verifyError) {
-        console.warn('⚠️ Could not verify image in database (verification endpoint may not be available):', verifyError)
-        // Continue anyway - the upload API should have verified it
+
+        uploadResult = await croppedResponse.json()
+        console.log(`✅ [UPLOAD] Cropped image uploaded successfully`)
+        console.log(`✅ [UPLOAD] Image URL: ${uploadResult.url}`)
+        console.log(`✅ [UPLOAD] Image ID: ${uploadResult.image_id}`)
+
+        // Validate cropped image result
+        if (!uploadResult.url || !isValidCloudinaryUrl(uploadResult.url)) {
+          console.error('❌ Invalid URL received for cropped image:', uploadResult.url)
+          throw new Error('Invalid image URL received for cropped image. Please try again.')
+        }
+
+        if (!uploadResult.image_id) {
+          console.error('❌ Cropped image upload did not return image_id')
+          throw new Error('Cropped image upload failed: Image was not saved to database.')
+        }
+
+        console.log(`✅ Upload successful: Image ID ${uploadResult.image_id} saved to Supabase`)
+      } else {
+        // No cropping - just upload the original image
+        console.log(`📤 [UPLOAD] No cropping - uploading original image only`)
+        
+        const formData = new FormData()
+        formData.append('file', selectedFile)
+        formData.append('entityType', entityType)
+        formData.append('entityId', entityId)
+        formData.append('imageType', imageType)
+        formData.append('originalType', type)
+        formData.append('isCropped', 'false') // Mark as original
+
+        const uploadResponse = await fetch('/api/upload/entity-image', {
+          method: 'POST',
+          body: formData
+        })
+
+        if (!uploadResponse.ok) {
+          const errorData = await uploadResponse.json().catch(() => ({}))
+          console.error(`❌ [UPLOAD] Cloudinary upload failed:`, errorData)
+          throw new Error(errorData.error || 'Failed to upload to Cloudinary')
+        }
+
+        uploadResult = await uploadResponse.json()
+        console.log(`✅ [UPLOAD] Cloudinary upload successful`)
+        console.log(`✅ [UPLOAD] Image URL: ${uploadResult.url}`)
+        console.log(`✅ [UPLOAD] Image ID: ${uploadResult.image_id}`)
+        console.log(`✅ [UPLOAD] Public ID: ${uploadResult.public_id}`)
+
+        // Validate that the upload result contains a valid Cloudinary URL
+        if (!uploadResult.url || !isValidCloudinaryUrl(uploadResult.url)) {
+          console.error('❌ Invalid URL received from upload API:', uploadResult.url)
+          throw new Error('Invalid image URL received from server. Please try again.')
+        }
+
+        // CRITICAL: Verify that image_id exists - this confirms the image was saved to Supabase
+        if (!uploadResult.image_id) {
+          console.error('❌ Upload API did not return image_id - image may not be in database')
+          throw new Error('Image upload failed: Image was not saved to database. Please try again.')
+        }
+
+        console.log(`✅ Upload successful: Image ID ${uploadResult.image_id} saved to Supabase`)
       }
 
-      // Add image to entity album
+      // NOTE: The upload API (/api/upload/entity-image) already verifies the image exists in the database
+      // before returning success (see lines 298-324 in route.ts). The image_id in the response confirms
+      // the image was successfully saved and verified. We trust the server-side verification rather than
+      // doing a redundant client-side check that could fail due to pagination limits or timing issues.
+
+      // Add image to entity album (for the main display image - cropped if available, otherwise original)
       // Map component type to API albumPurpose
       const albumPurpose = type === 'bookCover' ? 'cover' : type === 'entityHeaderCover' ? 'entity_header' : type
       
@@ -268,8 +294,8 @@ export function EntityImageUpload({
             metadata: {
               aspect_ratio: (type === 'bookCover' || type === 'entityHeaderCover') ? 16/9 : 1,
               uploaded_via: 'entity_image_upload',
-              original_filename: fileToUpload.name,
-              file_size: fileToUpload.size
+              original_filename: selectedFile.name,
+              file_size: selectedFile.size
             }
           })
         })

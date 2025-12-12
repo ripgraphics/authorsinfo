@@ -120,8 +120,8 @@ export async function POST(request: NextRequest) {
     switch (entity_type) {
       case 'event':
         // Use event_comments table
-        const { data: eventComment, error: eventError } = await supabase
-          .from('event_comments')
+        const { data: eventComment, error: eventError } = await (supabase
+          .from('event_comments') as any)
           .insert([{
             event_id: entity_id,
             user_id,

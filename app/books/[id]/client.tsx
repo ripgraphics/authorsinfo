@@ -65,6 +65,8 @@ import EnterpriseTimelineActivities from '@/components/enterprise/enterprise-tim
 import { EntityImageUpload } from '@/components/entity/EntityImageUpload'
 import { CameraIconButton } from '@/components/ui/camera-icon-button'
 import { HoverOverlay } from '@/components/ui/hover-overlay'
+import { ImageCropper } from '@/components/ui/image-cropper'
+import { createBrowserClient } from '@supabase/ssr'
 
 interface Follower {
   id: string
@@ -108,6 +110,7 @@ export function ClientBookPage({
   const searchParams = useSearchParams()
   
   const validTabs: EntityTab[] = [
+    { id: 'details', label: 'Details' },
     { id: 'timeline', label: 'Timeline' },
     { id: 'about', label: 'About' },
     { id: 'reviews', label: 'Reviews' },
@@ -118,7 +121,7 @@ export function ClientBookPage({
   
   const tabParam = searchParams?.get('tab')
   const validTabIds = validTabs.map(t => t.id)
-  const initialTab = tabParam && validTabIds.includes(tabParam) ? tabParam : 'timeline'
+  const initialTab = tabParam && validTabIds.includes(tabParam) ? tabParam : 'details'
   const [activeTab, setActiveTab] = useState(initialTab)
   const [showFullAbout, setShowFullAbout] = useState(false)
   const [showFullTimelineAbout, setShowFullTimelineAbout] = useState(false)
@@ -134,6 +137,9 @@ export function ClientBookPage({
   const [isCoverImageModalOpen, setIsCoverImageModalOpen] = useState(false)
   const [isHoveringCover, setIsHoveringCover] = useState(false)
   const [isCoverDropdownOpen, setIsCoverDropdownOpen] = useState(false)
+  const [isCoverCropModalOpen, setIsCoverCropModalOpen] = useState(false)
+  const [isProcessingCrop, setIsProcessingCrop] = useState(false)
+  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
   // Sync bookData with book prop when it changes (e.g., after page refresh)
   // But don't reset if we just updated the cover image locally
@@ -141,13 +147,59 @@ export function ClientBookPage({
   const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   
   useEffect(() => {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client.tsx:143',message:'useEffect triggered',data:{justUpdatedCoverImage,bookCoverImageId:book?.cover_image_id,bookDataCoverImageId:bookData?.cover_image_id,bookCoverImageUrl:book?.cover_image?.url,bookDataCoverImageUrl:bookData?.cover_image?.url},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+    
+    // SUPABASE IS THE SOURCE OF TRUTH: If bookData has a cover_image_id that differs from book prop,
+    // preserve bookData because it came from Supabase (fresh API fetch)
+    // This handles the case where book prop is stale from server-side rendering
+    const bookDataCoverId = bookData?.cover_image_id
+    const bookPropCoverId = book?.cover_image_id
+    
+    if (bookDataCoverId && bookPropCoverId && bookDataCoverId !== bookPropCoverId) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client.tsx:151',message:'Preserving bookData - Supabase source of truth',data:{bookDataCoverImageId:bookDataCoverId,bookPropCoverImageId:bookPropCoverId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+      // #endregion
+      // Keep bookData (Supabase value) and only sync other fields from book prop
+      setBookData((prev) => ({
+        ...book,
+        // Preserve cover_image_id and cover_image from Supabase (bookData)
+        cover_image_id: prev.cover_image_id,
+        cover_image: prev.cover_image,
+        cover_image_url: prev.cover_image_url
+      }))
+      return
+    }
+    
+    // If bookData has cover_image_id but book prop doesn't, preserve bookData (Supabase has it)
+    if (bookDataCoverId && !bookPropCoverId) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client.tsx:165',message:'Preserving bookData - book prop missing cover_image_id',data:{bookDataCoverImageId:bookDataCoverId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+      // #endregion
+      setBookData((prev) => ({
+        ...book,
+        cover_image_id: prev.cover_image_id,
+        cover_image: prev.cover_image,
+        cover_image_url: prev.cover_image_url
+      }))
+      return
+    }
+    
     // If we just updated the cover image, skip the reset to preserve the new image
     if (justUpdatedCoverImage) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client.tsx:162',message:'Skipping reset - justUpdatedCoverImage is true',data:{justUpdatedCoverImage},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
       setJustUpdatedCoverImage(false)
       return
     }
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client.tsx:169',message:'Resetting bookData to book prop',data:{bookCoverImageId:book?.cover_image_id,bookDataCoverImageId:bookData?.cover_image_id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
     setBookData(book)
-  }, [book, justUpdatedCoverImage])
+  }, [book, justUpdatedCoverImage, bookData?.cover_image_id])
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -498,6 +550,161 @@ export function ClientBookPage({
   }
 
   // Delete old image from Cloudinary
+  // Handle cropping book cover
+  const handleCropBookCover = async (croppedImageBlob: Blob) => {
+    setIsProcessingCrop(true)
+    try {
+      console.log('handleCropBookCover called with blob:', croppedImageBlob)
+      
+      // Convert blob to file
+      const file = new File([croppedImageBlob], 'cropped-book-cover.jpg', { type: 'image/jpeg' })
+      
+      // Find the original image ID from the current cover image URL
+      let originalImageId: string | null = null
+      const currentCoverUrl = bookData.cover_image?.url || bookData.cover_image_url
+      if (currentCoverUrl) {
+        try {
+          const { data: originalImage } = await supabase
+            .from('images')
+            .select('id')
+            .eq('url', currentCoverUrl)
+            .single()
+          
+          if (originalImage) {
+            originalImageId = originalImage.id
+            console.log('Found original book cover image ID:', originalImageId)
+          }
+        } catch (error) {
+          console.warn('Could not find original book cover image ID (non-critical):', error)
+        }
+      }
+
+      // Use the entity-image upload API which handles metadata properly
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('entityType', 'book')
+      formData.append('entityId', book.id)
+      formData.append('imageType', 'cover')
+      formData.append('originalType', 'bookCover')
+      formData.append('isCropped', 'true') // Mark as cropped version of existing image
+      if (originalImageId) {
+        formData.append('originalImageId', originalImageId) // Link to original image
+      }
+
+      console.log('📤 Uploading cropped book cover via /api/upload/entity-image...')
+      const uploadResponse = await fetch('/api/upload/entity-image', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (!uploadResponse.ok) {
+        const errorData = await uploadResponse.json().catch(() => ({}))
+        console.error('❌ Upload failed:', errorData)
+        throw new Error(errorData.error || `Failed to upload cropped book cover: ${uploadResponse.status}`)
+      }
+
+      const uploadResult = await uploadResponse.json()
+      console.log('✅ Upload result:', uploadResult)
+
+      if (!uploadResult.url || !uploadResult.image_id) {
+        throw new Error('Invalid response from upload API')
+      }
+
+      // Mark that we're updating the cover image to prevent useEffect from resetting
+      setJustUpdatedCoverImage(true)
+      
+      // Update the book's cover_image_id to point to the new cropped image
+      // WITHOUT deleting the original image (we keep both)
+      try {
+        const { error: updateError } = await supabase
+          .from('books')
+          .update({ cover_image_id: uploadResult.image_id })
+          .eq('id', book.id)
+
+        if (updateError) {
+          console.error('Error updating book cover_image_id:', updateError)
+          throw new Error(`Failed to update book cover: ${updateError.message}`)
+        }
+
+        console.log('✅ Book cover_image_id updated to:', uploadResult.image_id)
+      } catch (error: any) {
+        console.error('Error updating book cover:', error)
+        throw error
+      }
+
+      // Update local state for instant UI feedback
+      setBookData((prev) => {
+        const updated = {
+          ...prev,
+          cover_image: {
+            id: uploadResult.image_id,
+            url: uploadResult.url,
+            alt_text: prev.cover_image?.alt_text || `Cover for ${prev.title}`
+          },
+          cover_image_id: uploadResult.image_id,
+          cover_image_url: uploadResult.url
+        } as typeof prev
+        
+        console.log('✅ Book data updated with cropped cover:', { 
+          cover_image_id: updated.cover_image_id,
+          cover_image_url: updated.cover_image_url
+        })
+        
+        return updated
+      })
+
+      // Add the cropped image to the book's cover album
+      try {
+        const albumResponse = await fetch('/api/entity-images', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            entityId: book.id,
+            entityType: 'book',
+            albumPurpose: 'cover',
+            imageId: uploadResult.image_id,
+            isCover: true,
+            isFeatured: true,
+            metadata: {
+              aspect_ratio: 2/3,
+              uploaded_via: 'book_cover_crop',
+              original_filename: file.name,
+              file_size: file.size,
+              is_cropped: true,
+              ...(originalImageId && { original_image_id: originalImageId })
+            }
+          })
+        })
+
+        if (!albumResponse.ok) {
+          console.warn('⚠️ Failed to add cropped image to album (non-critical)')
+        } else {
+          console.log('✅ Cropped image added to album')
+        }
+      } catch (albumError) {
+        console.warn('⚠️ Error adding cropped image to album (non-critical):', albumError)
+      }
+      
+      setIsCoverCropModalOpen(false)
+      
+      toast({
+        title: "Success",
+        description: "Book cover cropped and saved as a new file"
+      })
+    } catch (error: any) {
+      console.error('Error cropping book cover:', error)
+      toast({
+        title: "Error",
+        description: error.message || "Failed to crop book cover. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsProcessingCrop(false)
+    }
+  }
+
   const deleteOldImageFromCloudinary = async (imageUrl: string) => {
     try {
       const publicId = getPublicIdFromUrl(imageUrl)
@@ -527,6 +734,8 @@ export function ClientBookPage({
 
   // Handle cover image change
   const handleCoverImageChange = async (newImageUrl: string, newImageId?: string) => {
+    console.log('🔄 handleCoverImageChange called:', { newImageUrl, newImageId })
+    
     // Mark that we're updating the cover image to prevent useEffect from resetting
     setJustUpdatedCoverImage(true)
     
@@ -535,10 +744,21 @@ export function ClientBookPage({
     if (oldImageUrl) {
       await deleteOldImageFromCloudinary(oldImageUrl)
     }
-    // Update the book data with new cover image
+    
+    // Immediately update local state for instant UI feedback
     setBookData((prev) => {
+      console.log('📝 Updating bookData with new cover:', { 
+        oldUrl: prev.cover_image?.url, 
+        newUrl: newImageUrl,
+        oldId: prev.cover_image_id,
+        newId: newImageId
+      })
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client.tsx:542',message:'Updating bookData with new cover image',data:{oldCoverImageId:prev.cover_image_id,newImageId,newImageUrl},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+      // #endregion
+      
       const baseCoverImage = prev.cover_image || (prev.cover_image_id ? { id: prev.cover_image_id, url: prev.cover_image_url || '' } : null)
-      return {
+      const updated = {
         ...prev,
         cover_image: baseCoverImage ? {
           ...baseCoverImage,
@@ -548,6 +768,17 @@ export function ClientBookPage({
         cover_image_id: newImageId || prev.cover_image_id,
         cover_image_url: newImageUrl
       } as typeof prev
+      
+      console.log('✅ Book data updated:', { 
+        cover_image_id: updated.cover_image_id,
+        cover_image_url: updated.cover_image_url,
+        cover_image: updated.cover_image
+      })
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client.tsx:568',message:'bookData updated with new cover_image_id',data:{updatedCoverImageId:updated.cover_image_id,updatedCoverImageUrl:updated.cover_image_url},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+      // #endregion
+      
+      return updated
     })
     
     toast({
@@ -555,19 +786,48 @@ export function ClientBookPage({
       description: "Book cover image uploaded successfully",
     })
     
+    // Fetch fresh book data from API to ensure we have the latest data
+    try {
+      console.log('🔄 Fetching fresh book data from API...')
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client.tsx:577',message:'Fetching fresh book data from API',data:{bookId:params.id,currentCoverImageId:bookData?.cover_image_id,newImageId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
+      const response = await fetch(`/api/books/${params.id}`)
+      if (response.ok) {
+        const result = await response.json()
+        if (result.success && result.data) {
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client.tsx:583',message:'Fresh book data received from API',data:{apiCoverImageId:result.data?.cover_image_id,expectedImageId:newImageId,apiCoverImageUrl:result.data?.cover_image?.url,matches:result.data?.cover_image_id===newImageId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+          // #endregion
+          console.log('✅ Fresh book data received, updating state')
+          setBookData(result.data)
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client.tsx:586',message:'Setting bookData and justUpdatedCoverImage flag',data:{coverImageId:result.data?.cover_image_id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+          // #endregion
+          // Keep the flag set to prevent reset
+          setJustUpdatedCoverImage(true)
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error fetching fresh book data:', error)
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client.tsx:590',message:'Error fetching fresh book data',data:{error:error instanceof Error?error.message:'unknown'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
+    }
+    
     // Clear any existing timeout
     if (refreshTimeoutRef.current) {
       clearTimeout(refreshTimeoutRef.current)
     }
     
-    // Revalidate the path and refresh only once after a delay
+    // Revalidate the path in background (non-blocking)
+    // Don't reset justUpdatedCoverImage flag - let the cover_image_id comparison handle it
+    // The flag will be reset naturally when book prop updates with matching cover_image_id
     refreshTimeoutRef.current = setTimeout(async () => {
       try {
         await fetch(`/api/revalidate/book-cover/${params.id}`, {
           method: "POST",
         })
-        // Only refresh once - the revalidatePath should be enough
-        // Don't call router.refresh() to avoid infinite loops
       } catch (revalidateError) {
         console.warn("Revalidate request failed:", revalidateError)
       }
@@ -671,9 +931,12 @@ export function ClientBookPage({
           publisherBookCount={publisherBooksCount}
           isMessageable={true}
           isEditable={canEdit}
+          changeCoverLabel="Change Page Cover"
+          cropCoverLabel="Crop Page Cover"
+          cropCoverSuccessMessage="Page cover cropped and saved as a new file"
           isFollowing={isFollowing}
           onFollow={handleFollow}
-          onCoverImageChange={() => {}}
+          onCoverImageChange={handleCoverImageChange}
         />
 
       <div className="book-page__content">
@@ -836,7 +1099,7 @@ export function ClientBookPage({
           <div className="book-page__details-tab">
             <div className="book-detail-layout grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Left Column - Book Cover (1/3 width) */}
-              <div className="book-page__details-sidebar lg:col-span-1">
+              <div className="book-page__details-sidebar lg:col-span-1 lg:sticky lg:top-6 lg:self-start">
               {/* Book Cover (full width) */}
                 <Card 
                   className="book-page__cover-card overflow-hidden relative"
@@ -854,6 +1117,7 @@ export function ClientBookPage({
                       }}
                     >
                     <Image
+                      key={bookData.cover_image_id || 'no-cover'}
                       src={bookData.cover_image.url}
                       alt={bookData.cover_image?.alt_text ?? bookData.title}
                       width={400}
@@ -876,8 +1140,13 @@ export function ClientBookPage({
                             setIsCoverImageModalOpen(true)
                             setIsCoverDropdownOpen(false)
                           }}
+                          onCrop={() => {
+                            setIsCoverCropModalOpen(true)
+                            setIsCoverDropdownOpen(false)
+                          }}
                           changeCoverLabel="Change Cover Image"
-                          showCrop={false}
+                          cropLabel="Crop Book Cover"
+                          showCrop={!!bookData.cover_image?.url}
                           onOpenChange={(open) => {
                             setIsCoverDropdownOpen(open)
                             if (!open) {
@@ -940,6 +1209,21 @@ export function ClientBookPage({
                   type="bookCover"
                   isOpen={isCoverImageModalOpen}
                   onOpenChange={setIsCoverImageModalOpen}
+                />
+              )}
+
+              {/* Crop Cover Image Modal */}
+              {canEdit && bookData.cover_image?.url && isCoverCropModalOpen && (
+                <ImageCropper
+                  imageUrl={bookData.cover_image.url}
+                  aspectRatio={2 / 3} // Book cover aspect ratio
+                  targetWidth={400}
+                  targetHeight={600}
+                  onCropComplete={handleCropBookCover}
+                  onCancel={() => setIsCoverCropModalOpen(false)}
+                  isProcessing={isProcessingCrop}
+                  title="Crop Book Cover"
+                  helpText="Adjust the crop area to frame your book cover"
                 />
               )}
 

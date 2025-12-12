@@ -47,7 +47,7 @@ export async function GET(request: Request) {
 
     // Get the role name from the roles table
     let roleName = null
-    if (publicUser && publicUser.role_id) {
+    if (publicUser && (publicUser as any).role_id) {
       const { data: roleData, error: roleError } = await supabaseAdmin
         .from('roles')
         .select(`
@@ -55,11 +55,11 @@ export async function GET(request: Request) {
           name,
           description
         `)
-        .eq('id', publicUser.role_id)
+        .eq('id', (publicUser as any).role_id)
         .single()
 
       if (!roleError && roleData) {
-        roleName = roleData.name
+        roleName = (roleData as any).name
         console.log('Role data:', roleData)
       } else {
         console.log('Role error:', roleError?.message)
@@ -71,8 +71,8 @@ export async function GET(request: Request) {
     let roleSource = 'default'
 
     // Check public.profiles table first
-    if (!profileError && profile && profile.role) {
-      effectiveRole = profile.role
+    if (!profileError && profile && (profile as any).role) {
+      effectiveRole = (profile as any).role
       roleSource = 'public.profiles.role'
     }
 

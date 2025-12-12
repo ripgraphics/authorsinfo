@@ -15,13 +15,11 @@ export async function POST(request: NextRequest) {
     
     if (result.success) {
       return NextResponse.json({
-        success: true,
         message: 'Publisher avatar sync completed',
         ...result
       })
     } else {
       return NextResponse.json({
-        success: false,
         message: 'Publisher avatar sync completed with errors',
         ...result
       }, { status: 500 })

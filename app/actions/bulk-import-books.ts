@@ -36,6 +36,7 @@ interface ImportResult {
   duplicates: number
   errors: number
   errorDetails?: string[]
+  duplicateIsbns?: string[]  // array of duplicate ISBNs for UI display
   logs?: string[]  // array of log messages for UI display
 }
 
@@ -93,6 +94,7 @@ export async function bulkImportBookObjects(bookObjects: any[]): Promise<ImportR
     }
 
     result.duplicates = duplicates.length
+    result.duplicateIsbns = duplicates
 
     if (!newIsbns || newIsbns.length === 0) {
       return result; // No new books to add
@@ -266,7 +268,7 @@ export async function bulkImportBookObjects(bookObjects: any[]): Promise<ImportR
         if (book.image) {
           try {
             const uploadRes = await cloudinary.uploader.upload(book.image, {
-              folder: 'authorsinfo/bookcovers',
+              folder: 'authorsinfo/book_cover',
               transformation: [{ height: 900, crop: 'fit', format: 'webp' }],
             });
             // Get Book Cover entity type
@@ -389,12 +391,39 @@ export async function bulkImportBookObjects(bookObjects: any[]): Promise<ImportR
             newBookId = newBook.id;
             console.log(`Book inserted successfully, ID: ${newBookId}`);
             
-            // Link all authors
-            const linkPromises = authorIds.map(authId => 
-              supabase.from('book_authors').insert({ book_id: newBookId, author_id: authId })
-            );
-            await Promise.all(linkPromises);
-            console.log(`Successfully linked ${authorIds.length} authors`);
+            // Link all authors to the book
+            let linkedCount = 0;
+            for (let i = 0; i < authorIds.length; i++) {
+              const authId = authorIds[i];
+              try {
+                const { error: linkError } = await supabase
+                  .from('book_authors')
+                  .upsert(
+                    { book_id: newBookId, author_id: authId },
+                    { onConflict: 'book_id,author_id' }
+                  );
+                
+                if (linkError) {
+                  // If upsert fails (e.g., no unique constraint), try regular insert
+                  const { error: insertError } = await supabase
+                    .from('book_authors')
+                    .insert({ book_id: newBookId, author_id: authId });
+                  
+                  if (insertError) {
+                    console.warn(`Failed to link author ${authId} to book "${book.title}":`, insertError);
+                    result.errorDetails?.push(`Failed to link author to book "${book.title}": ${insertError.message}`);
+                  } else {
+                    linkedCount++;
+                  }
+                } else {
+                  linkedCount++;
+                }
+              } catch (error) {
+                console.warn(`Error linking author ${authId} to book "${book.title}":`, error);
+                result.errorDetails?.push(`Error linking author to book "${book.title}": ${error}`);
+              }
+            }
+            console.log(`Successfully linked ${linkedCount}/${authorIds.length} authors to book "${book.title}"`);
             
             // Link subjects if available
             if (book.subjects && Array.isArray(book.subjects)) {
@@ -470,6 +499,35 @@ export async function bulkImportBooks(isbns: string[]): Promise<ImportResult> {
     }
 
     result.duplicates = duplicates.length
+    result.duplicateIsbns = duplicates
+
+    // Try to fetch book titles for duplicates to make the display more informative
+    if (duplicates.length > 0) {
+      try {
+        const { data: duplicateBooks } = await supabase
+          .from("books")
+          .select("title, isbn10, isbn13")
+          .or(`isbn10.in.(${duplicates.join(",")}),isbn13.in.(${duplicates.join(",")})`)
+        
+        if (duplicateBooks && duplicateBooks.length > 0) {
+          // Create a map of ISBN to title
+          const isbnToTitle = new Map<string, string>()
+          duplicateBooks.forEach((book: { title: string; isbn10: string | null; isbn13: string | null }) => {
+            if (book.isbn10) isbnToTitle.set(book.isbn10, book.title)
+            if (book.isbn13) isbnToTitle.set(book.isbn13, book.title)
+          })
+          
+          // Enhance duplicateIsbns with titles (format: "ISBN - Title" or just "ISBN" if title not found)
+          result.duplicateIsbns = duplicates.map(isbn => {
+            const title = isbnToTitle.get(isbn)
+            return title ? `${isbn} - ${title}` : isbn
+          })
+        }
+      } catch (error) {
+        // If we can't fetch titles, just use ISBNs
+        console.error("Error fetching duplicate book titles:", error)
+      }
+    }
 
     if (!newIsbns || newIsbns.length === 0) {
       return result; // No new books to add
@@ -769,12 +827,39 @@ export async function bulkImportBooks(isbns: string[]): Promise<ImportResult> {
             newBookId = newBook.id;
             console.log(`Book inserted successfully with description, ID: ${newBookId}`);
             
-            // Immediately link authors
-            const linkPromises = authorIds.map(authId => 
-              supabase.from('book_authors').insert({ book_id: newBookId, author_id: authId })
-            );
-            await Promise.all(linkPromises);
-            console.log(`Successfully linked ${authorIds.length} authors`);
+            // Immediately link all authors to the book
+            let linkedCount = 0;
+            for (let i = 0; i < authorIds.length; i++) {
+              const authId = authorIds[i];
+              try {
+                const { error: linkError } = await supabase
+                  .from('book_authors')
+                  .upsert(
+                    { book_id: newBookId, author_id: authId },
+                    { onConflict: 'book_id,author_id' }
+                  );
+                
+                if (linkError) {
+                  // If upsert fails (e.g., no unique constraint), try regular insert
+                  const { error: insertError } = await supabase
+                    .from('book_authors')
+                    .insert({ book_id: newBookId, author_id: authId });
+                  
+                  if (insertError) {
+                    console.warn(`Failed to link author ${authId} to book "${book.title}":`, insertError);
+                    result.errorDetails?.push(`Failed to link author to book "${book.title}": ${insertError.message}`);
+                  } else {
+                    linkedCount++;
+                  }
+                } else {
+                  linkedCount++;
+                }
+              } catch (error) {
+                console.warn(`Error linking author ${authId} to book "${book.title}":`, error);
+                result.errorDetails?.push(`Error linking author to book "${book.title}": ${error}`);
+              }
+            }
+            console.log(`Successfully linked ${linkedCount}/${authorIds.length} authors to book "${book.title}"`);
             success = true;
           }
         } catch (error) {

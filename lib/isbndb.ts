@@ -215,7 +215,11 @@ export async function getBulkBooks(isbns: string[]): Promise<Book[]> {
 }
 
 // New function to search latest books
-export async function getLatestBooks(page = 1, pageSize = 20): Promise<Book[]> {
+// Since ISBNdb doesn't have a dedicated "latest books" endpoint, we search by recent publication years
+// According to ISBNdb API spec: /books/{query} with column=date_published searches books in a given year
+// We use the current year and previous year to get recently published books
+// Optionally accepts a year parameter to search for books in a specific year
+export async function getLatestBooks(page = 1, pageSize = 20, year?: number): Promise<Book[]> {
   try {
     // Check if API key is available
     if (!ISBNDB_API_KEY) {
@@ -223,19 +227,88 @@ export async function getLatestBooks(page = 1, pageSize = 20): Promise<Book[]> {
       return []
     }
 
-    // Since ISBNdb doesn't have a "latest books" endpoint, we'll search for popular books
-    // Using common search terms that should return recent/popular books
-    const searchTerms = ["bestseller", "new", "popular", "fiction", "nonfiction"]
-    const randomTerm = searchTerms[Math.floor(Math.random() * searchTerms.length)]
+    // Get current year and previous year to find recently published books
+    const currentYear = new Date().getFullYear()
+    const previousYear = currentYear - 1
     
-    console.log(`Searching for books with term: ${randomTerm}`)
+    // Use provided year, or determine which year to search based on page number
+    // Page 1-10: Current year (more recent)
+    // Page 11+: Previous year
+    const yearToSearch = year !== undefined ? year : (page <= 10 ? currentYear : previousYear)
     
-    const response = await makeApiRequest(`${BASE_URL}/books/${randomTerm}?page=${page}&pageSize=${pageSize}`)
+    console.log(`Searching for books published in ${yearToSearch} (page ${page})`)
+    
+    // According to ISBNdb API spec:
+    // - column=date_published: "Only searches books in a given year, e.g. 1998"
+    // - year: "Filter books by year of publication"
+    // The issue: using /books/{year} treats {year} as a search query, matching titles containing "2025"
+    // Solution: Use a generic search term ("a" - a very common letter) with column=date_published
+    // and year parameter. This prevents the API from searching for the year in titles.
+    // We then filter client-side by actual publication date to ensure accuracy.
+    const response = await makeApiRequest(
+      `${BASE_URL}/books/a?page=${page}&pageSize=${pageSize}&column=date_published&year=${yearToSearch}`
+    )
 
     const data = await response.json()
-    console.log("ISBNdb response:", data)
+    console.log(`ISBNdb response for ${yearToSearch} (page ${page}):`, {
+      total: data.total,
+      booksReturned: data.books?.length || 0
+    })
     
-    return data.books || []
+    // Additional validation: Filter by actual publication date to ensure we only get books
+    // published in the requested year, regardless of what the API might return
+    let filteredBooks = data.books || []
+    if (filteredBooks.length > 0) {
+      filteredBooks = filteredBooks.filter((book: Book) => {
+        const datePublished = book.date_published || book.publish_date
+        if (!datePublished) return false
+        
+        try {
+          const date = new Date(datePublished)
+          const bookYear = date.getFullYear()
+          return bookYear === yearToSearch
+        } catch {
+          // If date parsing fails, check if the date string contains the year
+          return datePublished.includes(yearToSearch.toString())
+        }
+      })
+      
+      console.log(`After filtering by actual publication date: ${filteredBooks.length} books (from ${data.books?.length || 0} total)`)
+    }
+    
+    // If we got results, return them
+    if (filteredBooks.length > 0) {
+      return filteredBooks
+    }
+    
+    // If no results for current year on page 1, try previous year as fallback (only if year wasn't explicitly provided)
+    if (page === 1 && yearToSearch === currentYear && year === undefined) {
+      console.log(`No books found for ${currentYear}, trying ${previousYear} as fallback`)
+      const fallbackResponse = await makeApiRequest(
+        `${BASE_URL}/books/a?page=${page}&pageSize=${pageSize}&column=date_published&year=${previousYear}`
+      )
+      const fallbackData = await fallbackResponse.json()
+      
+      // Filter fallback results as well
+      let fallbackBooks = fallbackData.books || []
+      if (fallbackBooks.length > 0) {
+        fallbackBooks = fallbackBooks.filter((book: Book) => {
+          const datePublished = book.date_published || book.publish_date
+          if (!datePublished) return false
+          
+          try {
+            const date = new Date(datePublished)
+            return date.getFullYear() === previousYear
+          } catch {
+            return datePublished.includes(previousYear.toString())
+          }
+        })
+      }
+      
+      return fallbackBooks
+    }
+    
+    return []
   } catch (error) {
     console.error("Error fetching latest books:", error)
     // Return empty array instead of throwing to prevent app crashes

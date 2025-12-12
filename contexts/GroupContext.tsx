@@ -40,7 +40,20 @@ export function GroupProvider({
       try {
         console.log('Initializing user session...')
         const { data: { user }, error } = await supabaseClient.auth.getUser()
+        
+        // Handle AuthSessionMissingError gracefully - this is normal for public users
         if (error) {
+          const errorName = (error as any)?.name || error?.constructor?.name || ''
+          const errorMessage = error?.message || String(error) || ''
+          const isSessionError = errorName === 'AuthSessionMissingError' || 
+                                errorMessage.includes('session') || 
+                                errorMessage.includes('Auth session missing')
+          
+          if (isSessionError) {
+            // This is normal for public users - don't log as error
+            console.log('No authenticated user (public user)')
+            return
+          }
           console.error('Error authenticating user:', error)
           throw error
         }
@@ -66,8 +79,17 @@ export function GroupProvider({
         return () => {
           subscription.unsubscribe()
         }
-      } catch (err) {
-        console.error('Error initializing user:', err)
+      } catch (err: any) {
+        // Only log non-session errors
+        const errorName = err?.name || err?.constructor?.name || ''
+        const errorMessage = err?.message || String(err) || ''
+        const isSessionError = errorName === 'AuthSessionMissingError' || 
+                              errorMessage.includes('session') || 
+                              errorMessage.includes('Auth session missing')
+        
+        if (!isSessionError) {
+          console.error('Error initializing user:', err)
+        }
       }
     }
 

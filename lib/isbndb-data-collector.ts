@@ -93,6 +93,71 @@ export class ISBNdbDataCollector {
   }
 
   /**
+   * Fetch multiple books in bulk using ISBNdb bulk endpoint
+   * This is much more efficient than individual requests
+   */
+  async fetchBulkBookDetails(isbns: string[], withPrices: boolean = false): Promise<(ISBNdbBookData | null)[]> {
+    if (!isbns.length) return [];
+    
+    const batchSize = 100; // ISBNdb API limit
+    const allBooks: (ISBNdbBookData | null)[] = [];
+    
+    for (let i = 0; i < isbns.length; i += batchSize) {
+      const batch = isbns.slice(i, i + batchSize);
+      try {
+        const params = new URLSearchParams();
+        if (withPrices) {
+          params.append('with_prices', '1');
+        }
+        
+        const url = `${this.baseUrl}/books${params.toString() ? `?${params.toString()}` : ''}`;
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Authorization': this.apiKey,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ isbns: batch }),
+        });
+        
+        if (!response.ok) {
+          console.warn(`Bulk fetch failed for batch ${i / batchSize + 1}: ${response.status}`);
+          // Return null for all books in this batch
+          allBooks.push(...batch.map(() => null));
+          continue;
+        }
+        
+        const data = await response.json();
+        // ISBNdb bulk endpoint returns { data: [books], total, requested }
+        const books = data.data || [];
+        
+        // Create a map of ISBN to book for easy lookup
+        const isbnToBook = new Map<string, ISBNdbBookData>();
+        books.forEach((book: ISBNdbBookData) => {
+          if (book.isbn13) isbnToBook.set(book.isbn13, book);
+          if (book.isbn) isbnToBook.set(book.isbn, book);
+        });
+        
+        // Return books in the same order as requested ISBNs
+        batch.forEach(isbn => {
+          allBooks.push(isbnToBook.get(isbn) || null);
+        });
+      } catch (error) {
+        console.error(`Error in bulk fetch batch ${i / batchSize + 1}:`, error);
+        // Return null for all books in this batch
+        allBooks.push(...batch.map(() => null));
+      }
+      
+      // Rate limiting: wait 1.1 seconds between batches
+      if (i + batchSize < isbns.length) {
+        await new Promise(resolve => setTimeout(resolve, 1100));
+      }
+    }
+    
+    return allBooks;
+  }
+
+  /**
    * Fetch detailed book information from ISBNdb with ALL available data
    */
   async fetchBookDetails(isbn: string, withPrices: boolean = false): Promise<ISBNdbBookData | null> {
@@ -147,13 +212,41 @@ export class ISBNdbDataCollector {
       const params = new URLSearchParams({
         page: String(options.page || 1),
         pageSize: String(options.pageSize || 20),
-        ...(options.column && { column: options.column }),
-        ...(options.year && { year: String(options.year) }),
-        ...(options.language && { language: options.language }),
-        ...(options.shouldMatchAll !== undefined && { shouldMatchAll: String(options.shouldMatchAll ? 1 : 0) }),
       });
-
-      const response = await fetch(`${this.baseUrl}/books/${encodeURIComponent(query)}?${params}`, {
+      
+      let apiUrl: string;
+      
+      // If column is 'subjects', use the /search/books endpoint with subject parameter
+      // According to ISBNdb API spec: /search/books?subject={subject_name} returns books with that subject
+      if (options.column === 'subjects') {
+        params.set('subject', query);
+        // Add optional year filter if provided
+        if (options.year) {
+          params.set('year', String(options.year));
+        }
+        apiUrl = `${this.baseUrl}/search/books?${params.toString()}`;
+        console.log(`[ISBNdbDataCollector] Searching books by subject using /search/books endpoint`);
+      } else {
+        // For other column types (title, author, etc.), use the /books/{query} endpoint
+        if (options.column) {
+          params.set('column', options.column);
+        }
+        if (options.year) {
+          params.set('year', String(options.year));
+        }
+        if (options.language) {
+          params.set('language', options.language);
+        }
+        if (options.shouldMatchAll !== undefined) {
+          params.set('shouldMatchAll', String(options.shouldMatchAll ? 1 : 0));
+        }
+        const encodedQuery = encodeURIComponent(query);
+        apiUrl = `${this.baseUrl}/books/${encodedQuery}?${params.toString()}`;
+      }
+      
+      console.log(`[ISBNdbDataCollector] API URL: ${apiUrl.replace(this.apiKey, '[REDACTED]')}`);
+      
+      const response = await fetch(apiUrl, {
         headers: {
           'Authorization': this.apiKey,
           'Content-Type': 'application/json',
@@ -166,9 +259,12 @@ export class ISBNdbDataCollector {
 
       const data = await response.json();
       
+      // The /search/books endpoint returns 'data' array, while /books/{query} returns 'books' array
+      const booksArray = data.data || data.books || [];
+      
       // Fetch detailed information for each book with ALL available data
       const detailedBooks = await Promise.all(
-        (data.books || []).map(async (book: any) => {
+        booksArray.map(async (book: any) => {
           const detailed = await this.fetchBookDetails(book.isbn13 || book.isbn, options.withPrices);
           return detailed || book;
         })
@@ -207,9 +303,16 @@ export class ISBNdbDataCollector {
       if (options.searchType === 'recent') {
         apiUrl = `${this.baseUrl}/books/recent?${params}&year=${year}`;
       } else {
-        apiUrl = `${this.baseUrl}/books/${year}?${params}&column=date_published`;
+        // Use a generic search term ('a') in the path to avoid matching year in titles
+        // Then use column=date_published and year parameter to filter by publication year only
+        params.set('column', 'date_published');
+        params.set('year', String(year));
+        apiUrl = `${this.baseUrl}/books/a?${params.toString()}`;
+        console.log(`[ISBNdbDataCollector] Searching books by year: ${year} using /books/a with year parameter`);
       }
 
+      console.log(`[ISBNdbDataCollector] API URL: ${apiUrl.replace(this.apiKey, '[REDACTED]')}`);
+      
       const response = await fetch(apiUrl, {
         headers: {
           'Authorization': this.apiKey,

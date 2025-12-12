@@ -148,14 +148,12 @@ export async function POST(request: NextRequest) {
         // Use photo_comments table
         const { data: photoComment, error: photoError } = await supabase
           .from('photo_comments')
-          .insert([{
+          .insert({
             photo_id: entity_id,
             user_id,
             content: content.trim(),
-            parent_comment_id,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }])
+            parent_id: parent_comment_id || null
+          })
           .select(`
             *,
             user:users!photo_comments_user_id_fkey(

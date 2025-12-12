@@ -172,14 +172,12 @@ export async function POST(request: NextRequest) {
         // Use post_comments table
         const { data: postComment, error: postError } = await supabase
           .from('post_comments')
-          .insert([{
+          .insert({
             post_id: entity_id,
             user_id,
             content: content.trim(),
-            parent_comment_id,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }])
+            parent_comment_id: parent_comment_id || null
+          } as any)
           .select(`
             *,
             user:users!post_comments_user_id_fkey(

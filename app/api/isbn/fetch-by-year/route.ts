@@ -18,8 +18,11 @@ export async function GET(request: NextRequest) {
     const withPrices = searchParams.get('withPrices') === 'true';
 
     const isbndbApiKey = process.env.ISBNDB_API_KEY;
-    if (!isbndbApiKey) {
-      return NextResponse.json({ error: 'ISBNdb API key not configured' }, { status: 500 });
+    if (!isbndbApiKey || isbndbApiKey === 'your-isbndb-api-key' || isbndbApiKey.includes('your-')) {
+      return NextResponse.json({ 
+        error: 'ISBNdb API key not configured',
+        details: 'Please set ISBNDB_API_KEY in your .env.local file with a valid ISBNdb API key'
+      }, { status: 500 });
     }
 
     const collector = new ISBNdbDataCollector(isbndbApiKey);
@@ -70,9 +73,20 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Error fetching books from ISBNdb:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
+    // Check if it's a rate limit error (429)
+    const isRateLimit = errorMessage.includes('rate limit') || errorMessage.includes('429');
+    const statusCode = isRateLimit ? 429 : 500;
+    
     return NextResponse.json(
-      { error: 'Failed to fetch books from ISBNdb', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
+      { 
+        error: isRateLimit ? 'Rate limit exceeded' : 'Failed to fetch books from ISBNdb', 
+        details: errorMessage,
+        stack: process.env.NODE_ENV === 'development' ? errorStack : undefined
+      },
+      { status: statusCode }
     );
   }
 }

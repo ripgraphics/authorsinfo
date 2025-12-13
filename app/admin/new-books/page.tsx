@@ -480,7 +480,7 @@ export default function NewBooksPage() {
         </div>
         <div className="flex items-center space-x-2">
           <Button
-            onClick={() => fetchBooks()}
+            onClick={fetchBooks}
             disabled={loading || !subject.trim()}
             variant="outline"
             size="sm"

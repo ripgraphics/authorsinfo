@@ -254,6 +254,13 @@ export class ISBNdbDataCollector {
       });
 
       if (!response.ok) {
+        if (response.status === 429) {
+          const retryAfter = response.headers.get('Retry-After');
+          const errorMessage = retryAfter 
+            ? `ISBNdb API rate limit exceeded. Please wait ${retryAfter} seconds before trying again.`
+            : 'ISBNdb API rate limit exceeded. Please wait a minute before making more requests.';
+          throw new Error(errorMessage);
+        }
         throw new Error(`ISBNdb API error: ${response.status}`);
       }
 

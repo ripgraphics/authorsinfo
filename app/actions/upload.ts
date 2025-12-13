@@ -8,7 +8,7 @@ export async function uploadImage(
   alt_text = "",
   maxWidth?: number,
   maxHeight?: number,
-  entity_type_id?: string,
+  img_type_id?: string,
 ) {
   try {
     // Get Cloudinary credentials from environment variables
@@ -180,9 +180,9 @@ export async function uploadImage(
       insertObject.metadata = { cloudinary_public_id: data.public_id }
     }
 
-    // Add entity_type_id only if the column exists in the schema
-    if (entity_type_id && availableColumns.has('entity_type_id')) {
-      insertObject.entity_type_id = entity_type_id
+    // Add img_type_id only if the column exists in the schema
+    if (img_type_id && availableColumns.has('img_type_id')) {
+      insertObject.img_type_id = img_type_id
     }
 
     // Store the Cloudinary public_id in a field that exists

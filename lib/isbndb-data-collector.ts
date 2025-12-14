@@ -254,6 +254,9 @@ export class ISBNdbDataCollector {
       });
 
       if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error('ISBNdb API daily limit exceeded (403). Your API key has reached its daily request limit. Please try again tomorrow or upgrade your API plan.');
+        }
         if (response.status === 429) {
           const retryAfter = response.headers.get('Retry-After');
           const errorMessage = retryAfter 
@@ -269,13 +272,14 @@ export class ISBNdbDataCollector {
       // The /search/books endpoint returns 'data' array, while /books/{query} returns 'books' array
       const booksArray = data.data || data.books || [];
       
-      // Fetch detailed information for each book with ALL available data
-      const detailedBooks = await Promise.all(
-        booksArray.map(async (book: any) => {
-          const detailed = await this.fetchBookDetails(book.isbn13 || book.isbn, options.withPrices);
-          return detailed || book;
-        })
-      );
+      // CRITICAL: NEVER call fetchBookDetails - search results already contain ALL available data
+      // Calling fetchBookDetails doubles API usage (1 search + N detail calls = wasted quota)
+      // The ISBNdb search endpoints return complete book data including:
+      // - title, isbn, isbn13, authors, subjects, publisher, date_published
+      // - image, overview, excerpt, synopsis, reviews, other_isbns, etc.
+      // There's no need for additional API calls - use the search results directly
+      console.log(`[ISBNdbDataCollector] Using search results directly for ${booksArray.length} books (no additional API calls needed)`);
+      const detailedBooks: ISBNdbBookData[] = booksArray;
 
       // Analyze data collection statistics
       const stats = this.analyzeDataCollection(detailedBooks);
@@ -328,18 +332,28 @@ export class ISBNdbDataCollector {
       });
 
       if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error('ISBNdb API daily limit exceeded (403). Your API key has reached its daily request limit. Please try again tomorrow or upgrade your API plan.');
+        }
+        if (response.status === 429) {
+          const retryAfter = response.headers.get('Retry-After');
+          const errorMessage = retryAfter 
+            ? `ISBNdb API rate limit exceeded. Please wait ${retryAfter} seconds before trying again.`
+            : 'ISBNdb API rate limit exceeded. Please wait a minute before making more requests.';
+          throw new Error(errorMessage);
+        }
         throw new Error(`ISBNdb API error: ${response.status}`);
       }
 
       const data = await response.json();
       
-      // Fetch detailed information for each book with ALL available data
-      const detailedBooks = await Promise.all(
-        (data.books || []).map(async (book: any) => {
-          const detailed = await this.fetchBookDetails(book.isbn13 || book.isbn, options.withPrices);
-          return detailed || book;
-        })
-      );
+      const booksArray = data.books || [];
+      
+      // CRITICAL: NEVER call fetchBookDetails - search results already contain ALL available data
+      // Calling fetchBookDetails doubles API usage (1 search + N detail calls = wasted quota)
+      // The ISBNdb search endpoints return complete book data - use it directly
+      console.log(`[ISBNdbDataCollector] Using search results directly for ${booksArray.length} books (no additional API calls needed)`);
+      const detailedBooks: ISBNdbBookData[] = booksArray;
 
       // Analyze data collection statistics
       const stats = this.analyzeDataCollection(detailedBooks);
@@ -397,26 +411,36 @@ export class ISBNdbDataCollector {
    */
   async storeBookWithCompleteData(bookData: ISBNdbBookData): Promise<any> {
     try {
+      // Validate and assign ISBNs to correct columns
+      const { extractISBNs } = await import('@/utils/isbnUtils');
+      const { isbn10, isbn13 } = extractISBNs({
+        isbn: bookData.isbn,
+        isbn13: bookData.isbn13,
+      });
+
       // Check if book already exists
       const { data: existingBook } = await supabase
         .from('books')
-        .select('id, isbn13, isbn')
-        .or(`isbn13.eq.${bookData.isbn13},isbn.eq.${bookData.isbn}`)
+        .select('id, isbn13, isbn10')
+        .or(`isbn13.eq.${isbn13 || ''},isbn10.eq.${isbn10 || ''}`)
         .single();
 
       if (existingBook) {
-        // Update existing book with ALL available data
+        // Update existing book with ALL available data from ISBNdb
         const { data: updatedBook, error: updateError } = await supabase
           .from('books')
           .update({
             title: bookData.title || (existingBook as any).title,
             title_long: bookData.title_long,
+            isbn10: isbn10, // Update with validated ISBN-10
+            isbn13: isbn13, // Update with validated ISBN-13
             publisher: bookData.publisher,
             language: bookData.language,
             date_published: bookData.date_published,
             edition: bookData.edition,
             pages: bookData.pages,
             dimensions: bookData.dimensions,
+            binding: bookData.binding, // Store binding type
             overview: bookData.overview,
             synopsis: bookData.synopsis,
             msrp: bookData.msrp,
@@ -424,9 +448,18 @@ export class ISBNdbDataCollector {
             dewey_decimal: bookData.dewey_decimal,
             related_data: bookData.related,
             other_isbns: bookData.other_isbns,
+            // Store image URLs if available
+            image: bookData.image,
+            image_original: bookData.image_original,
+            // Store structured dimensions if available
+            dimensions_structured: bookData.dimensions_structured,
+            // Store reviews array if available
+            reviews: bookData.reviews,
+            // Store prices array if available (Pro/Premium plans)
+            prices: bookData.prices,
             isbndb_last_updated: new Date().toISOString(),
             isbndb_data_version: '2.6.0',
-            raw_isbndb_data: bookData, // Store ALL raw data
+            raw_isbndb_data: bookData, // Store ALL raw data as backup
           })
           .eq('id', existingBook.id)
           .select()
@@ -441,20 +474,21 @@ export class ISBNdbDataCollector {
 
         return { book: updatedBook, action: 'updated' };
       } else {
-        // Create new book with ALL available data
+        // Create new book with ALL available data from ISBNdb
         const { data: newBook, error: insertError } = await supabase
           .from('books')
           .insert({
             title: bookData.title,
             title_long: bookData.title_long,
-            isbn: bookData.isbn,
-            isbn13: bookData.isbn13,
+            isbn10: isbn10, // Use validated ISBN-10
+            isbn13: isbn13, // Use validated ISBN-13
             publisher: bookData.publisher,
             language: bookData.language,
             date_published: bookData.date_published,
             edition: bookData.edition,
             pages: bookData.pages,
             dimensions: bookData.dimensions,
+            binding: bookData.binding, // Store binding type
             overview: bookData.overview,
             synopsis: bookData.synopsis,
             msrp: bookData.msrp,
@@ -462,9 +496,18 @@ export class ISBNdbDataCollector {
             dewey_decimal: bookData.dewey_decimal,
             related_data: bookData.related,
             other_isbns: bookData.other_isbns,
+            // Store image URLs if available
+            image: bookData.image,
+            image_original: bookData.image_original,
+            // Store structured dimensions if available
+            dimensions_structured: bookData.dimensions_structured,
+            // Store reviews array if available
+            reviews: bookData.reviews,
+            // Store prices array if available (Pro/Premium plans)
+            prices: bookData.prices,
             isbndb_last_updated: new Date().toISOString(),
             isbndb_data_version: '2.6.0',
-            raw_isbndb_data: bookData, // Store ALL raw data
+            raw_isbndb_data: bookData, // Store ALL raw data as backup
           })
           .select()
           .single();

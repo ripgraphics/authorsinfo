@@ -29,6 +29,7 @@ import {
 import { Label } from "@/components/ui/label"
 import { BookCard } from "@/components/book-card"
 import { InteractiveControls } from "./components/InteractiveControls"
+import { BooksListWrapper } from "./components/BooksListWrapper"
 
 interface BooksPageProps {
   searchParams: Promise<{
@@ -132,28 +133,25 @@ async function BooksList({
   year?: string
 }) {
   const pageSize = 24
-  const offset = (page - 1) * pageSize
 
   // Get publication years and the correct date field
   const { years, dateField } = await getPublicationYears()
 
-  // Build the query - using simpler syntax that matches other pages
+  // Build the query - fetch ALL books (for client-side filtering)
+  // We'll filter by search client-side for instant results
   let query = supabaseAdmin.from("books").select(`
       *,
-      cover_image:cover_image_id(id, url, alt_text)
+      cover_image:cover_image_id(id, url, alt_text),
+      author:author_id(id, name),
+      publisher:publisher_id(id, name)
     `)
 
-  // Apply search filter if provided
-  if (search) {
-    query = query.ilike("title", `%${search}%`)
-  }
-
-  // Apply language filter if provided
+  // Apply language filter if provided (server-side)
   if (language && language !== "all") {
     query = query.eq("language", language)
   }
 
-  // Apply year filter if provided
+  // Apply year filter if provided (server-side)
   if (year && year !== "all" && dateField) {
     // If the field is a year field, use exact match
     if (dateField === "year" || dateField === "publication_year") {
@@ -167,7 +165,7 @@ async function BooksList({
     }
   }
 
-  // Apply sorting
+  // Apply sorting (server-side)
   if (sort === "title_asc") {
     query = query.order("title", { ascending: true })
   } else if (sort === "title_desc") {
@@ -181,8 +179,9 @@ async function BooksList({
     query = query.order("title", { ascending: true })
   }
 
-  // Apply pagination
-  query = query.range(offset, offset + pageSize - 1)
+  // Fetch all matching books (no pagination limit for client-side filtering)
+  // Limit to reasonable number to prevent performance issues
+  query = query.limit(1000)
 
   // Execute the query
   const { data: books, error } = await query
@@ -230,12 +229,8 @@ async function BooksList({
     }
   })
 
-  // Get total count for pagination
+  // Get total count (for initial pagination calculation)
   let countQuery = supabaseAdmin.from("books").select("*", { count: "exact", head: true })
-
-  if (search) {
-    countQuery = countQuery.ilike("title", `%${search}%`)
-  }
 
   if (language && language !== "all") {
     countQuery = countQuery.eq("language", language)
@@ -245,7 +240,6 @@ async function BooksList({
     if (dateField === "year" || dateField === "publication_year") {
       countQuery = countQuery.eq(dateField, year)
     } else {
-      // For date fields, use date range filter instead of ilike
       const yearStart = `${year}-01-01`
       const yearEnd = `${year}-12-31`
       countQuery = countQuery.gte(dateField, yearStart).lte(dateField, yearEnd)
@@ -260,75 +254,47 @@ async function BooksList({
   }
 
   const totalBooks = count || 0
-  const totalPages = Math.ceil(totalBooks / pageSize)
 
-  // Get unique languages for the filter
-  const languages = await getUniqueLanguages()
+  // Return books data to be passed to client component for instant filtering
+  return {
+    books: processedBooks,
+    totalCount: totalBooks,
+    pageSize: 24,
+  }
+}
+
+async function BooksListContent({
+  page,
+  search,
+  language,
+  sort,
+  year,
+}: {
+  page: number
+  search?: string
+  language?: string
+  sort?: string
+  year?: string
+}) {
+  const { books, totalCount, pageSize } = await BooksList({
+    page,
+    search,
+    language,
+    sort,
+    year,
+  })
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
-        {processedBooks.length > 0 ? (
-          processedBooks.map((book) => (
-            <BookCard
-              key={book.id}
-              id={book.id}
-              title={book.title}
-              coverImageUrl={book.cover_image_url}
-            />
-          ))
-        ) : (
-          <div className="col-span-full text-center py-12">
-            <p className="text-muted-foreground">No books found. Try adjusting your search or filters.</p>
-          </div>
-        )}
-      </div>
-
-      {totalPages > 1 && (
-        <Pagination>
-          <PaginationContent>
-            {page > 1 && (
-              <PaginationItem>
-                <PaginationPrevious
-                  href={`/books?page=${page - 1}${search ? `&search=${search}` : ""}${
-                    language ? `&language=${language}` : ""
-                  }${year ? `&year=${year}` : ""}${sort ? `&sort=${sort}` : ""}`}
-                />
-              </PaginationItem>
-            )}
-
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              const pageNumber = page <= 3 ? i + 1 : page >= totalPages - 2 ? totalPages - 4 + i : page - 2 + i
-
-              if (pageNumber <= 0 || pageNumber > totalPages) return null
-
-              return (
-                <PaginationItem key={pageNumber}>
-                  <PaginationLink
-                    href={`/books?page=${pageNumber}${search ? `&search=${search}` : ""}${
-                      language ? `&language=${language}` : ""
-                    }${year ? `&year=${year}` : ""}${sort ? `&sort=${sort}` : ""}`}
-                    isActive={pageNumber === page}
-                  >
-                    {pageNumber}
-                  </PaginationLink>
-                </PaginationItem>
-              )
-            })}
-
-            {page < totalPages && (
-              <PaginationItem>
-                <PaginationNext
-                  href={`/books?page=${page + 1}${search ? `&search=${search}` : ""}${
-                    language ? `&language=${language}` : ""
-                  }${year ? `&year=${year}` : ""}${sort ? `&sort=${sort}` : ""}`}
-                />
-              </PaginationItem>
-            )}
-          </PaginationContent>
-        </Pagination>
-      )}
-    </div>
+    <BooksListWrapper
+      initialBooks={books}
+      initialTotalCount={totalCount}
+      page={page}
+      pageSize={pageSize}
+      language={language}
+      year={year}
+      sort={sort}
+      initialSearch={search}
+    />
   )
 }
 
@@ -360,7 +326,7 @@ export default async function BooksPage({ searchParams }: BooksPageProps) {
         year={year}
       />
       <Suspense fallback={<div>Loading...</div>}>
-        <BooksList
+        <BooksListContent
           page={page}
           search={search}
           language={language}

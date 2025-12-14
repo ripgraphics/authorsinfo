@@ -377,26 +377,30 @@ export default function ImportByEntityPage() {
                               </TableRow>
                             </TableHeader>
                             <TableBody>
-                              {books.map((book) => (
+                              {books.map((book, index) => {
+                                const isbn = book.isbn13 || book.isbn;
+                                const uniqueKey = `${isbn}-${index}-${book.title?.slice(0, 20) || ''}`;
+                                return (
                                 <TableRow
-                                  key={book.isbn13 || book.isbn}
+                                  key={uniqueKey}
                                   className="cursor-pointer hover:bg-gray-50"
-                                  onClick={() => toggleBookSelection(book.isbn13 || book.isbn)}
+                                  onClick={() => toggleBookSelection(isbn)}
                                 >
                                   <TableCell>
                                     <input
                                       type="checkbox"
-                                      checked={selectedBooks.has(book.isbn13 || book.isbn)}
-                                      onChange={() => toggleBookSelection(book.isbn13 || book.isbn)}
+                                      checked={selectedBooks.has(isbn)}
+                                      onChange={() => toggleBookSelection(isbn)}
                                       className="h-4 w-4"
                                     />
                                   </TableCell>
                                   <TableCell>{book.title}</TableCell>
-                                  <TableCell>{book.isbn13 || book.isbn}</TableCell>
+                                  <TableCell>{isbn}</TableCell>
                                   <TableCell>{book.publisher}</TableCell>
                                   <TableCell>{book.publish_date}</TableCell>
                                 </TableRow>
-                              ))}
+                                );
+                              })}
                             </TableBody>
                           </Table>
                         </div>

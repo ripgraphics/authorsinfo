@@ -78,6 +78,8 @@ export default function NewBooksPage() {
   const [autoFetchAll, setAutoFetchAll] = useState(false);
   const [fetchingAllPages, setFetchingAllPages] = useState(false);
   const [allFetchedBooks, setAllFetchedBooks] = useState<Book[]>([]);
+  const [maxPagesToFetch, setMaxPagesToFetch] = useState(10); // Default to 10 pages max
+  const [apiTotal, setApiTotal] = useState(0); // Store the actual API total
 
   const fetchBooks = async (targetPage?: number, accumulateResults: boolean = false) => {
     setLoading(true);
@@ -121,7 +123,12 @@ export default function NewBooksPage() {
       
       // Check which books are already in the system and filter them out
       if (fetchedBooks.length > 0) {
-        const isbns = fetchedBooks.map((book) => book.isbn13 || book.isbn).filter(Boolean);
+        // Collect all ISBNs (both ISBN-10 and ISBN-13) from fetched books
+        const isbns: string[] = [];
+        fetchedBooks.forEach((book) => {
+          if (book.isbn13) isbns.push(book.isbn13);
+          if (book.isbn) isbns.push(book.isbn);
+        });
         
         if (isbns.length > 0) {
           try {
@@ -137,23 +144,50 @@ export default function NewBooksPage() {
               
               // Filter out books that are already in the system
               const newBooks = fetchedBooks.filter((book) => {
-                const isbn = book.isbn13 || book.isbn;
-                return !isbn || !existingIsbns.has(isbn);
+                // Check both ISBN-10 and ISBN-13
+                const isbn10 = book.isbn && /^[0-9X]{10}$/.test(book.isbn.replace(/[-\s]/g, '')) ? book.isbn.replace(/[-\s]/g, '') : null;
+                const isbn13 = book.isbn13 && /^[0-9]{13}$/.test(book.isbn13.replace(/[-\s]/g, '')) ? book.isbn13.replace(/[-\s]/g, '') : null;
+                // Also check if the generic isbn field is actually an ISBN-13
+                const isbnAsIsbn13 = book.isbn && /^[0-9]{13}$/.test(book.isbn.replace(/[-\s]/g, '')) ? book.isbn.replace(/[-\s]/g, '') : null;
+                
+                // Return false (filter out) if any ISBN matches an existing one
+                return !(
+                  (isbn10 && existingIsbns.has(isbn10)) ||
+                  (isbn13 && existingIsbns.has(isbn13)) ||
+                  (isbnAsIsbn13 && existingIsbns.has(isbnAsIsbn13))
+                );
               });
               
               if (accumulateResults) {
                 // Add to accumulated results
                 setAllFetchedBooks(prev => {
-                  const existingIsbns = new Set(prev.map(b => b.isbn13 || b.isbn));
+                  // Create set of all ISBNs from previous books
+                  const existingIsbns = new Set<string>();
+                  prev.forEach(b => {
+                    if (b.isbn13) existingIsbns.add(b.isbn13.replace(/[-\s]/g, ''));
+                    if (b.isbn) {
+                      const normalized = b.isbn.replace(/[-\s]/g, '');
+                      existingIsbns.add(normalized);
+                    }
+                  });
+                  
                   const uniqueNewBooks = newBooks.filter(b => {
-                    const isbn = b.isbn13 || b.isbn;
-                    return !isbn || !existingIsbns.has(isbn);
+                    const isbn10 = b.isbn && /^[0-9X]{10}$/.test(b.isbn.replace(/[-\s]/g, '')) ? b.isbn.replace(/[-\s]/g, '') : null;
+                    const isbn13 = b.isbn13 && /^[0-9]{13}$/.test(b.isbn13.replace(/[-\s]/g, '')) ? b.isbn13.replace(/[-\s]/g, '') : null;
+                    const isbnAsIsbn13 = b.isbn && /^[0-9]{13}$/.test(b.isbn.replace(/[-\s]/g, '')) ? b.isbn.replace(/[-\s]/g, '') : null;
+                    
+                    return !(
+                      (isbn10 && existingIsbns.has(isbn10)) ||
+                      (isbn13 && existingIsbns.has(isbn13)) ||
+                      (isbnAsIsbn13 && existingIsbns.has(isbnAsIsbn13))
+                    );
                   });
                   return [...prev, ...uniqueNewBooks];
                 });
               } else {
                 setBooks(newBooks);
-                setTotal(newBooks.length);
+                setTotal(data.total || 0);
+                setApiTotal(data.total || 0); // Store API total
               }
               
               const filteredCount = fetchedBooks.length - newBooks.length;
@@ -168,6 +202,7 @@ export default function NewBooksPage() {
               } else {
                 setBooks(fetchedBooks);
                 setTotal(data.total || 0);
+                setApiTotal(data.total || 0); // Store API total
               }
               toast({
                 title: "Books fetched successfully",
@@ -194,6 +229,7 @@ export default function NewBooksPage() {
           } else {
             setBooks(fetchedBooks);
             setTotal(data.total || 0);
+            setApiTotal(data.total || 0); // Store API total
           }
           toast({
             title: "Books fetched successfully",
@@ -233,9 +269,16 @@ export default function NewBooksPage() {
       return;
     }
 
-    setFetchingAllPages(true);
-    setAllFetchedBooks([]);
-    const accumulatedBooks: Book[] = [];
+    // Warn user about API limits
+    const MAX_PAGES = 50; // Maximum pages to fetch (prevents exceeding daily API limits)
+    const MAX_BOOKS = 5000; // Maximum books to fetch per day
+    
+      setFetchingAllPages(true);
+      setAllFetchedBooks([]);
+      const accumulatedBooks: Book[] = [];
+      let consecutiveErrors = 0;
+      const MAX_CONSECUTIVE_ERRORS = 5; // Stop after 5 consecutive errors
+      let pagesFetched = 0; // Track how many pages we actually fetched
     
     try {
       // First, fetch page 1 to get total count
@@ -249,15 +292,42 @@ export default function NewBooksPage() {
 
       const firstResponse = await fetch(`/api/isbn/fetch-by-year?${firstPageParams}`);
       if (!firstResponse.ok) {
+        if (firstResponse.status === 403) {
+          throw new Error('ISBNdb API daily limit exceeded (403). Please try again tomorrow or upgrade your API plan.');
+        }
         throw new Error('Failed to fetch first page');
       }
 
       const firstData: SearchResponse = await firstResponse.json();
       const totalResults = firstData.total || 0;
-      const totalPages = Math.ceil(totalResults / pageSize);
+      setApiTotal(totalResults); // Store the actual API total
+      const maxPages = Math.min(maxPagesToFetch, MAX_PAGES); // Use user-selected max pages
+      const totalPages = Math.min(Math.ceil(totalResults / pageSize), maxPages);
+      const estimatedBooks = totalPages * pageSize;
+      
+      // Store first page books
+      const firstPageBooks = firstData.books || [];
+      accumulatedBooks.push(...firstPageBooks);
 
-      // Process all pages
-      for (let p = 1; p <= totalPages; p++) {
+      // Warn if this will fetch a lot of books
+      if (estimatedBooks > MAX_BOOKS) {
+        const confirmed = window.confirm(
+          `This will fetch approximately ${estimatedBooks} books (${totalPages} pages). ` +
+          `This may exceed your daily API limit. Continue anyway?`
+        );
+        if (!confirmed) {
+          setFetchingAllPages(false);
+          return;
+        }
+      }
+
+      toast({
+        title: "Fetching all pages",
+        description: `Fetching up to ${totalPages} pages (max ${MAX_PAGES} pages to prevent API limit issues)`,
+      });
+
+      // Process remaining pages with strict limits (start from page 2 since we already have page 1)
+      for (let p = 2; p <= totalPages && accumulatedBooks.length < MAX_BOOKS; p++) {
         const params = new URLSearchParams({
           subject: subject.trim(),
           page: p.toString(),
@@ -266,69 +336,121 @@ export default function NewBooksPage() {
           ...(year && year.trim() !== '' && { year: year.trim() }),
         });
 
-        const response = await fetch(`/api/isbn/fetch-by-year?${params}`);
-        if (!response.ok) {
-          console.warn(`Failed to fetch page ${p}`);
-          continue;
-        }
-
-        const data: SearchResponse = await response.json();
-        const fetchedBooks = data.books || [];
-        accumulatedBooks.push(...fetchedBooks);
+        let retries = 2; // Reduced retries to fail faster
+        let success = false;
         
-        // Small delay to avoid overwhelming the API
-        if (p < totalPages) {
-          await new Promise(resolve => setTimeout(resolve, 500));
+        while (retries > 0 && !success) {
+          const response = await fetch(`/api/isbn/fetch-by-year?${params}`);
+          
+          if (response.status === 403) {
+            // Daily limit exceeded - stop immediately
+            throw new Error('ISBNdb API daily limit exceeded (403). Please try again tomorrow or upgrade your API plan.');
+          }
+          
+          if (response.status === 429) {
+            // Rate limited - wait much longer and retry
+            const retryAfter = response.headers.get('Retry-After');
+            const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : 60000; // Wait 60 seconds by default
+            console.warn(`Rate limited on page ${p}. Waiting ${waitTime/1000}s before retry...`);
+            toast({
+              title: "Rate limited",
+              description: `Waiting ${waitTime/1000} seconds before continuing...`,
+              variant: "default",
+            });
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+            retries--;
+            continue;
+          }
+          
+          if (!response.ok) {
+            console.warn(`Failed to fetch page ${p}: ${response.status} ${response.statusText}`);
+            consecutiveErrors++;
+            if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+              throw new Error(`Too many consecutive errors (${consecutiveErrors}). Stopping to prevent further API usage.`);
+            }
+            retries--;
+            if (retries > 0) {
+              await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds on error
+            }
+            continue;
+          }
+
+          const data: SearchResponse = await response.json();
+          const fetchedBooks = data.books || [];
+          accumulatedBooks.push(...fetchedBooks);
+          consecutiveErrors = 0; // Reset error counter on success
+          success = true;
+          pagesFetched = p; // Track successful page fetch
+        }
+        
+        if (!success) {
+          console.error(`Failed to fetch page ${p} after all retries`);
+          consecutiveErrors++;
+          if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+            throw new Error(`Too many consecutive errors. Stopping to prevent further API usage.`);
+          }
+        }
+        
+        // Longer delay to avoid overwhelming the API (2 seconds minimum, more for bulk operations)
+        if (p < totalPages && accumulatedBooks.length < MAX_BOOKS) {
+          const delay = 2000; // 2 seconds between pages
+          await new Promise(resolve => setTimeout(resolve, delay));
         }
       }
 
-      // After all pages are fetched, check for existing books and filter
+      // API route already filters out existing books, so we just need to deduplicate within accumulated set
       if (accumulatedBooks.length > 0) {
-        const allIsbns = accumulatedBooks.map((book) => book.isbn13 || book.isbn).filter(Boolean);
-        
-        if (allIsbns.length > 0) {
-          const checkRes = await fetch('/api/books/check-existing', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ isbns: allIsbns }),
-          });
+        // Deduplicate books within accumulated set (in case same book appears on multiple pages)
+        const seenIsbns = new Set<string>();
+        const finalBooks = accumulatedBooks.filter((book) => {
+          const isbn10 = book.isbn && /^[0-9X]{10}$/.test(book.isbn.replace(/[-\s]/g, '')) ? book.isbn.replace(/[-\s]/g, '') : null;
+          const isbn13 = book.isbn13 && /^[0-9]{13}$/.test(book.isbn13.replace(/[-\s]/g, '')) ? book.isbn13.replace(/[-\s]/g, '') : null;
+          const isbnAsIsbn13 = book.isbn && /^[0-9]{13}$/.test(book.isbn.replace(/[-\s]/g, '')) ? book.isbn.replace(/[-\s]/g, '') : null;
           
-          if (checkRes.ok) {
-            const existingData = await checkRes.json();
-            const existingIsbns = new Set(existingData.existingIsbns || []);
-            
-            const finalBooks = accumulatedBooks.filter((book) => {
-              const isbn = book.isbn13 || book.isbn;
-              return !isbn || !existingIsbns.has(isbn);
-            });
-            
-            setBooks(finalBooks);
-            setTotal(finalBooks.length);
-            setAllFetchedBooks(finalBooks);
-            
-            toast({
-              title: "All pages fetched",
-              description: `Fetched ${finalBooks.length} new books from ${totalPages} pages${subject ? ` for subject "${subject}"` : ''}${year ? ` in ${year}` : ''}`,
-            });
-          } else {
-            setBooks(accumulatedBooks);
-            setTotal(accumulatedBooks.length);
-            setAllFetchedBooks(accumulatedBooks);
+          // Check if we've seen this ISBN before in accumulated set
+          const key = isbn13 || isbnAsIsbn13 || isbn10;
+          if (key && seenIsbns.has(key)) {
+            return false; // Duplicate within accumulated set
           }
-        } else {
-          setBooks(accumulatedBooks);
-          setTotal(accumulatedBooks.length);
-          setAllFetchedBooks(accumulatedBooks);
-        }
+          if (key) seenIsbns.add(key);
+          return true;
+        });
+        
+        // Store all fetched books (already filtered by API, just deduplicated)
+        setAllFetchedBooks(finalBooks);
+        // Reset to page 1 and show first page
+        setPage(1);
+        const firstPageBooks = finalBooks.slice(0, pageSize);
+        setBooks(firstPageBooks);
+        // Set total to actual API total, not accumulated books count
+        setTotal(apiTotal || finalBooks.length);
+        
+        toast({
+          title: "All pages fetched",
+          description: `Fetched ${finalBooks.length} new books from ${pagesFetched} pages${subject ? ` for subject "${subject}"` : ''}${year ? ` in ${year}` : ''}. Use pagination to browse through all books.`,
+        });
       } else {
         setBooks([]);
         setTotal(0);
       }
     } catch (error) {
       console.error('Error fetching all pages:', error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      
+      // Set books we've collected so far
+      if (accumulatedBooks.length > 0) {
+        setAllFetchedBooks(accumulatedBooks);
+        setPage(1);
+        const firstPageBooks = accumulatedBooks.slice(0, pageSize);
+        setBooks(firstPageBooks);
+        setTotal(apiTotal || accumulatedBooks.length);
+      }
+      
       toast({
         title: "Error fetching all pages",
-        description: error instanceof Error ? error.message : "Unknown error occurred",
+        description: errorMessage.includes('403') || errorMessage.includes('daily limit')
+          ? `${errorMessage} You've fetched ${accumulatedBooks.length} books so far.`
+          : errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -351,35 +473,39 @@ export default function NewBooksPage() {
     setImportStats(null);
 
     try {
+      // Get selected books from current view (already have all ISBNdb data)
       const selectedBookList = books.filter(book => 
         selectedBooks.has(book.isbn13 || book.isbn)
       );
 
-      const response = await fetch('/api/isbn/fetch-by-year', {
+      // CRITICAL: Send book objects directly - NO additional ISBNdb API calls needed
+      // All data is already in the book objects from the search results
+      const response = await fetch('/api/books/import-selected', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          isbns: selectedBookList.map(book => book.isbn13 || book.isbn),
+          books: selectedBookList, // Send complete book objects with all data
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to import books');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to import books');
       }
 
       const data: ImportResponse = await response.json();
       setImportProgress(100);
       setImportStats({
-        total: data.total,
-        stored: data.stored,
+        total: data.total || selectedBookList.length,
+        stored: data.added || data.stored || 0,
         success: true,
       });
 
       toast({
         title: "Import completed",
-        description: `Successfully imported ${data.stored} out of ${data.total} books`,
+        description: `Successfully imported ${data.added || data.stored || 0} out of ${data.total || selectedBookList.length} books`,
       });
 
       // Clear selection
@@ -449,11 +575,25 @@ export default function NewBooksPage() {
     }
   });
 
+  // Clear allFetchedBooks when subject or year changes
   useEffect(() => {
-    if (subject.trim() !== '') {
+    setAllFetchedBooks([]);
+    setPage(1);
+  }, [subject, year]);
+
+  // Use allFetchedBooks for pagination if available, otherwise fetch from API
+  useEffect(() => {
+    if (allFetchedBooks.length > 0) {
+      // Paginate through allFetchedBooks
+      const startIndex = (page - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const pageBooks = allFetchedBooks.slice(startIndex, endIndex);
+      setBooks(pageBooks);
+    } else if (subject.trim() !== '') {
+      // Fetch from API if we don't have allFetchedBooks
       fetchBooks();
     }
-  }, [subject, year, page, pageSize]);
+  }, [page, pageSize, allFetchedBooks]); // Removed subject and year to prevent conflicts
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'Unknown';
@@ -523,7 +663,11 @@ export default function NewBooksPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="pageSize">Page Size</Label>
-              <Select value={pageSize.toString()} onValueChange={(value) => setPageSize(parseInt(value))}>
+              <Select value={pageSize.toString()} onValueChange={(value) => {
+                setPageSize(parseInt(value));
+                setAllFetchedBooks([]); // Clear allFetchedBooks when pageSize changes
+                setPage(1); // Reset to page 1
+              }}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -535,6 +679,26 @@ export default function NewBooksPage() {
                 </SelectContent>
               </Select>
             </div>
+            {autoFetchAll && (
+              <div className="space-y-2">
+                <Label htmlFor="maxPages">Max Pages to Fetch</Label>
+                <Input
+                  id="maxPages"
+                  type="number"
+                  value={maxPagesToFetch}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value) || 10;
+                    setMaxPagesToFetch(Math.min(Math.max(1, value), 50)); // Clamp between 1 and 50
+                  }}
+                  min="1"
+                  max="50"
+                  placeholder="10"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Maximum {maxPagesToFetch} pages (max 50 to prevent API limits)
+                </p>
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="sortBy">Sort By</Label>
               <Select value={sortBy} onValueChange={(value: 'date' | 'title' | 'author') => setSortBy(value)}>
@@ -601,10 +765,14 @@ export default function NewBooksPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <p className="text-sm text-muted-foreground">
-            Found {total} books{subject ? ` for subject "${subject}"` : ''}{year ? ` in ${year}` : ''}
+            {allFetchedBooks.length > 0 ? (
+              <>Showing {allFetchedBooks.length} fetched books{subject ? ` for subject "${subject}"` : ''}{year ? ` in ${year}` : ''} (Total available: {apiTotal || total})</>
+            ) : (
+              <>Found {total} books{subject ? ` for subject "${subject}"` : ''}{year ? ` in ${year}` : ''}</>
+            )}
           </p>
           <Badge variant="secondary">
-            Page {page} of {Math.ceil(total / pageSize)}
+            Page {page} of {allFetchedBooks.length > 0 ? Math.ceil(allFetchedBooks.length / pageSize) : Math.ceil(total / pageSize)}
           </Badge>
         </div>
         <div className="flex items-center space-x-2">
@@ -620,24 +788,40 @@ export default function NewBooksPage() {
               <span>Auto-fetch all pages</span>
             </Label>
             {autoFetchAll && (
-              <Button
-                onClick={fetchAllPages}
-                disabled={fetchingAllPages || !subject.trim()}
-                variant="outline"
-                size="sm"
-              >
-                {fetchingAllPages ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    Fetching all pages...
-                  </>
-                ) : (
-                  <>
-                    <Download className="h-4 w-4 mr-2" />
-                    Fetch All Pages
-                  </>
+              <>
+                <Button
+                  onClick={fetchAllPages}
+                  disabled={fetchingAllPages || !subject.trim() || allFetchedBooks.length > 0}
+                  variant="outline"
+                  size="sm"
+                >
+                  {fetchingAllPages ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Fetching all pages...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="h-4 w-4 mr-2" />
+                      Fetch All Pages
+                    </>
+                  )}
+                </Button>
+                {allFetchedBooks.length > 0 && (
+                  <Button
+                    onClick={() => {
+                      setAllFetchedBooks([]);
+                      setPage(1);
+                      fetchBooks(1);
+                    }}
+                    variant="outline"
+                    size="sm"
+                    title="Clear fetched books and return to single-page mode"
+                  >
+                    Clear Fetched
+                  </Button>
                 )}
-              </Button>
+              </>
             )}
           </div>
           <Button
@@ -669,18 +853,20 @@ export default function NewBooksPage() {
 
       {/* Books Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        {sortedBooks.map((book) => {
-          const isSelected = selectedBooks.has(book.isbn13 || book.isbn);
+        {sortedBooks.map((book, index) => {
+          const isbn = book.isbn13 || book.isbn;
+          const uniqueKey = `${isbn}-${index}-${book.title?.slice(0, 20) || ''}`;
+          const isSelected = selectedBooks.has(isbn);
           const hasEnhancedData = book.excerpt || book.reviews || book.other_isbns || book.dewey_decimal;
           
           return (
-            <Card key={book.isbn13 || book.isbn} className={`relative ${isSelected ? 'ring-2 ring-blue-500' : ''}`}>
+            <Card key={uniqueKey} className={`relative ${isSelected ? 'ring-2 ring-blue-500' : ''}`}>
               {/* Checkbox */}
               <div className="absolute top-2 right-2 z-10">
                 <input
                   type="checkbox"
                   checked={isSelected}
-                  onChange={() => toggleBookSelection(book.isbn13 || book.isbn)}
+                  onChange={() => toggleBookSelection(isbn)}
                   className="h-4 w-4"
                 />
               </div>
@@ -727,7 +913,7 @@ export default function NewBooksPage() {
       </div>
 
       {/* Pagination */}
-      {total > pageSize && (
+      {((allFetchedBooks.length > 0 && allFetchedBooks.length > pageSize) || (allFetchedBooks.length === 0 && total > pageSize)) && (
         <div className="flex items-center justify-center space-x-2">
           <Button
             onClick={() => setPage(Math.max(1, page - 1))}
@@ -738,11 +924,11 @@ export default function NewBooksPage() {
             Previous
           </Button>
           <span className="text-sm">
-            Page {page} of {Math.ceil(total / pageSize)}
+            Page {page} of {allFetchedBooks.length > 0 ? Math.ceil(allFetchedBooks.length / pageSize) : Math.ceil(total / pageSize)}
           </span>
           <Button
             onClick={() => setPage(page + 1)}
-            disabled={page >= Math.ceil(total / pageSize)}
+            disabled={page >= (allFetchedBooks.length > 0 ? Math.ceil(allFetchedBooks.length / pageSize) : Math.ceil(total / pageSize))}
             variant="outline"
             size="sm"
           >

@@ -59,10 +59,71 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // CRITICAL: Filter out books that already exist in Supabase BEFORE returning
+    // This prevents wasting API quota on books we already have
+    // Extract all ISBNs from search results
+    const allIsbns: string[] = [];
+    result.books.forEach((book: any) => {
+      if (book.isbn13) allIsbns.push(book.isbn13.replace(/[-\s]/g, ''));
+      if (book.isbn) {
+        const normalized = book.isbn.replace(/[-\s]/g, '');
+        allIsbns.push(normalized);
+      }
+    });
+
+    // Check which ISBNs already exist in Supabase (single query)
+    let existingIsbns = new Set<string>();
+    if (allIsbns.length > 0) {
+      try {
+        const { data: existingBooks, error: checkError } = await supabase
+          .from('books')
+          .select('isbn10, isbn13');
+
+        if (!checkError && existingBooks) {
+          existingBooks.forEach((book) => {
+            if (book.isbn10) {
+              const normalized = book.isbn10.replace(/[-\s]/g, '');
+              existingIsbns.add(normalized);
+            }
+            if (book.isbn13) {
+              const normalized = book.isbn13.replace(/[-\s]/g, '');
+              existingIsbns.add(normalized);
+            }
+          });
+        }
+      } catch (checkError) {
+        console.error('Error checking existing books:', checkError);
+        // Continue even if check fails - better to show all books than fail completely
+      }
+    }
+
+    // Filter out books that already exist in Supabase
+    const newBooks = result.books.filter((book: any) => {
+      const isbn10 = book.isbn && /^[0-9X]{10}$/.test(book.isbn.replace(/[-\s]/g, '')) ? book.isbn.replace(/[-\s]/g, '') : null;
+      const isbn13 = book.isbn13 && /^[0-9]{13}$/.test(book.isbn13.replace(/[-\s]/g, '')) ? book.isbn13.replace(/[-\s]/g, '') : null;
+      const isbnAsIsbn13 = book.isbn && /^[0-9]{13}$/.test(book.isbn.replace(/[-\s]/g, '')) ? book.isbn.replace(/[-\s]/g, '') : null;
+      
+      // Return false (filter out) if any ISBN matches an existing one
+      return !(
+        (isbn10 && existingIsbns.has(isbn10)) ||
+        (isbn13 && existingIsbns.has(isbn13)) ||
+        (isbnAsIsbn13 && existingIsbns.has(isbnAsIsbn13))
+      );
+    });
+
+    const filteredCount = result.books.length - newBooks.length;
+    if (filteredCount > 0) {
+      console.log(`[fetch-by-year] Filtered out ${filteredCount} books that already exist in Supabase`);
+    }
+
     return NextResponse.json({
-      total: result.total,
-      books: result.books,
-      stats: result.stats,
+      total: result.total, // Keep original total for reference
+      books: newBooks, // Return only new books
+      stats: {
+        ...result.stats,
+        filteredOut: filteredCount,
+        newBooks: newBooks.length,
+      },
       searchType,
       subject: subject || undefined,
       year: year || undefined,
@@ -76,13 +137,24 @@ export async function GET(request: NextRequest) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     const errorStack = error instanceof Error ? error.stack : undefined;
     
-    // Check if it's a rate limit error (429)
+    // Check for specific error types
+    const isDailyLimit = errorMessage.includes('403') || errorMessage.includes('daily limit');
     const isRateLimit = errorMessage.includes('rate limit') || errorMessage.includes('429');
-    const statusCode = isRateLimit ? 429 : 500;
+    
+    let statusCode = 500;
+    if (isDailyLimit) {
+      statusCode = 403;
+    } else if (isRateLimit) {
+      statusCode = 429;
+    }
     
     return NextResponse.json(
       { 
-        error: isRateLimit ? 'Rate limit exceeded' : 'Failed to fetch books from ISBNdb', 
+        error: isDailyLimit 
+          ? 'Daily API limit exceeded' 
+          : isRateLimit 
+          ? 'Rate limit exceeded' 
+          : 'Failed to fetch books from ISBNdb', 
         details: errorMessage,
         stack: process.env.NODE_ENV === 'development' ? errorStack : undefined
       },

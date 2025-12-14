@@ -40,11 +40,18 @@ export async function addBookFromISBNDB(bookData: {
     // Clean the synopsis text
     const cleanedSynopsis = bookData.synopsis ? cleanSynopsis(bookData.synopsis) : null
 
+    // Validate and assign ISBNs to correct columns
+    const { extractISBNs } = await import('@/utils/isbnUtils');
+    const { isbn10, isbn13 } = extractISBNs({
+      isbn: bookData.isbn,
+      isbn13: bookData.isbn13,
+    });
+
     // Prepare the book data
     const newBook: Partial<Book> = {
       title: bookData.title,
-      isbn10: bookData.isbn, // Use isbn10 for the isbn field
-      isbn13: bookData.isbn13,
+      isbn10: isbn10, // Validated ISBN-10
+      isbn13: isbn13, // Validated ISBN-13
       publication_date: bookData.publish_date, // Use publication_date instead of publish_date
       original_image_url: bookData.image,
       synopsis: cleanedSynopsis,

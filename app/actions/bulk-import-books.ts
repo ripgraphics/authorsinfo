@@ -112,7 +112,44 @@ export async function bulkImportBookObjects(bookObjects: any[]): Promise<ImportR
       return result
     }
 
-    // Process each book object directly (no ISBNdb refetch needed)
+    // Use ISBNdbDataCollector to store books with ALL available data
+    const { ISBNdbDataCollector } = await import('@/lib/isbndb-data-collector');
+    const apiKey = process.env.ISBNDB_API_KEY || '';
+    const collector = new ISBNdbDataCollector(apiKey);
+
+    // Process each book object using comprehensive storage (stores ALL ISBNdb fields)
+    for (const book of newBooks) {
+      try {
+        // Use storeBookWithCompleteData to store ALL fields including:
+        // - excerpt, dewey_decimal, related_data, other_isbns
+        // - image, image_original, dimensions_structured
+        // - reviews, prices, raw_isbndb_data
+        const storeResult = await collector.storeBookWithCompleteData(book);
+        
+        if (storeResult.action === 'created') {
+          result.added++;
+        } else if (storeResult.action === 'updated') {
+          result.added++; // Count updates as added for consistency
+        }
+      } catch (error) {
+        result.errors++;
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        result.errorDetails?.push(`Failed to import "${book.title}": ${errorMsg}`);
+        console.error(`Error importing book ${book.isbn13 || book.isbn}:`, error);
+      }
+    }
+
+    return result;
+  } catch (error) {
+    result.errors++;
+    result.errorDetails?.push(`Bulk import error: ${error instanceof Error ? error.message : String(error)}`);
+    return result;
+  }
+}
+
+// Keep the old implementation as fallback (commented out for reference)
+/*
+    // Process each book object directly (no ISBNdb refetch needed) - OLD IMPLEMENTATION
     for (const book of newBooks) {
       try {
         // Enhanced debugging for author data
@@ -332,19 +369,12 @@ export async function bulkImportBookObjects(bookObjects: any[]): Promise<ImportR
           }
         }
 
-        // Properly handle ISBN10 vs ISBN13
-        let isbn10 = null;
-        let isbn13 = null;
-        
-        if (book.isbn && /^[0-9X]{10}$/.test(book.isbn)) {
-          isbn10 = book.isbn;
-        } else if (book.isbn && /^[0-9]{13}$/.test(book.isbn)) {
-          isbn13 = book.isbn;
-        }
-        
-        if (book.isbn13 && /^[0-9]{13}$/.test(book.isbn13)) {
-          isbn13 = book.isbn13;
-        }
+        // Properly handle ISBN10 vs ISBN13 using utility function
+        const { extractISBNs } = await import('@/utils/isbnUtils');
+        const { isbn10, isbn13 } = extractISBNs({
+          isbn: book.isbn,
+          isbn13: book.isbn13,
+        });
 
         // Insert the book
         let newBookId: string | null = null;
@@ -758,22 +788,12 @@ export async function bulkImportBooks(isbns: string[]): Promise<ImportResult> {
         }
 
         // Properly handle ISBN10 vs ISBN13 (before any insertion attempts)
-        let isbn10 = null;
-        let isbn13 = null;
-        
-        // Check if book.isbn is ISBN10 (10 digits, possibly ending with X)
-        if (book.isbn && /^[0-9X]{10}$/.test(book.isbn)) {
-          isbn10 = book.isbn;
-        }
-        // Check if book.isbn is ISBN13 (13 digits)
-        else if (book.isbn && /^[0-9]{13}$/.test(book.isbn)) {
-          isbn13 = book.isbn;
-        }
-        
-        // Also check the explicit isbn13 field
-        if (book.isbn13 && /^[0-9]{13}$/.test(book.isbn13)) {
-          isbn13 = book.isbn13;
-        }
+        // Properly handle ISBN10 vs ISBN13 using utility function
+        const { extractISBNs: extractISBNs2 } = await import('@/utils/isbnUtils');
+        const { isbn10, isbn13 } = extractISBNs2({
+          isbn: book.isbn,
+          isbn13: book.isbn13,
+        });
 
         // Use a transaction-like approach: try to insert book and authors in rapid succession
         console.log(`Attempting to insert book "${book.title}" with immediate author linking`);

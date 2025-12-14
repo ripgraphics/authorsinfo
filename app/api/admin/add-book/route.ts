@@ -149,6 +149,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Validate and assign ISBNs to correct columns
+    const { extractISBNs } = await import('@/utils/isbnUtils');
+    const { isbn10, isbn13 } = extractISBNs({
+      isbn: body.isbn,
+      isbn13: body.isbn13,
+    });
+
     // Create the book with correct field names
     const bookData = {
       title: body.title,
@@ -158,7 +165,8 @@ export async function POST(request: NextRequest) {
       publisher_id: publisherId,
       pages: body.page_count || null,
       publication_date: body.published_date ? new Date(body.published_date).toISOString().split('T')[0] : null,
-      isbn13: body.isbn || null,
+      isbn10: isbn10, // Validated ISBN-10
+      isbn13: isbn13, // Validated ISBN-13
       language: 'en',
       binding_type_id: null,
       format_type_id: null

@@ -1,6 +1,7 @@
 'use client'
 
-import { Input } from "@/components/ui/input"
+import { useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import {
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { Filter } from "lucide-react"
+import { ReusableSearch } from "@/components/ui/reusable-search"
 
 interface InteractiveControlsProps {
   languages: string[]
@@ -20,28 +22,43 @@ interface InteractiveControlsProps {
   language: string | undefined
   sort: string | undefined
   year: string | undefined
+  onSearchChange?: (value: string) => void
 }
 
-export function InteractiveControls({ languages, years, search, language, sort, year }: InteractiveControlsProps) {
+export function InteractiveControls({ languages, years, search, language, sort, year, onSearchChange }: InteractiveControlsProps) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const handleFilterChange = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (value && value !== 'all') {
+      params.set(key, value)
+    } else {
+      params.delete(key)
+    }
+    params.delete('page')
+    router.push(`/books?${params.toString()}`)
+  }
+
+  const handleSearchChange = (value: string) => {
+    // Dispatch custom event for instant results update
+    window.dispatchEvent(new CustomEvent('searchValueUpdate', { detail: value }))
+    // Also call the prop callback if provided
+    if (onSearchChange) {
+      onSearchChange(value)
+    }
+  }
+
   return (
     <div className="flex items-center gap-4">
-      <div className="flex-1">
-        <Input
-          type="search"
-          placeholder="Search books..."
-          defaultValue={search}
-          onChange={(e) => {
-            const params = new URLSearchParams(window.location.search)
-            if (e.target.value) {
-              params.set("search", e.target.value)
-            } else {
-              params.delete("search")
-            }
-            params.delete("page")
-            window.location.search = params.toString()
-          }}
-        />
-      </div>
+      <ReusableSearch
+        paramName="search"
+        placeholder="Search books..."
+        debounceMs={300}
+        basePath="/books"
+        preserveParams={['language', 'year', 'sort']}
+        onSearchChange={handleSearchChange}
+      />
       <Sheet>
         <SheetTrigger asChild>
           <Button variant="outline" size="icon">
@@ -60,16 +77,7 @@ export function InteractiveControls({ languages, years, search, language, sort, 
               <Label htmlFor="language">Language</Label>
               <Select
                 defaultValue={language}
-                onValueChange={(value) => {
-                  const params = new URLSearchParams(window.location.search)
-                  if (value && value !== 'all') {
-                    params.set("language", value)
-                  } else {
-                    params.delete("language")
-                  }
-                  params.delete("page")
-                  window.location.search = params.toString()
-                }}
+                onValueChange={(value) => handleFilterChange('language', value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select language" />
@@ -88,16 +96,7 @@ export function InteractiveControls({ languages, years, search, language, sort, 
               <Label htmlFor="year">Publication Year</Label>
               <Select
                 defaultValue={year}
-                onValueChange={(value) => {
-                  const params = new URLSearchParams(window.location.search)
-                  if (value && value !== 'all') {
-                    params.set("year", value)
-                  } else {
-                    params.delete("year")
-                  }
-                  params.delete("page")
-                  window.location.search = params.toString()
-                }}
+                onValueChange={(value) => handleFilterChange('year', value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select year" />
@@ -116,16 +115,7 @@ export function InteractiveControls({ languages, years, search, language, sort, 
               <Label htmlFor="sort">Sort by</Label>
               <Select
                 defaultValue={sort}
-                onValueChange={(value) => {
-                  const params = new URLSearchParams(window.location.search)
-                  if (value) {
-                    params.set("sort", value)
-                  } else {
-                    params.delete("sort")
-                  }
-                  params.delete("page")
-                  window.location.search = params.toString()
-                }}
+                onValueChange={(value) => handleFilterChange('sort', value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select sort order" />
@@ -143,7 +133,7 @@ export function InteractiveControls({ languages, years, search, language, sort, 
             <SheetClose asChild>
               <Button
                 onClick={() => {
-                  window.location.search = ""
+                  router.push('/books')
                 }}
                 variant="outline"
               >

@@ -41,19 +41,20 @@ export async function GET(request: NextRequest) {
 
     // Get user details for each suggestion
     const suggestionsWithUserDetails = await Promise.all(
-      (suggestions || []).map(async (suggestion) => {
+      ((suggestions || []) as any[]).map(async (suggestion: any) => {
         const { data: userData } = await supabase
           .from('users')
           .select('id, name, email')
           .eq('id', suggestion.suggested_user_id)
           .single()
 
+        const user = userData as any
         return {
           ...suggestion,
           suggested_user: {
-            id: userData?.id || suggestion.suggested_user_id,
-            name: userData?.name || userData?.email || 'Unknown User',
-            email: userData?.email || ''
+            id: user?.id || suggestion.suggested_user_id,
+            name: user?.name || user?.email || 'Unknown User',
+            email: user?.email || ''
           }
         }
       })
@@ -90,7 +91,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate new suggestions
-    const { error } = await supabase.rpc('generate_friend_suggestions', {
+    const { error } = await (supabase.rpc as any)('generate_friend_suggestions', {
       target_user_id: user.id
     })
 
@@ -136,8 +137,8 @@ export async function PUT(request: NextRequest) {
 
     if (action === 'dismiss') {
       // Mark suggestion as dismissed
-      const { error: updateError } = await supabase
-        .from('friend_suggestions')
+      const { error: updateError } = await (supabase
+        .from('friend_suggestions') as any)
         .update({ is_dismissed: true })
         .eq('id', suggestionId)
         .eq('user_id', user.id)
@@ -164,12 +165,13 @@ export async function PUT(request: NextRequest) {
         return NextResponse.json({ error: 'Suggestion not found' }, { status: 404 })
       }
 
+      const sugg = suggestion as any
       // Send friend request
-      const { error: requestError } = await supabase
-        .from('user_friends')
+      const { error: requestError } = await (supabase
+        .from('user_friends') as any)
         .insert({
           user_id: user.id,
-          friend_id: suggestion.suggested_user_id,
+          friend_id: sugg.suggested_user_id,
           requested_by: user.id,
           status: 'pending',
           requested_at: new Date().toISOString()
@@ -181,8 +183,8 @@ export async function PUT(request: NextRequest) {
       }
 
       // Mark suggestion as dismissed
-      await supabase
-        .from('friend_suggestions')
+      await (supabase
+        .from('friend_suggestions') as any)
         .update({ is_dismissed: true })
         .eq('id', suggestionId)
 

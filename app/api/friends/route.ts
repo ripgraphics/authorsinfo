@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     // Combine both results
     const allRequests = [...(existingRequests || []), ...(reverseRequests || [])]
-    const existingRequest = allRequests[0]
+    const existingRequest = (allRequests[0] as any)
 
     if (existingRequest) {
       console.log('Existing request found:', existingRequest)
@@ -83,8 +83,8 @@ export async function POST(request: NextRequest) {
 
     // Create friend request
     console.log('Creating friend request...')
-    const { data: friendRequest, error: insertError } = await supabase
-      .from('user_friends')
+    const { data: friendRequest, error: insertError } = await (supabase
+      .from('user_friends') as any)
       .insert({
         user_id: user.id,
         friend_id: targetUserUUID,
@@ -160,14 +160,15 @@ export async function PUT(request: NextRequest) {
     }
 
     // Verify the current user is the one who received the request
-    if (friendRequest.friend_id !== user.id) {
-      console.error('User not authorized to modify request. User:', user.id, 'Friend ID:', friendRequest.friend_id)
+    const friendReq = friendRequest as any
+    if (friendReq.friend_id !== user.id) {
+      console.error('User not authorized to modify request. User:', user.id, 'Friend ID:', friendReq.friend_id)
       return NextResponse.json({ error: 'Unauthorized to modify this request' }, { status: 403 })
     }
 
     // Verify the request is still pending
-    if (friendRequest.status !== 'pending') {
-      console.error('Request is not pending. Status:', friendRequest.status)
+    if (friendReq.status !== 'pending') {
+      console.error('Request is not pending. Status:', friendReq.status)
       return NextResponse.json({ error: 'Request is no longer pending' }, { status: 409 })
     }
 
@@ -177,8 +178,8 @@ export async function PUT(request: NextRequest) {
     console.log('Updating friend request to status:', newStatus)
 
     // Update the friend request
-    const { data: updatedRequest, error: updateError } = await supabase
-      .from('user_friends')
+    const { data: updatedRequest, error: updateError } = await (supabase
+      .from('user_friends') as any)
       .update({
         status: newStatus,
         responded_at: respondedAt
@@ -242,10 +243,11 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete the relationship
-    const { error: deleteError } = await supabase
-      .from('user_friends')
+    const relationship = friendRelationship as any
+    const { error: deleteError } = await (supabase
+      .from('user_friends') as any)
       .delete()
-      .eq('id', friendRelationship.id)
+      .eq('id', relationship.id)
 
     if (deleteError) {
       console.error('Delete error:', deleteError)
@@ -328,10 +330,11 @@ export async function GET(request: NextRequest) {
     let isPending = false
     let isRequestedByMe = false
 
-    if (friendStatus) {
-      status = friendStatus.status
-      isPending = friendStatus.status === 'pending'
-      isRequestedByMe = friendStatus.requested_by === user.id
+    const statusData = friendStatus as any
+    if (statusData) {
+      status = statusData.status
+      isPending = statusData.status === 'pending'
+      isRequestedByMe = statusData.requested_by === user.id
     }
 
     return NextResponse.json({

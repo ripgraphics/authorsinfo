@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       console.error('Error authenticating user:', userError);
       // Return placeholder image data directly
       const placeholder = await getPlaceholderImage();
-      return new NextResponse(placeholder, {
+      return new NextResponse(new Uint8Array(placeholder), {
         status: 200,
         headers: {
           'Content-Type': 'image/svg+xml',
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     if (!user) {
       // Return placeholder image data directly
       const placeholder = await getPlaceholderImage();
-      return new NextResponse(placeholder, {
+      return new NextResponse(new Uint8Array(placeholder), {
         status: 200,
         headers: {
           'Content-Type': 'image/svg+xml',
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
     if (profileError || !(profile as any)?.avatar_image_id) {
       // No profile or no avatar_image_id, return placeholder
       const placeholder = await getPlaceholderImage();
-      return new NextResponse(placeholder, {
+      return new NextResponse(new Uint8Array(placeholder), {
         status: 200,
         headers: {
           'Content-Type': 'image/svg+xml',
@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
       // Image not found or error, return placeholder
       console.log('Avatar image not found or error:', imageError);
       const placeholder = await getPlaceholderImage();
-      return new NextResponse(placeholder, {
+      return new NextResponse(new Uint8Array(placeholder), {
         status: 200,
         headers: {
           'Content-Type': 'image/svg+xml',
@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
       console.error('Error proxying image:', fetchError);
       // Fallback to placeholder if proxy fails
       const placeholder = await getPlaceholderImage();
-      return new NextResponse(placeholder, {
+      return new NextResponse(new Uint8Array(placeholder), {
         status: 200,
         headers: {
           'Content-Type': 'image/svg+xml',
@@ -127,7 +127,7 @@ export async function GET(request: NextRequest) {
     console.error('Error fetching current user avatar:', error);
     // Return placeholder on any error
     const placeholder = await getPlaceholderImage();
-    return new NextResponse(placeholder, {
+    return new NextResponse(new Uint8Array(placeholder), {
       status: 200,
       headers: {
         'Content-Type': 'image/svg+xml',

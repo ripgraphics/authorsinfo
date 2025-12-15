@@ -135,7 +135,7 @@ async function checkUserAvatar(userIdentifier: string) {
       
       // Extract public_id from URL
       const urlParts = cloudinaryUrl.split('/')
-      const uploadIndex = urlParts.findIndex(part => part === 'upload')
+      const uploadIndex = urlParts.findIndex((part: string) => part === 'upload')
       if (uploadIndex > -1) {
         const pathParts = urlParts.slice(uploadIndex + 1)
         const filename = pathParts[pathParts.length - 1]

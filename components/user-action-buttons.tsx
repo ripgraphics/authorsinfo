@@ -320,6 +320,7 @@ export function UserActionButtons({
         <FollowButton
           entityId={userId}
           targetType="user"
+          entityName={userName}
           variant={variant}
           size={size}
           showIcon={true}

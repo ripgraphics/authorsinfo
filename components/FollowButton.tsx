@@ -12,6 +12,7 @@ import { useAuth } from '@/hooks/useAuth'
 interface FollowButtonProps {
   entityId: string | number
   targetType: 'user' | 'book' | 'author' | 'publisher' | 'group'
+  entityName?: string
   className?: string
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
   size?: 'default' | 'sm' | 'lg' | 'icon'
@@ -29,6 +30,7 @@ const isValidUUID = (uuid: string): boolean => {
 export default function FollowButton({
   entityId,
   targetType,
+  entityName,
   className = '',
   variant = 'default',
   size = 'default',
@@ -111,12 +113,33 @@ export default function FollowButton({
       }
 
       if (response.success) {
+        // Capture the old state before updating for the toast message
+        const wasFollowing = isFollowingState
         setIsFollowingState(!isFollowingState)
-        toast({
-          title: isFollowingState ? 'Unfollowed' : 'Followed',
-          description: isFollowingState 
+        
+        // Create personalized toast message based on the action we just took
+        let description: string
+        if (entityName) {
+          // Personalized message with entity name
+          const entityTypeLabel = targetType === 'book' ? 'book' : 
+                                 targetType === 'author' ? 'author' :
+                                 targetType === 'publisher' ? 'publisher' :
+                                 targetType === 'group' ? 'group' :
+                                 targetType === 'user' ? 'user' : targetType
+          
+          description = wasFollowing 
+            ? `You are no longer following the ${entityTypeLabel}: ${entityName}`
+            : `You are now following the ${entityTypeLabel}: ${entityName}`
+        } else {
+          // Generic message when entity name is not provided
+          description = wasFollowing 
             ? `You are no longer following this ${targetType}`
-            : `You are now following this ${targetType}`,
+            : `You are now following this ${targetType}`
+        }
+        
+        toast({
+          title: wasFollowing ? 'Unfollowed' : 'Followed',
+          description,
         })
       } else {
         // Handle authentication errors specifically

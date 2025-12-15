@@ -148,6 +148,7 @@ export async function bulkImportBookObjects(bookObjects: any[]): Promise<ImportR
 }
 
 // Keep the old implementation as fallback (commented out for reference)
+// OLD IMPLEMENTATION - commented out
 /*
     // Process each book object directly (no ISBNdb refetch needed) - OLD IMPLEMENTATION
     for (const book of newBooks) {
@@ -513,6 +514,7 @@ export async function bulkImportBookObjects(bookObjects: any[]): Promise<ImportR
     return result
   }
 }
+*/
 
 export async function bulkImportBooks(isbns: string[]): Promise<ImportResult> {
   const supabase = supabaseAdmin;
@@ -1007,12 +1009,12 @@ export async function importNewestBooks(): Promise<ImportResult> {
 
   try {
     // Since new_books.json doesn't exist, return early with a message
-      console.log('new_books.json not found, skipping static import');
-      result.logs?.push('new_books.json not found, skipping static import');
-      return result;
-        } catch (error) {
+    console.log('new_books.json not found, skipping static import');
+    result.logs?.push('new_books.json not found, skipping static import');
+    return result;
+  } catch (error) {
     console.error('Error in importNewestBooks:', error);
-          result.errors++;
+    result.errors++;
     result.errorDetails?.push(`Error in importNewestBooks: ${error}`);
     return result;
   }

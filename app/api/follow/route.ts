@@ -99,12 +99,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Create the follow relationship
-    const { data, error } = await supabase
-      .from('follows')
+    const { data, error } = await (supabase
+      .from('follows') as any)
       .insert({
         follower_id: user.id,
         following_id: actualEntityId,
-        target_type_id: targetTypeData.id
+        target_type_id: (targetTypeData as any).id
       })
       .select()
       .single()

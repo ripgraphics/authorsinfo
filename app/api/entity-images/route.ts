@@ -74,12 +74,14 @@ export async function GET(request: NextRequest) {
       }
 
       // Use the album's entity_id and entity_type if not provided
-      if (!entityId) entityId = album.entity_id
-      if (!entityType && album.entity_type) {
+      const albumData = album as { entity_id?: string; entity_type?: string }
+      if (!entityId) entityId = albumData.entity_id || null
+      if (!entityType && albumData.entity_type) {
         const albums = [album]
         // Continue to get images for this album
         const albumsWithImages = await Promise.all(
           albums.map(async (alb) => {
+            const albumWithId = alb as { id: string; [key: string]: any }
             // Get images for this album
             const { data: albumImages } = await supabase
               .from('album_images')
@@ -93,14 +95,14 @@ export async function GET(request: NextRequest) {
                 created_at,
                 metadata
               `)
-              .eq('album_id', alb.id)
+              .eq('album_id', albumWithId.id)
               .order('display_order', { ascending: true })
 
             if (!albumImages || albumImages.length === 0) {
-              return { ...alb, images: [] }
+              return { ...(alb as Record<string, any>), images: [] }
             }
 
-            const imageIds = albumImages.map(ai => ai.image_id).filter(Boolean)
+            const imageIds = (albumImages as Array<{ image_id: string | null }>).map(ai => ai.image_id).filter(Boolean)
             const { data: allImages } = await supabase
               .from('images')
               .select(`
@@ -114,9 +116,9 @@ export async function GET(request: NextRequest) {
               `)
               .in('id', imageIds)
 
-            const imageMap = new Map((allImages || []).map(img => [img.id, img]))
-            const imagesWithDetails = albumImages.map((albumImage) => {
-              const imageDetails = imageMap.get(albumImage.image_id)
+            const imageMap = new Map((allImages || []).map((img: { id: string; [key: string]: any }) => [img.id, img]))
+            const imagesWithDetails = (albumImages as Array<{ image_id: string | null; [key: string]: any }>).map((albumImage) => {
+              const imageDetails = albumImage.image_id ? imageMap.get(albumImage.image_id) : null
               if (!imageDetails) {
                 return { ...albumImage, image: null }
               }
@@ -128,7 +130,7 @@ export async function GET(request: NextRequest) {
               }
             }).filter(item => item.image !== null)
 
-            return { ...alb, images: imagesWithDetails }
+            return { ...(alb as Record<string, any>), images: imagesWithDetails }
           })
         )
 
@@ -158,8 +160,9 @@ export async function GET(request: NextRequest) {
           .or(`id.eq.${entityId},permalink.eq.${entityId}`)
           .maybeSingle()
 
-        if (resolved?.id) {
-          entityId = resolved.id
+        const resolvedData = resolved as { id?: string } | null
+        if (resolvedData?.id) {
+          entityId = resolvedData.id
         }
       }
     }
@@ -206,7 +209,7 @@ export async function GET(request: NextRequest) {
         entityId,
         entityType,
         albumPurpose,
-        albumNames: albums?.map(a => a.name) || [],
+        albumNames: (albums || []).map((a: { name?: string }) => a.name || '') || [],
         error: error?.message
       })
 
@@ -224,7 +227,7 @@ export async function GET(request: NextRequest) {
     // Also query album_images directly by entity_id to catch any orphaned records
     
     const albumsWithImages = await Promise.all(
-      (albums || []).map(async (album) => {
+      (albums || []).map(async (album: { id?: string; name?: string; entity_type?: string; [key: string]: any }) => {
         try {
           console.log(`🖼️ Fetching album_images for album ${album.id} (${album.name})...`)
           
@@ -235,12 +238,13 @@ export async function GET(request: NextRequest) {
             const { data: sampleImage } = await supabase
               .from('album_images')
               .select('images(storage_path)')
-              .eq('album_id', album.id)
+              .eq('album_id', album.id!)
               .limit(1)
               .single();
             
-            if (sampleImage?.images?.storage_path) {
-              const path = sampleImage.images.storage_path.toLowerCase();
+            const sampleImageData = sampleImage as { images?: { storage_path?: string } } | null
+            if (sampleImageData?.images?.storage_path) {
+              const path = sampleImageData.images.storage_path.toLowerCase();
               if (path.includes('book_')) actualEntityType = 'book';
               else if (path.includes('author_')) actualEntityType = 'author';
               else if (path.includes('publisher_')) actualEntityType = 'publisher';
@@ -263,7 +267,7 @@ export async function GET(request: NextRequest) {
               created_at,
               metadata
             `)
-            .eq('album_id', album.id)  // Only filter by album_id - that's all we need
+            .eq('album_id', album.id!)  // Only filter by album_id - that's all we need
             .order('display_order', { ascending: true })
           
           console.log(`🖼️ Found ${albumImages?.length || 0} album_images for album ${album.id}`)
@@ -289,30 +293,30 @@ export async function GET(request: NextRequest) {
             
             
             // 🔧 ONE-TIME FIX: Clean up cover flags - only one image per album should be cover
-            const coverImages = albumImages.filter(ai => ai.is_cover === true)
+            const coverImages = (albumImages as Array<{ is_cover?: boolean; [key: string]: any }>).filter(ai => ai.is_cover === true)
             if (coverImages.length > 1) {
               
               
               // Set all to false first
-              await supabase
-                .from('album_images')
+              await (supabase
+                .from('album_images') as any)
                 .update({ is_cover: false })
-                .eq('album_id', album.id)
+                .eq('album_id', album.id!)
               
               // Set only the most recent one to true
-              const mostRecentImage = albumImages.sort((a, b) => 
-                new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+              const mostRecentImage = (albumImages as Array<{ created_at?: string; id?: string; [key: string]: any }>).sort((a, b) => 
+                new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
               )[0]
               
               if (mostRecentImage) {
                 
-                await supabase
-                  .from('album_images')
+                await (supabase
+                  .from('album_images') as any)
                   .update({ is_cover: true })
                   .eq('id', mostRecentImage.id)
                 
                 // Update the local data for this request
-                albumImages.forEach(ai => {
+                (albumImages as Array<{ is_cover?: boolean; id?: string; [key: string]: any }>).forEach((ai: { is_cover?: boolean; id?: string; [key: string]: any }) => {
                   ai.is_cover = ai.id === mostRecentImage.id
                 })
               }
@@ -320,7 +324,7 @@ export async function GET(request: NextRequest) {
           }
 
           // Get all images from images table in one query (more efficient)
-          const imageIds = albumImages.map(ai => ai.image_id).filter(Boolean)
+          const imageIds = (albumImages as Array<{ image_id?: string | null; [key: string]: any }>).map(ai => ai.image_id).filter(Boolean)
           
           if (imageIds.length === 0) {
             console.log(`⚠️ No image_ids found in album_images for album ${album.id}`)
@@ -353,11 +357,11 @@ export async function GET(request: NextRequest) {
           }
           
           // Create a map of image_id -> image for quick lookup
-          const imageMap = new Map((allImages || []).map(img => [img.id, img]))
+          const imageMap = new Map((allImages || []).map((img: { id: string; [key: string]: any }) => [img.id, img]))
           
           // Match album_images with their images
-          const imagesWithDetails = albumImages.map((albumImage) => {
-            const imageDetails = imageMap.get(albumImage.image_id)
+          const imagesWithDetails = (albumImages as Array<{ image_id?: string | null; [key: string]: any }>).map((albumImage) => {
+            const imageDetails = albumImage.image_id ? imageMap.get(albumImage.image_id) : null
             
             if (!imageDetails) {
               console.warn(`⚠️ Image ${albumImage.image_id} not found in images table`)
@@ -477,7 +481,7 @@ export async function POST(request: NextRequest) {
         .insert({
           url: imageUrl,
           alt_text: altText,
-          caption: caption,
+          ...(caption && { caption: caption }),
           metadata: {
             // Only file metadata - NO entity info
             ...(metadata?.file_size && { file_size: metadata.file_size }),
@@ -485,7 +489,7 @@ export async function POST(request: NextRequest) {
             ...(metadata?.original_filename && { original_filename: metadata.original_filename }),
             uploaded_via: 'entity_image_api'
           }
-        })
+        } as any)
         .select('id')
         .single()
 
@@ -499,7 +503,7 @@ export async function POST(request: NextRequest) {
         }, { status: 500 })
       }
 
-      finalImageId = imageData.id
+      finalImageId = (imageData as any)?.id
       console.log(`✅ Image record created: ${finalImageId}`)
     }
 
@@ -529,7 +533,7 @@ export async function POST(request: NextRequest) {
       }, { status: 404 })
     }
 
-    console.log(`✅ Image verified in database: ${verifyImage.id}, URL: ${verifyImage.url}`)
+    console.log(`✅ Image verified in database: ${(verifyImage as any)?.id}, URL: ${(verifyImage as any)?.url}`)
 
     // Map album purpose to user-friendly names that match your existing system
     const albumNameMap: Record<AlbumPurpose, string> = {
@@ -563,10 +567,11 @@ export async function POST(request: NextRequest) {
     // If not found by name, we'll create it - no metadata fallback needed
     
     if (existingAlbum) {
-      console.log(`✅ Found existing album: ${existingAlbum.id}`, { 
-        owner_id: existingAlbum.owner_id,
-        entity_id: existingAlbum.entity_id,
-        entity_type: existingAlbum.entity_type
+      const album = existingAlbum as any
+      console.log(`✅ Found existing album: ${album.id}`, { 
+        owner_id: album.owner_id,
+        entity_id: album.entity_id,
+        entity_type: album.entity_type
       })
     } else {
       console.log(`📁 No existing album found, will create new album: "${albumName}"`)
@@ -600,7 +605,7 @@ export async function POST(request: NextRequest) {
       
       const { data: newAlbum, error: createAlbumError } = await supabase
         .from('photo_albums')
-        .insert(albumData)
+        .insert(albumData as any)
         .select('id, name, entity_id, entity_type')
         .single()
 
@@ -614,18 +619,18 @@ export async function POST(request: NextRequest) {
         }, { status: 500 })
       }
 
-      albumId = newAlbum.id
-      console.log(`✅ Album created: ${albumId}`, { name: newAlbum.name, entity_id: newAlbum.entity_id, entity_type: newAlbum.entity_type })
+      albumId = (newAlbum as any).id
+      console.log(`✅ Album created: ${albumId}`, { name: (newAlbum as any).name, entity_id: (newAlbum as any).entity_id, entity_type: (newAlbum as any).entity_type })
     } else {
-      albumId = existingAlbum.id
+      albumId = (existingAlbum as any).id
       console.log(`✅ Using existing album: ${albumId}`)
     }
 
     // If this image should be the cover, first unset any existing cover images
     if (isCover) {
       console.log(`Setting image ${finalImageId} as cover - unsetting previous cover images`)
-      await supabase
-        .from('album_images')
+      await (supabase
+        .from('album_images') as any)
         .update({ is_cover: false })
         .eq('album_id', albumId)
         .eq('is_cover', true)
@@ -642,7 +647,7 @@ export async function POST(request: NextRequest) {
 
     let entityTypeId: string | null = null
     if (!entityTypeError && entityTypeData) {
-      entityTypeId = entityTypeData.id
+      entityTypeId = (entityTypeData as any)?.id
       console.log(`✅ Found entity_type_id: ${entityTypeId} for ${entityType}`)
     } else {
       console.warn(`⚠️ Could not find entity_type_id for ${entityType}, will insert without it`)
@@ -670,7 +675,7 @@ export async function POST(request: NextRequest) {
 
     const { data: addedImage, error: addImageError } = await supabase
       .from('album_images')
-      .insert(albumImageData)
+      .insert(albumImageData as any)
       .select('id, album_id, image_id, entity_id')
       .single()
 
@@ -686,21 +691,22 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
 
+    const addedImg = addedImage as any
     console.log(`✅ Image added to album:`, { 
-      album_image_id: addedImage.id, 
-      album_id: addedImage.album_id, 
-      image_id: addedImage.image_id,
-      entity_id: addedImage.entity_id
+      album_image_id: addedImg?.id, 
+      album_id: addedImg?.album_id, 
+      image_id: addedImg?.image_id,
+      entity_id: addedImg?.entity_id
     })
 
     // Update album metadata to reflect new image (preserve existing metadata)
     console.log(`📊 Updating album metadata for album ${albumId}`)
-    const { error: updateMetadataError } = await supabase
-      .from('photo_albums')
+    const { error: updateMetadataError } = await (supabase
+      .from('photo_albums') as any)
       .update({
         metadata: {
-          ...(existingAlbum?.metadata || {}), // Preserve existing metadata including album_purpose
-          total_images: (existingAlbum?.metadata?.total_images || 0) + 1,
+          ...((existingAlbum as any)?.metadata || {}), // Preserve existing metadata including album_purpose
+          total_images: ((existingAlbum as any)?.metadata?.total_images || 0) + 1,
           last_modified: new Date().toISOString()
         }
       })
@@ -719,8 +725,8 @@ export async function POST(request: NextRequest) {
     // Update publisher_image_id when adding avatar images for publishers
     if (entityType === 'publisher' && albumPurpose === 'avatar' && (isCover || isFeatured)) {
       console.log(`🔄 Updating publisher_image_id for publisher ${entityId} with image ${finalImageId}`)
-      const { error: publisherUpdateError } = await supabase
-        .from('publishers')
+      const { error: publisherUpdateError } = await (supabase
+        .from('publishers') as any)
         .update({ publisher_image_id: finalImageId })
         .eq('id', entityId)
 
@@ -786,20 +792,23 @@ export async function PUT(request: NextRequest) {
       .contains('metadata', { album_purpose: albumPurpose })
       .single()
 
-    if (!album) {
+    const albumData = album as any
+    if (!albumData || !albumData.id) {
       return NextResponse.json({
         success: false,
         error: 'Album not found'
       }, { status: 404 })
     }
 
+    const albumId = albumData.id
+
     // Update image record
     if (altText || caption || metadata) {
-      const { error: imageUpdateError } = await supabase
-        .from('images')
+      const { error: imageUpdateError } = await (supabase
+        .from('images') as any)
         .update({
           alt_text: altText,
-          caption: caption,
+          ...(caption && { caption: caption }),
           metadata: metadata ? { ...metadata, updated_via: 'entity_image_api' } : undefined
         })
         .eq('id', imageId)
@@ -816,10 +825,10 @@ export async function PUT(request: NextRequest) {
     // If setting this image as cover, first unset any existing cover images
     if (isCover === true) {
       console.log(`Setting image ${imageId} as cover - unsetting previous cover images`)
-      await supabase
-        .from('album_images')
+      await (supabase
+        .from('album_images') as any)
         .update({ is_cover: false })
-        .eq('album_id', album.id)
+        .eq('album_id', albumId)
         .eq('is_cover', true)
     }
 
@@ -830,10 +839,10 @@ export async function PUT(request: NextRequest) {
     if (isFeatured !== undefined) updateData.is_featured = isFeatured
 
     if (Object.keys(updateData).length > 0) {
-      const { error: albumImageUpdateError } = await supabase
-        .from('album_images')
+      const { error: albumImageUpdateError } = await (supabase
+        .from('album_images') as any)
         .update(updateData)
-        .eq('album_id', album.id)
+        .eq('album_id', albumId)
         .eq('image_id', imageId)
 
       if (albumImageUpdateError) {
@@ -848,8 +857,8 @@ export async function PUT(request: NextRequest) {
     // Update publisher_image_id when setting avatar as cover for publishers
     if (entityType === 'publisher' && albumPurpose === 'avatar' && isCover === true) {
       console.log(`🔄 Updating publisher_image_id for publisher ${entityId} with image ${imageId}`)
-      const { error: publisherUpdateError } = await supabase
-        .from('publishers')
+      const { error: publisherUpdateError } = await (supabase
+        .from('publishers') as any)
         .update({ publisher_image_id: imageId })
         .eq('id', entityId)
 
@@ -902,7 +911,8 @@ export async function DELETE(request: NextRequest) {
       .contains('metadata', { album_purpose: albumPurpose })
       .single()
 
-    if (!album) {
+    const albumData2 = album as any
+    if (!albumData2 || !albumData2.id) {
       return NextResponse.json({
         success: false,
         error: 'Album not found'
@@ -910,10 +920,10 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Remove image from album
-    const { error: removeError } = await supabase
-      .from('album_images')
+    const { error: removeError } = await (supabase
+      .from('album_images') as any)
       .delete()
-      .eq('album_id', album.id)
+      .eq('album_id', albumData2.id)
       .eq('image_id', imageId)
 
     if (removeError) {
@@ -925,15 +935,15 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Update album metadata
-    await supabase
-      .from('photo_albums')
+    await (supabase
+      .from('photo_albums') as any)
       .update({
         metadata: {
-          total_images: (album.metadata?.total_images || 1) - 1,
+          total_images: ((album as any).metadata?.total_images || 1) - 1,
           last_modified: new Date().toISOString()
         }
       })
-      .eq('id', album.id)
+      .eq('id', (album as any).id)
 
     return NextResponse.json({
       success: true,

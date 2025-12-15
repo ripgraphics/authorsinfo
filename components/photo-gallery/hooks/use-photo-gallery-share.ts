@@ -67,8 +67,8 @@ export function usePhotoGalleryShare() {
       const shareUrl = generateShareUrl(image, options);
 
       // Track share event
-      const { error: trackError } = await supabase
-        .from('image_shares')
+      const { error: trackError } = await (supabase
+        .from('image_shares') as any)
         .insert({
           image_id: image.id,
           platform: options.platform,
@@ -117,8 +117,8 @@ export function usePhotoGalleryShare() {
       await navigator.clipboard.writeText(shareUrl);
 
       // Track copy event
-      const { error: trackError } = await supabase
-        .from('image_shares')
+      const { error: trackError } = await (supabase
+        .from('image_shares') as any)
         .insert({
           image_id: image.id,
           platform: 'copy',

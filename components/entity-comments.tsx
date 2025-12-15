@@ -107,7 +107,7 @@ export default function EntityComments({
         
         setCurrentUser({
           id: user.id,
-          name: userData?.name || user.email,
+          name: (userData as any)?.name || user.email,
           email: user.email,
           avatar_url: (user as any)?.avatar_url || null
         })
@@ -128,7 +128,7 @@ export default function EntityComments({
         .eq('id', entityId)
         .maybeSingle()
 
-      const ownerId = activity?.user_id || null
+      const ownerId = (activity as any)?.user_id || null
       setOwnerUserId(ownerId)
       if (!ownerId) {
         setCanComment(false)
@@ -155,7 +155,7 @@ export default function EntityComments({
         .eq('user_id', ownerId)
         .maybeSingle()
 
-      const level = ownerPrivacy?.default_privacy_level as string | undefined
+      const level = (ownerPrivacy as any)?.default_privacy_level as string | undefined
       if (level === 'followers') postingPolicy = 'followers'
       else if (level === 'friends') postingPolicy = 'friends'
       else if (level === 'private') postingPolicy = 'private'

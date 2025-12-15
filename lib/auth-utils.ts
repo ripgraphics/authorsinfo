@@ -26,7 +26,7 @@ export async function isUserAdmin(userId?: string): Promise<boolean> {
       .single()
 
     if (!profileError && profile) {
-      return profile.role === 'admin'
+      return (profile as any).role === 'admin'
     }
 
     return false
@@ -53,7 +53,7 @@ export async function isUserSuperAdmin(userId?: string): Promise<boolean> {
       .single()
 
     if (!profileError && profile) {
-      return profile.role === 'super_admin'
+      return (profile as any).role === 'super_admin'
     }
 
     return false
@@ -80,7 +80,7 @@ export async function getUserRole(userId?: string): Promise<string> {
       .single()
 
     if (!profileError && profile) {
-      return profile.role || 'user'
+      return (profile as any).role || 'user'
     }
 
     return 'user'
@@ -122,7 +122,7 @@ export async function canUserEditEntity(
           .eq('user_id', userId)
           .single()
         
-        if (groupMember?.group_roles?.name === 'Owner' || groupMember?.group_roles?.name === 'Admin') {
+        if ((groupMember as any)?.group_roles?.name === 'Owner' || (groupMember as any)?.group_roles?.name === 'Admin') {
           return true
         }
         break
@@ -135,7 +135,7 @@ export async function canUserEditEntity(
           .eq('id', entityId)
           .single()
         
-        if (event?.created_by === userId) {
+        if ((event as any)?.created_by === userId) {
           return true
         }
         break
@@ -148,7 +148,7 @@ export async function canUserEditEntity(
           .eq('id', entityId)
           .single()
         
-        if (album?.owner_id === userId) {
+        if ((album as any)?.owner_id === userId) {
           return true
         }
         break
@@ -161,7 +161,7 @@ export async function canUserEditEntity(
           .eq('id', entityId)
           .single()
         
-        if (readingList?.user_id === userId) {
+        if ((readingList as any)?.user_id === userId) {
           return true
         }
         break
@@ -174,7 +174,7 @@ export async function canUserEditEntity(
           .eq('id', entityId)
           .single()
         
-        if (bookClub?.created_by === userId) {
+        if ((bookClub as any)?.created_by === userId) {
           return true
         }
         break
@@ -187,7 +187,7 @@ export async function canUserEditEntity(
           .eq('id', entityId)
           .single()
         
-        if (discussion?.user_id === userId) {
+        if ((discussion as any)?.user_id === userId) {
           return true
         }
         break
@@ -200,7 +200,7 @@ export async function canUserEditEntity(
           .eq('id', entityId)
           .single()
         
-        if (review?.user_id === userId) {
+        if ((review as any)?.user_id === userId) {
           return true
         }
         break
@@ -220,7 +220,7 @@ export async function canUserEditEntity(
           .eq('id', entityId)
           .single()
         
-        if (author?.created_by === userId) {
+        if ((author as any)?.created_by === userId) {
           return true
         }
         // Authors are catalog entities, so only creators and admins can edit
@@ -238,7 +238,7 @@ export async function canUserEditEntity(
           .eq('id', entityId)
           .single()
         
-        if (book?.created_by === userId) {
+        if ((book as any)?.created_by === userId) {
           return true
         }
         // Books are catalog entities, so only creators and admins can edit

@@ -30,8 +30,8 @@ export async function POST(request: NextRequest) {
     const readingProgressStatus = statusMapping[status] || 'not_started'
 
     // Get user's default privacy settings
-    const { data: privacySettings } = await supabase
-      .from('user_privacy_settings')
+    const { data: privacySettings } = await (supabase
+      .from('user_privacy_settings') as any)
       .select('default_privacy_level')
       .eq('user_id', user.id)
       .single()
@@ -39,8 +39,8 @@ export async function POST(request: NextRequest) {
     const defaultPrivacyLevel = privacySettings?.default_privacy_level || 'private'
 
     // Check if a record already exists
-    const { data: existingProgress } = await supabase
-      .from('reading_progress')
+    const { data: existingProgress } = await (supabase
+      .from('reading_progress') as any)
       .select('id')
       .eq('book_id', bookId)
       .eq('user_id', user.id)
@@ -50,8 +50,8 @@ export async function POST(request: NextRequest) {
 
     if (existingProgress) {
       // Update existing record
-      const { data, error } = await supabase
-        .from('reading_progress')
+      const { data, error } = await (supabase
+        .from('reading_progress') as any)
         .update({
           status: readingProgressStatus,
           updated_at: new Date().toISOString(),
@@ -66,8 +66,8 @@ export async function POST(request: NextRequest) {
       result = { data, error }
     } else {
       // Insert new record
-      const { data, error } = await supabase
-        .from('reading_progress')
+      const { data, error } = await (supabase
+        .from('reading_progress') as any)
         .insert({
           book_id: bookId,
           user_id: user.id,
@@ -93,8 +93,8 @@ export async function POST(request: NextRequest) {
     // Create activity for timeline
     try {
       // Get book details for the activity
-      const { data: book } = await supabase
-        .from('books')
+      const { data: book } = await (supabase
+        .from('books') as any)
         .select('id, title, author_id')
         .eq('id', bookId)
         .single()
@@ -103,8 +103,8 @@ export async function POST(request: NextRequest) {
         // Get author details if available
         let authorName = "Unknown Author"
         if (book.author_id) {
-          const { data: author } = await supabase
-            .from('authors')
+          const { data: author } = await (supabase
+            .from('authors') as any)
             .select('id, name')
             .eq('id', book.author_id)
             .single()
@@ -126,8 +126,8 @@ export async function POST(request: NextRequest) {
         }
 
         // Create the activity
-        const { error: activityError } = await supabase
-          .from('activities')
+        const { error: activityError } = await (supabase
+          .from('activities') as any)
           .insert({
             user_id: user.id,
             activity_type: activityType,
@@ -181,8 +181,8 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete from reading_progress
-    const { error: progressError } = await supabase
-      .from('reading_progress')
+    const { error: progressError } = await (supabase
+      .from('reading_progress') as any)
       .delete()
       .eq('book_id', bookId)
       .eq('user_id', user.id)
@@ -193,8 +193,8 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete from reading_status
-    const { error: statusError } = await supabase
-      .from('reading_status')
+    const { error: statusError } = await (supabase
+      .from('reading_status') as any)
       .delete()
       .eq('book_id', bookId)
       .eq('user_id', user.id)
@@ -231,8 +231,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Get the current reading status for this book
-    const { data, error } = await supabase
-      .from('reading_progress')
+    const { data, error } = await (supabase
+      .from('reading_progress') as any)
       .select('*')
       .eq('book_id', bookId)
       .eq('user_id', user.id)

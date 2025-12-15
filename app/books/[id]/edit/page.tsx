@@ -290,8 +290,8 @@ export default function EditBookPage() {
 
           // If we already have a cover_image_id, update that image record
           if (book.cover_image_id) {
-            const { error: imageUpdateError } = await supabaseClient
-              .from("images")
+            const { error: imageUpdateError } = await (supabaseClient
+              .from("images") as any)
               .update({ url: uploadResult.url })
               .eq("id", book.cover_image_id)
 
@@ -690,7 +690,7 @@ export default function EditBookPage() {
           console.error("Error fetching binding types:", bindingError);
         } else if (bindingTypes) {
           setBindingOptions(
-            bindingTypes.map((type) => ({
+            bindingTypes.map((type: any) => ({
               value: type.id.toString(),
               label: type.name,
             })),
@@ -707,7 +707,7 @@ export default function EditBookPage() {
           console.error("Error fetching format types:", formatError)
         } else if (formatTypes) {
           setFormatOptions(
-            formatTypes.map((type) => ({
+            formatTypes.map((type: any) => ({
               value: type.id.toString(),
               label: type.name,
             })),

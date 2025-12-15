@@ -52,7 +52,7 @@ export function GroupAnalytics({ groupId }: GroupAnalyticsProps) {
 
       // Group metrics by type
       const groupedMetrics: Record<string, Metric[]> = {}
-      data.forEach((row) => {
+      data.forEach((row: any) => {
         if (!groupedMetrics[row.metric]) {
           groupedMetrics[row.metric] = []
         }

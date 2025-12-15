@@ -12,36 +12,36 @@ export async function GET(
     // Use Promise.all for parallel queries to speed up the response
     const [userData, booksRead, friends, reverseFriends, profileData] = await Promise.all([
       // Get user data from the users table (this is the main table)
-      supabase
-        .from('users')
+      (supabase
+        .from('users') as any)
         .select('id, name, email, created_at, permalink, location, website')
         .eq('id', userId)
         .single(),
 
       // Get books read count from reading_progress where status indicates completion
-      supabase
-        .from('reading_progress')
+      (supabase
+        .from('reading_progress') as any)
         .select('id', { count: 'exact' })
         .eq('user_id', userId)
         .eq('status', 'completed'),
 
       // Get friends count from user_friends where status is 'accepted'
-      supabase
-        .from('user_friends')
+      (supabase
+        .from('user_friends') as any)
         .select('id', { count: 'exact' })
         .eq('user_id', userId)
         .eq('status', 'accepted'),
 
       // Get reverse friends count (where this user is the friend)
-      supabase
-        .from('user_friends')
+      (supabase
+        .from('user_friends') as any)
         .select('id', { count: 'exact' })
         .eq('friend_id', userId)
         .eq('status', 'accepted'),
 
       // Get profile bio if available
-      supabase
-        .from('profiles')
+      (supabase
+        .from('profiles') as any)
         .select('bio')
         .eq('user_id', userId)
         .single()
@@ -72,15 +72,15 @@ export async function GET(
 
     const response = NextResponse.json({
       user: {
-        ...userData.data,
+        ...(userData.data || {}),
         bio: profileData?.data?.bio || null
       },
       stats: {
         booksRead: booksRead?.data?.length || 0,
         friendsCount: totalFriends,
-        location: userData.data.location || null,
-        website: userData.data.website || null,
-        joinedDate: userData.data.created_at
+        location: userData.data?.location || null,
+        website: userData.data?.website || null,
+        joinedDate: userData.data?.created_at
       }
     })
 

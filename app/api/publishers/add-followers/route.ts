@@ -3,8 +3,8 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 
 // Get publisher target type ID
 async function getPublisherTargetTypeId() {
-  const { data, error } = await supabaseAdmin
-    .from('follow_target_types')
+  const { data, error } = await (supabaseAdmin
+    .from('follow_target_types') as any)
     .select('id')
     .eq('name', 'publisher')
     .single()
@@ -14,7 +14,7 @@ async function getPublisherTargetTypeId() {
     throw error
   }
 
-  return data.id
+  return (data as any).id
 }
 
 // Add followers to a publisher
@@ -27,8 +27,8 @@ async function addFollowersToPublisher(publisherId: number, userIds: string[]) {
     target_type_id: targetTypeId,
   }))
 
-  const { data, error } = await supabaseAdmin
-    .from('follows')
+  const { data, error } = await (supabaseAdmin
+    .from('follows') as any)
     .insert(followData)
     .select()
 

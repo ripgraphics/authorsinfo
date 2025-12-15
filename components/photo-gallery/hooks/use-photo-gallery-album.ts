@@ -60,8 +60,8 @@ export function usePhotoGalleryAlbum(options: AlbumOptions = {}) {
     }));
 
     try {
-      const { data, error } = await supabase
-        .from('albums')
+      const { data, error } = await (supabase
+        .from('albums') as any)
         .insert({
           name,
           description,
@@ -140,8 +140,8 @@ export function usePhotoGalleryAlbum(options: AlbumOptions = {}) {
     }));
 
     try {
-      const { data, error } = await supabase
-        .from('albums')
+      const { data, error } = await (supabase
+        .from('albums') as any)
         .update({
           ...updates,
           updated_at: new Date().toISOString(),
@@ -243,10 +243,10 @@ export function usePhotoGalleryAlbum(options: AlbumOptions = {}) {
 
       if (error) throw error;
 
-      const images = data.map((item) => ({
-        ...item.images,
+      const images = data.map((item: any) => ({
+        ...(item as any).images,
         albumId,
-        displayOrder: item.display_order,
+        displayOrder: (item as any).display_order,
       }));
 
       setAlbumState((prev) => ({
@@ -284,11 +284,11 @@ export function usePhotoGalleryAlbum(options: AlbumOptions = {}) {
 
       if (maxOrderError && maxOrderError.code !== 'PGRST116') throw maxOrderError;
 
-      const newDisplayOrder = displayOrder ?? (maxOrderData?.display_order ?? 0) + 1;
+      const newDisplayOrder = displayOrder ?? ((maxOrderData as any)?.display_order ?? 0) + 1;
 
       // Add image to album
-      const { error: addError } = await supabase
-        .from('album_images')
+      const { error: addError } = await (supabase
+        .from('album_images') as any)
         .insert({
           album_id: albumId,
           image_id: imageId,
@@ -342,8 +342,8 @@ export function usePhotoGalleryAlbum(options: AlbumOptions = {}) {
         display_order: index,
       }));
 
-      const { error } = await supabase
-        .from('album_images')
+      const { error } = await (supabase
+        .from('album_images') as any)
         .upsert(updates);
 
       if (error) throw error;
@@ -375,12 +375,12 @@ export function usePhotoGalleryAlbum(options: AlbumOptions = {}) {
 
       // Calculate metadata
       const totalImages = images.length;
-      const totalSize = images.reduce((sum, item) => sum + (item.images?.size ?? 0), 0);
+      const totalSize = images.reduce((sum: number, item: any) => sum + ((item as any).images?.size ?? 0), 0);
       const lastModified = new Date().toISOString();
 
       // Update album metadata
-      const { error: updateError } = await supabase
-        .from('albums')
+      const { error: updateError } = await (supabase
+        .from('albums') as any)
         .update({
           metadata: {
             total_images: totalImages,

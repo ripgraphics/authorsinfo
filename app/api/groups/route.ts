@@ -93,8 +93,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Create the group
-    const { data: group, error } = await supabase
-      .from('groups')
+    const { data: group, error } = await (supabase
+      .from('groups') as any)
       .insert({
         name: name.trim(),
         description: description?.trim() || null,

@@ -20,8 +20,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Use activity_log as generic reporting sink if group_reports not applicable
-    const { error: insertError } = await supabase
-      .from('activity_log')
+    const { error: insertError } = await (supabase
+      .from('activity_log') as any)
       .insert({
         user_id: user.id,
         action: 'report',

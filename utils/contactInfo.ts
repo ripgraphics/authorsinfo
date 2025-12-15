@@ -39,9 +39,9 @@ export async function getContactInfo(entityType: EntityType, entityId: string | 
         }
 
         console.log('Contact info fetched successfully:', {
-            hasEmail: !!data?.email,
-            hasPhone: !!data?.phone,
-            hasWebsite: !!data?.website
+            hasEmail: !!(data as any)?.email,
+            hasPhone: !!(data as any)?.phone,
+            hasWebsite: !!(data as any)?.website
         });
 
         return data;
@@ -96,8 +96,8 @@ export async function upsertContactInfo(contactInfo: ContactInfoInput): Promise<
 
         console.log('Upsert data prepared:', upsertData);
 
-        const { data, error } = await supabase
-            .from('contact_info')
+        const { data, error } = await (supabase
+            .from('contact_info') as any)
             .upsert(upsertData)
             .select()
             .single();

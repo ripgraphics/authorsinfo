@@ -99,7 +99,7 @@ export function AuditLog({ groupId }: AuditLogProps) {
       let filtered = data
       if (filter.search) {
         const searchLower = filter.search.toLowerCase()
-        filtered = data.filter(entry =>
+        filtered = data.filter((entry: any) =>
           entry.action.toLowerCase().includes(searchLower) ||
           entry.target_type.toLowerCase().includes(searchLower) ||
           entry.actor?.name?.toLowerCase().includes(searchLower) ||

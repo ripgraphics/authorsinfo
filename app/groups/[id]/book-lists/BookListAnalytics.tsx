@@ -54,7 +54,7 @@ export default function BookListAnalytics({ listId, groupId }: Props) {
 
       // Calculate analytics
       const totalVotes = votesData?.length || 0;
-      const bookVotes = votesData?.reduce((acc: any, vote) => {
+      const bookVotes = votesData?.reduce((acc: any, vote: any) => {
         acc[vote.book_id] = (acc[vote.book_id] || 0) + 1;
         return acc;
       }, {});
@@ -62,7 +62,7 @@ export default function BookListAnalytics({ listId, groupId }: Props) {
       const mostVotedBookId = Object.entries(bookVotes || {}).sort((a, b) => (b[1] as number) - (a[1] as number))[0];
       const mostVotedBook = mostVotedBookId
         ? {
-            title: booksData?.find((b) => b.book_id === mostVotedBookId[0])?.books.title || '',
+            title: (booksData?.find((b: any) => b.book_id === mostVotedBookId[0]) as any)?.books?.title || '',
             votes: mostVotedBookId[1] as number,
           }
         : null;
@@ -108,15 +108,15 @@ export default function BookListAnalytics({ listId, groupId }: Props) {
               recentActivity: [
                 {
                   type: 'vote',
-                  bookTitle: bookData?.title || '',
-                  userName: userData?.name || 'Anonymous',
+                  bookTitle: (bookData as any)?.title || '',
+                  userName: (userData as any)?.name || 'Anonymous',
                   timestamp: new Date().toISOString(),
                 },
                 ...prev.recentActivity.slice(0, 9),
               ],
             }));
 
-            toast.success(`${userData?.name || 'Someone'} voted for ${bookData?.title || 'a book'}`);
+            toast.success(`${(userData as any)?.name || 'Someone'} voted for ${(bookData as any)?.title || 'a book'}`);
           }
         }
       )

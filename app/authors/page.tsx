@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/sheet"
 import { Label } from "@/components/ui/label"
 import { AuthorsFilters } from "./components/AuthorsFilters"
+import { AuthorsListWrapper } from "./components/AuthorsListWrapper"
 
 interface AuthorsPageProps {
   searchParams: Promise<{
@@ -76,30 +77,21 @@ async function AuthorsList({
   sort?: string
 }) {
   const pageSize = 24
-  const offset = (page - 1) * pageSize
 
-  // Build the query
+  // Fetch all authors (or large subset) for client-side filtering
+  // Apply nationality filter server-side if provided
   const query = {
-    ...(search && { name: { ilike: `%${search}%` } }),
     ...(nationality && { nationality }),
   }
 
-  const orderBy = sort === "name_asc" ? { name: "asc" as const, birth_date: "asc" as const } :
-                 sort === "name_desc" ? { name: "desc" as const, birth_date: "asc" as const } :
-                 sort === "birth_date_asc" ? { birth_date: "asc" as const, name: "asc" as const } :
-                 sort === "birth_date_desc" ? { birth_date: "desc" as const, name: "asc" as const } :
-                 { name: "asc" as const, birth_date: "asc" as const }
-
-  // Execute the query with caching
+  // Execute the query - fetch all matching authors (limit to reasonable number)
   const authors = await db.query(
     "authors",
     query,
     {
       ttl: 300, // Cache for 5 minutes
-      cacheKey: `authors:${JSON.stringify({ page, search, nationality, sort })}`,
-      orderBy,
-      limit: pageSize,
-      offset,
+      cacheKey: `authors_all:${JSON.stringify({ nationality })}`,
+      limit: 1000, // Fetch up to 1000 authors for client-side filtering
       select: `
         *,
         author_image:author_image_id(id, url, alt_text)
@@ -113,13 +105,13 @@ async function AuthorsList({
     photo_url: author.author_image?.url || author.photo_url || null,
   }))
 
-  // Get total count for pagination
+  // Get total count for initial pagination calculation
   const totalAuthorsResult = await db.query(
     "authors",
     query,
     {
       ttl: 300, // Cache for 5 minutes
-      cacheKey: `authors_count:${JSON.stringify({ search, nationality })}`,
+      cacheKey: `authors_count:${JSON.stringify({ nationality })}`,
       count: true
     }
   )
@@ -129,85 +121,42 @@ async function AuthorsList({
     ? totalAuthorsResult.count 
     : 0
 
-  const totalPages = Math.ceil(totalAuthors / pageSize)
+  // Return authors data to be passed to client component for instant filtering
+  return {
+    authors: processedAuthors,
+    totalCount: totalAuthors,
+    pageSize: 24,
+  }
+}
+
+async function AuthorsListContent({
+  page,
+  search,
+  nationality,
+  sort,
+}: {
+  page: number
+  search?: string
+  nationality?: string
+  sort?: string
+}) {
+  const { authors, totalCount, pageSize } = await AuthorsList({
+    page,
+    search,
+    nationality,
+    sort,
+  })
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
-        {processedAuthors.length > 0 ? (
-          processedAuthors.map((author) => (
-            <Link href={`/authors/${author.id}`} key={author.id} className="block">
-              <Card className="overflow-hidden h-full transition-transform hover:scale-105">
-                <div className="relative w-full" style={{ aspectRatio: "1/1" }}>
-                  {author.photo_url ? (
-                    <Image
-                      src={author.photo_url}
-                      alt={author.name}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-muted flex items-center justify-center">
-                      <User className="h-12 w-12 text-muted-foreground" />
-                    </div>
-                  )}
-                </div>
-                <CardContent className="p-3">
-                  <h3 className="font-medium text-sm line-clamp-1">{author.name}</h3>
-                  {author.nationality && (
-                    <p className="text-sm text-muted-foreground line-clamp-1">{author.nationality}</p>
-                  )}
-                  {author.birth_date && <p className="text-xs text-muted-foreground mt-1">{author.birth_date}</p>}
-                </CardContent>
-              </Card>
-            </Link>
-          ))
-        ) : (
-          <div className="col-span-full text-center py-12">
-            <p className="text-muted-foreground">No authors found. Try adjusting your search or filters.</p>
-          </div>
-        )}
-      </div>
-
-      {totalPages > 1 && (
-        <Pagination>
-          <PaginationContent>
-            {page > 1 && (
-              <PaginationItem>
-                <PaginationPrevious
-                  href={`/authors?page=${page - 1}${search ? `&search=${search}` : ""}${nationality ? `&nationality=${nationality}` : ""}${sort ? `&sort=${sort}` : ""}`}
-                />
-              </PaginationItem>
-            )}
-
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              const pageNumber = page <= 3 ? i + 1 : page >= totalPages - 2 ? totalPages - 4 + i : page - 2 + i
-
-              if (pageNumber <= 0 || pageNumber > totalPages) return null
-
-              return (
-                <PaginationItem key={pageNumber}>
-                  <PaginationLink
-                    href={`/authors?page=${pageNumber}${search ? `&search=${search}` : ""}${nationality ? `&nationality=${nationality}` : ""}${sort ? `&sort=${sort}` : ""}`}
-                    isActive={pageNumber === page}
-                  >
-                    {pageNumber}
-                  </PaginationLink>
-                </PaginationItem>
-              )
-            })}
-
-            {page < totalPages && (
-              <PaginationItem>
-                <PaginationNext
-                  href={`/authors?page=${page + 1}${search ? `&search=${search}` : ""}${nationality ? `&nationality=${nationality}` : ""}${sort ? `&sort=${sort}` : ""}`}
-                />
-              </PaginationItem>
-            )}
-          </PaginationContent>
-        </Pagination>
-      )}
-    </div>
+    <AuthorsListWrapper
+      initialAuthors={authors}
+      initialTotalCount={totalCount}
+      page={page}
+      pageSize={pageSize}
+      nationality={nationality}
+      sort={sort}
+      initialSearch={search}
+    />
   )
 }
 
@@ -235,7 +184,7 @@ export default async function AuthorsPage({ searchParams }: AuthorsPageProps) {
         nationalities={nationalities}
       />
       <Suspense fallback={<div>Loading authors...</div>}>
-        <AuthorsList
+        <AuthorsListContent
           page={page}
           search={search}
           nationality={nationality}

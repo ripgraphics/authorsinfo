@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { UserHoverCard } from '@/components/entity-hover-cards';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
+import { ReusableSearch } from '@/components/ui/reusable-search'
 import { useState, useRef } from 'react';
 
 export default function AdminEventsBulkUI({ events, creators, status, search, creator, page, limit, totalCount, userMap }: any) {
@@ -84,7 +85,13 @@ export default function AdminEventsBulkUI({ events, creators, status, search, cr
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Search</label>
-            <input type="text" name="search" defaultValue={search} placeholder="Search events..." className="border rounded px-3 py-2" />
+            <ReusableSearch
+              paramName="search"
+              placeholder="Search events..."
+              debounceMs={300}
+              basePath="/admin/events"
+              preserveParams={['status', 'creator']}
+            />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Creator</label>

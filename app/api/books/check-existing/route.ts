@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       existingIsbns: matchingIsbns,
-      total: matchingIsbns.size
+      total: matchingIsbns.length
     })
   } catch (error) {
     console.error('Error in check-existing API:', error)

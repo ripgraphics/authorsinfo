@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
       case 'photo':
         // Use photo_comments table
         const { data: photoComment, error: photoError } = await supabase
-          .from('photo_comments')
+          .from('photo_comments' as any)
           .insert([{
             photo_id: entity_id,
             user_id,
@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
             parent_comment_id,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
-          }])
+          }] as any)
           .select(`
             *,
             user:users!photo_comments_user_id_fkey(
@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
       case 'post':
         // Use post_comments table
         const { data: postComment, error: postError } = await supabase
-          .from('post_comments')
+          .from('post_comments' as any)
           .insert([{
             post_id: entity_id,
             user_id,
@@ -181,7 +181,7 @@ export async function POST(request: NextRequest) {
             parent_comment_id,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
-          }])
+          }] as any)
           .select(`
             *,
             user:users!post_comments_user_id_fkey(
@@ -199,7 +199,7 @@ export async function POST(request: NextRequest) {
       case 'activity':
         // Use activity_comments table
         const { data: activityComment, error: activityError } = await supabase
-          .from('activity_comments')
+          .from('activity_comments' as any)
           .insert([{
             activity_id: entity_id,
             user_id,
@@ -207,7 +207,7 @@ export async function POST(request: NextRequest) {
             parent_comment_id,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
-          }])
+          }] as any)
           .select(`
             *,
             user:users!activity_comments_user_id_fkey(
@@ -225,7 +225,7 @@ export async function POST(request: NextRequest) {
       case 'book_club_discussion':
         // Use book_club_discussion_comments table
         const { data: bookClubComment, error: bookClubError } = await supabase
-          .from('book_club_discussion_comments')
+          .from('book_club_discussion_comments' as any)
           .insert([{
             discussion_id: entity_id,
             user_id,
@@ -233,7 +233,7 @@ export async function POST(request: NextRequest) {
             parent_comment_id,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
-          }])
+          }] as any)
           .select(`
             *,
             user:users!book_club_discussion_comments_user_id_fkey(
@@ -251,7 +251,7 @@ export async function POST(request: NextRequest) {
       case 'discussion':
         // Use discussion_comments table
         const { data: discussionComment, error: discussionError } = await supabase
-          .from('discussion_comments')
+          .from('discussion_comments' as any)
           .insert([{
             discussion_id: entity_id,
             user_id,
@@ -259,7 +259,7 @@ export async function POST(request: NextRequest) {
             parent_comment_id,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
-          }])
+          }] as any)
           .select(`
             *,
             user:users!discussion_comments_user_id_fkey(
@@ -277,7 +277,7 @@ export async function POST(request: NextRequest) {
       case 'author':
         // Use engagement_comments table for author comments
         const { data: authorComment, error: authorError } = await supabase
-          .from('engagement_comments')
+          .from('engagement_comments' as any)
           .insert([{
             user_id,
             entity_type: 'author',
@@ -288,7 +288,7 @@ export async function POST(request: NextRequest) {
             thread_id: parent_comment_id ? null : crypto.randomUUID(),
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
-          }])
+          }] as any)
           .select(`
             *,
             user:users!engagement_comments_user_id_fkey(
@@ -323,7 +323,7 @@ export async function POST(request: NextRequest) {
           // Create a feed entry for this entity
           console.log('Attempting to insert feed entry...')
           const { data: feedEntry, error: feedError } = await supabase
-            .from('feed_entries')
+            .from('feed_entries' as any)
             .insert([{
               user_id,
               type: 'comment',
@@ -335,7 +335,7 @@ export async function POST(request: NextRequest) {
               entity_type,
               entity_id,
               visibility: 'public'
-            }])
+            }] as any)
             .select()
             .single()
 
@@ -358,15 +358,15 @@ export async function POST(request: NextRequest) {
             }, { status: 500 })
           }
 
-          console.log('Feed entry created successfully:', feedEntry.id)
+          console.log('Feed entry created successfully:', (feedEntry as any)?.id)
 
           // Now create the comment using the generic comments table
           console.log('Attempting to create comment...')
           const { data: genericComment, error: genericError } = await supabase
-            .from('comments')
+            .from('comments' as any)
             .insert([{
               user_id,
-              feed_entry_id: feedEntry.id,
+              feed_entry_id: (feedEntry as any)?.id,
               content: content.trim(),
               entity_type,
               entity_id,
@@ -374,7 +374,7 @@ export async function POST(request: NextRequest) {
               updated_at: new Date().toISOString(),
               is_hidden: false,
               is_deleted: false
-            }])
+            }] as any)
             .select(`
               *,
               user:users!comments_user_id_fkey(
@@ -391,7 +391,7 @@ export async function POST(request: NextRequest) {
             console.error('Error creating generic comment:', genericError)
             // Try to clean up the feed entry if comment creation fails
             console.log('Cleaning up feed entry due to comment creation failure...')
-            await supabase.from('feed_entries').delete().eq('id', feedEntry.id)
+            await supabase.from('feed_entries' as any).delete().eq('id', (feedEntry as any)?.id)
             return NextResponse.json({ 
               error: 'Failed to create comment',
               details: genericError.message,
@@ -442,10 +442,10 @@ export async function POST(request: NextRequest) {
     if (activityFetchError) {
       console.log('Post is not an activity, skipping comment count update')
     } else if (activity) {
-      console.log('Updating activity comment count for activity:', activity.id)
-      const currentCount = activity?.comment_count || 0
-      const { error: updateError } = await supabase
-        .from('activities')
+      console.log('Updating activity comment count for activity:', (activity as any)?.id)
+      const currentCount = (activity as any)?.comment_count || 0
+      const { error: updateError } = await (supabase
+        .from('activities' as any) as any)
         .update({ 
           comment_count: currentCount + 1
         })

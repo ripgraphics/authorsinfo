@@ -100,8 +100,8 @@ export default function ContentModeration({ groupId, userRole }: ContentModerati
 
   async function handleModeration(item: ModerationItem, newStatus: string, notes?: string) {
     try {
-      const { error } = await supabase
-        .from('group_content_moderation')
+      const { error } = await (supabase
+        .from('group_content_moderation') as any)
         .update({
           status: newStatus,
           moderator_id: supabase.auth.getUser(),

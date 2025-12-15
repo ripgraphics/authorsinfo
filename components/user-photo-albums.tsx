@@ -289,7 +289,7 @@ export function EntityPhotoAlbums({
       const allAlbums = [...(regularAlbums || []), ...(postAlbums || [])]
 
       // Get album image counts separately to avoid complex joins
-      const albumIds = allAlbums.map(album => album.id)
+      const albumIds = allAlbums.map((album: any) => (album as any).id)
       let albumImageCounts: { [key: string]: number } = {}
       let albumCoverImages: { [key: string]: string } = {}
 

@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/sheet"
 import { Label } from "@/components/ui/label"
 import { InteractiveControls } from "./components/InteractiveControls"
+import { PublishersListWrapper } from "./components/PublishersListWrapper"
 
 interface Publisher {
   id: number
@@ -151,121 +152,81 @@ async function PublishersList({
   sort?: string
 }) {
   const pageSize = 24
-  const offset = (page - 1) * pageSize
 
-  // Build the query
+  // Build the query - apply location filter server-side if provided
   const query = {
-    ...(search && { name: { ilike: `%${search}%` } }),
     ...(location && location !== "all" && { country_id: location }),
   }
 
-  // Define a more specific type for orderBy
-  type OrderByType = { name?: "asc" | "desc"; founded_year?: "asc" | "desc" }
-  
-  const orderBy: OrderByType = sort === "name_asc" ? { name: "asc" } :
-                              sort === "name_desc" ? { name: "desc" } :
-                              sort === "founded_year_asc" ? { founded_year: "asc" } :
-                              sort === "founded_year_desc" ? { founded_year: "desc" } :
-                              { name: "asc" }
+  // Fetch all publishers (or large subset) for client-side filtering
+  const publishers = await db.query<Publisher>(
+    "publishers",
+    query,
+    {
+      ttl: 300, // Cache for 5 minutes
+      cacheKey: `publishers_all:${JSON.stringify({ location })}`,
+      limit: 1000, // Fetch up to 1000 publishers for client-side filtering
+      select: "*, publisher_image:publisher_image_id(id, url, alt_text), country_details:country_id(id, name, code)"
+    }
+  )
 
-  // Execute the query with caching
-  const [publishers, countResponse] = await Promise.all([
-    db.query<Publisher>(
-      "publishers",
-      query,
-      {
-        ttl: 300, // Cache for 5 minutes
-        cacheKey: `publishers_v2:${JSON.stringify({ page, search, location, sort })}`,
-        orderBy,
-        limit: pageSize,
-        offset,
-        select: "*, publisher_image:publisher_image_id(id, url, alt_text), country_details:country_id(id, name, code)"
-      }
-    ),
-    db.query<Publisher>(
-      "publishers",
-      query,
-      {
-        ttl: 300, // Cache for 5 minutes
-        cacheKey: `publishers_count:${JSON.stringify({ search, location })}`,
-        count: true
-      }
-    )
-  ])
-
-  if (!Array.isArray(publishers) || !('count' in countResponse)) {
-    return null
+  if (!Array.isArray(publishers)) {
+    return {
+      publishers: [],
+      totalCount: 0,
+      pageSize: 24,
+    }
   }
 
-  // publisher_image_id is now synced with albums, so we can use it directly
-  const publishersWithAvatars = publishers
+  // Get total count for initial pagination calculation
+  const countResponse = await db.query<Publisher>(
+    "publishers",
+    query,
+    {
+      ttl: 300, // Cache for 5 minutes
+      cacheKey: `publishers_count:${JSON.stringify({ location })}`,
+      count: true
+    }
+  )
 
-  const totalPages = Math.ceil((countResponse.count || 0) / pageSize)
+  const totalCount = ('count' in countResponse && countResponse.count) || 0
 
-  // Get unique locations for the filter
-  const locationsList = await getUniqueLocations()
+  // Return publishers data to be passed to client component for instant filtering
+  return {
+    publishers,
+    totalCount,
+    pageSize: 24,
+  }
+}
+
+async function PublishersListContent({
+  page,
+  search,
+  location,
+  sort,
+}: {
+  page: number
+  search?: string
+  location?: string
+  sort?: string
+}) {
+  const { publishers, totalCount, pageSize } = await PublishersList({
+    page,
+    search,
+    location,
+    sort,
+  })
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
-        {publishersWithAvatars.length > 0 ? (
-          publishersWithAvatars.map((publisher) => (
-            <PublisherAvatar
-              key={publisher.id}
-              publisherId={publisher.id}
-              name={publisher.name || "Unknown Publisher"}
-              avatarUrl={publisher.publisher_image?.url}
-              size="md"
-              showName={true}
-              linkToProfile={true}
-            />
-          ))
-        ) : (
-          <div className="col-span-full text-center py-12">
-            <p className="text-muted-foreground">No publishers found. Try adjusting your search or filters.</p>
-          </div>
-        )}
-      </div>
-
-      {totalPages > 1 && (
-        <Pagination>
-          <PaginationContent>
-            {page > 1 && (
-              <PaginationItem>
-                <PaginationPrevious
-                  href={`/publishers?page=${page - 1}${search ? `&search=${search}` : ""}${location ? `&location=${location}` : ""}${sort ? `&sort=${sort}` : ""}`}
-                />
-              </PaginationItem>
-            )}
-
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              const pageNumber = page <= 3 ? i + 1 : page >= totalPages - 2 ? totalPages - 4 + i : page - 2 + i
-
-              if (pageNumber <= 0 || pageNumber > totalPages) return null
-
-              return (
-                <PaginationItem key={pageNumber}>
-                  <PaginationLink
-                    href={`/publishers?page=${pageNumber}${search ? `&search=${search}` : ""}${location ? `&location=${location}` : ""}${sort ? `&sort=${sort}` : ""}`}
-                    isActive={pageNumber === page}
-                  >
-                    {pageNumber}
-                  </PaginationLink>
-                </PaginationItem>
-              )
-            })}
-
-            {page < totalPages && (
-              <PaginationItem>
-                <PaginationNext
-                  href={`/publishers?page=${page + 1}${search ? `&search=${search}` : ""}${location ? `&location=${location}` : ""}${sort ? `&sort=${sort}` : ""}`}
-                />
-              </PaginationItem>
-            )}
-          </PaginationContent>
-        </Pagination>
-      )}
-    </div>
+    <PublishersListWrapper
+      initialPublishers={publishers}
+      initialTotalCount={totalCount}
+      page={page}
+      pageSize={pageSize}
+      location={location}
+      sort={sort}
+      initialSearch={search}
+    />
   )
 }
 
@@ -294,7 +255,7 @@ export default async function PublishersPage({ searchParams }: PublishersPagePro
         sort={sort}
       />
       <Suspense fallback={<div>Loading...</div>}>
-        <PublishersList
+        <PublishersListContent
           page={page}
           search={search}
           location={location}

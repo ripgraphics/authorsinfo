@@ -271,7 +271,7 @@ export default function ImportBooksPage() {
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="manual">Manual Entry</TabsTrigger>
             <TabsTrigger value="search">Search Books</TabsTrigger>
-            <TabsTrigger value="latest" onClick={loadLatestBooks}>
+            <TabsTrigger value="latest" onClick={() => loadLatestBooks()}>
               Latest Books
             </TabsTrigger>
           </TabsList>
@@ -617,7 +617,7 @@ export default function ImportBooksPage() {
                     <Button 
                       variant="outline" 
                       className="mt-4"
-                      onClick={loadLatestBooks}
+                      onClick={() => loadLatestBooks()}
                     >
                       Try Again
                     </Button>

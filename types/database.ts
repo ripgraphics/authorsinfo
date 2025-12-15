@@ -90,6 +90,44 @@ export type Database = {
         Update: any
         Relationships: any[]
       }
+      groups: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          member_count: number
+          created_at: string
+          is_private: boolean
+          created_by: string
+          cover_image_url: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          member_count?: number
+          created_at?: string
+          is_private?: boolean
+          created_by: string
+          cover_image_url?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          member_count?: number
+          created_at?: string
+          is_private?: boolean
+          created_by?: string
+          cover_image_url?: string | null
+        }
+        Relationships: Array<{
+          foreignKeyName: string
+          columns: string[]
+          referencedRelation: string
+          referencedColumns: string[]
+        }>
+      }
       [key: string]: {
         Row: any
         Insert: any

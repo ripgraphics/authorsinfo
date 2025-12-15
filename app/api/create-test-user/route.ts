@@ -41,14 +41,14 @@ export async function POST(request: NextRequest) {
 
     // Create user in public.users table
     const { data: newUser, error: createError } = await supabaseAdmin
-      .from('users')
+      .from('users' as any)
       .insert({
         id: user.id,
         email: user.email,
         name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Test User',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
-      })
+      } as any)
       .select()
       .single()
 

@@ -66,6 +66,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const adminClient = supabaseAdmin
+
     const formData = await request.formData()
     const file = formData.get('file') as File
     const entityType = formData.get('entityType') as string
@@ -209,8 +211,8 @@ export async function POST(request: NextRequest) {
 
     // Get actual schema columns from Supabase by querying a sample row
     // (information_schema is not accessible via PostgREST)
-    const { data: sampleImageRow } = await supabaseAdmin
-      .from("images")
+    const { data: sampleImageRow } = await (adminClient
+      .from("images") as any)
       .select('*')
       .limit(1)
       .maybeSingle()
@@ -262,8 +264,8 @@ export async function POST(request: NextRequest) {
 
     // Create image record in database using only existing columns
     console.log(`💾 Saving image to Supabase database: ${data.secure_url}`)
-    const { data: imageRecord, error: imageError } = await supabase
-      .from('images')
+    const { data: imageRecord, error: imageError } = await (adminClient
+      .from('images') as any)
       .insert(insertObject)
       .select()
       .single()
@@ -307,8 +309,8 @@ export async function POST(request: NextRequest) {
 
     // VERIFY: Confirm the record actually exists in the database
     console.log(`🔍 Verifying database record exists: ${imageRecord.id}`)
-    const { data: verifyRecord, error: verifyError } = await supabase
-      .from('images')
+    const { data: verifyRecord, error: verifyError } = await (adminClient
+      .from('images') as any)
       .select('id, url')
       .eq('id', imageRecord.id)
       .single()
@@ -338,14 +340,34 @@ export async function POST(request: NextRequest) {
     const entityTableName = entityType === 'user' ? 'profiles' : `${entityType}s`
     const entityIdColumn = entityType === 'user' ? 'user_id' : 'id'
     
-    // Get a sample row to determine what columns exist (information_schema is not accessible via PostgREST)
-    const { data: sampleRow } = await supabaseAdmin
-      .from(entityTableName)
-      .select('*')
-      .limit(1)
-      .maybeSingle()
+    // Query information_schema.columns via service role to gather available columns
+    const { data: columnRows, error: columnError } = await adminClient
+      .from('information_schema.columns')
+      .select('column_name')
+      .eq('table_name', entityTableName)
+      .eq('table_schema', 'public')
 
-    const entityColumns = new Set(sampleRow ? Object.keys(sampleRow) : [])
+    const entityColumns = new Set<string>()
+    if (!columnError && columnRows) {
+      columnRows.forEach((row: any) => {
+        if (row?.column_name) {
+          entityColumns.add(row.column_name)
+        }
+      })
+    }
+
+    // Fallback: use a sample row if information_schema returned nothing
+    if (entityColumns.size === 0) {
+      const { data: sampleRow } = await (adminClient
+        .from(entityTableName) as any)
+        .select('*')
+        .limit(1)
+        .maybeSingle()
+
+      if (sampleRow) {
+        Object.keys(sampleRow).forEach((column) => entityColumns.add(column))
+      }
+    }
     
     // Map imageType to actual column names that might exist
     // For books: 'cover' -> 'cover_image_id', 'avatar' might not exist
@@ -375,8 +397,8 @@ export async function POST(request: NextRequest) {
 
     // Only update if the column exists
     if (entityColumns.has(columnName)) {
-      const { error: updateError } = await supabase
-        .from(entityTableName)
+      const { error: updateError } = await (adminClient
+        .from(entityTableName) as any)
         .update({
           [columnName]: imageRecord.id
         })
@@ -436,4 +458,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-

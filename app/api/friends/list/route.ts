@@ -172,8 +172,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Create maps for quick lookup
-    const userMap = new Map(users.map(u => [u.id, u]))
-    const profileMap = new Map(profiles.map(p => [p.user_id, p]))
+    const userMap = new Map((users as any[]).map((u: any) => [u.id, u]))
+    const profileMap = new Map((profiles as any[]).map((p: any) => [p.user_id, p]))
 
     // Build friends with user details
     const friendsWithUserDetails = ((friends || []) as any[]).map((friend: any) => {

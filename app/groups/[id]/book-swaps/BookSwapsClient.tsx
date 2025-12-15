@@ -79,8 +79,8 @@ export default function BookSwapsClient({ initialBookSwaps, groupId }: Props) {
       return;
     }
 
-    const { error } = await supabase
-      .from('group_book_swaps')
+    const { error } = await (supabase
+      .from('group_book_swaps') as any)
       .update({
         status: 'accepted',
         accepted_by: user.id,
@@ -94,8 +94,8 @@ export default function BookSwapsClient({ initialBookSwaps, groupId }: Props) {
   };
 
   const handleCompleteSwap = async (swapId: string) => {
-    const { error } = await supabase
-      .from('group_book_swaps')
+    const { error } = await (supabase
+      .from('group_book_swaps') as any)
       .update({ status: 'completed' })
       .eq('id', swapId);
 
@@ -105,8 +105,8 @@ export default function BookSwapsClient({ initialBookSwaps, groupId }: Props) {
   };
 
   const handleCancelSwap = async (swapId: string) => {
-    const { error } = await supabase
-      .from('group_book_swaps')
+    const { error } = await (supabase
+      .from('group_book_swaps') as any)
       .update({ status: 'cancelled' })
       .eq('id', swapId);
 

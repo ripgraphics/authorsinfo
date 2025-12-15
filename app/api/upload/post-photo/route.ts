@@ -131,8 +131,8 @@ export async function POST(request: NextRequest) {
     const data = await response.json()
 
     // Create image record in database
-    const { data: imageRecord, error: imageError } = await supabase
-      .from('images')
+    const { data: imageRecord, error: imageError } = await (supabase
+      .from('images') as any)
       .insert({
         url: data.secure_url,
         alt_text: `Post photo by ${user.email || 'User'}`,

@@ -22,8 +22,8 @@ export async function GET(
     }
 
     // Fetch privacy settings
-    const { data: privacySettings, error: privacyError } = await supabase
-      .from('user_privacy_settings')
+    const { data: privacySettings, error: privacyError } = await (supabase
+      .from('user_privacy_settings') as any)
       .select('*')
       .eq('user_id', userId)
       .single()
@@ -85,8 +85,8 @@ export async function PUT(
     }
 
     // Check if privacy settings exist
-    const { data: existingSettings } = await supabase
-      .from('user_privacy_settings')
+    const { data: existingSettings } = await (supabase
+      .from('user_privacy_settings') as any)
       .select('id')
       .eq('user_id', userId)
       .single()
@@ -94,8 +94,8 @@ export async function PUT(
     let result
     if (existingSettings) {
       // Update existing settings
-      const { data, error } = await supabase
-        .from('user_privacy_settings')
+      const { data, error } = await (supabase
+        .from('user_privacy_settings') as any)
         .update({
           default_privacy_level: body.default_privacy_level,
           allow_friends_to_see_reading: body.allow_friends_to_see_reading,
@@ -118,8 +118,8 @@ export async function PUT(
       result = data
     } else {
       // Create new privacy settings
-      const { data, error } = await supabase
-        .from('user_privacy_settings')
+      const { data, error } = await (supabase
+        .from('user_privacy_settings') as any)
         .insert({
           user_id: userId,
           default_privacy_level: body.default_privacy_level || 'private',
@@ -142,8 +142,8 @@ export async function PUT(
     }
 
     // Log privacy setting changes for audit
-    await supabase
-      .from('privacy_audit_log')
+    await (supabase
+      .from('privacy_audit_log') as any)
       .insert({
         user_id: userId,
         action_type: 'privacy_settings_updated',
@@ -193,8 +193,8 @@ export async function POST(
           return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
         }
 
-        const { data: customPermission, error: permissionError } = await supabase
-          .from('custom_permissions')
+        const { data: customPermission, error: permissionError } = await (supabase
+          .from('custom_permissions') as any)
           .insert({
             user_id: userId,
             target_user_id,
@@ -218,8 +218,8 @@ export async function POST(
           return NextResponse.json({ error: 'Missing target user ID' }, { status: 400 })
         }
 
-        const { error: revokeError } = await supabase
-          .from('custom_permissions')
+        const { error: revokeError } = await (supabase
+          .from('custom_permissions') as any)
           .delete()
           .eq('user_id', userId)
           .eq('target_user_id', target_user_id)

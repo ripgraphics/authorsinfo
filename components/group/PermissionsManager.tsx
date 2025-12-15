@@ -112,8 +112,8 @@ export default function PermissionsManager({ groupId }: PermissionsManagerProps)
 
   async function handleCreateRole() {
     try {
-      const { data, error } = await supabase
-        .from('group_roles')
+      const { data, error } = await (supabase
+        .from('group_roles') as any)
         .insert({
           group_id: groupId,
           name: newRole.name,
@@ -149,8 +149,8 @@ export default function PermissionsManager({ groupId }: PermissionsManagerProps)
 
   async function handleUpdateRole(role: Role) {
     try {
-      const { error } = await supabase
-        .from('group_roles')
+      const { error } = await (supabase
+        .from('group_roles') as any)
         .update({
           name: role.name,
           description: role.description,
@@ -201,8 +201,8 @@ export default function PermissionsManager({ groupId }: PermissionsManagerProps)
 
   async function handleUpdateMemberRole(memberId: string, roleId: string) {
     try {
-      const { error } = await supabase
-        .from('group_members')
+      const { error } = await (supabase
+        .from('group_members') as any)
         .update({ role_id: roleId })
         .eq('id', memberId);
 

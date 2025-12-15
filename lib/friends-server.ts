@@ -35,8 +35,8 @@ export async function getFriends(userId: string, page = 1, limit = 100) {
   }
 
   // Extract all friend user IDs (the ones that aren't the current user)
-  const friendUserIds = friends.map(friend => 
-    friend.user_id === userId ? friend.friend_id : friend.user_id
+  const friendUserIds = friends.map((friend: any) => 
+    (friend as any).user_id === userId ? (friend as any).friend_id : (friend as any).user_id
   )
 
   // Batch fetch all user data, profiles, and stats in parallel
@@ -56,7 +56,7 @@ export async function getFriends(userId: string, page = 1, limit = 100) {
 
   // Get unique avatar_image_ids
   const avatarImageIds = Array.from(new Set(
-    profiles.map(p => p.avatar_image_id).filter(Boolean)
+    profiles.map((p: any) => (p as any).avatar_image_id).filter(Boolean)
   ))
 
   // Fetch avatar URLs from images table
@@ -160,23 +160,23 @@ export async function getFriends(userId: string, page = 1, limit = 100) {
   const userMap = new Map(users.map((u: any) => [u.id, u]))
   const profileMap = new Map(profiles.map((p: any) => [p.user_id, p]))
 
-  const friendsList = friends.map(friend => {
-    const friendUserId = friend.user_id === userId ? friend.friend_id : friend.user_id
+  const friendsList = friends.map((friend: any) => {
+    const friendUserId = (friend as any).user_id === userId ? (friend as any).friend_id : (friend as any).user_id
     const friendUser = userMap.get(friendUserId)
     const profile = profileMap.get(friendUserId)
-    const avatarImageId = profile?.avatar_image_id
+    const avatarImageId = (profile as any)?.avatar_image_id
     const avatarUrl = avatarImageId ? avatarImageMap.get(avatarImageId) : null
 
     return {
-      id: friend.id,
+      id: (friend as any).id,
       friend: {
-        id: friendUser?.id || friendUserId,
-        name: friendUser?.name || friendUser?.email || 'Unknown User',
-        email: friendUser?.email || '',
-        permalink: friendUser?.permalink,
+        id: (friendUser as any)?.id || friendUserId,
+        name: (friendUser as any)?.name || (friendUser as any)?.email || 'Unknown User',
+        email: (friendUser as any)?.email || '',
+        permalink: (friendUser as any)?.permalink,
         avatar_url: avatarUrl
       },
-      friendshipDate: friend.responded_at,
+      friendshipDate: (friend as any).responded_at,
       mutualFriendsCount: 0,
       followersCount: followersCountMap.get(friendUserId) || 0,
       friendsCount: friendsCountMap.get(friendUserId) || 0,

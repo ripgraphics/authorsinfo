@@ -75,8 +75,8 @@ export default function ThemeProvider({ groupId, children }: Props) {
     }
 
     setTheme({
-      themeMode: data.theme_mode || 'system',
-      customTheme: data.custom_theme || {}
+      themeMode: (data as any).theme_mode || 'system',
+      customTheme: (data as any).custom_theme || {}
     });
   };
 

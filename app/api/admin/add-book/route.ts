@@ -10,6 +10,7 @@ interface AddBookRequest {
   page_count: number
   published_date: string
   isbn: string
+  isbn13?: string
 }
 
 export async function POST(request: NextRequest) {

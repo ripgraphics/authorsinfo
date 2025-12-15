@@ -86,7 +86,7 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
       let filtered = data
       if (filter.search) {
         const searchLower = filter.search.toLowerCase()
-        filtered = data.filter(member =>
+        filtered = data.filter((member: any) =>
           member.user.name.toLowerCase().includes(searchLower) ||
           member.user.email.toLowerCase().includes(searchLower)
         )
@@ -105,8 +105,8 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
       const { data: { user } } = await supabaseClient.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      const { error } = await supabaseClient
-        .from('group_invitations')
+      const { error } = await (supabaseClient
+        .from('group_invitations') as any)
         .insert({
           group_id: groupId,
           email: inviteEmail,
@@ -126,8 +126,8 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
 
   const handleUpdateRole = async (userId: string, newRoles: string[]) => {
     try {
-      const { error } = await supabaseClient
-        .from('group_members')
+      const { error } = await (supabaseClient
+        .from('group_members') as any)
         .update({ roles: newRoles })
         .eq('group_id', groupId)
         .eq('user_id', userId)
@@ -158,8 +158,8 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
           break
       }
 
-      const { error } = await supabaseClient
-        .from('group_members')
+      const { error } = await (supabaseClient
+        .from('group_members') as any)
         .update({
           status: 'suspended',
           suspension_reason: suspensionReason,

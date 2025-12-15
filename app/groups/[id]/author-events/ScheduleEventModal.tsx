@@ -49,8 +49,8 @@ export default function ScheduleEventModal({ isOpen, onClose, groupId }: Props) 
     }
 
     // First create the event
-    const { data: event, error: eventError } = await supabase
-      .from('events')
+    const { data: event, error: eventError } = await (supabase
+      .from('events') as any)
       .insert([{
         ...eventDetails,
         status: 'upcoming',
@@ -65,8 +65,8 @@ export default function ScheduleEventModal({ isOpen, onClose, groupId }: Props) 
     }
 
     // Then create the author event association
-    const { error: authorEventError } = await supabase
-      .from('group_author_events')
+    const { error: authorEventError } = await (supabase
+      .from('group_author_events') as any)
       .insert([{
         group_id: groupId,
         author_id: selectedAuthor.id,

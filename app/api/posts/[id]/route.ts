@@ -15,8 +15,8 @@ export async function GET(
     const { data: { user } } = await supabase.auth.getUser()
     
     // Fetch post
-    const { data: post, error } = await supabase
-      .from('activities')
+    const { data: post, error } = await (supabase
+      .from('activities') as any)
       .select('*')
       .eq('id', postId)
       .eq('activity_type', 'post_created')
@@ -50,8 +50,8 @@ export async function GET(
     }
     
     // Increment view count
-    await supabase
-      .from('activities')
+    await (supabase
+      .from('activities') as any)
       .update({ 
         view_count: (post.view_count || 0) + 1,
         updated_at: new Date().toISOString()
@@ -89,8 +89,8 @@ export async function PUT(
     }
     
     // Check if post exists and user owns it
-    const { data: existingPost, error: fetchError } = await supabase
-      .from('activities')
+    const { data: existingPost, error: fetchError } = await (supabase
+      .from('activities') as any)
       .select('user_id, publish_status, text, data, is_deleted, metadata')
       .eq('id', postId)
       .eq('activity_type', 'post_created')
@@ -208,8 +208,8 @@ export async function PUT(
     }
     
     // Update post
-    const { data: updatedPost, error: updateError } = await supabase
-      .from('activities')
+    const { data: updatedPost, error: updateError } = await (supabase
+      .from('activities') as any)
       .update(updateData)
       .eq('id', postId)
       .select()
@@ -258,8 +258,8 @@ export async function DELETE(
     }
     
     // Check if post exists and user owns it
-    const { data: existingPost, error: fetchError } = await supabase
-      .from('activities')
+    const { data: existingPost, error: fetchError } = await (supabase
+      .from('activities') as any)
       .select('user_id, publish_status, is_deleted')
       .eq('id', postId)
       .eq('activity_type', 'post_created')
@@ -294,8 +294,8 @@ export async function DELETE(
     }
     
     // Soft delete post
-    const { error: deleteError } = await supabase
-      .from('activities')
+    const { error: deleteError } = await (supabase
+      .from('activities') as any)
       .update({
         publish_status: 'deleted',
         updated_at: new Date().toISOString()

@@ -19,10 +19,10 @@ export async function GET(request: NextRequest) {
 
     // Use the get_entity_engagement() function as documented in COMMENT_SYSTEM_FIXED.md
     const { data: engagementData, error: engagementError } = await supabase
-      .rpc('get_entity_engagement', {
+      .rpc('get_entity_engagement' as any, {
         p_entity_type: entityType,
         p_entity_id: entityId
-      })
+      } as any)
 
     if (engagementError) {
       console.error('❌ Error calling get_entity_engagement:', engagementError)
@@ -33,7 +33,12 @@ export async function GET(request: NextRequest) {
     }
 
     // The function returns a single row with the engagement data
-    const engagement = engagementData?.[0] || {
+    const engagement: {
+      likes_count?: number;
+      comments_count?: number;
+      recent_likes?: any[];
+      recent_comments?: any[];
+    } = engagementData?.[0] || {
       likes_count: 0,
       comments_count: 0,
       recent_likes: [],

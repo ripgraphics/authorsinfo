@@ -55,9 +55,13 @@ interface SearchResponse {
 }
 
 interface ImportResponse {
-  total: number;
-  stored: number;
-  books: Book[];
+  total?: number;
+  stored?: number;
+  added?: number;
+  books?: Book[];
+  duplicates?: number;
+  errors?: number;
+  errorDetails?: string[];
 }
 
 export default function NewBooksPage() {
@@ -620,7 +624,7 @@ export default function NewBooksPage() {
         </div>
         <div className="flex items-center space-x-2">
           <Button
-            onClick={fetchBooks}
+            onClick={() => fetchBooks()}
             disabled={loading || !subject.trim()}
             variant="outline"
             size="sm"

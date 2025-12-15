@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ allowed: false })
     }
 
-    const ownerUserId = activity.user_id
+    const ownerUserId = (activity as any)?.user_id
     if (ownerUserId === userId) {
       return NextResponse.json({ allowed: true })
     }
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
       .eq('user_id', ownerUserId)
       .maybeSingle()
 
-    const level = ownerPrivacy?.default_privacy_level as string | undefined
+    const level = (ownerPrivacy as any)?.default_privacy_level as string | undefined
     if (level === 'followers') postingPolicy = 'followers'
     else if (level === 'friends') postingPolicy = 'friends'
     else if (level === 'private') postingPolicy = 'private'

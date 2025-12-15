@@ -103,8 +103,8 @@ export default function CreateGroupPage() {
         member_count: 1
       })
 
-      const { data: group, error: groupError } = await supabaseClient
-        .from('groups')
+      const { data: group, error: groupError } = await (supabaseClient
+        .from('groups') as any)
         .insert({
           name: form.name,
           description: form.description,
@@ -148,8 +148,8 @@ export default function CreateGroupPage() {
         }
       ]
       console.log('Attempting to insert roles:', rolesToInsert)
-      const { data: roles, error: rolesError } = await supabaseClient
-        .from('group_roles')
+      const { data: roles, error: rolesError } = await (supabaseClient
+        .from('group_roles') as any)
         .insert(rolesToInsert)
         .select()
 
@@ -161,14 +161,14 @@ export default function CreateGroupPage() {
       console.log('Roles created:', roles)
 
       // Add creator as owner
-      const ownerRole = roles.find(r => r.name === 'Owner')
+      const ownerRole = roles.find((r: any) => r.name === 'Owner')
       if (!ownerRole) {
         console.error('Owner role not found in:', roles)
         throw new Error('Owner role not found')
       }
 
-      const { error: memberError } = await supabaseClient
-        .from('group_members')
+      const { error: memberError } = await (supabaseClient
+        .from('group_members') as any)
         .insert({
           group_id: group.id,
           user_id: user.id,

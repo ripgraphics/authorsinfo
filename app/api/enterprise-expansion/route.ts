@@ -19,7 +19,9 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id)
       .single()
 
-    if (!userRole || userRole.role !== 'admin') {
+    const roleData = userRole as { role?: string } | null
+
+    if (!roleData || roleData.role !== 'admin') {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
 

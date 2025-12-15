@@ -550,14 +550,14 @@ export function EnterprisePhotoGrid({
   const handleSetAsCover = async (photoId: string) => {
     try {
       // First, unset all other images as cover in this album
-      await supabase
-        .from('album_images')
+      await (supabase
+        .from('album_images') as any)
         .update({ is_cover: false })
         .eq('album_id', albumId)
       
       // Then set this image as cover
-      const { error } = await supabase
-        .from('album_images')
+      const { error } = await (supabase
+        .from('album_images') as any)
         .update({ is_cover: true })
         .eq('album_id', albumId)
         .eq('image_id', photoId)
@@ -636,9 +636,9 @@ export function EnterprisePhotoGrid({
 
           // Extract Cloudinary public_id from URL or storage_path
           let publicId: string | null = null
-          if (imageData.storage_path) {
-            const pathParts = imageData.storage_path.split('/')
-            const uploadIndex = pathParts.findIndex(part => part === 'upload')
+          if ((imageData as any).storage_path) {
+            const pathParts = (imageData as any).storage_path.split('/')
+            const uploadIndex = pathParts.findIndex((part: string) => part === 'upload')
             if (uploadIndex > -1 && uploadIndex < pathParts.length - 1) {
               const folderParts = pathParts.slice(uploadIndex + 1, -1)
               const filename = pathParts[pathParts.length - 1]
@@ -660,8 +660,8 @@ export function EnterprisePhotoGrid({
           }
 
           // Step 1: Remove from album_images
-          const { error: albumImageError } = await supabase
-            .from('album_images')
+          const { error: albumImageError } = await (supabase
+            .from('album_images') as any)
             .delete()
             .eq('album_id', albumId)
             .eq('image_id', photoId)
@@ -780,10 +780,10 @@ export function EnterprisePhotoGrid({
 
       // Extract Cloudinary public_id from URL or storage_path
       let publicId: string | null = null
-      if (imageData.storage_path) {
+      if ((imageData as any).storage_path) {
         // Extract from storage_path (format: upload/v1234567890/folder/image.jpg)
-        const pathParts = imageData.storage_path.split('/')
-        const uploadIndex = pathParts.findIndex(part => part === 'upload')
+        const pathParts = (imageData as any).storage_path.split('/')
+        const uploadIndex = pathParts.findIndex((part: string) => part === 'upload')
         if (uploadIndex > -1 && uploadIndex < pathParts.length - 1) {
           const folderParts = pathParts.slice(uploadIndex + 1, -1)
           const filename = pathParts[pathParts.length - 1]
@@ -806,8 +806,8 @@ export function EnterprisePhotoGrid({
       }
 
       // Step 1: Remove from album_images
-      const { error: albumImageError } = await supabase
-        .from('album_images')
+      const { error: albumImageError } = await (supabase
+        .from('album_images') as any)
         .delete()
         .eq('album_id', albumId)
         .eq('image_id', photoId)

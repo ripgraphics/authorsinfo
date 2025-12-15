@@ -1,9 +1,8 @@
 'use client'
 
 import { useRouter, useSearchParams } from "next/navigation"
-import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Filter } from "lucide-react"
+import { Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -16,26 +15,27 @@ import {
   SheetClose,
 } from "@/components/ui/sheet"
 import { Label } from "@/components/ui/label"
+import { ReusableSearch } from "@/components/ui/reusable-search"
 
 interface InteractiveControlsProps {
   locations: string[]
   search?: string
   location?: string
   sort?: string
+  onSearchChange?: (value: string) => void
 }
 
-export function InteractiveControls({ locations, search, location, sort }: InteractiveControlsProps) {
+export function InteractiveControls({ locations, search, location, sort, onSearchChange }: InteractiveControlsProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const handleSearch = (value: string) => {
-    const params = new URLSearchParams(searchParams.toString())
-    if (value) {
-      params.set('search', value)
-    } else {
-      params.delete('search')
+  const handleSearchChange = (value: string) => {
+    // Dispatch custom event for instant results update
+    window.dispatchEvent(new CustomEvent('searchValueUpdate', { detail: value }))
+    // Also call the prop callback if provided
+    if (onSearchChange) {
+      onSearchChange(value)
     }
-    router.push(`/publishers?${params.toString()}`)
   }
 
   const handleLocationChange = (value: string) => {
@@ -61,16 +61,14 @@ export function InteractiveControls({ locations, search, location, sort }: Inter
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search publishers..."
-            className="pl-9"
-            defaultValue={search}
-            onChange={(e) => handleSearch(e.target.value)}
-          />
-        </div>
+        <ReusableSearch
+          paramName="search"
+          placeholder="Search publishers..."
+          debounceMs={300}
+          basePath="/publishers"
+          preserveParams={['location', 'sort']}
+          onSearchChange={handleSearchChange}
+        />
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="outline" size="icon">

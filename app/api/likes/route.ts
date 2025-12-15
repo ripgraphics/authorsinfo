@@ -33,8 +33,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the original activity to understand what's being liked
-    const { data: originalActivity, error: fetchError } = await supabase
-      .from('activities')
+    const { data: originalActivity, error: fetchError } = await (supabase
+      .from('activities') as any)
       .select('*')
       .eq('id', activity_id)
       .single()
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Decrease like count in activities table
-      const { error: updateError } = await supabase.rpc('decrement_activity_like_count', {
+      const { error: updateError } = await (supabase.rpc as any)('decrement_activity_like_count', {
         p_activity_id: activity_id
       })
 
@@ -91,8 +91,8 @@ export async function POST(request: NextRequest) {
       }
 
       // Remove the like activity from timeline
-      const { error: deleteLikeActivityError } = await supabase
-        .from('activities')
+      const { error: deleteLikeActivityError } = await (supabase
+        .from('activities') as any)
         .delete()
         .eq('user_id', user.id)
         .eq('activity_type', 'like')
@@ -113,8 +113,8 @@ export async function POST(request: NextRequest) {
       // User hasn't liked this activity, add like
       console.log('Adding new like...')
       
-      const { data: newLike, error: insertError } = await supabase
-        .from('activity_likes')
+      const { data: newLike, error: insertError } = await (supabase
+        .from('activity_likes') as any)
         .insert([{
           activity_id,
           user_id: user.id,
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Increase like count in activities table
-      const { error: updateError } = await supabase.rpc('increment_activity_like_count', {
+      const { error: updateError } = await (supabase.rpc as any)('increment_activity_like_count', {
         p_activity_id: activity_id
       })
 
@@ -151,8 +151,8 @@ export async function POST(request: NextRequest) {
         original_user_name: originalActivity.user_name || 'User'
       }
 
-      const { data: likeActivity, error: likeActivityError } = await supabase
-        .from('activities')
+      const { data: likeActivity, error: likeActivityError } = await (supabase
+        .from('activities') as any)
         .insert([{
           user_id: user.id,
           activity_type: 'like',

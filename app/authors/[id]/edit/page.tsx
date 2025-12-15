@@ -54,8 +54,9 @@ export default function EditAuthorPage() {
           return
         }
 
-        setAuthor(authorData as Author)
-        setSelectedNationality(authorData.nationality || "")
+        const author = authorData as Author
+        setAuthor(author)
+        setSelectedNationality(author.nationality || "")
 
         // Set the image URL from the joined author_image table
         const authorImage = (authorData as any).author_image as any;
@@ -85,10 +86,10 @@ export default function EditAuthorPage() {
 
         if (nationalitiesError) {
           console.error("Error fetching nationalities:", nationalitiesError)
-        } else {
+        } else if (nationalitiesData) {
           // Extract unique nationalities
           const uniqueNationalities = Array.from(
-            new Set(nationalitiesData.map((item) => item.nationality).filter(Boolean)),
+            new Set(nationalitiesData.map((item: { nationality: string | null }) => item.nationality).filter(Boolean) as string[]),
           )
           setNationalities(uniqueNationalities)
         }
@@ -127,7 +128,7 @@ export default function EditAuthorPage() {
       const formData = new FormData(e.currentTarget)
 
       // Handle photo upload if changed
-      let newAuthorImageId = author.author_image_id
+      let newAuthorImageId = (author as any).author_image_id
 
       if (photoFile) {
         try {
@@ -169,7 +170,7 @@ export default function EditAuthorPage() {
 
       // Prepare the update data
       const birthDateValue = formData.get("birth_date") as string
-      const updateData: Partial<Author> = {
+      const updateData: any = {
         name: formData.get("name") as string,
         bio: formData.get("bio") as string,
         // Only include birth_date if it's not empty
@@ -184,7 +185,7 @@ export default function EditAuthorPage() {
       }
 
       // Update the author
-      const { error: updateError } = await supabaseClient.from("authors").update(updateData).eq("id", params.id as string)
+      const { error: updateError } = await (supabaseClient.from("authors") as any).update(updateData).eq("id", params.id as string)
 
       if (updateError) {
         console.error("Error updating author:", updateError)

@@ -75,8 +75,8 @@ export function PermissionsManager({ groupId }: PermissionsManagerProps) {
 
   const handleCreateRole = async () => {
     try {
-      const { data, error } = await supabaseClient
-        .from('group_roles')
+      const { data, error } = await (supabaseClient
+        .from('group_roles') as any)
         .insert({
           group_id: groupId,
           name: newRole.name,
@@ -101,8 +101,8 @@ export function PermissionsManager({ groupId }: PermissionsManagerProps) {
     if (!editingRole) return
 
     try {
-      const { error } = await supabaseClient
-        .from('group_roles')
+      const { error } = await (supabaseClient
+        .from('group_roles') as any)
         .update({
           name: editingRole.name,
           description: editingRole.description,

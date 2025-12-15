@@ -936,7 +936,7 @@ export function ClientBookPage({
           cropCoverSuccessMessage="Page cover cropped and saved as a new file"
           isFollowing={isFollowing}
           onFollow={handleFollow}
-          onCoverImageChange={handleCoverImageChange}
+          onCoverImageChange={() => handleCoverImageChange('', '')}
         />
 
       <div className="book-page__content">

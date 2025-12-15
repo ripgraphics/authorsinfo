@@ -17,8 +17,8 @@ export interface GroupUpdateInput {
 export async function updateGroupInfo(groupId: string, updates: GroupUpdateInput): Promise<boolean> {
     const supabase = createBrowserClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
     
-    const { error } = await supabase
-        .from('groups')
+    const { error } = await (supabase
+        .from('groups') as any)
         .update({
             ...updates,
             updated_at: new Date().toISOString()
@@ -77,7 +77,7 @@ export async function getGroupInfo(groupId: string) {
         const { data: creatorData, error: creatorError } = await supabase
             .from('users')
             .select('name, email, created_at, updated_at, role_id')
-            .eq('id', groupData.created_by)
+            .eq('id', (groupData as any).created_by)
             .single();
 
         if (creatorError) {
@@ -93,7 +93,7 @@ export async function getGroupInfo(groupId: string) {
             .from('group_members')
             .select('joined_at')
             .eq('group_id', groupId)
-            .eq('user_id', groupData.created_by)
+            .eq('user_id', (groupData as any).created_by)
             .single();
 
         if (membershipError) {
@@ -130,14 +130,14 @@ export async function getGroupInfo(groupId: string) {
 
         // Add contact info and creator info to group data
         const result = {
-            ...groupData,
+            ...(groupData as any),
             contact_info: contactData || null,
-            creatorName: creatorData?.name,
-            creatorEmail: creatorData?.email,
-            creatorRoleId: creatorData?.role_id,
-            creatorCreatedAt: creatorData?.created_at,
-            creatorUpdatedAt: creatorData?.updated_at,
-            creatorJoinedAt: creatorMembership?.joined_at
+            creatorName: (creatorData as any)?.name,
+            creatorEmail: (creatorData as any)?.email,
+            creatorRoleId: (creatorData as any)?.role_id,
+            creatorCreatedAt: (creatorData as any)?.created_at,
+            creatorUpdatedAt: (creatorData as any)?.updated_at,
+            creatorJoinedAt: (creatorMembership as any)?.joined_at
         };
 
         console.log('Final result with contact info:', result);
@@ -157,8 +157,8 @@ export async function getGroupInfo(groupId: string) {
 export async function updateGroupMemberRole(groupId: string, userId: string, roleId: number): Promise<boolean> {
     const supabase = createBrowserClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
     
-    const { error } = await supabase
-        .from('group_members')
+    const { error } = await (supabase
+        .from('group_members') as any)
         .update({ role_id: roleId })
         .eq('group_id', groupId)
         .eq('user_id', userId);
@@ -182,8 +182,8 @@ export async function updateGroupMemberRole(groupId: string, userId: string, rol
 export async function updateGroupMemberStatus(groupId: string, userId: string, status: string): Promise<boolean> {
     const supabase = createBrowserClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
     
-    const { error } = await supabase
-        .from('group_members')
+    const { error } = await (supabase
+        .from('group_members') as any)
         .update({ status })
         .eq('group_id', groupId)
         .eq('user_id', userId);
@@ -212,8 +212,8 @@ export async function addGroupCustomField(
 ): Promise<boolean> {
     const supabase = createBrowserClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
     
-    const { error } = await supabase
-        .from('group_custom_fields')
+    const { error } = await (supabase
+        .from('group_custom_fields') as any)
         .insert({
             group_id: groupId,
             field_name: fieldName,
@@ -249,8 +249,8 @@ export async function updateGroupCustomField(
 ): Promise<boolean> {
     const supabase = createBrowserClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
     
-    const { error } = await supabase
-        .from('group_custom_fields')
+    const { error } = await (supabase
+        .from('group_custom_fields') as any)
         .update(updates)
         .eq('id', fieldId);
 
@@ -327,12 +327,12 @@ export async function updateGroupContactInfo(groupId: string, contactInfo: Conta
         }
 
         // Upsert the contact info
-        const { data, error } = await supabase
-            .from('contact_info')
+        const { data, error } = await (supabase
+            .from('contact_info') as any)
             .upsert({
+                ...contactInfo,
                 entity_type: 'group',
                 entity_id: groupId,
-                ...contactInfo,
                 updated_at: new Date().toISOString()
             })
             .select()

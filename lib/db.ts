@@ -63,7 +63,7 @@ export class DB {
           q = q.match(value)
         }
       } else {
-        q = q.eq(key, value)
+        q = (q as any).eq(key, value)
       }
     })
 
@@ -129,8 +129,8 @@ export class DB {
     data: Partial<T>,
     options: QueryOptions = {}
   ): Promise<T> {
-    const { data: result, error } = await this.supabase
-      .from(table)
+    const { data: result, error } = await (this.supabase
+      .from(table) as any)
       .insert(data)
       .select()
       .single()
@@ -150,8 +150,8 @@ export class DB {
     data: Partial<T>,
     options: QueryOptions = {}
   ): Promise<T> {
-    const { data: result, error } = await this.supabase
-      .from(table)
+    const { data: result, error } = await (this.supabase
+      .from(table) as any)
       .update(data)
       .eq('id', id)
       .select()

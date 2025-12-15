@@ -42,7 +42,7 @@ export default function AddBookModal({ listId, groupId, onClose, onBookAdded }: 
       return;
     }
 
-    const { error } = await supabase.from('group_book_list_items').insert([
+    const { error } = await (supabase.from('group_book_list_items') as any).insert([
       {
         list_id: listId,
         book_id: bookId,

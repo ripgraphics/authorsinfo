@@ -16,8 +16,8 @@ export async function GET(request: Request) {
     const userId = searchParams.get('user_id')
     
     if (userId) {
-      // Get specific user
-      const { data: user, error: userError } = await supabase
+      // Get specific user using admin client so public requests can read profiles
+      const { data: user, error: userError } = await adminSupabase
         .from('users')
         .select(`
           id,
@@ -29,14 +29,14 @@ export async function GET(request: Request) {
         `)
         .eq('id', userId)
         .single()
-      
+
       if (userError) {
         console.error('Error fetching user:', userError)
         return NextResponse.json({ error: 'Failed to fetch user' }, { status: 500 })
       }
-      
-      // Get profile for this user
-      const { data: profile, error: profileError } = await supabase
+
+      // Get profile for this user using admin client
+      const { data: profile, error: profileError } = await adminSupabase
         .from('profiles')
         .select(`
           id,
@@ -47,21 +47,21 @@ export async function GET(request: Request) {
         `)
         .eq('user_id', userId)
         .single()
-      
+
       if (profileError && profileError.code !== 'PGRST116') {
         console.error('Error fetching profile:', profileError)
       }
-      
+
       // Fetch avatar from images table via profiles.avatar_image_id
       let avatarUrl: string | null = null
       if ((profile as any)?.avatar_image_id) {
         try {
-          const { data: image } = await supabase
+          const { data: image } = await adminSupabase
             .from('images')
             .select('url')
             .eq('id', (profile as any).avatar_image_id)
             .single()
-          
+
           if ((image as any)?.url) {
             avatarUrl = (image as any).url
           }
@@ -70,7 +70,7 @@ export async function GET(request: Request) {
           console.log('Avatar not found or error fetching:', avatarError)
         }
       }
-      
+
       const transformedUser = {
         id: (user as any).id,
         email: (user as any).email || 'No email',
@@ -79,7 +79,7 @@ export async function GET(request: Request) {
         role: (profile as any)?.role || 'user',
         avatar_url: avatarUrl
       }
-      
+
       const response = NextResponse.json({ user: transformedUser })
       response.headers.set('Cache-Control', `public, max-age=${CACHE_DURATION}`)
       return response
@@ -267,4 +267,4 @@ export async function POST(request: Request) {
     console.error('Error in auth-users POST route:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-} 
+}

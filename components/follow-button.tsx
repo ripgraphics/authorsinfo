@@ -23,6 +23,7 @@ export function FollowButton({
     <FollowButtonComponent
       entityId={entityId}
       targetType={targetType}
+      entityName={entityName}
       variant={variant}
       className={className}
     />

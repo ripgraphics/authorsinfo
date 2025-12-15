@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Extract all friend user IDs (the ones that aren't the current user)
-    const friendUserIds = (friends || []).map(friend => 
+    const friendUserIds = ((friends || []) as any[]).map((friend: any) => 
       friend.user_id === userId ? friend.friend_id : friend.user_id
     )
 
@@ -60,11 +60,11 @@ export async function GET(request: NextRequest) {
     ])
 
     const users = usersResult.data || []
-    const profiles = profilesResult.data || []
+    const profiles = (profilesResult.data || []) as any[]
 
     // Get unique avatar_image_ids and fetch image URLs
     const avatarImageIds = Array.from(new Set(
-      profiles.map(p => p.avatar_image_id).filter(Boolean)
+      profiles.map((p: any) => p.avatar_image_id).filter(Boolean)
     ))
 
     let avatarImageMap = new Map()
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
         .in('id', avatarImageIds)
 
       if (images) {
-        images.forEach(img => {
+        (images as any[]).forEach((img: any) => {
           avatarImageMap.set(img.id, img.url)
         })
       }
@@ -176,17 +176,17 @@ export async function GET(request: NextRequest) {
     const profileMap = new Map(profiles.map(p => [p.user_id, p]))
 
     // Build friends with user details
-    const friendsWithUserDetails = (friends || []).map(friend => {
+    const friendsWithUserDetails = ((friends || []) as any[]).map((friend: any) => {
       const friendUserId = friend.user_id === userId ? friend.friend_id : friend.user_id
       const user = userMap.get(friend.user_id)
       const friendUser = userMap.get(friend.friend_id)
-      const profile = profileMap.get(friendUserId)
+      const profile = profileMap.get(friendUserId) as any
       const avatarImageId = profile?.avatar_image_id
       const avatarUrl = avatarImageId ? avatarImageMap.get(avatarImageId) : null
       
       // Get avatar URLs for both users
-      const userProfile = profileMap.get(friend.user_id)
-      const friendProfile = profileMap.get(friend.friend_id)
+      const userProfile = profileMap.get(friend.user_id) as any
+      const friendProfile = profileMap.get(friend.friend_id) as any
       const userAvatarId = userProfile?.avatar_image_id
       const friendAvatarId = friendProfile?.avatar_image_id
       const userAvatarUrl = userAvatarId ? avatarImageMap.get(userAvatarId) : null

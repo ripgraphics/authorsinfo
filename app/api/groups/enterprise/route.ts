@@ -98,8 +98,8 @@ export async function POST(request: Request) {
         const validatedData = createGroupSchema.parse(body)
         
         // Create group
-        const { data: group, error } = await supabase
-          .from('groups')
+        const { data: group, error } = await (supabase
+          .from('groups') as any)
           .insert(validatedData)
           .select()
           .single()
@@ -119,8 +119,8 @@ export async function POST(request: Request) {
         const validatedMemberData = membershipSchema.parse(body)
         
         // Add member
-        const { data: membership, error: memberError } = await supabase
-          .from('group_memberships')
+        const { data: membership, error: memberError } = await (supabase
+          .from('group_memberships') as any)
           .insert({
             group_id: body.group_id,
             ...validatedMemberData
@@ -143,8 +143,8 @@ export async function POST(request: Request) {
         const validatedModData = moderationSchema.parse(body)
         
         // Create moderation entry
-        const { data: moderation, error: modError } = await supabase
-          .from('group_content_moderation')
+        const { data: moderation, error: modError } = await (supabase
+          .from('group_content_moderation') as any)
           .insert({
             group_id: body.group_id,
             ...validatedModData

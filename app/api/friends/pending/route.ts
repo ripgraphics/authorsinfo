@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
 
     // Get user details for each request
     const requestsWithUserDetails = await Promise.all(
-      (pendingRequests || []).map(async (request, index) => {
+      ((pendingRequests || []) as any[]).map(async (request: any, index: number) => {
         try {
           const { data: userData, error: userError } = await supabase
             .from('users')
@@ -91,13 +91,14 @@ export async function GET(request: NextRequest) {
             }
           }
 
+          const user = userData as any
           return {
             ...request,
             user: {
-              id: userData?.id || request.user_id,
-              name: userData?.name || userData?.email || 'Unknown User',
-              email: userData?.email || '',
-              permalink: userData?.permalink || null
+              id: user?.id || request.user_id,
+              name: user?.name || user?.email || 'Unknown User',
+              email: user?.email || '',
+              permalink: user?.permalink || null
             }
           }
         } catch (userError) {

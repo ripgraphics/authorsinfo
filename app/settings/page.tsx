@@ -69,16 +69,16 @@ export default async function SettingsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium">Name</label>
-                    <p className="text-sm text-muted-foreground">{userData?.name || 'Not set'}</p>
+                    <p className="text-sm text-muted-foreground">{(userData as any)?.name || 'Not set'}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium">Email</label>
-                    <p className="text-sm text-muted-foreground">{userData?.email || 'Not set'}</p>
+                    <p className="text-sm text-muted-foreground">{(userData as any)?.email || 'Not set'}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium">Member Since</label>
                     <p className="text-sm text-muted-foreground">
-                      {userData?.created_at ? new Date(userData.created_at).toLocaleDateString() : 'Unknown'}
+                      {(userData as any)?.created_at ? new Date((userData as any).created_at).toLocaleDateString() : 'Unknown'}
                     </p>
                   </div>
                   <div>
@@ -94,8 +94,8 @@ export default async function SettingsPage() {
             <PermalinkSettings
               entityId={user.id}
               entityType="user"
-              currentPermalink={userData?.permalink}
-              entityName={userData?.name || 'User'}
+              currentPermalink={(userData as any)?.permalink}
+              entityName={(userData as any)?.name || 'User'}
             />
           </TabsContent>
 

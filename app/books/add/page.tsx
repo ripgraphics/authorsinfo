@@ -176,7 +176,7 @@ export default async function AddBookPage({ searchParams }: AddBookPageProps) {
   const cleanedSynopsis = bookSynopsis ? cleanSynopsis(bookSynopsis) : null
 
   // Function to handle adding the book to the database
-  async function addBook(formData: FormData) {
+  async function addBook(formData: FormData): Promise<void> {
     "use server"
 
     const result = await addBookFromISBNDB({
@@ -191,10 +191,14 @@ export default async function AddBookPage({ searchParams }: AddBookPageProps) {
     })
 
     if (result.success && result.bookId) {
-      return redirect(`/books/${result.bookId}`)
+      redirect(`/books/${result.bookId}`)
+      return
     }
 
-    return { error: result.error || "Failed to add book" }
+    // Error handling - in a real app, you'd want to show this error to the user
+    // For now, we'll just log it since form actions can't return error objects
+    console.error("Failed to add book:", result.error || "Unknown error")
+    return
   }
 
   return (

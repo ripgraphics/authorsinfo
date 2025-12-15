@@ -2,7 +2,6 @@
 
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Filter } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
@@ -16,17 +15,20 @@ import {
   SheetClose,
 } from "@/components/ui/sheet"
 import { Label } from "@/components/ui/label"
+import { ReusableSearch } from "@/components/ui/reusable-search"
 
 export function AuthorsFilters({ 
   search, 
   nationality, 
   sort,
-  nationalities 
+  nationalities,
+  onSearchChange
 }: { 
   search?: string, 
   nationality?: string, 
   sort?: string,
-  nationalities: string[] 
+  nationalities: string[],
+  onSearchChange?: (value: string) => void
 }) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -42,20 +44,29 @@ export function AuthorsFilters({
     router.push(`/authors?${params.toString()}`)
   }
 
+  const handleSearchChange = (value: string) => {
+    // Dispatch custom event for instant results update
+    window.dispatchEvent(new CustomEvent('searchValueUpdate', { detail: value }))
+    // Also call the prop callback if provided
+    if (onSearchChange) {
+      onSearchChange(value)
+    }
+  }
+
   const clearFilters = () => {
     router.push('/authors')
   }
 
   return (
     <div className="flex items-center gap-4">
-      <div className="flex-1">
-        <Input
-          type="search"
-          placeholder="Search authors..."
-          defaultValue={search}
-          onChange={(e) => updateSearchParams('search', e.target.value || null)}
-        />
-      </div>
+      <ReusableSearch
+        paramName="search"
+        placeholder="Search authors..."
+        debounceMs={300}
+        basePath="/authors"
+        preserveParams={['nationality', 'sort']}
+        onSearchChange={handleSearchChange}
+      />
       <Sheet>
         <SheetTrigger asChild>
           <Button variant="outline" size="icon">

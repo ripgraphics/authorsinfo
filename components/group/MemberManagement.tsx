@@ -131,8 +131,8 @@ export default function MemberManagement({ groupId, userRole }: MemberManagement
 
   async function handleInviteMember() {
     try {
-      const { data, error } = await supabase
-        .from('group_invitations')
+      const { data, error } = await (supabase
+        .from('group_invitations') as any)
         .insert({
           group_id: groupId,
           email: inviteEmail,
@@ -165,8 +165,8 @@ export default function MemberManagement({ groupId, userRole }: MemberManagement
 
   async function handleUpdateMemberStatus(memberId: string, status: Member['status']) {
     try {
-      const { error } = await supabase
-        .from('group_members')
+      const { error } = await (supabase
+        .from('group_members') as any)
         .update({ status })
         .eq('id', memberId);
 
@@ -188,8 +188,8 @@ export default function MemberManagement({ groupId, userRole }: MemberManagement
 
   async function handleUpdateMemberRole(memberId: string, roleId: string) {
     try {
-      const { error } = await supabase
-        .from('group_members')
+      const { error } = await (supabase
+        .from('group_members') as any)
         .update({ role_id: roleId })
         .eq('id', memberId);
 
@@ -246,8 +246,8 @@ export default function MemberManagement({ groupId, userRole }: MemberManagement
 
   async function handleCancelInvitation(invitationId: string) {
     try {
-      const { error } = await supabase
-        .from('group_invitations')
+      const { error } = await (supabase
+        .from('group_invitations') as any)
         .update({ status: 'expired' })
         .eq('id', invitationId);
 

@@ -44,8 +44,8 @@ export default function ThemeSettings({ groupId, userId, isAdmin }: Props) {
     }
 
     setSettings({
-      theme_mode: data.theme_mode || 'system',
-      custom_theme: data.custom_theme || {}
+      theme_mode: (data as any).theme_mode || 'system',
+      custom_theme: (data as any).custom_theme || {}
     });
     setIsLoading(false);
   };
@@ -56,8 +56,8 @@ export default function ThemeSettings({ groupId, userId, isAdmin }: Props) {
       return;
     }
 
-    const { error } = await supabase
-      .from('groups')
+    const { error } = await (supabase
+      .from('groups') as any)
       .update({
         theme_mode: mode,
         updated_at: new Date().toISOString()
@@ -84,8 +84,8 @@ export default function ThemeSettings({ groupId, userId, isAdmin }: Props) {
       [key]: value
     };
 
-    const { error } = await supabase
-      .from('groups')
+    const { error } = await (supabase
+      .from('groups') as any)
       .update({
         custom_theme: newCustomTheme,
         updated_at: new Date().toISOString()

@@ -100,17 +100,17 @@ export default function EnterpriseGroupDashboard({ groupId }: EnterpriseGroupDas
           const { data: roleData, error: roleNameError } = await supabase
             .from('roles')
             .select('name')
-            .eq('id', memberData.role_id)
+            .eq('id', (memberData as any).role_id)
             .single();
 
           if (!roleNameError && roleData) {
-            setUserRole(roleData.name);
+            setUserRole((roleData as any).name);
           }
         }
       }
 
       setGroupData({
-        ...basicGroupData,
+        ...(basicGroupData as any),
         member_count: memberCount || 0,
         content_count: contentCount || 0,
         activity_count: activityCount || 0

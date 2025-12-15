@@ -87,8 +87,8 @@ export async function POST(request: NextRequest) {
     // For now, we'll allow updates but you should implement proper authorization
 
     // Check if permalink is already taken by another entity
-    const { data: existingEntity, error: checkError } = await supabase
-      .from(tableName)
+    const { data: existingEntity, error: checkError } = await (supabase
+      .from(tableName) as any)
       .select('id')
       .eq('permalink', newPermalink)
       .neq('id', entityId)
@@ -111,8 +111,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Update the permalink
-    const { error: updateError } = await supabase
-      .from(tableName)
+    const { error: updateError } = await (supabase
+      .from(tableName) as any)
       .update({ permalink: newPermalink })
       .eq('id', entityId)
 

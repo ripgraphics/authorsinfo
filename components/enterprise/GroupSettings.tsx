@@ -85,8 +85,8 @@ export function GroupSettings({ groupId }: GroupSettingsProps) {
 
     try {
       setSaving(true)
-      const { error } = await supabaseClient
-        .from('groups')
+      const { error } = await (supabaseClient
+        .from('groups') as any)
         .update({
           name: settings.name,
           description: settings.description,

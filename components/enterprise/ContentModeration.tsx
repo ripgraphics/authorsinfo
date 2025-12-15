@@ -71,8 +71,8 @@ export function ContentModeration({ groupId }: ContentModerationProps) {
 
   const handleModerate = async (itemId: string, decision: 'approve' | 'reject' | 'flag') => {
     try {
-      const { error } = await supabaseClient
-        .from('group_moderation_queue')
+      const { error } = await (supabaseClient
+        .from('group_moderation_queue') as any)
         .update({
           status: decision,
           handled_at: new Date().toISOString(),

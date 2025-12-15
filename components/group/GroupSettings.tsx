@@ -90,8 +90,8 @@ export default function GroupSettings({ groupId, userRole }: GroupSettingsProps)
     if (!settings) return;
 
     try {
-      const { error } = await supabase
-        .from('group_settings')
+      const { error } = await (supabase
+        .from('group_settings') as any)
         .update({
           ...settings,
           updated_at: new Date().toISOString(),

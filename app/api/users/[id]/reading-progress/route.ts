@@ -17,8 +17,8 @@ export async function GET(
     }
     
     // Check if the user exists
-    const { data: user, error: userError } = await supabase
-      .from('users')
+    const { data: user, error: userError } = await (supabase
+      .from('users') as any)
       .select('id, name, permalink')
       .or(`id.eq.${userId},permalink.eq.${userId}`)
       .single()
@@ -28,10 +28,10 @@ export async function GET(
     }
 
     // Check privacy settings
-    const { data: privacySettings } = await supabase
-      .from('user_privacy_settings')
+    const { data: privacySettings } = await (supabase
+      .from('user_privacy_settings') as any)
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', (user as any)?.id)
       .single()
 
     // Determine if current user can see reading progress
@@ -46,8 +46,8 @@ export async function GET(
     }
 
     // Fetch currently reading books
-    const { data: currentlyReading, error: currentError } = await supabase
-      .from('reading_progress')
+    const { data: currentlyReading, error: currentError } = await (supabase
+      .from('reading_progress') as any)
       .select(`
         id,
         book_id,
@@ -67,7 +67,7 @@ export async function GET(
           pages
         )
       `)
-      .eq('user_id', user.id)
+      .eq('user_id', (user as any)?.id)
       .eq('status', 'in_progress')
       .order('updated_at', { ascending: false })
 
@@ -77,8 +77,8 @@ export async function GET(
     }
 
     // Fetch recently completed books
-    const { data: recentlyCompleted, error: completedError } = await supabase
-      .from('reading_progress')
+    const { data: recentlyCompleted, error: completedError } = await (supabase
+      .from('reading_progress') as any)
       .select(`
         id,
         book_id,
@@ -96,7 +96,7 @@ export async function GET(
           pages
         )
       `)
-      .eq('user_id', user.id)
+      .eq('user_id', (user as any)?.id)
       .eq('status', 'completed')
       .order('completed_at', { ascending: false })
       .limit(5)
@@ -107,8 +107,7 @@ export async function GET(
     }
 
     // Fetch reading statistics
-    const { data: readingStats, error: statsError } = await supabase
-      .rpc('get_user_profile_stats', { user_uuid: user.id })
+    const { data: readingStats, error: statsError } = await (supabase.rpc as any)('get_user_profile_stats', { user_uuid: (user as any)?.id })
 
     if (statsError) {
       console.error('Error fetching reading stats:', statsError)
@@ -116,19 +115,19 @@ export async function GET(
     }
 
     // Fetch reading goals if they exist
-    const { data: readingGoals, error: goalsError } = await supabase
-      .from('reading_goals')
+    const { data: readingGoals, error: goalsError } = await (supabase
+      .from('reading_goals') as any)
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', (user as any)?.id)
       .eq('year', new Date().getFullYear())
       .single()
 
     // Calculate additional statistics
-    const totalPagesRead = currentlyReading?.reduce((sum, book) => 
+    const totalPagesRead = currentlyReading?.reduce((sum: number, book: any) => 
       sum + (book.current_page || 0), 0) || 0
 
     const averageRating = recentlyCompleted?.length > 0 
-      ? recentlyCompleted.reduce((sum, book) => sum + (book.rating || 0), 0) / recentlyCompleted.length
+      ? recentlyCompleted.reduce((sum: number, book: any) => sum + (book.rating || 0), 0) / recentlyCompleted.length
       : 0
 
     const response = {
@@ -154,8 +153,8 @@ export async function GET(
 
 // Helper function to check if two users are friends
 async function checkIfFriends(userId1: string, userId2: string, supabase: any): Promise<boolean> {
-  const { data: friendship } = await supabase
-    .from('user_friends')
+  const { data: friendship } = await (supabase
+    .from('user_friends') as any)
     .select('id')
     .or(`and(user_id.eq.${userId1},friend_id.eq.${userId2}),and(user_id.eq.${userId2},friend_id.eq.${userId1})`)
     .eq('status', 'accepted')
@@ -166,8 +165,8 @@ async function checkIfFriends(userId1: string, userId2: string, supabase: any): 
 
 // Helper function to check if user1 is following user2
 async function checkIfFollowing(followerId: string, targetId: string, supabase: any): Promise<boolean> {
-  const { data: follow } = await supabase
-    .from('follows')
+  const { data: follow } = await (supabase
+    .from('follows') as any)
     .select('id')
     .eq('follower_id', followerId)
     .eq('target_id', targetId)

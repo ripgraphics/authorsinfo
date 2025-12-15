@@ -35,8 +35,8 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. Insert the post into activities table
-    const { data: post, error: postError } = await supabase
-      .from('activities')
+    const { data: post, error: postError } = await (supabase
+      .from('activities') as any)
       .insert(postData)
       .select()
       .single()

@@ -101,7 +101,7 @@ export function BookCoverCarousel({
           if (a.is_cover && !b.is_cover) return -1
           if (!a.is_cover && b.is_cover) return 1
           // Then by creation date (most recent first)
-          return new Date(b.image.created_at || 0).getTime() - new Date(a.image.created_at || 0).getTime()
+          return new Date((b.image as any).created_at || 0).getTime() - new Date((a.image as any).created_at || 0).getTime()
         })
         
         console.log('Transformed and sorted images count:', sortedImages.length)
@@ -169,7 +169,7 @@ export function BookCoverCarousel({
           const sortedImages = transformedImages.sort((a: AlbumImage, b: AlbumImage) => {
             if (a.is_cover && !b.is_cover) return -1
             if (!a.is_cover && b.is_cover) return 1
-            return new Date(b.image.created_at || 0).getTime() - new Date(a.image.created_at || 0).getTime()
+            return new Date((b.image as any).created_at || 0).getTime() - new Date((a.image as any).created_at || 0).getTime()
           })
           
           setImages(sortedImages)

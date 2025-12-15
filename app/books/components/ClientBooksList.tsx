@@ -79,7 +79,7 @@ export function ClientBooksList({
             <BookCard
               key={book.id}
               id={book.id}
-              title={book.title}
+              title={book.title || ""}
               coverImageUrl={book.cover_image_url}
             />
           ))

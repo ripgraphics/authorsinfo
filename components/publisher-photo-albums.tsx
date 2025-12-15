@@ -101,11 +101,11 @@ export function PublisherPhotoAlbums({ publisherId, publisherName, isOwner }: Pu
 
       // Get image counts for each album
       const albumsWithCounts = await Promise.all(
-        (albumsData || []).map(async (album) => {
+        (albumsData || []).map(async (album: any) => {
           const { count } = await supabase
             .from('album_images')
             .select('*', { count: 'exact', head: true })
-            .eq('album_id', album.id)
+            .eq('album_id', (album as any).id)
 
           return {
             ...album,

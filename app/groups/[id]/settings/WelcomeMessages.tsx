@@ -81,8 +81,8 @@ export default function WelcomeMessages({ groupId, userId, isAdmin }: Props) {
       return;
     }
 
-    const { error } = await supabase
-      .from('group_welcome_messages')
+    const { error } = await (supabase
+      .from('group_welcome_messages') as any)
       .insert({
         group_id: groupId,
         role_id: parseInt(formData.role_id),

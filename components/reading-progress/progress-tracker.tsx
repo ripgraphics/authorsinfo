@@ -66,11 +66,11 @@ export function ProgressTracker({ bookId, totalPages = 0, className }: ProgressT
 
         // Initialize form values
         if (progress) {
-          setCurrentPage(progress.current_page)
-          setNotes(progress.notes || "")
-          setIsPublic(progress.is_public !== false) // Default to true if undefined
-          setStartDate(progress.start_date ? new Date(progress.start_date) : undefined)
-          setFinishDate(progress.finish_date ? new Date(progress.finish_date) : undefined)
+          setCurrentPage((progress as any).current_page)
+          setNotes((progress as any).notes || "")
+          setIsPublic((progress as any).is_public !== false) // Default to true if undefined
+          setStartDate((progress as any).start_date ? new Date((progress as any).start_date) : undefined)
+          setFinishDate((progress as any).finish_date ? new Date((progress as any).finish_date) : undefined)
         }
       }
 

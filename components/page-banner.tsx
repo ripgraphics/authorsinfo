@@ -81,7 +81,7 @@ async function fetchRandomImages(count = 4) {
     const shuffled = data.sort(() => 0.5 - Math.random())
     const selected = shuffled.slice(0, count)
     
-    return selected.map(image => ({
+    return selected.map((image: any) => ({
       imageUrl: image.url,
       altText: image.alt_text || `Image ${image.id}`,
     }))

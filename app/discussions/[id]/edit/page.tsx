@@ -57,18 +57,18 @@ export default function PublisherEditPage() {
         setPublisher(data as Publisher)
 
         // Set country ID if available
-        if (data.country_id) {
-          setCountryId(data.country_id)
+        if ((data as any).country_id) {
+          setCountryId((data as any).country_id)
         }
 
         // Set logo preview if publisher_image exists
-        if (data.publisher_image?.url) {
-          setLogoPreview(data.publisher_image.url)
+        if ((data as any).publisher_image?.url) {
+          setLogoPreview((data as any).publisher_image.url)
         }
 
         // Set cover preview if cover_image exists
-        if (data.cover_image?.url) {
-          setCoverPreview(data.cover_image.url)
+        if ((data as any).cover_image?.url) {
+          setCoverPreview((data as any).cover_image.url)
         }
       } catch (error) {
         console.error("Error in fetchPublisher:", error)
@@ -182,7 +182,7 @@ export default function PublisherEditPage() {
       }
 
       // Update publisher in database
-      const { error: updateError } = await supabaseClient.from("publishers").update(updateData).eq("id", params.id as string)
+      const { error: updateError } = await (supabaseClient.from("publishers") as any).update(updateData).eq("id", params.id as string)
 
       if (updateError) {
         console.error("Error updating publisher:", updateError)

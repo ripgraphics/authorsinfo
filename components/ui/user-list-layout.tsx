@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useMemo, ReactNode } from 'react'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { ContentSection } from '@/components/ui/content-section'
 import { Filter, X } from 'lucide-react'
+import { ReusableSearch } from '@/components/ui/reusable-search'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -126,12 +126,13 @@ export function UserListLayout<T>({
       headerRight={
         <div className="flex items-center gap-2">
           <div className="relative">
-            <Input
-              className="w-[200px] pr-8"
+            <ReusableSearch
+              paramName="search"
               placeholder={searchPlaceholder}
-              type="search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              debounceMs={0}
+              updateUrl={false}
+              className="w-[200px]"
+              onSearchChange={(value) => setSearchQuery(value)}
             />
             {searchQuery && (
               <Button

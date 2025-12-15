@@ -23,7 +23,7 @@ export async function GET(
     }
 
     // Check if the entity exists based on type
-    let entity
+    let entity: { id: string; name?: string; permalink?: string } | null = null
     let entityError
     
     switch (type) {
@@ -86,19 +86,26 @@ export async function GET(
     }
 
     // Check privacy settings for users
+    const entityWithId = entity as { id: string; name?: string; permalink?: string }
     let canViewProgress: boolean = true
     if (type === 'users') {
-      const { data: privacySettings } = await supabase
+      const { data: privacySettingsData } = await supabase
         .from('user_privacy_settings')
         .select('*')
-        .eq('user_id', entity.id)
+        .eq('user_id', entityWithId.id)
         .single()
 
+      const privacySettings = privacySettingsData as {
+        allow_public_reading_profile?: boolean;
+        allow_friends_to_see_reading?: boolean;
+        allow_followers_to_see_reading?: boolean;
+      } | null
+
       canViewProgress = !!(
-        (currentUser?.id === entity.id) || // Own profile
+        (currentUser?.id === entityWithId.id) || // Own profile
         privacySettings?.allow_public_reading_profile === true || // Public profile
-        (currentUser && privacySettings?.allow_friends_to_see_reading === true && await checkIfFriends(currentUser.id, entity.id, supabase)) || // Friends only
-        (currentUser && privacySettings?.allow_followers_to_see_reading === true && await checkIfFollowing(currentUser.id, entity.id, supabase)) // Followers only
+        (currentUser && privacySettings?.allow_friends_to_see_reading === true && await checkIfFriends(currentUser.id, entityWithId.id, supabase)) || // Friends only
+        (currentUser && privacySettings?.allow_followers_to_see_reading === true && await checkIfFollowing(currentUser.id, entityWithId.id, supabase)) // Followers only
       )
     }
 
@@ -113,27 +120,27 @@ export async function GET(
     switch (type) {
       case 'users':
         // For users, fetch their personal reading progress
-        readingData = await fetchUserReadingProgress(entity.id, supabase)
+        readingData = await fetchUserReadingProgress(entityWithId.id, supabase)
         break
         
       case 'authors':
         // For authors, fetch books they've written and reading progress
-        readingData = await fetchAuthorReadingProgress(entity.id, supabase)
+        readingData = await fetchAuthorReadingProgress(entityWithId.id, supabase)
         break
         
       case 'publishers':
         // For publishers, fetch books they've published and reading progress
-        readingData = await fetchPublisherReadingProgress(entity.id, supabase)
+        readingData = await fetchPublisherReadingProgress(entityWithId.id, supabase)
         break
         
       case 'groups':
         // For groups, fetch collective reading progress
-        readingData = await fetchGroupReadingProgress(entity.id, supabase)
+        readingData = await fetchGroupReadingProgress(entityWithId.id, supabase)
         break
         
       case 'events':
         // For events, fetch reading progress related to the event
-        readingData = await fetchEventReadingProgress(entity.id, supabase)
+        readingData = await fetchEventReadingProgress(entityWithId.id, supabase)
         break
         
       default:
@@ -147,10 +154,10 @@ export async function GET(
 
     // Fetch entity statistics
     const { data: entityStats, error: statsError } = await supabase
-      .rpc('get_entity_profile_stats', { 
-        entity_uuid: entity.id, 
+      .rpc('get_entity_profile_stats' as any, { 
+        entity_uuid: entityWithId.id, 
         entity_type: type 
-      })
+      } as any)
 
     if (statsError) {
       console.error('Error fetching entity stats:', statsError)
@@ -159,9 +166,9 @@ export async function GET(
 
     const response = {
       entity: {
-        id: entity.id,
-        name: entity.name,
-        permalink: entity.permalink,
+        id: entityWithId.id,
+        name: entityWithId.name,
+        permalink: entityWithId.permalink,
         type: type
       },
       readingProgress: readingData,
@@ -169,8 +176,8 @@ export async function GET(
       additionalStats: {
         totalPagesRead: readingData.totalPagesRead || 0,
         averageRating: readingData.averageRating || 0,
-        readingStreak: entityStats?.[0]?.reading_streak_days || 0,
-        profileCompletion: entityStats?.[0]?.profile_completion || 0
+        readingStreak: (entityStats as any)?.[0]?.reading_streak_days || 0,
+        profileCompletion: (entityStats as any)?.[0]?.profile_completion || 0
       }
     }
 

@@ -49,7 +49,7 @@ export default function AddAuthorPage() {
         }
 
         // Extract unique nationalities
-        const uniqueNationalities = Array.from(new Set(data.map((item) => item.nationality).filter(Boolean)))
+        const uniqueNationalities = Array.from(new Set(data.map((item: { nationality: string | null }) => item.nationality).filter(Boolean) as string[]))
         setNationalities(uniqueNationalities)
       } catch (error) {
         console.error("Error fetching nationalities:", error)
@@ -98,8 +98,8 @@ export default function AddAuthorPage() {
       }
 
       // Create author in database
-      const { data, error } = await supabaseClient
-        .from("authors")
+      const { data, error } = await (supabaseClient
+        .from("authors") as any)
         .insert({
           ...formData,
           photo_url: photoUrl,

@@ -276,13 +276,20 @@ async function BooksListContent({
   sort?: string
   year?: string
 }) {
-  const { books, totalCount, pageSize } = await BooksList({
+  const result = await BooksList({
     page,
     search,
     language,
     sort,
     year,
   })
+  
+  // Handle error case (returns JSX)
+  if (!result || typeof result === 'object' && 'books' in result === false) {
+    return <div>Error loading books</div>
+  }
+  
+  const { books, totalCount, pageSize } = result
 
   return (
     <BooksListWrapper

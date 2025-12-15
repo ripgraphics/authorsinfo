@@ -19,8 +19,8 @@ export async function GET(request: NextRequest) {
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     if (!uuidRegex.test(entityId)) {
       const table = entityType === 'user' ? 'users' : `${entityType}s`
-      const { data: entityRow } = await supabase
-        .from(table)
+      const { data: entityRow } = await (supabase
+        .from(table) as any)
         .select('id, permalink')
         .or(`id.eq.${entityId},permalink.eq.${entityId}`)
         .maybeSingle()
@@ -29,8 +29,8 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const { data, error } = await supabase
-      .from('activities')
+    const { data, error } = await (supabase
+      .from('activities') as any)
       .select('*')
       .eq('entity_type', entityType)
       .eq('entity_id', entityId)
@@ -49,8 +49,8 @@ export async function GET(request: NextRequest) {
       if (currentUserId && Array.isArray(data) && data.length > 0) {
         const activityIds = data.map((row: any) => row.id)
         // Use likes table for all entity types (activity_likes doesn't exist)
-        const { data: reactions } = await supabase
-          .from('likes')
+        const { data: reactions } = await (supabase
+          .from('likes') as any)
           .select('entity_id')
           .eq('entity_type', 'activity')
           .eq('user_id', currentUserId)
@@ -73,8 +73,8 @@ export async function GET(request: NextRequest) {
       const allUserIds = Array.from(new Set((data || []).map((row: any) => row.user_id).filter(Boolean)))
       if (allUserIds.length > 0) {
         // Fetch user names
-        const { data: users } = await supabase
-          .from('users')
+        const { data: users } = await (supabase
+          .from('users') as any)
           .select('id, name')
           .in('id', allUserIds)
         if (Array.isArray(users)) {
@@ -85,8 +85,8 @@ export async function GET(request: NextRequest) {
         }
         
         // Fetch user avatars from images table via profiles.avatar_image_id
-        const { data: profiles } = await supabase
-          .from('profiles')
+        const { data: profiles } = await (supabase
+          .from('profiles') as any)
           .select('user_id, avatar_image_id')
           .in('user_id', allUserIds)
           .not('avatar_image_id', 'is', null)
@@ -97,8 +97,8 @@ export async function GET(request: NextRequest) {
           
           if (imageIds.length > 0) {
             // Fetch image URLs from images table
-            const { data: images } = await supabase
-              .from('images')
+            const { data: images } = await (supabase
+              .from('images') as any)
               .select('id, url')
               .in('id', imageIds)
             
@@ -109,7 +109,8 @@ export async function GET(request: NextRequest) {
               // Map user_id to avatar_url
               profiles.forEach((profile: any) => {
                 if (profile.avatar_image_id && imageIdToUrl.has(profile.avatar_image_id)) {
-                  userIdToAvatar[profile.user_id] = imageIdToUrl.get(profile.avatar_image_id) || null
+                  const avatarUrl = imageIdToUrl.get(profile.avatar_image_id)
+                  userIdToAvatar[profile.user_id] = (typeof avatarUrl === 'string' ? avatarUrl : null)
                 }
               })
             }

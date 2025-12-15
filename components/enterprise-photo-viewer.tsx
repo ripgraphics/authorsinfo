@@ -221,8 +221,8 @@ export function EnterprisePhotoViewer({
     if (!user || !currentPhoto) return
     
     try {
-      const { error } = await supabase
-        .from('photo_likes')
+      const { error } = await (supabase
+        .from('photo_likes') as any)
         .upsert({
           photo_id: currentPhoto.id,
           user_id: user.id,
@@ -259,8 +259,8 @@ export function EnterprisePhotoViewer({
     
     setIsLoading(true)
     try {
-      const { error } = await supabase
-        .from('album_images')
+      const { error } = await (supabase
+        .from('album_images') as any)
         .update({
           is_featured: editForm.is_featured,
           metadata: {
@@ -276,8 +276,8 @@ export function EnterprisePhotoViewer({
       if (error) throw error
 
       // Update the images table as well
-      const { error: imageError } = await supabase
-        .from('images')
+      const { error: imageError } = await (supabase
+        .from('images') as any)
         .update({
           alt_text: editForm.title || currentPhoto.alt_text,
           metadata: {

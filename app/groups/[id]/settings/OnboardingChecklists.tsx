@@ -69,11 +69,11 @@ export default function OnboardingChecklists({ groupId, userId, isAdmin }: Props
       .eq('user_id', userId);
 
     // Combine the data
-    const result = data.map(checklist => ({
+    const result = data.map((checklist: any) => ({
       ...checklist,
       tasks: checklist.group_onboarding_tasks.map((task: any) => ({
         ...task,
-        completed: progress?.some(p => p.task_id === task.id) || false
+        completed: progress?.some((p: any) => p.task_id === task.id) || false
       }))
     }));
 
@@ -88,8 +88,8 @@ export default function OnboardingChecklists({ groupId, userId, isAdmin }: Props
       return;
     }
 
-    const { data: checklistData, error } = await supabase
-      .from('group_onboarding_checklists')
+    const { data: checklistData, error } = await (supabase
+      .from('group_onboarding_checklists') as any)
       .insert({
         group_id: groupId,
         title: formData.title,
@@ -113,8 +113,8 @@ export default function OnboardingChecklists({ groupId, userId, isAdmin }: Props
       }));
 
     if (tasks.length > 0) {
-      const { error: tasksError } = await supabase
-        .from('group_onboarding_tasks')
+      const { error: tasksError } = await (supabase
+        .from('group_onboarding_tasks') as any)
         .insert(tasks);
 
       if (tasksError) {
@@ -131,8 +131,8 @@ export default function OnboardingChecklists({ groupId, userId, isAdmin }: Props
 
   const handleTaskToggle = async (taskId: string, completed: boolean) => {
     if (completed) {
-      const { error } = await supabase
-        .from('group_onboarding_progress')
+      const { error } = await (supabase
+        .from('group_onboarding_progress') as any)
         .insert({
           checklist_id: checklists.find(c => c.tasks.some(t => t.id === taskId))?.id,
           user_id: userId,
@@ -195,8 +195,8 @@ export default function OnboardingChecklists({ groupId, userId, isAdmin }: Props
       order_index: index
     }));
 
-    const { error } = await supabase
-      .from('group_onboarding_tasks')
+    const { error } = await (supabase
+      .from('group_onboarding_tasks') as any)
       .upsert(updates);
 
     if (error) {

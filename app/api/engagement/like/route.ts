@@ -25,11 +25,11 @@ export async function POST(request: NextRequest) {
 
     // Use the toggle_entity_like() function as documented in COMMENT_SYSTEM_FIXED.md
     const { data: liked, error: toggleError } = await supabase
-      .rpc('toggle_entity_like', {
+      .rpc('toggle_entity_like' as any, {
         p_user_id: user.id,
         p_entity_type: entity_type,
         p_entity_id: entity_id
-      })
+      } as any)
 
     if (toggleError) {
       console.error('❌ Error calling toggle_entity_like:', toggleError)

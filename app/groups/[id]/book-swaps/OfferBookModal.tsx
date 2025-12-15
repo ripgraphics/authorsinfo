@@ -40,8 +40,8 @@ export default function OfferBookModal({ isOpen, onClose, groupId }: Props) {
       return;
     }
 
-    const { error } = await supabase
-      .from('group_book_swaps')
+    const { error } = await (supabase
+      .from('group_book_swaps') as any)
       .insert([{
         book_id: bookId,
         group_id: groupId,

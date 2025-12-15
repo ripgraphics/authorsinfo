@@ -41,8 +41,8 @@ export default function GroupEditPage() {
             .eq("id", (group as any).group_image_id)
           .single()
 
-          if (imageData?.url) {
-            setAvatarPreview(imageData.url)
+          if ((imageData as any)?.url) {
+            setAvatarPreview((imageData as any).url)
           }
         }
         fetchImageUrl()
@@ -57,8 +57,8 @@ export default function GroupEditPage() {
             .eq("id", (group as any).cover_image_id)
             .single()
           
-          if (imageData?.url) {
-            setCoverPreview(imageData.url)
+          if ((imageData as any)?.url) {
+            setCoverPreview((imageData as any).url)
         }
         }
         fetchCoverUrl()
@@ -132,8 +132,8 @@ export default function GroupEditPage() {
           if (uploadResult) {
             console.log("Image uploaded successfully:", uploadResult.url)
             // Insert into images table first
-            const { data: imageData, error: imageError } = await supabaseClient
-              .from('images')
+            const { data: imageData, error: imageError } = await (supabaseClient
+              .from('images') as any)
               .insert({
                 url: uploadResult.url,
                 alt_text: `Avatar for ${groupName}`,
@@ -196,8 +196,8 @@ export default function GroupEditPage() {
           if (uploadResult) {
             console.log("Cover uploaded successfully:", uploadResult.url)
             // Insert into images table first
-            const { data: imageData, error: imageError } = await supabaseClient
-              .from('images')
+            const { data: imageData, error: imageError } = await (supabaseClient
+              .from('images') as any)
               .insert({
                 url: uploadResult.url,
                 alt_text: `Cover for ${groupName}`,
@@ -236,8 +236,8 @@ export default function GroupEditPage() {
 
       // Update group in database
       console.log("Attempting to update group with data:", updateData)
-      const { data: updateResult, error: updateError } = await supabaseClient
-        .from("groups")
+      const { data: updateResult, error: updateError } = await (supabaseClient
+        .from("groups") as any)
         .update(updateData)
         .eq("id", groupId)
         .select()

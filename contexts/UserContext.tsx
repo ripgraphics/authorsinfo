@@ -158,7 +158,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
             ...user,
             role: 'user',
             permalink: null
-          }
+          } as any
           debouncedSetUser(userWithRole)
         }
       } else {

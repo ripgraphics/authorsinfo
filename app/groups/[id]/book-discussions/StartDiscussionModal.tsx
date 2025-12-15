@@ -44,8 +44,8 @@ export default function StartDiscussionModal({ isOpen, onClose, groupId }: Props
       return;
     }
 
-    const { error } = await supabase
-      .from('book_discussions')
+    const { error } = await (supabase
+      .from('book_discussions') as any)
       .insert([{
         group_id: groupId,
         book_id: selectedBook.id,

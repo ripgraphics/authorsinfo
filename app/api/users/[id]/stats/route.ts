@@ -10,8 +10,8 @@ export async function GET(
     const supabase = await createRouteHandlerClientAsync()
 
     // Get user profile data
-    const { data: userProfile, error: profileError } = await supabase
-      .from('users')
+    const { data: userProfile, error: profileError } = await (supabase
+      .from('users') as any)
       .select('name, email, created_at, permalink, location, website')
       .eq('id', userId)
       .single()
@@ -22,8 +22,8 @@ export async function GET(
     }
 
     // Get books read count
-    const { data: booksRead, error: booksError } = await supabase
-      .from('reading_progress')
+    const { data: booksRead, error: booksError } = await (supabase
+      .from('reading_progress') as any)
       .select('id', { count: 'exact' })
       .eq('user_id', userId)
       .eq('status', 'completed')
@@ -33,8 +33,8 @@ export async function GET(
     }
 
     // Get friends count
-    const { data: friends, error: friendsError } = await supabase
-      .from('user_friends')
+    const { data: friends, error: friendsError } = await (supabase
+      .from('user_friends') as any)
       .select('id', { count: 'exact' })
       .eq('user_id', userId)
       .eq('status', 'accepted')
@@ -44,8 +44,8 @@ export async function GET(
     }
 
     // Get reverse friends count (where user is the friend)
-    const { data: reverseFriends, error: reverseFriendsError } = await supabase
-      .from('user_friends')
+    const { data: reverseFriends, error: reverseFriendsError } = await (supabase
+      .from('user_friends') as any)
       .select('id', { count: 'exact' })
       .eq('friend_id', userId)
       .eq('status', 'accepted')
@@ -58,8 +58,8 @@ export async function GET(
     const totalFriends = (friends?.length || 0) + (reverseFriends?.length || 0)
 
     // Get currently reading books
-    const { data: currentlyReading, error: readingError } = await supabase
-      .from('reading_progress')
+    const { data: currentlyReading, error: readingError } = await (supabase
+      .from('reading_progress') as any)
       .select(`
         id,
         status,
@@ -81,8 +81,8 @@ export async function GET(
     }
 
     // Get recent photos
-    const { data: recentPhotos, error: photosError } = await supabase
-      .from('images')
+    const { data: recentPhotos, error: photosError } = await (supabase
+      .from('images') as any)
       .select('id, image_url, thumbnail_url')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
@@ -97,9 +97,9 @@ export async function GET(
       stats: {
         booksRead: booksRead?.length || 0,
         friendsCount: totalFriends,
-        location: userProfile.location || null,
-        website: userProfile.website || null,
-        joinedDate: userProfile.created_at
+        location: (userProfile as any)?.location || null,
+        website: (userProfile as any)?.website || null,
+        joinedDate: (userProfile as any)?.created_at
       },
       currentlyReading: currentlyReading || [],
       recentPhotos: recentPhotos || []

@@ -23,8 +23,8 @@ export async function GET(request: NextRequest) {
     const sortOrder = searchParams.get('sort_order') || 'desc'
     
     // Build query using activities table (unified system)
-    let query = supabase
-      .from('activities')
+    let query = (supabase
+      .from('activities') as any)
       .select('*')
       .eq('activity_type', 'post_created')
       .eq('publish_status', publishStatus)
@@ -78,8 +78,8 @@ export async function GET(request: NextRequest) {
       totalCount = count
     } else {
       // Fallback: count total posts with same filters
-      const { count: total } = await supabase
-        .from('activities')
+      const { count: total } = await (supabase
+        .from('activities') as any)
         .select('*', { count: 'exact', head: true })
         .eq('activity_type', 'post_created')
         .eq('publish_status', publishStatus)
@@ -129,8 +129,8 @@ export async function POST(request: NextRequest) {
 
     if (targetEntityType === 'user' && targetEntityId !== user.id) {
       // Owner preference from user_privacy_settings.default_privacy_level
-      const { data: privacy } = await supabase
-        .from('user_privacy_settings')
+      const { data: privacy } = await (supabase
+        .from('user_privacy_settings') as any)
         .select('default_privacy_level')
         .eq('user_id', targetEntityId)
         .maybeSingle()
@@ -144,8 +144,8 @@ export async function POST(request: NextRequest) {
       if (level === 'friends' || level === 'followers') {
         // followers: follower OR friend; friends: mutual follow OR friendship
         if (level === 'friends') {
-          const { data: friendship } = await supabase
-            .from('user_friends')
+          const { data: friendship } = await (supabase
+            .from('user_friends') as any)
             .select('status')
             .or(`and(user_id.eq.${user.id},friend_id.eq.${targetEntityId}),and(user_id.eq.${targetEntityId},friend_id.eq.${user.id})`)
             .maybeSingle()
@@ -154,8 +154,8 @@ export async function POST(request: NextRequest) {
           }
         } else {
           // Get user target type ID for follows table
-          const { data: userTargetType } = await supabase
-            .from('follow_target_types')
+          const { data: userTargetType } = await (supabase
+            .from('follow_target_types') as any)
             .select('id')
             .eq('name', 'user')
             .single()
@@ -164,13 +164,13 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Invalid follow target type' }, { status: 500 })
           }
 
-          const { data: followData } = await supabase
-            .from('follows')
+          const { data: followData } = await (supabase
+            .from('follows') as any)
             .select('follower_id, following_id')
             .eq('target_type_id', userTargetType.id)
             .or(`and(follower_id.eq.${user.id},following_id.eq.${targetEntityId}),and(follower_id.eq.${targetEntityId},following_id.eq.${user.id})`)
-          const isFollower = followData?.some(r => r.follower_id === user.id && r.following_id === targetEntityId) || false
-          const theyFollowYou = followData?.some(r => r.follower_id === targetEntityId && r.following_id === user.id) || false
+          const isFollower = followData?.some((r: any) => r.follower_id === user.id && r.following_id === targetEntityId) || false
+          const theyFollowYou = followData?.some((r: any) => r.follower_id === targetEntityId && r.following_id === user.id) || false
           const isFriend = isFollower && theyFollowYou
           const allowed = isFollower || isFriend
           if (!allowed) {
@@ -183,8 +183,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Create the post in the activities table
-    const { data: activity, error } = await supabase
-      .from('activities')
+    const { data: activity, error } = await (supabase
+      .from('activities') as any)
       .insert({
         user_id: user.id,
         activity_type: 'post_created',

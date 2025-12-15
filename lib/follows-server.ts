@@ -92,7 +92,7 @@ export async function getFollowers(followingId: string | number, targetType: Fol
   }
 
   // Get user IDs from follows
-  const followerIds = followsData.map(follow => follow.follower_id)
+  const followerIds = followsData.map((follow: any) => (follow as any).follower_id)
 
   // Fetch user details from users table and profiles
   const [usersResult, profilesResult] = await Promise.all([
@@ -225,19 +225,19 @@ export async function getFollowers(followingId: string | number, targetType: Fol
 
   // Create a map of user data for quick lookup
   const userMap = new Map()
-  users.forEach(user => {
-    const profile = profileMap.get(user.id)
-    const avatarImageId = profile?.avatar_image_id
+  users.forEach((user: any) => {
+    const profile = profileMap.get((user as any).id)
+    const avatarImageId = (profile as any)?.avatar_image_id
     const avatarUrl = avatarImageId ? avatarImageMap.get(avatarImageId) : null
-    const followersCount = followersCountMap.get(user.id) || 0
-    const friendsCount = friendsCountMap.get(user.id) || 0
-    const booksReadCount = booksReadCountMap.get(user.id) || 0
+    const followersCount = followersCountMap.get((user as any).id) || 0
+    const friendsCount = friendsCountMap.get((user as any).id) || 0
+    const booksReadCount = booksReadCountMap.get((user as any).id) || 0
 
-    userMap.set(user.id, {
-      id: user.id,
-      name: user.name || 'Unknown User',
-      email: user.email || 'unknown@email.com',
-      permalink: user.permalink,
+    userMap.set((user as any).id, {
+      id: (user as any).id,
+      name: (user as any).name || 'Unknown User',
+      email: (user as any).email || 'unknown@email.com',
+      permalink: (user as any).permalink,
       avatar_url: avatarUrl,
       followers_count: followersCount,
       friends_count: friendsCount,
@@ -246,9 +246,9 @@ export async function getFollowers(followingId: string | number, targetType: Fol
   })
 
   return {
-    followers: followsData.map(follow => {
-      const userData = userMap.get(follow.follower_id) || {
-        id: follow.follower_id,
+    followers: followsData.map((follow: any) => {
+      const userData = userMap.get((follow as any).follower_id) || {
+        id: (follow as any).follower_id,
         name: 'Unknown User',
         email: 'unknown@email.com',
         permalink: null,
@@ -259,7 +259,7 @@ export async function getFollowers(followingId: string | number, targetType: Fol
       }
       return {
         ...userData,
-        followSince: follow.created_at
+        followSince: (follow as any).created_at
       }
     }),
     count: count || 0

@@ -4,7 +4,6 @@ import { useEffect, useState, use } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
@@ -16,6 +15,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import { Plus, Search, Edit } from "lucide-react"
+import { ReusableSearch } from "@/components/ui/reusable-search"
 import { Skeleton } from "@/components/ui/skeleton"
 
 interface AdminAuthorsPageProps {
@@ -307,14 +307,14 @@ export default function AdminAuthorsPage({ searchParams }: AdminAuthorsPageProps
       </div>
 
       <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <form>
-            <Input type="search" name="search" placeholder="Search authors..." className="pl-8" defaultValue={search} />
-            <input type="hidden" name="page" value="1" />
-            {nationality && <input type="hidden" name="nationality" value={nationality} />}
-            {sort && <input type="hidden" name="sort" value={sort} />}
-          </form>
+        <div className="flex-1 max-w-md">
+          <ReusableSearch
+            paramName="search"
+            placeholder="Search authors..."
+            debounceMs={300}
+            basePath="/admin/authors"
+            preserveParams={['nationality', 'sort']}
+          />
         </div>
 
         <div className="flex gap-2">

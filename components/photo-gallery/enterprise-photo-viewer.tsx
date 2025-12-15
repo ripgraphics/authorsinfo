@@ -207,8 +207,8 @@ export function EnterprisePhotoViewer({
   const loadAlbumOwner = async () => {
     try {
       // Get album details to find the owner
-      const { data: album, error: albumError } = await supabase
-        .from('photo_albums')
+      const { data: album, error: albumError } = await (supabase
+        .from('photo_albums') as any)
         .select('owner_id, entity_id, entity_type')
         .eq('id', albumId)
         .single()
@@ -216,59 +216,59 @@ export function EnterprisePhotoViewer({
       if (albumError) throw albumError
 
       // Get the owner information based on entity type
-      if (album.entity_type === 'user' && album.entity_id) {
+      if ((album as any).entity_type === 'user' && (album as any).entity_id) {
         // For user albums, get the user information
         const { data: userData } = await supabase
           .from('users')
           .select('id, name, email')
-          .eq('id', album.entity_id)
+          .eq('id', (album as any).entity_id)
           .single()
 
         if (userData) {
           setAlbumOwner({
-            name: userData.name || userData.email || "User",
+            name: (userData as any).name || (userData as any).email || "User",
             avatar_url: undefined // We'll need to get this from user metadata
           })
         }
-      } else if (album.entity_type === 'author' && album.entity_id) {
+      } else if ((album as any).entity_type === 'author' && (album as any).entity_id) {
         // For author albums, get the author information
         const { data: authorData } = await supabase
           .from('authors')
           .select('id, name')
-          .eq('id', album.entity_id)
+          .eq('id', (album as any).entity_id)
           .single()
 
         if (authorData) {
           setAlbumOwner({
-            name: authorData.name || "Author",
+            name: (authorData as any).name || "Author",
             avatar_url: undefined
           })
         }
-      } else if (album.entity_type === 'publisher' && album.entity_id) {
+      } else if ((album as any).entity_type === 'publisher' && (album as any).entity_id) {
         // For publisher albums, get the publisher information
         const { data: publisherData } = await supabase
           .from('publishers')
           .select('id, name')
-          .eq('id', album.entity_id)
+          .eq('id', (album as any).entity_id)
           .single()
 
         if (publisherData) {
           setAlbumOwner({
-            name: publisherData.name || "Publisher",
+            name: (publisherData as any).name || "Publisher",
             avatar_url: undefined
           })
         }
-      } else if (album.entity_type === 'group' && album.entity_id) {
+      } else if ((album as any).entity_type === 'group' && (album as any).entity_id) {
         // For group albums, get the group information
         const { data: groupData } = await supabase
           .from('groups')
           .select('id, name')
-          .eq('id', album.entity_id)
+          .eq('id', (album as any).entity_id)
           .single()
 
         if (groupData) {
           setAlbumOwner({
-            name: groupData.name || "Group",
+            name: (groupData as any).name || "Group",
             avatar_url: undefined
           })
         }
@@ -459,26 +459,26 @@ export function EnterprisePhotoViewer({
             console.warn('⚠️ Warning: Could not load user data from uploader_id:', userError)
           } else if (userData) {
             userInfo = {
-              name: userData.name || userData.email || "User",
+              name: (userData as any).name || (userData as any).email || "User",
               avatar_url: undefined
             }
             console.log('🔍 User info loaded from uploader_id:', userInfo)
           }
         }
         // Fall back to metadata.user_id if uploader_id is still null
-        else if (photoData.metadata?.user_id) {
-          console.log('🔍 Loading user info from metadata.user_id:', photoData.metadata.user_id)
+        else if ((photoData as any).metadata?.user_id) {
+          console.log('🔍 Loading user info from metadata.user_id:', (photoData as any).metadata.user_id)
           const { data: userData, error: userError } = await supabase
             .from('users')
             .select('id, name, email')
-            .eq('id', photoData.metadata.user_id)
+            .eq('id', (photoData as any).metadata.user_id)
             .single()
           
           if (userError) {
             console.warn('⚠️ Warning: Could not load user data from metadata.user_id:', userError)
           } else if (userData) {
             userInfo = {
-              name: userData.name || userData.email || "User",
+              name: (userData as any).name || (userData as any).email || "User",
               avatar_url: undefined
             }
             console.log('🔍 User info loaded from metadata.user_id:', userInfo)
@@ -525,9 +525,9 @@ export function EnterprisePhotoViewer({
       if (!isTimelinePhoto) {
         try {
           console.log('🔍 Updating view count for photo:', photoId)
-          const { error: viewUpdateError } = await supabase
-            .from('images')
-            .update({ view_count: (photoData.view_count || 0) + 1 })
+          const { error: viewUpdateError } = await (supabase
+            .from('images') as any)
+            .update({ view_count: ((photoData as any).view_count || 0) + 1 })
             .eq('id', photoId)
           
           if (viewUpdateError) {
@@ -585,13 +585,13 @@ export function EnterprisePhotoViewer({
 
       // Simple tracking by updating counters in images table
       if (eventType === 'view') {
-        await supabase.rpc('increment', { 
+        await (supabase as any).rpc('increment', { 
           table_name: 'images', 
           column_name: 'view_count', 
           row_id: photoId 
         })
       } else if (eventType === 'download') {
-        await supabase.rpc('increment', { 
+        await (supabase as any).rpc('increment', { 
           table_name: 'images', 
           column_name: 'download_count', 
           row_id: photoId 
@@ -617,8 +617,8 @@ export function EnterprisePhotoViewer({
         setIsLiked(false)
       } else {
         // Like
-        await supabase
-          .from('photo_likes')
+        await (supabase
+          .from('photo_likes') as any)
           .insert({
             photo_id: photo.id,
             // user_id: currentUserId, // TODO: Add current user
@@ -645,8 +645,8 @@ export function EnterprisePhotoViewer({
       const shareUrl = `${window.location.origin}/photos/${photo.id}`
       
       // Track share
-      await supabase
-        .from('photo_shares')
+      await (supabase
+        .from('photo_shares') as any)
         .insert({
           photo_id: photo.id,
           // user_id: currentUserId, // TODO: Add current user
@@ -748,8 +748,8 @@ export function EnterprisePhotoViewer({
     if (!photo || !tagPosition) return
     
     try {
-      await supabase
-        .from('photo_tags')
+      await (supabase
+        .from('photo_tags') as any)
         .insert({
           photo_id: photo.id,
           entity_type: selectedEntityType,
@@ -1390,8 +1390,8 @@ export function EnterprisePhotoViewer({
                         // The images table should remain unchanged - it contains the original image data
                         if (albumId) {
                           console.log('🔄 Updating album_images table with album-specific metadata...')
-                          const { data: albumImageUpdateResult, error: albumImageError } = await supabase
-                            .from('album_images')
+                          const { data: albumImageUpdateResult, error: albumImageError } = await (supabase
+                            .from('album_images') as any)
                             .update({
                               alt_text: editForm.alt_text,
                               description: editForm.description
@@ -1415,8 +1415,8 @@ export function EnterprisePhotoViewer({
                           // If setting as cover, first unset all other cover images
                           if (editForm.shouldSetAsCover) {
                             console.log('🔄 Setting image as cover - unsetting previous cover images')
-                            const { data: unsetResult, error: unsetError } = await supabase
-                              .from('album_images')
+                            const { data: unsetResult, error: unsetError } = await (supabase
+                              .from('album_images') as any)
                               .update({ is_cover: false })
                               .eq('album_id', albumId)
                               .eq('is_cover', true)
@@ -1431,8 +1431,8 @@ export function EnterprisePhotoViewer({
                           }
                           
                           // Update album image settings
-                          const { data: albumUpdateResult, error: albumError } = await supabase
-                            .from('album_images')
+                          const { data: albumUpdateResult, error: albumError } = await (supabase
+                            .from('album_images') as any)
                             .update({
                               is_featured: editForm.is_featured,
                               is_cover: editForm.shouldSetAsCover ? true : photo.is_cover
@@ -1451,20 +1451,20 @@ export function EnterprisePhotoViewer({
                           // Update publisher_image_id when setting avatar as cover for publishers
                           if (entityType === 'publisher' && entityId && editForm.shouldSetAsCover && albumId) {
                             // Check if this is an avatar album by querying the album
-                            const { data: albumData, error: albumCheckError } = await supabase
-                              .from('photo_albums')
+                            const { data: albumData, error: albumCheckError } = await (supabase
+                              .from('photo_albums') as any)
                               .select('name, metadata')
                               .eq('id', albumId)
                               .single()
                             
                             if (!albumCheckError && albumData) {
-                              const isAvatarAlbum = albumData.name === 'Avatar Images' || 
-                                                   albumData.metadata?.album_purpose === 'avatar'
+                              const isAvatarAlbum = (albumData as any).name === 'Avatar Images' || 
+                                                   (albumData as any).metadata?.album_purpose === 'avatar'
                               
                               if (isAvatarAlbum) {
                                 console.log(`🔄 Updating publisher_image_id for publisher ${entityId} with image ${photo.id}`)
-                                const { error: publisherUpdateError } = await supabase
-                                  .from('publishers')
+                                const { error: publisherUpdateError } = await (supabase
+                                  .from('publishers') as any)
                                   .update({ publisher_image_id: photo.id })
                                   .eq('id', entityId)
                                 

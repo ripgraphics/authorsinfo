@@ -104,7 +104,7 @@ async function renameImageInCloudinary(oldPublicId: string, newPublicId: string)
     const formData = new FormData()
     formData.append('from_public_id', oldPublicId)
     formData.append('to_public_id', newPublicId)
-    formData.append('api_key', apiKey)
+    formData.append('api_key', apiKey || '')
     formData.append('timestamp', timestamp.toString())
     formData.append('signature', signature)
 

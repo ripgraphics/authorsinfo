@@ -83,8 +83,8 @@ export async function followEntity(followingId: string | number, targetType: Fol
       following_id: followingId,
       target_type_id: targetTypeData.id
     })
-  const { data, error } = await supabaseClient
-    .from('follows')
+  const { data, error } = await (supabaseClient
+    .from('follows') as any)
     .insert({
         follower_id: user.id,
       following_id: followingId,
@@ -245,10 +245,10 @@ export async function getFollowers(followingId: string | number, targetType: Fol
   }
 
   return {
-    followers: data?.map(follow => ({
-      id: follow.users.id,
-      name: follow.users.name,
-      email: follow.users.email
+    followers: data?.map((follow: any) => ({
+      id: (follow as any).users.id,
+      name: (follow as any).users.name,
+      email: (follow as any).users.email
     })) || [],
     count: count || 0
   }

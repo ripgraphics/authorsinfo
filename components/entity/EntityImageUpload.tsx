@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { useToast } from '@/components/ui/use-toast'
+import { useToast } from '@/hooks/use-toast'
 import { Camera, Crop, ImageIcon } from 'lucide-react'
 import { createBrowserClient } from '@supabase/ssr'
 import { clearCache } from '@/lib/request-utils'
@@ -562,7 +562,7 @@ export function EntityImageUpload({
           >
             {(croppedImage || preview) ? (
               <img
-                src={croppedImage || preview}
+                src={(croppedImage || preview) as string}
                 alt={`${entityType} ${type} preview`}
                 className={(type === 'bookCover' || type === 'entityHeaderCover') ? "" : "w-full h-full object-cover"}
                 style={(type === 'bookCover' || type === 'entityHeaderCover') ? {

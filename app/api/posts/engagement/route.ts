@@ -43,8 +43,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify post exists
-    const { data: post, error: postError } = await supabase
-      .from('activities')
+    const { data: post, error: postError } = await (supabase
+      .from('activities') as any)
       .select('*')
       .eq('id', post_id)
       .eq('activity_type', 'post_created')
@@ -115,8 +115,8 @@ async function handleReaction(supabase: any, userId: string, postId: string, act
     const reactionType = actionData?.reaction_type || 'like'
     
     // Check if user already reacted
-    const { data: existingReaction } = await supabase
-      .from('post_reactions')
+    const { data: existingReaction } = await (supabase
+      .from('post_reactions') as any)
       .select('*')
       .eq('post_id', postId)
       .eq('user_id', userId)
@@ -125,8 +125,8 @@ async function handleReaction(supabase: any, userId: string, postId: string, act
 
     if (existingReaction) {
       // Remove reaction
-      const { error: deleteError } = await supabase
-        .from('post_reactions')
+      const { error: deleteError } = await (supabase
+        .from('post_reactions') as any)
         .delete()
         .eq('id', existingReaction.id)
 
@@ -138,8 +138,8 @@ async function handleReaction(supabase: any, userId: string, postId: string, act
       return { action: 'removed', reaction_type: reactionType }
     } else {
       // Add reaction
-      const { error: insertError } = await supabase
-        .from('post_reactions')
+      const { error: insertError } = await (supabase
+        .from('post_reactions') as any)
         .insert({
           post_id: postId,
           user_id: userId,
@@ -173,8 +173,8 @@ async function handleComment(supabase: any, userId: string, postId: string, acti
       return { error: 'Comment too long (max 1000 characters)' }
     }
 
-    const { data: comment, error: insertError } = await supabase
-      .from('post_comments')
+    const { data: comment, error: insertError } = await (supabase
+      .from('post_comments') as any)
       .insert({
         post_id: postId,
         user_id: userId,
@@ -203,8 +203,8 @@ async function handleShare(supabase: any, userId: string, postId: string, action
     const shareType = actionData?.share_type || 'general'
     
     // Check if user already shared
-    const { data: existingShare } = await supabase
-      .from('post_shares')
+    const { data: existingShare } = await (supabase
+      .from('post_shares') as any)
       .select('*')
       .eq('post_id', postId)
       .eq('user_id', userId)
@@ -214,8 +214,8 @@ async function handleShare(supabase: any, userId: string, postId: string, action
       return { error: 'Already shared this post' }
     }
 
-    const { error: insertError } = await supabase
-      .from('post_shares')
+    const { error: insertError } = await (supabase
+      .from('post_shares') as any)
       .insert({
         post_id: postId,
         user_id: userId,
@@ -240,8 +240,8 @@ async function handleShare(supabase: any, userId: string, postId: string, action
 async function handleBookmark(supabase: any, userId: string, postId: string, actionData: any) {
   try {
     // Check if user already bookmarked
-    const { data: existingBookmark } = await supabase
-      .from('post_bookmarks')
+    const { data: existingBookmark } = await (supabase
+      .from('post_bookmarks') as any)
       .select('*')
       .eq('post_id', postId)
       .eq('user_id', userId)
@@ -249,8 +249,8 @@ async function handleBookmark(supabase: any, userId: string, postId: string, act
 
     if (existingBookmark) {
       // Remove bookmark
-      const { error: deleteError } = await supabase
-        .from('post_bookmarks')
+      const { error: deleteError } = await (supabase
+        .from('post_bookmarks') as any)
         .delete()
         .eq('id', existingBookmark.id)
 
@@ -262,8 +262,8 @@ async function handleBookmark(supabase: any, userId: string, postId: string, act
       return { action: 'removed' }
     } else {
       // Add bookmark
-      const { error: insertError } = await supabase
-        .from('post_bookmarks')
+      const { error: insertError } = await (supabase
+        .from('post_bookmarks') as any)
         .insert({
           post_id: postId,
           user_id: userId
@@ -288,8 +288,8 @@ async function handleBookmark(supabase: any, userId: string, postId: string, act
 async function handleView(supabase: any, userId: string, postId: string, actionData: any) {
   try {
     // For views, we just update the post view count
-    const { error: updateError } = await supabase
-      .from('activities')
+    const { error: updateError } = await (supabase
+      .from('activities') as any)
       .update({
         view_count: supabase.sql`COALESCE(view_count, 0) + 1`
       })
@@ -314,10 +314,10 @@ async function updatePostEngagementCounts(supabase: any, postId: string) {
   try {
     // Get counts from engagement tables
     const [reactionsResult, commentsResult, sharesResult, bookmarksResult] = await Promise.all([
-      supabase.from('post_reactions').select('id', { count: 'exact' }).eq('post_id', postId),
-      supabase.from('post_comments').select('id', { count: 'exact' }).eq('post_id', postId),
-      supabase.from('post_shares').select('id', { count: 'exact' }).eq('post_id', postId),
-      supabase.from('post_bookmarks').select('id', { count: 'exact' }).eq('post_id', postId)
+      (supabase.from('post_reactions') as any).select('id', { count: 'exact' }).eq('post_id', postId),
+      (supabase.from('post_comments') as any).select('id', { count: 'exact' }).eq('post_id', postId),
+      (supabase.from('post_shares') as any).select('id', { count: 'exact' }).eq('post_id', postId),
+      (supabase.from('post_bookmarks') as any).select('id', { count: 'exact' }).eq('post_id', postId)
     ])
 
     const likeCount = reactionsResult.count || 0
@@ -326,8 +326,8 @@ async function updatePostEngagementCounts(supabase: any, postId: string) {
     const bookmarkCount = bookmarksResult.count || 0
 
     // Update post with new counts
-    const { error: updateError } = await supabase
-      .from('activities')
+    const { error: updateError } = await (supabase
+      .from('activities') as any)
       .update({
         like_count: likeCount,
         comment_count: commentCount,
@@ -374,8 +374,8 @@ export async function GET(request: NextRequest) {
     // Fetch data based on action type
     switch (actionType) {
       case 'reactions':
-        const { data: reactions, error: reactionsError } = await supabase
-          .from('post_reactions')
+        const { data: reactions, error: reactionsError } = await (supabase
+          .from('post_reactions') as any)
           .select('id, reaction_type, created_at')
           .eq('post_id', postId)
           .order('created_at', { ascending: false })
@@ -385,8 +385,8 @@ export async function GET(request: NextRequest) {
         break
 
               case 'comments':
-          const { data: comments, error: commentsError } = await supabase
-            .from('post_comments')
+          const { data: comments, error: commentsError } = await (supabase
+            .from('post_comments') as any)
             .select('id, content, created_at')
             .eq('post_id', postId)
             .order('created_at', { ascending: false })
@@ -396,8 +396,8 @@ export async function GET(request: NextRequest) {
           break
 
       case 'shares':
-        const { data: shares, error: sharesError } = await supabase
-          .from('post_shares')
+        const { data: shares, error: sharesError } = await (supabase
+          .from('post_shares') as any)
           .select('id, share_type, created_at')
           .eq('post_id', postId)
           .order('created_at', { ascending: false })
@@ -407,8 +407,8 @@ export async function GET(request: NextRequest) {
         break
 
       case 'bookmarks':
-        const { data: bookmarks, error: bookmarksError } = await supabase
-          .from('post_bookmarks')
+        const { data: bookmarks, error: bookmarksError } = await (supabase
+          .from('post_bookmarks') as any)
           .select('id, created_at')
           .eq('post_id', postId)
           .order('created_at', { ascending: false })

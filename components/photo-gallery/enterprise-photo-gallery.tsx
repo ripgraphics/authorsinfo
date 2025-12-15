@@ -263,27 +263,27 @@ export function EnterprisePhotoGallery({
 
       // Calculate enterprise analytics
       const analyticsData = {
-        total_views: albumImages?.reduce((sum, ai) => sum + (ai.view_count || 0), 0) || 0,
-        total_likes: albumImages?.reduce((sum, ai) => sum + (ai.like_count || 0), 0) || 0,
-        total_shares: albumImages?.reduce((sum, ai) => sum + (ai.share_count || 0), 0) || 0,
-        total_revenue: albumImages?.reduce((sum, ai) => sum + (ai.revenue_generated || 0), 0) || 0,
+        total_views: albumImages?.reduce((sum, ai: any) => sum + (ai.view_count || 0), 0) || 0,
+        total_likes: albumImages?.reduce((sum, ai: any) => sum + (ai.like_count || 0), 0) || 0,
+        total_shares: albumImages?.reduce((sum, ai: any) => sum + (ai.share_count || 0), 0) || 0,
+        total_revenue: albumImages?.reduce((sum, ai: any) => sum + (ai.revenue_generated || 0), 0) || 0,
         engagement_rate: albumImages?.length ? 
-          ((albumImages.reduce((sum, ai) => sum + (ai.view_count || 0), 0) / albumImages.length) * 100) : 0,
-        viral_score: albumImages?.reduce((sum, ai) => sum + (ai.share_count || 0), 0) || 0
+          ((albumImages.reduce((sum, ai: any) => sum + (ai.view_count || 0), 0) / albumImages.length) * 100) : 0,
+        viral_score: albumImages?.reduce((sum, ai: any) => sum + (ai.share_count || 0), 0) || 0
       }
 
       // Calculate monetization metrics
       const monetizationData = {
-        total_earnings: albumImages?.reduce((sum, ai) => sum + (ai.revenue_generated || 0), 0) || 0,
-        premium_subscribers: album?.metadata?.premium_subscribers || 0,
-        revenue_share: album?.metadata?.revenue_share || 0
+        total_earnings: albumImages?.reduce((sum, ai: any) => sum + (ai.revenue_generated || 0), 0) || 0,
+        premium_subscribers: (album as any)?.metadata?.premium_subscribers || 0,
+        revenue_share: (album as any)?.metadata?.revenue_share || 0
       }
 
       // Calculate community metrics
       const communityData = {
-        active_followers: album?.metadata?.active_followers || 0,
+        active_followers: (album as any)?.metadata?.active_followers || 0,
         total_interactions: analyticsData.total_likes + analyticsData.total_shares,
-        community_score: album?.metadata?.community_score || 0
+        community_score: (album as any)?.metadata?.community_score || 0
       }
 
       setAlbumState({
@@ -314,8 +314,8 @@ export function EnterprisePhotoGallery({
   // Create new album with enterprise features
   const createAlbum = useCallback(async (name: string, description?: string): Promise<EnterprisePhotoAlbum> => {
     try {
-      const { data, error } = await supabase
-        .from('photo_albums')
+      const { data, error } = await (supabase
+        .from('photo_albums') as any)
         .insert({
           name,
           description,

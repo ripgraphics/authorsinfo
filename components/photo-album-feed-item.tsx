@@ -81,8 +81,8 @@ export function PhotoAlbumFeedItem({
         setIsLiked(false)
       } else {
         // Like
-        await supabase
-          .from('activity_likes')
+        await (supabase
+          .from('activity_likes') as any)
           .insert({
             activity_id: activity.id,
             user_id: user.id

@@ -79,7 +79,7 @@ export default function BookListsClient({ initialBookLists, groupId }: Props) {
   const handleCreateList = async () => {
     if (!newListTitle.trim()) return;
 
-    const { error } = await supabase.from('group_book_lists').insert([
+    const { error } = await (supabase.from('group_book_lists') as any).insert([
       {
         title: newListTitle,
         group_id: groupId,
@@ -113,7 +113,7 @@ export default function BookListsClient({ initialBookLists, groupId }: Props) {
       return;
     }
 
-    const { error } = await supabase.from('group_book_list_votes').upsert({
+    const { error } = await (supabase.from('group_book_list_votes') as any).upsert({
       list_id: listId,
       book_id: bookId,
       user_id: userId,

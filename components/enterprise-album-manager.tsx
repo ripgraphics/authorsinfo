@@ -152,7 +152,7 @@ export function EnterpriseAlbumManager({
       if (error) throw error
 
       // Get album image counts and cover images separately
-      const albumIds = (data || []).map(album => album.id)
+      const albumIds = (data || []).map((album: any) => album.id)
       let albumImageCounts: { [key: string]: number } = {}
       let albumCoverImages: { [key: string]: string } = {}
 
@@ -249,8 +249,8 @@ export function EnterpriseAlbumManager({
 
     setIsCreatingAlbum(true)
     try {
-      const { data: album, error } = await supabase
-        .from('photo_albums')
+      const { data: album, error } = await (supabase
+        .from('photo_albums') as any)
         .insert({
           name: newAlbum.name.trim(),
           description: newAlbum.description.trim() || null,

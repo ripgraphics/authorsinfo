@@ -97,8 +97,8 @@ export default async function PermalinkDemoPage() {
             <PermalinkSettings
               entityId={user.id}
               entityType="user"
-              currentPermalink={userData?.permalink}
-              entityName={userData?.name || 'User'}
+              currentPermalink={(userData as any)?.permalink}
+              entityName={(userData as any)?.name || 'User'}
             />
           </CardContent>
         </Card>

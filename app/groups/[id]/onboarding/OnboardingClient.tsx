@@ -66,7 +66,7 @@ export default function OnboardingClient({ groupId, welcomeMessages, checklists 
       .single();
 
     if (member) {
-      setUserRole(member.role_id);
+      setUserRole((member as any).role_id);
     }
 
     // Get user's progress
@@ -76,7 +76,7 @@ export default function OnboardingClient({ groupId, welcomeMessages, checklists 
       .eq('user_id', user.id);
 
     if (progressData) {
-      const progressMap = progressData.reduce((acc, curr) => ({
+      const progressMap = progressData.reduce((acc, curr: any) => ({
         ...acc,
         [curr.task_id]: true
       }), {});
@@ -91,8 +91,8 @@ export default function OnboardingClient({ groupId, welcomeMessages, checklists 
     if (!user) return;
 
     if (completed) {
-      const { error } = await supabase
-        .from('group_onboarding_progress')
+      const { error } = await (supabase
+        .from('group_onboarding_progress') as any)
         .insert({
           checklist_id: checklists.find(c => c.tasks.some(t => t.id === taskId))?.id,
           user_id: user.id,

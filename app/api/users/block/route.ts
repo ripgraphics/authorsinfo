@@ -18,16 +18,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Idempotent block using unique (user_id, blocked_user_id)
-    const { data: existing } = await supabase
-      .from('blocks')
+    const { data: existing } = await (supabase
+      .from('blocks') as any)
       .select('id')
       .eq('user_id', user.id)
       .eq('blocked_user_id', blockedUserId)
       .maybeSingle()
 
     if (!existing) {
-      const { error: insertError } = await supabase
-        .from('blocks')
+      const { error: insertError } = await (supabase
+        .from('blocks') as any)
         .insert({ user_id: user.id, blocked_user_id: blockedUserId })
 
       if (insertError) {
@@ -56,8 +56,8 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'user_id is required' }, { status: 400 })
     }
 
-    const { error: deleteError } = await supabase
-      .from('blocks')
+    const { error: deleteError } = await (supabase
+      .from('blocks') as any)
       .delete()
       .eq('user_id', user.id)
       .eq('blocked_user_id', blockedUserId)

@@ -182,7 +182,7 @@ export function ClientEventPage({
               onTabChange={handleTabChange}
               entityId={event.id || params.slug}
               targetType="user"
-              isEditable={user && (user.role === 'admin' || user.role === 'super_admin')}
+              isEditable={!!(user && (user.role === 'admin' || user.role === 'super_admin'))}
               isMessageable={true}
               onCoverImageChange={() => {
                 window.dispatchEvent(new CustomEvent('entityImageChanged'))

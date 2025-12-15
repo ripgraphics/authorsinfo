@@ -158,8 +158,8 @@ export function usePhotoGalleryEditor() {
         .getPublicUrl(fileName);
 
       // Update the image record
-      const { error: updateError } = await supabase
-        .from('images')
+      const { error: updateError } = await (supabase
+        .from('images') as any)
         .update({
           url: publicUrl,
           width: canvas.width,
@@ -209,8 +209,8 @@ export function usePhotoGalleryEditor() {
       newHistory.pop();
 
       // Revert to the original image
-      const { error: updateError } = await supabase
-        .from('images')
+      const { error: updateError } = await (supabase
+        .from('images') as any)
         .update({
           url: (image as any).url || '',
           width: (image as any).width || 0,

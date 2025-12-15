@@ -69,7 +69,7 @@ export function useGroupPermissions(groupId: string | null, userId?: string) {
 
         if (groupError) throw groupError
 
-        const isGroupCreator = groupData.created_by === userId
+        const isGroupCreator = (groupData as any).created_by === userId
         console.log('Is group creator:', isGroupCreator)
         setIsCreator(isGroupCreator)
 
@@ -110,14 +110,14 @@ export function useGroupPermissions(groupId: string | null, userId?: string) {
         const { data: roleData, error: roleError } = await supabaseClient
           .from('group_roles')
           .select('*')
-          .eq('id', memberData.role_id)
+          .eq('id', (memberData as any).role_id)
           .single()
 
         if (roleError) throw roleError
 
         console.log('User role data:', roleData)
         setRole(roleData)
-        setPermissions(roleData.permissions)
+        setPermissions((roleData as any).permissions)
       } catch (err: any) {
         console.error('Error loading group permissions:', err)
         setError(err.message)

@@ -38,9 +38,9 @@ export async function GET(request: NextRequest) {
     // 2. Query ALL album_images for those albums
     let allAlbumImages: any[] = []
     if (allAlbums && allAlbums.length > 0) {
-      const albumIds = allAlbums.map(a => a.id)
+      const albumIds = (allAlbums as any[]).map((a: any) => a.id)
       const { data: albumImagesData, error: albumImagesError } = await supabase
-        .from('album_images')
+        .from('album_images' as any)
         .select('*')
         .in('album_id', albumIds)
       
@@ -107,7 +107,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 5. Check for "Header Cover Images" album specifically
-    const headerAlbum = allAlbums?.find(a => a.name === 'Header Cover Images' || a.name?.includes('Header')) || headerAlbums?.[0]
+    const headerAlbum = (allAlbums as any[])?.find((a: any) => a.name === 'Header Cover Images' || a.name?.includes('Header')) || (headerAlbums as any[])?.[0]
     
     let headerAlbumImages: any[] = []
     let headerAlbumImageRecords: any[] = []
@@ -120,7 +120,7 @@ export async function GET(request: NextRequest) {
       if (!headerError && headerAlbumImagesData) {
         headerAlbumImageRecords = headerAlbumImagesData
         
-        const headerImageIds = headerAlbumImagesData.map(ai => ai.image_id).filter(Boolean)
+        const headerImageIds = (headerAlbumImagesData as any[]).map((ai: any) => ai.image_id).filter(Boolean)
         if (headerImageIds.length > 0) {
           const { data: headerImagesData, error: headerImagesError } = await supabase
             .from('images')

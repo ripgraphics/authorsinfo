@@ -397,36 +397,134 @@ export async function POST(request: NextRequest) {
 
     // Only update if the column exists
     if (entityColumns.has(columnName)) {
-      const { error: updateError } = await (adminClient
-        .from(entityTableName) as any)
-        .update({
-          [columnName]: imageRecord.id
-        })
-        .eq(entityIdColumn, entityId)
+      // Special handling for user profiles (profiles table)
+      if (entityType === 'user' && entityTableName === 'profiles') {
+        // First, check if profile exists
+        const { data: existingProfile, error: checkError } = await (adminClient
+          .from('profiles') as any)
+          .select('id, user_id, avatar_image_id')
+          .eq('user_id', entityId)
+          .maybeSingle()
 
-      if (updateError) {
-        console.error('❌ Error updating entity profile:', updateError)
-        console.error('   Entity:', { entityType, entityId, columnName })
-        console.error('   Image ID:', imageRecord.id)
-        console.error('   Cloudinary URL:', data.secure_url)
+        if (checkError && checkError.code !== 'PGRST116') {
+          console.error('❌ Error checking profile:', checkError)
+        }
+
+        if (!existingProfile) {
+          // Profile doesn't exist, create it with the avatar_image_id
+          console.log(`📝 Profile does not exist for user ${entityId}, creating profile with avatar_image_id...`)
+          const { data: newProfile, error: createError } = await (adminClient
+            .from('profiles') as any)
+            .insert({
+              user_id: entityId,
+              [columnName]: imageRecord.id,
+              role: 'user' // Default role
+            })
+            .select('id, user_id, avatar_image_id')
+            .single()
+
+          if (createError) {
+            console.error('❌ Error creating profile:', createError)
+            console.error('   Entity:', { entityType, entityId, columnName })
+            console.error('   Image ID:', imageRecord.id)
+            console.warn('⚠️ Profile creation failed, but image is saved in database')
+            return NextResponse.json({
+              success: true,
+              url: data.secure_url,
+              image_id: imageRecord.id,
+              public_id: data.public_id,
+              warning: `Image saved to database but profile creation failed: ${createError.message}`
+            })
+          }
+          
+          console.log(`✅ Profile created with avatar_image_id: ${newProfile.id}, ${columnName} = ${imageRecord.id}`)
+        } else {
+          // Profile exists, update it
+          console.log(`📝 Profile exists for user ${entityId}, updating ${columnName}...`)
+          const { data: updatedProfile, error: updateError } = await (adminClient
+            .from('profiles') as any)
+            .update({
+              [columnName]: imageRecord.id
+            })
+            .eq('user_id', entityId)
+            .select('id, user_id, avatar_image_id')
+            .single()
+
+          if (updateError) {
+            console.error('❌ Error updating profile:', updateError)
+            console.error('   Entity:', { entityType, entityId, columnName })
+            console.error('   Image ID:', imageRecord.id)
+            console.error('   Cloudinary URL:', data.secure_url)
+            console.warn('⚠️ Profile update failed, but image is saved in database')
+            return NextResponse.json({
+              success: true,
+              url: data.secure_url,
+              image_id: imageRecord.id,
+              public_id: data.public_id,
+              warning: `Image saved to database but profile update failed: ${updateError.message}`
+            })
+          }
+
+          if (!updatedProfile) {
+            console.error('❌ Profile update returned no rows - profile may not exist or user_id mismatch')
+            console.error('   Entity:', { entityType, entityId, columnName })
+            console.error('   Image ID:', imageRecord.id)
+            console.warn('⚠️ Profile update affected 0 rows, but image is saved in database')
+            return NextResponse.json({
+              success: true,
+              url: data.secure_url,
+              image_id: imageRecord.id,
+              public_id: data.public_id,
+              warning: `Image saved to database but profile update affected 0 rows (user_id may not match)`
+            })
+          }
+          
+          console.log(`✅ Profile updated: ${updatedProfile.id}, ${columnName} = ${imageRecord.id}`)
+        }
+      } else {
+        // For non-user entities, use the standard update
+        const { data: updatedEntity, error: updateError } = await (adminClient
+          .from(entityTableName) as any)
+          .update({
+            [columnName]: imageRecord.id
+          })
+          .eq(entityIdColumn, entityId)
+          .select('id')
+          .maybeSingle()
+
+        if (updateError) {
+          console.error('❌ Error updating entity profile:', updateError)
+          console.error('   Entity:', { entityType, entityId, columnName, entityTableName, entityIdColumn })
+          console.error('   Image ID:', imageRecord.id)
+          console.error('   Cloudinary URL:', data.secure_url)
+          console.warn('⚠️ Entity profile update failed, but image is saved in database')
+          return NextResponse.json({
+            success: true,
+            url: data.secure_url,
+            image_id: imageRecord.id,
+            public_id: data.public_id,
+            warning: `Image saved to database but entity profile update failed: ${updateError.message}`
+          })
+        }
+
+        if (!updatedEntity) {
+          console.warn(`⚠️ Entity update affected 0 rows - ${entityType} ${entityId} may not exist`)
+          console.warn('   Entity:', { entityType, entityId, columnName, entityTableName, entityIdColumn })
+          console.warn('   Image ID:', imageRecord.id)
+          return NextResponse.json({
+            success: true,
+            url: data.secure_url,
+            image_id: imageRecord.id,
+            public_id: data.public_id,
+            warning: `Image saved to database but entity update affected 0 rows (${entityType} ${entityId} may not exist)`
+          })
+        }
         
-        // Note: We don't rollback here because the image IS in the database
-        // The entity profile update is optional - the image record is the critical part
-        console.warn('⚠️ Entity profile update failed, but image is saved in database')
-        
-        // Still return success since the image was saved to database
-        return NextResponse.json({
-          success: true,
-          url: data.secure_url,
-          image_id: imageRecord.id,
-          public_id: data.public_id,
-          warning: `Image saved to database but entity profile update failed: ${updateError.message}`
-        })
+        console.log(`✅ Entity profile updated: ${entityType} ${entityId}, ${columnName} = ${imageRecord.id}`)
       }
-      
-      console.log(`✅ Entity profile updated: ${entityType} ${entityId}, ${columnName} = ${imageRecord.id}`)
     } else {
       console.warn(`Column '${columnName}' does not exist in '${entityTableName}' table, skipping entity update`)
+      console.warn(`   Available columns: ${Array.from(entityColumns).join(', ')}`)
       // Still return success since the image was uploaded and saved to images table
     }
 

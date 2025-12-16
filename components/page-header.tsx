@@ -93,7 +93,7 @@ export function PageHeader({ title, description }: PageHeaderProps) {
                   />
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 page-header__dropdown-content">
+            <DropdownMenuContent align="end" className="w-56 page-header__dropdown-content bg-popover">
                 <Link href={getProfileUrlFromUser(user)}>
                 <DropdownMenuItem className="page-header__dropdown-item">
                   <User className="mr-2 h-4 w-4" />
@@ -179,7 +179,7 @@ export function PageHeader({ title, description }: PageHeaderProps) {
 
       {/* Mobile Menu Sheet */}
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-        <SheetContent side="left" className="w-[300px] sm:w-[400px]">
+        <SheetContent side="left" className="w-[300px] sm:w-[400px] bg-background">
           <SheetHeader>
             <SheetTitle>Menu</SheetTitle>
           </SheetHeader>

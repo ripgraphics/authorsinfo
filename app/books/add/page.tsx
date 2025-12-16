@@ -1,13 +1,9 @@
-import { notFound, redirect } from "next/navigation"
-import Image from "next/image"
-import Link from "next/link"
+import { notFound } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getBookByISBN } from "@/lib/isbndb"
-import { addBookFromISBNDB } from "@/app/actions/add-book"
-import { BookOpen, CheckCircle } from "lucide-react"
 import { supabaseAdmin } from "@/lib/supabase/server"
-import { cleanSynopsis } from "@/utils/textUtils"
+import { AddBookClient } from "./AddBookClient"
 
 interface AddBookPageProps {
   searchParams: Promise<{
@@ -45,13 +41,9 @@ export default async function AddBookPage({ searchParams }: AddBookPageProps) {
     )
   }
 
-  // Fetch book data from ISBNDB
+  // Fetch book data from ISBNDB as fallback (client component will check sessionStorage first)
+  // This ensures the page works even if sessionStorage is cleared
   const bookData = await getBookByISBN(isbn)
-
-  if (!bookData) {
-    notFound()
-    return
-  }
 
   // Check if book already exists in database and get full details
   let existingBook = null
@@ -160,279 +152,13 @@ export default async function AddBookPage({ searchParams }: AddBookPageProps) {
     }
   }
 
-  // Destructure fields for later use (ensures non-nullable)
-  const {
-    title: bookTitle,
-    isbn: bookIsbn,
-    isbn13: bookIsbn13,
-    authors: bookAuthors,
-    publisher: bookPublisher,
-    publish_date: bookPublishDate,
-    image: bookImage,
-    synopsis: bookSynopsis,
-  } = bookData
-
-  // Clean the synopsis for display
-  const cleanedSynopsis = bookSynopsis ? cleanSynopsis(bookSynopsis) : null
-
-  // Function to handle adding the book to the database
-  async function addBook(formData: FormData): Promise<void> {
-    "use server"
-
-    const result = await addBookFromISBNDB({
-      title: bookTitle,
-      isbn: bookIsbn,
-      isbn13: bookIsbn13,
-      authors: bookAuthors,
-      publisher: bookPublisher,
-      publish_date: bookPublishDate,
-      image: bookImage,
-      synopsis: bookSynopsis,
-    })
-
-    if (result.success && result.bookId) {
-      redirect(`/books/${result.bookId}`)
-      return
-    }
-
-    // Error handling - in a real app, you'd want to show this error to the user
-    // For now, we'll just log it since form actions can't return error objects
-    console.error("Failed to add book:", result.error || "Unknown error")
-    return
-  }
-
   return (
-    <div className="space-y-6">
-      <div className="py-6">
-        <h1 className="text-3xl font-bold tracking-tight">Add Book to Library</h1>
-        <p className="text-muted-foreground mt-2">Review the book details and add it to your library</p>
-      </div>
-
-      <div className="max-w-4xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Book Cover */}
-          <div>
-            <Card className="overflow-hidden">
-              {(() => {
-                if (!existingBook) return null
-                const coverImage: any = existingBook.cover_image
-                const coverImageUrl = Array.isArray(coverImage) ? coverImage[0]?.url : coverImage?.url
-                if (!coverImageUrl) return null
-                return (
-                  <Link href={`/books/${existingBook.id}`}>
-                    <div className="w-full h-full cursor-pointer hover:opacity-90 transition-opacity">
-                      <Image
-                        src={coverImageUrl}
-                        alt={Array.isArray(coverImage) ? coverImage[0]?.alt_text || existingBook.title : coverImage?.alt_text || existingBook.title}
-                      width={400}
-                      height={600}
-                      className="w-full aspect-[2/3] object-cover"
-                    />
-                  </div>
-                </Link>
-                )
-              })() ?? (
-                <div className="w-full aspect-[2/3] bg-muted flex items-center justify-center">
-                  <BookOpen className="h-16 w-16 text-muted-foreground" />
-                </div>
-              )}
-            </Card>
-          </div>
-
-          {/* Book Details */}
-          <div className="md:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  {existingBook ? (
-                    <Link 
-                      href={`/books/${existingBook.id}`}
-                      className="hover:text-primary transition-colors cursor-pointer"
-                    >
-                      {existingBook.title}
-                    </Link>
-                  ) : (
-                    bookTitle
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {existingBook?.author ? (
-                  <div>
-                    <h3 className="font-medium">Author</h3>
-                    <Link 
-                      href={`/authors/${(() => {
-                        const author = existingBook.author as any
-                        return Array.isArray(author) ? author[0]?.id : author?.id
-                      })()}`}
-                      className="text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      {(() => {
-                        const author = existingBook.author as any
-                        return Array.isArray(author) ? author[0]?.name : author?.name
-                      })()}
-                    </Link>
-                  </div>
-                ) : bookAuthors && bookAuthors.length > 0 && (
-                  <div>
-                    <h3 className="font-medium">Author</h3>
-                    <p className="text-muted-foreground">{bookAuthors.join(", ")}</p>
-                  </div>
-                )}
-
-                {existingBook?.publisher ? (
-                  <div>
-                    <h3 className="font-medium">Publisher</h3>
-                    <Link 
-                      href={`/publishers/${(() => {
-                        const publisher = existingBook.publisher as any
-                        return Array.isArray(publisher) ? publisher[0]?.id : publisher?.id
-                      })()}`}
-                      className="text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      {(() => {
-                        const publisher = existingBook.publisher as any
-                        return Array.isArray(publisher) ? publisher[0]?.name : publisher?.name
-                      })()}
-                    </Link>
-                  </div>
-                ) : bookPublisher && (
-                  <div>
-                    <h3 className="font-medium">Publisher</h3>
-                    <p className="text-muted-foreground">{bookPublisher}</p>
-                  </div>
-                )}
-
-                {bookPublishDate && (
-                  <div>
-                    <h3 className="font-medium">Publication Date</h3>
-                    <p className="text-muted-foreground">{bookPublishDate}</p>
-                  </div>
-                )}
-
-                {bookIsbn && (
-                  <div>
-                    <h3 className="font-medium">ISBN</h3>
-                    <p className="text-muted-foreground">{bookIsbn}</p>
-                  </div>
-                )}
-
-                {bookIsbn13 && (
-                  <div>
-                    <h3 className="font-medium">ISBN-13</h3>
-                    <p className="text-muted-foreground">{bookIsbn13}</p>
-                  </div>
-                )}
-
-                {cleanedSynopsis && (
-                  <div>
-                    <h3 className="font-medium">Synopsis</h3>
-                    <div 
-                      className="text-muted-foreground prose prose-sm max-w-none"
-                      dangerouslySetInnerHTML={{ __html: cleanedSynopsis }}
-                    />
-                  </div>
-                )}
-
-                {existingBook ? (
-                  <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <div>
-                      <p className="text-green-800 font-medium">Book Already in System</p>
-                      <p className="text-green-600 text-sm">This book is already in our system.</p>
-                    </div>
-                  </div>
-                ) : (
-                  <form action={addBook}>
-                    <Button type="submit" className="w-full mt-4">
-                      Add to Library
-                    </Button>
-                  </form>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Related Books Sections */}
-        {existingBook && (otherBooksByAuthor.length > 0 || otherBooksByPublisher.length > 0) && (
-          <div className="space-y-8">
-            {/* Other Books by Author */}
-            {otherBooksByAuthor.length > 0 && (
-              <div>
-                <h2 className="text-2xl font-bold tracking-tight mb-4">
-                  Other Books by {(() => {
-                    const author = existingBook.author as any
-                    return Array.isArray(author) ? author[0]?.name : author?.name
-                  })()}
-                </h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                  {otherBooksByAuthor.map((book) => (
-                    <Link key={book.id} href={`/books/${book.id}`}>
-                      <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
-                        <div className="aspect-[2/3] relative">
-                          {book.cover_image?.url ? (
-                            <Image
-                              src={book.cover_image.url}
-                              alt={book.cover_image.alt_text || book.title}
-                              fill
-                              className="object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-muted flex items-center justify-center">
-                              <BookOpen className="h-8 w-8 text-muted-foreground" />
-                            </div>
-                          )}
-                        </div>
-                        <CardContent className="p-3">
-                          <p className="text-sm font-medium line-clamp-2">{book.title}</p>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Other Books by Publisher */}
-            {otherBooksByPublisher.length > 0 && (
-              <div>
-                <h2 className="text-2xl font-bold tracking-tight mb-4">
-                  Other Books by {(() => {
-                    const publisher = existingBook.publisher as any
-                    return Array.isArray(publisher) ? publisher[0]?.name : publisher?.name
-                  })()}
-                </h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                  {otherBooksByPublisher.map((book: any) => (
-                    <Link key={book.id} href={`/books/${book.id}`}>
-                      <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
-                        <div className="aspect-[2/3] relative">
-                          {book.cover_image?.url ? (
-                            <Image
-                              src={book.cover_image.url}
-                              alt={book.cover_image.alt_text || book.title}
-                              fill
-                              className="object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-muted flex items-center justify-center">
-                              <BookOpen className="h-8 w-8 text-muted-foreground" />
-                            </div>
-                          )}
-                        </div>
-                        <CardContent className="p-3">
-                          <p className="text-sm font-medium line-clamp-2">{book.title}</p>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
+    <AddBookClient
+      isbn={isbn}
+      serverBookData={bookData}
+      existingBook={existingBook}
+      otherBooksByAuthor={otherBooksByAuthor}
+      otherBooksByPublisher={otherBooksByPublisher}
+    />
   )
 }

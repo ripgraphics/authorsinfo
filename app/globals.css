@@ -681,6 +681,48 @@ button:not([class*="ghost"]):not([class*="outline"]):not([class*="link"]):not([c
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
   }
+  
+  /* Fix for Tailwind 4 - Ensure background colors work for all Radix UI components */
+  /* Target dropdowns, popovers, hover cards, etc - use popover color */
+  [data-radix-dropdown-menu-content],
+  [data-radix-popover-content],
+  [data-radix-hover-card-content],
+  [data-radix-context-menu-content],
+  [data-radix-select-content],
+  [data-radix-menubar-content] {
+    background-color: hsl(var(--popover)) !important;
+    color: hsl(var(--popover-foreground)) !important;
+  }
+  
+  /* Dialog/Modal specific - use background color */
+  [data-radix-dialog-content],
+  [role="dialog"] {
+    background-color: hsl(var(--background)) !important;
+    color: hsl(var(--foreground)) !important;
+  }
+  
+  /* Sheet/Mobile Menu specific - use background color */
+  [data-radix-sheet-content] {
+    background-color: hsl(var(--background)) !important;
+    color: hsl(var(--foreground)) !important;
+  }
+  
+  /* Ensure Tailwind utility classes work - Force background colors */
+  /* These must come after the data attribute rules to avoid conflicts */
+  .bg-background,
+  [class*="bg-background"]:not([data-radix-dropdown-menu-content]):not([data-radix-popover-content]) {
+    background-color: hsl(var(--background)) !important;
+  }
+  
+  .bg-popover,
+  [class*="bg-popover"] {
+    background-color: hsl(var(--popover)) !important;
+  }
+  
+  /* Fix for components that use these classes but aren't getting the color */
+  .bg-card {
+    background-color: hsl(var(--card)) !important;
+  }
 }
 
 /* Image Cropper Styles */

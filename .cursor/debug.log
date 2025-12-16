@@ -4172,3 +4172,283 @@
 {"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"OK","ok":true},"timestamp":1765837480954,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
 {"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"OK","ok":true},"timestamp":1765837480963,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
 {"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"OK","ok":true},"timestamp":1765837480997,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765840384271,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765840387345,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841418455,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841418461,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841418459,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841418462,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841418476,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841418478,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841418479,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841418481,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841418483,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841418464,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841418473,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841418471,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841418804,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841418822,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841418836,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841418904,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841418925,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841418926,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841418928,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841418945,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841418956,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841418979,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841418990,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841419092,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841483814,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841483817,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841483815,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841483817,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841483819,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841483821,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841483826,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841483820,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841483823,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841483824,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841483827,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841483828,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841484141,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841484216,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841484245,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841484269,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841484279,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841484284,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841484285,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841484286,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841484305,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841484307,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841484320,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841484350,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841499230,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841499237,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841499232,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841499238,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841499231,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841499238,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841499233,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841499235,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841499235,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841499236,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841499234,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765841499237,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841502161,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841502162,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841502184,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841502195,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841502219,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841502221,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841502221,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841502235,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841502245,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841502246,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841502251,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765841502285,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765843018644,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765843018661,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765843018663,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765843018665,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765843018667,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765843018669,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765843018649,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765843018651,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765843018652,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765843018654,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765843018660,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765843018658,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765843019071,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765843019099,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765843019107,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765843019108,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765843019216,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765843019933,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765843019974,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765843020171,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765843020204,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765843020210,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765843020209,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765843020303,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765843694006,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765843694012,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765843694010,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765843694013,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765843694017,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765843694020,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765843694013,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765843694022,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765843694024,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765843694024,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765843694025,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765843694026,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765843694367,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765843694471,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765843694502,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765843694503,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765843694529,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765843694531,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765843694542,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765843695313,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765843695342,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765843695401,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765843695401,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765843695445,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765844510068,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"auth-users/route.ts:156","message":"getUser result","data":{"hasUser":true,"hasError":false,"errorString":"null","errorKeys":[]},"timestamp":1765844511446,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"OK","ok":true},"timestamp":1765844514099,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765844538030,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"auth-users/route.ts:156","message":"getUser result","data":{"hasUser":true,"hasError":false,"errorString":"null","errorKeys":[]},"timestamp":1765844540889,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"OK","ok":true},"timestamp":1765844543549,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765844603117,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765844603118,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765844603119,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765844603119,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765844603120,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765844603121,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765844603121,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765844603122,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765844603122,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765844603123,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765844603123,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765844603123,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"auth-users/route.ts:156","message":"getUser result","data":{"hasUser":true,"hasError":false,"errorString":"null","errorKeys":[]},"timestamp":1765844606015,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"auth-users/route.ts:156","message":"getUser result","data":{"hasUser":true,"hasError":false,"errorString":"null","errorKeys":[]},"timestamp":1765844606085,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"auth-users/route.ts:156","message":"getUser result","data":{"hasUser":true,"hasError":false,"errorString":"null","errorKeys":[]},"timestamp":1765844606088,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"auth-users/route.ts:156","message":"getUser result","data":{"hasUser":true,"hasError":false,"errorString":"null","errorKeys":[]},"timestamp":1765844606091,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"auth-users/route.ts:156","message":"getUser result","data":{"hasUser":true,"hasError":false,"errorString":"null","errorKeys":[]},"timestamp":1765844606100,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"auth-users/route.ts:156","message":"getUser result","data":{"hasUser":true,"hasError":false,"errorString":"null","errorKeys":[]},"timestamp":1765844606174,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"OK","ok":true},"timestamp":1765844606358,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"OK","ok":true},"timestamp":1765844606449,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"OK","ok":true},"timestamp":1765844606451,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"OK","ok":true},"timestamp":1765844606457,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"auth-users/route.ts:156","message":"getUser result","data":{"hasUser":true,"hasError":false,"errorString":"null","errorKeys":[]},"timestamp":1765844606516,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"OK","ok":true},"timestamp":1765844606545,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"auth-users/route.ts:156","message":"getUser result","data":{"hasUser":true,"hasError":false,"errorString":"null","errorKeys":[]},"timestamp":1765844606647,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"auth-users/route.ts:156","message":"getUser result","data":{"hasUser":true,"hasError":false,"errorString":"null","errorKeys":[]},"timestamp":1765844606663,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"auth-users/route.ts:156","message":"getUser result","data":{"hasUser":true,"hasError":false,"errorString":"null","errorKeys":[]},"timestamp":1765844606670,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"auth-users/route.ts:156","message":"getUser result","data":{"hasUser":true,"hasError":false,"errorString":"null","errorKeys":[]},"timestamp":1765844606674,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"auth-users/route.ts:156","message":"getUser result","data":{"hasUser":true,"hasError":false,"errorString":"null","errorKeys":[]},"timestamp":1765844606702,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"OK","ok":true},"timestamp":1765844606786,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"OK","ok":true},"timestamp":1765844606932,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"auth-users/route.ts:156","message":"getUser result","data":{"hasUser":true,"hasError":false,"errorString":"null","errorKeys":[]},"timestamp":1765844606960,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"OK","ok":true},"timestamp":1765844606966,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"OK","ok":true},"timestamp":1765844606969,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"OK","ok":true},"timestamp":1765844606975,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"OK","ok":true},"timestamp":1765844606982,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"OK","ok":true},"timestamp":1765844607252,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765844884549,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765844884555,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765844884554,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765844884557,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765844884561,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765844884562,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765844884563,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765844884564,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765844884558,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765844884565,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765844884566,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765844884567,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765844884961,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765844884996,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765844884998,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765844884999,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765844885004,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765844885032,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765844885034,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765844885036,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765844885035,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765844885052,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765844885054,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765844885092,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765845544661,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765845544663,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765845544664,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765845544665,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765845544665,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765845544667,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765845544668,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765845544668,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765845544669,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765845544670,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765845544670,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765845544671,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765845548045,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765845548499,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765845548593,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765845548711,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765845548742,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765845548741,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765845548759,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765845548782,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765845548783,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765845548805,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765845548805,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765845548837,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765845585223,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765845585238,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765845585239,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765845585241,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765845585225,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765845585226,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765845585228,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765845585230,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765845585233,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765845585232,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765845585234,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765845585236,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765845585623,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765845585633,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765845585634,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765845585646,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765845585655,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765845585680,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765845585677,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765845585688,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765845585695,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765845585709,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765845585709,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765845585730,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765846472433,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765846472435,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765846472436,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765846472436,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765846472440,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765846472441,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765846472437,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765846472442,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765846472446,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765846472444,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765846472447,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765846472445,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765846472838,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765846473143,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765846473757,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765846473792,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765846473790,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765846473829,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765846473839,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765846473841,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765846473846,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765846473921,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765846473968,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"","ok":true},"timestamp":1765846474042,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765846563231,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765846563233,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765846563232,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765846563233,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765846563233,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"auth-users/route.ts:156","message":"getUser result","data":{"hasUser":true,"hasError":false,"errorString":"null","errorKeys":[]},"timestamp":1765846566069,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"auth-users/route.ts:156","message":"getUser result","data":{"hasUser":true,"hasError":false,"errorString":"null","errorKeys":[]},"timestamp":1765846566117,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"auth-users/route.ts:156","message":"getUser result","data":{"hasUser":true,"hasError":false,"errorString":"null","errorKeys":[]},"timestamp":1765846566125,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"auth-users/route.ts:156","message":"getUser result","data":{"hasUser":true,"hasError":false,"errorString":"null","errorKeys":[]},"timestamp":1765846566146,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"auth-users/route.ts:156","message":"getUser result","data":{"hasUser":true,"hasError":false,"errorString":"null","errorKeys":[]},"timestamp":1765846566166,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"auth-users/route.ts:156","message":"getUser result","data":{"hasUser":true,"hasError":false,"errorString":"null","errorKeys":[]},"timestamp":1765846566226,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"OK","ok":true},"timestamp":1765846566452,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"OK","ok":true},"timestamp":1765846566465,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"OK","ok":true},"timestamp":1765846566476,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"OK","ok":true},"timestamp":1765846566534,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"OK","ok":true},"timestamp":1765846566601,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"useAuth.ts:32","message":"makeRequest called","data":{"attempt":0},"timestamp":1765846692113,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"auth-users/route.ts:156","message":"getUser result","data":{"hasUser":true,"hasError":false,"errorString":"null","errorKeys":[]},"timestamp":1765846692268,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"useAuth.ts:40","message":"API response received","data":{"status":200,"statusText":"OK","ok":true},"timestamp":1765846697121,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}

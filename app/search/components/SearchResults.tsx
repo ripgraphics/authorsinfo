@@ -9,9 +9,12 @@ import { ReusableSearch } from '@/components/ui/reusable-search'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import Link from 'next/link'
 import Image from 'next/image'
-import { BookOpen, User, Building, Plus } from 'lucide-react'
+import { BookOpen, User, Building, Plus, Loader2 } from 'lucide-react'
+import { bulkAddBooksFromSearch } from '@/app/actions/bulk-add-books-from-search'
+import { useToast } from '@/hooks/use-toast'
 
 interface SearchResultsProps {
   initialBooks: any[]
@@ -30,6 +33,9 @@ export function SearchResults({
   initialQuery,
   initialType,
 }: SearchResultsProps) {
+  const [selectedBooks, setSelectedBooks] = useState<Set<number>>(new Set())
+  const [isAdding, setIsAdding] = useState(false)
+  const { toast } = useToast()
   const [searchQuery, setSearchQuery] = useState(initialQuery)
   const [activeTab, setActiveTab] = useState(initialType)
 
@@ -261,35 +267,125 @@ export function SearchResults({
           </TabsContent>
 
           <TabsContent value="books" className="mt-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
-              {isbndbBooks.map((book, index) => (
-                <Link
-                  key={`isbndb-${index}`}
-                  href={`/books/add?isbn=${book.isbn13 || book.isbn}`}
-                  className="block relative group"
+            {isbndbBooks.length > 0 && (
+              <div className="mb-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    checked={selectedBooks.size === isbndbBooks.length && isbndbBooks.length > 0}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setSelectedBooks(new Set(isbndbBooks.map((_, i) => i)))
+                      } else {
+                        setSelectedBooks(new Set())
+                      }
+                    }}
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    {selectedBooks.size} of {isbndbBooks.length} selected
+                  </span>
+                </div>
+                <Button
+                    onClick={async () => {
+                      if (selectedBooks.size === 0) {
+                        toast({
+                          title: "No books selected",
+                          description: "Please select at least one book to add",
+                          variant: "destructive",
+                        })
+                        return
+                      }
+                      setIsAdding(true)
+                      try {
+                        const selectedBookData = Array.from(selectedBooks).map(
+                          (index) => isbndbBooks[index]
+                        )
+                        const result = await bulkAddBooksFromSearch(selectedBookData)
+                        
+                        if (result.success) {
+                          toast({
+                            title: "Books added successfully",
+                            description: `Successfully added ${result.added} book${result.added !== 1 ? "s" : ""}${result.duplicates > 0 ? ` (${result.duplicates} duplicate${result.duplicates !== 1 ? "s" : ""} skipped)` : ""}`,
+                          })
+                          // Clear selection
+                          setSelectedBooks(new Set())
+                          // Refresh the page to show updated results
+                          window.location.reload()
+                        } else {
+                          toast({
+                            title: "Failed to add books",
+                            description: result.errorDetails.join(", "),
+                            variant: "destructive",
+                          })
+                        }
+                      } catch (error) {
+                        toast({
+                          title: "Error",
+                          description: "An error occurred while adding books",
+                          variant: "destructive",
+                        })
+                        console.error("Error adding books:", error)
+                      } finally {
+                        setIsAdding(false)
+                      }
+                    }}
+                  disabled={isAdding || selectedBooks.size === 0}
+                  className="bg-blue-600 hover:bg-blue-700"
                 >
-                  <Card className="overflow-hidden h-full transition-transform hover:scale-105">
-                    <div className="relative w-full" style={{ aspectRatio: '2/3' }}>
-                      {book.image ? (
-                        <Image src={book.image || '/placeholder.svg'} alt={book.title} fill className="object-cover" />
-                      ) : (
-                        <div className="w-full h-full bg-muted flex items-center justify-center">
-                          <BookOpen className="h-12 w-12 text-muted-foreground" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-3 text-center">
-                      <h3 className="font-medium text-sm line-clamp-1">{book.title}</h3>
-                    </div>
-                  </Card>
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button className="bg-blue-600 hover:bg-blue-700">
+                  {isAdding ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Adding...
+                    </>
+                  ) : (
+                    <>
                       <Plus className="h-4 w-4 mr-2" />
-                      Add to Library
-                    </Button>
+                      Add Selected ({selectedBooks.size})
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+              {isbndbBooks.map((book, index) => {
+                const isSelected = selectedBooks.has(index)
+                
+                return (
+                  <div
+                    key={`isbndb-${index}`}
+                    className="block relative group"
+                  >
+                    <Card className={`overflow-hidden h-full transition-all ${isSelected ? 'ring-2 ring-blue-500' : ''}`}>
+                      <div className="absolute top-2 left-2 z-10">
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={(checked) => {
+                            const newSelected = new Set(selectedBooks)
+                            if (checked) {
+                              newSelected.add(index)
+                            } else {
+                              newSelected.delete(index)
+                            }
+                            setSelectedBooks(newSelected)
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+                      <div className="relative w-full" style={{ aspectRatio: '2/3' }}>
+                        {book.image ? (
+                          <Image src={book.image || '/placeholder.svg'} alt={book.title} fill className="object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-muted flex items-center justify-center">
+                            <BookOpen className="h-12 w-12 text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-3 text-center">
+                        <h3 className="font-medium text-sm line-clamp-1">{book.title}</h3>
+                      </div>
+                    </Card>
                   </div>
-                </Link>
-              ))}
+                )
+              })}
 
               {filteredBooks.map((book) => (
                 <Link href={`/books/${book.id}`} key={book.id} className="block">

@@ -4,6 +4,53 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 import { isValidCloudinaryUrl } from '@/lib/utils/image-url-validation'
 import crypto from 'crypto'
 
+const normalizeImageType = (imageType: string | null, originalType: string | null) => {
+  if (originalType === 'bookCover' || originalType === 'entityHeaderCover') {
+    return 'cover'
+  }
+
+  if (!imageType) {
+    return null
+  }
+
+  const normalized = imageType.toLowerCase()
+  if (normalized === 'book_cover' || normalized === 'entity_cover') {
+    return 'cover'
+  }
+  return normalized
+}
+
+const deriveImageColumnName = (entityType: string, normalizedImageType: string | null) => {
+  if (!normalizedImageType) {
+    return null
+  }
+
+  const overrides: Record<string, Record<string, string>> = {
+    user: {
+      avatar: 'avatar_image_id',
+      cover: 'cover_image_id'
+    },
+    author: {
+      avatar: 'author_image_id',
+      cover: 'cover_image_id'
+    },
+    publisher: {
+      avatar: 'publisher_image_id',
+      cover: 'cover_image_id'
+    },
+    book: {
+      cover: 'cover_image_id'
+    }
+  }
+
+  const normalizedType = overrides[entityType]?.[normalizedImageType]
+  if (normalizedType) {
+    return normalizedType
+  }
+
+  return `${normalizedImageType}_image_id`
+}
+
 // Helper function to delete image from Cloudinary if database operations fail
 async function deleteFromCloudinary(publicId: string): Promise<void> {
   try {
@@ -335,65 +382,12 @@ export async function POST(request: NextRequest) {
 
     console.log(`✅ Database record verified: ${verifyRecord.id}, URL: ${verifyRecord.url}`)
 
-    // Check what image columns actually exist in the entity table before updating
-    // Map entity type to actual table name (users -> profiles)
+    // Map entity type to actual table name (users -> profiles) and id column
     const entityTableName = entityType === 'user' ? 'profiles' : `${entityType}s`
     const entityIdColumn = entityType === 'user' ? 'user_id' : 'id'
-    
-    // Query information_schema.columns via service role to gather available columns
-    const { data: columnRows, error: columnError } = await adminClient
-      .from('information_schema.columns')
-      .select('column_name')
-      .eq('table_name', entityTableName)
-      .eq('table_schema', 'public')
-
-    const entityColumns = new Set<string>()
-    if (!columnError && columnRows) {
-      columnRows.forEach((row: any) => {
-        if (row?.column_name) {
-          entityColumns.add(row.column_name)
-        }
-      })
-    }
-
-    // Fallback: use a sample row if information_schema returned nothing
-    if (entityColumns.size === 0) {
-      const { data: sampleRow } = await (adminClient
-        .from(entityTableName) as any)
-        .select('*')
-        .limit(1)
-        .maybeSingle()
-
-      if (sampleRow) {
-        Object.keys(sampleRow).forEach((column) => entityColumns.add(column))
-      }
-    }
-    
-    // Map imageType to actual column names that might exist
-    // For books: 'cover' -> 'cover_image_id', 'avatar' might not exist
-    // For authors: 'cover' -> 'cover_image_id', 'avatar' -> 'author_image_id'
-    // For users (profiles): 'cover' -> 'cover_image_id', 'avatar' -> 'avatar_image_id'
-    let columnName = `${imageType}_image_id`
-    
-    // Handle special cases for different entity types
-    if (entityType === 'book' && imageType === 'avatar') {
-      // Books might not have avatar_image_id, skip update if it doesn't exist
-      if (!entityColumns.has('avatar_image_id')) {
-        console.warn(`Column 'avatar_image_id' does not exist in '${entityTableName}' table, skipping entity update`)
-        // Still return success since the image was uploaded and saved
-        return NextResponse.json({
-          success: true,
-          url: data.secure_url,
-          image_id: imageRecord.id,
-          public_id: data.public_id,
-          message: 'Image uploaded successfully (entity profile not updated - column does not exist)'
-        })
-      }
-    } else if (entityType === 'author' && imageType === 'avatar') {
-      columnName = 'author_image_id' // Authors use author_image_id for avatars
-    } else if (entityType === 'publisher' && imageType === 'avatar') {
-      columnName = 'publisher_image_id' // Publishers use publisher_image_id for avatars
-    }
+    const normalizedImageType = normalizeImageType(imageType, originalType)
+    const columnName = deriveImageColumnName(entityType, normalizedImageType)
+    const entityWarnings: string[] = []
 
     // Only update if the column exists
     if (entityColumns.has(columnName)) {

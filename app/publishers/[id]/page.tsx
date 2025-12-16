@@ -45,8 +45,7 @@ async function getPublisherBooks(publisherId: string) {
     .select(`
       id,
       title,
-      cover_image:cover_image_id(id, url, alt_text),
-      original_image_url
+      cover_image:cover_image_id(id, url, alt_text)
     `)
     .eq("publisher_id", publisherId)
     .order("title")
@@ -57,18 +56,18 @@ async function getPublisherBooks(publisherId: string) {
     throw new Error(`Failed to fetch publisher books: ${error.message}`)
   }
 
-  // Process books to include cover image URL - same approach as books page
+  // Process books to include cover image URL - ONLY from Cloudinary (no fallback to original_image_url)
   const bookRows = (books ?? []) as any[]
   return bookRows.map((book) => {
-    // Determine the cover image URL exactly like the books page does
+    // Determine the cover image URL - ONLY from Cloudinary
+    // If Cloudinary image is missing, show nothing (so we know it's broken)
     let coverImageUrl = null
     if (book.cover_image?.url) {
       coverImageUrl = book.cover_image.url
     } else if (book.cover_image_url) {
       coverImageUrl = book.cover_image_url
-    } else if (book.original_image_url) {
-      coverImageUrl = book.original_image_url
     }
+    // NO fallback to original_image_url - images table is source of truth
 
     return {
       id: book.id,

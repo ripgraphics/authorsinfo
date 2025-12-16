@@ -389,8 +389,18 @@ export async function POST(request: NextRequest) {
     const columnName = deriveImageColumnName(entityType, normalizedImageType)
     const entityWarnings: string[] = []
 
-    // Only update if the column exists
-    if (entityColumns.has(columnName)) {
+    // Get actual schema columns from entity table by querying a sample row
+    // (information_schema is not accessible via PostgREST)
+    const { data: sampleEntityRow } = await (adminClient
+      .from(entityTableName) as any)
+      .select('*')
+      .limit(1)
+      .maybeSingle()
+
+    const entityColumns = new Set(sampleEntityRow ? Object.keys(sampleEntityRow) : [])
+
+    // Only update if the column exists and columnName is not null
+    if (columnName && entityColumns.has(columnName)) {
       // Special handling for user profiles (profiles table)
       if (entityType === 'user' && entityTableName === 'profiles') {
         // First, check if profile exists
@@ -407,13 +417,16 @@ export async function POST(request: NextRequest) {
         if (!existingProfile) {
           // Profile doesn't exist, create it with the avatar_image_id
           console.log(`📝 Profile does not exist for user ${entityId}, creating profile with avatar_image_id...`)
+          const insertData: Record<string, any> = {
+            user_id: entityId,
+            role: 'user' // Default role
+          }
+          if (columnName) {
+            insertData[columnName] = imageRecord.id
+          }
           const { data: newProfile, error: createError } = await (adminClient
             .from('profiles') as any)
-            .insert({
-              user_id: entityId,
-              [columnName]: imageRecord.id,
-              role: 'user' // Default role
-            })
+            .insert(insertData)
             .select('id, user_id, avatar_image_id')
             .single()
 
@@ -435,11 +448,13 @@ export async function POST(request: NextRequest) {
         } else {
           // Profile exists, update it
           console.log(`📝 Profile exists for user ${entityId}, updating ${columnName}...`)
+          const updateData: Record<string, any> = {}
+          if (columnName) {
+            updateData[columnName] = imageRecord.id
+          }
           const { data: updatedProfile, error: updateError } = await (adminClient
             .from('profiles') as any)
-            .update({
-              [columnName]: imageRecord.id
-            })
+            .update(updateData)
             .eq('user_id', entityId)
             .select('id, user_id, avatar_image_id')
             .single()
@@ -477,11 +492,13 @@ export async function POST(request: NextRequest) {
         }
       } else {
         // For non-user entities, use the standard update
+        const updateData: Record<string, any> = {}
+        if (columnName) {
+          updateData[columnName] = imageRecord.id
+        }
         const { data: updatedEntity, error: updateError } = await (adminClient
           .from(entityTableName) as any)
-          .update({
-            [columnName]: imageRecord.id
-          })
+          .update(updateData)
           .eq(entityIdColumn, entityId)
           .select('id')
           .maybeSingle()
@@ -517,7 +534,11 @@ export async function POST(request: NextRequest) {
         console.log(`✅ Entity profile updated: ${entityType} ${entityId}, ${columnName} = ${imageRecord.id}`)
       }
     } else {
-      console.warn(`Column '${columnName}' does not exist in '${entityTableName}' table, skipping entity update`)
+      if (columnName) {
+        console.warn(`Column '${columnName}' does not exist in '${entityTableName}' table, skipping entity update`)
+      } else {
+        console.warn(`Column name is null for entity type '${entityType}', skipping entity update`)
+      }
       console.warn(`   Available columns: ${Array.from(entityColumns).join(', ')}`)
       // Still return success since the image was uploaded and saved to images table
     }

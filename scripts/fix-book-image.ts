@@ -49,11 +49,13 @@ async function fixBookImage() {
   })
 
   // Check cover_image relation
-  if (book.cover_image) {
+  // Handle both array and single object responses
+  const coverImage = Array.isArray(book.cover_image) ? book.cover_image[0] : book.cover_image
+  if (coverImage) {
     console.log('✅ Cover image relation exists:', {
-      id: book.cover_image.id,
-      url: book.cover_image.url,
-      alt_text: book.cover_image.alt_text,
+      id: coverImage.id,
+      url: coverImage.url,
+      alt_text: coverImage.alt_text,
     })
   } else {
     console.log('❌ No cover_image relation found')
@@ -66,7 +68,7 @@ async function fixBookImage() {
     return
   }
 
-  if (!book.cover_image_id || !book.cover_image) {
+  if (!book.cover_image_id || !coverImage) {
     console.log('\n🔧 Fixing image...\n')
 
     try {
@@ -176,9 +178,9 @@ async function fixBookImage() {
     console.log('\n✅ Book already has cover image linked')
     
     // Verify Cloudinary
-    if (book.cover_image.url && book.cover_image.url.includes('cloudinary.com')) {
-      const publicId = book.cover_image.metadata?.cloudinary_public_id || 
-        book.cover_image.url.split('/').slice(-2).join('/').replace(/\.[^/.]+$/, '')
+    if (coverImage?.url && coverImage.url.includes('cloudinary.com')) {
+      const publicId = coverImage.metadata?.cloudinary_public_id || 
+        coverImage.url.split('/').slice(-2).join('/').replace(/\.[^/.]+$/, '')
       
       try {
         const resource = await cloudinary.api.resource(publicId)

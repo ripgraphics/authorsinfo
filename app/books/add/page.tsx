@@ -50,7 +50,7 @@ export default async function AddBookPage({ searchParams }: AddBookPageProps) {
   let otherBooksByAuthor: any[] = []
   let otherBooksByPublisher: any[] = []
   
-  if (bookData.isbn) {
+  if (bookData?.isbn) {
     const { data } = await supabaseAdmin
       .from("books")
       .select(`
@@ -63,7 +63,7 @@ export default async function AddBookPage({ searchParams }: AddBookPageProps) {
         publisher_id,
         publisher:publisher_id(id, name)
       `)
-      .eq("isbn10", bookData.isbn)
+      .eq("isbn10", bookData.isbn!)
       .single()
     if (data) {
       existingBook = data
@@ -100,7 +100,7 @@ export default async function AddBookPage({ searchParams }: AddBookPageProps) {
         if (publisherBooks) otherBooksByPublisher = publisherBooks
       }
     }
-  } else if (bookData.isbn13) {
+  } else if (bookData?.isbn13) {
     const { data } = await supabaseAdmin
       .from("books")
       .select(`
@@ -113,7 +113,7 @@ export default async function AddBookPage({ searchParams }: AddBookPageProps) {
         publisher_id,
         publisher:publisher_id(id, name)
       `)
-      .eq("isbn13", bookData.isbn13)
+      .eq("isbn13", bookData.isbn13!)
       .single()
     if (data) {
       existingBook = data

@@ -40,7 +40,9 @@ export async function GET(
     }
 
     // Get original_image_url from images table
-    const originalImageUrl = book.cover_image?.original_image_url
+    // cover_image can be an array from the relation, so handle both cases
+    const coverImage = Array.isArray(book.cover_image) ? book.cover_image[0] : book.cover_image
+    const originalImageUrl = coverImage?.original_image_url
 
     const diagnostics: any = {
       book: {
@@ -50,7 +52,7 @@ export async function GET(
         isbn10: book.isbn10,
         cover_image_id: book.cover_image_id,
       },
-      cover_image_relation: book.cover_image,
+      cover_image_relation: coverImage,
       issues: [],
       fixes: [],
     }

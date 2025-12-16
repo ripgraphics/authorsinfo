@@ -17,7 +17,12 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Author's Info",
   description: "A social platform for book lovers",
-  generator: 'v0.dev'
+  generator: 'v0.dev',
+  icons: {
+    icon: '/images/authorsinfo-icon.svg',
+    shortcut: '/images/authorsinfo-icon.svg',
+    apple: '/images/authorsinfo-icon.svg',
+  },
 }
 
 export default function RootLayout({

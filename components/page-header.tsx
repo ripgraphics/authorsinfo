@@ -45,7 +45,10 @@ export function PageHeader({ title, description }: PageHeaderProps) {
   }
 
   return (
-    <header className="page-header sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
+    <header 
+      className="page-header sticky top-0 z-50 w-full border-b bg-background backdrop-blur supports-[backdrop-filter]:bg-background/95"
+      style={{ backgroundColor: 'hsl(var(--background))' }}
+    >
       <div className="container mx-auto flex h-16 items-center justify-between px-4 max-w-7xl">
         {/* Left section - Logo and Navigation */}
         <div className="page-header__left flex items-center gap-4 md:gap-6 lg:gap-10">

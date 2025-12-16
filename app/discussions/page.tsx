@@ -39,21 +39,23 @@ interface DiscussionsPageProps {
 // Function to get unique discussion categories
 async function getUniqueCategories() {
   try {
+    // Use category_id instead of category (the column doesn't exist as 'category')
+    // First try to get categories via category_id join, if that column exists
     const { data, error } = await supabaseAdmin
       .from("discussions")
-      .select("category")
-      .not("category", "is", null)
-      .order("category")
+      .select("category_id")
+      .not("category_id", "is", null)
 
     if (error) {
+      // If category_id doesn't work either, return empty array
       console.error("Error fetching discussion categories:", error)
       return []
     }
 
-    // Extract unique categories
-    const uniqueCategories = Array.from(new Set(data.map((item) => item.category).filter(Boolean)))
+    // Extract unique category IDs
+    const uniqueCategoryIds = Array.from(new Set(data.map((item) => item.category_id).filter(Boolean)))
 
-    return uniqueCategories
+    return uniqueCategoryIds
   } catch (error) {
     console.error("Error fetching categories:", error)
     return []
@@ -82,9 +84,9 @@ async function DiscussionsList({
     query = query.ilike("title", `%${search}%`)
   }
 
-  // Apply category filter if provided
+  // Apply category filter if provided (use category_id instead of category)
   if (category && category !== "all") {
-    query = query.eq("category", category)
+    query = query.eq("category_id", category)
   }
 
   // Apply sorting
@@ -120,7 +122,7 @@ async function DiscussionsList({
   }
 
   if (category && category !== "all") {
-    countQuery = countQuery.eq("category", category)
+    countQuery = countQuery.eq("category_id", category)
   }
 
   const { count, error: countError } = await countQuery
@@ -159,8 +161,8 @@ async function DiscussionsList({
                 </div>
                 <CardContent className="p-3">
                   <h3 className="font-medium text-sm line-clamp-1">{discussion.title || "Untitled"}</h3>
-                  {discussion.category && (
-                    <p className="text-sm text-muted-foreground line-clamp-1">{discussion.category}</p>
+                  {discussion.category_id && (
+                    <p className="text-sm text-muted-foreground line-clamp-1">{discussion.category_id}</p>
                   )}
                   {discussion.created_at && (
                     <p className="text-xs text-muted-foreground mt-1">

@@ -308,7 +308,7 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
                 >
                   <div className="grid grid-cols-3 gap-2">
                     {mockPhotos.slice(0, 6).map((photoUrl, index) => (
-                      <div key={index} className="aspect-square relative rounded overflow-hidden">
+                      <div key={index} className="aspect-square relative rounded-sm overflow-hidden">
                         <Image
                           src={photoUrl || "/placeholder.svg"}
                           alt={`Photo ${index + 1}`}
@@ -364,7 +364,7 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
             <div className="profile-page__tab-content">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-1">
-                  <div className="bg-card rounded-lg shadow overflow-hidden sticky top-20 border">
+                  <div className="bg-card rounded-lg shadow-sm overflow-hidden sticky top-20 border">
                     <div className="p-4 border-b">
                       <h2 className="text-lg font-medium">About</h2>
                     </div>

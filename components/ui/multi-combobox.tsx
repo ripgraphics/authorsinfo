@@ -183,7 +183,7 @@ export function MultiCombobox({
                 {label}
                 <button
                   type="button"
-                  className="ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  className="ml-1 rounded-full outline-none ring-offset-background focus:ring-1 focus:ring-ring/25 focus:ring-offset-0"
                   onClick={() => handleRemove(value)}
                 >
                   <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />

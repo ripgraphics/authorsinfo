@@ -25,7 +25,7 @@ export function EntityCommentsDemo({
       <div className="flex-1 bg-muted/20 p-8">
         <div className="max-w-2xl mx-auto">
           <h1 className="text-2xl font-bold mb-4">Entity Comments Demo</h1>
-          <div className="bg-background rounded-lg p-6 shadow-sm">
+          <div className="bg-background rounded-lg p-6 shadow-xs">
             <h2 className="text-lg font-semibold mb-2">{entityName}</h2>
             <p className="text-muted-foreground mb-4">
               This is a demo of the EntityComments component for {entityType} entities.

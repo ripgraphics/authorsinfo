@@ -195,7 +195,7 @@ export function AuditLog({ groupId }: AuditLogProps) {
               {row.original.metadata && (
                 <div>
                   <h4 className="font-semibold mb-2">Additional Information</h4>
-                  <pre className="text-sm bg-muted p-2 rounded">
+                  <pre className="text-sm bg-muted p-2 rounded-sm">
                     {JSON.stringify(row.original.metadata, null, 2)}
                   </pre>
                 </div>
@@ -328,7 +328,7 @@ export function AuditLog({ groupId }: AuditLogProps) {
                               {entry.changes && (
                                 <div>
                                   <strong>Changes:</strong>
-                                  <pre className="mt-2 p-2 bg-muted rounded text-sm overflow-auto">
+                                  <pre className="mt-2 p-2 bg-muted rounded-sm text-sm overflow-auto">
                                     {JSON.stringify(entry.changes, null, 2)}
                                   </pre>
                                 </div>
@@ -336,7 +336,7 @@ export function AuditLog({ groupId }: AuditLogProps) {
                               {entry.metadata && (
                                 <div>
                                   <strong>Metadata:</strong>
-                                  <pre className="mt-2 p-2 bg-muted rounded text-sm overflow-auto">
+                                  <pre className="mt-2 p-2 bg-muted rounded-sm text-sm overflow-auto">
                                     {JSON.stringify(entry.metadata, null, 2)}
                                   </pre>
                                 </div>

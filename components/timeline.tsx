@@ -23,7 +23,7 @@ export function Timeline({ items, showActions = true, className = "" }: Timeline
   return (
     <div className={`timeline ${className}`}>
       {items.map(item => (
-        <div key={item.id} className="timeline__item rounded-lg border bg-card text-card-foreground shadow-sm mb-6">
+        <div key={item.id} className="timeline__item rounded-lg border bg-card text-card-foreground shadow-xs mb-6">
           <div className="timeline__header flex flex-col space-y-1.5 p-6 pb-3">
             <div className="timeline__header-row flex justify-between">
               <div className="timeline__user flex items-center gap-3">

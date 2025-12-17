@@ -472,7 +472,7 @@ export default function EntityComments({
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder={`Comment as ${currentUser.name || currentUser.email || 'You'}`}
-                className="w-full min-h-[40px] max-h-32 resize-none border rounded-full px-4 py-2 text-sm bg-white border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full min-h-[40px] max-h-32 resize-none border rounded-full px-4 py-2 text-sm bg-white border-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-500/25 focus:ring-offset-0 focus:border-transparent"
                 rows={1}
                 onKeyDown={handleCommentKeyDown}
                 disabled={isSubmitting}
@@ -610,7 +610,7 @@ export default function EntityComments({
                               value={replyContent}
                               onChange={(e) => setReplyContent(e.target.value)}
                               placeholder="Write a reply..."
-                              className="entity-reply-textarea w-full min-h-[32px] max-h-24 resize-none border border-gray-200 rounded-lg px-2 py-1 text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="entity-reply-textarea w-full min-h-[32px] max-h-24 resize-none border border-gray-200 rounded-lg px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500/25 focus:ring-offset-0 focus:border-transparent"
                               rows={1}
                               onKeyDown={handleReplyKeyDown}
                             />
@@ -631,7 +631,7 @@ export default function EntityComments({
                                 onClick={() => submitReply(comment.id)}
                                 disabled={!replyContent.trim()}
                                 size="sm"
-                                className="entity-reply-submit-button bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="entity-reply-submit-button bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-sm text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                               >
                                 Reply
                               </Button>

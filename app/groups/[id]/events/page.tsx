@@ -57,7 +57,7 @@ export default function GroupEventsPage() {
         {showForm ? "Cancel" : "Create New Event"}
       </Button>
       {showForm && (
-        <form onSubmit={handleCreateEvent} className="mb-6 space-y-2 border p-4 rounded">
+        <form onSubmit={handleCreateEvent} className="mb-6 space-y-2 border p-4 rounded-sm">
           <Input
             placeholder="Title"
             value={form.title}
@@ -85,7 +85,7 @@ export default function GroupEventsPage() {
         </form>
       )}
       {loading ? <div>Loading...</div> : (
-        <table className="min-w-full border rounded">
+        <table className="min-w-full border rounded-sm">
           <thead>
             <tr className="bg-gray-100">
               <th className="p-2 text-left">Title</th>

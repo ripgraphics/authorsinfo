@@ -36,12 +36,12 @@ export default function EventCard({ event, className = '', isCompact = false }: 
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
           {event.featured && (
-            <div className="absolute top-2 right-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded">
+            <div className="absolute top-2 right-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded-sm">
               Featured
             </div>
           )}
           {event.format && (
-            <div className={`absolute bottom-2 left-2 text-xs px-2 py-1 rounded text-white ${
+            <div className={`absolute bottom-2 left-2 text-xs px-2 py-1 rounded-sm text-white ${
               event.format === 'virtual' ? 'bg-blue-600' : 
               event.format === 'physical' ? 'bg-green-600' : 'bg-purple-600'
             }`}>

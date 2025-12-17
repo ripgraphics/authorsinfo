@@ -690,9 +690,9 @@ const EnterpriseTimelineActivities = React.memo(({
             <div className="flex items-start space-x-4">
               <div className="h-12 w-12 bg-gray-200 rounded-full" />
               <div className="flex-1 space-y-2">
-                <div className="h-4 bg-gray-200 rounded w-3/4" />
-                <div className="h-4 bg-gray-200 rounded w-1/2" />
-                <div className="h-32 bg-gray-200 rounded w-full" />
+                <div className="h-4 bg-gray-200 rounded-sm w-3/4" />
+                <div className="h-4 bg-gray-200 rounded-sm w-1/2" />
+                <div className="h-32 bg-gray-200 rounded-sm w-full" />
               </div>
             </div>
           </CardContent>
@@ -1012,15 +1012,15 @@ const EnterpriseTimelineActivities = React.memo(({
       <Card>
         <CardContent className="p-4">
           <div className="grid grid-cols-3 gap-4 text-center">
-            <div className="p-3 bg-blue-50 rounded">
+            <div className="p-3 bg-blue-50 rounded-sm">
               <div className="text-xs text-blue-700">Cross-post Reach</div>
               <div className="text-lg font-semibold text-blue-800">—</div>
             </div>
-            <div className="p-3 bg-purple-50 rounded">
+            <div className="p-3 bg-purple-50 rounded-sm">
               <div className="text-xs text-purple-700">Collaboration Activity</div>
               <div className="text-lg font-semibold text-purple-800">—</div>
             </div>
-            <div className="p-3 bg-amber-50 rounded">
+            <div className="p-3 bg-amber-50 rounded-sm">
               <div className="text-xs text-amber-700">AI Enhancements</div>
               <div className="text-lg font-semibold text-amber-800">—</div>
             </div>

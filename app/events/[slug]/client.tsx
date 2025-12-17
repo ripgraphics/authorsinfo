@@ -265,7 +265,7 @@ export function ClientEventPage({
                 <CardContent className="p-6 pt-0">
                   <div className="grid grid-cols-3 gap-2">
                   {[1, 2, 3, 4, 5, 6].map((num) => (
-                    <div key={num} className="aspect-square relative rounded overflow-hidden">
+                    <div key={num} className="aspect-square relative rounded-sm overflow-hidden">
                       <img 
                         src={`/placeholder.svg?height=300&width=300`}
                         alt={`Event Photo ${num}`}

@@ -1010,7 +1010,7 @@ export function EnterprisePhotoViewer({
               {showTags && photo.tags?.map((tag) => (
                 <div
                   key={tag.id}
-                  className="absolute bg-blue-500 text-white px-2 py-1 rounded text-xs transform -translate-x-1/2 -translate-y-1/2"
+                  className="absolute bg-blue-500 text-white px-2 py-1 rounded-sm text-xs transform -translate-x-1/2 -translate-y-1/2"
                   style={{ left: `${tag.x_position}%`, top: `${tag.y_position}%` }}
                 >
                   {tag.entity_name}
@@ -1448,6 +1448,50 @@ export function EnterprisePhotoViewer({
                           
                           console.log('✅ Album image settings updated:', albumUpdateResult)
                           
+                          // If this is a USER system album, also update the canonical profile pointer.
+                          // Albums are archive/history only; the current avatar/cover lives on profiles.*_image_id.
+                          if (entityType === 'user' && entityId && editForm.shouldSetAsCover && albumId) {
+                            const { data: albumData, error: albumCheckError } = await (supabase
+                              .from('photo_albums') as any)
+                              .select('name, entity_type, entity_id')
+                              .eq('id', albumId)
+                              .single()
+                            
+                            if (!albumCheckError && albumData) {
+                              const albumName = (albumData as any).name
+                              const isUserAlbum = (albumData as any).entity_type === 'user'
+                              const albumEntityId = (albumData as any).entity_id
+                              
+                              if (isUserAlbum && albumEntityId && (albumName === 'Avatar Images' || albumName === 'Header Cover Images')) {
+                                const primaryKind = albumName === 'Avatar Images' ? 'avatar' : 'cover'
+                                const resp = await fetch('/api/entity-primary-image', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    entityType: 'user',
+                                    entityId: albumEntityId,
+                                    imageId: photo.id,
+                                    primaryKind
+                                  })
+                                })
+                                
+                                const payload = await resp.json().catch(() => null)
+                                if (!resp.ok || !payload?.success) {
+                                  console.error('❌ Failed to update canonical primary image:', payload)
+                                } else {
+                                  window.dispatchEvent(new CustomEvent('entityPrimaryImageChanged', {
+                                    detail: {
+                                      entityType: 'user',
+                                      entityId: albumEntityId,
+                                      primaryKind,
+                                      imageUrl: photo.url || payload.imageUrl
+                                    }
+                                  }))
+                                }
+                              }
+                            }
+                          }
+
                           // Update publisher_image_id when setting avatar as cover for publishers
                           if (entityType === 'publisher' && entityId && editForm.shouldSetAsCover && albumId) {
                             // Check if this is an avatar album by querying the album

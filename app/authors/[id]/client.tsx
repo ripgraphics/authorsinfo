@@ -744,7 +744,7 @@ export function ClientAuthorPage({
               <CardContent className="p-6 pt-0">
                 <div className="grid grid-cols-3 gap-2">
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-                    <div key={num} className="aspect-square relative rounded overflow-hidden">
+                    <div key={num} className="aspect-square relative rounded-sm overflow-hidden">
                       <img 
                         src={`/placeholder.svg?height=100&width=100&text=${num}`}
                         alt={`Photo ${num}`}
@@ -784,7 +784,7 @@ export function ClientAuthorPage({
         <div className="publisher-page__content">
           <div className="publisher-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-1">
-              <div className="about-navigation bg-white rounded-lg shadow overflow-hidden sticky top-20">
+              <div className="about-navigation bg-white rounded-lg shadow-sm overflow-hidden sticky top-20">
                 <div className="about-navigation__header p-4 border-b flex justify-between items-center">
                   <h2 className="about-navigation__title text-lg font-medium">About</h2>
                   <div className="about-navigation__settings-wrapper relative">
@@ -804,7 +804,7 @@ export function ClientAuthorPage({
               </div>
                 </div>
             <div className="lg:col-span-2">
-              <div className="rounded-lg border bg-card text-card-foreground shadow-sm overview-section mb-6" id="overview">
+              <div className="rounded-lg border bg-card text-card-foreground shadow-xs overview-section mb-6" id="overview">
                 <div className="overview-section__header flex flex-col space-y-1.5 p-6 border-b">
                   <div className="overview-section__title-row flex justify-between items-center">
                     <h3 className="overview-section__title text-xl font-semibold">Overview</h3>
@@ -867,7 +867,7 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
               </div>
               
               {/* Contact Information Section */}
-              <div className="rounded-lg border bg-card text-card-foreground shadow-sm contact-section mb-6" id="contact-info">
+              <div className="rounded-lg border bg-card text-card-foreground shadow-xs contact-section mb-6" id="contact-info">
                 <div className="contact-section__header flex flex-col space-y-1.5 p-6 border-b">
                   <div className="contact-section__title-row flex justify-between items-center">
                     <h3 className="contact-section__title text-xl font-semibold">Contact Information</h3>

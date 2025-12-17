@@ -165,7 +165,7 @@ export default function GroupChatPage() {
         ) : (
           <div className="max-w-2xl mx-auto p-6 flex flex-col h-[80vh]">
             <h2 className="text-2xl font-bold mb-4">Group Chat</h2>
-            <div className="flex-1 overflow-y-auto bg-gray-50 rounded p-4 mb-4">
+            <div className="flex-1 overflow-y-auto bg-gray-50 rounded-sm p-4 mb-4">
               {loading ? (
                 <div>Loading...</div>
               ) : messages.length === 0 ? (

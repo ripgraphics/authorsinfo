@@ -72,8 +72,8 @@ export function ReadingStats({
           <div className="space-y-4">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="space-y-2">
-                <div className="animate-pulse bg-muted h-4 w-1/3 rounded" />
-                <div className="animate-pulse bg-muted h-2 w-full rounded" />
+                <div className="animate-pulse bg-muted h-4 w-1/3 rounded-sm" />
+                <div className="animate-pulse bg-muted h-2 w-full rounded-sm" />
               </div>
             ))}
           </div>

@@ -346,7 +346,7 @@ export default function FetchByYearPage() {
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             placeholder="e.g. fiction"
-            className="filter-input-subject w-full border rounded px-3 py-2"
+            className="filter-input-subject w-full border rounded-sm px-3 py-2"
           />
         </div>
         <div className="filter-year">
@@ -357,7 +357,7 @@ export default function FetchByYearPage() {
             value={year}
             onChange={(e) => setYear(e.target.value)}
             placeholder="e.g. 2025"
-            className="filter-input-year w-full border rounded px-3 py-2"
+            className="filter-input-year w-full border rounded-sm px-3 py-2"
           />
         </div>
       </div>
@@ -371,7 +371,7 @@ export default function FetchByYearPage() {
             value={pageInput}
             min={1}
             onChange={(e) => setPageInput(e.target.value)}
-            className="filter-input-page w-full border rounded px-3 py-2"
+            className="filter-input-page w-full border rounded-sm px-3 py-2"
             placeholder={String(page)}
           />
         </div>
@@ -384,7 +384,7 @@ export default function FetchByYearPage() {
             min={1}
             max={1000}
             onChange={(e) => setPageSizeInput(e.target.value)}
-            className="filter-input-page-size w-full border rounded px-3 py-2"
+            className="filter-input-page-size w-full border rounded-sm px-3 py-2"
             placeholder={String(pageSize)}
           />
         </div>
@@ -393,7 +393,7 @@ export default function FetchByYearPage() {
       <button
         onClick={() => handleFetch()}
         disabled={loading}
-        className="btn-fetch-books px-4 py-2 bg-blue-600 text-white rounded"
+        className="btn-fetch-books px-4 py-2 bg-blue-600 text-white rounded-sm"
       >
         {loading ? 'Fetching...' : 'Fetch Books'}
       </button>
@@ -410,11 +410,11 @@ export default function FetchByYearPage() {
               <button
                 disabled={page <= 1 || loading}
                 onClick={() => handleFetch(page - 1)}
-                className="pagination-btn-prev px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+                className="pagination-btn-prev px-3 py-1 bg-gray-200 rounded-sm disabled:opacity-50"
               >Prev</button>
               <span className="pagination-info">Page {page} of {totalPages}</span>
               <Select value={String(page)} onValueChange={(val) => handleFetch(Number(val))}>
-                <SelectTrigger className="pagination-select-trigger border rounded px-2 py-1 w-20">
+                <SelectTrigger className="pagination-select-trigger border rounded-sm px-2 py-1 w-20">
                   <SelectValue placeholder={String(page)} />
                 </SelectTrigger>
                 <SelectContent className="max-h-[200px] overflow-y-auto">
@@ -428,7 +428,7 @@ export default function FetchByYearPage() {
               <button
                 disabled={page * pageSize >= total || loading}
                 onClick={() => handleFetch(page + 1)}
-                className="pagination-btn-next px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+                className="pagination-btn-next px-3 py-1 bg-gray-200 rounded-sm disabled:opacity-50"
               >Next</button>
             </div>
           )}
@@ -444,14 +444,14 @@ export default function FetchByYearPage() {
           <button
             onClick={selectAllAvailable}
             disabled={availableBooks.length === 0}
-            className="px-3 py-1 bg-blue-500 text-white rounded text-sm disabled:opacity-50"
+            className="px-3 py-1 bg-blue-500 text-white rounded-sm text-sm disabled:opacity-50"
           >
             Select All Available
           </button>
           <button
             onClick={clearSelection}
             disabled={selectedBooks.length === 0}
-            className="px-3 py-1 bg-gray-500 text-white rounded text-sm disabled:opacity-50"
+            className="px-3 py-1 bg-gray-500 text-white rounded-sm text-sm disabled:opacity-50"
           >
             Clear Selection
           </button>
@@ -491,11 +491,11 @@ export default function FetchByYearPage() {
               <button
                 disabled={page <= 1 || loading}
                 onClick={() => handleFetch(page - 1)}
-                className="pagination-btn-prev px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+                className="pagination-btn-prev px-3 py-1 bg-gray-200 rounded-sm disabled:opacity-50"
               >Prev</button>
               <span className="pagination-info">Page {page} of {totalPages}</span>
               <Select value={String(page)} onValueChange={(val) => handleFetch(Number(val))}>
-                <SelectTrigger className="pagination-select-trigger border rounded px-2 py-1 w-20">
+                <SelectTrigger className="pagination-select-trigger border rounded-sm px-2 py-1 w-20">
                   <SelectValue placeholder={String(page)} />
                 </SelectTrigger>
                 <SelectContent className="max-h-[200px] overflow-y-auto">
@@ -509,7 +509,7 @@ export default function FetchByYearPage() {
               <button
                 disabled={page * pageSize >= total || loading}
                 onClick={() => handleFetch(page + 1)}
-                className="pagination-btn-next px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+                className="pagination-btn-next px-3 py-1 bg-gray-200 rounded-sm disabled:opacity-50"
               >Next</button>
             </div>
           )}
@@ -522,7 +522,7 @@ export default function FetchByYearPage() {
           <button
             type="button"
             onClick={handleImport}
-            className="btn-import-selection px-4 py-2 bg-green-600 text-white rounded"
+            className="btn-import-selection px-4 py-2 bg-green-600 text-white rounded-sm"
             disabled={importing}
           >
             {importing ? 'Importing...' : `Import ${selectedBooks.length} Selected Books`}
@@ -532,7 +532,7 @@ export default function FetchByYearPage() {
 
       {/* Display import feedback */}
       {importResult && (
-        <div className="import-feedback mb-4 p-4 bg-green-50 border border-green-200 rounded">
+        <div className="import-feedback mb-4 p-4 bg-green-50 border border-green-200 rounded-sm">
           <h3 className="font-semibold text-green-800 mb-2">Import Complete</h3>
           <p className="text-green-700">
             Added {importResult.added}, skipped {importResult.duplicates} duplicates, errors: {importResult.errors}.
@@ -551,7 +551,7 @@ export default function FetchByYearPage() {
       )}
       
       {importError && (
-        <div className="import-error mb-4 p-4 bg-red-50 border border-red-200 rounded">
+        <div className="import-error mb-4 p-4 bg-red-50 border border-red-200 rounded-sm">
           <h3 className="font-semibold text-red-800 mb-2">Import Error</h3>
           <p className="text-red-700">{importError}</p>
         </div>

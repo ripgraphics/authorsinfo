@@ -352,7 +352,7 @@ export default function GroupEditPage() {
                   id="is_public"
                   name="is_public"
                   defaultValue={(group as any).is_public ? "true" : "false"}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded-sm"
                 >
                   <option value="true">Public</option>
                   <option value="false">Private</option>
@@ -365,7 +365,7 @@ export default function GroupEditPage() {
                   id="is_discoverable"
                   name="is_discoverable"
                   defaultValue={(group as any).is_discoverable ? "true" : "false"}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded-sm"
                 >
                   <option value="true">Discoverable</option>
                   <option value="false">Hidden</option>

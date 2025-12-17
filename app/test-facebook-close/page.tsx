@@ -17,7 +17,7 @@ export default function TestFacebookClosePage() {
           Open Test Modal
         </Button>
         
-        <div className="p-4 border rounded">
+        <div className="p-4 border rounded-sm">
           <h2 className="font-semibold mb-2">Close Button Preview:</h2>
           <div className="flex items-center gap-4">
             <CloseButton onClick={() => alert('Close button clicked!')} />

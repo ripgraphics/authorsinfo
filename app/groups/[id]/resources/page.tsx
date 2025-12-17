@@ -59,7 +59,7 @@ export default function GroupResourcesPage() {
               name="type"
               value={form.type}
               onChange={handleChange}
-              className="border rounded px-2 py-1 w-full"
+              className="border rounded-sm px-2 py-1 w-full"
             >
               <option value="link">Link</option>
               <option value="file">File</option>

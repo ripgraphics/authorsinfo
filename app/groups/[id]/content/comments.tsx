@@ -48,7 +48,7 @@ export function ContentComments({ groupId, contentId, user }: { groupId: string,
             <div className="text-gray-500">No comments yet.</div>
           ) : (
             comments.map((comment) => (
-              <div key={comment.id} className="border rounded p-2 bg-gray-50">
+              <div key={comment.id} className="border rounded-sm p-2 bg-gray-50">
                 <div className="text-xs text-gray-500 mb-1">{comment.created_at?.slice(0, 16).replace("T", " ")}</div>
                 <div>{comment.body}</div>
               </div>

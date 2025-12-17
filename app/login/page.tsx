@@ -292,11 +292,11 @@ export default function LoginPage() {
                   Test login with the first user in the database:
                 </p>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-sm font-mono bg-green-100 px-2 py-1 rounded">
+                  <span className="text-sm font-mono bg-green-100 px-2 py-1 rounded-sm">
                     {users[0] ? users[0].email : 'No user'}
                   </span>
                   <span className="text-sm">→</span>
-                  <span className="text-sm font-mono bg-green-100 px-2 py-1 rounded">
+                  <span className="text-sm font-mono bg-green-100 px-2 py-1 rounded-sm">
                     password123
                   </span>
                 </div>
@@ -327,7 +327,7 @@ export default function LoginPage() {
                         Role: {user.role || 'user'}
                       </span>
                     </div>
-                    <div className="bg-green-100 dark:bg-green-900/20 rounded px-2 py-1 mb-3">
+                    <div className="bg-green-100 dark:bg-green-900/20 rounded-sm px-2 py-1 mb-3">
                       <span className="text-xs font-mono text-green-800 dark:text-green-200">
                         Password: password123
                       </span>

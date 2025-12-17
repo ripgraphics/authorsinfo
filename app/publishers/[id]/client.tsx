@@ -402,7 +402,7 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
                       <CardContent className="p-6 pt-0">
                         <div className="grid grid-cols-3 gap-2">
                           {mockPhotos.map((photoUrl, index) => (
-                            <div key={index} className="aspect-square relative rounded overflow-hidden">
+                            <div key={index} className="aspect-square relative rounded-sm overflow-hidden">
                               <img
                                 src={photoUrl || "/placeholder.svg"}
                                 alt={`Photo ${index + 1}`}
@@ -456,7 +456,7 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
 
       {activeTab === "books" && (
         <div className="publisher-page__tab-content">
-          <Card className="rounded-lg border bg-card text-card-foreground shadow-sm">
+          <Card className="rounded-lg border bg-card text-card-foreground shadow-xs">
                       <div className="flex flex-col space-y-1.5 p-6">
               <div className="flex justify-between items-center">
                 <div className="text-2xl font-semibold leading-none tracking-tight">
@@ -518,7 +518,7 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
 
       {activeTab === "more" && (
         <div className="publisher-page__tab-content grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="publisher-groups__card rounded-lg border bg-card text-card-foreground shadow-sm">
+          <div className="publisher-groups__card rounded-lg border bg-card text-card-foreground shadow-xs">
             <div className="publisher-groups__header flex items-center justify-between p-6">
               <h2 className="publisher-groups__title text-2xl font-semibold leading-none tracking-tight">Groups</h2>
               <Link href={`/groups/add?target_type=publisher&target_id=${params.id}`}>
@@ -679,7 +679,7 @@ export function ClientPublisherPage({ publisher: initialPublisher, coverImageUrl
                       </Button>
                     </div>
                   </div>
-                  <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                  <div className="rounded-lg border bg-card text-card-foreground shadow-xs">
                     <div className="flex flex-col space-y-1.5 p-6">
                       <div className="text-2xl font-semibold leading-none tracking-tight">Pages</div>
                     </div>

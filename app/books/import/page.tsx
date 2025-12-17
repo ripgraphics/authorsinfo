@@ -415,7 +415,7 @@ export default function ImportBooksPage() {
                               </TableCell>
                               <TableCell>
                                 {book.image ? (
-                                  <div className="relative w-16 h-24 rounded overflow-hidden bg-gray-100 flex-shrink-0">
+                                  <div className="relative w-16 h-24 rounded-sm overflow-hidden bg-gray-100 flex-shrink-0">
                                     <Image
                                       src={book.image}
                                       alt={book.title || "Book cover"}
@@ -425,7 +425,7 @@ export default function ImportBooksPage() {
                                     />
                                   </div>
                                 ) : (
-                                  <div className="w-16 h-24 rounded bg-gray-100 flex items-center justify-center flex-shrink-0">
+                                  <div className="w-16 h-24 rounded-sm bg-gray-100 flex items-center justify-center flex-shrink-0">
                                     <BookOpen className="h-6 w-6 text-gray-400" />
                                   </div>
                                 )}
@@ -571,7 +571,7 @@ export default function ImportBooksPage() {
                               </TableCell>
                             <TableCell>
                               {book.image ? (
-                                <div className="relative w-16 h-24 rounded overflow-hidden bg-gray-100 flex-shrink-0">
+                                <div className="relative w-16 h-24 rounded-sm overflow-hidden bg-gray-100 flex-shrink-0">
                                   <Image
                                     src={book.image}
                                     alt={book.title || "Book cover"}
@@ -581,7 +581,7 @@ export default function ImportBooksPage() {
                                   />
                                 </div>
                               ) : (
-                                <div className="w-16 h-24 rounded bg-gray-100 flex items-center justify-center flex-shrink-0">
+                                <div className="w-16 h-24 rounded-sm bg-gray-100 flex items-center justify-center flex-shrink-0">
                                   <BookOpen className="h-6 w-6 text-gray-400" />
                                 </div>
                               )}

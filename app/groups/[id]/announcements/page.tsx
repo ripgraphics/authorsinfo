@@ -167,10 +167,10 @@ export default function GroupAnnouncementsPage() {
             <div className="text-gray-500">No announcements yet.</div>
           ) : (
             sorted.map((a) => (
-              <div key={a.id} className={`border rounded-lg p-4 bg-white shadow-sm relative ${a.pinned ? 'border-yellow-400' : ''}`}>
-                {a.pinned && <span className="absolute top-2 right-2 bg-yellow-400 text-xs px-2 py-0.5 rounded">Pinned</span>}
+              <div key={a.id} className={`border rounded-lg p-4 bg-white shadow-xs relative ${a.pinned ? 'border-yellow-400' : ''}`}>
+                {a.pinned && <span className="absolute top-2 right-2 bg-yellow-400 text-xs px-2 py-0.5 rounded-sm">Pinned</span>}
                 {a.scheduled_at && new Date(a.scheduled_at) > new Date() && (
-                  <span className="absolute top-2 left-2 bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded">Scheduled</span>
+                  <span className="absolute top-2 left-2 bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-sm">Scheduled</span>
                 )}
                 {editingId === a.id ? (
                   <form onSubmit={handleEditSubmit} className="space-y-2 mb-2">

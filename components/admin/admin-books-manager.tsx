@@ -438,10 +438,10 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
             <div className="space-y-4">
               {Array.from({ length: 5 }).map((_, i) => (
                 <div key={i} className="flex items-center space-x-4 p-4 border rounded-lg animate-pulse">
-                  <div className="w-16 h-24 bg-gray-200 rounded"></div>
+                  <div className="w-16 h-24 bg-gray-200 rounded-sm"></div>
                   <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    <div className="h-4 bg-gray-200 rounded-sm w-3/4"></div>
+                    <div className="h-3 bg-gray-200 rounded-sm w-1/2"></div>
                   </div>
                 </div>
               ))}
@@ -466,10 +466,10 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
                       <img
                         src={book.cover_image_url}
                         alt={book.title}
-                        className="w-full h-full object-cover rounded"
+                        className="w-full h-full object-cover rounded-sm"
                       />
                     ) : (
-                      <div className="w-full h-full bg-muted flex items-center justify-center rounded">
+                      <div className="w-full h-full bg-muted flex items-center justify-center rounded-sm">
                         <BookOpen className="h-8 w-8 text-muted-foreground" />
                       </div>
                     )}

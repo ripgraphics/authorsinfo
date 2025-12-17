@@ -103,7 +103,7 @@ export default function GroupMembersPage() {
           {/* Members Table */}
           <div className="mb-8">
             <h2 className="text-lg font-semibold mb-2">Members</h2>
-            <table className="min-w-full border rounded">
+            <table className="min-w-full border rounded-sm">
               <thead>
                 <tr className="bg-gray-100">
                   <th className="p-2 text-left">Name</th>
@@ -122,7 +122,7 @@ export default function GroupMembersPage() {
                       <select
                         value={member.role_id || ''}
                         onChange={e => handleRoleChange(member.user_id, Number(e.target.value))}
-                        className="border rounded px-2 py-1"
+                        className="border rounded-sm px-2 py-1"
                       >
                         <option value="">None</option>
                         {roles.map(role => (
@@ -153,7 +153,7 @@ export default function GroupMembersPage() {
           {/* Roles Table */}
           <div>
             <h2 className="text-lg font-semibold mb-2">Roles</h2>
-            <table className="min-w-full border rounded">
+            <table className="min-w-full border rounded-sm">
               <thead>
                 <tr className="bg-gray-100">
                   <th className="p-2 text-left">Name</th>

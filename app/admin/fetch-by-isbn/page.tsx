@@ -127,7 +127,7 @@ export default function FetchByIsbnPage() {
           value={isbnInput}
           onChange={(e) => setIsbnInput(e.target.value)}
           placeholder="e.g. 9780984782857, 1423241886"
-          className="w-full border rounded px-3 py-2"
+          className="w-full border rounded-sm px-3 py-2"
         />
       </div>
 

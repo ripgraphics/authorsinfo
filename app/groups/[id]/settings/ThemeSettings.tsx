@@ -159,7 +159,7 @@ export default function ThemeSettings({ groupId, userId, isAdmin }: Props) {
                     value={settings.custom_theme[key as keyof typeof settings.custom_theme] || '#000000'}
                     onChange={(e) => handleCustomThemeChange(key, e.target.value)}
                     disabled={!isAdmin}
-                    className={`w-10 h-10 rounded cursor-pointer ${
+                    className={`w-10 h-10 rounded-sm cursor-pointer ${
                       !isAdmin ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                   />

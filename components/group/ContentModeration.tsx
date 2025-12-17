@@ -176,7 +176,7 @@ export default function ContentModeration({ groupId, userRole }: ContentModerati
               <img
                 src={content.url}
                 alt="Content"
-                className="max-w-full h-auto rounded"
+                className="max-w-full h-auto rounded-sm"
               />
             </div>
           )}

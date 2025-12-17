@@ -329,7 +329,7 @@ export default function GroupChatThreadsPage({ params, onSelectThread }: { param
             <div className="text-gray-500">No threads yet.</div>
           ) : (
             threads.map((thread) => (
-              <div key={thread.id} className="border rounded p-3 bg-white hover:bg-gray-50 cursor-pointer relative">
+              <div key={thread.id} className="border rounded-sm p-3 bg-white hover:bg-gray-50 cursor-pointer relative">
                 {/* Notification badge (unread count) */}
                 {!muted[thread.id] && !snoozed[thread.id] && getUnreadCount(thread.id) > 0 && (
                   <span className="absolute top-2 right-2 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">

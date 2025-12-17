@@ -47,7 +47,7 @@ export default function GroupChatThreadPage({ params, thread }: { params: { id: 
   return (
     <div className="max-w-2xl mx-auto p-6 flex flex-col h-[70vh]">
       <h3 className="text-xl font-bold mb-2">Thread: {thread.title}</h3>
-      <div className="flex-1 overflow-y-auto bg-gray-50 rounded p-4 mb-4">
+      <div className="flex-1 overflow-y-auto bg-gray-50 rounded-sm p-4 mb-4">
         {loading ? (
           <div>Loading...</div>
         ) : messages.length === 0 ? (

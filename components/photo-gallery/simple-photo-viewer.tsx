@@ -111,7 +111,7 @@ export function SimplePhotoViewer({
 
           {/* Top Controls */}
           <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
-            <div className="text-white bg-black/50 px-3 py-1 rounded">
+            <div className="text-white bg-black/50 px-3 py-1 rounded-sm">
               {currentIndex + 1} of {photos.length}
             </div>
             
@@ -163,7 +163,7 @@ export function SimplePhotoViewer({
 
           {/* Photo Info */}
           {currentPhoto.description && (
-            <div className="absolute bottom-4 left-4 right-4 bg-black/50 text-white p-4 rounded">
+            <div className="absolute bottom-4 left-4 right-4 bg-black/50 text-white p-4 rounded-sm">
               <p>{currentPhoto.description}</p>
               <p className="text-sm text-gray-300 mt-2">
                 {new Date(currentPhoto.created_at).toLocaleDateString()}

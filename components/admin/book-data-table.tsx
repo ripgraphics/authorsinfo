@@ -258,7 +258,7 @@ export function BookDataTable({
                       />
                     </TableCell>
                     <TableCell>
-                      <div className="relative h-12 w-8 overflow-hidden rounded">
+                      <div className="relative h-12 w-8 overflow-hidden rounded-sm">
                         {book.cover_image?.url ? (
                           <Image
                             src={book.cover_image.url || "/placeholder.svg"}
@@ -338,7 +338,7 @@ export function BookDataTable({
           {books.map((book) => (
             <div
               key={book.id}
-              className="group relative aspect-[2/3] rounded-lg border bg-card text-card-foreground shadow-sm hover:shadow-md transition-shadow"
+              className="group relative aspect-[2/3] rounded-lg border bg-card text-card-foreground shadow-xs hover:shadow-md transition-shadow"
             >
               <div className="relative h-full w-full">
                 {book.cover_image?.url ? (

@@ -176,7 +176,7 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className={cn(
         "bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden shadow-2xl",
         className
@@ -186,7 +186,7 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className={cn(
-                "w-10 h-10 rounded-full flex items-center justify-center shadow-sm",
+                "w-10 h-10 rounded-full flex items-center justify-center shadow-xs",
                 `bg-gradient-to-r ${getReactionColor()}`
               )}>
                 {customReactionIcon || <Heart className="h-5 w-5 text-white" />}

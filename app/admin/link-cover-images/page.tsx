@@ -164,7 +164,7 @@ export default function LinkCoverImagesPage() {
                   <img 
                     src={imagePreview} 
                     alt="Preview" 
-                    className="max-w-full h-32 object-cover rounded border"
+                    className="max-w-full h-32 object-cover rounded-sm border"
                     onError={(e) => {
                       e.currentTarget.style.display = "none"
                       const nextSibling = e.currentTarget.nextElementSibling as HTMLElement

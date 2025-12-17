@@ -34,7 +34,7 @@ export default function Modal({ open, onClose, children, title, icon }: { open: 
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm transition-opacity animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs transition-opacity animate-fade-in"
       aria-modal="true"
       role="dialog"
       tabIndex={-1}

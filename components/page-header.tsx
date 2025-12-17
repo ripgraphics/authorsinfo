@@ -46,7 +46,7 @@ export function PageHeader({ title, description }: PageHeaderProps) {
 
   return (
     <header 
-      className="page-header sticky top-0 z-50 w-full border-b bg-background backdrop-blur supports-[backdrop-filter]:bg-background/95"
+      className="page-header sticky top-0 z-50 w-full border-b bg-background backdrop-blur-sm supports-[backdrop-filter]:bg-background/95"
       style={{ backgroundColor: 'hsl(var(--background))' }}
     >
       <div className="container mx-auto flex h-16 items-center justify-between px-4 max-w-7xl">

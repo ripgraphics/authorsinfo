@@ -102,7 +102,7 @@ export function UserAvatar({
     return (
       <div className={`flex items-center gap-2 ${className}`}>
         <div className={`rounded-full bg-gray-200 animate-pulse ${size === 'xs' ? 'w-8 h-8' : size === 'sm' ? 'w-10 h-10' : size === 'md' ? 'w-24 h-24' : 'w-32 h-32'}`} />
-        {showName && <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />}
+        {showName && <div className="h-4 w-24 bg-gray-200 rounded-sm animate-pulse" />}
       </div>
     )
   }

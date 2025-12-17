@@ -30,7 +30,7 @@ export default function AdminEventStatusActions({ eventId, currentStatus }: { ev
   return (
     <div className="flex flex-col gap-2 items-start w-full max-w-lg">
       <textarea
-        className="w-full border border-gray-300 rounded p-2 text-sm mb-2"
+        className="w-full border border-gray-300 rounded-sm p-2 text-sm mb-2"
         rows={2}
         placeholder="Add a note (optional) for this action..."
         value={note}

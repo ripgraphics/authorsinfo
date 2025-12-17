@@ -68,7 +68,7 @@ export default function WriteReviewModal({ isOpen, onClose, groupId }: Props) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Write a Book Review</h2>
@@ -117,7 +117,7 @@ export default function WriteReviewModal({ isOpen, onClose, groupId }: Props) {
                       <img
                         src={`/api/images/${book.cover_image_id}`}
                         alt={book.title}
-                        className="w-12 h-16 object-cover rounded"
+                        className="w-12 h-16 object-cover rounded-sm"
                       />
                     )}
                     <div>
@@ -172,7 +172,7 @@ export default function WriteReviewModal({ isOpen, onClose, groupId }: Props) {
                   id="contains_spoilers"
                   checked={reviewDetails.contains_spoilers}
                   onChange={(e) => setReviewDetails(prev => ({ ...prev, contains_spoilers: e.target.checked }))}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded-sm"
                 />
                 <label htmlFor="contains_spoilers" className="ml-2 block text-sm text-gray-700">
                   This review contains spoilers

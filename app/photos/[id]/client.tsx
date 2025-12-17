@@ -285,7 +285,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
   return (
     <main className="publisher-page publisher-page__container py-6">
       {/* Cover Photo and Profile Section */}
-      <div className="publisher-page__header bg-white rounded-lg shadow overflow-hidden mb-6">
+      <div className="publisher-page__header bg-white rounded-lg shadow-sm overflow-hidden mb-6">
         <div className="publisher-page__cover publisher-page__header-cover-image relative h-auto aspect-[1344/500]">
           <img
             src={coverImageUrl || "/placeholder.svg?height=400&width=1200"}
@@ -639,7 +639,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
               <TabsContent value="about" className="publisher-page__tabs-content">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="lg:col-span-1">
-                    <div className="bg-white rounded-lg shadow overflow-hidden sticky top-20">
+                    <div className="bg-white rounded-lg shadow-sm overflow-hidden sticky top-20">
                       <div className="p-4 border-b">
                         <h2 className="text-lg font-medium">About</h2>
                       </div>
@@ -666,7 +666,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                     </div>
                   </div>
                   <div className="lg:col-span-2 space-y-6">
-                    <div className="rounded-lg border bg-card text-card-foreground shadow-sm" id="overview">
+                    <div className="rounded-lg border bg-card text-card-foreground shadow-xs" id="overview">
                       <div className="flex flex-col space-y-1.5 p-6">
                         <div className="text-2xl font-semibold leading-none tracking-tight">Overview</div>
                       </div>
@@ -700,7 +700,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                         </div>
                       </div>
                     </div>
-                    <div className="rounded-lg border bg-card text-card-foreground shadow-sm" id="work-education">
+                    <div className="rounded-lg border bg-card text-card-foreground shadow-xs" id="work-education">
                       <div className="flex flex-col space-y-1.5 p-6">
                         <div className="text-2xl font-semibold leading-none tracking-tight">Work and Education</div>
                       </div>
@@ -763,7 +763,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                         </div>
                       </div>
                     </div>
-                    <div className="rounded-lg border bg-card text-card-foreground shadow-sm" id="contact-info">
+                    <div className="rounded-lg border bg-card text-card-foreground shadow-xs" id="contact-info">
                       <div className="flex flex-col space-y-1.5 p-6">
                         <div className="text-2xl font-semibold leading-none tracking-tight">Contact Information</div>
                       </div>
@@ -802,7 +802,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                         </div>
                       </div>
                     </div>
-                    <div className="rounded-lg border bg-card text-card-foreground shadow-sm" id="interests">
+                    <div className="rounded-lg border bg-card text-card-foreground shadow-xs" id="interests">
                       <div className="flex flex-col space-y-1.5 p-6">
                         <div className="text-2xl font-semibold leading-none tracking-tight">Interests</div>
                       </div>
@@ -832,7 +832,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                         </div>
                       </div>
                     </div>
-                    <div className="rounded-lg border bg-card text-card-foreground shadow-sm" id="favorite-quotes">
+                    <div className="rounded-lg border bg-card text-card-foreground shadow-xs" id="favorite-quotes">
                       <div className="flex flex-col space-y-1.5 p-6">
                         <div className="text-2xl font-semibold leading-none tracking-tight">Favorite Quotes</div>
                       </div>
@@ -861,7 +861,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
               <TabsContent value="books" className="publisher-page__tabs-content">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="lg:col-span-1">
-                    <div className="bg-white rounded-lg shadow overflow-hidden sticky top-20">
+                    <div className="bg-white rounded-lg shadow-sm overflow-hidden sticky top-20">
                       <div className="p-4 border-b">
                         <h2 className="text-lg font-medium">Books</h2>
                       </div>
@@ -955,7 +955,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                     </div>
                   </div>
                   <div className="lg:col-span-2 space-y-6">
-                    <div className="rounded-lg border bg-card text-card-foreground shadow-sm" id="currently-reading">
+                    <div className="rounded-lg border bg-card text-card-foreground shadow-xs" id="currently-reading">
                       <div className="flex flex-col space-y-1.5 p-6">
                         <div className="text-2xl font-semibold leading-none tracking-tight">Currently Reading</div>
                       </div>
@@ -1050,7 +1050,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                         </div>
                       </div>
                     </div>
-                    <div className="rounded-lg border bg-card text-card-foreground shadow-sm" id="favorite-books">
+                    <div className="rounded-lg border bg-card text-card-foreground shadow-xs" id="favorite-books">
                       <div className="flex flex-col space-y-1.5 p-6">
                         <div className="text-2xl font-semibold leading-none tracking-tight">Favorite Books</div>
                       </div>
@@ -1127,7 +1127,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                         </div>
                       </div>
                     </div>
-                    <div className="rounded-lg border bg-card text-card-foreground shadow-sm" id="recently-read">
+                    <div className="rounded-lg border bg-card text-card-foreground shadow-xs" id="recently-read">
                       <div className="flex flex-col space-y-1.5 p-6">
                         <div className="text-2xl font-semibold leading-none tracking-tight">Recently Read</div>
                       </div>
@@ -1185,7 +1185,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
               {/* Friends Tab Content */}
               <TabsContent value="friends" className="publisher-page__tabs-content">
                 <div className="space-y-6">
-                  <Card className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                  <Card className="rounded-lg border bg-card text-card-foreground shadow-xs">
                     <div className="flex flex-col space-y-1.5 p-6">
                       <div className="flex justify-between items-center">
                         <div className="text-2xl font-semibold leading-none tracking-tight">
@@ -1224,7 +1224,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                     </CardContent>
                   </Card>
 
-                  <Card className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                  <Card className="rounded-lg border bg-card text-card-foreground shadow-xs">
                     <div className="flex flex-col space-y-1.5 p-6">
                       <div className="text-2xl font-semibold leading-none tracking-tight">Friend Suggestions</div>
                     </div>
@@ -1242,7 +1242,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                             <div className="flex-1 min-w-0">
                               <h3 className="font-medium truncate">{friend.name}</h3>
                               <p className="text-xs text-muted-foreground">{friend.mutualFriends} mutual friends</p>
-                              <Button className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3 mt-2">
+                              <Button className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring/25 focus-visible:ring-offset-0 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3 mt-2">
                                 Add Friend
                               </Button>
                             </div>
@@ -1257,7 +1257,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
               {/* Photos Tab Content */}
               <TabsContent value="photos" className="publisher-page__tabs-content">
                 <div className="space-y-6">
-                  <Card className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                  <Card className="rounded-lg border bg-card text-card-foreground shadow-xs">
                     <div className="flex flex-col space-y-1.5 p-6">
                       <div className="flex justify-between items-center">
                         <div className="text-2xl font-semibold leading-none tracking-tight">Photos</div>
@@ -1317,7 +1317,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
               {/* More Tab Content */}
               <TabsContent value="more" className="publisher-page__tabs-content">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                  <div className="rounded-lg border bg-card text-card-foreground shadow-xs">
                     <div className="flex flex-col space-y-1.5 p-6">
                       <div className="text-2xl font-semibold leading-none tracking-tight">Groups</div>
                     </div>
@@ -1472,7 +1472,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                       </Button>
                     </div>
                   </div>
-                  <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+                  <div className="rounded-lg border bg-card text-card-foreground shadow-xs">
                     <div className="flex flex-col space-y-1.5 p-6">
                       <div className="text-2xl font-semibold leading-none tracking-tight">Pages</div>
                     </div>

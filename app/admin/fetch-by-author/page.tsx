@@ -299,10 +299,10 @@ export default function FetchByAuthorPage() {
             setSelectedAuthorName('');
           }}
           placeholder="Type author name"
-          className="w-full border rounded px-3 py-2"
+          className="w-full border rounded-sm px-3 py-2"
         />
         {suggestions.length > 0 && (
-          <ul className="absolute z-10 bg-white border rounded w-full max-h-60 overflow-auto mt-1">
+          <ul className="absolute z-10 bg-white border rounded-sm w-full max-h-60 overflow-auto mt-1">
             {suggestions.map((auth, index) => (
               <li
                 key={auth.id || `external-${auth.name}-${index}`}
@@ -323,7 +323,7 @@ export default function FetchByAuthorPage() {
       <button
         onClick={() => handleFetch(1)}
         disabled={loading}
-        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+        className="px-4 py-2 bg-blue-600 text-white rounded-sm hover:bg-blue-700 disabled:opacity-50"
       >
         {loading ? 'Fetching...' : 'Fetch Books'}
       </button>
@@ -336,13 +336,13 @@ export default function FetchByAuthorPage() {
             <button
               disabled={page <= 1 || loading}
               onClick={() => handleFetch(page - 1)}
-              className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+              className="px-3 py-1 bg-gray-200 rounded-sm disabled:opacity-50"
             >Prev</button>
             <span>Page {page}</span>
             <button
               disabled={books.length < pageSize || loading}
               onClick={() => handleFetch(page + 1)}
-              className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+              className="px-3 py-1 bg-gray-200 rounded-sm disabled:opacity-50"
             >Next</button>
           </div>
 
@@ -362,20 +362,20 @@ export default function FetchByAuthorPage() {
             </span>
             <button
               onClick={selectAllBooks}
-              className="px-3 py-1 bg-green-200 text-green-800 rounded hover:bg-green-300"
+              className="px-3 py-1 bg-green-200 text-green-800 rounded-sm hover:bg-green-300"
             >
               Select All Available
             </button>
             <button
               onClick={deselectAllBooks}
-              className="px-3 py-1 bg-red-200 text-red-800 rounded hover:bg-red-300"
+              className="px-3 py-1 bg-red-200 text-red-800 rounded-sm hover:bg-red-300"
             >
               Deselect All
             </button>
             <button
               onClick={importSelectedBooks}
               disabled={selectedBooks.size === 0 || importing}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+              className="px-4 py-2 bg-green-600 text-white rounded-sm hover:bg-green-700 disabled:opacity-50"
             >
               {importing ? 'Importing...' : `Import ${selectedBooks.size} Selected Book${selectedBooks.size !== 1 ? 's' : ''}`}
             </button>
@@ -384,7 +384,7 @@ export default function FetchByAuthorPage() {
       )}
 
       {importResult && (
-        <div className="mt-4 p-4 bg-gray-50 border rounded">
+        <div className="mt-4 p-4 bg-gray-50 border rounded-sm">
           <h3 className="text-lg font-semibold mb-2">Import Result</h3>
           <div className="grid grid-cols-3 gap-4 mb-4">
             <div className="text-center">
@@ -413,7 +413,7 @@ export default function FetchByAuthorPage() {
           {importResult.logs && importResult.logs.length > 0 && (
             <div>
               <h4 className="font-semibold mb-2">Logs:</h4>
-              <pre className="bg-white p-4 overflow-auto max-h-64 whitespace-pre-wrap text-sm border rounded">
+              <pre className="bg-white p-4 overflow-auto max-h-64 whitespace-pre-wrap text-sm border rounded-sm">
                 {importResult.logs.join('\n')}
               </pre>
             </div>
@@ -465,14 +465,14 @@ export default function FetchByAuthorPage() {
                         checked={isSelected}
                         onChange={() => toggleBookSelection(bookKey)}
                         onClick={(e) => e.stopPropagation()}
-                        className="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                        className="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded-sm focus:ring-blue-500 focus:ring-2"
                       />
                     )}
                   </div>
                   
                   {/* "In System" badge */}
                   {isInSystem && (
-                    <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
+                    <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-sm">
                       In System
                     </div>
                   )}

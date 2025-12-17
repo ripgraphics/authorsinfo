@@ -496,7 +496,7 @@ export default function RegenerateCoversPage() {
                       {progress.success.map((item, index) => (
                         <div key={index} className="p-4 border rounded-md">
                           <div className="flex items-start gap-4">
-                            <div className="flex-shrink-0 w-16 h-24 bg-gray-100 rounded overflow-hidden">
+                            <div className="flex-shrink-0 w-16 h-24 bg-gray-100 rounded-sm overflow-hidden">
                               <img
                                 src={item.newUrl || "/placeholder.svg"}
                                 alt="New cover"

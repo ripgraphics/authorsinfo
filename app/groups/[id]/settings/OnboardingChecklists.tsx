@@ -327,7 +327,7 @@ export default function OnboardingChecklists({ groupId, userId, isAdmin }: Props
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              className="flex items-center gap-2 p-2 bg-gray-50 rounded"
+                              className="flex items-center gap-2 p-2 bg-gray-50 rounded-sm"
                             >
                               <Checkbox
                                 checked={task.completed}

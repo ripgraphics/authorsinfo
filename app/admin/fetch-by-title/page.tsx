@@ -66,14 +66,14 @@ export default function FetchByTitlePage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Enter title or keyword"
-          className="w-full border rounded px-3 py-2"
+          className="w-full border rounded-sm px-3 py-2"
         />
       </div>
 
       <button
         onClick={() => handleFetch(1)}
         disabled={loading}
-        className="px-4 py-2 bg-blue-600 text-white rounded"
+        className="px-4 py-2 bg-blue-600 text-white rounded-sm"
       >
         {loading ? 'Searching...' : 'Search Books'}
       </button>
@@ -85,24 +85,24 @@ export default function FetchByTitlePage() {
           <button
             disabled={page <= 1}
             onClick={() => handleFetch(page - 1)}
-            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+            className="px-3 py-1 bg-gray-200 rounded-sm disabled:opacity-50"
           >Prev</button>
           <span>Page {page} of {Math.ceil(total / pageSize)}</span>
           <button
             disabled={page * pageSize >= total}
             onClick={() => handleFetch(page + 1)}
-            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+            className="px-3 py-1 bg-gray-200 rounded-sm disabled:opacity-50"
           >Next</button>
         </div>
       )}
 
       <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
         {books.map((book, idx) => (
-          <div key={idx} className="border rounded shadow p-4">
+          <div key={idx} className="border rounded-sm shadow-sm p-4">
             <img
               src={book.image}
               alt={book.title}
-              className="w-full h-48 object-cover rounded mb-4"
+              className="w-full h-48 object-cover rounded-sm mb-4"
             />
             <h2 className="text-lg font-semibold">{book.title}</h2>
             <p className="text-gray-600">{book.authors.join(', ')}</p>

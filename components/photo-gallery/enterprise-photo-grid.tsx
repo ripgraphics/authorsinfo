@@ -549,6 +549,17 @@ export function EnterprisePhotoGrid({
   // Handle setting an image as cover
   const handleSetAsCover = async (photoId: string) => {
     try {
+      // Fetch album context so we can update canonical pointers for system albums (avatar/header cover).
+      const { data: albumData, error: albumError } = await (supabase
+        .from('photo_albums') as any)
+        .select('id, name, entity_type, entity_id')
+        .eq('id', albumId)
+        .maybeSingle()
+
+      if (albumError) {
+        console.warn('⚠️ Could not load album metadata (non-fatal):', albumError)
+      }
+
       // First, unset all other images as cover in this album
       await (supabase
         .from('album_images') as any)
@@ -567,6 +578,55 @@ export function EnterprisePhotoGrid({
         return
       }
       
+      // If this is a user system album, also update the canonical profile pointer.
+      // Albums are history only; profile header uses profiles.avatar_image_id / profiles.cover_image_id.
+      const albumName = (albumData as any)?.name as string | undefined
+      const albumEntityType = (albumData as any)?.entity_type as string | undefined
+      const albumEntityId = (albumData as any)?.entity_id as string | undefined
+
+      const shouldUpdatePrimary =
+        entityType === 'user' &&
+        albumEntityType === 'user' &&
+        typeof albumEntityId === 'string' &&
+        (albumName === 'Avatar Images' || albumName === 'Header Cover Images')
+
+      if (shouldUpdatePrimary) {
+        const primaryKind = albumName === 'Avatar Images' ? 'avatar' : 'cover'
+        const selectedPhoto = photos.find(p => p.id === photoId)
+        const imageUrl = selectedPhoto?.url
+
+        const resp = await fetch('/api/entity-primary-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            entityType: 'user',
+            entityId: albumEntityId,
+            imageId: photoId,
+            primaryKind
+          })
+        })
+
+        const payload = await resp.json().catch(() => null)
+        if (!resp.ok || !payload?.success) {
+          console.error('❌ Failed to update canonical primary image:', payload)
+          toast({
+            title: 'Error',
+            description: payload?.error || 'Failed to update profile image',
+            variant: 'destructive'
+          })
+        } else {
+          // Update EntityHeader instantly without any album fetch.
+          window.dispatchEvent(new CustomEvent('entityPrimaryImageChanged', {
+            detail: {
+              entityType: 'user',
+              entityId: albumEntityId,
+              primaryKind,
+              imageUrl: imageUrl || payload.imageUrl
+            }
+          }))
+        }
+      }
+
       // Show success message
       toast({
         title: "Success!",
@@ -951,7 +1011,7 @@ export function EnterprisePhotoGrid({
             <Checkbox
               checked={isSelected}
               onCheckedChange={(checked) => handlePhotoSelect(photo.id, checked as boolean)}
-              className="bg-white/80 backdrop-blur-sm"
+              className="bg-white/80 backdrop-blur-xs"
             />
           </div>
         )}
@@ -1276,7 +1336,7 @@ export function EnterprisePhotoGrid({
         </div>
 
       {/* Photo Grid */}
-      <div className="flex-grow overflow-auto p-4 pb-8">
+      <div className="grow overflow-auto p-4 pb-8">
         {loading && photos.length === 0 ? (
           <LoadingSkeleton />
         ) : photos.length === 0 ? (

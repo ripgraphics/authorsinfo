@@ -193,9 +193,9 @@ export default function FollowButton({
         className={`${className} animate-pulse bg-gray-200 text-gray-400 border-gray-200 hover:bg-gray-200 hover:text-gray-400 transition-all duration-200`}
         disabled={true}
       >
-        {showIcon && <div className="h-4 w-4 mr-2 bg-gray-300 rounded animate-pulse" />}
+        {showIcon && <div className="h-4 w-4 mr-2 bg-gray-300 rounded-sm animate-pulse" />}
         {showText && (
-          <div className="bg-gray-300 h-4 w-12 rounded animate-pulse" />
+          <div className="bg-gray-300 h-4 w-12 rounded-sm animate-pulse" />
         )}
       </Button>
     )

@@ -61,7 +61,7 @@ export default function AddBookModal({ listId, groupId, onClose, onBookAdded }: 
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Add Book to List</h2>
@@ -80,13 +80,13 @@ export default function AddBookModal({ listId, groupId, onClose, onBookAdded }: 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search for a book..."
-              className="flex-1 p-2 border rounded"
+              className="flex-1 p-2 border rounded-sm"
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             />
             <button
               onClick={handleSearch}
               disabled={isSearching}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+              className="bg-blue-600 text-white px-4 py-2 rounded-sm hover:bg-blue-700 disabled:opacity-50"
             >
               {isSearching ? 'Searching...' : 'Search'}
             </button>
@@ -104,7 +104,7 @@ export default function AddBookModal({ listId, groupId, onClose, onBookAdded }: 
                   <img
                     src={`/api/books/cover/${book.cover_image_id}`}
                     alt={book.title}
-                    className="w-12 h-16 object-cover rounded"
+                    className="w-12 h-16 object-cover rounded-sm"
                   />
                 )}
                 <div>
@@ -114,7 +114,7 @@ export default function AddBookModal({ listId, groupId, onClose, onBookAdded }: 
               </div>
               <button
                 onClick={() => handleAddBook(book.id)}
-                className="bg-green-100 text-green-600 px-3 py-1 rounded hover:bg-green-200"
+                className="bg-green-100 text-green-600 px-3 py-1 rounded-sm hover:bg-green-200"
               >
                 Add
               </button>

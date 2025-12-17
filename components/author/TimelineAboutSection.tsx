@@ -24,7 +24,7 @@ export function TimelineAboutSection({
   headerRight,
 }: TimelineAboutSectionProps) {
   return (
-    <div className="timeline-about-section rounded-lg border bg-card text-card-foreground shadow-sm">
+    <div className="timeline-about-section rounded-lg border bg-card text-card-foreground shadow-xs">
       {/* Header Section */}
       <div className="timeline-about-section__header-section p-6 pb-2 border-b">
         <SectionHeader

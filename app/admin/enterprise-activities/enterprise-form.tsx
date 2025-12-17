@@ -352,7 +352,7 @@ export function EnterpriseActivityForm() {
                   <h4 className="font-medium text-red-600">Errors</h4>
                   <div className="space-y-1">
                     {result.stats.errors.map((error, index) => (
-                      <div key={index} className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                      <div key={index} className="text-sm text-red-600 bg-red-50 p-2 rounded-sm">
                         {error}
                       </div>
                     ))}

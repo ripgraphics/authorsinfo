@@ -139,7 +139,7 @@ export function CollaborativeEditor({ groupId, contentId, initialBody, user }: {
             <span className="ml-1 text-xs" style={{ color: getColorFromId(u.user_id) }}>
               selected [{u.selectionStart}-{u.selectionEnd}]
             </span>
-            <div className="h-2 rounded bg-opacity-40" style={{ background: getColorFromId(u.user_id), width: Math.max(20, Math.abs(u.selectionEnd - u.selectionStart) * 2) }} />
+            <div className="h-2 rounded-sm opacity-40" style={{ background: getColorFromId(u.user_id), width: Math.max(20, Math.abs(u.selectionEnd - u.selectionStart) * 2) }} />
           </div>
         ) : null
       ))}

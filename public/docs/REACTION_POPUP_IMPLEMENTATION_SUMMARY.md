@@ -139,7 +139,7 @@ EnhancedEngagementActions
 ## 🎨 **UI/UX Features**
 
 ### **Visual Design**
-- **Facebook-style popup** with rounded corners and shadows
+- **Facebook-style popup** with soft corners and shadows
 - **Color-coded reactions** for easy identification
 - **Smooth animations** with CSS transitions
 - **Responsive positioning** that adapts to viewport

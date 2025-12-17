@@ -314,7 +314,7 @@ export function ContentModeration({ groupId }: ContentModerationProps) {
                                 </div>
                                 <div>
                                   <strong>Content:</strong>
-                                  <p className="mt-1 p-2 bg-muted rounded">{item.metadata?.content_preview || 'No preview available'}</p>
+                                  <p className="mt-1 p-2 bg-muted rounded-sm">{item.metadata?.content_preview || 'No preview available'}</p>
                                 </div>
                                 {item.metadata?.ai_analysis && (
                                   <div>

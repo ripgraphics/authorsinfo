@@ -18,7 +18,7 @@ export function ModerateCommentButton({ commentId, isHidden }: { commentId: stri
     <button
       onClick={handleModerate}
       disabled={isPending}
-      className={`text-xs px-2 py-1 rounded ${isHidden ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} ml-4`}
+      className={`text-xs px-2 py-1 rounded-sm ${isHidden ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} ml-4`}
     >
       {isHidden ? 'Unhide' : 'Hide'}
     </button>
@@ -41,7 +41,7 @@ export function ModerateChatButton({ messageId, isHidden }: { messageId: string,
     <button
       onClick={handleModerate}
       disabled={isPending}
-      className={`text-xs px-2 py-1 rounded ${isHidden ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} ml-4`}
+      className={`text-xs px-2 py-1 rounded-sm ${isHidden ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} ml-4`}
     >
       {isHidden ? 'Unhide' : 'Hide'}
     </button>

@@ -289,7 +289,7 @@ export function BookCoverCarousel({
                   />
                   {isCurrentCover && (
                     <div className="absolute inset-0 bg-primary/20 rounded-md flex items-center justify-center">
-                      <div className="bg-primary text-primary-foreground text-xs px-1 py-0.5 rounded">
+                      <div className="bg-primary text-primary-foreground text-xs px-1 py-0.5 rounded-sm">
                         Current
                       </div>
                     </div>

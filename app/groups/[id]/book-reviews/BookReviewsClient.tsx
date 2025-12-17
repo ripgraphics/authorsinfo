@@ -122,7 +122,7 @@ const ReviewSkeleton = () => (
     <CardContent className="pt-0 space-y-3">
       <div className="flex gap-1">
         {[1, 2, 3, 4, 5].map((i) => (
-          <Skeleton key={i} className="w-5 h-5 rounded" />
+          <Skeleton key={i} className="w-5 h-5 rounded-sm" />
         ))}
       </div>
       <Skeleton className="h-16 w-full" />
@@ -564,7 +564,7 @@ export default function BookReviewsClient({
                         <img
                           src={`/api/images/${review.books.cover_image_id}`}
                           alt={`Cover of ${review.books.title}`}
-                          className="w-16 h-20 object-cover rounded-lg shadow-sm"
+                          className="w-16 h-20 object-cover rounded-lg shadow-xs"
                           loading="lazy"
                         />
                       )}

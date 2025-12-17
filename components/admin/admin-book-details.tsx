@@ -587,10 +587,10 @@ export function AdminBookDetails({ book, open, onOpenChange }: AdminBookDetailsP
                           <img
                             src={book.publisher.publisher_image.url}
                             alt={book.publisher.name}
-                            className="w-10 h-10 rounded object-cover"
+                            className="w-10 h-10 rounded-sm object-cover"
                           />
                         ) : (
-                          <div className="w-10 h-10 bg-muted rounded flex items-center justify-center">
+                          <div className="w-10 h-10 bg-muted rounded-sm flex items-center justify-center">
                             <Building className="h-5 w-5 text-muted-foreground" />
                           </div>
                         )}

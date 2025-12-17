@@ -450,7 +450,7 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
               <CardContent>
                 <div className="space-y-3">
                   {analytics.topHashtags.map((hashtag, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 border rounded">
+                    <div key={index} className="flex items-center justify-between p-2 border rounded-sm">
                       <div className="flex items-center space-x-2">
                         <Badge variant="secondary">#{hashtag.tag}</Badge>
                         <span className="text-sm text-muted-foreground">

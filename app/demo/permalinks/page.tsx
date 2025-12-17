@@ -171,14 +171,14 @@ export default async function PermalinkDemoPage() {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">Permalink:</span>
-                      <code className="text-xs bg-muted px-2 py-1 rounded">
+                      <code className="text-xs bg-muted px-2 py-1 rounded-sm">
                         {example.permalink}
                       </code>
                     </div>
                     
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">URL:</span>
-                      <code className="text-xs bg-muted px-2 py-1 rounded">
+                      <code className="text-xs bg-muted px-2 py-1 rounded-sm">
                         {example.url}
                       </code>
                       <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
@@ -206,17 +206,17 @@ export default async function PermalinkDemoPage() {
                 <div>
                   <h3 className="font-semibold text-red-600 mb-2">Before (UUIDs)</h3>
                   <div className="space-y-2">
-                    <div className="p-3 bg-red-50 rounded border">
+                    <div className="p-3 bg-red-50 rounded-sm border">
                       <code className="text-xs text-red-700">
                         /profile/e06cdf85-b449-4dcb-b943-068aaad8cfa3
                       </code>
                     </div>
-                    <div className="p-3 bg-red-50 rounded border">
+                    <div className="p-3 bg-red-50 rounded-sm border">
                       <code className="text-xs text-red-700">
                         /groups/123e4567-e89b-12d3-a456-426614174000
                       </code>
                     </div>
-                    <div className="p-3 bg-red-50 rounded border">
+                    <div className="p-3 bg-red-50 rounded-sm border">
                       <code className="text-xs text-red-700">
                         /events/987fcdeb-51a2-43d1-9f12-345678901234
                       </code>
@@ -227,17 +227,17 @@ export default async function PermalinkDemoPage() {
                 <div>
                   <h3 className="font-semibold text-green-600 mb-2">After (Permalinks)</h3>
                   <div className="space-y-2">
-                    <div className="p-3 bg-green-50 rounded border">
+                    <div className="p-3 bg-green-50 rounded-sm border">
                       <code className="text-xs text-green-700">
                         /profile/john-smith
                       </code>
                     </div>
-                    <div className="p-3 bg-green-50 rounded border">
+                    <div className="p-3 bg-green-50 rounded-sm border">
                       <code className="text-xs text-green-700">
                         /groups/book-club-2024
                       </code>
                     </div>
-                    <div className="p-3 bg-green-50 rounded border">
+                    <div className="p-3 bg-green-50 rounded-sm border">
                       <code className="text-xs text-green-700">
                         /events/summer-reading-festival
                       </code>

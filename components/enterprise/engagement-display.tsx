@@ -172,7 +172,7 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
         {reactionCount > 0 && (
           <div className="engagement-reactions flex items-center gap-2 relative group">
             <div className={cn(
-              "engagement-reaction-icon rounded-full p-1.5 shadow-sm",
+              "engagement-reaction-icon rounded-full p-1.5 shadow-xs",
               `bg-gradient-to-r ${getReactionColor()}`
             )}>
               {customReactionIcon || <Heart className="h-3.5 w-3.5 text-white" />}

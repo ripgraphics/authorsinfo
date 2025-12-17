@@ -589,7 +589,7 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
                       <img
                         src={imagePreview || formData.cover_image_url}
                         alt="Cover preview"
-                        className="w-32 h-48 object-cover mx-auto rounded"
+                        className="w-32 h-48 object-cover mx-auto rounded-sm"
                       />
                       <div className="flex justify-center gap-2">
                         <Button

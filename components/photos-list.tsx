@@ -40,7 +40,7 @@ export function PhotosList({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   return (
-    <Card className="rounded-lg border bg-card text-card-foreground shadow-sm">
+    <Card className="rounded-lg border bg-card text-card-foreground shadow-xs">
       <div className="space-y-1.5 p-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-semibold leading-none tracking-tight">

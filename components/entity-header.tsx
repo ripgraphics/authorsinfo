@@ -233,8 +233,11 @@ export function EntityHeader({
   const [isCoverModalOpen, setIsCoverModalOpen] = useState(false)
   const [isCropModalOpen, setIsCropModalOpen] = useState(false)
   const [isAvatarCropModalOpen, setIsAvatarCropModalOpen] = useState(false)
-  // Initialize as undefined - we'll fetch entity header image first, then fallback to book cover
-  const [coverImage, setCoverImage] = useState<string | undefined>(undefined)
+  // For users, cover image is canonical (`profiles.cover_image_id -> images.url`) and should render immediately.
+  // For other entities, initialize as undefined so we can fetch an entity header image first, then fallback.
+  const [coverImage, setCoverImage] = useState<string | undefined>(
+    entityType === 'user' ? coverImageUrl : undefined
+  )
   const [avatarImage, setAvatarImage] = useState<string | undefined>(profileImageUrl)
   const [isProcessing, setIsProcessing] = useState(false)
   const [imageVersion, setImageVersion] = useState(0)
@@ -272,6 +275,12 @@ export function EntityHeader({
   const fetchEntityImages = useCallback(async () => {
     if (!entityId || !entityType) {
       console.log('❌ Missing entityId or entityType, skipping fetch');
+      return;
+    }
+
+    // ✅ User avatar/cover must NOT depend on albums for rendering.
+    // Canonical source is `profiles.avatar_image_id` / `profiles.cover_image_id` -> `images.url`.
+    if (entityType === 'user') {
       return;
     }
     
@@ -433,6 +442,8 @@ export function EntityHeader({
 
   // Fetch entity images from photo albums when component mounts
   useEffect(() => {
+    // For users, we render canonical avatar/cover from props/state and do not fetch from albums.
+    if (entityType === 'user') return;
     console.log('🚀 useEffect triggered, calling fetchEntityImages');
     fetchEntityImages();
   }, [fetchEntityImages]);
@@ -460,6 +471,31 @@ export function EntityHeader({
       window.removeEventListener('entityImageChanged', handleEntityImageChanged);
     };
   }, [fetchEntityImages, entityType, entityId]);
+
+  // Listen for canonical primary image changes (avatar/cover) so the header updates instantly
+  // when a user reverts to an older album image.
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent).detail as
+        | { entityType?: string; entityId?: string; primaryKind?: 'avatar' | 'cover'; imageUrl?: string }
+        | undefined;
+
+      if (!detail) return;
+      if (detail.entityType !== entityType) return;
+      if (!detail.entityId || detail.entityId !== entityId) return;
+
+      if (detail.primaryKind === 'avatar' && detail.imageUrl) {
+        setAvatarImage(detail.imageUrl);
+      }
+      if (detail.primaryKind === 'cover' && detail.imageUrl) {
+        setCoverImage(detail.imageUrl);
+        setImageVersion(prev => prev + 1);
+      }
+    };
+
+    window.addEventListener('entityPrimaryImageChanged', handler as EventListener);
+    return () => window.removeEventListener('entityPrimaryImageChanged', handler as EventListener);
+  }, [entityId, entityType]);
 
   console.log('🔍 EntityHeader useEffect dependencies changed:', { entityId, entityType });
 
@@ -1094,7 +1130,7 @@ export function EntityHeader({
   }
 
   return (
-    <div className={cn("entity-header bg-white rounded-lg shadow overflow-hidden mb-6", className)}>
+    <div className={cn("entity-header bg-white rounded-lg shadow-sm overflow-hidden mb-6", className)}>
       {/* Cover Image */}
       {renderCoverImage()}
 

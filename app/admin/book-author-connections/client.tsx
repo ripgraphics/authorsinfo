@@ -810,7 +810,7 @@ export function BookAuthorConnectionsClient({
               </div>
 
               {searchResults.length > 0 ? (
-                <div className="bg-white rounded-md shadow overflow-hidden">
+                <div className="bg-white rounded-md shadow-sm overflow-hidden">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -937,7 +937,7 @@ export function ImportBooksButton() {
   };
 
   return (
-    <button onClick={handleImport} className="mb-4 px-4 py-2 bg-blue-500 text-white rounded">
+    <button onClick={handleImport} className="mb-4 px-4 py-2 bg-blue-500 text-white rounded-sm">
       Import Latest Books
     </button>
   );

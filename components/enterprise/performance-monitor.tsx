@@ -173,7 +173,7 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
             
             <div className="max-h-40 overflow-y-auto space-y-2">
               {metrics.slice(-10).reverse().map((metric, index) => (
-                <div key={index} className="flex items-center justify-between text-sm p-2 bg-gray-50 rounded">
+                <div key={index} className="flex items-center justify-between text-sm p-2 bg-gray-50 rounded-sm">
                   <span className="text-muted-foreground">
                     {metric.timestamp.toLocaleTimeString()}
                   </span>

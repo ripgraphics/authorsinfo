@@ -288,13 +288,13 @@ interface EngagementDisplayProps {
 
 // Old hardcoded modals
 {showLikesModal && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
     {/* Hardcoded reactions modal */}
   </div>
 )}
 
 {showCommentsModal && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
     {/* Hardcoded comments modal */}
   </div>
 )}

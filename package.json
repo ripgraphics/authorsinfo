@@ -51,7 +51,6 @@
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.87.3",
     "@tailwindcss/typography": "^0.5.19",
-    "autoprefixer": "^10.4.23",
     "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.8.0",
     "clsx": "^2.1.1",

@@ -1064,7 +1064,7 @@ export function ClientBookPage({
                 >
                   <div className="grid grid-cols-3 gap-2">
                     {mockPhotos.map((photoUrl, index) => (
-                      <div key={index} className="aspect-square relative rounded overflow-hidden">
+                      <div key={index} className="aspect-square relative rounded-sm overflow-hidden">
                         <img
                           src={photoUrl || "/placeholder.svg"}
                           alt={`Photo ${index + 1}`}
@@ -1232,7 +1232,7 @@ export function ClientBookPage({
                 <Dialog>
                   <DialogTrigger asChild>
                       <button 
-                        className={`book-page__shelf-button inline-flex items-center justify-center gap-2 w-full rounded-md text-sm font-medium border focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-10 px-4 py-2 ${
+                        className={`book-page__shelf-button inline-flex items-center justify-center gap-2 w-full rounded-md text-sm font-medium border focus-visible:ring-1 focus-visible:ring-ring/25 focus-visible:ring-offset-0 h-10 px-4 py-2 ${
                           currentReadingStatus 
                             ? 'border-primary bg-primary text-primary-foreground hover:bg-primary/90' 
                             : 'border-input bg-background hover:bg-accent hover:text-accent-foreground'
@@ -1253,7 +1253,7 @@ export function ClientBookPage({
                       <button 
                         onClick={() => handleReadingStatusUpdate('want_to_read')}
                         disabled={isUpdatingStatus}
-                        className={`shelf-menu-item flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
+                        className={`shelf-menu-item flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
                           currentReadingStatus === 'not_started' ? 'bg-accent text-accent-foreground' : ''
                         }`}
                       >
@@ -1262,7 +1262,7 @@ export function ClientBookPage({
                       <button 
                         onClick={() => handleReadingStatusUpdate('currently_reading')}
                         disabled={isUpdatingStatus}
-                        className={`shelf-menu-item flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
+                        className={`shelf-menu-item flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
                           currentReadingStatus === 'in_progress' ? 'bg-accent text-accent-foreground' : ''
                         }`}
                       >
@@ -1271,7 +1271,7 @@ export function ClientBookPage({
                       <button 
                         onClick={() => handleReadingStatusUpdate('read')}
                         disabled={isUpdatingStatus}
-                        className={`shelf-menu-item flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
+                        className={`shelf-menu-item flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
                           currentReadingStatus === 'completed' ? 'bg-accent text-accent-foreground' : ''
                         }`}
                       >
@@ -1280,7 +1280,7 @@ export function ClientBookPage({
                       <button 
                         onClick={() => handleReadingStatusUpdate('on_hold')}
                         disabled={isUpdatingStatus}
-                        className={`shelf-menu-item flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
+                        className={`shelf-menu-item flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
                           currentReadingStatus === 'on_hold' ? 'bg-accent text-accent-foreground' : ''
                         }`}
                       >
@@ -1289,7 +1289,7 @@ export function ClientBookPage({
                       <button 
                         onClick={() => handleReadingStatusUpdate('abandoned')}
                         disabled={isUpdatingStatus}
-                        className={`shelf-menu-item flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
+                        className={`shelf-menu-item flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
                           currentReadingStatus === 'abandoned' ? 'bg-accent text-accent-foreground' : ''
                         }`}
                       >
@@ -1302,7 +1302,7 @@ export function ClientBookPage({
                         <button 
                           onClick={handleRemoveFromShelf}
                           disabled={isUpdatingStatus}
-                          className="shelf-menu-item flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-destructive hover:text-destructive-foreground cursor-pointer w-full text-left"
+                          className="shelf-menu-item flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm hover:bg-destructive hover:text-destructive-foreground cursor-pointer w-full text-left"
                         >
                           Remove from Shelf
                         </button>

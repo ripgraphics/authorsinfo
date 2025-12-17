@@ -34,14 +34,14 @@ export function DebugStats() {
         </Button>
 
         {error && (
-          <div className="mt-2 p-2 bg-red-50 text-red-700 rounded">
+          <div className="mt-2 p-2 bg-red-50 text-red-700 rounded-sm">
             <p className="font-semibold">Error:</p>
             <pre className="text-xs overflow-auto">{error}</pre>
           </div>
         )}
 
         {stats && (
-          <div className="mt-2 p-2 bg-gray-50 rounded">
+          <div className="mt-2 p-2 bg-gray-50 rounded-sm">
             <p className="font-semibold">Raw Stats:</p>
             <pre className="text-xs overflow-auto">{JSON.stringify(stats, null, 2)}</pre>
           </div>

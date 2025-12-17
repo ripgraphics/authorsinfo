@@ -116,7 +116,7 @@ export default function BookDiscussionsClient({ initialDiscussions, groupId }: P
                   <img
                     src={`/api/images/${discussion.books.cover_image_id}`}
                     alt={discussion.books.title}
-                    className="w-20 h-28 object-cover rounded-lg shadow-sm"
+                    className="w-20 h-28 object-cover rounded-lg shadow-xs"
                   />
                 )}
                 <div>

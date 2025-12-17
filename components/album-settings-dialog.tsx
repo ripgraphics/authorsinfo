@@ -336,7 +336,7 @@ export function AlbumSettingsDialog({
                 {availableUsers.map((user) => (
                   <div
                     key={user.id}
-                    className={`flex items-center space-x-2 p-2 rounded border cursor-pointer ${
+                    className={`flex items-center space-x-2 p-2 rounded-sm border cursor-pointer ${
                       selectedUsers.includes(user.id)
                         ? 'border-primary bg-primary/5'
                         : 'border-border hover:bg-muted/50'
@@ -353,7 +353,7 @@ export function AlbumSettingsDialog({
                       type="checkbox"
                       checked={selectedUsers.includes(user.id)}
                       onChange={() => {}}
-                      className="rounded"
+                      className="rounded-sm"
                     />
                     <span className="text-sm">{user.name}</span>
                   </div>

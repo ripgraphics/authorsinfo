@@ -44,7 +44,7 @@ export function BookHeader({ book, mainAuthor, bookCount = 0 }: BookHeaderProps)
   const author = mainAuthor || book.author
   
   return (
-    <div className="book-header-container bg-white rounded-lg shadow overflow-hidden mb-6">
+    <div className="book-header-container bg-white rounded-lg shadow-sm overflow-hidden mb-6">
       <div className="book-header-cover-image relative h-auto aspect-[1344/500]">
         {book.cover_image?.url ? (
           <Image

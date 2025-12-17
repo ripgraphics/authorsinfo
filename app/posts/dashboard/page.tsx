@@ -219,7 +219,7 @@ export default function PostsDashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <button className="p-4 border rounded-lg hover:bg-muted/50 transition-colors text-left">
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-100 rounded">
+                <div className="p-2 bg-blue-100 rounded-sm">
                   <BarChart3 className="h-4 w-4 text-blue-600" />
                 </div>
                 <div>
@@ -231,7 +231,7 @@ export default function PostsDashboardPage() {
 
             <button className="p-4 border rounded-lg hover:bg-muted/50 transition-colors text-left">
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-green-100 rounded">
+                <div className="p-2 bg-green-100 rounded-sm">
                   <Shield className="h-4 w-4 text-green-600" />
                 </div>
                 <div>
@@ -243,7 +243,7 @@ export default function PostsDashboardPage() {
 
             <button className="p-4 border rounded-lg hover:bg-muted/50 transition-colors text-left">
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-purple-100 rounded">
+                <div className="p-2 bg-purple-100 rounded-sm">
                   <TrendingUp className="h-4 w-4 text-purple-600" />
                 </div>
                 <div>
@@ -255,7 +255,7 @@ export default function PostsDashboardPage() {
 
             <button className="p-4 border rounded-lg hover:bg-muted/50 transition-colors text-left">
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-orange-100 rounded">
+                <div className="p-2 bg-orange-100 rounded-sm">
                   <Settings className="h-4 w-4 text-orange-600" />
                 </div>
                 <div>

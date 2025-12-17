@@ -1352,7 +1352,7 @@ export default function EntityFeedCard({
                 
                 {/* Show the original post content if available */}
                 {post.metadata?.liked_activity_content && (
-                  <div className="bg-white p-3 rounded border-l-4 border-blue-300">
+                  <div className="bg-white p-3 rounded-sm border-l-4 border-blue-300">
                     <p className="text-sm text-gray-700">
                       "{post.metadata.liked_activity_content}"
                     </p>
@@ -1365,7 +1365,7 @@ export default function EntityFeedCard({
                     <img
                       src={post.metadata.liked_activity_image}
                       alt="Liked post content"
-                      className="w-16 h-16 object-cover rounded border"
+                      className="w-16 h-16 object-cover rounded-sm border"
                     />
                   </div>
                 )}
@@ -1568,7 +1568,7 @@ export default function EntityFeedCard({
   const currentSafetyConfig = safetyConfigs[contentSafetyLevel]
 
   return (
-    <div className="rounded-lg border bg-card text-card-foreground shadow-sm enterprise-feed-card enterprise-timeline-feed-card">
+    <div className="rounded-lg border bg-card text-card-foreground shadow-xs enterprise-feed-card enterprise-timeline-feed-card">
       <div className="flex flex-col space-y-1.5 p-6 enterprise-feed-card-header pb-3">
         <div className="enterprise-feed-card-header-content flex items-start gap-3">
           {/* User Avatar */}
@@ -2135,7 +2135,7 @@ export default function EntityFeedCard({
 
       {/* Enhanced Comments Modal */}
       {showCommentsModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg max-w-2xl w-full mx-4 h-[90vh] shadow-2xl flex flex-col">
             {/* Modal Header */}
             <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">

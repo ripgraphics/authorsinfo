@@ -48,7 +48,7 @@ export function ContentSection({
   }
 
   return (
-    <Card className={cn("content-section__container rounded-lg border bg-card text-card-foreground shadow-sm", className)}>
+    <Card className={cn("content-section__container rounded-lg border bg-card text-card-foreground shadow-xs", className)}>
       {/* Header Section */}
       <div className={cn("content-section__header-container p-6 pb-2 border-b", headerClassName)}>
         <div className="content-section__header-content flex items-center justify-between">

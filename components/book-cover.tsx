@@ -33,7 +33,7 @@ export function BookCover({
 
   const coverContent = (
     <div 
-      className={`relative overflow-hidden rounded-md shadow-sm hover:shadow-md transition-shadow ${className}`}
+      className={`relative overflow-hidden rounded-md shadow-xs hover:shadow-md transition-shadow ${className}`}
       style={{ 
         width: config.width, 
         height: config.height,

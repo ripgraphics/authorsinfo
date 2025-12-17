@@ -219,15 +219,15 @@ export function ReportsClient() {
         {/* User Activity Tab */}
         <TabsContent value="user_activity" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <div className="bg-white p-6 rounded-lg shadow-xs border">
               <h3 className="text-lg font-medium">New Users</h3>
               <p className="text-3xl font-bold mt-2">{userActivityData?.totalNewUsers || 0}</p>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <div className="bg-white p-6 rounded-lg shadow-xs border">
               <h3 className="text-lg font-medium">Total Logins</h3>
               <p className="text-3xl font-bold mt-2">{userActivityData?.totalLogins || 0}</p>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
+            <div className="bg-white p-6 rounded-lg shadow-xs border">
               <h3 className="text-lg font-medium">Reading Activities</h3>
               <p className="text-3xl font-bold mt-2">{userActivityData?.totalReadingActivities || 0}</p>
             </div>

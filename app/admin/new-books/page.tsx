@@ -878,7 +878,7 @@ export default function NewBooksPage() {
               <CardContent className="p-3 space-y-2">
                 {/* Book Cover */}
                 {book.image ? (
-                  <div className="relative w-full aspect-[2/3] rounded overflow-hidden bg-gray-100 mb-2">
+                  <div className="relative w-full aspect-[2/3] rounded-sm overflow-hidden bg-gray-100 mb-2">
                     <Image
                       src={book.image}
                       alt={book.title || "Book cover"}
@@ -888,7 +888,7 @@ export default function NewBooksPage() {
                     />
                   </div>
                 ) : (
-                  <div className="w-full aspect-[2/3] rounded bg-gray-100 flex items-center justify-center mb-2">
+                  <div className="w-full aspect-[2/3] rounded-sm bg-gray-100 flex items-center justify-center mb-2">
                     <BookOpen className="h-8 w-8 text-gray-400" />
                   </div>
                 )}

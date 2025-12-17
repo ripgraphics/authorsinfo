@@ -157,7 +157,7 @@ export default function OnboardingClient({ groupId, welcomeMessages, checklists 
                 {checklist.tasks.map((task) => (
                   <div
                     key={task.id}
-                    className="flex items-center gap-2 p-2 bg-gray-50 rounded"
+                    className="flex items-center gap-2 p-2 bg-gray-50 rounded-sm"
                   >
                     <Checkbox
                       checked={progress[task.id] || false}

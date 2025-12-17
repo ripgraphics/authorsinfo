@@ -91,7 +91,7 @@ export function DataTable({
                     <TableRow key={index}>
                       {imageField && (
                         <TableCell>
-                          <div className="relative h-10 w-8 overflow-hidden rounded">
+                          <div className="relative h-10 w-8 overflow-hidden rounded-sm">
                             {row[imageField]?.url ? (
                               <Image
                                 src={row[imageField].url || "/placeholder.svg"}

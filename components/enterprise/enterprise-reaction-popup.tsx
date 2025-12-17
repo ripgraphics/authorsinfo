@@ -524,7 +524,7 @@ export function EnterpriseReactionPopup({
           ref={popupRef}
           className={cn(
             "bg-white rounded-2xl shadow-2xl border border-gray-200",
-            "backdrop-blur-sm bg-white/95",
+            "backdrop-blur-xs bg-white/95",
             getPositionClasses(),
             getSizeClasses(),
             getAnimationClasses(),

@@ -66,7 +66,7 @@ export default function AdminEventsBulkUI({ events, creators, status, search, cr
       </div>
 
       {message && (
-        <div className={`mb-4 p-3 rounded ${message.includes('success') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+        <div className={`mb-4 p-3 rounded-sm ${message.includes('success') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
           {message}
         </div>
       )}
@@ -75,7 +75,7 @@ export default function AdminEventsBulkUI({ events, creators, status, search, cr
         <div className="flex gap-4 flex-wrap">
           <div>
             <label className="block text-sm font-medium mb-1">Status</label>
-            <select name="status" defaultValue={status} className="border rounded px-3 py-2">
+            <select name="status" defaultValue={status} className="border rounded-sm px-3 py-2">
               <option value="">All</option>
               <option value="published">Published</option>
               <option value="draft">Draft</option>
@@ -95,7 +95,7 @@ export default function AdminEventsBulkUI({ events, creators, status, search, cr
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Creator</label>
-            <select name="creator" defaultValue={creator} className="border rounded px-3 py-2">
+            <select name="creator" defaultValue={creator} className="border rounded-sm px-3 py-2">
               <option value="">All Creators</option>
               {creators.map((c: any) => (
                 <option key={c.id} value={c.id}>{userMap[c.id]?.name || c.id}</option>
@@ -171,7 +171,7 @@ export default function AdminEventsBulkUI({ events, creators, status, search, cr
               <Link
                 key={p}
                 href={`?page=${p}${status ? `&status=${status}` : ''}${search ? `&search=${search}` : ''}${creator ? `&creator=${creator}` : ''}`}
-                className={`px-3 py-1 rounded ${p === page ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+                className={`px-3 py-1 rounded-sm ${p === page ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
               >
                 {p}
               </Link>

@@ -48,7 +48,7 @@ export function SidebarSection({
   }
 
   return (
-    <Card className={cn("sidebar-section__container rounded-lg border bg-card text-card-foreground shadow-sm", className)}>
+    <Card className={cn("sidebar-section__container rounded-lg border bg-card text-card-foreground shadow-xs", className)}>
       {/* Header Section */}
       <div className={cn("sidebar-section__header-container p-6 pb-2 border-b", headerClassName)}>
         <div className="sidebar-section__header-content flex items-center justify-between">

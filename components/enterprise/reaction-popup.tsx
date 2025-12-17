@@ -170,7 +170,7 @@ export function ReactionPopup({
                 {/* Tooltip */}
                 {isHovered && (
                   <div className={cn(
-                    "absolute z-20 bg-gray-900 text-white text-xs px-2 py-1 rounded",
+                    "absolute z-20 bg-gray-900 text-white text-xs px-2 py-1 rounded-sm",
                     "whitespace-nowrap pointer-events-none",
                     "transform transition-all duration-200 ease-out",
                     position === 'top' ? 'bottom-full mb-2' : 'top-full mt-2',

@@ -132,7 +132,7 @@ export default function DebugDatabase() {
                 </div>
                 <p className="mb-2">{result.message}</p>
                 {result.data && (
-                  <pre className="text-xs bg-white/50 p-2 rounded overflow-x-auto">
+                  <pre className="text-xs bg-white/50 p-2 rounded-sm overflow-x-auto">
                     {JSON.stringify(result.data, null, 2)}
                   </pre>
                 )}
@@ -144,6 +144,7 @@ export default function DebugDatabase() {
     </Card>
   )
 }
+
 
 
 

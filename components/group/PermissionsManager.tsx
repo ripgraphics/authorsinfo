@@ -437,7 +437,7 @@ export default function PermissionsManager({ groupId }: PermissionsManagerProps)
                           </div>
                           <div className="flex items-center space-x-2">
                             <select
-                              className="border rounded p-1"
+                              className="border rounded-sm p-1"
                               value={member.role_id}
                               onChange={(e) =>
                                 handleUpdateMemberRole(member.id, e.target.value)

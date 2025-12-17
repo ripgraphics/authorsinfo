@@ -551,7 +551,7 @@ export function AboutNavigation({ publisherId }: { publisherId?: string | number
   }, []);
 
   return (
-    <div className="about-navigation bg-white rounded-lg shadow overflow-hidden sticky top-20">
+    <div className="about-navigation bg-white rounded-lg shadow-sm overflow-hidden sticky top-20">
       <div className="about-navigation__header p-4 border-b flex justify-between items-center">
         <h2 className="about-navigation__title text-lg font-medium">About</h2>
         <div className="about-navigation__settings-wrapper relative" ref={menuRef}>

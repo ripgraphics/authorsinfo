@@ -422,7 +422,7 @@ export function EnterprisePhotoViewer({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className={`max-w-7xl h-[95vh] p-0 overflow-hidden ${isFullscreen ? 'max-w-full h-screen' : ''}`}>
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur">
+        <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur-sm">
           <div className="flex items-center gap-4">
             <h2 className="text-lg font-semibold truncate">
               {currentPhoto.metadata?.title || currentPhoto.alt_text}
@@ -689,12 +689,12 @@ export function EnterprisePhotoViewer({
                 <div>
                   <h4 className="font-medium mb-2">Statistics</h4>
                   <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div className="text-center p-2 bg-muted rounded">
+                    <div className="text-center p-2 bg-muted rounded-sm">
                       <Eye className="h-4 w-4 mx-auto mb-1" />
                       <p className="font-medium">{currentPhoto.view_count || 0}</p>
                       <p className="text-xs text-muted-foreground">Views</p>
                     </div>
-                    <div className="text-center p-2 bg-muted rounded">
+                    <div className="text-center p-2 bg-muted rounded-sm">
                       <Heart className="h-4 w-4 mx-auto mb-1" />
                       <p className="font-medium">{currentPhoto.like_count || 0}</p>
                       <p className="text-xs text-muted-foreground">Likes</p>

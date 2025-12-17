@@ -214,10 +214,10 @@ export function AdminBookActions({ book, open, onOpenChange, onEdit, onDelete }:
                   <img
                     src={book.cover_image_url}
                     alt={book.title}
-                    className="w-16 h-24 object-cover rounded"
+                    className="w-16 h-24 object-cover rounded-sm"
                   />
                 ) : (
-                  <div className="w-16 h-24 bg-muted flex items-center justify-center rounded">
+                  <div className="w-16 h-24 bg-muted flex items-center justify-center rounded-sm">
                     <BookOpen className="h-8 w-8 text-muted-foreground" />
                   </div>
                 )}

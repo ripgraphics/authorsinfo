@@ -135,24 +135,24 @@ export default function BookListsClient({ initialBookLists, groupId }: Props) {
   return (
     <div className="space-y-8">
       {isCreating ? (
-        <div className="bg-white p-4 rounded-lg shadow">
+        <div className="bg-white p-4 rounded-lg shadow-sm">
           <input
             type="text"
             value={newListTitle}
             onChange={(e) => setNewListTitle(e.target.value)}
             placeholder="Enter list title"
-            className="w-full p-2 border rounded mb-2"
+            className="w-full p-2 border rounded-sm mb-2"
           />
           <div className="flex gap-2">
             <button
               onClick={handleCreateList}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              className="bg-blue-600 text-white px-4 py-2 rounded-sm hover:bg-blue-700"
             >
               Create
             </button>
             <button
               onClick={() => setIsCreating(false)}
-              className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
+              className="bg-gray-200 px-4 py-2 rounded-sm hover:bg-gray-300"
             >
               Cancel
             </button>
@@ -161,7 +161,7 @@ export default function BookListsClient({ initialBookLists, groupId }: Props) {
       ) : (
         <button
           onClick={() => setIsCreating(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          className="bg-blue-600 text-white px-4 py-2 rounded-sm hover:bg-blue-700"
         >
           Create New List
         </button>
@@ -172,7 +172,7 @@ export default function BookListsClient({ initialBookLists, groupId }: Props) {
           <Reorder.Item
             key={list.id}
             value={list}
-            className="bg-white p-6 rounded-lg shadow mb-4"
+            className="bg-white p-6 rounded-lg shadow-sm mb-4"
           >
             <div className="flex justify-between items-start mb-4">
               <div>
@@ -185,7 +185,7 @@ export default function BookListsClient({ initialBookLists, groupId }: Props) {
                     setSelectedListId(list.id);
                     setIsAddBookModalOpen(true);
                   }}
-                  className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+                  className="bg-green-600 text-white px-3 py-1 rounded-sm hover:bg-green-700"
                 >
                   Add Book
                 </button>
@@ -203,14 +203,14 @@ export default function BookListsClient({ initialBookLists, groupId }: Props) {
                 {list.group_book_list_items.map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded"
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-sm"
                   >
                     <div className="flex items-center gap-4">
                       {item.books.cover_image_id && (
                         <img
                           src={`/api/books/cover/${item.books.cover_image_id}`}
                           alt={item.books.title}
-                          className="w-12 h-16 object-cover rounded"
+                          className="w-12 h-16 object-cover rounded-sm"
                         />
                       )}
                       <div>
@@ -220,7 +220,7 @@ export default function BookListsClient({ initialBookLists, groupId }: Props) {
                     </div>
                     <button
                       onClick={() => handleVote(list.id, item.book_id)}
-                      className="flex items-center gap-2 bg-blue-100 text-blue-600 px-3 py-1 rounded hover:bg-blue-200"
+                      className="flex items-center gap-2 bg-blue-100 text-blue-600 px-3 py-1 rounded-sm hover:bg-blue-200"
                     >
                       <span>↑</span>
                       <span>{item.votes || 0}</span>

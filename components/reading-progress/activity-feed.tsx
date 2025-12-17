@@ -91,8 +91,8 @@ export function ActivityFeed({ type, limit = 5, className }: ActivityFeedProps) 
               <div key={i} className="flex items-start space-x-4">
                 <div className="animate-pulse bg-muted h-10 w-10 rounded-full" />
                 <div className="space-y-2 flex-1">
-                  <div className="animate-pulse bg-muted h-4 w-3/4 rounded" />
-                  <div className="animate-pulse bg-muted h-3 w-1/2 rounded" />
+                  <div className="animate-pulse bg-muted h-4 w-3/4 rounded-sm" />
+                  <div className="animate-pulse bg-muted h-3 w-1/2 rounded-sm" />
                 </div>
               </div>
             ))}

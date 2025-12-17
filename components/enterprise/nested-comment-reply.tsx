@@ -185,7 +185,7 @@ export function NestedCommentReply({
       </div>
 
       {/* Parent comment preview */}
-      <div className="bg-white dark:bg-gray-700 rounded p-3 mb-3 border">
+      <div className="bg-white dark:bg-gray-700 rounded-sm p-3 mb-3 border">
         <div className="flex items-start gap-2">
           <Avatar
             src={parentComment.user.avatar_url || undefined}

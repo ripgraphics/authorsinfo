@@ -1,5 +1,3 @@
-"use server"
-
 import { schemaService } from "./supabase-schema-service"
 import { readdir, readFile } from "fs/promises"
 import { join } from "path"

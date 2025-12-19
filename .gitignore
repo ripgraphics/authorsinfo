@@ -29,3 +29,8 @@ next-env.d.ts
 # database backups
 /backup_db
 .env*.local
+
+# supabase CLI binaries (large files)
+supabase.exe
+*.tar.gz
+supabase-temp/

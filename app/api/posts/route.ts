@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerActionClientAsync } from '@/lib/supabase/client-helper'
+import { validateAndFilterPayload } from '@/lib/schema/schema-validators'
 
 import { Post, CreatePostData, PostQueryFilters, PostQueryOptions } from '@/types/post'
 
@@ -182,39 +183,53 @@ export async function POST(request: NextRequest) {
       // level === 'public' -> allow any authenticated user by default
     }
 
-    // Create the post in the activities table
+    // Prepare payload
+    const payload = {
+      user_id: user.id,
+      activity_type: 'post_created',
+      entity_type: targetEntityType,
+      entity_id: targetEntityId,
+      metadata: {
+        title: content?.title,
+        category,
+        location,
+        content_safety_score: 1.0,
+        age_restriction: 'all',
+        sensitive_content: false
+      },
+      text: content?.text || content?.content || content?.body || 'Post content',
+      image_url: content?.image_url || content?.images || content?.media_url,
+      link_url: content?.link_url || content?.url,
+      hashtags: content?.hashtags || tags || [],
+      visibility: visibility || 'public',
+      content_type: content?.image_url ? 'image' : (content?.contentType || 'text'),
+      publish_status: 'published',
+      scheduled_at: scheduled_at ? new Date(scheduled_at).toISOString() : null,
+      published_at: new Date().toISOString(),
+      is_featured: false,
+      is_pinned: false,
+      bookmark_count: 0,
+      trending_score: 0,
+      engagement_score: 0,
+      updated_at: new Date().toISOString(),
+      created_at: new Date().toISOString()
+    }
+
+    // Validate and filter payload against actual schema
+    const { payload: filteredPayload, removedColumns, warnings } = await validateAndFilterPayload(
+      'activities',
+      payload
+    )
+
+    // Log warnings if any columns were removed
+    if (removedColumns.length > 0) {
+      console.warn(`Removed non-existent columns from posts insert:`, removedColumns)
+    }
+
+    // Create the post in the activities table with filtered payload
     const { data: activity, error } = await (supabase
       .from('activities') as any)
-      .insert({
-        user_id: user.id,
-        activity_type: 'post_created',
-        entity_type: targetEntityType,
-        entity_id: targetEntityId,
-        metadata: {
-          title: content?.title,
-          category,
-          location,
-          content_safety_score: 1.0,
-          age_restriction: 'all',
-          sensitive_content: false
-        },
-        text: content?.text || content?.content || content?.body || 'Post content',
-        image_url: content?.image_url || content?.images || content?.media_url,
-        link_url: content?.link_url || content?.url,
-        hashtags: content?.hashtags || tags || [],
-        visibility: visibility || 'public',
-        content_type: content?.image_url ? 'image' : (content?.contentType || 'text'),
-        publish_status: 'published',
-        scheduled_at: scheduled_at ? new Date(scheduled_at).toISOString() : null,
-        published_at: new Date().toISOString(),
-        is_featured: false,
-        is_pinned: false,
-        bookmark_count: 0,
-        trending_score: 0,
-        engagement_score: 0,
-        updated_at: new Date().toISOString(),
-        created_at: new Date().toISOString()
-      })
+      .insert(filteredPayload)
       .select('*')
       .single()
 

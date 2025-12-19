@@ -82,38 +82,80 @@ export async function POST(request: NextRequest) {
     }
 
     // Create friend request
-    console.log('Creating friend request...')
-    const { data: friendRequest, error: insertError } = await (supabase
-      .from('user_friends') as any)
-      .insert({
-        user_id: user.id,
-        friend_id: targetUserUUID,
-        requested_by: user.id,
-        status: 'pending',
-        requested_at: new Date().toISOString()
-      })
-      .select()
-      .single()
-
-    console.log('Insert error:', insertError)
-    console.log('Friend request created:', friendRequest)
-
-    if (insertError) {
-      console.error('Insert error:', insertError)
-      return NextResponse.json({ error: 'Failed to send friend request' }, { status: 500 })
-    }
-
-
-
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Friend request sent successfully',
-      request: friendRequest
+    console.log('Creating friend request...', {
+      user_id: user.id,
+      friend_id: targetUserUUID,
+      requested_by: user.id,
+      status: 'pending'
     })
+    
+    try {
+      const { data: friendRequest, error: insertError } = await supabase
+        .from('user_friends')
+        .insert({
+          user_id: user.id,
+          friend_id: targetUserUUID,
+          requested_by: user.id,
+          status: 'pending',
+          requested_at: new Date().toISOString()
+        })
+        .select()
+        .single()
+
+      console.log('Insert result - error:', insertError)
+      console.log('Insert result - data:', friendRequest)
+
+      if (insertError) {
+        console.error('❌ Insert error details:', {
+          message: insertError.message,
+          code: insertError.code,
+          details: insertError.details,
+          hint: insertError.hint,
+          fullError: JSON.stringify(insertError, null, 2)
+        })
+        return NextResponse.json({ 
+          error: 'Failed to send friend request',
+          details: insertError.message,
+          code: insertError.code,
+          hint: insertError.hint
+        }, { status: 500 })
+      }
+
+      if (!friendRequest) {
+        console.error('❌ No friend request returned from insert')
+        return NextResponse.json({ 
+          error: 'Failed to send friend request',
+          details: 'No data returned from insert'
+        }, { status: 500 })
+      }
+
+
+
+      return NextResponse.json({ 
+        success: true, 
+        message: 'Friend request sent successfully',
+        request: friendRequest
+      })
+    } catch (insertException) {
+      console.error('❌ Exception during insert:', insertException)
+      const exceptionMessage = insertException instanceof Error ? insertException.message : String(insertException)
+      const exceptionStack = insertException instanceof Error ? insertException.stack : undefined
+      console.error('Exception stack:', exceptionStack)
+      return NextResponse.json({ 
+        error: 'Failed to send friend request',
+        details: exceptionMessage
+      }, { status: 500 })
+    }
 
   } catch (error) {
     console.error('Error in friend request:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorStack = error instanceof Error ? error.stack : undefined
+    console.error('Error stack:', errorStack)
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      message: errorMessage
+    }, { status: 500 })
   }
 }
 
@@ -178,8 +220,8 @@ export async function PUT(request: NextRequest) {
     console.log('Updating friend request to status:', newStatus)
 
     // Update the friend request
-    const { data: updatedRequest, error: updateError } = await (supabase
-      .from('user_friends') as any)
+    const { data: updatedRequest, error: updateError } = await supabase
+      .from('user_friends')
       .update({
         status: newStatus,
         responded_at: respondedAt
@@ -192,8 +234,16 @@ export async function PUT(request: NextRequest) {
     console.log('Updated request:', updatedRequest)
 
     if (updateError) {
-      console.error('Update error:', updateError)
-      return NextResponse.json({ error: 'Failed to update friend request' }, { status: 500 })
+      console.error('Update error details:', {
+        message: updateError.message,
+        code: updateError.code,
+        details: updateError.details,
+        hint: updateError.hint
+      })
+      return NextResponse.json({ 
+        error: 'Failed to update friend request',
+        details: updateError.message
+      }, { status: 500 })
     }
 
 
@@ -206,7 +256,13 @@ export async function PUT(request: NextRequest) {
 
   } catch (error) {
     console.error('Error updating friend request:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorStack = error instanceof Error ? error.stack : undefined
+    console.error('Error stack:', errorStack)
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      message: errorMessage
+    }, { status: 500 })
   }
 }
 
@@ -244,14 +300,22 @@ export async function DELETE(request: NextRequest) {
 
     // Delete the relationship
     const relationship = friendRelationship as any
-    const { error: deleteError } = await (supabase
-      .from('user_friends') as any)
+    const { error: deleteError } = await supabase
+      .from('user_friends')
       .delete()
       .eq('id', relationship.id)
 
     if (deleteError) {
-      console.error('Delete error:', deleteError)
-      return NextResponse.json({ error: 'Failed to remove friend' }, { status: 500 })
+      console.error('Delete error details:', {
+        message: deleteError.message,
+        code: deleteError.code,
+        details: deleteError.details,
+        hint: deleteError.hint
+      })
+      return NextResponse.json({ 
+        error: 'Failed to remove friend',
+        details: deleteError.message
+      }, { status: 500 })
     }
 
 
@@ -263,7 +327,13 @@ export async function DELETE(request: NextRequest) {
 
   } catch (error) {
     console.error('Error removing friend:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorStack = error instanceof Error ? error.stack : undefined
+    console.error('Error stack:', errorStack)
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      message: errorMessage
+    }, { status: 500 })
   }
 }
 

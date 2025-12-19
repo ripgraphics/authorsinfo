@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerActionClientAsync } from '@/lib/supabase/client-helper'
+import { validateAndFilterPayload } from '@/lib/schema/schema-validators'
 
 
 export async function GET(request: NextRequest) {
@@ -124,21 +125,35 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create the activity
+    // Prepare payload
+    const payload = {
+      user_id: user.id,
+      activity_type,
+      entity_type,
+      entity_id,
+      is_public,
+      metadata,
+      group_id,
+      book_id,
+      author_id,
+      event_id
+    }
+
+    // Validate and filter payload against actual schema
+    const { payload: filteredPayload, removedColumns, warnings } = await validateAndFilterPayload(
+      'activities',
+      payload
+    )
+
+    // Log warnings if any columns were removed
+    if (removedColumns.length > 0) {
+      console.warn(`Removed non-existent columns from activities insert:`, removedColumns)
+    }
+
+    // Create the activity with filtered payload
     const { data: activity, error } = await (supabase
       .from('activities') as any)
-      .insert({
-        user_id: user.id,
-        activity_type,
-        entity_type,
-        entity_id,
-        is_public,
-        metadata,
-        group_id,
-        book_id,
-        author_id,
-        event_id
-      })
+      .insert(filteredPayload)
       .select()
       .single()
 

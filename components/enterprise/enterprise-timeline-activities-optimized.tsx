@@ -833,34 +833,54 @@ const EnterpriseTimelineActivities = React.memo(({
     }
     setIsPosting(true)
     try {
-      const { error } = await supabase
-        .from('activities')
-        .insert([{
-          user_id: user.id,
-          activity_type: 'post_created',
-          visibility: postForm.visibility,
-          content_type: postForm.imageUrl ? 'image' : postForm.contentType,
-          text: postForm.content,
-          content_summary: postForm.content.substring(0, 100),
-          image_url: postForm.imageUrl || null,
-          link_url: postForm.linkUrl || null,
-          hashtags: postForm.hashtags ? postForm.hashtags.split(',').map(t => t.trim()).filter(Boolean) : [],
-          data: { content: postForm.content, content_type: postForm.imageUrl ? 'image' : postForm.contentType },
-          entity_type: memoizedEntityType,
-          entity_id: memoizedUserId,
-          metadata: { privacy_level: postForm.visibility }
-        }])
-      if (error) throw error
+      const now = new Date().toISOString()
+      
+      // Use schema-validated insert via server action
+      const { createActivityWithValidation } = await import('@/app/actions/create-activity-with-validation')
+      const result = await createActivityWithValidation({
+        user_id: user.id,
+        activity_type: 'post_created',
+        visibility: postForm.visibility,
+        content_type: postForm.imageUrl ? 'image' : postForm.contentType,
+        text: postForm.content,
+        content_summary: postForm.content.substring(0, 100),
+        image_url: postForm.imageUrl || null,
+        link_url: postForm.linkUrl || null,
+        hashtags: postForm.hashtags ? postForm.hashtags.split(',').map(t => t.trim()).filter(Boolean) : [],
+        data: { content: postForm.content, content_type: postForm.imageUrl ? 'image' : postForm.contentType },
+        entity_type: memoizedEntityType,
+        entity_id: memoizedUserId,
+        metadata: { privacy_level: postForm.visibility },
+        publish_status: 'published',
+        published_at: now,
+        created_at: now,
+        updated_at: now
+      })
+
+      if (!result.success) {
+        const errorMessage = result.error || 'Failed to create post'
+        if (result.removedColumns && result.removedColumns.length > 0) {
+          console.warn('Removed non-existent columns:', result.removedColumns)
+        }
+        throw new Error(errorMessage)
+      }
+
+      if (result.warnings && result.warnings.length > 0) {
+        console.warn('Post creation warnings:', result.warnings)
+      }
+
       setPostForm({ content: '', contentType: 'text', visibility: 'friends', imageUrl: '', linkUrl: '', hashtags: '' })
       setIsTopComposerActive(false)
-      fetchActivities(1, false)
+      // Refresh the timeline to show the new post
+      await fetchActivities(1, false)
       toast({ title: 'Posted', description: 'Your post is live.' })
     } catch (e: any) {
+      console.error('Failed to create post:', e)
       toast({ title: 'Failed to post', description: e?.message || 'Try again', variant: 'destructive' })
     } finally {
       setIsPosting(false)
     }
-  }, [user, postForm, supabase, memoizedEntityType, memoizedUserId, canUserPostOnTimeline, fetchActivities, toast])
+  }, [user, postForm, memoizedEntityType, memoizedUserId, canUserPostOnTimeline, fetchActivities, toast])
 
   const handlePhotoUpload = useCallback(() => {
     const input = document.createElement('input')

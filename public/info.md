@@ -6,5272 +6,638 @@
  🔄 Returning active request for: current-user-data
  🔄 Returning active request for: current-user-data
  🔄 Returning active request for: current-user-data
+ [Fast Refresh] rebuilding
+ 🔄 Returning active request for: current-user-data
+ 🔄 Returning active request for: current-user-data
+ [Fast Refresh] done in 117ms
  🔄 Returning active request for: current-user-data
  🔄 Returning active request for: current-user-data
  🔄 Returning active request for: current-user-data
  🔄 Returning active request for: current-user-data
  🔄 Returning active request for: current-user-data
-  POST http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51 net::ERR_CONNECTION_REFUSED
-makeRequest @ _90d12560._.js:2549
-(anonymous) @ _90d12560._.js:2667
-deduplicatedRequest @ _90d12560._.js:1230
-fetchUserData @ _90d12560._.js:2667
-initializeUser @ _90d12560._.js:2714
-await in initializeUser
-useAuth.useEffect @ _90d12560._.js:2748
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14866
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-commitHookEffectListMount @ node_modules_next_di…_1e674e59._.js:7260
-commitHookPassiveMountEffects @ node_modules_next_di…_1e674e59._.js:7295
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8690
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8699
-flushPassiveEffects @ node_modules_next_di…_1e674e59._.js:9969
-flushPendingEffects @ node_modules_next_di…_1e674e59._.js:9930
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10229
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-flushSpawnedWork @ node_modules_next_di…_1e674e59._.js:9908
-commitRoot @ node_modules_next_di…_1e674e59._.js:9714
-commitRootWhenReady @ node_modules_next_di…_1e674e59._.js:9188
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9160
-performWorkOnRootViaSchedulerTask @ node_modules_next_di…1e674e59._.js:10224
-performWorkUntilDeadline @ node_modules_next_di…_a0e4c7b4._.js:2647
-<PageHeader>
-exports.jsxDEV @ node_modules_next_a2e14111._.js:214
-ClientLayout @ _90d12560._.js:4813
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateFunctionComponent @ node_modules_next_di…_1e674e59._.js:6106
-beginWork @ node_modules_next_di…_1e674e59._.js:6681
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopConcurrentByScheduler @ node_modules_next_di…_1e674e59._.js:9552
-renderRootConcurrent @ node_modules_next_di…_1e674e59._.js:9535
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performWorkOnRootViaSchedulerTask @ node_modules_next_di…1e674e59._.js:10224
-performWorkUntilDeadline @ node_modules_next_di…_a0e4c7b4._.js:2647
-"use client"
-RootLayout @ C:%5CUsers%5Ccshan%5…2%5C.next%5Cde…:405
-initializeElement @ node_modules_next_di…_9212ccad._.js:1114
-(anonymous) @ node_modules_next_di…_9212ccad._.js:2526
-initializeModelChunk @ node_modules_next_di…_9212ccad._.js:1047
-getOutlinedModel @ node_modules_next_di…_9212ccad._.js:1352
-parseModelString @ node_modules_next_di…_9212ccad._.js:1582
-(anonymous) @ node_modules_next_di…_9212ccad._.js:2457
-initializeModelChunk @ node_modules_next_di…_9212ccad._.js:1047
-resolveModelChunk @ node_modules_next_di…k_9212ccad._.js:953
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2411
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-<RootLayout>
-initializeFakeTask @ node_modules_next_di…_9212ccad._.js:1920
-initializeDebugInfo @ node_modules_next_di…_9212ccad._.js:1934
-initializeDebugChunk @ node_modules_next_di…_9212ccad._.js:1009
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2385
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-"use server"
-ResponseInstance @ node_modules_next_di…_9212ccad._.js:1617
-createResponseFromOptions @ node_modules_next_di…_9212ccad._.js:2549
-exports.createFromReadableStream @ node_modules_next_di…_9212ccad._.js:2743
-module evaluation @ node_modules_next_di…aaee43fe._.js:12957
-(anonymous) @ turbopack-_45210fd5._.js:855
-runModuleExecutionHooks @ turbopack-_45210fd5._.js:880
-instantiateModule @ turbopack-_45210fd5._.js:853
-getOrInstantiateModuleFromParent @ turbopack-_45210fd5._.js:806
-commonJsRequire @ turbopack-_45210fd5._.js:259
-(anonymous) @ node_modules_next_di…aaee43fe._.js:13086
-(anonymous) @ node_modules_next_di…t_aaee43fe._.js:177
-loadScriptsInSequence @ node_modules_next_di…t_aaee43fe._.js:141
-appBootstrap @ node_modules_next_di…t_aaee43fe._.js:170
-module evaluation @ node_modules_next_di…aaee43fe._.js:13085
-(anonymous) @ turbopack-_45210fd5._.js:855
-runModuleExecutionHooks @ turbopack-_45210fd5._.js:880
-instantiateModule @ turbopack-_45210fd5._.js:853
-getOrInstantiateRuntimeModule @ turbopack-_45210fd5._.js:784
-registerChunk @ turbopack-_45210fd5._.js:1602
-await in registerChunk
-registerChunk @ turbopack-_45210fd5._.js:1540
-(anonymous) @ turbopack-_45210fd5._.js:1829
-(anonymous) @ turbopack-_45210fd5._.js:1833
  🔄 Returning active request for: current-user-data
- ✅ User data fetched successfully: {id: '2474659f-003e-4faa-8c53-9969c33f20b2', name: 'Bob Brown'}
- 🔍 Fetching pending friend requests for user: 2474659f-003e-4faa-8c53-9969c33f20b2
+ ✅ User data fetched successfully: Object
+ 🔍 Fetching pending friend requests for user: c5b68ab4-e8bc-4291-a646-7f8ab4b99528
  🔍 API endpoint: /api/friends/pending
-  Server  Cover image not found via foreign key, checking album...
- GoTrueClient@sb-nmrohtlcfqujtfgcyqhw-auth-token:1 (2.86.2) 2025-12-12T02:33:08.715Z Multiple GoTrueClient instances detected in the same browser context. It is not an error, but this should be avoided as it may produce undefined behavior when used concurrently under the same storage key.
-overrideMethod @ installHook.js:1
-overrideMethod @ node_modules_next_di…_7a8122d0._.js:2288
-GoTrueClient @ node_modules_@supaba…_58e31de5._.js:2823
-SupabaseAuthClient @ node_modules_7d77d7c5._.js:15554
-_initSupabaseAuthClient @ node_modules_7d77d7c5._.js:15747
-SupabaseClient @ node_modules_7d77d7c5._.js:15622
-createClient @ node_modules_7d77d7c5._.js:15884
-module evaluation @ components_c75c7b91._.js:54
-(anonymous) @ turbopack-_45210fd5._.js:855
-runModuleExecutionHooks @ turbopack-_45210fd5._.js:880
-instantiateModule @ turbopack-_45210fd5._.js:853
-getOrInstantiateModuleFromParent @ turbopack-_45210fd5._.js:806
-commonJsRequire @ turbopack-_45210fd5._.js:259
-requireModule @ node_modules_next_di…ck_9212ccad._.js:85
-initializeModuleChunk @ node_modules_next_di…_9212ccad._.js:1072
-resolveModuleChunk @ node_modules_next_di…k_9212ccad._.js:996
-(anonymous) @ node_modules_next_di…_9212ccad._.js:1702
-Promise.then
-resolveModule @ node_modules_next_di…_9212ccad._.js:1701
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2336
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-Promise.then
-progress @ node_modules_next_di…_9212ccad._.js:2611
-Promise.then
-progress @ node_modules_next_di…_9212ccad._.js:2611
-Promise.then
-progress @ node_modules_next_di…_9212ccad._.js:2611
-Promise.then
-progress @ node_modules_next_di…_9212ccad._.js:2611
-Promise.then
-progress @ node_modules_next_di…_9212ccad._.js:2611
-Promise.then
-startReadingFromStream @ node_modules_next_di…_9212ccad._.js:2617
-(anonymous) @ node_modules_next_di…_9212ccad._.js:2736
-Promise.then
-exports.createFromFetch @ node_modules_next_di…_9212ccad._.js:2729
-createFromNextFetch @ node_modules_next_di…_aaee43fe._.js:2622
-createFetch @ node_modules_next_di…_aaee43fe._.js:2563
-fetchServerResponse @ node_modules_next_di…_aaee43fe._.js:2456
-navigateDynamicallyWithNoPrefetch @ node_modules_next_di…_aaee43fe._.js:7605
-navigate @ node_modules_next_di…_aaee43fe._.js:7424
-navigateReducer @ node_modules_next_di…_aaee43fe._.js:7900
-clientReducer @ node_modules_next_di…aaee43fe._.js:12246
-action @ node_modules_next_di…aaee43fe._.js:12492
-runAction @ node_modules_next_di…aaee43fe._.js:12397
-dispatchAction @ node_modules_next_di…aaee43fe._.js:12460
-dispatch @ node_modules_next_di…aaee43fe._.js:12490
-(anonymous) @ node_modules_next_di…_aaee43fe._.js:1442
-startTransition @ node_modules_next_di…_1e674e59._.js:5494
-dispatch @ node_modules_next_di…_aaee43fe._.js:1441
-dispatchAppRouterAction @ node_modules_next_di…_aaee43fe._.js:1423
-dispatchNavigateAction @ node_modules_next_di…aaee43fe._.js:12544
-(anonymous) @ node_modules_next_a2e14111._.js:848
-startTransition @ node_modules_next_di…_a0e4c7b4._.js:1279
-linkClicked @ node_modules_next_a2e14111._.js:847
-onClick @ node_modules_next_a2e14111._.js:1088
-executeDispatch @ node_modules_next_di…1e674e59._.js:10308
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-processDispatchQueue @ node_modules_next_di…1e674e59._.js:10334
-(anonymous) @ node_modules_next_di…1e674e59._.js:10609
-batchedUpdates$1 @ node_modules_next_di…_1e674e59._.js:2247
-dispatchEventForPluginEventSystem @ node_modules_next_di…1e674e59._.js:10410
-dispatchEvent @ node_modules_next_di…1e674e59._.js:12925
-dispatchDiscreteEvent @ node_modules_next_di…1e674e59._.js:12907
-<a>
-exports.jsx @ node_modules_next_di…_a0e4c7b4._.js:1989
-LinkComponent @ node_modules_next_a2e14111._.js:1137
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateFunctionComponent @ node_modules_next_di…_1e674e59._.js:6106
-beginWork @ node_modules_next_di…_1e674e59._.js:6702
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopConcurrentByScheduler @ node_modules_next_di…_1e674e59._.js:9552
-renderRootConcurrent @ node_modules_next_di…_1e674e59._.js:9535
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performWorkOnRootViaSchedulerTask @ node_modules_next_di…1e674e59._.js:10224
-performWorkUntilDeadline @ node_modules_next_di…_a0e4c7b4._.js:2647
-<LinkComponent>
-exports.jsxDEV @ node_modules_next_a2e14111._.js:214
-BookCard @ _dfd57b9e._.js:309
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateFunctionComponent @ node_modules_next_di…_1e674e59._.js:6106
-beginWork @ node_modules_next_di…_1e674e59._.js:6681
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopConcurrentByScheduler @ node_modules_next_di…_1e674e59._.js:9552
-renderRootConcurrent @ node_modules_next_di…_1e674e59._.js:9535
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performWorkOnRootViaSchedulerTask @ node_modules_next_di…1e674e59._.js:10224
-performWorkUntilDeadline @ node_modules_next_di…_a0e4c7b4._.js:2647
-"use client"
-<anonymous> @ C:%5CUsers%5Ccshan%5…2%5C.next%5Cde…:459
-Array.map @ <anonymous>:1
-BooksList @ C:%5CUsers%5Ccshan%5…2%5C.next%5Cde…:459
-initializeElement @ node_modules_next_di…_9212ccad._.js:1114
-(anonymous) @ node_modules_next_di…_9212ccad._.js:2526
-initializeModelChunk @ node_modules_next_di…_9212ccad._.js:1047
-resolveModelChunk @ node_modules_next_di…k_9212ccad._.js:953
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2411
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-<BooksList>
-BooksPage @ C:%5CUsers%5Ccshan%5…2%5C.next%5Cde…:613
-initializeFakeTask @ node_modules_next_di…_9212ccad._.js:1920
-initializeDebugInfo @ node_modules_next_di…_9212ccad._.js:1934
-initializeDebugChunk @ node_modules_next_di…_9212ccad._.js:1009
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2385
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-<BooksPage>
-Promise.all @ <anonymous>:1
-Promise.all @ <anonymous>:1
-initializeFakeTask @ node_modules_next_di…_9212ccad._.js:1920
-initializeDebugInfo @ node_modules_next_di…_9212ccad._.js:1934
-initializeDebugChunk @ node_modules_next_di…_9212ccad._.js:1009
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2385
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-"use server"
-ResponseInstance @ node_modules_next_di…_9212ccad._.js:1617
-createResponseFromOptions @ node_modules_next_di…_9212ccad._.js:2549
-exports.createFromReadableStream @ node_modules_next_di…_9212ccad._.js:2743
-module evaluation @ node_modules_next_di…aaee43fe._.js:12957
-(anonymous) @ turbopack-_45210fd5._.js:855
-runModuleExecutionHooks @ turbopack-_45210fd5._.js:880
-instantiateModule @ turbopack-_45210fd5._.js:853
-getOrInstantiateModuleFromParent @ turbopack-_45210fd5._.js:806
-commonJsRequire @ turbopack-_45210fd5._.js:259
-(anonymous) @ node_modules_next_di…aaee43fe._.js:13086
-(anonymous) @ node_modules_next_di…t_aaee43fe._.js:177
-loadScriptsInSequence @ node_modules_next_di…t_aaee43fe._.js:141
-appBootstrap @ node_modules_next_di…t_aaee43fe._.js:170
-module evaluation @ node_modules_next_di…aaee43fe._.js:13085
-(anonymous) @ turbopack-_45210fd5._.js:855
-runModuleExecutionHooks @ turbopack-_45210fd5._.js:880
-instantiateModule @ turbopack-_45210fd5._.js:853
-getOrInstantiateRuntimeModule @ turbopack-_45210fd5._.js:784
-registerChunk @ turbopack-_45210fd5._.js:1602
-await in registerChunk
-registerChunk @ turbopack-_45210fd5._.js:1540
-(anonymous) @ turbopack-_45210fd5._.js:1829
-(anonymous) @ turbopack-_45210fd5._.js:1833
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🚀 Creating new request for: follow-status-book-322058c3-f6d8-4246-af2a-dc886d1255c2
- 🚀 useEffect triggered, calling fetchEntityImages
- 📡 Fetching entity images with optimization...
- 🚀 Creating new request for: entity-header-book-322058c3-f6d8-4246-af2a-dc886d1255c2
- 🚀 Creating new request for: entity-avatar-book-322058c3-f6d8-4246-af2a-dc886d1255c2
- 🔄 Returning active request for: follow-status-book-322058c3-f6d8-4246-af2a-dc886d1255c2
- 🚀 useEffect triggered, calling fetchEntityImages
- 📡 Fetching entity images with optimization...
- 🔄 Returning active request for: entity-header-book-322058c3-f6d8-4246-af2a-dc886d1255c2
- 🔄 Returning active request for: entity-avatar-book-322058c3-f6d8-4246-af2a-dc886d1255c2
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 📡 Response received: {status: 200, statusText: 'OK', ok: true, headers: {…}}
- ✅ FriendRequestNotification - Received data: {success: true, requests: Array(0), timestamp: '2025-12-12T02:33:08.895Z'}
+ 📡 Response received: Object
+ ✅ FriendRequestNotification - Received data: Object
+ [Fast Refresh] rebuilding
+ [Fast Refresh] done in 690ms
+ 🚀 Creating new request for: user-avatar-719afc5a-0063-4fa4-9d8d-f91e8bfacb47
+ 🚀 Creating new request for: user-avatar-e06cdf85-b449-4dcb-b943-068aaad8cfa3
+ 🚀 Creating new request for: user-avatar-dedfeba8-312b-4c56-91a9-9bf0ffe7d0c6
+ 🚀 Creating new request for: user-avatar-2474659f-003e-4faa-8c53-9969c33f20b2
+ 🚀 Creating new request for: user-avatar-b529a24a-4840-4771-919c-baf2142f91a2
+ 🚀 Creating new request for: user-avatar-45f98998-ba1d-4439-b2ee-1d403fee0e7c
+ 🚀 Creating new request for: user-avatar-c5b68ab4-e8bc-4291-a646-7f8ab4b99528
+ 🚀 Creating new request for: user-avatar-b474d5f5-cbf2-49af-8d03-2ca4aea11081
+ 🚀 Creating new request for: user-avatar-355dd8d6-7ef5-46cf-9bad-67fd863cbc88
+ 🚀 Creating new request for: user-avatar-62be2226-e3d4-4b10-951d-13c3972145b1
+ 🚀 Creating new request for: user-avatar-8dd18808-4777-4877-bde1-b54b1d3ffa81
+ 🚀 Creating new request for: user-avatar-0d1f32d3-18b4-4aa8-b858-141b139aacd8
+ 🚀 Creating new request for: user-avatar-e8f2a30e-de7f-40a4-9772-06fca7419908
+ 🚀 Creating new request for: user-avatar-b3bd5d6b-e22a-4d61-a4a7-eee77a7063ce
+ 🚀 Creating new request for: user-avatar-04d0c415-9de4-43dc-99fd-bcc8f980cefc
+ 🚀 Creating new request for: user-avatar-da99da90-51c9-46b6-9b1a-5b28603a2aa7
+ 🚀 Creating new request for: user-avatar-fdcbe6e9-108d-4939-b10f-77b422731a18
+ 🚀 Creating new request for: user-avatar-deca955d-e8c5-4c28-b190-f3ab7b382748
+ 🚀 Creating new request for: user-avatar-97f1407e-dcab-4143-a59e-873634654503
+ 🚀 Creating new request for: user-avatar-05b4dc59-ae8e-47a1-8409-936b159c2c22
+ 🚀 Creating new request for: user-avatar-6bea7109-b400-4124-839e-3fe6466f3ae8
+ 🚀 Creating new request for: user-avatar-5969c24a-1dd6-47ec-9e19-e22a0d5ebf40
+ 🚀 Creating new request for: user-avatar-4ca9b634-8557-427f-9b7f-1d8679b7f332
+ 🚀 Creating new request for: user-avatar-2f4e5e3b-9aa3-45cf-9edf-86815d76f735
+ 🚀 Creating new request for: user-avatar-78b8de0c-9469-4b38-96bb-c97bbf3d8607
+ 🚀 Creating new request for: user-avatar-e81a2715-e3dd-4133-ad2a-e400a74e24ad
+ 🚀 Creating new request for: user-avatar-c954586e-f506-48b3-ba5d-c6b0d3d561c8
+ 🚀 Creating new request for: user-avatar-fcc9099b-5297-418b-b164-adf93af0e0fa
+ 🚀 Creating new request for: user-avatar-eb6c0fb9-6baf-4a90-870d-06d87849efa5
+ 🚀 Creating new request for: user-avatar-a213628a-3e5a-4471-8b72-001ae4683c31
+ 🔄 Returning active request for: user-avatar-719afc5a-0063-4fa4-9d8d-f91e8bfacb47
+ 🔄 Returning active request for: user-avatar-e06cdf85-b449-4dcb-b943-068aaad8cfa3
+ 🔄 Returning active request for: user-avatar-dedfeba8-312b-4c56-91a9-9bf0ffe7d0c6
+ 🔄 Returning active request for: user-avatar-2474659f-003e-4faa-8c53-9969c33f20b2
+ 🔄 Returning active request for: user-avatar-b529a24a-4840-4771-919c-baf2142f91a2
+ 🔄 Returning active request for: user-avatar-45f98998-ba1d-4439-b2ee-1d403fee0e7c
+ 🔄 Returning active request for: user-avatar-c5b68ab4-e8bc-4291-a646-7f8ab4b99528
+ 🔄 Returning active request for: user-avatar-b474d5f5-cbf2-49af-8d03-2ca4aea11081
+ 🔄 Returning active request for: user-avatar-355dd8d6-7ef5-46cf-9bad-67fd863cbc88
+ 🔄 Returning active request for: user-avatar-62be2226-e3d4-4b10-951d-13c3972145b1
+ 🔄 Returning active request for: user-avatar-8dd18808-4777-4877-bde1-b54b1d3ffa81
+ 🔄 Returning active request for: user-avatar-0d1f32d3-18b4-4aa8-b858-141b139aacd8
+ 🔄 Returning active request for: user-avatar-e8f2a30e-de7f-40a4-9772-06fca7419908
+ 🔄 Returning active request for: user-avatar-b3bd5d6b-e22a-4d61-a4a7-eee77a7063ce
+ 🔄 Returning active request for: user-avatar-04d0c415-9de4-43dc-99fd-bcc8f980cefc
+ 🔄 Returning active request for: user-avatar-da99da90-51c9-46b6-9b1a-5b28603a2aa7
+ 🔄 Returning active request for: user-avatar-fdcbe6e9-108d-4939-b10f-77b422731a18
+ 🔄 Returning active request for: user-avatar-deca955d-e8c5-4c28-b190-f3ab7b382748
+ 🔄 Returning active request for: user-avatar-97f1407e-dcab-4143-a59e-873634654503
+ 🔄 Returning active request for: user-avatar-05b4dc59-ae8e-47a1-8409-936b159c2c22
+ 🔄 Returning active request for: user-avatar-6bea7109-b400-4124-839e-3fe6466f3ae8
+ 🔄 Returning active request for: user-avatar-5969c24a-1dd6-47ec-9e19-e22a0d5ebf40
+ 🔄 Returning active request for: user-avatar-4ca9b634-8557-427f-9b7f-1d8679b7f332
+ 🔄 Returning active request for: user-avatar-2f4e5e3b-9aa3-45cf-9edf-86815d76f735
+ 🔄 Returning active request for: user-avatar-78b8de0c-9469-4b38-96bb-c97bbf3d8607
+ 🔄 Returning active request for: user-avatar-e81a2715-e3dd-4133-ad2a-e400a74e24ad
+ 🔄 Returning active request for: user-avatar-c954586e-f506-48b3-ba5d-c6b0d3d561c8
+ 🔄 Returning active request for: user-avatar-fcc9099b-5297-418b-b164-adf93af0e0fa
+ 🔄 Returning active request for: user-avatar-eb6c0fb9-6baf-4a90-870d-06d87849efa5
+ 🔄 Returning active request for: user-avatar-a213628a-3e5a-4471-8b72-001ae4683c31
+ [Fast Refresh] rebuilding
+ [Fast Refresh] done in 130ms
  📦 Cache hit for: current-user-data
  📦 Cache hit for: current-user-data
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: user-avatar-719afc5a-0063-4fa4-9d8d-f91e8bfacb47
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
  📦 Cache hit for: current-user-data
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
+ 🔄 Returning active request for: user-avatar-e06cdf85-b449-4dcb-b943-068aaad8cfa3
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: user-avatar-dedfeba8-312b-4c56-91a9-9bf0ffe7d0c6
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ [Fast Refresh] rebuilding
+ [Fast Refresh] done in 116ms
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: user-avatar-2474659f-003e-4faa-8c53-9969c33f20b2
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: user-avatar-b529a24a-4840-4771-919c-baf2142f91a2
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: user-avatar-45f98998-ba1d-4439-b2ee-1d403fee0e7c
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: user-avatar-b474d5f5-cbf2-49af-8d03-2ca4aea11081
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: user-avatar-355dd8d6-7ef5-46cf-9bad-67fd863cbc88
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: user-avatar-62be2226-e3d4-4b10-951d-13c3972145b1
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: user-avatar-8dd18808-4777-4877-bde1-b54b1d3ffa81
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: user-avatar-0d1f32d3-18b4-4aa8-b858-141b139aacd8
+ 📦 Cache hit for: current-user-data
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: user-avatar-e8f2a30e-de7f-40a4-9772-06fca7419908
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: user-avatar-b3bd5d6b-e22a-4d61-a4a7-eee77a7063ce
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: user-avatar-04d0c415-9de4-43dc-99fd-bcc8f980cefc
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: user-avatar-da99da90-51c9-46b6-9b1a-5b28603a2aa7
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: user-avatar-fdcbe6e9-108d-4939-b10f-77b422731a18
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: user-avatar-deca955d-e8c5-4c28-b190-f3ab7b382748
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: user-avatar-97f1407e-dcab-4143-a59e-873634654503
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: user-avatar-05b4dc59-ae8e-47a1-8409-936b159c2c22
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: user-avatar-6bea7109-b400-4124-839e-3fe6466f3ae8
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: user-avatar-5969c24a-1dd6-47ec-9e19-e22a0d5ebf40
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: user-avatar-4ca9b634-8557-427f-9b7f-1d8679b7f332
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: user-avatar-2f4e5e3b-9aa3-45cf-9edf-86815d76f735
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: user-avatar-78b8de0c-9469-4b38-96bb-c97bbf3d8607
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: user-avatar-e81a2715-e3dd-4133-ad2a-e400a74e24ad
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: user-avatar-c954586e-f506-48b3-ba5d-c6b0d3d561c8
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: user-avatar-fcc9099b-5297-418b-b164-adf93af0e0fa
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
  📦 Cache hit for: current-user-data
  📦 Cache hit for: current-user-data
  📦 Cache hit for: current-user-data
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
-  POST http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51 net::ERR_CONNECTION_REFUSED
-makeRequest @ _90d12560._.js:2574
-await in makeRequest
-(anonymous) @ _90d12560._.js:2667
-deduplicatedRequest @ _90d12560._.js:1230
-fetchUserData @ _90d12560._.js:2667
-initializeUser @ _90d12560._.js:2714
-await in initializeUser
-useAuth.useEffect @ _90d12560._.js:2748
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14866
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-commitHookEffectListMount @ node_modules_next_di…_1e674e59._.js:7260
-commitHookPassiveMountEffects @ node_modules_next_di…_1e674e59._.js:7295
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8690
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8699
-flushPassiveEffects @ node_modules_next_di…_1e674e59._.js:9969
-flushPendingEffects @ node_modules_next_di…_1e674e59._.js:9930
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10229
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-flushSpawnedWork @ node_modules_next_di…_1e674e59._.js:9908
-commitRoot @ node_modules_next_di…_1e674e59._.js:9714
-commitRootWhenReady @ node_modules_next_di…_1e674e59._.js:9188
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9160
-performWorkOnRootViaSchedulerTask @ node_modules_next_di…1e674e59._.js:10224
-performWorkUntilDeadline @ node_modules_next_di…_a0e4c7b4._.js:2647
-<PageHeader>
-exports.jsxDEV @ node_modules_next_a2e14111._.js:214
-ClientLayout @ _90d12560._.js:4813
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateFunctionComponent @ node_modules_next_di…_1e674e59._.js:6106
-beginWork @ node_modules_next_di…_1e674e59._.js:6681
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopConcurrentByScheduler @ node_modules_next_di…_1e674e59._.js:9552
-renderRootConcurrent @ node_modules_next_di…_1e674e59._.js:9535
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performWorkOnRootViaSchedulerTask @ node_modules_next_di…1e674e59._.js:10224
-performWorkUntilDeadline @ node_modules_next_di…_a0e4c7b4._.js:2647
-"use client"
-RootLayout @ C:%5CUsers%5Ccshan%5…2%5C.next%5Cde…:405
-initializeElement @ node_modules_next_di…_9212ccad._.js:1114
-(anonymous) @ node_modules_next_di…_9212ccad._.js:2526
-initializeModelChunk @ node_modules_next_di…_9212ccad._.js:1047
-getOutlinedModel @ node_modules_next_di…_9212ccad._.js:1352
-parseModelString @ node_modules_next_di…_9212ccad._.js:1582
-(anonymous) @ node_modules_next_di…_9212ccad._.js:2457
-initializeModelChunk @ node_modules_next_di…_9212ccad._.js:1047
-resolveModelChunk @ node_modules_next_di…k_9212ccad._.js:953
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2411
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-<RootLayout>
-initializeFakeTask @ node_modules_next_di…_9212ccad._.js:1920
-initializeDebugInfo @ node_modules_next_di…_9212ccad._.js:1934
-initializeDebugChunk @ node_modules_next_di…_9212ccad._.js:1009
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2385
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-"use server"
-ResponseInstance @ node_modules_next_di…_9212ccad._.js:1617
-createResponseFromOptions @ node_modules_next_di…_9212ccad._.js:2549
-exports.createFromReadableStream @ node_modules_next_di…_9212ccad._.js:2743
-module evaluation @ node_modules_next_di…aaee43fe._.js:12957
-(anonymous) @ turbopack-_45210fd5._.js:855
-runModuleExecutionHooks @ turbopack-_45210fd5._.js:880
-instantiateModule @ turbopack-_45210fd5._.js:853
-getOrInstantiateModuleFromParent @ turbopack-_45210fd5._.js:806
-commonJsRequire @ turbopack-_45210fd5._.js:259
-(anonymous) @ node_modules_next_di…aaee43fe._.js:13086
-(anonymous) @ node_modules_next_di…t_aaee43fe._.js:177
-loadScriptsInSequence @ node_modules_next_di…t_aaee43fe._.js:141
-appBootstrap @ node_modules_next_di…t_aaee43fe._.js:170
-module evaluation @ node_modules_next_di…aaee43fe._.js:13085
-(anonymous) @ turbopack-_45210fd5._.js:855
-runModuleExecutionHooks @ turbopack-_45210fd5._.js:880
-instantiateModule @ turbopack-_45210fd5._.js:853
-getOrInstantiateRuntimeModule @ turbopack-_45210fd5._.js:784
-registerChunk @ turbopack-_45210fd5._.js:1602
-await in registerChunk
-registerChunk @ turbopack-_45210fd5._.js:1540
-(anonymous) @ turbopack-_45210fd5._.js:1829
-(anonymous) @ turbopack-_45210fd5._.js:1833
-  POST http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51 net::ERR_CONNECTION_REFUSED
-ClientBookPage.useEffect @ app_d2fd130a._.js:208
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14866
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-commitHookEffectListMount @ node_modules_next_di…_1e674e59._.js:7260
-commitHookPassiveMountEffects @ node_modules_next_di…_1e674e59._.js:7295
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8780
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8739
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8731
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8699
-flushPassiveEffects @ node_modules_next_di…_1e674e59._.js:9969
-flushPendingEffects @ node_modules_next_di…_1e674e59._.js:9930
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10229
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-flushSpawnedWork @ node_modules_next_di…_1e674e59._.js:9908
-commitRoot @ node_modules_next_di…_1e674e59._.js:9714
-"use client"
-BookPageServer @ C:%5CUsers%5Ccshan%5…2%5C.next%5Cde…:592
-initializeElement @ node_modules_next_di…_9212ccad._.js:1114
-(anonymous) @ node_modules_next_di…_9212ccad._.js:2526
-initializeModelChunk @ node_modules_next_di…_9212ccad._.js:1047
-resolveModelChunk @ node_modules_next_di…k_9212ccad._.js:953
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2411
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-<BookPageServer>
-Promise.all @ <anonymous>:1
-initializeFakeTask @ node_modules_next_di…_9212ccad._.js:1920
-initializeDebugInfo @ node_modules_next_di…_9212ccad._.js:1934
-initializeDebugChunk @ node_modules_next_di…_9212ccad._.js:1009
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2385
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-"use server"
-ResponseInstance @ node_modules_next_di…_9212ccad._.js:1617
-createResponseFromOptions @ node_modules_next_di…_9212ccad._.js:2549
-exports.createFromFetch @ node_modules_next_di…_9212ccad._.js:2728
-createFromNextFetch @ node_modules_next_di…_aaee43fe._.js:2622
-createFetch @ node_modules_next_di…_aaee43fe._.js:2563
-fetchServerResponse @ node_modules_next_di…_aaee43fe._.js:2456
-navigateDynamicallyWithNoPrefetch @ node_modules_next_di…_aaee43fe._.js:7605
-navigate @ node_modules_next_di…_aaee43fe._.js:7424
-navigateReducer @ node_modules_next_di…_aaee43fe._.js:7900
-clientReducer @ node_modules_next_di…aaee43fe._.js:12246
-action @ node_modules_next_di…aaee43fe._.js:12492
-runAction @ node_modules_next_di…aaee43fe._.js:12397
-dispatchAction @ node_modules_next_di…aaee43fe._.js:12460
-dispatch @ node_modules_next_di…aaee43fe._.js:12490
-(anonymous) @ node_modules_next_di…_aaee43fe._.js:1442
-startTransition @ node_modules_next_di…_1e674e59._.js:5494
-dispatch @ node_modules_next_di…_aaee43fe._.js:1441
-dispatchAppRouterAction @ node_modules_next_di…_aaee43fe._.js:1423
-dispatchNavigateAction @ node_modules_next_di…aaee43fe._.js:12544
-(anonymous) @ node_modules_next_a2e14111._.js:848
-startTransition @ node_modules_next_di…_a0e4c7b4._.js:1279
-linkClicked @ node_modules_next_a2e14111._.js:847
-onClick @ node_modules_next_a2e14111._.js:1088
-executeDispatch @ node_modules_next_di…1e674e59._.js:10308
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-processDispatchQueue @ node_modules_next_di…1e674e59._.js:10334
-(anonymous) @ node_modules_next_di…1e674e59._.js:10609
-batchedUpdates$1 @ node_modules_next_di…_1e674e59._.js:2247
-dispatchEventForPluginEventSystem @ node_modules_next_di…1e674e59._.js:10410
-dispatchEvent @ node_modules_next_di…1e674e59._.js:12925
-dispatchDiscreteEvent @ node_modules_next_di…1e674e59._.js:12907
-<a>
-exports.jsx @ node_modules_next_di…_a0e4c7b4._.js:1989
-LinkComponent @ node_modules_next_a2e14111._.js:1137
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateFunctionComponent @ node_modules_next_di…_1e674e59._.js:6106
-beginWork @ node_modules_next_di…_1e674e59._.js:6702
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopConcurrentByScheduler @ node_modules_next_di…_1e674e59._.js:9552
-renderRootConcurrent @ node_modules_next_di…_1e674e59._.js:9535
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performWorkOnRootViaSchedulerTask @ node_modules_next_di…1e674e59._.js:10224
-performWorkUntilDeadline @ node_modules_next_di…_a0e4c7b4._.js:2647
-<LinkComponent>
-exports.jsxDEV @ node_modules_next_a2e14111._.js:214
-BookCard @ _dfd57b9e._.js:309
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateFunctionComponent @ node_modules_next_di…_1e674e59._.js:6106
-beginWork @ node_modules_next_di…_1e674e59._.js:6681
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopConcurrentByScheduler @ node_modules_next_di…_1e674e59._.js:9552
-renderRootConcurrent @ node_modules_next_di…_1e674e59._.js:9535
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performWorkOnRootViaSchedulerTask @ node_modules_next_di…1e674e59._.js:10224
-performWorkUntilDeadline @ node_modules_next_di…_a0e4c7b4._.js:2647
-"use client"
-<anonymous> @ C:%5CUsers%5Ccshan%5…2%5C.next%5Cde…:459
-Array.map @ <anonymous>:1
-BooksList @ C:%5CUsers%5Ccshan%5…2%5C.next%5Cde…:459
-initializeElement @ node_modules_next_di…_9212ccad._.js:1114
-(anonymous) @ node_modules_next_di…_9212ccad._.js:2526
-initializeModelChunk @ node_modules_next_di…_9212ccad._.js:1047
-resolveModelChunk @ node_modules_next_di…k_9212ccad._.js:953
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2411
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-<BooksList>
-BooksPage @ C:%5CUsers%5Ccshan%5…2%5C.next%5Cde…:613
-initializeFakeTask @ node_modules_next_di…_9212ccad._.js:1920
-initializeDebugInfo @ node_modules_next_di…_9212ccad._.js:1934
-initializeDebugChunk @ node_modules_next_di…_9212ccad._.js:1009
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2385
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-<BooksPage>
-Promise.all @ <anonymous>:1
-Promise.all @ <anonymous>:1
-initializeFakeTask @ node_modules_next_di…_9212ccad._.js:1920
-initializeDebugInfo @ node_modules_next_di…_9212ccad._.js:1934
-initializeDebugChunk @ node_modules_next_di…_9212ccad._.js:1009
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2385
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-"use server"
-ResponseInstance @ node_modules_next_di…_9212ccad._.js:1617
-createResponseFromOptions @ node_modules_next_di…_9212ccad._.js:2549
-exports.createFromReadableStream @ node_modules_next_di…_9212ccad._.js:2743
-module evaluation @ node_modules_next_di…aaee43fe._.js:12957
-(anonymous) @ turbopack-_45210fd5._.js:855
-runModuleExecutionHooks @ turbopack-_45210fd5._.js:880
-instantiateModule @ turbopack-_45210fd5._.js:853
-getOrInstantiateModuleFromParent @ turbopack-_45210fd5._.js:806
-commonJsRequire @ turbopack-_45210fd5._.js:259
-(anonymous) @ node_modules_next_di…aaee43fe._.js:13086
-(anonymous) @ node_modules_next_di…t_aaee43fe._.js:177
-loadScriptsInSequence @ node_modules_next_di…t_aaee43fe._.js:141
-appBootstrap @ node_modules_next_di…t_aaee43fe._.js:170
-module evaluation @ node_modules_next_di…aaee43fe._.js:13085
-(anonymous) @ turbopack-_45210fd5._.js:855
-runModuleExecutionHooks @ turbopack-_45210fd5._.js:880
-instantiateModule @ turbopack-_45210fd5._.js:853
-getOrInstantiateRuntimeModule @ turbopack-_45210fd5._.js:784
-registerChunk @ turbopack-_45210fd5._.js:1602
-await in registerChunk
-registerChunk @ turbopack-_45210fd5._.js:1540
-(anonymous) @ turbopack-_45210fd5._.js:1829
-(anonymous) @ turbopack-_45210fd5._.js:1833
-  POST http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51 net::ERR_CONNECTION_REFUSED
-ClientBookPage.useEffect @ app_d2fd130a._.js:332
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14866
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-commitHookEffectListMount @ node_modules_next_di…_1e674e59._.js:7260
-commitHookPassiveMountEffects @ node_modules_next_di…_1e674e59._.js:7295
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8780
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8739
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8731
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8699
-flushPassiveEffects @ node_modules_next_di…_1e674e59._.js:9969
-flushPendingEffects @ node_modules_next_di…_1e674e59._.js:9930
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10229
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-flushSpawnedWork @ node_modules_next_di…_1e674e59._.js:9908
-commitRoot @ node_modules_next_di…_1e674e59._.js:9714
-"use client"
-BookPageServer @ C:%5CUsers%5Ccshan%5…2%5C.next%5Cde…:592
-initializeElement @ node_modules_next_di…_9212ccad._.js:1114
-(anonymous) @ node_modules_next_di…_9212ccad._.js:2526
-initializeModelChunk @ node_modules_next_di…_9212ccad._.js:1047
-resolveModelChunk @ node_modules_next_di…k_9212ccad._.js:953
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2411
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-<BookPageServer>
-Promise.all @ <anonymous>:1
-initializeFakeTask @ node_modules_next_di…_9212ccad._.js:1920
-initializeDebugInfo @ node_modules_next_di…_9212ccad._.js:1934
-initializeDebugChunk @ node_modules_next_di…_9212ccad._.js:1009
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2385
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-"use server"
-ResponseInstance @ node_modules_next_di…_9212ccad._.js:1617
-createResponseFromOptions @ node_modules_next_di…_9212ccad._.js:2549
-exports.createFromFetch @ node_modules_next_di…_9212ccad._.js:2728
-createFromNextFetch @ node_modules_next_di…_aaee43fe._.js:2622
-createFetch @ node_modules_next_di…_aaee43fe._.js:2563
-fetchServerResponse @ node_modules_next_di…_aaee43fe._.js:2456
-navigateDynamicallyWithNoPrefetch @ node_modules_next_di…_aaee43fe._.js:7605
-navigate @ node_modules_next_di…_aaee43fe._.js:7424
-navigateReducer @ node_modules_next_di…_aaee43fe._.js:7900
-clientReducer @ node_modules_next_di…aaee43fe._.js:12246
-action @ node_modules_next_di…aaee43fe._.js:12492
-runAction @ node_modules_next_di…aaee43fe._.js:12397
-dispatchAction @ node_modules_next_di…aaee43fe._.js:12460
-dispatch @ node_modules_next_di…aaee43fe._.js:12490
-(anonymous) @ node_modules_next_di…_aaee43fe._.js:1442
-startTransition @ node_modules_next_di…_1e674e59._.js:5494
-dispatch @ node_modules_next_di…_aaee43fe._.js:1441
-dispatchAppRouterAction @ node_modules_next_di…_aaee43fe._.js:1423
-dispatchNavigateAction @ node_modules_next_di…aaee43fe._.js:12544
-(anonymous) @ node_modules_next_a2e14111._.js:848
-startTransition @ node_modules_next_di…_a0e4c7b4._.js:1279
-linkClicked @ node_modules_next_a2e14111._.js:847
-onClick @ node_modules_next_a2e14111._.js:1088
-executeDispatch @ node_modules_next_di…1e674e59._.js:10308
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-processDispatchQueue @ node_modules_next_di…1e674e59._.js:10334
-(anonymous) @ node_modules_next_di…1e674e59._.js:10609
-batchedUpdates$1 @ node_modules_next_di…_1e674e59._.js:2247
-dispatchEventForPluginEventSystem @ node_modules_next_di…1e674e59._.js:10410
-dispatchEvent @ node_modules_next_di…1e674e59._.js:12925
-dispatchDiscreteEvent @ node_modules_next_di…1e674e59._.js:12907
-<a>
-exports.jsx @ node_modules_next_di…_a0e4c7b4._.js:1989
-LinkComponent @ node_modules_next_a2e14111._.js:1137
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateFunctionComponent @ node_modules_next_di…_1e674e59._.js:6106
-beginWork @ node_modules_next_di…_1e674e59._.js:6702
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopConcurrentByScheduler @ node_modules_next_di…_1e674e59._.js:9552
-renderRootConcurrent @ node_modules_next_di…_1e674e59._.js:9535
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performWorkOnRootViaSchedulerTask @ node_modules_next_di…1e674e59._.js:10224
-performWorkUntilDeadline @ node_modules_next_di…_a0e4c7b4._.js:2647
-<LinkComponent>
-exports.jsxDEV @ node_modules_next_a2e14111._.js:214
-BookCard @ _dfd57b9e._.js:309
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateFunctionComponent @ node_modules_next_di…_1e674e59._.js:6106
-beginWork @ node_modules_next_di…_1e674e59._.js:6681
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopConcurrentByScheduler @ node_modules_next_di…_1e674e59._.js:9552
-renderRootConcurrent @ node_modules_next_di…_1e674e59._.js:9535
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performWorkOnRootViaSchedulerTask @ node_modules_next_di…1e674e59._.js:10224
-performWorkUntilDeadline @ node_modules_next_di…_a0e4c7b4._.js:2647
-"use client"
-<anonymous> @ C:%5CUsers%5Ccshan%5…2%5C.next%5Cde…:459
-Array.map @ <anonymous>:1
-BooksList @ C:%5CUsers%5Ccshan%5…2%5C.next%5Cde…:459
-initializeElement @ node_modules_next_di…_9212ccad._.js:1114
-(anonymous) @ node_modules_next_di…_9212ccad._.js:2526
-initializeModelChunk @ node_modules_next_di…_9212ccad._.js:1047
-resolveModelChunk @ node_modules_next_di…k_9212ccad._.js:953
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2411
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-<BooksList>
-BooksPage @ C:%5CUsers%5Ccshan%5…2%5C.next%5Cde…:613
-initializeFakeTask @ node_modules_next_di…_9212ccad._.js:1920
-initializeDebugInfo @ node_modules_next_di…_9212ccad._.js:1934
-initializeDebugChunk @ node_modules_next_di…_9212ccad._.js:1009
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2385
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-<BooksPage>
-Promise.all @ <anonymous>:1
-Promise.all @ <anonymous>:1
-initializeFakeTask @ node_modules_next_di…_9212ccad._.js:1920
-initializeDebugInfo @ node_modules_next_di…_9212ccad._.js:1934
-initializeDebugChunk @ node_modules_next_di…_9212ccad._.js:1009
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2385
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-"use server"
-ResponseInstance @ node_modules_next_di…_9212ccad._.js:1617
-createResponseFromOptions @ node_modules_next_di…_9212ccad._.js:2549
-exports.createFromReadableStream @ node_modules_next_di…_9212ccad._.js:2743
-module evaluation @ node_modules_next_di…aaee43fe._.js:12957
-(anonymous) @ turbopack-_45210fd5._.js:855
-runModuleExecutionHooks @ turbopack-_45210fd5._.js:880
-instantiateModule @ turbopack-_45210fd5._.js:853
-getOrInstantiateModuleFromParent @ turbopack-_45210fd5._.js:806
-commonJsRequire @ turbopack-_45210fd5._.js:259
-(anonymous) @ node_modules_next_di…aaee43fe._.js:13086
-(anonymous) @ node_modules_next_di…t_aaee43fe._.js:177
-loadScriptsInSequence @ node_modules_next_di…t_aaee43fe._.js:141
-appBootstrap @ node_modules_next_di…t_aaee43fe._.js:170
-module evaluation @ node_modules_next_di…aaee43fe._.js:13085
-(anonymous) @ turbopack-_45210fd5._.js:855
-runModuleExecutionHooks @ turbopack-_45210fd5._.js:880
-instantiateModule @ turbopack-_45210fd5._.js:853
-getOrInstantiateRuntimeModule @ turbopack-_45210fd5._.js:784
-registerChunk @ turbopack-_45210fd5._.js:1602
-await in registerChunk
-registerChunk @ turbopack-_45210fd5._.js:1540
-(anonymous) @ turbopack-_45210fd5._.js:1829
-(anonymous) @ turbopack-_45210fd5._.js:1833
-  POST http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51 net::ERR_CONNECTION_REFUSED
-ClientBookPage.useEffect @ app_d2fd130a._.js:208
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14866
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-commitHookEffectListMount @ node_modules_next_di…_1e674e59._.js:7260
-commitHookPassiveMountEffects @ node_modules_next_di…_1e674e59._.js:7295
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8780
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8786
-doubleInvokeEffectsOnFiber @ node_modules_next_di…1e674e59._.js:10086
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-commitDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10094
-flushPassiveEffects @ node_modules_next_di…_1e674e59._.js:9970
-flushPendingEffects @ node_modules_next_di…_1e674e59._.js:9930
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10229
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-flushSpawnedWork @ node_modules_next_di…_1e674e59._.js:9908
-commitRoot @ node_modules_next_di…_1e674e59._.js:9714
-commitRootWhenReady @ node_modules_next_di…_1e674e59._.js:9188
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9160
-performWorkOnRootViaSchedulerTask @ node_modules_next_di…1e674e59._.js:10224
-performWorkUntilDeadline @ node_modules_next_di…_a0e4c7b4._.js:2647
-"use client"
-BookPageServer @ C:%5CUsers%5Ccshan%5…2%5C.next%5Cde…:592
-initializeElement @ node_modules_next_di…_9212ccad._.js:1114
-(anonymous) @ node_modules_next_di…_9212ccad._.js:2526
-initializeModelChunk @ node_modules_next_di…_9212ccad._.js:1047
-resolveModelChunk @ node_modules_next_di…k_9212ccad._.js:953
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2411
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-<BookPageServer>
-Promise.all @ <anonymous>:1
-initializeFakeTask @ node_modules_next_di…_9212ccad._.js:1920
-initializeDebugInfo @ node_modules_next_di…_9212ccad._.js:1934
-initializeDebugChunk @ node_modules_next_di…_9212ccad._.js:1009
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2385
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-"use server"
-ResponseInstance @ node_modules_next_di…_9212ccad._.js:1617
-createResponseFromOptions @ node_modules_next_di…_9212ccad._.js:2549
-exports.createFromFetch @ node_modules_next_di…_9212ccad._.js:2728
-createFromNextFetch @ node_modules_next_di…_aaee43fe._.js:2622
-createFetch @ node_modules_next_di…_aaee43fe._.js:2563
-fetchServerResponse @ node_modules_next_di…_aaee43fe._.js:2456
-navigateDynamicallyWithNoPrefetch @ node_modules_next_di…_aaee43fe._.js:7605
-navigate @ node_modules_next_di…_aaee43fe._.js:7424
-navigateReducer @ node_modules_next_di…_aaee43fe._.js:7900
-clientReducer @ node_modules_next_di…aaee43fe._.js:12246
-action @ node_modules_next_di…aaee43fe._.js:12492
-runAction @ node_modules_next_di…aaee43fe._.js:12397
-dispatchAction @ node_modules_next_di…aaee43fe._.js:12460
-dispatch @ node_modules_next_di…aaee43fe._.js:12490
-(anonymous) @ node_modules_next_di…_aaee43fe._.js:1442
-startTransition @ node_modules_next_di…_1e674e59._.js:5494
-dispatch @ node_modules_next_di…_aaee43fe._.js:1441
-dispatchAppRouterAction @ node_modules_next_di…_aaee43fe._.js:1423
-dispatchNavigateAction @ node_modules_next_di…aaee43fe._.js:12544
-(anonymous) @ node_modules_next_a2e14111._.js:848
-startTransition @ node_modules_next_di…_a0e4c7b4._.js:1279
-linkClicked @ node_modules_next_a2e14111._.js:847
-onClick @ node_modules_next_a2e14111._.js:1088
-executeDispatch @ node_modules_next_di…1e674e59._.js:10308
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-processDispatchQueue @ node_modules_next_di…1e674e59._.js:10334
-(anonymous) @ node_modules_next_di…1e674e59._.js:10609
-batchedUpdates$1 @ node_modules_next_di…_1e674e59._.js:2247
-dispatchEventForPluginEventSystem @ node_modules_next_di…1e674e59._.js:10410
-dispatchEvent @ node_modules_next_di…1e674e59._.js:12925
-dispatchDiscreteEvent @ node_modules_next_di…1e674e59._.js:12907
-<a>
-exports.jsx @ node_modules_next_di…_a0e4c7b4._.js:1989
-LinkComponent @ node_modules_next_a2e14111._.js:1137
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateFunctionComponent @ node_modules_next_di…_1e674e59._.js:6106
-beginWork @ node_modules_next_di…_1e674e59._.js:6702
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopConcurrentByScheduler @ node_modules_next_di…_1e674e59._.js:9552
-renderRootConcurrent @ node_modules_next_di…_1e674e59._.js:9535
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performWorkOnRootViaSchedulerTask @ node_modules_next_di…1e674e59._.js:10224
-performWorkUntilDeadline @ node_modules_next_di…_a0e4c7b4._.js:2647
-<LinkComponent>
-exports.jsxDEV @ node_modules_next_a2e14111._.js:214
-BookCard @ _dfd57b9e._.js:309
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateFunctionComponent @ node_modules_next_di…_1e674e59._.js:6106
-beginWork @ node_modules_next_di…_1e674e59._.js:6681
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopConcurrentByScheduler @ node_modules_next_di…_1e674e59._.js:9552
-renderRootConcurrent @ node_modules_next_di…_1e674e59._.js:9535
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performWorkOnRootViaSchedulerTask @ node_modules_next_di…1e674e59._.js:10224
-performWorkUntilDeadline @ node_modules_next_di…_a0e4c7b4._.js:2647
-"use client"
-<anonymous> @ C:%5CUsers%5Ccshan%5…2%5C.next%5Cde…:459
-Array.map @ <anonymous>:1
-BooksList @ C:%5CUsers%5Ccshan%5…2%5C.next%5Cde…:459
-initializeElement @ node_modules_next_di…_9212ccad._.js:1114
-(anonymous) @ node_modules_next_di…_9212ccad._.js:2526
-initializeModelChunk @ node_modules_next_di…_9212ccad._.js:1047
-resolveModelChunk @ node_modules_next_di…k_9212ccad._.js:953
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2411
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-<BooksList>
-BooksPage @ C:%5CUsers%5Ccshan%5…2%5C.next%5Cde…:613
-initializeFakeTask @ node_modules_next_di…_9212ccad._.js:1920
-initializeDebugInfo @ node_modules_next_di…_9212ccad._.js:1934
-initializeDebugChunk @ node_modules_next_di…_9212ccad._.js:1009
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2385
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-<BooksPage>
-Promise.all @ <anonymous>:1
-Promise.all @ <anonymous>:1
-initializeFakeTask @ node_modules_next_di…_9212ccad._.js:1920
-initializeDebugInfo @ node_modules_next_di…_9212ccad._.js:1934
-initializeDebugChunk @ node_modules_next_di…_9212ccad._.js:1009
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2385
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-"use server"
-ResponseInstance @ node_modules_next_di…_9212ccad._.js:1617
-createResponseFromOptions @ node_modules_next_di…_9212ccad._.js:2549
-exports.createFromReadableStream @ node_modules_next_di…_9212ccad._.js:2743
-module evaluation @ node_modules_next_di…aaee43fe._.js:12957
-(anonymous) @ turbopack-_45210fd5._.js:855
-runModuleExecutionHooks @ turbopack-_45210fd5._.js:880
-instantiateModule @ turbopack-_45210fd5._.js:853
-getOrInstantiateModuleFromParent @ turbopack-_45210fd5._.js:806
-commonJsRequire @ turbopack-_45210fd5._.js:259
-(anonymous) @ node_modules_next_di…aaee43fe._.js:13086
-(anonymous) @ node_modules_next_di…t_aaee43fe._.js:177
-loadScriptsInSequence @ node_modules_next_di…t_aaee43fe._.js:141
-appBootstrap @ node_modules_next_di…t_aaee43fe._.js:170
-module evaluation @ node_modules_next_di…aaee43fe._.js:13085
-(anonymous) @ turbopack-_45210fd5._.js:855
-runModuleExecutionHooks @ turbopack-_45210fd5._.js:880
-instantiateModule @ turbopack-_45210fd5._.js:853
-getOrInstantiateRuntimeModule @ turbopack-_45210fd5._.js:784
-registerChunk @ turbopack-_45210fd5._.js:1602
-await in registerChunk
-registerChunk @ turbopack-_45210fd5._.js:1540
-(anonymous) @ turbopack-_45210fd5._.js:1829
-(anonymous) @ turbopack-_45210fd5._.js:1833
-  POST http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51 net::ERR_CONNECTION_REFUSED
-ClientBookPage.useEffect @ app_d2fd130a._.js:332
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14866
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-commitHookEffectListMount @ node_modules_next_di…_1e674e59._.js:7260
-commitHookPassiveMountEffects @ node_modules_next_di…_1e674e59._.js:7295
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8780
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8786
-doubleInvokeEffectsOnFiber @ node_modules_next_di…1e674e59._.js:10086
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-commitDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10094
-flushPassiveEffects @ node_modules_next_di…_1e674e59._.js:9970
-flushPendingEffects @ node_modules_next_di…_1e674e59._.js:9930
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10229
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-flushSpawnedWork @ node_modules_next_di…_1e674e59._.js:9908
-commitRoot @ node_modules_next_di…_1e674e59._.js:9714
-commitRootWhenReady @ node_modules_next_di…_1e674e59._.js:9188
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9160
-performWorkOnRootViaSchedulerTask @ node_modules_next_di…1e674e59._.js:10224
-performWorkUntilDeadline @ node_modules_next_di…_a0e4c7b4._.js:2647
-"use client"
-BookPageServer @ C:%5CUsers%5Ccshan%5…2%5C.next%5Cde…:592
-initializeElement @ node_modules_next_di…_9212ccad._.js:1114
-(anonymous) @ node_modules_next_di…_9212ccad._.js:2526
-initializeModelChunk @ node_modules_next_di…_9212ccad._.js:1047
-resolveModelChunk @ node_modules_next_di…k_9212ccad._.js:953
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2411
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-<BookPageServer>
-Promise.all @ <anonymous>:1
-initializeFakeTask @ node_modules_next_di…_9212ccad._.js:1920
-initializeDebugInfo @ node_modules_next_di…_9212ccad._.js:1934
-initializeDebugChunk @ node_modules_next_di…_9212ccad._.js:1009
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2385
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-"use server"
-ResponseInstance @ node_modules_next_di…_9212ccad._.js:1617
-createResponseFromOptions @ node_modules_next_di…_9212ccad._.js:2549
-exports.createFromFetch @ node_modules_next_di…_9212ccad._.js:2728
-createFromNextFetch @ node_modules_next_di…_aaee43fe._.js:2622
-createFetch @ node_modules_next_di…_aaee43fe._.js:2563
-fetchServerResponse @ node_modules_next_di…_aaee43fe._.js:2456
-navigateDynamicallyWithNoPrefetch @ node_modules_next_di…_aaee43fe._.js:7605
-navigate @ node_modules_next_di…_aaee43fe._.js:7424
-navigateReducer @ node_modules_next_di…_aaee43fe._.js:7900
-clientReducer @ node_modules_next_di…aaee43fe._.js:12246
-action @ node_modules_next_di…aaee43fe._.js:12492
-runAction @ node_modules_next_di…aaee43fe._.js:12397
-dispatchAction @ node_modules_next_di…aaee43fe._.js:12460
-dispatch @ node_modules_next_di…aaee43fe._.js:12490
-(anonymous) @ node_modules_next_di…_aaee43fe._.js:1442
-startTransition @ node_modules_next_di…_1e674e59._.js:5494
-dispatch @ node_modules_next_di…_aaee43fe._.js:1441
-dispatchAppRouterAction @ node_modules_next_di…_aaee43fe._.js:1423
-dispatchNavigateAction @ node_modules_next_di…aaee43fe._.js:12544
-(anonymous) @ node_modules_next_a2e14111._.js:848
-startTransition @ node_modules_next_di…_a0e4c7b4._.js:1279
-linkClicked @ node_modules_next_a2e14111._.js:847
-onClick @ node_modules_next_a2e14111._.js:1088
-executeDispatch @ node_modules_next_di…1e674e59._.js:10308
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-processDispatchQueue @ node_modules_next_di…1e674e59._.js:10334
-(anonymous) @ node_modules_next_di…1e674e59._.js:10609
-batchedUpdates$1 @ node_modules_next_di…_1e674e59._.js:2247
-dispatchEventForPluginEventSystem @ node_modules_next_di…1e674e59._.js:10410
-dispatchEvent @ node_modules_next_di…1e674e59._.js:12925
-dispatchDiscreteEvent @ node_modules_next_di…1e674e59._.js:12907
-<a>
-exports.jsx @ node_modules_next_di…_a0e4c7b4._.js:1989
-LinkComponent @ node_modules_next_a2e14111._.js:1137
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateFunctionComponent @ node_modules_next_di…_1e674e59._.js:6106
-beginWork @ node_modules_next_di…_1e674e59._.js:6702
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopConcurrentByScheduler @ node_modules_next_di…_1e674e59._.js:9552
-renderRootConcurrent @ node_modules_next_di…_1e674e59._.js:9535
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performWorkOnRootViaSchedulerTask @ node_modules_next_di…1e674e59._.js:10224
-performWorkUntilDeadline @ node_modules_next_di…_a0e4c7b4._.js:2647
-<LinkComponent>
-exports.jsxDEV @ node_modules_next_a2e14111._.js:214
-BookCard @ _dfd57b9e._.js:309
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateFunctionComponent @ node_modules_next_di…_1e674e59._.js:6106
-beginWork @ node_modules_next_di…_1e674e59._.js:6681
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopConcurrentByScheduler @ node_modules_next_di…_1e674e59._.js:9552
-renderRootConcurrent @ node_modules_next_di…_1e674e59._.js:9535
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performWorkOnRootViaSchedulerTask @ node_modules_next_di…1e674e59._.js:10224
-performWorkUntilDeadline @ node_modules_next_di…_a0e4c7b4._.js:2647
-"use client"
-<anonymous> @ C:%5CUsers%5Ccshan%5…2%5C.next%5Cde…:459
-Array.map @ <anonymous>:1
-BooksList @ C:%5CUsers%5Ccshan%5…2%5C.next%5Cde…:459
-initializeElement @ node_modules_next_di…_9212ccad._.js:1114
-(anonymous) @ node_modules_next_di…_9212ccad._.js:2526
-initializeModelChunk @ node_modules_next_di…_9212ccad._.js:1047
-resolveModelChunk @ node_modules_next_di…k_9212ccad._.js:953
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2411
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-<BooksList>
-BooksPage @ C:%5CUsers%5Ccshan%5…2%5C.next%5Cde…:613
-initializeFakeTask @ node_modules_next_di…_9212ccad._.js:1920
-initializeDebugInfo @ node_modules_next_di…_9212ccad._.js:1934
-initializeDebugChunk @ node_modules_next_di…_9212ccad._.js:1009
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2385
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-<BooksPage>
-Promise.all @ <anonymous>:1
-Promise.all @ <anonymous>:1
-initializeFakeTask @ node_modules_next_di…_9212ccad._.js:1920
-initializeDebugInfo @ node_modules_next_di…_9212ccad._.js:1934
-initializeDebugChunk @ node_modules_next_di…_9212ccad._.js:1009
-processFullStringRow @ node_modules_next_di…_9212ccad._.js:2385
-processFullBinaryRow @ node_modules_next_di…_9212ccad._.js:2331
-processBinaryChunk @ node_modules_next_di…_9212ccad._.js:2441
-progress @ node_modules_next_di…_9212ccad._.js:2610
-"use server"
-ResponseInstance @ node_modules_next_di…_9212ccad._.js:1617
-createResponseFromOptions @ node_modules_next_di…_9212ccad._.js:2549
-exports.createFromReadableStream @ node_modules_next_di…_9212ccad._.js:2743
-module evaluation @ node_modules_next_di…aaee43fe._.js:12957
-(anonymous) @ turbopack-_45210fd5._.js:855
-runModuleExecutionHooks @ turbopack-_45210fd5._.js:880
-instantiateModule @ turbopack-_45210fd5._.js:853
-getOrInstantiateModuleFromParent @ turbopack-_45210fd5._.js:806
-commonJsRequire @ turbopack-_45210fd5._.js:259
-(anonymous) @ node_modules_next_di…aaee43fe._.js:13086
-(anonymous) @ node_modules_next_di…t_aaee43fe._.js:177
-loadScriptsInSequence @ node_modules_next_di…t_aaee43fe._.js:141
-appBootstrap @ node_modules_next_di…t_aaee43fe._.js:170
-module evaluation @ node_modules_next_di…aaee43fe._.js:13085
-(anonymous) @ turbopack-_45210fd5._.js:855
-runModuleExecutionHooks @ turbopack-_45210fd5._.js:880
-instantiateModule @ turbopack-_45210fd5._.js:853
-getOrInstantiateRuntimeModule @ turbopack-_45210fd5._.js:784
-registerChunk @ turbopack-_45210fd5._.js:1602
-await in registerChunk
-registerChunk @ turbopack-_45210fd5._.js:1540
-(anonymous) @ turbopack-_45210fd5._.js:1829
-(anonymous) @ turbopack-_45210fd5._.js:1833
- 🔍 Header data response: {success: true, albumsCount: 0, albums: Array(0)}
- ⚠️ No header albums found or request failed: {success: true, error: undefined, albumsCount: 0}
-overrideMethod @ installHook.js:1
-overrideMethod @ node_modules_next_di…_7a8122d0._.js:2288
-EntityHeader.useCallback[fetchEntityImages] @ components_c75c7b91._.js:1860
-await in EntityHeader.useCallback[fetchEntityImages]
-EntityHeader.useEffect @ components_c75c7b91._.js:1964
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14866
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-commitHookEffectListMount @ node_modules_next_di…_1e674e59._.js:7260
-commitHookPassiveMountEffects @ node_modules_next_di…_1e674e59._.js:7295
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8780
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8739
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8731
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8699
-flushPassiveEffects @ node_modules_next_di…_1e674e59._.js:9969
- ⚠️ No entity header image found, falling back to book cover
- 🔍 Avatar data response: {success: true, albumsCount: 0, albums: Array(0)}
- ⚠️ No avatar albums found or request failed: {success: true, error: undefined, albumsCount: 0}
-overrideMethod @ installHook.js:1
-overrideMethod @ node_modules_next_di…_7a8122d0._.js:2288
-EntityHeader.useCallback[fetchEntityImages] @ components_c75c7b91._.js:1944
-await in EntityHeader.useCallback[fetchEntityImages]
-EntityHeader.useEffect @ components_c75c7b91._.js:1964
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14866
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-commitHookEffectListMount @ node_modules_next_di…_1e674e59._.js:7260
-commitHookPassiveMountEffects @ node_modules_next_di…_1e674e59._.js:7295
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8780
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8739
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8731
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8699
-flushPassiveEffects @ node_modules_next_di…_1e674e59._.js:9969
- 🔍 Header data response: {success: true, albumsCount: 0, albums: Array(0)}
- ⚠️ No header albums found or request failed: {success: true, error: undefined, albumsCount: 0}
-overrideMethod @ installHook.js:1
-overrideMethod @ node_modules_next_di…_7a8122d0._.js:2288
-EntityHeader.useCallback[fetchEntityImages] @ components_c75c7b91._.js:1860
-await in EntityHeader.useCallback[fetchEntityImages]
-EntityHeader.useEffect @ components_c75c7b91._.js:1964
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14866
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-commitHookEffectListMount @ node_modules_next_di…_1e674e59._.js:7260
-commitHookPassiveMountEffects @ node_modules_next_di…_1e674e59._.js:7295
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8780
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8786
-doubleInvokeEffectsOnFiber @ node_modules_next_di…1e674e59._.js:10086
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-commitDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10094
-flushPassiveEffects @ node_modules_next_di…_1e674e59._.js:9970
-flushPendingEffects @ node_modules_next_di…_1e674e59._.js:9930
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10229
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-flushSpawnedWork @ node_modules_next_di…_1e674e59._.js:9908
-commitRoot @ node_modules_next_di…_1e674e59._.js:9714
-commitRootWhenReady @ node_modules_next_di…_1e674e59._.js:9188
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9160
-performWorkOnRootViaSchedulerTask @ node_modules_next_di…1e674e59._.js:10224
-performWorkUntilDeadline @ node_modules_next_di…_a0e4c7b4._.js:2647
- ⚠️ No entity header image found, falling back to book cover
- 🔍 Avatar data response: {success: true, albumsCount: 0, albums: Array(0)}
- ⚠️ No avatar albums found or request failed: {success: true, error: undefined, albumsCount: 0}
-overrideMethod @ installHook.js:1
-overrideMethod @ node_modules_next_di…_7a8122d0._.js:2288
-EntityHeader.useCallback[fetchEntityImages] @ components_c75c7b91._.js:1944
-await in EntityHeader.useCallback[fetchEntityImages]
-EntityHeader.useEffect @ components_c75c7b91._.js:1964
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14866
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-commitHookEffectListMount @ node_modules_next_di…_1e674e59._.js:7260
-commitHookPassiveMountEffects @ node_modules_next_di…_1e674e59._.js:7295
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8780
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8786
-doubleInvokeEffectsOnFiber @ node_modules_next_di…1e674e59._.js:10086
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-commitDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10094
-flushPassiveEffects @ node_modules_next_di…_1e674e59._.js:9970
-flushPendingEffects @ node_modules_next_di…_1e674e59._.js:9930
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10229
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-flushSpawnedWork @ node_modules_next_di…_1e674e59._.js:9908
-commitRoot @ node_modules_next_di…_1e674e59._.js:9714
-commitRootWhenReady @ node_modules_next_di…_1e674e59._.js:9188
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9160
-performWorkOnRootViaSchedulerTask @ node_modules_next_di…1e674e59._.js:10224
-performWorkUntilDeadline @ node_modules_next_di…_a0e4c7b4._.js:2647
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- Image with src "/placeholder.svg?height=400&width=1200?t=0" is using quality "95" which is not configured in images.qualities [75]. Please update your config to [75, 95].
-Read more: https://nextjs.org/docs/messages/next-image-unconfigured-qualities
-overrideMethod @ installHook.js:1
-overrideMethod @ node_modules_next_di…_7a8122d0._.js:2288
-warnOnce @ node_modules_next_di…_7a8122d0._.js:1140
-getImgProps @ node_modules_next_a2e14111._.js:1671
-(anonymous) @ node_modules_next_a2e14111._.js:4280
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4645
-updateForwardRef @ node_modules_next_di…_1e674e59._.js:5933
-beginWork @ node_modules_next_di…_1e674e59._.js:6777
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopSync @ node_modules_next_di…_1e674e59._.js:9450
-renderRootSync @ node_modules_next_di…_1e674e59._.js:9434
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performWorkOnRootViaSchedulerTask @ node_modules_next_di…1e674e59._.js:10224
-performWorkUntilDeadline @ node_modules_next_di…_a0e4c7b4._.js:2647
-<ForwardRef>
-exports.jsxDEV @ node_modules_next_a2e14111._.js:214
-renderCoverImage @ components_c75c7b91._.js:2639
-EntityHeader @ components_c75c7b91._.js:2811
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateFunctionComponent @ node_modules_next_di…_1e674e59._.js:6106
-beginWork @ node_modules_next_di…_1e674e59._.js:6702
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopSync @ node_modules_next_di…_1e674e59._.js:9450
-renderRootSync @ node_modules_next_di…_1e674e59._.js:9434
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performWorkOnRootViaSchedulerTask @ node_modules_next_di…1e674e59._.js:10224
-performWorkUntilDeadline @ node_modules_next_di…_a0e4c7b4._.js:2647
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
-overrideMethod @ installHook.js:1
-overrideMethod @ node_modules_next_di…_7a8122d0._.js:2288
-DescriptionWarning.useEffect @ node_modules_7d77d7c5._.js:11980
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14866
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-commitHookEffectListMount @ node_modules_next_di…_1e674e59._.js:7260
-commitHookPassiveMountEffects @ node_modules_next_di…_1e674e59._.js:7295
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8690
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8739
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8731
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-<DescriptionWarning>
-exports.jsx @ node_modules_next_di…_a0e4c7b4._.js:1989
-(anonymous) @ node_modules_7d77d7c5._.js:11899
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateForwardRef @ node_modules_next_di…_1e674e59._.js:5933
-beginWork @ node_modules_next_di…_1e674e59._.js:6777
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopSync @ node_modules_next_di…_1e674e59._.js:9450
-renderRootSync @ node_modules_next_di…_1e674e59._.js:9434
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10232
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-flushSyncWork$1 @ node_modules_next_di…_1e674e59._.js:9231
-f @ node_modules_next_di…1e674e59._.js:16170
-exports.flushSync @ node_modules_next_di…om_1e674e59._.js:82
-dispatchDiscreteCustomEvent @ node_modules_7d77d7c5._.js:1867
-handleSelect @ node_modules_7d77d7c5._.js:10745
-handleEvent @ node_modules_7d77d7c5._.js:218
-executeDispatch @ node_modules_next_di…1e674e59._.js:10308
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-processDispatchQueue @ node_modules_next_di…1e674e59._.js:10334
-(anonymous) @ node_modules_next_di…1e674e59._.js:10609
-batchedUpdates$1 @ node_modules_next_di…_1e674e59._.js:2247
-dispatchEventForPluginEventSystem @ node_modules_next_di…1e674e59._.js:10410
-dispatchEvent @ node_modules_next_di…1e674e59._.js:12925
-dispatchDiscreteEvent @ node_modules_next_di…1e674e59._.js:12907
-<ForwardRef>
-exports.jsx @ node_modules_next_di…_a0e4c7b4._.js:1989
-(anonymous) @ node_modules_7d77d7c5._.js:11816
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateForwardRef @ node_modules_next_di…_1e674e59._.js:5933
-beginWork @ node_modules_next_di…_1e674e59._.js:6777
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopSync @ node_modules_next_di…_1e674e59._.js:9450
-renderRootSync @ node_modules_next_di…_1e674e59._.js:9434
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10232
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-flushSyncWork$1 @ node_modules_next_di…_1e674e59._.js:9231
-f @ node_modules_next_di…1e674e59._.js:16170
-exports.flushSync @ node_modules_next_di…om_1e674e59._.js:82
-dispatchDiscreteCustomEvent @ node_modules_7d77d7c5._.js:1867
-handleSelect @ node_modules_7d77d7c5._.js:10745
-handleEvent @ node_modules_7d77d7c5._.js:218
-executeDispatch @ node_modules_next_di…1e674e59._.js:10308
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-processDispatchQueue @ node_modules_next_di…1e674e59._.js:10334
-(anonymous) @ node_modules_next_di…1e674e59._.js:10609
-batchedUpdates$1 @ node_modules_next_di…_1e674e59._.js:2247
-dispatchEventForPluginEventSystem @ node_modules_next_di…1e674e59._.js:10410
-dispatchEvent @ node_modules_next_di…1e674e59._.js:12925
-dispatchDiscreteEvent @ node_modules_next_di…1e674e59._.js:12907
-<ForwardRef>
-exports.jsx @ node_modules_next_di…_a0e4c7b4._.js:1989
-DialogContent @ node_modules_7d77d7c5._.js:11796
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateForwardRef @ node_modules_next_di…_1e674e59._.js:5933
-beginWork @ node_modules_next_di…_1e674e59._.js:6777
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopSync @ node_modules_next_di…_1e674e59._.js:9450
-renderRootSync @ node_modules_next_di…_1e674e59._.js:9434
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10232
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-flushSyncWork$1 @ node_modules_next_di…_1e674e59._.js:9231
-f @ node_modules_next_di…1e674e59._.js:16170
-exports.flushSync @ node_modules_next_di…om_1e674e59._.js:82
-dispatchDiscreteCustomEvent @ node_modules_7d77d7c5._.js:1867
-handleSelect @ node_modules_7d77d7c5._.js:10745
-handleEvent @ node_modules_7d77d7c5._.js:218
-executeDispatch @ node_modules_next_di…1e674e59._.js:10308
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-processDispatchQueue @ node_modules_next_di…1e674e59._.js:10334
-(anonymous) @ node_modules_next_di…1e674e59._.js:10609
-batchedUpdates$1 @ node_modules_next_di…_1e674e59._.js:2247
-dispatchEventForPluginEventSystem @ node_modules_next_di…1e674e59._.js:10410
-dispatchEvent @ node_modules_next_di…1e674e59._.js:12925
-dispatchDiscreteEvent @ node_modules_next_di…1e674e59._.js:12907
-<DialogContent>
-exports.jsxDEV @ node_modules_next_a2e14111._.js:214
-_c1 @ _90d12560._.js:2283
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateForwardRef @ node_modules_next_di…_1e674e59._.js:5933
-beginWork @ node_modules_next_di…_1e674e59._.js:6777
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopSync @ node_modules_next_di…_1e674e59._.js:9450
-renderRootSync @ node_modules_next_di…_1e674e59._.js:9434
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10232
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-flushSyncWork$1 @ node_modules_next_di…_1e674e59._.js:9231
-f @ node_modules_next_di…1e674e59._.js:16170
-exports.flushSync @ node_modules_next_di…om_1e674e59._.js:82
-dispatchDiscreteCustomEvent @ node_modules_7d77d7c5._.js:1867
-handleSelect @ node_modules_7d77d7c5._.js:10745
-handleEvent @ node_modules_7d77d7c5._.js:218
-executeDispatch @ node_modules_next_di…1e674e59._.js:10308
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-processDispatchQueue @ node_modules_next_di…1e674e59._.js:10334
-(anonymous) @ node_modules_next_di…1e674e59._.js:10609
-batchedUpdates$1 @ node_modules_next_di…_1e674e59._.js:2247
-dispatchEventForPluginEventSystem @ node_modules_next_di…1e674e59._.js:10410
-dispatchEvent @ node_modules_next_di…1e674e59._.js:12925
-dispatchDiscreteEvent @ node_modules_next_di…1e674e59._.js:12907
- Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
-overrideMethod @ installHook.js:1
-overrideMethod @ node_modules_next_di…_7a8122d0._.js:2288
-DescriptionWarning.useEffect @ node_modules_7d77d7c5._.js:11980
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14866
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-commitHookEffectListMount @ node_modules_next_di…_1e674e59._.js:7260
-commitHookPassiveMountEffects @ node_modules_next_di…_1e674e59._.js:7295
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8780
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-doubleInvokeEffectsOnFiber @ node_modules_next_di…1e674e59._.js:10086
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-commitDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10094
-flushPassiveEffects @ node_modules_next_di…_1e674e59._.js:9970
-flushPendingEffects @ node_modules_next_di…_1e674e59._.js:9930
-flushSpawnedWork @ node_modules_next_di…_1e674e59._.js:9903
-commitRoot @ node_modules_next_di…_1e674e59._.js:9714
-commitRootWhenReady @ node_modules_next_di…_1e674e59._.js:9188
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9160
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10232
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-flushSyncWork$1 @ node_modules_next_di…_1e674e59._.js:9231
-f @ node_modules_next_di…1e674e59._.js:16170
-exports.flushSync @ node_modules_next_di…om_1e674e59._.js:82
-dispatchDiscreteCustomEvent @ node_modules_7d77d7c5._.js:1867
-handleSelect @ node_modules_7d77d7c5._.js:10745
-handleEvent @ node_modules_7d77d7c5._.js:218
-executeDispatch @ node_modules_next_di…1e674e59._.js:10308
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-processDispatchQueue @ node_modules_next_di…1e674e59._.js:10334
-(anonymous) @ node_modules_next_di…1e674e59._.js:10609
-batchedUpdates$1 @ node_modules_next_di…_1e674e59._.js:2247
-dispatchEventForPluginEventSystem @ node_modules_next_di…1e674e59._.js:10410
-dispatchEvent @ node_modules_next_di…1e674e59._.js:12925
-dispatchDiscreteEvent @ node_modules_next_di…1e674e59._.js:12907
-<DescriptionWarning>
-exports.jsx @ node_modules_next_di…_a0e4c7b4._.js:1989
-(anonymous) @ node_modules_7d77d7c5._.js:11899
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateForwardRef @ node_modules_next_di…_1e674e59._.js:5933
-beginWork @ node_modules_next_di…_1e674e59._.js:6777
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopSync @ node_modules_next_di…_1e674e59._.js:9450
-renderRootSync @ node_modules_next_di…_1e674e59._.js:9434
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10232
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-flushSyncWork$1 @ node_modules_next_di…_1e674e59._.js:9231
-f @ node_modules_next_di…1e674e59._.js:16170
-exports.flushSync @ node_modules_next_di…om_1e674e59._.js:82
-dispatchDiscreteCustomEvent @ node_modules_7d77d7c5._.js:1867
-handleSelect @ node_modules_7d77d7c5._.js:10745
-handleEvent @ node_modules_7d77d7c5._.js:218
-executeDispatch @ node_modules_next_di…1e674e59._.js:10308
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-processDispatchQueue @ node_modules_next_di…1e674e59._.js:10334
-(anonymous) @ node_modules_next_di…1e674e59._.js:10609
-batchedUpdates$1 @ node_modules_next_di…_1e674e59._.js:2247
-dispatchEventForPluginEventSystem @ node_modules_next_di…1e674e59._.js:10410
-dispatchEvent @ node_modules_next_di…1e674e59._.js:12925
-dispatchDiscreteEvent @ node_modules_next_di…1e674e59._.js:12907
-<ForwardRef>
-exports.jsx @ node_modules_next_di…_a0e4c7b4._.js:1989
-(anonymous) @ node_modules_7d77d7c5._.js:11816
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateForwardRef @ node_modules_next_di…_1e674e59._.js:5933
-beginWork @ node_modules_next_di…_1e674e59._.js:6777
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopSync @ node_modules_next_di…_1e674e59._.js:9450
-renderRootSync @ node_modules_next_di…_1e674e59._.js:9434
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10232
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-flushSyncWork$1 @ node_modules_next_di…_1e674e59._.js:9231
-f @ node_modules_next_di…1e674e59._.js:16170
-exports.flushSync @ node_modules_next_di…om_1e674e59._.js:82
-dispatchDiscreteCustomEvent @ node_modules_7d77d7c5._.js:1867
-handleSelect @ node_modules_7d77d7c5._.js:10745
-handleEvent @ node_modules_7d77d7c5._.js:218
-executeDispatch @ node_modules_next_di…1e674e59._.js:10308
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-processDispatchQueue @ node_modules_next_di…1e674e59._.js:10334
-(anonymous) @ node_modules_next_di…1e674e59._.js:10609
-batchedUpdates$1 @ node_modules_next_di…_1e674e59._.js:2247
-dispatchEventForPluginEventSystem @ node_modules_next_di…1e674e59._.js:10410
-dispatchEvent @ node_modules_next_di…1e674e59._.js:12925
-dispatchDiscreteEvent @ node_modules_next_di…1e674e59._.js:12907
-<ForwardRef>
-exports.jsx @ node_modules_next_di…_a0e4c7b4._.js:1989
-DialogContent @ node_modules_7d77d7c5._.js:11796
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateForwardRef @ node_modules_next_di…_1e674e59._.js:5933
-beginWork @ node_modules_next_di…_1e674e59._.js:6777
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopSync @ node_modules_next_di…_1e674e59._.js:9450
-renderRootSync @ node_modules_next_di…_1e674e59._.js:9434
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10232
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-flushSyncWork$1 @ node_modules_next_di…_1e674e59._.js:9231
-f @ node_modules_next_di…1e674e59._.js:16170
-exports.flushSync @ node_modules_next_di…om_1e674e59._.js:82
-dispatchDiscreteCustomEvent @ node_modules_7d77d7c5._.js:1867
-handleSelect @ node_modules_7d77d7c5._.js:10745
-handleEvent @ node_modules_7d77d7c5._.js:218
-executeDispatch @ node_modules_next_di…1e674e59._.js:10308
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-processDispatchQueue @ node_modules_next_di…1e674e59._.js:10334
-(anonymous) @ node_modules_next_di…1e674e59._.js:10609
-batchedUpdates$1 @ node_modules_next_di…_1e674e59._.js:2247
-dispatchEventForPluginEventSystem @ node_modules_next_di…1e674e59._.js:10410
-dispatchEvent @ node_modules_next_di…1e674e59._.js:12925
-dispatchDiscreteEvent @ node_modules_next_di…1e674e59._.js:12907
-<DialogContent>
-exports.jsxDEV @ node_modules_next_a2e14111._.js:214
-_c1 @ _90d12560._.js:2283
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateForwardRef @ node_modules_next_di…_1e674e59._.js:5933
-beginWork @ node_modules_next_di…_1e674e59._.js:6777
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopSync @ node_modules_next_di…_1e674e59._.js:9450
-renderRootSync @ node_modules_next_di…_1e674e59._.js:9434
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10232
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-flushSyncWork$1 @ node_modules_next_di…_1e674e59._.js:9231
-f @ node_modules_next_di…1e674e59._.js:16170
-exports.flushSync @ node_modules_next_di…om_1e674e59._.js:82
-dispatchDiscreteCustomEvent @ node_modules_7d77d7c5._.js:1867
-handleSelect @ node_modules_7d77d7c5._.js:10745
-handleEvent @ node_modules_7d77d7c5._.js:218
-executeDispatch @ node_modules_next_di…1e674e59._.js:10308
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-processDispatchQueue @ node_modules_next_di…1e674e59._.js:10334
-(anonymous) @ node_modules_next_di…1e674e59._.js:10609
-batchedUpdates$1 @ node_modules_next_di…_1e674e59._.js:2247
-dispatchEventForPluginEventSystem @ node_modules_next_di…1e674e59._.js:10410
-dispatchEvent @ node_modules_next_di…1e674e59._.js:12925
-dispatchDiscreteEvent @ node_modules_next_di…1e674e59._.js:12907
- 🔍 Fetching pending friend requests for user: 2474659f-003e-4faa-8c53-9969c33f20b2
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: user-avatar-eb6c0fb9-6baf-4a90-870d-06d87849efa5
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: user-avatar-a213628a-3e5a-4471-8b72-001ae4683c31
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+  Server  📚 Books Read Query: Object
+  Server  👥 Friends Query: Object
+  Server  👥 Followers Count: 0 Followers List: 0
+  Server  👥 Friends Count: 1 Friends List: 1
+  Server  📚 Final books array: Object
+  Server  🔍 Profile Page Debug: Object
+ 🏗️ EntityHeader component mounted with props: Object
+ 🔍 EntityHeader useEffect dependencies changed: Object
+ 🔍 EntityHeader Debug: Object
+ 🏗️ EntityHeader component mounted with props: Object
+ 🔍 EntityHeader useEffect dependencies changed: Object
+ 🔍 EntityHeader Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🚀 Creating new request for: follow-status-user-8dd18808-4777-4877-bde1-b54b1d3ffa81
+ 🔄 Returning active request for: follow-status-user-8dd18808-4777-4877-bde1-b54b1d3ffa81
+ 🏗️ EntityHeader component mounted with props: Object
+ 🔍 EntityHeader useEffect dependencies changed: Object
+ 🔍 EntityHeader Debug: Object
+ 🏗️ EntityHeader component mounted with props: Object
+ 🔍 EntityHeader useEffect dependencies changed: Object
+ 🔍 EntityHeader Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+  Server  📚 Books Read Query: Object
+  Server  👥 Friends Query: Object
+  Server  👥 Followers Count: 0 Followers List: 0
+  Server  👥 Friends Count: 1 Friends List: 1
+  Server  📚 Final books array: Object
+  Server  🔍 Profile Page Debug: Object
+ 🏗️ EntityHeader component mounted with props: Object
+ 🔍 EntityHeader useEffect dependencies changed: Object
+ 🔍 EntityHeader Debug: Object
+ 🏗️ EntityHeader component mounted with props: Object
+ 🔍 EntityHeader useEffect dependencies changed: Object
+ 🔍 EntityHeader Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ [Fast Refresh] rebuilding
+ [Fast Refresh] done in 142ms
+ WebSocket connection to 'wss://nmrohtlcfqujtfgcyqhw.supabase.co/realtime/v1/websocket?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tcm9odGxjZnF1anRmZ2N5cWh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzMTQ1ODIsImV4cCI6MjA1Nzg5MDU4Mn0.kpkM45hzALxly1EP86tEP4QfWJS8cOEys4zkSmZVIyU%0D%0A&vsn=1.0.0' failed: 
+createWebSocket @ node_modules_@supaba…e_e0ea8d88._.js:117
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 🏗️ EntityHeader component mounted with props: Object
+ 🔍 EntityHeader useEffect dependencies changed: Object
+ 🔍 EntityHeader Debug: Object
+ 🏗️ EntityHeader component mounted with props: Object
+ 🔍 EntityHeader useEffect dependencies changed: Object
+ 🔍 EntityHeader Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 🏗️ EntityHeader component mounted with props: Object
+ 🔍 EntityHeader useEffect dependencies changed: Object
+ 🔍 EntityHeader Debug: Object
+ 🏗️ EntityHeader component mounted with props: Object
+ 🔍 EntityHeader useEffect dependencies changed: Object
+ 🔍 EntityHeader Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🏗️ EntityHeader component mounted with props: Object
+ 🔍 EntityHeader useEffect dependencies changed: Object
+ 🔍 EntityHeader Debug: Object
+ 🏗️ EntityHeader component mounted with props: Object
+ 🔍 EntityHeader useEffect dependencies changed: Object
+ 🔍 EntityHeader Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 🏗️ EntityHeader component mounted with props: Object
+ 🔍 EntityHeader useEffect dependencies changed: Object
+ 🔍 EntityHeader Debug: Object
+ 🏗️ EntityHeader component mounted with props: Object
+ 🔍 EntityHeader useEffect dependencies changed: Object
+ 🔍 EntityHeader Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 📦 Cache hit for: current-user-data
+ 🏗️ EntityHeader component mounted with props: Object
+ 🔍 EntityHeader useEffect dependencies changed: Object
+ 🔍 EntityHeader Debug: Object
+ 🏗️ EntityHeader component mounted with props: Object
+ 🔍 EntityHeader useEffect dependencies changed: Object
+ 🔍 EntityHeader Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ WebSocket connection to 'wss://nmrohtlcfqujtfgcyqhw.supabase.co/realtime/v1/websocket?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tcm9odGxjZnF1anRmZ2N5cWh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzMTQ1ODIsImV4cCI6MjA1Nzg5MDU4Mn0.kpkM45hzALxly1EP86tEP4QfWJS8cOEys4zkSmZVIyU%0D%0A&vsn=1.0.0' failed: 
+createWebSocket @ node_modules_@supaba…e_e0ea8d88._.js:117
+ 🏗️ EntityHeader component mounted with props: Object
+ 🔍 EntityHeader useEffect dependencies changed: Object
+ 🔍 EntityHeader Debug: Object
+ 🏗️ EntityHeader component mounted with props: Object
+ 🔍 EntityHeader useEffect dependencies changed: Object
+ 🔍 EntityHeader Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ WebSocket connection to 'wss://nmrohtlcfqujtfgcyqhw.supabase.co/realtime/v1/websocket?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tcm9odGxjZnF1anRmZ2N5cWh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzMTQ1ODIsImV4cCI6MjA1Nzg5MDU4Mn0.kpkM45hzALxly1EP86tEP4QfWJS8cOEys4zkSmZVIyU%0D%0A&vsn=1.0.0' failed: 
+createWebSocket @ node_modules_@supaba…e_e0ea8d88._.js:117
+chrome-extension://invalid/:1  Failed to load resource: net::ERR_FAILED
+chrome-extension://invalid/:1  Failed to load resource: net::ERR_FAILED
+chrome-extension://invalid/:1  Failed to load resource: net::ERR_FAILED
+chrome-extension://invalid/:1  Failed to load resource: net::ERR_FAILED
+chrome-extension://invalid/:1  Failed to load resource: net::ERR_FAILED
+chrome-extension://invalid/:1  Failed to load resource: net::ERR_FAILED
+chrome-extension://invalid/:1  Failed to load resource: net::ERR_FAILED
+chrome-extension://invalid/:1  Failed to load resource: net::ERR_FAILED
+chrome-extension://invalid/:1  Failed to load resource: net::ERR_FAILED
+ WebSocket connection to 'wss://nmrohtlcfqujtfgcyqhw.supabase.co/realtime/v1/websocket?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tcm9odGxjZnF1anRmZ2N5cWh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzMTQ1ODIsImV4cCI6MjA1Nzg5MDU4Mn0.kpkM45hzALxly1EP86tEP4QfWJS8cOEys4zkSmZVIyU%0D%0A&vsn=1.0.0' failed: 
+createWebSocket @ node_modules_@supaba…e_e0ea8d88._.js:117
+ 🔍 Fetching pending friend requests for user: c5b68ab4-e8bc-4291-a646-7f8ab4b99528
  🔍 API endpoint: /api/friends/pending
- Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+ 📡 Response received: Object
+ ✅ FriendRequestNotification - Received data: Object
+127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51:1  Failed to load resource: net::ERR_CONNECTION_REFUSED
+ WebSocket connection to 'wss://nmrohtlcfqujtfgcyqhw.supabase.co/realtime/v1/websocket?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tcm9odGxjZnF1anRmZ2N5cWh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzMTQ1ODIsImV4cCI6MjA1Nzg5MDU4Mn0.kpkM45hzALxly1EP86tEP4QfWJS8cOEys4zkSmZVIyU%0D%0A&vsn=1.0.0' failed: 
+createWebSocket @ node_modules_@supaba…e_e0ea8d88._.js:117
+nmrohtlcfqujtfgcyqhw.supabase.co/rest/v1/activities?columns=%22user_id%22%2C%22activity_type%22%2C%22visibility%22%2C%22content_type%22%2C%22text%22%2C%22content_summary%22%2C%22image_url%22%2C%22link_url%22%2C%22hashtags%22%2C%22data%22%2C%22entity_type%22%2C%22entity_id%22%2C%22metadata%22%2C%22publish_status%22%2C%22published_at%22%2C%22created_at%22%2C%22updated_at%22:1  Failed to load resource: the server responded with a status of 400 ()
+ Post creation error: Object
 overrideMethod @ installHook.js:1
-overrideMethod @ node_modules_next_di…_7a8122d0._.js:2288
-DescriptionWarning.useEffect @ node_modules_7d77d7c5._.js:11980
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14866
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-commitHookEffectListMount @ node_modules_next_di…_1e674e59._.js:7260
-commitHookPassiveMountEffects @ node_modules_next_di…_1e674e59._.js:7295
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8690
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8739
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8731
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8751
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8694
-recursivelyTraversePassiveMountEffects @ node_modules_next_di…_1e674e59._.js:8677
-commitPassiveMountOnFiber @ node_modules_next_di…_1e674e59._.js:8689
-<DescriptionWarning>
-exports.jsx @ node_modules_next_di…_a0e4c7b4._.js:1989
-(anonymous) @ node_modules_7d77d7c5._.js:11899
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateForwardRef @ node_modules_next_di…_1e674e59._.js:5933
-beginWork @ node_modules_next_di…_1e674e59._.js:6777
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopSync @ node_modules_next_di…_1e674e59._.js:9450
-renderRootSync @ node_modules_next_di…_1e674e59._.js:9434
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10232
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-processRootScheduleInMicrotask @ node_modules_next_di…1e674e59._.js:10169
-(anonymous) @ node_modules_next_di…1e674e59._.js:10243
-<ForwardRef>
-exports.jsx @ node_modules_next_di…_a0e4c7b4._.js:1989
-(anonymous) @ node_modules_7d77d7c5._.js:11816
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateForwardRef @ node_modules_next_di…_1e674e59._.js:5933
-beginWork @ node_modules_next_di…_1e674e59._.js:6777
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopSync @ node_modules_next_di…_1e674e59._.js:9450
-renderRootSync @ node_modules_next_di…_1e674e59._.js:9434
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10232
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-processRootScheduleInMicrotask @ node_modules_next_di…1e674e59._.js:10169
-(anonymous) @ node_modules_next_di…1e674e59._.js:10243
-<ForwardRef>
-exports.jsx @ node_modules_next_di…_a0e4c7b4._.js:1989
-DialogContent @ node_modules_7d77d7c5._.js:11796
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateForwardRef @ node_modules_next_di…_1e674e59._.js:5933
-beginWork @ node_modules_next_di…_1e674e59._.js:6777
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopSync @ node_modules_next_di…_1e674e59._.js:9450
-renderRootSync @ node_modules_next_di…_1e674e59._.js:9434
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10232
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-processRootScheduleInMicrotask @ node_modules_next_di…1e674e59._.js:10169
-(anonymous) @ node_modules_next_di…1e674e59._.js:10243
-<DialogContent>
-exports.jsxDEV @ node_modules_next_a2e14111._.js:214
-_c1 @ _90d12560._.js:2283
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateForwardRef @ node_modules_next_di…_1e674e59._.js:5933
-beginWork @ node_modules_next_di…_1e674e59._.js:6777
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopSync @ node_modules_next_di…_1e674e59._.js:9450
-renderRootSync @ node_modules_next_di…_1e674e59._.js:9434
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10232
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-processRootScheduleInMicrotask @ node_modules_next_di…1e674e59._.js:10169
-(anonymous) @ node_modules_next_di…1e674e59._.js:10243
-<DialogContent>
-exports.jsxDEV @ node_modules_next_a2e14111._.js:214
-EntityImageUpload @ components_c75c7b91._.js:1211
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateFunctionComponent @ node_modules_next_di…_1e674e59._.js:6106
-beginWork @ node_modules_next_di…_1e674e59._.js:6702
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopSync @ node_modules_next_di…_1e674e59._.js:9450
-renderRootSync @ node_modules_next_di…_1e674e59._.js:9434
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10232
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-processRootScheduleInMicrotask @ node_modules_next_di…1e674e59._.js:10169
-(anonymous) @ node_modules_next_di…1e674e59._.js:10243
- Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+ Failed to create post: Object
 overrideMethod @ installHook.js:1
-overrideMethod @ node_modules_next_di…_7a8122d0._.js:2288
-DescriptionWarning.useEffect @ node_modules_7d77d7c5._.js:11980
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14866
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-commitHookEffectListMount @ node_modules_next_di…_1e674e59._.js:7260
-commitHookPassiveMountEffects @ node_modules_next_di…_1e674e59._.js:7295
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8780
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8779
-recursivelyTraverseReconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8767
-reconnectPassiveEffects @ node_modules_next_di…_1e674e59._.js:8794
-doubleInvokeEffectsOnFiber @ node_modules_next_di…1e674e59._.js:10086
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-recursivelyTraverseAndDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10079
-commitDoubleInvokeEffectsInDEV @ node_modules_next_di…1e674e59._.js:10094
-flushPassiveEffects @ node_modules_next_di…_1e674e59._.js:9970
-flushPendingEffects @ node_modules_next_di…_1e674e59._.js:9930
-flushSpawnedWork @ node_modules_next_di…_1e674e59._.js:9903
-commitRoot @ node_modules_next_di…_1e674e59._.js:9714
-commitRootWhenReady @ node_modules_next_di…_1e674e59._.js:9188
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9160
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10232
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-processRootScheduleInMicrotask @ node_modules_next_di…1e674e59._.js:10169
-(anonymous) @ node_modules_next_di…1e674e59._.js:10243
-<DescriptionWarning>
-exports.jsx @ node_modules_next_di…_a0e4c7b4._.js:1989
-(anonymous) @ node_modules_7d77d7c5._.js:11899
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateForwardRef @ node_modules_next_di…_1e674e59._.js:5933
-beginWork @ node_modules_next_di…_1e674e59._.js:6777
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopSync @ node_modules_next_di…_1e674e59._.js:9450
-renderRootSync @ node_modules_next_di…_1e674e59._.js:9434
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10232
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-processRootScheduleInMicrotask @ node_modules_next_di…1e674e59._.js:10169
-(anonymous) @ node_modules_next_di…1e674e59._.js:10243
-<ForwardRef>
-exports.jsx @ node_modules_next_di…_a0e4c7b4._.js:1989
-(anonymous) @ node_modules_7d77d7c5._.js:11816
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateForwardRef @ node_modules_next_di…_1e674e59._.js:5933
-beginWork @ node_modules_next_di…_1e674e59._.js:6777
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopSync @ node_modules_next_di…_1e674e59._.js:9450
-renderRootSync @ node_modules_next_di…_1e674e59._.js:9434
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10232
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-processRootScheduleInMicrotask @ node_modules_next_di…1e674e59._.js:10169
-(anonymous) @ node_modules_next_di…1e674e59._.js:10243
-<ForwardRef>
-exports.jsx @ node_modules_next_di…_a0e4c7b4._.js:1989
-DialogContent @ node_modules_7d77d7c5._.js:11796
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateForwardRef @ node_modules_next_di…_1e674e59._.js:5933
-beginWork @ node_modules_next_di…_1e674e59._.js:6777
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopSync @ node_modules_next_di…_1e674e59._.js:9450
-renderRootSync @ node_modules_next_di…_1e674e59._.js:9434
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10232
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-processRootScheduleInMicrotask @ node_modules_next_di…1e674e59._.js:10169
-(anonymous) @ node_modules_next_di…1e674e59._.js:10243
-<DialogContent>
-exports.jsxDEV @ node_modules_next_a2e14111._.js:214
-_c1 @ _90d12560._.js:2283
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateForwardRef @ node_modules_next_di…_1e674e59._.js:5933
-beginWork @ node_modules_next_di…_1e674e59._.js:6777
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopSync @ node_modules_next_di…_1e674e59._.js:9450
-renderRootSync @ node_modules_next_di…_1e674e59._.js:9434
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10232
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-processRootScheduleInMicrotask @ node_modules_next_di…1e674e59._.js:10169
-(anonymous) @ node_modules_next_di…1e674e59._.js:10243
-<DialogContent>
-exports.jsxDEV @ node_modules_next_a2e14111._.js:214
-EntityImageUpload @ components_c75c7b91._.js:1211
-react_stack_bottom_frame @ node_modules_next_di…1e674e59._.js:14816
-renderWithHooksAgain @ node_modules_next_di…_1e674e59._.js:4700
-renderWithHooks @ node_modules_next_di…_1e674e59._.js:4651
-updateFunctionComponent @ node_modules_next_di…_1e674e59._.js:6106
-beginWork @ node_modules_next_di…_1e674e59._.js:6702
-runWithFiberInDEV @ node_modules_next_di…m_1e674e59._.js:959
-performUnitOfWork @ node_modules_next_di…_1e674e59._.js:9556
-workLoopSync @ node_modules_next_di…_1e674e59._.js:9450
-renderRootSync @ node_modules_next_di…_1e674e59._.js:9434
-performWorkOnRoot @ node_modules_next_di…_1e674e59._.js:9062
-performSyncWorkOnRoot @ node_modules_next_di…1e674e59._.js:10232
-flushSyncWorkAcrossRoots_impl @ node_modules_next_di…1e674e59._.js:10148
-processRootScheduleInMicrotask @ node_modules_next_di…1e674e59._.js:10169
-(anonymous) @ node_modules_next_di…1e674e59._.js:10243
- 🚀 [UPLOAD] Starting upload process for book 322058c3-f6d8-4246-af2a-dc886d1255c2, type: bookCover
- 📤 [UPLOAD] No cropping - uploading original image only
- 📡 Response received: {status: 200, statusText: 'OK', ok: true, headers: {…}}
- ✅ FriendRequestNotification - Received data: {success: true, requests: Array(0), timestamp: '2025-12-12T02:33:41.705Z'}
- ✅ [UPLOAD] Cloudinary upload successful
- ✅ [UPLOAD] Image URL: https://res.cloudinary.com/dj8yugwyp/image/upload/v1765506825/authorsinfo/book_cover/aefqgct4ox3bs4bpoubt.webp
- ✅ [UPLOAD] Image ID: 64a77221-49de-4fa6-a93c-7f33b4842da5
- ✅ [UPLOAD] Public ID: authorsinfo/book_cover/aefqgct4ox3bs4bpoubt
- ✅ Upload successful: Image ID 64a77221-49de-4fa6-a93c-7f33b4842da5 saved to Supabase
- 📁 [ALBUM] Starting album addition process
- 📁 [ALBUM] Image ID: 64a77221-49de-4fa6-a93c-7f33b4842da5
- 📁 [ALBUM] Entity: book 322058c3-f6d8-4246-af2a-dc886d1255c2
- 📁 [ALBUM] Album Purpose: cover
- 📁 [ALBUM] Calling POST /api/entity-images...
- 📁 [ALBUM] Response status: 200 OK
- ✅ [ALBUM] Image added to album successfully: {success: true, albumId: '09aaab08-ac06-4ca5-992f-808ffd874b8f', imageId: '64a77221-49de-4fa6-a93c-7f33b4842da5', message: 'Image added to entity album successfully'}
- ✅ [ALBUM] Album ID: 09aaab08-ac06-4ca5-992f-808ffd874b8f
- ✅ [ALBUM] Image ID in album: 64a77221-49de-4fa6-a93c-7f33b4842da5
- ✅ Upload verification complete: Image 64a77221-49de-4fa6-a93c-7f33b4842da5 is in Supabase database
- ✅ [UPLOAD] All steps completed successfully - calling onImageChange
- 🔄 handleCoverImageChange called: {newImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…/authorsinfo/book_cover/aefqgct4ox3bs4bpoubt.webp', newImageId: '64a77221-49de-4fa6-a93c-7f33b4842da5'}
- 🔄 Fetching fresh book data from API...
- 🔄 Entity image changed event received, refreshing images...
- ✅ [UPLOAD] Upload complete - showing success toast
- 📝 Updating bookData with new cover: {oldUrl: undefined, newUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…/authorsinfo/book_cover/aefqgct4ox3bs4bpoubt.webp', oldId: null, newId: '64a77221-49de-4fa6-a93c-7f33b4842da5'}
- ✅ Book data updated: {cover_image_id: '64a77221-49de-4fa6-a93c-7f33b4842da5', cover_image_url: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…/authorsinfo/book_cover/aefqgct4ox3bs4bpoubt.webp', cover_image: {…}}
- 📝 Updating bookData with new cover: {oldUrl: undefined, newUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…/authorsinfo/book_cover/aefqgct4ox3bs4bpoubt.webp', oldId: null, newId: '64a77221-49de-4fa6-a93c-7f33b4842da5'}
- ✅ Book data updated: {cover_image_id: '64a77221-49de-4fa6-a93c-7f33b4842da5', cover_image_url: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…/authorsinfo/book_cover/aefqgct4ox3bs4bpoubt.webp', cover_image: {…}}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…/authorsinfo/book_cover/aefqgct4ox3bs4bpoubt.webp'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
- 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…/authorsinfo/book_cover/aefqgct4ox3bs4bpoubt.webp'}
- 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
-entity-header.tsx:221 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…/authorsinfo/book_cover/aefqgct4ox3bs4bpoubt.webp'}
-entity-header.tsx:464 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
-installHook.js:1 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…/authorsinfo/book_cover/aefqgct4ox3bs4bpoubt.webp'}
-installHook.js:1 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
-entity-header.tsx:452 🔄 Fetching fresh entity images after cache clear...
-entity-header.tsx:279 📡 Fetching entity images with optimization...
-request-utils.ts:47 🚀 Creating new request for: entity-header-book-322058c3-f6d8-4246-af2a-dc886d1255c2
-request-utils.ts:47 🚀 Creating new request for: entity-avatar-book-322058c3-f6d8-4246-af2a-dc886d1255c2
-entity-header.tsx:299 🔍 Header data response: {success: true, albumsCount: 0, albums: Array(0)}
-installHook.js:1 ⚠️ No header albums found or request failed: {success: true, error: undefined, albumsCount: 0}
-overrideMethod @ installHook.js:1
-overrideMethod @ forward-logs-shared.ts:95
-EntityHeader.useCallback[fetchEntityImages] @ entity-header.tsx:353
-await in EntityHeader.useCallback[fetchEntityImages]
-EntityHeader.useEffect.handleEntityImageChanged @ entity-header.tsx:453
-setTimeout
-EntityHeader.useEffect.handleEntityImageChanged @ entity-header.tsx:451
-handleUpload @ EntityImageUpload.tsx:407
-await in handleUpload
-executeDispatch @ react-dom-client.development.js:20541
-runWithFiberInDEV @ react-dom-client.development.js:984
-processDispatchQueue @ react-dom-client.development.js:20591
-(anonymous) @ react-dom-client.development.js:21162
-batchedUpdates$1 @ react-dom-client.development.js:3375
-dispatchEventForPluginEventSystem @ react-dom-client.development.js:20745
-dispatchEvent @ react-dom-client.development.js:25671
-dispatchDiscreteEvent @ react-dom-client.development.js:25639
-<button>
-exports.jsxDEV @ react-jsx-dev-runtime.development.js:342
-_c @ button.tsx:46
-react_stack_bottom_frame @ react-dom-client.development.js:28016
-renderWithHooksAgain @ react-dom-client.development.js:8082
-renderWithHooks @ react-dom-client.development.js:7994
-updateForwardRef @ react-dom-client.development.js:10057
-beginWork @ react-dom-client.development.js:12473
-runWithFiberInDEV @ react-dom-client.development.js:984
-performUnitOfWork @ react-dom-client.development.js:18995
-workLoopSync @ react-dom-client.development.js:18823
-renderRootSync @ react-dom-client.development.js:18804
-performWorkOnRoot @ react-dom-client.development.js:17833
-performSyncWorkOnRoot @ react-dom-client.development.js:20397
-flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:20239
-processRootScheduleInMicrotask @ react-dom-client.development.js:20278
-(anonymous) @ react-dom-client.development.js:20416
-<Button>
-exports.jsxDEV @ react-jsx-dev-runtime.development.js:342
-EntityImageUpload @ EntityImageUpload.tsx:630
-react_stack_bottom_frame @ react-dom-client.development.js:28016
-renderWithHooksAgain @ react-dom-client.development.js:8082
-renderWithHooks @ react-dom-client.development.js:7994
-updateFunctionComponent @ react-dom-client.development.js:10499
-beginWork @ react-dom-client.development.js:12134
-runWithFiberInDEV @ react-dom-client.development.js:984
-performUnitOfWork @ react-dom-client.development.js:18995
-workLoopSync @ react-dom-client.development.js:18823
-renderRootSync @ react-dom-client.development.js:18804
-performWorkOnRoot @ react-dom-client.development.js:17833
-performSyncWorkOnRoot @ react-dom-client.development.js:20397
-flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:20239
-processRootScheduleInMicrotask @ react-dom-client.development.js:20278
-(anonymous) @ react-dom-client.development.js:20416
-entity-header.tsx:362 ⚠️ No entity header image found, falling back to book cover
-entity-header.tsx:368 🔍 Avatar data response: {success: true, albumsCount: 0, albums: Array(0)}
-installHook.js:1 ⚠️ No avatar albums found or request failed: {success: true, error: undefined, albumsCount: 0}
-overrideMethod @ installHook.js:1
-overrideMethod @ forward-logs-shared.ts:95
-EntityHeader.useCallback[fetchEntityImages] @ entity-header.tsx:420
-await in EntityHeader.useCallback[fetchEntityImages]
-EntityHeader.useEffect.handleEntityImageChanged @ entity-header.tsx:453
-setTimeout
-EntityHeader.useEffect.handleEntityImageChanged @ entity-header.tsx:451
-handleUpload @ EntityImageUpload.tsx:407
-await in handleUpload
-executeDispatch @ react-dom-client.development.js:20541
-runWithFiberInDEV @ react-dom-client.development.js:984
-processDispatchQueue @ react-dom-client.development.js:20591
-(anonymous) @ react-dom-client.development.js:21162
-batchedUpdates$1 @ react-dom-client.development.js:3375
-dispatchEventForPluginEventSystem @ react-dom-client.development.js:20745
-dispatchEvent @ react-dom-client.development.js:25671
-dispatchDiscreteEvent @ react-dom-client.development.js:25639
-<button>
-exports.jsxDEV @ react-jsx-dev-runtime.development.js:342
-_c @ button.tsx:46
-react_stack_bottom_frame @ react-dom-client.development.js:28016
-renderWithHooksAgain @ react-dom-client.development.js:8082
-renderWithHooks @ react-dom-client.development.js:7994
-updateForwardRef @ react-dom-client.development.js:10057
-beginWork @ react-dom-client.development.js:12473
-runWithFiberInDEV @ react-dom-client.development.js:984
-performUnitOfWork @ react-dom-client.development.js:18995
-workLoopSync @ react-dom-client.development.js:18823
-renderRootSync @ react-dom-client.development.js:18804
-performWorkOnRoot @ react-dom-client.development.js:17833
-performSyncWorkOnRoot @ react-dom-client.development.js:20397
-flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:20239
-processRootScheduleInMicrotask @ react-dom-client.development.js:20278
-(anonymous) @ react-dom-client.development.js:20416
-<Button>
-exports.jsxDEV @ react-jsx-dev-runtime.development.js:342
-EntityImageUpload @ EntityImageUpload.tsx:630
-react_stack_bottom_frame @ react-dom-client.development.js:28016
-renderWithHooksAgain @ react-dom-client.development.js:8082
-renderWithHooks @ react-dom-client.development.js:7994
-updateFunctionComponent @ react-dom-client.development.js:10499
-beginWork @ react-dom-client.development.js:12134
-runWithFiberInDEV @ react-dom-client.development.js:984
-performUnitOfWork @ react-dom-client.development.js:18995
-workLoopSync @ react-dom-client.development.js:18823
-renderRootSync @ react-dom-client.development.js:18804
-performWorkOnRoot @ react-dom-client.development.js:17833
-performSyncWorkOnRoot @ react-dom-client.development.js:20397
-flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:20239
-processRootScheduleInMicrotask @ react-dom-client.development.js:20278
-(anonymous) @ react-dom-client.development.js:20416
-entity-header.tsx:221 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…/authorsinfo/book_cover/aefqgct4ox3bs4bpoubt.webp'}
-entity-header.tsx:464 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
-installHook.js:1 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…/authorsinfo/book_cover/aefqgct4ox3bs4bpoubt.webp'}
-installHook.js:1 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
-client.tsx:802 ✅ Fresh book data received, updating state
-entity-header.tsx:221 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…/authorsinfo/book_cover/aefqgct4ox3bs4bpoubt.webp'}
-entity-header.tsx:464 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
-installHook.js:1 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…/authorsinfo/book_cover/aefqgct4ox3bs4bpoubt.webp'}
-installHook.js:1 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
-entity-header.tsx:221 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…/authorsinfo/book_cover/aefqgct4ox3bs4bpoubt.webp'}
-entity-header.tsx:464 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
-installHook.js:1 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: 'https://res.cloudinary.com/dj8yugwyp/image/upload/…/authorsinfo/book_cover/aefqgct4ox3bs4bpoubt.webp'}
-installHook.js:1 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
-entity-header.tsx:221 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
-entity-header.tsx:464 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
-installHook.js:1 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
-installHook.js:1 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
-client.tsx:793  POST http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51 net::ERR_CONNECTION_REFUSED
-handleCoverImageChange @ client.tsx:793
-handleUpload @ EntityImageUpload.tsx:400
-await in handleUpload
-executeDispatch @ react-dom-client.development.js:20541
-runWithFiberInDEV @ react-dom-client.development.js:984
-processDispatchQueue @ react-dom-client.development.js:20591
-(anonymous) @ react-dom-client.development.js:21162
-batchedUpdates$1 @ react-dom-client.development.js:3375
-dispatchEventForPluginEventSystem @ react-dom-client.development.js:20745
-dispatchEvent @ react-dom-client.development.js:25671
-dispatchDiscreteEvent @ react-dom-client.development.js:25639
-<button>
-exports.jsxDEV @ react-jsx-dev-runtime.development.js:342
-_c @ button.tsx:46
-react_stack_bottom_frame @ react-dom-client.development.js:28016
-renderWithHooksAgain @ react-dom-client.development.js:8082
-renderWithHooks @ react-dom-client.development.js:7994
-updateForwardRef @ react-dom-client.development.js:10057
-beginWork @ react-dom-client.development.js:12473
-runWithFiberInDEV @ react-dom-client.development.js:984
-performUnitOfWork @ react-dom-client.development.js:18995
-workLoopSync @ react-dom-client.development.js:18823
-renderRootSync @ react-dom-client.development.js:18804
-performWorkOnRoot @ react-dom-client.development.js:17833
-performSyncWorkOnRoot @ react-dom-client.development.js:20397
-flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:20239
-processRootScheduleInMicrotask @ react-dom-client.development.js:20278
-(anonymous) @ react-dom-client.development.js:20416
-<Button>
-exports.jsxDEV @ react-jsx-dev-runtime.development.js:342
-EntityImageUpload @ EntityImageUpload.tsx:630
-react_stack_bottom_frame @ react-dom-client.development.js:28016
-renderWithHooksAgain @ react-dom-client.development.js:8082
-renderWithHooks @ react-dom-client.development.js:7994
-updateFunctionComponent @ react-dom-client.development.js:10499
-beginWork @ react-dom-client.development.js:12134
-runWithFiberInDEV @ react-dom-client.development.js:984
-performUnitOfWork @ react-dom-client.development.js:18995
-workLoopSync @ react-dom-client.development.js:18823
-renderRootSync @ react-dom-client.development.js:18804
-performWorkOnRoot @ react-dom-client.development.js:17833
-performSyncWorkOnRoot @ react-dom-client.development.js:20397
-flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:20239
-processRootScheduleInMicrotask @ react-dom-client.development.js:20278
-(anonymous) @ react-dom-client.development.js:20416
-client.tsx:757  POST http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51 net::ERR_CONNECTION_REFUSED
-(anonymous) @ client.tsx:757
-basicStateReducer @ react-dom-client.development.js:8255
-updateReducerImpl @ react-dom-client.development.js:8365
-updateReducer @ react-dom-client.development.js:8288
-useState @ react-dom-client.development.js:28623
-exports.useState @ react.development.js:1309
-ClientBookPage @ client.tsx:136
-react_stack_bottom_frame @ react-dom-client.development.js:28016
-renderWithHooks @ react-dom-client.development.js:7982
-updateFunctionComponent @ react-dom-client.development.js:10499
-beginWork @ react-dom-client.development.js:12134
-runWithFiberInDEV @ react-dom-client.development.js:984
-performUnitOfWork @ react-dom-client.development.js:18995
-workLoopSync @ react-dom-client.development.js:18823
-renderRootSync @ react-dom-client.development.js:18804
-performWorkOnRoot @ react-dom-client.development.js:17833
-performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:20382
-performWorkUntilDeadline @ scheduler.development.js:45
-client.tsx:778  POST http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51 net::ERR_CONNECTION_REFUSED
-(anonymous) @ client.tsx:778
-basicStateReducer @ react-dom-client.development.js:8255
-updateReducerImpl @ react-dom-client.development.js:8365
-updateReducer @ react-dom-client.development.js:8288
-useState @ react-dom-client.development.js:28623
-exports.useState @ react.development.js:1309
-ClientBookPage @ client.tsx:136
-react_stack_bottom_frame @ react-dom-client.development.js:28016
-renderWithHooks @ react-dom-client.development.js:7982
-updateFunctionComponent @ react-dom-client.development.js:10499
-beginWork @ react-dom-client.development.js:12134
-runWithFiberInDEV @ react-dom-client.development.js:984
-performUnitOfWork @ react-dom-client.development.js:18995
-workLoopSync @ react-dom-client.development.js:18823
-renderRootSync @ react-dom-client.development.js:18804
-performWorkOnRoot @ react-dom-client.development.js:17833
-performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:20382
-performWorkUntilDeadline @ scheduler.development.js:45
-client.tsx:757  POST http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51 net::ERR_CONNECTION_REFUSED
-(anonymous) @ client.tsx:757
-basicStateReducer @ react-dom-client.development.js:8255
-updateReducerImpl @ react-dom-client.development.js:8368
-updateReducer @ react-dom-client.development.js:8288
-useState @ react-dom-client.development.js:28623
-exports.useState @ react.development.js:1309
-ClientBookPage @ client.tsx:136
-react_stack_bottom_frame @ react-dom-client.development.js:28016
-renderWithHooks @ react-dom-client.development.js:7982
-updateFunctionComponent @ react-dom-client.development.js:10499
-beginWork @ react-dom-client.development.js:12134
-runWithFiberInDEV @ react-dom-client.development.js:984
-performUnitOfWork @ react-dom-client.development.js:18995
-workLoopSync @ react-dom-client.development.js:18823
-renderRootSync @ react-dom-client.development.js:18804
-performWorkOnRoot @ react-dom-client.development.js:17833
-performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:20382
-performWorkUntilDeadline @ scheduler.development.js:45
-client.tsx:778  POST http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51 net::ERR_CONNECTION_REFUSED
-(anonymous) @ client.tsx:778
-basicStateReducer @ react-dom-client.development.js:8255
-updateReducerImpl @ react-dom-client.development.js:8368
-updateReducer @ react-dom-client.development.js:8288
-useState @ react-dom-client.development.js:28623
-exports.useState @ react.development.js:1309
-ClientBookPage @ client.tsx:136
-react_stack_bottom_frame @ react-dom-client.development.js:28016
-renderWithHooks @ react-dom-client.development.js:7982
-updateFunctionComponent @ react-dom-client.development.js:10499
-beginWork @ react-dom-client.development.js:12134
-runWithFiberInDEV @ react-dom-client.development.js:984
-performUnitOfWork @ react-dom-client.development.js:18995
-workLoopSync @ react-dom-client.development.js:18823
-renderRootSync @ react-dom-client.development.js:18804
-performWorkOnRoot @ react-dom-client.development.js:17833
-performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:20382
-performWorkUntilDeadline @ scheduler.development.js:45
-client.tsx:151  POST http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51 net::ERR_CONNECTION_REFUSED
-ClientBookPage.useEffect @ client.tsx:151
-react_stack_bottom_frame @ react-dom-client.development.js:28101
-runWithFiberInDEV @ react-dom-client.development.js:984
-commitHookEffectListMount @ react-dom-client.development.js:13690
-commitHookPassiveMountEffects @ react-dom-client.development.js:13777
-commitPassiveMountOnFiber @ react-dom-client.development.js:16731
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16937
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16896
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16766
-flushPassiveEffects @ react-dom-client.development.js:19857
-flushPendingEffects @ react-dom-client.development.js:19783
-performSyncWorkOnRoot @ react-dom-client.development.js:20394
-flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:20239
-flushSpawnedWork @ react-dom-client.development.js:19750
-commitRoot @ react-dom-client.development.js:19333
-client.tsx:178  POST http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51 net::ERR_CONNECTION_REFUSED
-ClientBookPage.useEffect @ client.tsx:178
-react_stack_bottom_frame @ react-dom-client.development.js:28101
-runWithFiberInDEV @ react-dom-client.development.js:984
-commitHookEffectListMount @ react-dom-client.development.js:13690
-commitHookPassiveMountEffects @ react-dom-client.development.js:13777
-commitPassiveMountOnFiber @ react-dom-client.development.js:16731
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16937
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16896
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16766
-flushPassiveEffects @ react-dom-client.development.js:19857
-flushPendingEffects @ react-dom-client.development.js:19783
-performSyncWorkOnRoot @ react-dom-client.development.js:20394
-flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:20239
-flushSpawnedWork @ react-dom-client.development.js:19750
-commitRoot @ react-dom-client.development.js:19333
-client.tsx:800  POST http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51 net::ERR_CONNECTION_REFUSED
-handleCoverImageChange @ client.tsx:800
-await in handleCoverImageChange
-handleUpload @ EntityImageUpload.tsx:400
-await in handleUpload
-executeDispatch @ react-dom-client.development.js:20541
-runWithFiberInDEV @ react-dom-client.development.js:984
-processDispatchQueue @ react-dom-client.development.js:20591
-(anonymous) @ react-dom-client.development.js:21162
-batchedUpdates$1 @ react-dom-client.development.js:3375
-dispatchEventForPluginEventSystem @ react-dom-client.development.js:20745
-dispatchEvent @ react-dom-client.development.js:25671
-dispatchDiscreteEvent @ react-dom-client.development.js:25639
-<button>
-exports.jsxDEV @ react-jsx-dev-runtime.development.js:342
-_c @ button.tsx:46
-react_stack_bottom_frame @ react-dom-client.development.js:28016
-renderWithHooksAgain @ react-dom-client.development.js:8082
-renderWithHooks @ react-dom-client.development.js:7994
-updateForwardRef @ react-dom-client.development.js:10057
-beginWork @ react-dom-client.development.js:12473
-runWithFiberInDEV @ react-dom-client.development.js:984
-performUnitOfWork @ react-dom-client.development.js:18995
-workLoopSync @ react-dom-client.development.js:18823
-renderRootSync @ react-dom-client.development.js:18804
-performWorkOnRoot @ react-dom-client.development.js:17833
-performSyncWorkOnRoot @ react-dom-client.development.js:20397
-flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:20239
-processRootScheduleInMicrotask @ react-dom-client.development.js:20278
-(anonymous) @ react-dom-client.development.js:20416
-<Button>
-exports.jsxDEV @ react-jsx-dev-runtime.development.js:342
-EntityImageUpload @ EntityImageUpload.tsx:630
-react_stack_bottom_frame @ react-dom-client.development.js:28016
-renderWithHooksAgain @ react-dom-client.development.js:8082
-renderWithHooks @ react-dom-client.development.js:7994
-updateFunctionComponent @ react-dom-client.development.js:10499
-beginWork @ react-dom-client.development.js:12134
-runWithFiberInDEV @ react-dom-client.development.js:984
-performUnitOfWork @ react-dom-client.development.js:18995
-workLoopSync @ react-dom-client.development.js:18823
-renderRootSync @ react-dom-client.development.js:18804
-performWorkOnRoot @ react-dom-client.development.js:17833
-performSyncWorkOnRoot @ react-dom-client.development.js:20397
-flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:20239
-processRootScheduleInMicrotask @ react-dom-client.development.js:20278
-(anonymous) @ react-dom-client.development.js:20416
-client.tsx:805  POST http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51 net::ERR_CONNECTION_REFUSED
-handleCoverImageChange @ client.tsx:805
-await in handleCoverImageChange
-handleUpload @ EntityImageUpload.tsx:400
-await in handleUpload
-executeDispatch @ react-dom-client.development.js:20541
-runWithFiberInDEV @ react-dom-client.development.js:984
-processDispatchQueue @ react-dom-client.development.js:20591
-(anonymous) @ react-dom-client.development.js:21162
-batchedUpdates$1 @ react-dom-client.development.js:3375
-dispatchEventForPluginEventSystem @ react-dom-client.development.js:20745
-dispatchEvent @ react-dom-client.development.js:25671
-dispatchDiscreteEvent @ react-dom-client.development.js:25639
-<button>
-exports.jsxDEV @ react-jsx-dev-runtime.development.js:342
-_c @ button.tsx:46
-react_stack_bottom_frame @ react-dom-client.development.js:28016
-renderWithHooksAgain @ react-dom-client.development.js:8082
-renderWithHooks @ react-dom-client.development.js:7994
-updateForwardRef @ react-dom-client.development.js:10057
-beginWork @ react-dom-client.development.js:12473
-runWithFiberInDEV @ react-dom-client.development.js:984
-performUnitOfWork @ react-dom-client.development.js:18995
-workLoopSync @ react-dom-client.development.js:18823
-renderRootSync @ react-dom-client.development.js:18804
-performWorkOnRoot @ react-dom-client.development.js:17833
-performSyncWorkOnRoot @ react-dom-client.development.js:20397
-flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:20239
-processRootScheduleInMicrotask @ react-dom-client.development.js:20278
-(anonymous) @ react-dom-client.development.js:20416
-<Button>
-exports.jsxDEV @ react-jsx-dev-runtime.development.js:342
-EntityImageUpload @ EntityImageUpload.tsx:630
-react_stack_bottom_frame @ react-dom-client.development.js:28016
-renderWithHooksAgain @ react-dom-client.development.js:8082
-renderWithHooks @ react-dom-client.development.js:7994
-updateFunctionComponent @ react-dom-client.development.js:10499
-beginWork @ react-dom-client.development.js:12134
-runWithFiberInDEV @ react-dom-client.development.js:984
-performUnitOfWork @ react-dom-client.development.js:18995
-workLoopSync @ react-dom-client.development.js:18823
-renderRootSync @ react-dom-client.development.js:18804
-performWorkOnRoot @ react-dom-client.development.js:17833
-performSyncWorkOnRoot @ react-dom-client.development.js:20397
-flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:20239
-processRootScheduleInMicrotask @ react-dom-client.development.js:20278
-(anonymous) @ react-dom-client.development.js:20416
-client.tsx:151  POST http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51 net::ERR_CONNECTION_REFUSED
-ClientBookPage.useEffect @ client.tsx:151
-react_stack_bottom_frame @ react-dom-client.development.js:28101
-runWithFiberInDEV @ react-dom-client.development.js:984
-commitHookEffectListMount @ react-dom-client.development.js:13690
-commitHookPassiveMountEffects @ react-dom-client.development.js:13777
-commitPassiveMountOnFiber @ react-dom-client.development.js:16731
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16937
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16896
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16766
-flushPassiveEffects @ react-dom-client.development.js:19857
-(anonymous) @ react-dom-client.development.js:19282
-performWorkUntilDeadline @ scheduler.development.js:45
-client.tsx:192  POST http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51 net::ERR_CONNECTION_REFUSED
-ClientBookPage.useEffect @ client.tsx:192
-react_stack_bottom_frame @ react-dom-client.development.js:28101
-runWithFiberInDEV @ react-dom-client.development.js:984
-commitHookEffectListMount @ react-dom-client.development.js:13690
-commitHookPassiveMountEffects @ react-dom-client.development.js:13777
-commitPassiveMountOnFiber @ react-dom-client.development.js:16731
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16937
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16896
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16766
-flushPassiveEffects @ react-dom-client.development.js:19857
-(anonymous) @ react-dom-client.development.js:19282
-performWorkUntilDeadline @ scheduler.development.js:45
-client.tsx:151  POST http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51 net::ERR_CONNECTION_REFUSED
-ClientBookPage.useEffect @ client.tsx:151
-react_stack_bottom_frame @ react-dom-client.development.js:28101
-runWithFiberInDEV @ react-dom-client.development.js:984
-commitHookEffectListMount @ react-dom-client.development.js:13690
-commitHookPassiveMountEffects @ react-dom-client.development.js:13777
-commitPassiveMountOnFiber @ react-dom-client.development.js:16731
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16937
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16896
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16766
-flushPassiveEffects @ react-dom-client.development.js:19857
-(anonymous) @ react-dom-client.development.js:19282
-performWorkUntilDeadline @ scheduler.development.js:45
-entity-header.tsx:221 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
-entity-header.tsx:464 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
-installHook.js:1 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
-installHook.js:1 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
-client.tsx:199  POST http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51 net::ERR_CONNECTION_REFUSED
-ClientBookPage.useEffect @ client.tsx:199
-react_stack_bottom_frame @ react-dom-client.development.js:28101
-runWithFiberInDEV @ react-dom-client.development.js:984
-commitHookEffectListMount @ react-dom-client.development.js:13690
-commitHookPassiveMountEffects @ react-dom-client.development.js:13777
-commitPassiveMountOnFiber @ react-dom-client.development.js:16731
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16937
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16896
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16751
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16723
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:17008
-recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:16676
-commitPassiveMountOnFiber @ react-dom-client.development.js:16766
-flushPassiveEffects @ react-dom-client.development.js:19857
-(anonymous) @ react-dom-client.development.js:19282
-performWorkUntilDeadline @ scheduler.development.js:45
-entity-header.tsx:221 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
-entity-header.tsx:464 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
-installHook.js:1 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
-installHook.js:1 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
-entity-header.tsx:221 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
-entity-header.tsx:464 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
-installHook.js:1 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
-installHook.js:1 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
-entity-header.tsx:221 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
-entity-header.tsx:464 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
-installHook.js:1 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
-installHook.js:1 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
-entity-header.tsx:221 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
-entity-header.tsx:464 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
-installHook.js:1 🏗️ EntityHeader component mounted with props: {entityType: 'book', entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', name: 'Pro Football Almanac', coverImageUrl: '/placeholder.svg?height=400&width=1200'}
-installHook.js:1 🔍 EntityHeader useEffect dependencies changed: {entityId: '322058c3-f6d8-4246-af2a-dc886d1255c2', entityType: 'book'}
-friend-request-notification.tsx:77 🔍 Fetching pending friend requests for user: 2474659f-003e-4faa-8c53-9969c33f20b2
-friend-request-notification.tsx:78 🔍 API endpoint: /api/friends/pending
-friend-request-notification.tsx:91 📡 Response received: {status: 200, statusText: 'OK', ok: true, headers: {…}}
-friend-request-notification.tsx:102 ✅ FriendRequestNotification - Received data: {success: true, requests: Array(0), timestamp: '2025-12-12T02:34:11.574Z'}
+ 🏗️ EntityHeader component mounted with props: Object
+ 🔍 EntityHeader useEffect dependencies changed: Object
+ 🔍 EntityHeader Debug: Object
+ 🏗️ EntityHeader component mounted with props: Object
+ 🔍 EntityHeader useEffect dependencies changed: Object
+ 🔍 EntityHeader Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51:1  Failed to load resource: net::ERR_CONNECTION_REFUSED
+ WebSocket connection to 'wss://nmrohtlcfqujtfgcyqhw.supabase.co/realtime/v1/websocket?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tcm9odGxjZnF1anRmZ2N5cWh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzMTQ1ODIsImV4cCI6MjA1Nzg5MDU4Mn0.kpkM45hzALxly1EP86tEP4QfWJS8cOEys4zkSmZVIyU%0D%0A&vsn=1.0.0' failed: 
+createWebSocket @ node_modules_@supaba…e_e0ea8d88._.js:117
+ 🏗️ EntityHeader component mounted with props: Object
+ 🔍 EntityHeader useEffect dependencies changed: Object
+ 🔍 EntityHeader Debug: Object
+ 🏗️ EntityHeader component mounted with props: Object
+ 🔍 EntityHeader useEffect dependencies changed: Object
+ 🔍 EntityHeader Debug: Object
+ 🔍 Hover Card Debug: Object
+ 🔍 Hover Card Debug: Object
+ WebSocket connection to 'wss://nmrohtlcfqujtfgcyqhw.supabase.co/realtime/v1/websocket?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tcm9odGxjZnF1anRmZ2N5cWh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzMTQ1ODIsImV4cCI6MjA1Nzg5MDU4Mn0.kpkM45hzALxly1EP86tEP4QfWJS8cOEys4zkSmZVIyU%0D%0A&vsn=1.0.0' failed: 
+createWebSocket @ node_modules_@supaba…e_e0ea8d88._.js:117
+ 🔍 Fetching pending friend requests for user: c5b68ab4-e8bc-4291-a646-7f8ab4b99528
+ 🔍 API endpoint: /api/friends/pending
+ 📡 Response received: Object
+ ✅ FriendRequestNotification - Received data: Object
+ WebSocket connection to 'wss://nmrohtlcfqujtfgcyqhw.supabase.co/realtime/v1/websocket?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tcm9odGxjZnF1anRmZ2N5cWh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzMTQ1ODIsImV4cCI6MjA1Nzg5MDU4Mn0.kpkM45hzALxly1EP86tEP4QfWJS8cOEys4zkSmZVIyU%0D%0A&vsn=1.0.0' failed: 
+createWebSocket @ node_modules_@supaba…e_e0ea8d88._.js:117
+ 🚀 Creating new request for: current-user-data
+ 🚀 Fetching user data (attempt 1/4)
+ 🚀 Creating new request for: current-user-data
+ 🚀 Fetching user data (attempt 1/4)
+ 🚀 Creating new request for: current-user-data
+forward-logs-shared.ts:95 🚀 Fetching user data (attempt 1/4)
+forward-logs-shared.ts:95 🚀 Creating new request for: current-user-data
+forward-logs-shared.ts:95 🚀 Fetching user data (attempt 1/4)
+forward-logs-shared.ts:95 🚀 Creating new request for: current-user-data
+forward-logs-shared.ts:95 🚀 Fetching user data (attempt 1/4)
+forward-logs-shared.ts:95 🚀 Creating new request for: current-user-data
+forward-logs-shared.ts:95 🚀 Fetching fresh user data
+forward-logs-shared.ts:95 🚀 Creating new request for: current-user-data
+forward-logs-shared.ts:95 🚀 Fetching user data (attempt 1/4)
+forward-logs-shared.ts:95 🚀 Creating new request for: current-user-data
+forward-logs-shared.ts:95 🚀 Fetching user data (attempt 1/4)
+forward-logs-shared.ts:95 🚀 Creating new request for: current-user-data
+forward-logs-shared.ts:95 🚀 Fetching user data (attempt 1/4)
+forward-logs-shared.ts:95 🚀 Creating new request for: current-user-data
+forward-logs-shared.ts:95 🚀 Fetching user data (attempt 1/4)
+forward-logs-shared.ts:95 🚀 Creating new request for: current-user-data
+forward-logs-shared.ts:95 🚀 Fetching user data (attempt 1/4)
+forward-logs-shared.ts:95 🚀 Creating new request for: current-user-data
+forward-logs-shared.ts:95 🚀 Fetching user data (attempt 1/4)
+forward-logs-shared.ts:95 🚀 Creating new request for: current-user-data
+forward-logs-shared.ts:95 🚀 Fetching user data (attempt 1/4)
+forward-logs-shared.ts:95 [Fast Refresh] rebuilding
+forward-logs-shared.ts:95 [Fast Refresh] done in 111ms
+forward-logs-shared.ts:95 ✅ User data fetched successfully: Object
+forward-logs-shared.ts:95 ✅ User data fetched successfully: Object
+forward-logs-shared.ts:95 ✅ User data fetched successfully: Object
+forward-logs-shared.ts:95 ✅ User data fetched successfully: Object
+forward-logs-shared.ts:95 ✅ User data fetched successfully: Object
+forward-logs-shared.ts:95 ✅ User data fetched successfully: Object
+forward-logs-shared.ts:95 [Fast Refresh] rebuilding
+forward-logs-shared.ts:95 [Fast Refresh] done in 107ms
+forward-logs-shared.ts:95 ✅ User data fetched successfully
+forward-logs-shared.ts:95 ✅ User data fetched successfully: Object
+forward-logs-shared.ts:95 🔍 Fetching pending friend requests for user: c5b68ab4-e8bc-4291-a646-7f8ab4b99528
+forward-logs-shared.ts:95 🔍 API endpoint: /api/friends/pending
+forward-logs-shared.ts:95 ✅ User data fetched successfully: Object
+forward-logs-shared.ts:95 ✅ User data fetched successfully: Object
+forward-logs-shared.ts:95 🏗️ EntityHeader component mounted with props: Object
+forward-logs-shared.ts:95 🔍 EntityHeader useEffect dependencies changed: Object
+forward-logs-shared.ts:95 🔍 EntityHeader Debug: Object
+forward-logs-shared.ts:95 🏗️ EntityHeader component mounted with props: Object
+forward-logs-shared.ts:95 🔍 EntityHeader useEffect dependencies changed: Object
+forward-logs-shared.ts:95 🔍 EntityHeader Debug: Object
+forward-logs-shared.ts:95 🔍 Hover Card Debug: Object
+forward-logs-shared.ts:95 🔍 Hover Card Debug: Object
+forward-logs-shared.ts:95 ✅ User data fetched successfully: Object
+forward-logs-shared.ts:95 ✅ User data fetched successfully: Object
+forward-logs-shared.ts:95 ✅ User data fetched successfully: Object
+forward-logs-shared.ts:95 🏗️ EntityHeader component mounted with props: Object
+forward-logs-shared.ts:95 🔍 EntityHeader useEffect dependencies changed: Object
+forward-logs-shared.ts:95 🔍 EntityHeader Debug: Object
+forward-logs-shared.ts:95 🏗️ EntityHeader component mounted with props: Object
+forward-logs-shared.ts:95 🔍 EntityHeader useEffect dependencies changed: Object
+forward-logs-shared.ts:95 🔍 EntityHeader Debug: Object
+forward-logs-shared.ts:95 🔍 Hover Card Debug: Object
+forward-logs-shared.ts:95 🔍 Hover Card Debug: Object
+127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51:1  Failed to load resource: net::ERR_CONNECTION_REFUSED
+127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51:1  Failed to load resource: net::ERR_CONNECTION_REFUSED
+127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51:1  Failed to load resource: net::ERR_CONNECTION_REFUSED
+127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51:1  Failed to load resource: net::ERR_CONNECTION_REFUSED
+forward-logs-shared.ts:95 📡 Response received: Object
+forward-logs-shared.ts:95 ✅ FriendRequestNotification - Received data: Object
+127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51:1  Failed to load resource: net::ERR_CONNECTION_REFUSED
+127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51:1  Failed to load resource: net::ERR_CONNECTION_REFUSED
+127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51:1  Failed to load resource: net::ERR_CONNECTION_REFUSED
+websocket-factory.ts:168 WebSocket connection to 'wss://nmrohtlcfqujtfgcyqhw.supabase.co/realtime/v1/websocket?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tcm9odGxjZnF1anRmZ2N5cWh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIzMTQ1ODIsImV4cCI6MjA1Nzg5MDU4Mn0.kpkM45hzALxly1EP86tEP4QfWJS8cOEys4zkSmZVIyU%0D%0A&vsn=1.0.0' failed: 
+createWebSocket @ websocket-factory.ts:168
+connect @ RealtimeClient.ts:222
+(anonymous) @ RealtimeClient.ts:913
+127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51:1  Failed to load resource: net::ERR_CONNECTION_REFUSED
+127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51:1  Failed to load resource: net::ERR_CONNECTION_REFUSED
+127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51:1  Failed to load resource: net::ERR_CONNECTION_REFUSED
+127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51:1  Failed to load resource: net::ERR_CONNECTION_REFUSED
+127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51:1  Failed to load resource: net::ERR_CONNECTION_REFUSED

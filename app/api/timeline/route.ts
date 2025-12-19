@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
+import { checkColumnExists } from '@/lib/schema/schema-validators'
 
 export async function GET(request: NextRequest) {
   try {
@@ -29,11 +30,22 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const { data, error } = await (supabase
+    // Check if publish_status column exists before filtering
+    const hasPublishStatus = await checkColumnExists('activities', 'publish_status')
+
+    // Build query - conditionally apply publish_status filter
+    let query = (supabase
       .from('activities') as any)
       .select('*')
       .eq('entity_type', entityType)
       .eq('entity_id', entityId)
+    
+    // Only filter by publish_status if the column exists
+    if (hasPublishStatus) {
+      query = query.or('publish_status.eq.published,publish_status.is.null')
+    }
+    
+    const { data, error } = await query
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 

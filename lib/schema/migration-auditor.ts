@@ -247,7 +247,7 @@ export async function auditSchemaAgainstMigrations(
       tables,
       summary: {
         total_tables: tables.length,
-        tables_with_issues,
+        tables_with_issues: tablesWithIssues,
         missing_columns: missingColumns,
         extra_columns: extraColumns,
         missing_policies: missingPolicies,

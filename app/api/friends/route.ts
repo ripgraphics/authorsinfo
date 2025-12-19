@@ -90,7 +90,8 @@ export async function POST(request: NextRequest) {
     })
     
     try {
-      const { data: friendRequest, error: insertError } = await supabase
+      // user_friends table type not fully defined in Supabase types - using type assertion
+      const { data: friendRequest, error: insertError } = await (supabase as any)
         .from('user_friends')
         .insert({
           user_id: user.id,
@@ -220,7 +221,8 @@ export async function PUT(request: NextRequest) {
     console.log('Updating friend request to status:', newStatus)
 
     // Update the friend request
-    const { data: updatedRequest, error: updateError } = await supabase
+    // user_friends table type not fully defined in Supabase types - using type assertion
+    const { data: updatedRequest, error: updateError } = await (supabase as any)
       .from('user_friends')
       .update({
         status: newStatus,

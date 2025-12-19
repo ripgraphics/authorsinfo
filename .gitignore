@@ -34,3 +34,16 @@ next-env.d.ts
 supabase.exe
 *.tar.gz
 supabase-temp/
+
+# log files
+*.log
+dev-server.log
+
+# reports (temporary/debug files)
+/reports
+
+# corrupted filenames
+*chema*
+*et --hard*
+*how cbf4e9b*
+*tatus --porcelain*

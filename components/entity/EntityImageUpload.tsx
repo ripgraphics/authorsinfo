@@ -402,11 +402,26 @@ export function EntityImageUpload({
       // Clear cache for entity images to force fresh data on next load
       clearCache(`entity-avatar-${entityType}-${entityId}`)
       clearCache(`entity-header-${entityType}-${entityId}`)
+      if (entityType === 'user') {
+        clearCache(`user-avatar-${entityId}`)
+      }
       
       // Dispatch event to trigger EntityHeader to refetch images
       window.dispatchEvent(new CustomEvent('entityImageChanged', {
         detail: { entityType, entityId, imageType: type }
       }))
+      
+      // Dispatch entityPrimaryImageChanged event for user avatars to update page header and other components
+      if (entityType === 'user' && type === 'avatar') {
+        window.dispatchEvent(new CustomEvent('entityPrimaryImageChanged', {
+          detail: {
+            entityType: 'user',
+            entityId: entityId,
+            primaryKind: 'avatar',
+            imageUrl: validatedUrl
+          }
+        }))
+      }
       
       // Dispatch event to refresh albums
       window.dispatchEvent(new CustomEvent('albumRefresh'))

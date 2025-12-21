@@ -18,6 +18,7 @@ import { formatDistanceToNow } from 'date-fns'
 import Link from 'next/link'
 import { getProfileUrlFromUser } from '@/lib/utils/profile-url-client'
 import { useAuth } from '@/hooks/useAuth'
+import { cn } from '@/lib/utils'
 
 interface FriendRequest {
   id: string
@@ -124,9 +125,9 @@ export function FriendRequestsWidget({ maxRequests = 3, className = '' }: Friend
 
   if (isLoading) {
     return (
-      <Card className={className}>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-center">
+      <Card className={cn("friend-requests-widget", className)}>
+        <CardContent className={cn("friend-requests-widget__loading-content", "p-4")}>
+          <div className={cn("friend-requests-widget__loading-spinner", "flex items-center justify-center")}>
             <Loader2 className="h-4 w-4 animate-spin" />
             <span className="ml-2 text-sm">Loading...</span>
           </div>
@@ -140,55 +141,54 @@ export function FriendRequestsWidget({ maxRequests = 3, className = '' }: Friend
   }
 
   return (
-    <Card className={className}>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center justify-between text-sm">
-          <div className="flex items-center space-x-2">
-            <Clock className="h-4 w-4" />
-            <span>Friend Requests</span>
+    <Card className={cn("friend-requests-widget", "w-full", className)}>
+      <CardHeader className={cn("friend-requests-widget__header", "pb-3 px-4 pt-4")}>
+        <CardTitle className={cn("friend-requests-widget__title", "flex items-center justify-between text-sm gap-2")}>
+          <div className={cn("friend-requests-widget__title-content", "flex items-center space-x-2 min-w-0")}>
+            <Clock className="h-4 w-4 flex-shrink-0" />
+            <span className="truncate">Friend Requests</span>
           </div>
-          <Badge variant="secondary" className="text-xs">
+          <Badge variant="secondary" className={cn("friend-requests-widget__badge", "text-xs flex-shrink-0")}>
             {requests.length}
           </Badge>
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="space-y-3">
+      <CardContent className={cn("friend-requests-widget__content", "space-y-3 px-4 pb-4")}>
         {requests.map((request) => (
-          <div key={request.id} className="flex items-center justify-between p-2 rounded-lg border">
-            <div className="flex items-center space-x-3">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(request.user.name)}`} />
-                <AvatarFallback>
-                  {request.user.name.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              
-              <div className="flex-1 min-w-0">
-                <Link 
-                  href={getProfileUrlFromUser(request.user)}
-                  className="font-medium text-sm hover:underline truncate block"
-                >
-                  {request.user.name}
-                </Link>
-                <p className="text-xs text-muted-foreground">
-                  {formatDistanceToNow(new Date(request.requested_at), { addSuffix: true })}
-                </p>
-              </div>
+          <div key={request.id} className={cn("friend-requests-widget__request-item", "flex items-center gap-2 p-3 rounded-lg border")}>
+            <Avatar className={cn("friend-requests-widget__request-avatar", "h-10 w-10 flex-shrink-0")}>
+              <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(request.user.name)}`} />
+              <AvatarFallback>
+                {request.user.name.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            
+            <div className={cn("friend-requests-widget__request-details", "flex-1 min-w-0 overflow-hidden")}>
+              <Link 
+                href={getProfileUrlFromUser(request.user)}
+                className={cn("friend-requests-widget__request-name", "font-medium text-sm hover:underline block truncate")}
+              >
+                {request.user.name}
+              </Link>
+              <p className={cn("friend-requests-widget__request-time", "text-xs text-muted-foreground truncate")}>
+                {formatDistanceToNow(new Date(request.requested_at), { addSuffix: true })}
+              </p>
             </div>
             
-            <div className="flex items-center space-x-1">
+            <div className={cn("friend-requests-widget__request-actions", "flex items-center gap-1 flex-shrink-0")}>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => handleRequestAction(request.id, 'reject')}
                 disabled={processingRequest === request.id}
-                className="h-6 w-6 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                className={cn("friend-requests-widget__reject-button", "h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50")}
+                aria-label="Reject friend request"
               >
                 {processingRequest === request.id ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 ) : (
-                  <X className="h-3 w-3" />
+                  <X className="h-3.5 w-3.5" />
                 )}
               </Button>
               
@@ -197,12 +197,13 @@ export function FriendRequestsWidget({ maxRequests = 3, className = '' }: Friend
                 size="sm"
                 onClick={() => handleRequestAction(request.id, 'accept')}
                 disabled={processingRequest === request.id}
-                className="h-6 w-6 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                className={cn("friend-requests-widget__accept-button", "h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50")}
+                aria-label="Accept friend request"
               >
                 {processingRequest === request.id ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 ) : (
-                  <Check className="h-3 w-3" />
+                  <Check className="h-3.5 w-3.5" />
                 )}
               </Button>
             </div>
@@ -210,8 +211,8 @@ export function FriendRequestsWidget({ maxRequests = 3, className = '' }: Friend
         ))}
         
         {requests.length > 0 && (
-          <div className="pt-2 border-t">
-            <Button variant="outline" size="sm" className="w-full" asChild>
+          <div className={cn("friend-requests-widget__footer", "pt-3 border-t")}>
+            <Button variant="outline" size="sm" className={cn("friend-requests-widget__view-all-button", "w-full")} asChild>
               <Link href="/friend-requests">
                 <UserPlus className="h-4 w-4 mr-2" />
                 View All Requests

@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import { useState, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Camera, BookOpen, Users, MapPin, Globe, User, MoreHorizontal, MessageSquare, UserPlus, Settings, Crop, Loader2 } from "lucide-react"
@@ -226,6 +227,7 @@ export function EntityHeader({
   });
   
   const { user } = useAuth()
+  const router = useRouter()
   const groupPermissions = useGroupPermissions(group?.id || null, user?.id)
   const { isMember: isGroupMember, isAdmin } = groupPermissions
   const [groupMemberData, setGroupMemberData] = useState<any>(null);
@@ -799,10 +801,30 @@ export function EntityHeader({
       setImageVersion(prev => prev + 1)
       setIsAvatarCropModalOpen(false)
 
+      // Dispatch event for real-time updates across the application
+      if (entityType === 'user' && entityId) {
+        window.dispatchEvent(new CustomEvent('entityPrimaryImageChanged', {
+          detail: {
+            entityType: 'user',
+            entityId: entityId,
+            primaryKind: 'avatar',
+            imageUrl: uploadResult.url
+          }
+        }))
+      }
+
+      // Clear caches related to user avatar
+      clearCache(`user-avatar-${entityId}`)
+      clearCache(`entity-avatar-${entityType}-${entityId}`)
+      clearCache(`entity-header-${entityType}-${entityId}`)
+
       // Call the onProfileImageChange callback if provided
       if (onProfileImageChange) {
         onProfileImageChange()
       }
+
+      // Refresh router to ensure all components get updated data
+      router.refresh()
 
       // Show success message
       toast({

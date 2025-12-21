@@ -261,8 +261,43 @@ export function useAuth() {
       }
     })
 
+    // Listen for avatar change events to refresh user data
+    const handleEntityPrimaryImageChanged = async (event: Event) => {
+      const customEvent = event as CustomEvent
+      const { entityType, entityId, primaryKind } = customEvent.detail || {}
+      
+      // Only handle avatar changes for users
+      if (entityType === 'user' && primaryKind === 'avatar') {
+        // Get current user ID from auth session to avoid dependency issues
+        const { data: { user: authUser } } = await supabase.auth.getUser()
+        
+        // Only refresh if this is the current user's avatar
+        if (authUser && entityId === authUser.id) {
+          console.log('🔄 Avatar changed for current user, refreshing user data...')
+          
+          // Clear caches related to user avatar
+          clearCache('current-user-data')
+          clearCache(`user-avatar-${entityId}`)
+          
+          // Refresh user data to get updated avatar_url
+          try {
+            const userData = await fetchUserData()
+            if (userData && userData.name) {
+              debouncedSetUser(userData)
+              console.log('✅ User data refreshed with new avatar')
+            }
+          } catch (err) {
+            console.error('❌ Failed to refresh user data after avatar change:', err)
+          }
+        }
+      }
+    }
+
+    window.addEventListener('entityPrimaryImageChanged', handleEntityPrimaryImageChanged)
+
     return () => {
       subscription.unsubscribe()
+      window.removeEventListener('entityPrimaryImageChanged', handleEntityPrimaryImageChanged)
     }
   }, [])
 

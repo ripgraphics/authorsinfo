@@ -11,7 +11,11 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination'
 import { useSearchFilter } from '@/lib/hooks/use-search-filter'
-import { publisherSearchFields, publisherSearchScorer, SearchablePublisher } from '@/lib/search/publisher-search-config'
+import {
+  publisherSearchFields,
+  publisherSearchScorer,
+  SearchablePublisher,
+} from '@/lib/search/publisher-search-config'
 
 interface Publisher {
   id: number
@@ -72,7 +76,7 @@ export function ClientPublishersList({
   // Apply sorting client-side
   const sortedPublishers = useMemo(() => {
     const sorted = [...locationFilteredPublishers]
-    
+
     if (sort === 'name_asc') {
       sorted.sort((a, b) => (a.name || '').localeCompare(b.name || ''))
     } else if (sort === 'name_desc') {
@@ -81,7 +85,7 @@ export function ClientPublishersList({
       // Default: name_asc
       sorted.sort((a, b) => (a.name || '').localeCompare(b.name || ''))
     }
-    
+
     return sorted
   }, [locationFilteredPublishers, sort])
 
@@ -142,11 +146,7 @@ export function ClientPublishersList({
 
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
               const pageNumber =
-                page <= 3
-                  ? i + 1
-                  : page >= totalPages - 2
-                    ? totalPages - 4 + i
-                    : page - 2 + i
+                page <= 3 ? i + 1 : page >= totalPages - 2 ? totalPages - 4 + i : page - 2 + i
 
               if (pageNumber <= 0 || pageNumber > totalPages) return null
 
@@ -170,4 +170,3 @@ export function ClientPublishersList({
     </div>
   )
 }
-

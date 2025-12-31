@@ -1,11 +1,5 @@
-import Link from 'next/link';
-import {
-  BookOpen,
-  User,
-  FileText,
-  Tag,
-  Calendar,
-} from 'lucide-react';
+import Link from 'next/link'
+import { BookOpen, User, FileText, Tag, Calendar } from 'lucide-react'
 
 export default function RetrieveBooksPage() {
   return (
@@ -21,7 +15,9 @@ export default function RetrieveBooksPage() {
         <Link href="/admin/fetch-by-author" className="border rounded-lg p-6 hover:bg-gray-100">
           <User className="h-8 w-8 mb-4" />
           <h2 className="text-lg font-semibold">Books by Author</h2>
-          <p className="text-gray-500">Fetch books for authors in your system, batch or selected.</p>
+          <p className="text-gray-500">
+            Fetch books for authors in your system, batch or selected.
+          </p>
         </Link>
 
         <Link href="/admin/fetch-by-isbn" className="border rounded-lg p-6 hover:bg-gray-100">
@@ -43,5 +39,5 @@ export default function RetrieveBooksPage() {
         </Link>
       </div>
     </div>
-  );
-} 
+  )
+}

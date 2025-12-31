@@ -8,10 +8,13 @@ import { User, Link, Shield, Bell, Palette } from 'lucide-react'
 
 export default async function SettingsPage() {
   const supabase = await createServerComponentClientAsync()
-  
+
   // Get the current user from the session
-  const { data: { user }, error } = await supabase.auth.getUser()
-  
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
+
   if (error || !user) {
     redirect('/login')
   }
@@ -28,9 +31,7 @@ export default async function SettingsPage() {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Settings</h1>
-          <p className="text-muted-foreground">
-            Manage your account settings and preferences
-          </p>
+          <p className="text-muted-foreground">Manage your account settings and preferences</p>
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
@@ -61,24 +62,28 @@ export default async function SettingsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Profile Information</CardTitle>
-                <CardDescription>
-                  Update your basic profile information
-                </CardDescription>
+                <CardDescription>Update your basic profile information</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium">Name</label>
-                    <p className="text-sm text-muted-foreground">{(userData as any)?.name || 'Not set'}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {(userData as any)?.name || 'Not set'}
+                    </p>
                   </div>
                   <div>
                     <label className="text-sm font-medium">Email</label>
-                    <p className="text-sm text-muted-foreground">{(userData as any)?.email || 'Not set'}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {(userData as any)?.email || 'Not set'}
+                    </p>
                   </div>
                   <div>
                     <label className="text-sm font-medium">Member Since</label>
                     <p className="text-sm text-muted-foreground">
-                      {(userData as any)?.created_at ? new Date((userData as any).created_at).toLocaleDateString() : 'Unknown'}
+                      {(userData as any)?.created_at
+                        ? new Date((userData as any).created_at).toLocaleDateString()
+                        : 'Unknown'}
                     </p>
                   </div>
                   <div>
@@ -103,9 +108,7 @@ export default async function SettingsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Privacy Settings</CardTitle>
-                <CardDescription>
-                  Control who can see your profile and activity
-                </CardDescription>
+                <CardDescription>Control who can see your profile and activity</CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
@@ -119,9 +122,7 @@ export default async function SettingsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Notification Preferences</CardTitle>
-                <CardDescription>
-                  Choose what notifications you want to receive
-                </CardDescription>
+                <CardDescription>Choose what notifications you want to receive</CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
@@ -135,9 +136,7 @@ export default async function SettingsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Appearance</CardTitle>
-                <CardDescription>
-                  Customize the look and feel of your experience
-                </CardDescription>
+                <CardDescription>Customize the look and feel of your experience</CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
@@ -150,4 +149,4 @@ export default async function SettingsPage() {
       </div>
     </div>
   )
-} 
+}

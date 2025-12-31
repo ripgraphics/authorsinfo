@@ -4,8 +4,10 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 export async function GET() {
   try {
     console.log('Checking users...')
-    
-    const { data: users, error: fetchError } = await supabaseAdmin.auth.admin.listUsers({ perPage: 10 })
+
+    const { data: users, error: fetchError } = await supabaseAdmin.auth.admin.listUsers({
+      perPage: 10,
+    })
     if (fetchError) {
       console.error('Error fetching users:', fetchError)
       return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 })
@@ -15,7 +17,7 @@ export async function GET() {
       return NextResponse.json({ error: 'No users found' }, { status: 404 })
     }
 
-    const userInfo = users.users.map(user => ({
+    const userInfo = users.users.map((user) => ({
       id: user.id,
       email: user.email,
       created_at: user.created_at,
@@ -25,19 +27,18 @@ export async function GET() {
       phone: user.phone,
       has_password: !!(user as any).encrypted_password,
       app_metadata: user.app_metadata,
-      user_metadata: user.user_metadata
+      user_metadata: user.user_metadata,
     }))
 
     console.log(`Found ${users.users.length} users`)
-    
-    return NextResponse.json({ 
+
+    return NextResponse.json({
       success: true,
       totalUsers: users.users.length,
-      users: userInfo
+      users: userInfo,
     })
-
   } catch (error: any) {
     console.error('Check users error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-} 
+}

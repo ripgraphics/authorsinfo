@@ -12,24 +12,24 @@ export async function POST(request: NextRequest) {
 
     // Normalize all input ISBNs (remove hyphens and spaces)
     const normalizedIsbns = isbns
-      .map(isbn => normalizeISBN(isbn))
+      .map((isbn) => normalizeISBN(isbn))
       .filter((isbn): isbn is string => isbn !== null)
 
     if (normalizedIsbns.length === 0) {
       return NextResponse.json({
         existingIsbns: [],
-        total: 0
+        total: 0,
       })
     }
 
     // Check for existing ISBNs in the database
     // We need to check both normalized and original formats
     const { data: existingBooks, error } = await supabaseAdmin
-      .from("books")
-      .select("isbn10, isbn13")
+      .from('books')
+      .select('isbn10, isbn13')
 
     if (error) {
-      console.error("Error checking for existing books:", error)
+      console.error('Error checking for existing books:', error)
       return NextResponse.json({ error: 'Database error' }, { status: 500 })
     }
 
@@ -47,14 +47,14 @@ export async function POST(request: NextRequest) {
     })
 
     // Find which input ISBNs match existing ones
-    const matchingIsbns = normalizedIsbns.filter(isbn => existingIsbns.has(isbn))
+    const matchingIsbns = normalizedIsbns.filter((isbn) => existingIsbns.has(isbn))
 
     return NextResponse.json({
       existingIsbns: matchingIsbns,
-      total: matchingIsbns.length
+      total: matchingIsbns.length,
     })
   } catch (error) {
     console.error('Error in check-existing API:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-} 
+}

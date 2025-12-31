@@ -1,11 +1,20 @@
-import type React from "react"
-import { useState } from "react"
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
-import { Avatar } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { CloseButton } from "@/components/ui/close-button"
-import { Users, MapPin, Globe, Calendar, BookOpen, UserPlus, MessageCircle, MoreHorizontal } from "lucide-react"
-import { useRouter } from "next/navigation"
+import type React from 'react'
+import { useState } from 'react'
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card'
+import { Avatar } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import { CloseButton } from '@/components/ui/close-button'
+import {
+  Users,
+  MapPin,
+  Globe,
+  Calendar,
+  BookOpen,
+  UserPlus,
+  MessageCircle,
+  MoreHorizontal,
+} from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 // Enterprise-grade type definitions
 type EntityType = 'user' | 'author' | 'publisher' | 'group' | 'event' | 'book'
@@ -70,7 +79,13 @@ interface BookEntity extends BaseEntity {
   genre?: string
 }
 
-type Entity = UserEntity | AuthorEntity | PublisherEntity | GroupEntity | EventCreatorEntity | BookEntity
+type Entity =
+  | UserEntity
+  | AuthorEntity
+  | PublisherEntity
+  | GroupEntity
+  | EventCreatorEntity
+  | BookEntity
 
 interface EntityHoverCardProps {
   type: EntityType
@@ -87,7 +102,13 @@ interface EntityHoverCardProps {
   }
 }
 
-export function EntityHoverCard({ type, entity, children, showActions = true, userStats }: EntityHoverCardProps) {
+export function EntityHoverCard({
+  type,
+  entity,
+  children,
+  showActions = true,
+  userStats,
+}: EntityHoverCardProps) {
   const router = useRouter()
   const handleClose = () => {}
 
@@ -102,22 +123,28 @@ export function EntityHoverCard({ type, entity, children, showActions = true, us
     switch (type) {
       case 'user':
         const userEntity = entity as UserEntity
-        const joinDate = userEntity.created_at ? new Date(userEntity.created_at).toLocaleDateString('en-US', { 
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        }) : undefined
-        
+        const joinDate = userEntity.created_at
+          ? new Date(userEntity.created_at).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })
+          : undefined
+
         return {
           icon: <Users className="mr-1 h-3 w-3" />,
-          countText: userEntity.friend_count ? `${userEntity.friend_count} friends` : (joinDate ? `Joined ${joinDate}` : ''),
+          countText: userEntity.friend_count
+            ? `${userEntity.friend_count} friends`
+            : joinDate
+              ? `Joined ${joinDate}`
+              : '',
           href: userEntity.permalink ? `/profile/${userEntity.permalink}` : `/profile/${entity.id}`,
           imageUrl: userEntity.avatar_url || `/api/avatar/${entity.id}`,
           subtitle: joinDate ? `Joined ${joinDate}` : undefined,
           // Additional user stats - only show if we have real data
           friendsCount: userEntity.friend_count || 0,
           followersCount: userEntity.followers_count || 0,
-          booksReadCount: userEntity.books_read_count || 0
+          booksReadCount: userEntity.books_read_count || 0,
         } as const
       case 'author':
         const authorEntity = entity as AuthorEntity
@@ -126,7 +153,7 @@ export function EntityHoverCard({ type, entity, children, showActions = true, us
           countText: `${authorEntity.bookCount} books`,
           href: `/authors/${entity.id}`,
           imageUrl: authorEntity.author_image?.url,
-          subtitle: authorEntity.bio
+          subtitle: authorEntity.bio,
         }
       case 'publisher':
         const publisherEntity = entity as PublisherEntity
@@ -135,18 +162,18 @@ export function EntityHoverCard({ type, entity, children, showActions = true, us
           countText: `${publisherEntity.bookCount} books`,
           href: `/publishers/${entity.id}`,
           imageUrl: publisherEntity.publisher_image?.url || publisherEntity.logo_url,
-          subtitle: publisherEntity.location
+          subtitle: publisherEntity.location,
         }
       case 'group': {
         const groupEntity = entity as GroupEntity
         return {
           icon: <Users className="mr-1 h-3 w-3" />,
-          countText: groupEntity.joined_at 
+          countText: groupEntity.joined_at
             ? `Joined ${new Date(groupEntity.joined_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`
             : `${groupEntity.member_count || 0} members`,
           href: `/groups/${entity.id}`,
           imageUrl: groupEntity.group_image?.url || `/api/avatar/${entity.id}`,
-          subtitle: groupEntity.description
+          subtitle: groupEntity.description,
         }
       }
       case 'event':
@@ -156,16 +183,18 @@ export function EntityHoverCard({ type, entity, children, showActions = true, us
           countText: `${eventEntity.event_count || 0} events`,
           href: `/users/${entity.id}`,
           imageUrl: eventEntity.avatar_url,
-          subtitle: eventEntity.location
+          subtitle: eventEntity.location,
         }
       case 'book':
         const bookEntity = entity as BookEntity
         return {
           icon: <BookOpen className="mr-1 h-3 w-3" />,
-          countText: bookEntity.publication_year ? `Published ${bookEntity.publication_year}` : 'Book',
+          countText: bookEntity.publication_year
+            ? `Published ${bookEntity.publication_year}`
+            : 'Book',
           href: `/books/${entity.id}`,
           imageUrl: bookEntity.cover_image?.url,
-          subtitle: bookEntity.author_name ? `by ${bookEntity.author_name}` : undefined
+          subtitle: bookEntity.author_name ? `by ${bookEntity.author_name}` : undefined,
         }
     }
   }
@@ -190,7 +219,7 @@ export function EntityHoverCard({ type, entity, children, showActions = true, us
   }
 
   const info = getEntityInfo()
-  const imageUrl = info.imageUrl || "/placeholder.svg"
+  const imageUrl = info.imageUrl || '/placeholder.svg'
 
   // Use userStats prop if available, otherwise use entity data
   const displayStats = userStats || {
@@ -199,7 +228,7 @@ export function EntityHoverCard({ type, entity, children, showActions = true, us
     followersCount: (entity as UserEntity).followers_count || 0,
     location: (entity as UserEntity).location || null,
     website: (entity as UserEntity).website || null,
-    joinedDate: (entity as UserEntity).created_at || null
+    joinedDate: (entity as UserEntity).created_at || null,
   }
 
   // Temporary debug logging to see what data we're getting
@@ -212,8 +241,8 @@ export function EntityHoverCard({ type, entity, children, showActions = true, us
     entityData: {
       books_read_count: (entity as UserEntity).books_read_count,
       friend_count: (entity as UserEntity).friend_count,
-      followers_count: (entity as UserEntity).followers_count
-    }
+      followers_count: (entity as UserEntity).followers_count,
+    },
   })
 
   // Format join date
@@ -222,7 +251,7 @@ export function EntityHoverCard({ type, entity, children, showActions = true, us
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     })
   }
 
@@ -240,11 +269,7 @@ export function EntityHoverCard({ type, entity, children, showActions = true, us
       </HoverCardTrigger>
       <HoverCardContent className="p-0 bg-white border border-gray-200 shadow-xl">
         <div className="relative p-4">
-          <CloseButton
-            onClick={handleClose}
-            variant="primary"
-            className="absolute top-2 right-2"
-          />
+          <CloseButton onClick={handleClose} variant="primary" className="absolute top-2 right-2" />
 
           <div className="flex items-start gap-4">
             <div
@@ -267,9 +292,7 @@ export function EntityHoverCard({ type, entity, children, showActions = true, us
               >
                 {entity.name}
               </h3>
-              {info.subtitle && (
-                <p className="text-sm text-gray-500 mb-2">{info.subtitle}</p>
-              )}
+              {info.subtitle && <p className="text-sm text-gray-500 mb-2">{info.subtitle}</p>}
               <div className="flex items-center text-sm text-gray-500">
                 {info.icon}
                 <span>{info.countText}</span>
@@ -286,19 +309,23 @@ export function EntityHoverCard({ type, entity, children, showActions = true, us
                         <span className="font-semibold text-gray-900">{joinDate}</span>
                       </div>
                     )}
-                    
+
                     {/* 2. Total Friends - show even if 0 */}
                     <div className="text-sm text-gray-500">
                       <span>Friends: </span>
-                      <span className="font-semibold text-gray-900">{displayStats.friendsCount}</span>
+                      <span className="font-semibold text-gray-900">
+                        {displayStats.friendsCount}
+                      </span>
                     </div>
-                    
+
                     {/* 3. Followers - show even if 0 */}
                     <div className="text-sm text-gray-500">
                       <span>Followers: </span>
-                      <span className="font-semibold text-gray-900">{displayStats.followersCount}</span>
+                      <span className="font-semibold text-gray-900">
+                        {displayStats.followersCount}
+                      </span>
                     </div>
-                    
+
                     {/* 4. Books Read - show even if 0 */}
                     <div className="text-sm text-gray-500">
                       <span>Books: </span>
@@ -314,30 +341,15 @@ export function EntityHoverCard({ type, entity, children, showActions = true, us
         {showActions && type === 'user' && (
           <div className="px-4 pb-4">
             <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex-1"
-                onClick={handleAddFriend}
-              >
+              <Button variant="outline" size="sm" className="flex-1" onClick={handleAddFriend}>
                 <UserPlus className="h-4 w-4 mr-2" />
                 Add Friend
               </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex-1"
-                onClick={handleMessage}
-              >
+              <Button variant="outline" size="sm" className="flex-1" onClick={handleMessage}>
                 <MessageCircle className="h-4 w-4 mr-2" />
                 Message
               </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="px-3"
-                onClick={handleMoreOptions}
-              >
+              <Button variant="outline" size="sm" className="px-3" onClick={handleMoreOptions}>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </div>
@@ -363,14 +375,14 @@ interface UserHoverCardProps {
   }
 }
 
-export function UserHoverCard({ user, children, showActions = true, userStats }: UserHoverCardProps) {
+export function UserHoverCard({
+  user,
+  children,
+  showActions = true,
+  userStats,
+}: UserHoverCardProps) {
   return (
-    <EntityHoverCard
-      type="user"
-      entity={user}
-      showActions={showActions}
-      userStats={userStats}
-    >
+    <EntityHoverCard type="user" entity={user} showActions={showActions} userStats={userStats}>
       {children}
     </EntityHoverCard>
   )
@@ -383,11 +395,7 @@ interface AuthorHoverCardProps {
 
 export function AuthorHoverCard({ author, children }: AuthorHoverCardProps) {
   return (
-    <EntityHoverCard
-      type="author"
-      entity={author}
-      showActions={false}
-    >
+    <EntityHoverCard type="author" entity={author} showActions={false}>
       {children}
     </EntityHoverCard>
   )
@@ -400,11 +408,7 @@ interface PublisherHoverCardProps {
 
 export function PublisherHoverCard({ publisher, children }: PublisherHoverCardProps) {
   return (
-    <EntityHoverCard
-      type="publisher"
-      entity={publisher}
-      showActions={false}
-    >
+    <EntityHoverCard type="publisher" entity={publisher} showActions={false}>
       {children}
     </EntityHoverCard>
   )
@@ -417,11 +421,7 @@ interface GroupHoverCardProps {
 
 export function GroupHoverCard({ group, children }: GroupHoverCardProps) {
   return (
-    <EntityHoverCard
-      type="group"
-      entity={group}
-      showActions={false}
-    >
+    <EntityHoverCard type="group" entity={group} showActions={false}>
       {children}
     </EntityHoverCard>
   )
@@ -434,11 +434,7 @@ interface EventCreatorHoverCardProps {
 
 export function EventCreatorHoverCard({ creator, children }: EventCreatorHoverCardProps) {
   return (
-    <EntityHoverCard
-      type="event"
-      entity={creator}
-      showActions={false}
-    >
+    <EntityHoverCard type="event" entity={creator} showActions={false}>
       {children}
     </EntityHoverCard>
   )
@@ -451,12 +447,8 @@ interface BookHoverCardProps {
 
 export function BookHoverCard({ book, children }: BookHoverCardProps) {
   return (
-    <EntityHoverCard
-      type="book"
-      entity={book}
-      showActions={false}
-    >
+    <EntityHoverCard type="book" entity={book} showActions={false}>
       {children}
     </EntityHoverCard>
   )
-} 
+}

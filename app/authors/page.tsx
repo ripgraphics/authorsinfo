@@ -1,9 +1,9 @@
-import { Suspense } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { User, Search, Filter } from "lucide-react"
+import { Suspense } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { User, Search, Filter } from 'lucide-react'
 import {
   Pagination,
   PaginationContent,
@@ -11,10 +11,16 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination"
-import { db } from "@/lib/db"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+} from '@/components/ui/pagination'
+import { db } from '@/lib/db'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Sheet,
   SheetContent,
@@ -24,10 +30,10 @@ import {
   SheetTrigger,
   SheetFooter,
   SheetClose,
-} from "@/components/ui/sheet"
-import { Label } from "@/components/ui/label"
-import { AuthorsFilters } from "./components/AuthorsFilters"
-import { AuthorsListWrapper } from "./components/AuthorsListWrapper"
+} from '@/components/ui/sheet'
+import { Label } from '@/components/ui/label'
+import { AuthorsFilters } from './components/AuthorsFilters'
+import { AuthorsListWrapper } from './components/AuthorsListWrapper'
 
 interface AuthorsPageProps {
   searchParams: Promise<{
@@ -52,17 +58,19 @@ interface Author {
 }
 
 async function getUniqueNationalities(): Promise<string[]> {
-  const nationalities = await db.query(
-    "authors",
-    { nationality: { not: "is", value: null } },
+  const nationalities = (await db.query(
+    'authors',
+    { nationality: { not: 'is', value: null } },
     {
       ttl: 3600, // Cache for 1 hour
-      cacheKey: "unique_nationalities"
+      cacheKey: 'unique_nationalities',
     }
-  ) as Author[]
+  )) as Author[]
 
   // Extract unique nationalities and ensure they are strings
-  return Array.from(new Set(nationalities.map((item: Author) => item.nationality).filter(Boolean))) as string[]
+  return Array.from(
+    new Set(nationalities.map((item: Author) => item.nationality).filter(Boolean))
+  ) as string[]
 }
 
 async function AuthorsList({
@@ -85,19 +93,15 @@ async function AuthorsList({
   }
 
   // Execute the query - fetch all matching authors (limit to reasonable number)
-  const authors = await db.query(
-    "authors",
-    query,
-    {
-      ttl: 300, // Cache for 5 minutes
-      cacheKey: `authors_all:${JSON.stringify({ nationality })}`,
-      limit: 1000, // Fetch up to 1000 authors for client-side filtering
-      select: `
+  const authors = (await db.query('authors', query, {
+    ttl: 300, // Cache for 5 minutes
+    cacheKey: `authors_all:${JSON.stringify({ nationality })}`,
+    limit: 1000, // Fetch up to 1000 authors for client-side filtering
+    select: `
         *,
         author_image:author_image_id(id, url, alt_text)
-      `
-    }
-  ) as Author[]
+      `,
+  })) as Author[]
 
   // Process authors to include image URL
   const processedAuthors = authors.map((author) => ({
@@ -106,20 +110,17 @@ async function AuthorsList({
   }))
 
   // Get total count for initial pagination calculation
-  const totalAuthorsResult = await db.query(
-    "authors",
-    query,
-    {
-      ttl: 300, // Cache for 5 minutes
-      cacheKey: `authors_count:${JSON.stringify({ nationality })}`,
-      count: true
-    }
-  )
+  const totalAuthorsResult = await db.query('authors', query, {
+    ttl: 300, // Cache for 5 minutes
+    cacheKey: `authors_count:${JSON.stringify({ nationality })}`,
+    count: true,
+  })
 
   // Extract count from result
-  const totalAuthors = typeof totalAuthorsResult === 'object' && 'count' in totalAuthorsResult 
-    ? totalAuthorsResult.count 
-    : 0
+  const totalAuthors =
+    typeof totalAuthorsResult === 'object' && 'count' in totalAuthorsResult
+      ? totalAuthorsResult.count
+      : 0
 
   // Return authors data to be passed to client component for instant filtering
   return {
@@ -167,7 +168,7 @@ export default async function AuthorsPage({ searchParams }: AuthorsPageProps) {
   const search = params.search
   const nationality = params.nationality
   const sort = params.sort
-  
+
   // Get unique nationalities for the filter
   const nationalities = await getUniqueNationalities()
 
@@ -175,7 +176,9 @@ export default async function AuthorsPage({ searchParams }: AuthorsPageProps) {
     <div className="space-y-6">
       <div className="py-6">
         <h1 className="text-3xl font-bold tracking-tight">Authors</h1>
-        <p className="text-muted-foreground mt-2">Browse and discover authors from our collection.</p>
+        <p className="text-muted-foreground mt-2">
+          Browse and discover authors from our collection.
+        </p>
       </div>
       <AuthorsFilters
         search={search}
@@ -184,12 +187,7 @@ export default async function AuthorsPage({ searchParams }: AuthorsPageProps) {
         nationalities={nationalities}
       />
       <Suspense fallback={<div>Loading authors...</div>}>
-        <AuthorsListContent
-          page={page}
-          search={search}
-          nationality={nationality}
-          sort={sort}
-        />
+        <AuthorsListContent page={page} search={search} nationality={nationality} sort={sort} />
       </Suspense>
     </div>
   )

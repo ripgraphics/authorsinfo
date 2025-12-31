@@ -11,10 +11,13 @@ interface ProfileLinkProps {
   children: React.ReactNode
 }
 
-export function ProfileLink({ userId, userName, className, children }: ProfileLinkProps) {
+export function ProfileLink({ userId, userName: _userName, className, children }: ProfileLinkProps) {
   const [profileUrl, setProfileUrl] = useState(`/profile/${userId}`)
   const [isLoading, setIsLoading] = useState(true)
-  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   useEffect(() => {
     const getProfileUrl = async () => {
@@ -57,4 +60,4 @@ export function ProfileLink({ userId, userName, className, children }: ProfileLi
       {children}
     </Link>
   )
-} 
+}

@@ -1,12 +1,18 @@
-"use client"
+'use client'
 
-import React from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { 
+import React from 'react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
   BookOpen,
   Edit,
   Trash2,
@@ -44,8 +50,8 @@ import {
   ThumbsDown,
   ImageIcon,
   BarChart3,
-  Activity
-} from "lucide-react"
+  Activity,
+} from 'lucide-react'
 
 interface Book {
   id: string
@@ -74,33 +80,39 @@ interface AdminBookActionsProps {
   onDelete: () => void
 }
 
-export function AdminBookActions({ book, open, onOpenChange, onEdit, onDelete }: AdminBookActionsProps) {
+export function AdminBookActions({
+  book,
+  open,
+  onOpenChange,
+  onEdit,
+  onDelete,
+}: AdminBookActionsProps) {
   const copyToClipboard = async (text: string) => {
     try {
       if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(text);
+        await navigator.clipboard.writeText(text)
         // You could add a toast notification here
-        console.log('Copied to clipboard:', text);
+        console.log('Copied to clipboard:', text)
       } else {
         // Fallback for older browsers or non-secure contexts
-        const textArea = document.createElement('textarea');
-        textArea.value = text;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-999999px';
-        textArea.style.top = '-999999px';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
+        const textArea = document.createElement('textarea')
+        textArea.value = text
+        textArea.style.position = 'fixed'
+        textArea.style.left = '-999999px'
+        textArea.style.top = '-999999px'
+        document.body.appendChild(textArea)
+        textArea.focus()
+        textArea.select()
         try {
-          document.execCommand('copy');
-          console.log('Copied to clipboard (fallback):', text);
+          document.execCommand('copy')
+          console.log('Copied to clipboard (fallback):', text)
         } catch (err) {
-          console.error('Failed to copy to clipboard:', err);
+          console.error('Failed to copy to clipboard:', err)
         }
-        document.body.removeChild(textArea);
+        document.body.removeChild(textArea)
       }
     } catch (error) {
-      console.error('Copy to clipboard failed:', error);
+      console.error('Copy to clipboard failed:', error)
     }
   }
 
@@ -109,11 +121,11 @@ export function AdminBookActions({ book, open, onOpenChange, onEdit, onDelete }:
       const response = await fetch(`/api/admin/books/${book.id}`, {
         method: 'PATCH',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          featured: !book.featured
-        })
+          featured: !book.featured,
+        }),
       })
 
       if (response.ok) {
@@ -130,11 +142,11 @@ export function AdminBookActions({ book, open, onOpenChange, onEdit, onDelete }:
       const response = await fetch(`/api/admin/books/${book.id}`, {
         method: 'PATCH',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          status_id: 'archived' // Assuming you have an archived status
-        })
+          status_id: 'archived', // Assuming you have an archived status
+        }),
       })
 
       if (response.ok) {
@@ -150,15 +162,15 @@ export function AdminBookActions({ book, open, onOpenChange, onEdit, onDelete }:
       const response = await fetch('/api/admin/books', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           ...book,
           id: undefined, // Remove ID to create new book
           title: `${book.title} (Copy)`,
           created_at: undefined,
-          updated_at: undefined
-        })
+          updated_at: undefined,
+        }),
       })
 
       if (response.ok) {
@@ -178,7 +190,7 @@ export function AdminBookActions({ book, open, onOpenChange, onEdit, onDelete }:
       featured: book.featured,
       status: book.status?.name,
       cover_image_url: book.cover_image_url,
-      export_date: new Date().toISOString()
+      export_date: new Date().toISOString(),
     }
 
     const blob = new Blob([JSON.stringify(bookData, null, 2)], { type: 'application/json' })
@@ -200,9 +212,7 @@ export function AdminBookActions({ book, open, onOpenChange, onEdit, onDelete }:
             <MoreHorizontal className="h-5 w-5" />
             Book Actions
           </DialogTitle>
-          <DialogDescription>
-            Manage {book.title}
-          </DialogDescription>
+          <DialogDescription>Manage {book.title}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -224,22 +234,14 @@ export function AdminBookActions({ book, open, onOpenChange, onEdit, onDelete }:
                 <div className="flex-1 min-w-0">
                   <h3 className="font-medium truncate">{book.title}</h3>
                   {book.author && (
-                    <p className="text-sm text-muted-foreground truncate">
-                      by {book.author.name}
-                    </p>
+                    <p className="text-sm text-muted-foreground truncate">by {book.author.name}</p>
                   )}
                   {book.publisher && (
-                    <p className="text-sm text-muted-foreground truncate">
-                      {book.publisher.name}
-                    </p>
+                    <p className="text-sm text-muted-foreground truncate">{book.publisher.name}</p>
                   )}
                   <div className="flex items-center gap-2 mt-2">
-                    {book.featured && (
-                      <Badge variant="secondary">Featured</Badge>
-                    )}
-                    {book.status && (
-                      <Badge variant="outline">{book.status.name}</Badge>
-                    )}
+                    {book.featured && <Badge variant="secondary">Featured</Badge>}
+                    {book.status && <Badge variant="outline">{book.status.name}</Badge>}
                   </div>
                 </div>
               </div>
@@ -254,7 +256,11 @@ export function AdminBookActions({ book, open, onOpenChange, onEdit, onDelete }:
                 <Edit className="h-4 w-4 mr-2" />
                 Edit Book
               </Button>
-              <Button variant="outline" onClick={onDelete} className="justify-start text-red-600 hover:text-red-700">
+              <Button
+                variant="outline"
+                onClick={onDelete}
+                className="justify-start text-red-600 hover:text-red-700"
+              >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete Book
               </Button>
@@ -285,29 +291,17 @@ export function AdminBookActions({ book, open, onOpenChange, onEdit, onDelete }:
                 )}
               </Button>
 
-              <Button
-                variant="ghost"
-                className="w-full justify-start"
-                onClick={handleDuplicate}
-              >
+              <Button variant="ghost" className="w-full justify-start" onClick={handleDuplicate}>
                 <Copy className="h-4 w-4 mr-2" />
                 Duplicate Book
               </Button>
 
-              <Button
-                variant="ghost"
-                className="w-full justify-start"
-                onClick={handleArchive}
-              >
+              <Button variant="ghost" className="w-full justify-start" onClick={handleArchive}>
                 <Archive className="h-4 w-4 mr-2" />
                 Archive Book
               </Button>
 
-              <Button
-                variant="ghost"
-                className="w-full justify-start"
-                onClick={handleExportData}
-              >
+              <Button variant="ghost" className="w-full justify-start" onClick={handleExportData}>
                 <Download className="h-4 w-4 mr-2" />
                 Export Data
               </Button>
@@ -395,4 +389,4 @@ export function AdminBookActions({ book, open, onOpenChange, onEdit, onDelete }:
       </DialogContent>
     </Dialog>
   )
-} 
+}

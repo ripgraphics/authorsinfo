@@ -1,25 +1,25 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
-import { 
-  Search, 
-  Folder, 
-  Image as ImageIcon, 
-  Calendar, 
-  FileText, 
+import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import {
+  Search,
+  Folder,
+  Image as ImageIcon,
+  Calendar,
+  FileText,
   Trash2,
   RefreshCw,
   Download,
-  Eye
-} from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
-import { formatDate } from "@/utils/dateUtils"
+  Eye,
+} from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
+import { formatDate } from '@/utils/dateUtils'
 
 interface CloudinaryResource {
   public_id: string
@@ -45,53 +45,52 @@ interface CloudinaryResponse {
 export default function CloudinaryImagesPage() {
   const [images, setImages] = useState<CloudinaryResource[]>([])
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
-  const [folder, setFolder] = useState("")
-  const [searchTerm, setSearchTerm] = useState("")
+  const [error, setError] = useState('')
+  const [folder, setFolder] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
   const [nextCursor, setNextCursor] = useState<string | undefined>()
   const [hasMore, setHasMore] = useState(false)
   const { toast } = useToast()
 
   const fetchImages = async (cursor?: string) => {
     setLoading(true)
-    setError("")
+    setError('')
 
     try {
       const params = new URLSearchParams({
-        max_results: "50"
+        max_results: '50',
       })
 
       if (folder) {
-        params.append("folder", folder)
+        params.append('folder', folder)
       }
 
       if (cursor) {
-        params.append("next_cursor", cursor)
+        params.append('next_cursor', cursor)
       }
 
       const response = await fetch(`/api/cloudinary/list?${params}`)
       const result: CloudinaryResponse = await response.json()
 
       if (!result.success) {
-        throw new Error("Failed to fetch images")
+        throw new Error('Failed to fetch images')
       }
 
       if (cursor) {
-        setImages(prev => [...prev, ...result.data.resources])
+        setImages((prev) => [...prev, ...result.data.resources])
       } else {
         setImages(result.data.resources)
       }
 
       setNextCursor(result.data.next_cursor)
       setHasMore(!!result.data.next_cursor)
-
     } catch (err) {
-      console.error("Error fetching images:", err)
-      setError(err instanceof Error ? err.message : "Failed to fetch images")
+      console.error('Error fetching images:', err)
+      setError(err instanceof Error ? err.message : 'Failed to fetch images')
       toast({
-        title: "Error",
-        description: "Failed to fetch Cloudinary images",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to fetch Cloudinary images',
+        variant: 'destructive',
       })
     } finally {
       setLoading(false)
@@ -104,10 +103,10 @@ export default function CloudinaryImagesPage() {
     }
 
     try {
-      const response = await fetch("/api/cloudinary/delete", {
-        method: "POST",
+      const response = await fetch('/api/cloudinary/delete', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ publicId }),
       })
@@ -115,36 +114,35 @@ export default function CloudinaryImagesPage() {
       const result = await response.json()
 
       if (!result.success) {
-        throw new Error(result.error || "Failed to delete image")
+        throw new Error(result.error || 'Failed to delete image')
       }
 
       // Remove the image from the list
-      setImages(prev => prev.filter(img => img.public_id !== publicId))
+      setImages((prev) => prev.filter((img) => img.public_id !== publicId))
 
       toast({
-        title: "Success",
-        description: "Image deleted successfully",
+        title: 'Success',
+        description: 'Image deleted successfully',
       })
-
     } catch (err) {
-      console.error("Error deleting image:", err)
+      console.error('Error deleting image:', err)
       toast({
-        title: "Error",
-        description: "Failed to delete image",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to delete image',
+        variant: 'destructive',
       })
     }
   }
 
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes"
+    if (bytes === 0) return '0 Bytes'
     const k = 1024
-    const sizes = ["Bytes", "KB", "MB", "GB"]
+    const sizes = ['Bytes', 'KB', 'MB', 'GB']
     const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
 
-  const filteredImages = images.filter(img =>
+  const filteredImages = images.filter((img) =>
     img.public_id.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
@@ -157,9 +155,7 @@ export default function CloudinaryImagesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Cloudinary Images</h1>
-          <p className="text-muted-foreground">
-            Manage and view your Cloudinary images
-          </p>
+          <p className="text-muted-foreground">Manage and view your Cloudinary images</p>
         </div>
         <Button onClick={() => fetchImages()} disabled={loading}>
           <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
@@ -241,7 +237,7 @@ export default function CloudinaryImagesPage() {
                   <ImageIcon className="h-4 w-4 text-muted-foreground" />
                   <Badge variant="outline">{image.format.toUpperCase()}</Badge>
                 </div>
-                
+
                 <div className="text-sm space-y-1">
                   <p className="font-medium truncate" title={image.public_id}>
                     {image.public_id.split('/').pop()}
@@ -262,7 +258,9 @@ export default function CloudinaryImagesPage() {
                   </div>
                   <div className="flex items-center gap-1">
                     <ImageIcon className="h-3 w-3" />
-                    <span>{image.width} × {image.height}</span>
+                    <span>
+                      {image.width} × {image.height}
+                    </span>
                   </div>
                 </div>
 
@@ -283,18 +281,14 @@ export default function CloudinaryImagesPage() {
       {/* Load More */}
       {hasMore && (
         <div className="text-center">
-          <Button
-            onClick={() => fetchImages(nextCursor)}
-            disabled={loading}
-            variant="outline"
-          >
+          <Button onClick={() => fetchImages(nextCursor)} disabled={loading} variant="outline">
             {loading ? (
               <>
                 <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                 Loading...
               </>
             ) : (
-              "Load More Images"
+              'Load More Images'
             )}
           </Button>
         </div>
@@ -307,7 +301,7 @@ export default function CloudinaryImagesPage() {
             <ImageIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-medium mb-2">No images found</h3>
             <p className="text-muted-foreground">
-              {searchTerm ? "Try adjusting your search terms" : "No images in this folder"}
+              {searchTerm ? 'Try adjusting your search terms' : 'No images in this folder'}
             </p>
           </CardContent>
         </Card>
@@ -319,10 +313,12 @@ export default function CloudinaryImagesPage() {
           <CardContent className="text-center py-12">
             <RefreshCw className="h-12 w-12 text-muted-foreground mx-auto mb-4 animate-spin" />
             <h3 className="text-lg font-medium mb-2">Loading images...</h3>
-            <p className="text-muted-foreground">Please wait while we fetch your Cloudinary images</p>
+            <p className="text-muted-foreground">
+              Please wait while we fetch your Cloudinary images
+            </p>
           </CardContent>
         </Card>
       )}
     </div>
   )
-} 
+}

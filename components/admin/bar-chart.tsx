@@ -1,7 +1,7 @@
-"use client"
+'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { cn } from "@/lib/utils"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 
 interface BarChartProps {
   title: string
@@ -14,12 +14,18 @@ interface BarChartProps {
   color?: string
 }
 
-export function BarChart({ title, description, data, className, color = "bg-blue-500" }: BarChartProps) {
+export function BarChart({
+  title,
+  description,
+  data,
+  className,
+  color = 'bg-blue-500',
+}: BarChartProps) {
   // Find the maximum value for scaling
   const maxValue = Math.max(...data.map((item) => item.value), 1)
 
   return (
-    <Card className={cn("overflow-hidden", className)}>
+    <Card className={cn('overflow-hidden', className)}>
       <CardHeader className="pb-2">
         <CardTitle>{title}</CardTitle>
         {description && <CardDescription>{description}</CardDescription>}
@@ -30,7 +36,7 @@ export function BarChart({ title, description, data, className, color = "bg-blue
             <div key={`${item.label}-${index}`} className="flex flex-col items-center">
               <div className="w-full flex flex-col items-center">
                 <div
-                  className={cn("w-12 rounded-t-sm", color)}
+                  className={cn('w-12 rounded-t-sm', color)}
                   style={{ height: `${Math.max(10, (item.value / maxValue) * 180)}px` }}
                 ></div>
               </div>

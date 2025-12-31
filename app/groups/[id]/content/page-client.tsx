@@ -1,10 +1,10 @@
-"use client"
+'use client'
 
-import React from "react"
-import { useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+import React from 'react'
+import { useEffect, useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 
 interface GroupContentPageProps {
   params: { id: string }
@@ -15,7 +15,7 @@ export default function GroupContentPageClient({ params }: GroupContentPageProps
   const [content, setContent] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ type: "post", title: "", body: "" })
+  const [form, setForm] = useState({ type: 'post', title: '', body: '' })
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
@@ -35,17 +35,17 @@ export default function GroupContentPageClient({ params }: GroupContentPageProps
     setError(null)
     setSuccess(null)
     const res = await fetch(`/api/groups/${groupId}/content`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
     })
     if (res.ok) {
-      setSuccess("Content created!")
-      setForm({ type: "post", title: "", body: "" })
+      setSuccess('Content created!')
+      setForm({ type: 'post', title: '', body: '' })
       setShowForm(false)
     } else {
       const err = await res.json()
-      setError(err.error || "Failed to create content")
+      setError(err.error || 'Failed to create content')
     }
   }
 
@@ -57,7 +57,7 @@ export default function GroupContentPageClient({ params }: GroupContentPageProps
     <div className="max-w-3xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-4">Group Content & Collaboration</h2>
       <Button onClick={() => setShowForm((v) => !v)} className="mb-4">
-        {showForm ? "Cancel" : "Add Content"}
+        {showForm ? 'Cancel' : 'Add Content'}
       </Button>
       {showForm && (
         <form onSubmit={handleSubmit} className="mb-6 space-y-2">

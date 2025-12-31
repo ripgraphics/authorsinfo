@@ -1,17 +1,23 @@
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Building, Globe, MapPin, Edit2, Settings } from "lucide-react"
-import { BookCard } from "@/components/book-card"
-import { useState, useRef, useEffect } from "react"
-import { EditSectionModal } from "./EditSectionModal"
-import Link from "next/link"
-import { ExpandableSection } from "@/components/ui/expandable-section"
-import { ContactInfo, ContactInfoInput } from '@/types/contact';
-import { getContactInfo, upsertContactInfo } from '@/utils/contactInfo';
-import { useToast } from "@/components/ui/use-toast"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Building, Globe, MapPin, Edit2, Settings } from 'lucide-react'
+import { BookCard } from '@/components/book-card'
+import { useState, useRef, useEffect } from 'react'
+import { EditSectionModal } from './EditSectionModal'
+import Link from 'next/link'
+import { ExpandableSection } from '@/components/ui/expandable-section'
+import { ContactInfo, ContactInfoInput } from '@/types/contact'
+import { getContactInfo, upsertContactInfo } from '@/utils/contactInfo'
+import { useToast } from '@/components/ui/use-toast'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 
 interface PublisherData {
   id?: string | number
@@ -41,32 +47,38 @@ interface BookData {
 }
 
 // Overview Section
-export function OverviewSection({ publisher, onRefresh }: { publisher: PublisherData, onRefresh?: () => void }) {
-  const [expanded, setExpanded] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
-  
+export function OverviewSection({
+  publisher,
+  onRefresh,
+}: {
+  publisher: PublisherData
+  onRefresh?: () => void
+}) {
+  const [expanded, setExpanded] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
+
   const handleRefresh = () => {
-    setRefreshKey(prev => prev + 1);
-    if (onRefresh) onRefresh();
-  };
-  
+    setRefreshKey((prev) => prev + 1)
+    if (onRefresh) onRefresh()
+  }
+
   // Function to count approx lines based on character count and average line length
   const countApproxLines = (text: string) => {
-    const avgCharsPerLine = 80; // Approximate average characters per line
-    return Math.ceil(text.length / avgCharsPerLine);
-  };
-  
-  const hasLongContent = publisher.about && countApproxLines(publisher.about) > 20;
-  
+    const avgCharsPerLine = 80 // Approximate average characters per line
+    return Math.ceil(text.length / avgCharsPerLine)
+  }
+
+  const hasLongContent = publisher.about && countApproxLines(publisher.about) > 20
+
   return (
     <Card className="overview-section mb-6" id="overview" key={`overview-${refreshKey}`}>
       <div className="overview-section__header flex flex-col space-y-1.5 p-6 border-b">
         <div className="overview-section__title-row flex justify-between items-center">
           <h3 className="overview-section__title text-xl font-semibold">Overview</h3>
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             className="overview-section__edit-button h-8 gap-1"
             onClick={() => setIsEditModalOpen(true)}
           >
@@ -78,22 +90,28 @@ export function OverviewSection({ publisher, onRefresh }: { publisher: Publisher
       <CardContent className="overview-section__content p-6 space-y-4">
         {publisher.about ? (
           <div className="overview-section__about space-y-2">
-            <ExpandableSection title={null}>
-                {publisher.about}
-            </ExpandableSection>
+            <ExpandableSection title={null}>{publisher.about}</ExpandableSection>
           </div>
         ) : (
-          <p className="overview-section__empty-message text-muted-foreground italic">No overview information available.</p>
+          <p className="overview-section__empty-message text-muted-foreground italic">
+            No overview information available.
+          </p>
         )}
         <div className="overview-section__founded flex items-center">
           <Building className="overview-section__founded-icon h-4 w-4 mr-2 text-muted-foreground" />
-          <span className="overview-section__founded-text">Founded in {publisher.founded_year || "N/A"}</span>
+          <span className="overview-section__founded-text">
+            Founded in {publisher.founded_year || 'N/A'}
+          </span>
         </div>
         {publisher.website && (
           <div className="overview-section__website flex items-start">
             <Globe className="overview-section__website-icon h-4 w-4 mr-2 text-muted-foreground flex-shrink-0 mt-1" />
             <a
-              href={publisher.website.startsWith('http') ? publisher.website : `https://${publisher.website}`}
+              href={
+                publisher.website.startsWith('http')
+                  ? publisher.website
+                  : `https://${publisher.website}`
+              }
               target="_blank"
               rel="noopener noreferrer"
               className="overview-section__website-link text-primary hover:underline break-words"
@@ -103,16 +121,16 @@ export function OverviewSection({ publisher, onRefresh }: { publisher: Publisher
           </div>
         )}
       </CardContent>
-      
+
       <EditSectionModal
         open={isEditModalOpen}
         onOpenChange={setIsEditModalOpen}
         section="overview"
-        publisherId={publisher.id || ""}
+        publisherId={publisher.id || ''}
         initialData={{
           about: publisher.about,
           founded_year: publisher.founded_year,
-          website: publisher.website
+          website: publisher.website,
         }}
         onSuccess={handleRefresh}
       />
@@ -121,21 +139,27 @@ export function OverviewSection({ publisher, onRefresh }: { publisher: Publisher
 }
 
 // Contact Information Section
-export function ContactSection({ publisher, onRefresh }: { publisher: PublisherData, onRefresh?: () => void }) {
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null);
+export function ContactSection({
+  publisher,
+  onRefresh,
+}: {
+  publisher: PublisherData
+  onRefresh?: () => void
+}) {
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
+  const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null)
   const [editedContact, setEditedContact] = useState<ContactInfoInput>({
     entity_type: 'publisher',
-    entity_id: publisher.id?.toString() || ''
-  });
-  const { toast } = useToast();
-  
+    entity_id: publisher.id?.toString() || '',
+  })
+  const { toast } = useToast()
+
   useEffect(() => {
     const fetchContactInfo = async () => {
-      const info = await getContactInfo('publisher', publisher.id?.toString() || '');
+      const info = await getContactInfo('publisher', publisher.id?.toString() || '')
       if (info) {
-        setContactInfo(info);
+        setContactInfo(info)
         setEditedContact({
           entity_type: 'publisher',
           entity_id: publisher.id?.toString() || '',
@@ -147,12 +171,12 @@ export function ContactSection({ publisher, onRefresh }: { publisher: PublisherD
           city: info.city,
           state: info.state,
           postal_code: info.postal_code,
-          country: info.country
-        });
+          country: info.country,
+        })
       }
-    };
-    fetchContactInfo();
-  }, [publisher.id]);
+    }
+    fetchContactInfo()
+  }, [publisher.id])
 
   const handleUpdateContact = async () => {
     try {
@@ -167,37 +191,37 @@ export function ContactSection({ publisher, onRefresh }: { publisher: PublisherD
         city: editedContact.city || undefined,
         state: editedContact.state || undefined,
         postal_code: editedContact.postal_code || undefined,
-        country: editedContact.country || undefined
-      });
-      
+        country: editedContact.country || undefined,
+      })
+
       if (updatedContact) {
-        setContactInfo(updatedContact);
-        setIsEditModalOpen(false);
-    setRefreshKey(prev => prev + 1);
-    if (onRefresh) onRefresh();
+        setContactInfo(updatedContact)
+        setIsEditModalOpen(false)
+        setRefreshKey((prev) => prev + 1)
+        if (onRefresh) onRefresh()
         toast({
-          title: "Success",
-          description: "Contact information updated successfully"
-        });
+          title: 'Success',
+          description: 'Contact information updated successfully',
+        })
       }
     } catch (error) {
-      console.error('Error updating contact info:', error);
+      console.error('Error updating contact info:', error)
       toast({
-        title: "Error",
-        description: "Failed to update contact information",
-        variant: "destructive"
-      });
+        title: 'Error',
+        description: 'Failed to update contact information',
+        variant: 'destructive',
+      })
     }
-  };
-  
+  }
+
   return (
     <Card className="contact-section mb-6" id="contact-info" key={`contact-${refreshKey}`}>
       <div className="contact-section__header flex flex-col space-y-1.5 p-6 border-b">
         <div className="contact-section__title-row flex justify-between items-center">
           <h3 className="contact-section__title text-xl font-semibold">Contact Information</h3>
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             className="contact-section__edit-button h-8 gap-1"
             onClick={() => setIsEditModalOpen(true)}
           >
@@ -211,7 +235,10 @@ export function ContactSection({ publisher, onRefresh }: { publisher: PublisherD
           {contactInfo?.email && (
             <div className="contact-section__email flex flex-col">
               <span className="contact-section__label text-sm text-muted-foreground">Email</span>
-              <a href={`mailto:${contactInfo.email}`} className="contact-section__email-link text-primary hover:underline">
+              <a
+                href={`mailto:${contactInfo.email}`}
+                className="contact-section__email-link text-primary hover:underline"
+              >
                 {contactInfo.email}
               </a>
             </div>
@@ -219,7 +246,10 @@ export function ContactSection({ publisher, onRefresh }: { publisher: PublisherD
           {contactInfo?.phone && (
             <div className="contact-section__phone flex flex-col">
               <span className="contact-section__label text-sm text-muted-foreground">Phone</span>
-              <a href={`tel:${contactInfo.phone}`} className="contact-section__phone-link text-primary hover:underline">
+              <a
+                href={`tel:${contactInfo.phone}`}
+                className="contact-section__phone-link text-primary hover:underline"
+              >
                 {contactInfo.phone}
               </a>
             </div>
@@ -227,43 +257,56 @@ export function ContactSection({ publisher, onRefresh }: { publisher: PublisherD
           {contactInfo?.website && (
             <div className="contact-section__website flex flex-col">
               <span className="contact-section__label text-sm text-muted-foreground">Website</span>
-              <a 
-                href={contactInfo.website.startsWith('http') ? contactInfo.website : `https://${contactInfo.website}`}
-                target="_blank" 
-                rel="noopener noreferrer" 
+              <a
+                href={
+                  contactInfo.website.startsWith('http')
+                    ? contactInfo.website
+                    : `https://${contactInfo.website}`
+                }
+                target="_blank"
+                rel="noopener noreferrer"
                 className="contact-section__website-link text-primary hover:underline"
               >
                 {contactInfo.website}
               </a>
             </div>
           )}
-          {(contactInfo?.address_line1 || contactInfo?.address_line2 || contactInfo?.city || contactInfo?.state || contactInfo?.postal_code || contactInfo?.country) && (
+          {(contactInfo?.address_line1 ||
+            contactInfo?.address_line2 ||
+            contactInfo?.city ||
+            contactInfo?.state ||
+            contactInfo?.postal_code ||
+            contactInfo?.country) && (
             <div className="contact-section__address flex flex-col">
               <span className="contact-section__label text-sm text-muted-foreground">Address</span>
               <div className="flex flex-col">
                 {contactInfo.address_line1 && <span>{contactInfo.address_line1}</span>}
                 {contactInfo.address_line2 && <span>{contactInfo.address_line2}</span>}
                 <span>
-                  {[
-                    contactInfo.city,
-                    contactInfo.state,
-                    contactInfo.postal_code
-                  ].filter(Boolean).join(', ')}
+                  {[contactInfo.city, contactInfo.state, contactInfo.postal_code]
+                    .filter(Boolean)
+                    .join(', ')}
                 </span>
                 {contactInfo.country && <span>{contactInfo.country}</span>}
               </div>
             </div>
           )}
-          {!contactInfo?.email && !contactInfo?.phone && !contactInfo?.website && 
-           !contactInfo?.address_line1 && !contactInfo?.address_line2 && !contactInfo?.city && 
-           !contactInfo?.state && !contactInfo?.postal_code && !contactInfo?.country && (
-            <div className="col-span-2 text-center text-muted-foreground py-4">
-              No contact information available
-            </div>
-          )}
+          {!contactInfo?.email &&
+            !contactInfo?.phone &&
+            !contactInfo?.website &&
+            !contactInfo?.address_line1 &&
+            !contactInfo?.address_line2 &&
+            !contactInfo?.city &&
+            !contactInfo?.state &&
+            !contactInfo?.postal_code &&
+            !contactInfo?.country && (
+              <div className="col-span-2 text-center text-muted-foreground py-4">
+                No contact information available
+              </div>
+            )}
         </div>
       </CardContent>
-      
+
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent className="w-[95vw] max-w-[600px] h-auto max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -275,7 +318,7 @@ export function ContactSection({ publisher, onRefresh }: { publisher: PublisherD
               <Input
                 id="email"
                 value={editedContact.email || ''}
-                onChange={(e) => setEditedContact(prev => ({ ...prev, email: e.target.value }))}
+                onChange={(e) => setEditedContact((prev) => ({ ...prev, email: e.target.value }))}
                 placeholder="Enter email address"
               />
             </div>
@@ -284,7 +327,7 @@ export function ContactSection({ publisher, onRefresh }: { publisher: PublisherD
               <Input
                 id="phone"
                 value={editedContact.phone || ''}
-                onChange={(e) => setEditedContact(prev => ({ ...prev, phone: e.target.value }))}
+                onChange={(e) => setEditedContact((prev) => ({ ...prev, phone: e.target.value }))}
                 placeholder="Enter phone number"
               />
             </div>
@@ -293,7 +336,7 @@ export function ContactSection({ publisher, onRefresh }: { publisher: PublisherD
               <Input
                 id="website"
                 value={editedContact.website || ''}
-                onChange={(e) => setEditedContact(prev => ({ ...prev, website: e.target.value }))}
+                onChange={(e) => setEditedContact((prev) => ({ ...prev, website: e.target.value }))}
                 placeholder="Enter website URL"
               />
             </div>
@@ -302,7 +345,9 @@ export function ContactSection({ publisher, onRefresh }: { publisher: PublisherD
               <Input
                 id="address_line1"
                 value={editedContact.address_line1 || ''}
-                onChange={(e) => setEditedContact(prev => ({ ...prev, address_line1: e.target.value }))}
+                onChange={(e) =>
+                  setEditedContact((prev) => ({ ...prev, address_line1: e.target.value }))
+                }
                 placeholder="Enter address line 1"
               />
             </div>
@@ -311,7 +356,9 @@ export function ContactSection({ publisher, onRefresh }: { publisher: PublisherD
               <Input
                 id="address_line2"
                 value={editedContact.address_line2 || ''}
-                onChange={(e) => setEditedContact(prev => ({ ...prev, address_line2: e.target.value }))}
+                onChange={(e) =>
+                  setEditedContact((prev) => ({ ...prev, address_line2: e.target.value }))
+                }
                 placeholder="Enter address line 2"
               />
             </div>
@@ -321,7 +368,7 @@ export function ContactSection({ publisher, onRefresh }: { publisher: PublisherD
                 <Input
                   id="city"
                   value={editedContact.city || ''}
-                  onChange={(e) => setEditedContact(prev => ({ ...prev, city: e.target.value }))}
+                  onChange={(e) => setEditedContact((prev) => ({ ...prev, city: e.target.value }))}
                   placeholder="Enter city"
                 />
               </div>
@@ -330,7 +377,7 @@ export function ContactSection({ publisher, onRefresh }: { publisher: PublisherD
                 <Input
                   id="state"
                   value={editedContact.state || ''}
-                  onChange={(e) => setEditedContact(prev => ({ ...prev, state: e.target.value }))}
+                  onChange={(e) => setEditedContact((prev) => ({ ...prev, state: e.target.value }))}
                   placeholder="Enter state"
                 />
               </div>
@@ -341,7 +388,9 @@ export function ContactSection({ publisher, onRefresh }: { publisher: PublisherD
                 <Input
                   id="postal_code"
                   value={editedContact.postal_code || ''}
-                  onChange={(e) => setEditedContact(prev => ({ ...prev, postal_code: e.target.value }))}
+                  onChange={(e) =>
+                    setEditedContact((prev) => ({ ...prev, postal_code: e.target.value }))
+                  }
                   placeholder="Enter postal code"
                 />
               </div>
@@ -350,7 +399,9 @@ export function ContactSection({ publisher, onRefresh }: { publisher: PublisherD
                 <Input
                   id="country"
                   value={editedContact.country || ''}
-                  onChange={(e) => setEditedContact(prev => ({ ...prev, country: e.target.value }))}
+                  onChange={(e) =>
+                    setEditedContact((prev) => ({ ...prev, country: e.target.value }))
+                  }
                   placeholder="Enter country"
                 />
               </div>
@@ -360,9 +411,7 @@ export function ContactSection({ publisher, onRefresh }: { publisher: PublisherD
             <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleUpdateContact}>
-              Save Changes
-            </Button>
+            <Button onClick={handleUpdateContact}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -371,54 +420,60 @@ export function ContactSection({ publisher, onRefresh }: { publisher: PublisherD
 }
 
 // Location Section
-export function LocationSection({ publisher, onRefresh }: { publisher: PublisherData, onRefresh?: () => void }) {
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
-  
+export function LocationSection({
+  publisher,
+  onRefresh,
+}: {
+  publisher: PublisherData
+  onRefresh?: () => void
+}) {
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
+
   const handleRefresh = () => {
-    setRefreshKey(prev => prev + 1);
-    if (onRefresh) onRefresh();
-  };
-  
+    setRefreshKey((prev) => prev + 1)
+    if (onRefresh) onRefresh()
+  }
+
   // Format location with state and country code when available
   const formatLocation = () => {
-    const parts = [];
-    
+    const parts = []
+
     // Add city if available
     if (publisher.city) {
-      parts.push(publisher.city);
+      parts.push(publisher.city)
     }
-    
+
     // Format state and country code in "MD, USA" format when both available
     if (publisher.state && publisher.country_details?.code) {
-      parts.push(`${publisher.state}, ${publisher.country_details.code}`);
+      parts.push(`${publisher.state}, ${publisher.country_details.code}`)
     } else {
       // Otherwise, add state if available
       if (publisher.state) {
-        parts.push(publisher.state);
+        parts.push(publisher.state)
       }
-      
+
       // Add country if available (prefer code if available)
       if (publisher.country_details?.code) {
-        parts.push(publisher.country_details.code);
+        parts.push(publisher.country_details.code)
       } else if (publisher.country) {
-        parts.push(publisher.country);
+        parts.push(publisher.country)
       } else if (publisher.country_details?.name) {
-        parts.push(publisher.country_details.name);
+        parts.push(publisher.country_details.name)
       }
     }
-    
-    return parts;
-  };
+
+    return parts
+  }
 
   return (
     <Card className="location-section mb-6" id="location" key={`location-${refreshKey}`}>
       <div className="location-section__header flex flex-col space-y-1.5 p-6 border-b">
         <div className="location-section__title-row flex justify-between items-center">
           <h3 className="location-section__title text-xl font-semibold">Location</h3>
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             className="location-section__edit-button h-8 gap-1"
             onClick={() => setIsEditModalOpen(true)}
           >
@@ -428,24 +483,28 @@ export function LocationSection({ publisher, onRefresh }: { publisher: Publisher
         </div>
       </div>
       <CardContent className="location-section__content p-6">
-        {(publisher.address_line1 || publisher.city || publisher.state || publisher.country) ? (
+        {publisher.address_line1 || publisher.city || publisher.state || publisher.country ? (
           <div className="location-section__info space-y-2">
             {publisher.address_line1 && (
               <div className="location-section__address flex items-start">
                 <MapPin className="location-section__map-icon h-4 w-4 mr-2 mt-1 text-muted-foreground" />
                 <div className="location-section__address-details flex flex-col">
                   <span className="location-section__address-line">{publisher.address_line1}</span>
-                  {publisher.address_line2 && <span className="location-section__address-line">{publisher.address_line2}</span>}
+                  {publisher.address_line2 && (
+                    <span className="location-section__address-line">
+                      {publisher.address_line2}
+                    </span>
+                  )}
                   <span className="location-section__address-line">
-                    {[
-                      publisher.city,
-                      publisher.state,
-                      publisher.postal_code
-                    ].filter(Boolean).join(', ')}
+                    {[publisher.city, publisher.state, publisher.postal_code]
+                      .filter(Boolean)
+                      .join(', ')}
                   </span>
                   {(publisher.country || publisher.country_details) && (
                     <span className="location-section__country">
-                      {publisher.country_details?.code || publisher.country || publisher.country_details?.name}
+                      {publisher.country_details?.code ||
+                        publisher.country ||
+                        publisher.country_details?.name}
                     </span>
                   )}
                 </div>
@@ -461,22 +520,24 @@ export function LocationSection({ publisher, onRefresh }: { publisher: Publisher
             )}
           </div>
         ) : (
-          <p className="location-section__empty-message text-muted-foreground italic">No location information available.</p>
+          <p className="location-section__empty-message text-muted-foreground italic">
+            No location information available.
+          </p>
         )}
       </CardContent>
-      
+
       <EditSectionModal
         open={isEditModalOpen}
         onOpenChange={setIsEditModalOpen}
         section="location"
-        publisherId={publisher.id || ""}
+        publisherId={publisher.id || ''}
         initialData={{
           address_line1: publisher.address_line1,
           address_line2: publisher.address_line2,
           city: publisher.city,
           state: publisher.state,
           postal_code: publisher.postal_code,
-          country: publisher.country
+          country: publisher.country,
         }}
         onSuccess={handleRefresh}
       />
@@ -485,13 +546,13 @@ export function LocationSection({ publisher, onRefresh }: { publisher: Publisher
 }
 
 // Published Books Section
-export function BooksSection({ 
-  books, 
-  booksCount, 
-  onViewAllBooks 
-}: { 
-  books?: BookData[], 
-  booksCount?: number,
+export function BooksSection({
+  books,
+  booksCount,
+  onViewAllBooks,
+}: {
+  books?: BookData[]
+  booksCount?: number
   onViewAllBooks: () => void
 }) {
   return (
@@ -502,7 +563,9 @@ export function BooksSection({
       <CardContent className="books-section__content p-6">
         {books && books.length > 0 ? (
           <div className="books-section__with-content">
-            <p className="books-section__count mb-4">This publisher has published {booksCount} books.</p>
+            <p className="books-section__count mb-4">
+              This publisher has published {booksCount} books.
+            </p>
             <div className="books-section__grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {books.slice(0, 8).map((book) => (
                 <BookCard
@@ -515,8 +578,8 @@ export function BooksSection({
             </div>
             {(booksCount || 0) > 8 && (
               <div className="books-section__view-all mt-4 text-center">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={onViewAllBooks}
                   className="books-section__view-all-button mt-2"
                 >
@@ -526,7 +589,9 @@ export function BooksSection({
             )}
           </div>
         ) : (
-          <p className="books-section__empty-message text-muted-foreground italic">No books have been published yet.</p>
+          <p className="books-section__empty-message text-muted-foreground italic">
+            No books have been published yet.
+          </p>
         )}
       </CardContent>
     </Card>
@@ -535,29 +600,29 @@ export function BooksSection({
 
 // About Tab Navigation
 export function AboutNavigation({ publisherId }: { publisherId?: string | number }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   // Close the menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setMenuOpen(false);
+        setMenuOpen(false)
       }
-    };
-    
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   return (
     <div className="about-navigation bg-white rounded-lg shadow-sm overflow-hidden sticky top-20">
       <div className="about-navigation__header p-4 border-b flex justify-between items-center">
         <h2 className="about-navigation__title text-lg font-medium">About</h2>
         <div className="about-navigation__settings-wrapper relative" ref={menuRef}>
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="about-navigation__settings-button h-8 w-8 rounded-full"
             onClick={() => setMenuOpen(!menuOpen)}
           >
@@ -565,8 +630,12 @@ export function AboutNavigation({ publisherId }: { publisherId?: string | number
           </Button>
           {menuOpen && (
             <div className="about-navigation__dropdown absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
-              <div className="about-navigation__dropdown-menu py-1" role="menu" aria-orientation="vertical">
-                <Link 
+              <div
+                className="about-navigation__dropdown-menu py-1"
+                role="menu"
+                aria-orientation="vertical"
+              >
+                <Link
                   href={`/publishers/${publisherId}/edit?section=about`}
                   className="about-navigation__dropdown-item flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   role="menuitem"
@@ -575,7 +644,7 @@ export function AboutNavigation({ publisherId }: { publisherId?: string | number
                   <Edit2 className="about-navigation__dropdown-icon h-4 w-4 mr-2" />
                   Edit About
                 </Link>
-                <Link 
+                <Link
                   href={`/publishers/${publisherId}/settings`}
                   className="about-navigation__dropdown-item flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   role="menuitem"
@@ -596,20 +665,20 @@ export function AboutNavigation({ publisherId }: { publisherId?: string | number
         >
           Overview
         </a>
-        <a 
-          href="#contact-info" 
+        <a
+          href="#contact-info"
           className="about-navigation__nav-link flex items-center px-3 py-2 rounded-md hover:bg-muted"
         >
           Contact Information
         </a>
-        <a 
-          href="#location" 
+        <a
+          href="#location"
           className="about-navigation__nav-link flex items-center px-3 py-2 rounded-md hover:bg-muted"
         >
           Location
         </a>
-        <a 
-          href="#books" 
+        <a
+          href="#books"
           className="about-navigation__nav-link flex items-center px-3 py-2 rounded-md hover:bg-muted"
         >
           Published Books
@@ -617,4 +686,4 @@ export function AboutNavigation({ publisherId }: { publisherId?: string | number
       </nav>
     </div>
   )
-} 
+}

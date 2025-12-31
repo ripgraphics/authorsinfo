@@ -1,134 +1,139 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { createBrowserClient } from '@supabase/ssr';
-import { useToast } from '@/hooks/use-toast';
-import type { Database } from '@/types/database';
+import { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { createBrowserClient } from '@supabase/ssr'
+import { useToast } from '@/hooks/use-toast'
+import type { Database } from '@/types/database'
 
 interface GroupSettingsProps {
-  groupId: string;
-  userRole: string;
+  groupId: string
+  userRole: string
 }
 
 interface GroupSettings {
-  id: string;
-  name: string;
-  description: string;
-  privacy: 'public' | 'private' | 'hidden';
-  join_type: 'open' | 'request' | 'invite';
+  id: string
+  name: string
+  description: string
+  privacy: 'public' | 'private' | 'hidden'
+  join_type: 'open' | 'request' | 'invite'
   moderation_settings: {
-    auto_moderation: boolean;
-    toxicity_threshold: number;
-    require_approval: boolean;
-    allowed_content_types: string[];
-    banned_keywords: string[];
+    auto_moderation: boolean
+    toxicity_threshold: number
+    require_approval: boolean
+    allowed_content_types: string[]
+    banned_keywords: string[]
     notification_settings: {
-      email: boolean;
-      push: boolean;
-      slack: boolean;
-      discord: boolean;
-    };
-  };
+      email: boolean
+      push: boolean
+      slack: boolean
+      discord: boolean
+    }
+  }
   branding: {
-    logo_url?: string;
-    banner_url?: string;
-    primary_color?: string;
-    secondary_color?: string;
-  };
+    logo_url?: string
+    banner_url?: string
+    primary_color?: string
+    secondary_color?: string
+  }
   integrations: {
-    slack_webhook?: string;
-    discord_webhook?: string;
-    api_key?: string;
-  };
-  updated_at: string;
+    slack_webhook?: string
+    discord_webhook?: string
+    api_key?: string
+  }
+  updated_at: string
 }
 
 export default function GroupSettings({ groupId, userRole }: GroupSettingsProps) {
-  const [settings, setSettings] = useState<GroupSettings | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isDirty, setIsDirty] = useState(false);
+  const [settings, setSettings] = useState<GroupSettings | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [isDirty, setIsDirty] = useState(false)
 
-  const supabase = createBrowserClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
-  const { toast } = useToast();
+  const supabase = createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+  const { toast } = useToast()
 
   useEffect(() => {
-    fetchSettings();
-  }, []);
+    fetchSettings()
+  }, [])
 
   async function fetchSettings() {
     try {
-      setLoading(true);
+      setLoading(true)
       const { data, error } = await supabase
         .from('group_settings')
         .select('*')
         .eq('group_id', groupId)
-        .single();
+        .single()
 
-      if (error) throw error;
-      setSettings(data);
+      if (error) throw error
+      setSettings(data)
     } catch (err: any) {
       toast({
         title: 'Error',
         description: 'Failed to load group settings',
         variant: 'destructive',
-      });
+      })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
   async function handleSaveSettings() {
-    if (!settings) return;
+    if (!settings) return
 
     try {
-      const { error } = await (supabase
-        .from('group_settings') as any)
+      const { error } = await (supabase.from('group_settings') as any)
         .update({
           ...settings,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', settings.id);
+        .eq('id', settings.id)
 
-      if (error) throw error;
+      if (error) throw error
 
-      setIsDirty(false);
+      setIsDirty(false)
       toast({
         title: 'Success',
         description: 'Settings saved successfully',
-      });
+      })
     } catch (err: any) {
       toast({
         title: 'Error',
         description: 'Failed to save settings',
         variant: 'destructive',
-      });
+      })
     }
   }
 
-  function updateSettings<K extends keyof GroupSettings>(
-    key: K,
-    value: GroupSettings[K]
-  ) {
-    if (!settings) return;
+  function updateSettings<K extends keyof GroupSettings>(key: K, value: GroupSettings[K]) {
+    if (!settings) return
 
-    setSettings({ ...settings, [key]: value });
-    setIsDirty(true);
+    setSettings({ ...settings, [key]: value })
+    setIsDirty(true)
   }
 
   function updateModerationSettings<K extends keyof GroupSettings['moderation_settings']>(
     key: K,
     value: GroupSettings['moderation_settings'][K]
   ) {
-    if (!settings) return;
+    if (!settings) return
 
     setSettings({
       ...settings,
@@ -136,15 +141,14 @@ export default function GroupSettings({ groupId, userRole }: GroupSettingsProps)
         ...settings.moderation_settings,
         [key]: value,
       },
-    });
-    setIsDirty(true);
+    })
+    setIsDirty(true)
   }
 
-  function updateNotificationSettings<K extends keyof GroupSettings['moderation_settings']['notification_settings']>(
-    key: K,
-    value: boolean
-  ) {
-    if (!settings) return;
+  function updateNotificationSettings<
+    K extends keyof GroupSettings['moderation_settings']['notification_settings'],
+  >(key: K, value: boolean) {
+    if (!settings) return
 
     setSettings({
       ...settings,
@@ -155,15 +159,12 @@ export default function GroupSettings({ groupId, userRole }: GroupSettingsProps)
           [key]: value,
         },
       },
-    });
-    setIsDirty(true);
+    })
+    setIsDirty(true)
   }
 
-  function updateBranding<K extends keyof GroupSettings['branding']>(
-    key: K,
-    value: string
-  ) {
-    if (!settings) return;
+  function updateBranding<K extends keyof GroupSettings['branding']>(key: K, value: string) {
+    if (!settings) return
 
     setSettings({
       ...settings,
@@ -171,15 +172,15 @@ export default function GroupSettings({ groupId, userRole }: GroupSettingsProps)
         ...settings.branding,
         [key]: value,
       },
-    });
-    setIsDirty(true);
+    })
+    setIsDirty(true)
   }
 
   function updateIntegrations<K extends keyof GroupSettings['integrations']>(
     key: K,
     value: string
   ) {
-    if (!settings) return;
+    if (!settings) return
 
     setSettings({
       ...settings,
@@ -187,12 +188,12 @@ export default function GroupSettings({ groupId, userRole }: GroupSettingsProps)
         ...settings.integrations,
         [key]: value,
       },
-    });
-    setIsDirty(true);
+    })
+    setIsDirty(true)
   }
 
   if (loading) {
-    return <div>Loading settings...</div>;
+    return <div>Loading settings...</div>
   }
 
   if (!settings) {
@@ -200,7 +201,7 @@ export default function GroupSettings({ groupId, userRole }: GroupSettingsProps)
       <Alert>
         <AlertDescription>Failed to load group settings</AlertDescription>
       </Alert>
-    );
+    )
   }
 
   return (
@@ -305,10 +306,7 @@ export default function GroupSettings({ groupId, userRole }: GroupSettingsProps)
                   max="100"
                   value={settings.moderation_settings.toxicity_threshold}
                   onChange={(e) =>
-                    updateModerationSettings(
-                      'toxicity_threshold',
-                      parseInt(e.target.value)
-                    )
+                    updateModerationSettings('toxicity_threshold', parseInt(e.target.value))
                   }
                 />
               </div>
@@ -349,68 +347,48 @@ export default function GroupSettings({ groupId, userRole }: GroupSettingsProps)
               <div className="flex items-center justify-between">
                 <div>
                   <Label htmlFor="email_notifications">Email Notifications</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Send notifications via email
-                  </p>
+                  <p className="text-sm text-muted-foreground">Send notifications via email</p>
                 </div>
                 <Switch
                   id="email_notifications"
                   checked={settings.moderation_settings.notification_settings.email}
-                  onCheckedChange={(checked) =>
-                    updateNotificationSettings('email', checked)
-                  }
+                  onCheckedChange={(checked) => updateNotificationSettings('email', checked)}
                 />
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
                   <Label htmlFor="push_notifications">Push Notifications</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Send browser push notifications
-                  </p>
+                  <p className="text-sm text-muted-foreground">Send browser push notifications</p>
                 </div>
                 <Switch
                   id="push_notifications"
                   checked={settings.moderation_settings.notification_settings.push}
-                  onCheckedChange={(checked) =>
-                    updateNotificationSettings('push', checked)
-                  }
+                  onCheckedChange={(checked) => updateNotificationSettings('push', checked)}
                 />
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
                   <Label htmlFor="slack_notifications">Slack Notifications</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Send notifications to Slack
-                  </p>
+                  <p className="text-sm text-muted-foreground">Send notifications to Slack</p>
                 </div>
                 <Switch
                   id="slack_notifications"
                   checked={settings.moderation_settings.notification_settings.slack}
-                  onCheckedChange={(checked) =>
-                    updateNotificationSettings('slack', checked)
-                  }
+                  onCheckedChange={(checked) => updateNotificationSettings('slack', checked)}
                 />
               </div>
 
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="discord_notifications">
-                    Discord Notifications
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    Send notifications to Discord
-                  </p>
+                  <Label htmlFor="discord_notifications">Discord Notifications</Label>
+                  <p className="text-sm text-muted-foreground">Send notifications to Discord</p>
                 </div>
                 <Switch
                   id="discord_notifications"
-                  checked={
-                    settings.moderation_settings.notification_settings.discord
-                  }
-                  onCheckedChange={(checked) =>
-                    updateNotificationSettings('discord', checked)
-                  }
+                  checked={settings.moderation_settings.notification_settings.discord}
+                  onCheckedChange={(checked) => updateNotificationSettings('discord', checked)}
                 />
               </div>
             </TabsContent>
@@ -452,9 +430,7 @@ export default function GroupSettings({ groupId, userRole }: GroupSettingsProps)
                   id="secondary_color"
                   type="color"
                   value={settings.branding.secondary_color || '#000000'}
-                  onChange={(e) =>
-                    updateBranding('secondary_color', e.target.value)
-                  }
+                  onChange={(e) => updateBranding('secondary_color', e.target.value)}
                 />
               </div>
             </TabsContent>
@@ -465,9 +441,7 @@ export default function GroupSettings({ groupId, userRole }: GroupSettingsProps)
                 <Input
                   id="slack_webhook"
                   value={settings.integrations.slack_webhook || ''}
-                  onChange={(e) =>
-                    updateIntegrations('slack_webhook', e.target.value)
-                  }
+                  onChange={(e) => updateIntegrations('slack_webhook', e.target.value)}
                   placeholder="https://hooks.slack.com/..."
                 />
               </div>
@@ -477,9 +451,7 @@ export default function GroupSettings({ groupId, userRole }: GroupSettingsProps)
                 <Input
                   id="discord_webhook"
                   value={settings.integrations.discord_webhook || ''}
-                  onChange={(e) =>
-                    updateIntegrations('discord_webhook', e.target.value)
-                  }
+                  onChange={(e) => updateIntegrations('discord_webhook', e.target.value)}
                   placeholder="https://discord.com/api/webhooks/..."
                 />
               </div>
@@ -504,5 +476,5 @@ export default function GroupSettings({ groupId, userRole }: GroupSettingsProps)
         </CardContent>
       </Card>
     </div>
-  );
-} 
+  )
+}

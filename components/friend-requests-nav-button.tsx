@@ -14,7 +14,7 @@ export function FriendRequestsNavButton() {
 
   useEffect(() => {
     fetchPendingCount()
-    
+
     // Refresh count every 30 seconds
     const interval = setInterval(fetchPendingCount, 30000)
     return () => clearInterval(interval)
@@ -35,17 +35,17 @@ export function FriendRequestsNavButton() {
   }
 
   return (
-    <Button 
-      variant={pathname.startsWith("/friend-requests") ? "default" : "ghost"} 
-      asChild 
+    <Button
+      variant={pathname.startsWith('/friend-requests') ? 'default' : 'ghost'}
+      asChild
       className="nav-friend-requests-button relative"
     >
       <Link href="/friend-requests">
         <Users className="h-4 w-4 mr-2" />
         Friend Requests
         {!isLoading && pendingCount > 0 && (
-          <Badge 
-            variant="destructive" 
+          <Badge
+            variant="destructive"
             className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
           >
             {pendingCount}
@@ -54,4 +54,4 @@ export function FriendRequestsNavButton() {
       </Link>
     </Button>
   )
-} 
+}

@@ -1,10 +1,10 @@
-import { useState } from "react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { PhotoUpload } from "@/components/photo-upload"
-import { PhotoManager } from "@/components/photo-manager"
-import { AlbumSettingsDialog } from "@/components/album-settings-dialog"
-import { Settings } from "lucide-react"
+import { useState } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { PhotoUpload } from '@/components/photo-upload'
+import { PhotoManager } from '@/components/photo-manager'
+import { AlbumSettingsDialog } from '@/components/album-settings-dialog'
+import { Settings } from 'lucide-react'
 
 interface PhotosListProps {
   photos: {
@@ -35,7 +35,7 @@ export function PhotosList({
   albumId,
   album,
   onUploadComplete,
-  onPhotosUpdated
+  onPhotosUpdated,
 }: PhotosListProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
@@ -48,11 +48,7 @@ export function PhotosList({
           </h2>
           <div className="flex items-center gap-2">
             {album && (
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setIsSettingsOpen(true)}
-              >
+              <Button variant="outline" size="icon" onClick={() => setIsSettingsOpen(true)}>
                 <Settings className="h-4 w-4" />
               </Button>
             )}
@@ -66,15 +62,9 @@ export function PhotosList({
       </div>
       <CardContent className="p-6 pt-0">
         {photos.length > 0 ? (
-          <PhotoManager
-            photos={photos}
-            albumId={albumId}
-            onPhotosUpdated={onPhotosUpdated}
-          />
+          <PhotoManager photos={photos} albumId={albumId} onPhotosUpdated={onPhotosUpdated} />
         ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            No photos yet
-          </div>
+          <div className="text-center py-8 text-muted-foreground">No photos yet</div>
         )}
       </CardContent>
 
@@ -82,11 +72,16 @@ export function PhotosList({
         <AlbumSettingsDialog
           isOpen={isSettingsOpen}
           onClose={() => setIsSettingsOpen(false)}
-          album={{ id: album.id, name: album.title, is_public: album.is_public, cover_image_id: album.cover_image_id }}
+          album={{
+            id: album.id,
+            name: album.title,
+            is_public: album.is_public,
+            cover_image_id: album.cover_image_id,
+          }}
           photos={photos}
           onSettingsUpdated={onPhotosUpdated}
         />
       )}
     </Card>
   )
-} 
+}

@@ -1,22 +1,22 @@
-"use client"
+'use client'
 
-import type React from "react"
+import type React from 'react'
 
-import { useState, useEffect } from "react"
-import { useRouter, useParams } from "next/navigation"
-import Image from "next/image"
-import { PageHeader } from "@/components/page-header"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, Building, AlertTriangle } from "lucide-react"
-import { supabaseClient } from "@/lib/supabase/client"
-import { uploadImage } from "@/app/actions/upload"
-import { CountrySelect } from "@/components/country-select"
-import type { Publisher } from "@/types/database"
+import { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
+import Image from 'next/image'
+import { PageHeader } from '@/components/page-header'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Loader2, Building, AlertTriangle } from 'lucide-react'
+import { supabaseClient } from '@/lib/supabase/client'
+import { uploadImage } from '@/app/actions/upload'
+import { CountrySelect } from '@/components/country-select'
+import type { Publisher } from '@/types/database'
 
 export default function PublisherEditPage() {
   const router = useRouter()
@@ -38,18 +38,20 @@ export default function PublisherEditPage() {
       try {
         setLoading(true)
         const { data, error } = await supabaseClient
-          .from("publishers")
-          .select(`
+          .from('publishers')
+          .select(
+            `
             *,
             publisher_image:publisher_image_id(id, url, alt_text),
             cover_image:cover_image_id(id, url, alt_text),
             country_details:country_id(id, name, code)
-          `)
-          .eq("id", params.id as string)
+          `
+          )
+          .eq('id', params.id as string)
           .single()
 
         if (error) {
-          console.error("Error fetching publisher:", error)
+          console.error('Error fetching publisher:', error)
           setError(`Error fetching publisher: ${error.message}`)
           return
         }
@@ -71,8 +73,8 @@ export default function PublisherEditPage() {
           setCoverPreview((data as any).cover_image.url)
         }
       } catch (error) {
-        console.error("Error in fetchPublisher:", error)
-        setError("An unexpected error occurred. Please try again.")
+        console.error('Error in fetchPublisher:', error)
+        setError('An unexpected error occurred. Please try again.')
       } finally {
         setLoading(false)
       }
@@ -113,17 +115,17 @@ export default function PublisherEditPage() {
 
       // Create update data object
       const updateData: Partial<Publisher> = {
-        name: formData.get("name") as string,
-        website: formData.get("website") as string,
-        founded_year: Number.parseInt(formData.get("founded_year") as string) || null,
-        email: formData.get("email") as string,
-        phone: formData.get("phone") as string,
-        address_line1: formData.get("address_line1") as string,
-        address_line2: formData.get("address_line2") as string,
-        city: formData.get("city") as string,
-        state: formData.get("state") as string,
-        postal_code: formData.get("postal_code") as string,
-        about: formData.get("about") as string,
+        name: formData.get('name') as string,
+        website: formData.get('website') as string,
+        founded_year: Number.parseInt(formData.get('founded_year') as string) || null,
+        email: formData.get('email') as string,
+        phone: formData.get('phone') as string,
+        address_line1: formData.get('address_line1') as string,
+        address_line2: formData.get('address_line2') as string,
+        city: formData.get('city') as string,
+        state: formData.get('state') as string,
+        postal_code: formData.get('postal_code') as string,
+        about: formData.get('about') as string,
         country_id: countryId,
       }
 
@@ -141,14 +143,18 @@ export default function PublisherEditPage() {
           })
 
           const base64Image = await base64Promise
-          const logoResult = await uploadImage(base64Image, "authorsinfo/publisher_image", `Logo for ${publisher.name}`)
+          const logoResult = await uploadImage(
+            base64Image,
+            'authorsinfo/publisher_image',
+            `Logo for ${publisher.name}`
+          )
 
           if (logoResult) {
             updateData.publisher_image_id = logoResult.imageId
           }
         } catch (error) {
-          console.error("Error uploading logo:", error)
-          setError("Failed to upload logo image. Please try again.")
+          console.error('Error uploading logo:', error)
+          setError('Failed to upload logo image. Please try again.')
           setSaving(false)
           return
         }
@@ -168,38 +174,44 @@ export default function PublisherEditPage() {
           })
 
           const base64Image = await base64Promise
-          const coverResult = await uploadImage(base64Image, "authorsinfo/page_cover", `Cover for ${publisher.name}`)
+          const coverResult = await uploadImage(
+            base64Image,
+            'authorsinfo/page_cover',
+            `Cover for ${publisher.name}`
+          )
 
           if (coverResult) {
             updateData.cover_image_id = coverResult.imageId
           }
         } catch (error) {
-          console.error("Error uploading cover:", error)
-          setError("Failed to upload cover image. Please try again.")
+          console.error('Error uploading cover:', error)
+          setError('Failed to upload cover image. Please try again.')
           setSaving(false)
           return
         }
       }
 
       // Update publisher in database
-      const { error: updateError } = await (supabaseClient.from("publishers") as any).update(updateData).eq("id", params.id)
+      const { error: updateError } = await (supabaseClient.from('publishers') as any)
+        .update(updateData)
+        .eq('id', params.id)
 
       if (updateError) {
-        console.error("Error updating publisher:", updateError)
+        console.error('Error updating publisher:', updateError)
         setError(`Error updating publisher: ${updateError.message}`)
         setSaving(false)
         return
       }
 
-      setSuccessMessage("Publisher updated successfully!")
+      setSuccessMessage('Publisher updated successfully!')
 
       // Redirect back to the publisher page after a short delay
       setTimeout(() => {
         router.push(`/publishers/${params.id as string}`)
       }, 1500)
     } catch (error: any) {
-      console.error("Error in handleSubmit:", error)
-      setError("An unexpected error occurred while saving. Please try again.")
+      console.error('Error in handleSubmit:', error)
+      setError('An unexpected error occurred while saving. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -266,14 +278,14 @@ export default function PublisherEditPage() {
                     <div className="w-full aspect-square relative mb-4 bg-gray-100 rounded-md overflow-hidden">
                       {logoPreview ? (
                         <Image
-                          src={logoPreview || "/placeholder.svg"}
+                          src={logoPreview || '/placeholder.svg'}
                           alt={publisher.name}
                           fill
                           className="object-contain"
                         />
                       ) : publisher.publisher_image?.url ? (
                         <Image
-                          src={publisher.publisher_image.url || "/placeholder.svg"}
+                          src={publisher.publisher_image.url || '/placeholder.svg'}
                           alt={publisher.name}
                           fill
                           className="object-contain"
@@ -284,8 +296,15 @@ export default function PublisherEditPage() {
                         </div>
                       )}
                     </div>
-                    <Input id="logo-upload" type="file" accept="image/*" onChange={handleLogoChange} />
-                    <p className="text-xs text-muted-foreground mt-1">Upload a logo image for the publisher.</p>
+                    <Input
+                      id="logo-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoChange}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Upload a logo image for the publisher.
+                    </p>
                   </CardContent>
                 </Card>
 
@@ -297,14 +316,14 @@ export default function PublisherEditPage() {
                     <div className="w-full aspect-[3/1] relative mb-4 bg-gray-100 rounded-md overflow-hidden">
                       {coverPreview ? (
                         <Image
-                          src={coverPreview || "/placeholder.svg"}
+                          src={coverPreview || '/placeholder.svg'}
                           alt={`${publisher.name} cover`}
                           fill
                           className="object-cover"
                         />
                       ) : publisher.cover_image?.url ? (
                         <Image
-                          src={publisher.cover_image.url || "/placeholder.svg"}
+                          src={publisher.cover_image.url || '/placeholder.svg'}
                           alt={`${publisher.name} cover`}
                           fill
                           className="object-cover"
@@ -315,8 +334,15 @@ export default function PublisherEditPage() {
                         </div>
                       )}
                     </div>
-                    <Input id="cover-upload" type="file" accept="image/*" onChange={handleCoverChange} />
-                    <p className="text-xs text-muted-foreground mt-1">Upload a cover image for the publisher's page.</p>
+                    <Input
+                      id="cover-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleCoverChange}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Upload a cover image for the publisher's page.
+                    </p>
                   </CardContent>
                 </Card>
               </div>
@@ -340,56 +366,72 @@ export default function PublisherEditPage() {
                         id="founded_year"
                         name="founded_year"
                         type="number"
-                        defaultValue={publisher.founded_year?.toString() || ""}
+                        defaultValue={publisher.founded_year?.toString() || ''}
                       />
                     </div>
 
                     <div>
                       <Label htmlFor="website">Website</Label>
-                      <Input id="website" name="website" defaultValue={publisher.website || ""} />
+                      <Input id="website" name="website" defaultValue={publisher.website || ''} />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="email">Email</Label>
-                        <Input id="email" name="email" defaultValue={publisher.email || ""} />
+                        <Input id="email" name="email" defaultValue={publisher.email || ''} />
                       </div>
                       <div>
                         <Label htmlFor="phone">Phone</Label>
-                        <Input id="phone" name="phone" defaultValue={publisher.phone || ""} />
+                        <Input id="phone" name="phone" defaultValue={publisher.phone || ''} />
                       </div>
                     </div>
 
                     {/* Address Information */}
                     <div>
                       <Label htmlFor="address_line1">Address Line 1</Label>
-                      <Input id="address_line1" name="address_line1" defaultValue={publisher.address_line1 || ""} />
+                      <Input
+                        id="address_line1"
+                        name="address_line1"
+                        defaultValue={publisher.address_line1 || ''}
+                      />
                     </div>
 
                     <div>
                       <Label htmlFor="address_line2">Address Line 2</Label>
-                      <Input id="address_line2" name="address_line2" defaultValue={publisher.address_line2 || ""} />
+                      <Input
+                        id="address_line2"
+                        name="address_line2"
+                        defaultValue={publisher.address_line2 || ''}
+                      />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="city">City</Label>
-                        <Input id="city" name="city" defaultValue={publisher.city || ""} />
+                        <Input id="city" name="city" defaultValue={publisher.city || ''} />
                       </div>
                       <div>
                         <Label htmlFor="state">State/Province</Label>
-                        <Input id="state" name="state" defaultValue={publisher.state || ""} />
+                        <Input id="state" name="state" defaultValue={publisher.state || ''} />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="postal_code">Postal Code</Label>
-                        <Input id="postal_code" name="postal_code" defaultValue={publisher.postal_code || ""} />
+                        <Input
+                          id="postal_code"
+                          name="postal_code"
+                          defaultValue={publisher.postal_code || ''}
+                        />
                       </div>
                       <div>
                         <Label htmlFor="country">Country</Label>
-                        <CountrySelect value={countryId} onChange={setCountryId} placeholder="Select country" />
+                        <CountrySelect
+                          value={countryId}
+                          onChange={setCountryId}
+                          placeholder="Select country"
+                        />
                       </div>
                     </div>
 
@@ -400,13 +442,17 @@ export default function PublisherEditPage() {
                         id="about"
                         name="about"
                         rows={8}
-                        defaultValue={publisher.about || ""}
+                        defaultValue={publisher.about || ''}
                         placeholder="Enter information about the publisher..."
                       />
                     </div>
 
                     <div className="flex justify-end gap-4 pt-4">
-                      <Button type="button" variant="outline" onClick={() => router.push(`/publishers/${params.id}`)}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => router.push(`/publishers/${params.id}`)}
+                      >
                         Cancel
                       </Button>
                       <Button type="submit" disabled={saving}>
@@ -416,7 +462,7 @@ export default function PublisherEditPage() {
                             Saving...
                           </>
                         ) : (
-                          "Save Changes"
+                          'Save Changes'
                         )}
                       </Button>
                     </div>

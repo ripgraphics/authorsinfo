@@ -1,16 +1,14 @@
-import { NextRequest, NextResponse } from "next/server"
-import { supabaseAdmin } from "@/lib/supabase/server"
+import { NextRequest, NextResponse } from 'next/server'
+import { supabaseAdmin } from '@/lib/supabase/server'
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
 
     const { data: book, error } = await supabaseAdmin
       .from('books')
-      .select(`
+      .select(
+        `
         *,
         author:authors!books_author_id_fkey(id, name, author_image:images!authors_author_image_id_fkey(url, alt_text)),
         publisher:publishers!books_publisher_id_fkey(id, name),
@@ -18,49 +16,37 @@ export async function GET(
         format_type:format_types!books_format_type_id_fkey(id, name),
         status:statuses!books_status_id_fkey(id, name),
         cover_image:images!books_cover_image_id_fkey(url, alt_text)
-      `)
+      `
+      )
       .eq('id', id)
       .single()
 
     if (error) {
       console.error('Error fetching book:', error)
-      return NextResponse.json(
-        { error: 'Book not found', details: error.message },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Book not found', details: error.message }, { status: 404 })
     }
 
     // Process book to include cover image URL
     const processedBook = {
       ...book,
-      cover_image_url: book.cover_image?.url || null
+      cover_image_url: book.cover_image?.url || null,
     }
 
     return NextResponse.json({ book: processedBook })
-
   } catch (error) {
     console.error('Error in GET /api/admin/books/[id]:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
     const body = await request.json()
 
     // Validate required fields
     if (!body.title) {
-      return NextResponse.json(
-        { error: 'Title is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Title is required' }, { status: 400 })
     }
 
     // Prepare book data
@@ -86,11 +72,11 @@ export async function PUT(
       binding_type_id: body.binding_type_id,
       format_type_id: body.format_type_id,
       status_id: body.status_id,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     }
 
     // Remove undefined values
-    Object.keys(bookData).forEach(key => {
+    Object.keys(bookData).forEach((key) => {
       if (bookData[key as keyof typeof bookData] === undefined) {
         delete bookData[key as keyof typeof bookData]
       }
@@ -101,7 +87,8 @@ export async function PUT(
       .from('books')
       .update(bookData)
       .eq('id', id)
-      .select(`
+      .select(
+        `
         *,
         author:authors!books_author_id_fkey(id, name, author_image:images!authors_author_image_id_fkey(url, alt_text)),
         publisher:publishers!books_publisher_id_fkey(id, name),
@@ -109,7 +96,8 @@ export async function PUT(
         format_type:format_types!books_format_type_id_fkey(id, name),
         status:statuses!books_status_id_fkey(id, name),
         cover_image:images!books_cover_image_id_fkey(url, alt_text)
-      `)
+      `
+      )
       .single()
 
     if (error) {
@@ -123,20 +111,16 @@ export async function PUT(
     // Process book to include cover image URL
     const processedBook = {
       ...book,
-      cover_image_url: book.cover_image?.url || null
+      cover_image_url: book.cover_image?.url || null,
     }
 
     return NextResponse.json({
       book: processedBook,
-      message: 'Book updated successfully'
+      message: 'Book updated successfully',
     })
-
   } catch (error) {
     console.error('Error in PUT /api/admin/books/[id]:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
@@ -163,10 +147,7 @@ export async function DELETE(
     }
 
     // Delete the book
-    const { error: deleteError } = await supabaseAdmin
-      .from('books')
-      .delete()
-      .eq('id', id)
+    const { error: deleteError } = await supabaseAdmin.from('books').delete().eq('id', id)
 
     if (deleteError) {
       console.error('Error deleting book:', deleteError)
@@ -181,29 +162,22 @@ export async function DELETE(
 
     return NextResponse.json({
       message: 'Book deleted successfully',
-      deletedBookId: id
+      deletedBookId: id,
     })
-
   } catch (error) {
     console.error('Error in DELETE /api/admin/books/[id]:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
     const body = await request.json()
 
     // Prepare update data (only include provided fields)
     const updateData: any = {
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     }
 
     // Add only the fields that are provided
@@ -222,7 +196,8 @@ export async function PATCH(
     if (body.dimensions !== undefined) updateData.dimensions = body.dimensions
     if (body.weight !== undefined) updateData.weight = body.weight
     if (body.list_price !== undefined) updateData.list_price = body.list_price
-    if (body.original_image_url !== undefined) updateData.original_image_url = body.original_image_url
+    if (body.original_image_url !== undefined)
+      updateData.original_image_url = body.original_image_url
     if (body.author_id !== undefined) updateData.author_id = body.author_id
     if (body.publisher_id !== undefined) updateData.publisher_id = body.publisher_id
     if (body.binding_type_id !== undefined) updateData.binding_type_id = body.binding_type_id
@@ -234,7 +209,8 @@ export async function PATCH(
       .from('books')
       .update(updateData)
       .eq('id', id)
-      .select(`
+      .select(
+        `
         *,
         author:authors!books_author_id_fkey(id, name, author_image:images!authors_author_image_id_fkey(url, alt_text)),
         publisher:publishers!books_publisher_id_fkey(id, name),
@@ -242,7 +218,8 @@ export async function PATCH(
         format_type:format_types!books_format_type_id_fkey(id, name),
         status:statuses!books_status_id_fkey(id, name),
         cover_image:images!books_cover_image_id_fkey(url, alt_text)
-      `)
+      `
+      )
       .single()
 
     if (error) {
@@ -256,19 +233,15 @@ export async function PATCH(
     // Process book to include cover image URL
     const processedBook = {
       ...book,
-      cover_image_url: book.cover_image?.url || null
+      cover_image_url: book.cover_image?.url || null,
     }
 
     return NextResponse.json({
       book: processedBook,
-      message: 'Book updated successfully'
+      message: 'Book updated successfully',
     })
-
   } catch (error) {
     console.error('Error in PATCH /api/admin/books/[id]:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-} 
+}

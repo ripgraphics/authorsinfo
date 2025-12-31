@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, X } from "lucide-react"
+import { useState, useEffect } from 'react'
+import Image from 'next/image'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 
 interface PhotoViewerModalProps {
   isOpen: boolean
@@ -18,7 +19,7 @@ export function PhotoViewerModal({
   isOpen,
   onClose,
   photos,
-  initialPhotoIndex
+  initialPhotoIndex,
 }: PhotoViewerModalProps) {
   const [currentIndex, setCurrentIndex] = useState(initialPhotoIndex)
 
@@ -37,22 +38,22 @@ export function PhotoViewerModal({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isOpen) return
-      
+
       switch (e.key) {
-        case "ArrowLeft":
+        case 'ArrowLeft':
           handlePrevious()
           break
-        case "ArrowRight":
+        case 'ArrowRight':
           handleNext()
           break
-        case "Escape":
+        case 'Escape':
           onClose()
           break
       }
     }
 
-    window.addEventListener("keydown", handleKeyDown)
-    return () => window.removeEventListener("keydown", handleKeyDown)
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isOpen])
 
   if (!photos.length) return null
@@ -83,11 +84,13 @@ export function PhotoViewerModal({
           </Button>
 
           {/* Photo */}
-          <div className="relative w-full h-full flex items-center justify-center">
-            <img
+          <div className="relative w-full h-[80vh] flex items-center justify-center">
+            <Image
               src={photos[currentIndex].url}
-              alt={photos[currentIndex].alt || "Photo"}
-              className="max-w-full max-h-[90vh] object-contain"
+              alt={photos[currentIndex].alt || 'Photo'}
+              fill
+              className="object-contain"
+              priority
             />
           </div>
 
@@ -109,4 +112,4 @@ export function PhotoViewerModal({
       </DialogContent>
     </Dialog>
   )
-} 
+}

@@ -33,7 +33,7 @@ export function UniversalPhotoUpload({
   size = 'sm',
   showIcon = true,
   disabled = false,
-  className = ''
+  className = '',
 }: UniversalPhotoUploadProps) {
   const handleClick = () => {
     // Placeholder implementation
@@ -54,4 +54,3 @@ export function UniversalPhotoUpload({
     </Button>
   )
 }
-

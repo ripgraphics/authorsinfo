@@ -1,5 +1,5 @@
 // Import directly from the server file path
-import { createClient } from "@supabase/supabase-js"
+import { createClient } from '@supabase/supabase-js'
 
 // Use SUPABASE_URL if set, otherwise fallback to NEXT_PUBLIC_SUPABASE_URL
 const supabaseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL!

@@ -1,6 +1,6 @@
-"use server"
+'use server'
 
-import { schemaService, ValidationResult } from "./supabase-schema-service"
+import { schemaService, ValidationResult } from './supabase-schema-service'
 
 /**
  * Validate insert payload against actual schema
@@ -15,14 +15,11 @@ export async function validateInsertPayload(
 /**
  * Get only columns that exist in the table
  */
-export async function getExistingColumns(
-  table: string,
-  columnNames: string[]
-): Promise<string[]> {
+export async function getExistingColumns(table: string, columnNames: string[]): Promise<string[]> {
   const schema = await schemaService.getTableSchema(table)
-  const existingColumnNames = new Set(schema.columns.map(col => col.column_name))
-  
-  return columnNames.filter(col => existingColumnNames.has(col))
+  const existingColumnNames = new Set(schema.columns.map((col) => col.column_name))
+
+  return columnNames.filter((col) => existingColumnNames.has(col))
 }
 
 /**
@@ -39,10 +36,7 @@ export async function filterPayloadBySchema(
 /**
  * Quick column existence check
  */
-export async function checkColumnExists(
-  table: string,
-  columnName: string
-): Promise<boolean> {
+export async function checkColumnExists(table: string, columnName: string): Promise<boolean> {
   return await schemaService.checkColumnExists(table, columnName)
 }
 
@@ -51,7 +45,7 @@ export async function checkColumnExists(
  */
 export async function getTableColumns(table: string): Promise<string[]> {
   const schema = await schemaService.getTableSchema(table)
-  return schema.columns.map(col => col.column_name)
+  return schema.columns.map((col) => col.column_name)
 }
 
 /**
@@ -62,13 +56,13 @@ export async function checkColumnsExist(
   columnNames: string[]
 ): Promise<Record<string, boolean>> {
   const schema = await schemaService.getTableSchema(table)
-  const existingColumnNames = new Set(schema.columns.map(col => col.column_name))
-  
+  const existingColumnNames = new Set(schema.columns.map((col) => col.column_name))
+
   const result: Record<string, boolean> = {}
   for (const colName of columnNames) {
     result[colName] = existingColumnNames.has(colName)
   }
-  
+
   return result
 }
 
@@ -85,14 +79,11 @@ export async function validateAndFilterPayload(
   warnings: string[]
 }> {
   const validation = await validateInsertPayload(table, payload)
-  const removedColumns = Object.keys(payload).filter(
-    key => !(key in validation.filteredPayload)
-  )
-  
+  const removedColumns = Object.keys(payload).filter((key) => !(key in validation.filteredPayload))
+
   return {
     payload: validation.filteredPayload,
     removedColumns,
-    warnings: validation.warnings
+    warnings: validation.warnings,
   }
 }
-

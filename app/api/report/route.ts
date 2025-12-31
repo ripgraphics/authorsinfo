@@ -1,14 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
-
+import {
+  handleDatabaseError,
+  nextErrorResponse,
+  badRequestError,
+  unauthorizedError,
+} from '@/lib/error-handler'
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClientAsync()
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
     if (authError || !user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+      return NextResponse.json(unauthorizedError(), { status: 401 })
     }
 
     const body = await request.json()
@@ -16,28 +24,27 @@ export async function POST(request: NextRequest) {
     const targetId: string | undefined = body?.target_id
     const reason: string | undefined = body?.reason || 'user_report'
     if (!targetType || !targetId) {
-      return NextResponse.json({ error: 'target_type and target_id are required' }, { status: 400 })
+      return NextResponse.json(badRequestError('target_type and target_id are required'), {
+        status: 400,
+      })
     }
 
     // Use activity_log as generic reporting sink if group_reports not applicable
-    const { error: insertError } = await (supabase
-      .from('activity_log') as any)
-      .insert({
-        user_id: user.id,
-        action: 'report',
-        target_type: targetType,
-        target_id: targetId,
-        data: { reason }
-      })
+    const { error: insertError } = await (supabase.from('activity_log') as any).insert({
+      user_id: user.id,
+      action: 'report',
+      target_type: targetType,
+      target_id: targetId,
+      data: { reason },
+    })
 
     if (insertError) {
-      return NextResponse.json({ error: insertError.message }, { status: 500 })
+      const { message, statusCode } = handleDatabaseError(insertError, 'Failed to submit report')
+      return NextResponse.json({ error: message }, { status: statusCode })
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 })
+    return nextErrorResponse(error, 'Failed to submit report')
   }
 }
-
-

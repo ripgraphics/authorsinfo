@@ -16,11 +16,11 @@ interface AddBookRequest {
 export async function POST(request: NextRequest) {
   try {
     const body: AddBookRequest = await request.json()
-    
+
     console.log('=== ADD BOOK API START ===')
     console.log('Received book data:', body)
     console.log('Request headers:', Object.fromEntries(request.headers.entries()))
-    
+
     // Validate required fields
     if (!body.title || !body.author_names || body.author_names.length === 0) {
       console.error('Validation failed:', { title: body.title, author_names: body.author_names })
@@ -32,10 +32,10 @@ export async function POST(request: NextRequest) {
 
     // First, handle authors
     const authorIds: string[] = []
-    
+
     for (const authorName of body.author_names) {
       console.log('Processing author:', authorName)
-      
+
       // Check if author already exists
       const { data: existingAuthor, error: authorCheckError } = await supabaseAdmin
         .from('authors')
@@ -45,10 +45,7 @@ export async function POST(request: NextRequest) {
 
       if (authorCheckError && authorCheckError.code !== 'PGRST116') {
         console.error('Error checking existing author:', authorCheckError)
-        return NextResponse.json(
-          { error: 'Failed to check existing author' },
-          { status: 500 }
-        )
+        return NextResponse.json({ error: 'Failed to check existing author' }, { status: 500 })
       }
 
       let authorId: string
@@ -66,7 +63,7 @@ export async function POST(request: NextRequest) {
             name: authorName.trim(),
             bio: null,
             author_image_id: null,
-            cover_image_id: null
+            cover_image_id: null,
           })
           .select('id')
           .single()
@@ -77,7 +74,7 @@ export async function POST(request: NextRequest) {
             name: authorName.trim(),
             bio: null,
             author_image_id: null,
-            cover_image_id: null
+            cover_image_id: null,
           })
           return NextResponse.json(
             { error: 'Failed to create author', details: createAuthorError },
@@ -94,10 +91,10 @@ export async function POST(request: NextRequest) {
 
     // Handle publisher
     let publisherId: string | null = null
-    
+
     if (body.publisher_name) {
       console.log('Processing publisher:', body.publisher_name)
-      
+
       // Check if publisher already exists
       const { data: existingPublisher, error: publisherCheckError } = await supabaseAdmin
         .from('publishers')
@@ -107,10 +104,7 @@ export async function POST(request: NextRequest) {
 
       if (publisherCheckError && publisherCheckError.code !== 'PGRST116') {
         console.error('Error checking existing publisher:', publisherCheckError)
-        return NextResponse.json(
-          { error: 'Failed to check existing publisher' },
-          { status: 500 }
-        )
+        return NextResponse.json({ error: 'Failed to check existing publisher' }, { status: 500 })
       }
 
       if (existingPublisher) {
@@ -126,7 +120,7 @@ export async function POST(request: NextRequest) {
             name: body.publisher_name.trim(),
             about: null,
             website: null,
-            founded_year: null
+            founded_year: null,
           })
           .select('id')
           .single()
@@ -137,7 +131,7 @@ export async function POST(request: NextRequest) {
             name: body.publisher_name.trim(),
             about: null,
             website: null,
-            founded_year: null
+            founded_year: null,
           })
           return NextResponse.json(
             { error: 'Failed to create publisher', details: createPublisherError },
@@ -151,11 +145,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate and assign ISBNs to correct columns
-    const { extractISBNs } = await import('@/utils/isbnUtils');
+    const { extractISBNs } = await import('@/utils/isbnUtils')
     const { isbn10, isbn13 } = extractISBNs({
       isbn: body.isbn,
       isbn13: body.isbn13,
-    });
+    })
 
     // Create the book with correct field names
     const bookData = {
@@ -165,16 +159,18 @@ export async function POST(request: NextRequest) {
       author_id: authorIds[0], // Use first author as primary
       publisher_id: publisherId,
       pages: body.page_count || null,
-      publication_date: body.published_date ? new Date(body.published_date).toISOString().split('T')[0] : null,
+      publication_date: body.published_date
+        ? new Date(body.published_date).toISOString().split('T')[0]
+        : null,
       isbn10: isbn10, // Validated ISBN-10
       isbn13: isbn13, // Validated ISBN-13
       language: 'en',
       binding_type_id: null,
-      format_type_id: null
+      format_type_id: null,
     }
-    
+
     console.log('Creating book with data:', bookData)
-    
+
     const { data: book, error: bookError } = await supabaseAdmin
       .from('books')
       .insert(bookData)
@@ -194,9 +190,9 @@ export async function POST(request: NextRequest) {
     // If there are multiple authors, create book_authors relationships
     if (authorIds.length > 1) {
       console.log('Creating book-author relationships for additional authors')
-      const bookAuthorRelations = authorIds.slice(1).map(authorId => ({
+      const bookAuthorRelations = authorIds.slice(1).map((authorId) => ({
         book_id: book.id,
-        author_id: authorId
+        author_id: authorId,
       }))
 
       const { error: bookAuthorsError } = await supabaseAdmin
@@ -215,20 +211,22 @@ export async function POST(request: NextRequest) {
     console.log('Book created with ID:', book.id)
     console.log('Author IDs:', authorIds)
     console.log('Publisher ID:', publisherId)
-    
+
     return NextResponse.json({
       success: true,
       bookId: book.id,
-      message: 'Book added successfully'
+      message: 'Book added successfully',
     })
-
   } catch (error) {
     console.error('=== ADD BOOK API ERROR ===')
     console.error('Error in add-book API:', error)
     console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace')
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     )
   }
-} 
+}

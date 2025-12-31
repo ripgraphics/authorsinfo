@@ -5,24 +5,30 @@ import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { 
-  Filter, 
-  Search, 
-  Calendar, 
-  BookOpen, 
-  Star, 
-  Users, 
+import {
+  Filter,
+  Search,
+  Calendar,
+  BookOpen,
+  Star,
+  Users,
   TrendingUp,
   RefreshCw,
   Loader2,
   Eye,
   EyeOff,
   Settings,
-  Shield
+  Shield,
 } from 'lucide-react'
 import EnterpriseTimelineActivities from '@/components/enterprise/enterprise-timeline-activities-optimized'
 
@@ -32,7 +38,11 @@ interface EnhancedUserTimelineProps {
   privacySettings?: any
 }
 
-export function EnhancedUserTimeline({ userId, isOwnProfile, privacySettings }: EnhancedUserTimelineProps) {
+export function EnhancedUserTimeline({
+  userId,
+  isOwnProfile,
+  privacySettings,
+}: EnhancedUserTimelineProps) {
   const { user: authUser } = useAuth()
   const { toast } = useToast()
   const [activeTab, setActiveTab] = useState('all')
@@ -49,7 +59,7 @@ export function EnhancedUserTimeline({ userId, isOwnProfile, privacySettings }: 
     { value: 'reading', label: 'Reading Progress' },
     { value: 'reviews', label: 'Book Reviews' },
     { value: 'social', label: 'Social Interactions' },
-    { value: 'achievements', label: 'Achievements' }
+    { value: 'achievements', label: 'Achievements' },
   ]
 
   const dateOptions = [
@@ -57,7 +67,7 @@ export function EnhancedUserTimeline({ userId, isOwnProfile, privacySettings }: 
     { value: 'today', label: 'Today' },
     { value: 'week', label: 'This Week' },
     { value: 'month', label: 'This Month' },
-    { value: 'year', label: 'This Year' }
+    { value: 'year', label: 'This Year' },
   ]
 
   // Filter timeline data based on search and filters
@@ -66,41 +76,42 @@ export function EnhancedUserTimeline({ userId, isOwnProfile, privacySettings }: 
 
     // Apply search filter
     if (searchQuery) {
-      filtered = filtered.filter(item => 
-        item.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.user_name?.toLowerCase().includes(searchQuery.toLowerCase())
+      filtered = filtered.filter(
+        (item) =>
+          item.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.user_name?.toLowerCase().includes(searchQuery.toLowerCase())
       )
     }
 
     // Apply type filter
     if (filterType !== 'all') {
-      filtered = filtered.filter(item => item.activity_type === filterType)
+      filtered = filtered.filter((item) => item.activity_type === filterType)
     }
 
     // Apply date filter
     if (dateRange !== 'all') {
       const now = new Date()
       const itemDate = new Date()
-      
+
       switch (dateRange) {
         case 'today':
-          filtered = filtered.filter(item => {
+          filtered = filtered.filter((item) => {
             itemDate.setTime(new Date(item.created_at).getTime())
             return itemDate.toDateString() === now.toDateString()
           })
           break
         case 'week':
           const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-          filtered = filtered.filter(item => new Date(item.created_at) >= weekAgo)
+          filtered = filtered.filter((item) => new Date(item.created_at) >= weekAgo)
           break
         case 'month':
           const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-          filtered = filtered.filter(item => new Date(item.created_at) >= monthAgo)
+          filtered = filtered.filter((item) => new Date(item.created_at) >= monthAgo)
           break
         case 'year':
           const yearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000)
-          filtered = filtered.filter(item => new Date(item.created_at) >= yearAgo)
+          filtered = filtered.filter((item) => new Date(item.created_at) >= yearAgo)
           break
       }
     }
@@ -110,10 +121,11 @@ export function EnhancedUserTimeline({ userId, isOwnProfile, privacySettings }: 
 
   // Privacy-aware timeline configuration
   const getTimelineConfig = () => {
-    if (!privacySettings) return {
-      entityId: userId,
-      entityType: 'user' as const
-    }
+    if (!privacySettings)
+      return {
+        entityId: userId,
+        entityType: 'user' as const,
+      }
 
     return {
       entityId: userId,
@@ -122,7 +134,7 @@ export function EnhancedUserTimeline({ userId, isOwnProfile, privacySettings }: 
       enableModeration: isOwnProfile,
       enableAI: isOwnProfile,
       enableAudit: isOwnProfile,
-      privacyLevel: privacySettings.default_privacy_level || 'private'
+      privacyLevel: privacySettings.default_privacy_level || 'private',
     }
   }
 
@@ -132,16 +144,16 @@ export function EnhancedUserTimeline({ userId, isOwnProfile, privacySettings }: 
     try {
       // This would integrate with your existing EnterpriseTimelineActivities refresh logic
       // For now, we'll just simulate a refresh
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await new Promise((resolve) => setTimeout(resolve, 1000))
       toast({
-        title: "Timeline refreshed",
-        description: "Latest activities have been loaded"
+        title: 'Timeline refreshed',
+        description: 'Latest activities have been loaded',
       })
     } catch (error) {
       toast({
-        title: "Refresh failed",
-        description: "Unable to refresh timeline",
-        variant: "destructive"
+        title: 'Refresh failed',
+        description: 'Unable to refresh timeline',
+        variant: 'destructive',
       })
     } finally {
       setIsLoading(false)
@@ -154,22 +166,22 @@ export function EnhancedUserTimeline({ userId, isOwnProfile, privacySettings }: 
       const response = await fetch(`/api/users/${userId}/privacy-settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ [setting]: value })
+        body: JSON.stringify({ [setting]: value }),
       })
 
       if (response.ok) {
         toast({
-          title: "Privacy updated",
-          description: "Your privacy settings have been updated"
+          title: 'Privacy updated',
+          description: 'Your privacy settings have been updated',
         })
       } else {
         throw new Error('Failed to update privacy')
       }
     } catch (error) {
       toast({
-        title: "Update failed",
-        description: "Unable to update privacy settings",
-        variant: "destructive"
+        title: 'Update failed',
+        description: 'Unable to update privacy settings',
+        variant: 'destructive',
       })
     }
   }
@@ -181,17 +193,14 @@ export function EnhancedUserTimeline({ userId, isOwnProfile, privacySettings }: 
         <div>
           <h2 className="text-2xl font-bold">Timeline</h2>
           <p className="text-muted-foreground">
-            {isOwnProfile ? 'Your reading journey and activities' : 'User activities and reading progress'}
+            {isOwnProfile
+              ? 'Your reading journey and activities'
+              : 'User activities and reading progress'}
           </p>
         </div>
-        
+
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={isLoading}
-          >
+          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading}>
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
@@ -199,12 +208,17 @@ export function EnhancedUserTimeline({ userId, isOwnProfile, privacySettings }: 
             )}
             Refresh
           </Button>
-          
+
           {isOwnProfile && (
             <Button
               variant="outline"
               size="sm"
-              onClick={() => handlePrivacyUpdate('show_reading_stats_publicly', !privacySettings?.show_reading_stats_publicly)}
+              onClick={() =>
+                handlePrivacyUpdate(
+                  'show_reading_stats_publicly',
+                  !privacySettings?.show_reading_stats_publicly
+                )
+              }
             >
               {privacySettings?.show_reading_stats_publicly ? (
                 <Eye className="h-4 w-4" />
@@ -252,28 +266,28 @@ export function EnhancedUserTimeline({ userId, isOwnProfile, privacySettings }: 
               className="pl-9"
             />
           </div>
-          
+
           <Select value={filterType} onValueChange={setFilterType}>
             <SelectTrigger className="w-full sm:w-40">
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Filter by type" />
             </SelectTrigger>
             <SelectContent>
-              {filterOptions.map(option => (
+              {filterOptions.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          
+
           <Select value={dateRange} onValueChange={setDateRange}>
             <SelectTrigger className="w-full sm:w-40">
               <Calendar className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Date range" />
             </SelectTrigger>
             <SelectContent>
-              {dateOptions.map(option => (
+              {dateOptions.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
                 </SelectItem>
@@ -290,7 +304,7 @@ export function EnhancedUserTimeline({ userId, isOwnProfile, privacySettings }: 
               <p className="text-sm text-muted-foreground">
                 Showing {filteredTimeline.length} of {timelineData.length} activities
               </p>
-              
+
               {filteredTimeline.length !== timelineData.length && (
                 <Button
                   variant="ghost"
@@ -307,9 +321,7 @@ export function EnhancedUserTimeline({ userId, isOwnProfile, privacySettings }: 
             </div>
 
             {/* Enhanced Timeline Activities */}
-            <EnterpriseTimelineActivities
-              {...getTimelineConfig()}
-            />
+            <EnterpriseTimelineActivities {...getTimelineConfig()} />
 
             {/* No Results */}
             {filteredTimeline.length === 0 && (

@@ -7,7 +7,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/components/ui/use-toast'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { AlertCircle, Eye, EyeOff, Calendar, User } from 'lucide-react'
 import type { Database } from '@/types/database'
@@ -32,7 +39,7 @@ export default function LoginPage() {
   const [fetchError, setFetchError] = useState<string | null>(null)
   const router = useRouter()
   const { toast } = useToast()
-  
+
   // Use the correct Supabase client with Database type
   const supabase = createBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -40,7 +47,9 @@ export default function LoginPage() {
   )
 
   // Get redirect URL from query parameters
-  const searchParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '')
+  const searchParams = new URLSearchParams(
+    typeof window !== 'undefined' ? window.location.search : ''
+  )
   const redirectTo = searchParams.get('redirect') || '/'
 
   useEffect(() => {
@@ -55,8 +64,8 @@ export default function LoginPage() {
         const primaryUsers = Array.isArray(data)
           ? data
           : Array.isArray((data as any)?.users)
-          ? (data as any).users
-          : []
+            ? (data as any).users
+            : []
 
         if (primaryUsers.length > 0) {
           setUsers(primaryUsers as User[])
@@ -70,8 +79,8 @@ export default function LoginPage() {
           const fallbackUsers = Array.isArray(fallbackData)
             ? fallbackData
             : Array.isArray(fallbackData?.users)
-            ? fallbackData.users
-            : []
+              ? fallbackData.users
+              : []
 
           if (fallbackUsers.length > 0) {
             const normalized: User[] = fallbackUsers.map((u: any) => ({
@@ -101,8 +110,8 @@ export default function LoginPage() {
             const fallbackUsers = Array.isArray(fallbackData)
               ? fallbackData
               : Array.isArray(fallbackData?.users)
-              ? fallbackData.users
-              : []
+                ? fallbackData.users
+                : []
 
             const normalized: User[] = fallbackUsers.map((u: any) => ({
               id: String(u.id),
@@ -128,81 +137,85 @@ export default function LoginPage() {
     setShowPassword(!showPassword)
   }
 
-  const handleSignIn = async (e: React.FormEvent | null, emailArg?: string, passwordArg?: string) => {
-    if (e) e.preventDefault();
-    setIsLoading(true);
-    const loginEmail = emailArg ?? email;
-    const loginPassword = passwordArg ?? password;
-    
+  const handleSignIn = async (
+    e: React.FormEvent | null,
+    emailArg?: string,
+    passwordArg?: string
+  ) => {
+    if (e) e.preventDefault()
+    setIsLoading(true)
+    const loginEmail = emailArg ?? email
+    const loginPassword = passwordArg ?? password
+
     try {
       const { error, data } = await supabase.auth.signInWithPassword({
         email: loginEmail,
         password: loginPassword,
-      });
-      
+      })
+
       if (error) {
-        throw error;
+        throw error
       }
-      
-      toast({ title: "Success", description: "You have been signed in successfully" });
-      
+
+      toast({ title: 'Success', description: 'You have been signed in successfully' })
+
       // Redirect to the original page or home
       setTimeout(() => {
-        router.push(redirectTo);
-      }, 1000);
+        router.push(redirectTo)
+      }, 1000)
     } catch (rawError: unknown) {
       // Avoid console.error to prevent Next.js dev overlay from triggering
       if (process.env.NODE_ENV === 'development') {
-        console.warn("Sign in failed:", rawError);
+        console.warn('Sign in failed:', rawError)
       }
 
       // Normalize error
-      const errorObj = rawError as any;
+      const errorObj = rawError as any
 
-      let errorMessage = "Failed to sign in";
+      let errorMessage = 'Failed to sign in'
       if (typeof errorObj === 'string') {
-        errorMessage = errorObj;
+        errorMessage = errorObj
       } else if (errorObj?.message) {
-        errorMessage = errorObj.message;
+        errorMessage = errorObj.message
       } else if (errorObj?.error_description) {
-        errorMessage = errorObj.error_description;
+        errorMessage = errorObj.error_description
       }
 
-      const status = errorObj?.status;
+      const status = errorObj?.status
 
       // Handle specific error codes
       if (status === 400) {
-        errorMessage = "Invalid email or password. Please check your credentials.";
+        errorMessage = 'Invalid email or password. Please check your credentials.'
       } else if (status === 401) {
-        errorMessage = "Authentication failed. Please try again.";
+        errorMessage = 'Authentication failed. Please try again.'
       } else if (status === 422) {
-        errorMessage = "Invalid email format.";
+        errorMessage = 'Invalid email format.'
       }
 
-      toast({ 
-        variant: "destructive", 
-        title: "Login Failed", 
-        description: errorMessage 
-      });
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: errorMessage,
+      })
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   // Autofill and login as user
   const loginAsUser = (userEmail: string) => {
-    setEmail(userEmail);
-    setPassword('password123');
+    setEmail(userEmail)
+    setPassword('password123')
     setTimeout(() => {
-      console.log("loginAsUser triggered for:", userEmail);
-      handleSignIn(null, userEmail, 'password123');
-    }, 100);
-  };
+      console.log('loginAsUser triggered for:', userEmail)
+      handleSignIn(null, userEmail, 'password123')
+    }, 100)
+  }
 
   const formatDate = (dateString?: string) => {
-    if (!dateString) return 'Never';
-    return new Date(dateString).toLocaleDateString();
-  };
+    if (!dateString) return 'Never'
+    return new Date(dateString).toLocaleDateString()
+  }
 
   return (
     <div className="flex flex-col items-center space-y-8">
@@ -215,18 +228,25 @@ export default function LoginPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
-                <Input 
-                  id="password" 
-                  type={showPassword ? "text" : "password"} 
-                  placeholder="Enter your password" 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)} 
-                  required 
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
                 />
                 <Button
                   type="button"
@@ -234,6 +254,7 @@ export default function LoginPage() {
                   size="sm"
                   className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                   onClick={togglePasswordVisibility}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4 text-muted-foreground" />
@@ -245,10 +266,14 @@ export default function LoginPage() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full" disabled={isLoading}>{isLoading ? "Signing in..." : "Sign In"}</Button>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Signing in...' : 'Sign In'}
+            </Button>
             <p className="text-sm text-muted-foreground text-center">
               Don't have an account?{' '}
-              <Button variant="link" className="p-0 h-auto" onClick={() => router.push('/signup')}>Sign up</Button>
+              <Button variant="link" className="p-0 h-auto" onClick={() => router.push('/signup')}>
+                Sign up
+              </Button>
             </p>
           </CardFooter>
         </form>
@@ -276,7 +301,8 @@ export default function LoginPage() {
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>No Users Found</AlertTitle>
               <AlertDescription>
-                No users were found in the database. Please make sure you have created some test users.
+                No users were found in the database. Please make sure you have created some test
+                users.
               </AlertDescription>
             </Alert>
           ) : (
@@ -284,7 +310,7 @@ export default function LoginPage() {
               <div className="text-sm text-muted-foreground">
                 Found {users.length} users in the database
               </div>
-              
+
               {/* Test Login Button */}
               <div className="p-4 border rounded-lg bg-muted/50">
                 <h3 className="font-medium mb-2">Quick Test Login</h3>
@@ -300,19 +326,22 @@ export default function LoginPage() {
                     password123
                   </span>
                 </div>
-                <Button 
+                <Button
                   onClick={() => users[0] && handleSignIn(null, users[0].email, 'password123')}
                   disabled={isLoading || !users[0]}
                   size="sm"
                   variant="outline"
                 >
-                  {isLoading ? "Testing..." : "Test Login"}
+                  {isLoading ? 'Testing...' : 'Test Login'}
                 </Button>
               </div>
-              
+
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {users.map((user) => (
-                  <div key={user.id} className="flex flex-col border rounded-lg p-4 bg-muted/50 hover:bg-muted transition-colors">
+                {users.map((user) => (
+                  <div
+                    key={user.id}
+                    className="flex flex-col border rounded-lg p-4 bg-muted/50 hover:bg-muted transition-colors"
+                  >
                     <div className="flex items-center gap-2 mb-2">
                       <User className="h-4 w-4 text-muted-foreground" />
                       <span className="font-medium text-sm">{user.name}</span>
@@ -334,9 +363,9 @@ export default function LoginPage() {
                     </div>
                     <Button size="sm" className="w-full" onClick={() => loginAsUser(user.email)}>
                       Login as {user.name}
-                  </Button>
-                </div>
-              ))}
+                    </Button>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -344,4 +373,4 @@ export default function LoginPage() {
       </Card>
     </div>
   )
-} 
+}

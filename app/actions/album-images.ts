@@ -1,6 +1,6 @@
-"use server"
+'use server'
 
-import { supabaseAdmin } from "@/lib/supabase/server"
+import { supabaseAdmin } from '@/lib/supabase/server'
 
 export async function linkImagesToAlbum(
   imageIds: string[],
@@ -32,8 +32,8 @@ export async function linkImagesToAlbum(
       entity_id: entityId,
       metadata: {
         upload_context: `${entityType}_album`,
-        uploaded_at: new Date().toISOString()
-      }
+        uploaded_at: new Date().toISOString(),
+      },
     }))
 
     const { data, error } = await supabaseAdmin
@@ -49,13 +49,13 @@ export async function linkImagesToAlbum(
     return {
       success: true,
       linkedCount: albumImageRecords.length,
-      albumImageIds: data.map((record: { id: string }) => record.id)
+      albumImageIds: data.map((record: { id: string }) => record.id),
     }
   } catch (error) {
     console.error('Error in linkImagesToAlbum:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred'
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
     }
   }
-} 
+}

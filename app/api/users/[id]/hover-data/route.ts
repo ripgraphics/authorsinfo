@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: userId } = await params
     const supabase = await createRouteHandlerClientAsync()
@@ -12,39 +9,31 @@ export async function GET(
     // Use Promise.all for parallel queries to speed up the response
     const [userData, booksRead, friends, reverseFriends, profileData] = await Promise.all([
       // Get user data from the users table (this is the main table)
-      (supabase
-        .from('users') as any)
+      (supabase.from('users') as any)
         .select('id, name, email, created_at, permalink, location, website')
         .eq('id', userId)
         .single(),
 
       // Get books read count from reading_progress where status indicates completion
-      (supabase
-        .from('reading_progress') as any)
+      (supabase.from('reading_progress') as any)
         .select('id', { count: 'exact' })
         .eq('user_id', userId)
         .eq('status', 'completed'),
 
       // Get friends count from user_friends where status is 'accepted'
-      (supabase
-        .from('user_friends') as any)
+      (supabase.from('user_friends') as any)
         .select('id', { count: 'exact' })
         .eq('user_id', userId)
         .eq('status', 'accepted'),
 
       // Get reverse friends count (where this user is the friend)
-      (supabase
-        .from('user_friends') as any)
+      (supabase.from('user_friends') as any)
         .select('id', { count: 'exact' })
         .eq('friend_id', userId)
         .eq('status', 'accepted'),
 
       // Get profile bio if available
-      (supabase
-        .from('profiles') as any)
-        .select('bio')
-        .eq('user_id', userId)
-        .single()
+      (supabase.from('profiles') as any).select('bio').eq('user_id', userId).single(),
     ])
 
     // Check for user data error first
@@ -73,15 +62,15 @@ export async function GET(
     const response = NextResponse.json({
       user: {
         ...(userData.data || {}),
-        bio: profileData?.data?.bio || null
+        bio: profileData?.data?.bio || null,
       },
       stats: {
         booksRead: booksRead?.data?.length || 0,
         friendsCount: totalFriends,
         location: userData.data?.location || null,
         website: userData.data?.website || null,
-        joinedDate: userData.data?.created_at
-      }
+        joinedDate: userData.data?.created_at,
+      },
     })
 
     // Add caching headers for better performance in feeds
@@ -89,7 +78,6 @@ export async function GET(
     response.headers.set('ETag', `"${userId}-${Date.now()}"`)
 
     return response
-
   } catch (error) {
     console.error('Error fetching user hover data:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

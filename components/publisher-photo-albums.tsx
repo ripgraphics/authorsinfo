@@ -1,11 +1,12 @@
-"use client"
+'use client'
 
 import React, { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useToast } from '@/hooks/use-toast'
 import { supabase } from '@/lib/supabase/client'
@@ -15,20 +16,15 @@ import { EnterpriseImageUpload } from '@/components/ui/enterprise-image-upload'
 import {
   FolderPlus,
   Image as ImageIcon,
-  Users,
   Globe,
   Lock,
   Calendar,
   Eye,
   Heart,
-  Share2,
-  MoreHorizontal,
   Upload,
   Grid3X3,
   List,
   Search,
-  Filter,
-  Settings
 } from 'lucide-react'
 
 interface PhotoAlbum {
@@ -58,8 +54,12 @@ interface PublisherPhotoAlbumsProps {
   isOwner: boolean
 }
 
-export function PublisherPhotoAlbums({ publisherId, publisherName, isOwner }: PublisherPhotoAlbumsProps) {
-  const { user } = useAuth()
+export function PublisherPhotoAlbums({
+  publisherId,
+  publisherName,
+  isOwner,
+}: PublisherPhotoAlbumsProps) {
+  const { user: _user } = useAuth()
   const { toast } = useToast()
   const [albums, setAlbums] = useState<PhotoAlbum[]>([])
   const [loading, setLoading] = useState(true)
@@ -73,14 +73,16 @@ export function PublisherPhotoAlbums({ publisherId, publisherName, isOwner }: Pu
   const loadAlbums = async () => {
     try {
       setLoading(true)
-      
+
       // First, get albums
       let query = supabase
         .from('photo_albums')
-        .select(`
+        .select(
+          `
           *,
           cover_image:images!cover_image_id(url)
-        `)
+        `
+        )
         .eq('entity_type', 'publisher')
         .eq('entity_id', publisherId)
         .order('created_at', { ascending: false })
@@ -109,7 +111,7 @@ export function PublisherPhotoAlbums({ publisherId, publisherName, isOwner }: Pu
 
           return {
             ...album,
-            image_count: count || 0
+            image_count: count || 0,
           }
         })
       )
@@ -118,9 +120,9 @@ export function PublisherPhotoAlbums({ publisherId, publisherName, isOwner }: Pu
     } catch (error) {
       console.error('Error loading albums:', error)
       toast({
-        title: "Error",
-        description: "Failed to load photo albums",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to load photo albums',
+        variant: 'destructive',
       })
     } finally {
       setLoading(false)
@@ -139,7 +141,7 @@ export function PublisherPhotoAlbums({ publisherId, publisherName, isOwner }: Pu
   // Handle photo upload completion
   const handlePhotosUploaded = (photoIds: string[]) => {
     toast({
-      title: "Success",
+      title: 'Success',
       description: `${photoIds.length} photos uploaded successfully`,
     })
     loadAlbums() // Refresh albums to update counts
@@ -151,9 +153,10 @@ export function PublisherPhotoAlbums({ publisherId, publisherName, isOwner }: Pu
   }
 
   // Filter albums based on search term
-  const filteredAlbums = albums.filter(album =>
-    album.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (album.description && album.description.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredAlbums = albums.filter(
+    (album) =>
+      album.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (album.description && album.description.toLowerCase().includes(searchTerm.toLowerCase()))
   )
 
   const getPrivacyBadge = (isPublic: boolean) => {
@@ -174,7 +177,7 @@ export function PublisherPhotoAlbums({ publisherId, publisherName, isOwner }: Pu
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
     })
   }
 
@@ -251,10 +254,9 @@ export function PublisherPhotoAlbums({ publisherId, publisherName, isOwner }: Pu
           <ImageIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-semibold mb-2">No photo albums found</h3>
           <p className="text-muted-foreground mb-4">
-            {isOwner 
-              ? "Create your first photo album to get started" 
-              : "This publisher hasn't created any public photo albums yet"
-            }
+            {isOwner
+              ? 'Create your first photo album to get started'
+              : "This publisher hasn't created any public photo albums yet"}
           </p>
           {isOwner && (
             <PhotoAlbumCreator
@@ -272,27 +274,30 @@ export function PublisherPhotoAlbums({ publisherId, publisherName, isOwner }: Pu
           )}
         </div>
       ) : (
-        <div className={viewMode === 'grid' 
-          ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
-          : "space-y-4"
-        }>
+        <div
+          className={
+            viewMode === 'grid'
+              ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
+              : 'space-y-4'
+          }
+        >
           {filteredAlbums.map((album) => (
             <Card key={album.id} className="overflow-hidden hover:shadow-lg transition-shadow">
               <div className="aspect-video bg-muted relative">
                 {album.cover_image?.url ? (
-                  <img 
-                    src={album.cover_image.url} 
+                  <Image
+                    src={album.cover_image.url}
                     alt={album.name}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <ImageIcon className="h-12 w-12 text-muted-foreground" />
                   </div>
                 )}
-                <div className="absolute top-2 right-2">
-                  {getPrivacyBadge(album.is_public)}
-                </div>
+                <div className="absolute top-2 right-2">{getPrivacyBadge(album.is_public)}</div>
               </div>
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
@@ -328,9 +333,9 @@ export function PublisherPhotoAlbums({ publisherId, publisherName, isOwner }: Pu
                   </span>
                 </div>
                 <div className="flex gap-2">
-                  <Button 
-                    variant="default" 
-                    size="sm" 
+                  <Button
+                    variant="default"
+                    size="sm"
                     className="flex-1"
                     onClick={() => setSelectedAlbum(album)}
                   >
@@ -338,11 +343,7 @@ export function PublisherPhotoAlbums({ publisherId, publisherName, isOwner }: Pu
                     View
                   </Button>
                   {isOwner && (
-                    <Button 
-                      size="sm" 
-                      className="flex-1"
-                      onClick={() => openUploadDialog(album)}
-                    >
+                    <Button size="sm" className="flex-1" onClick={() => openUploadDialog(album)}>
                       <Upload className="h-4 w-4 mr-2" />
                       Add Photos
                     </Button>
@@ -407,4 +408,4 @@ export function PublisherPhotoAlbums({ publisherId, publisherName, isOwner }: Pu
       )}
     </div>
   )
-} 
+}

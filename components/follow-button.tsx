@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import FollowButtonComponent from './FollowButton'
 
@@ -17,7 +17,7 @@ export function FollowButton({
   entityName,
   variant = 'default',
   className = '',
-  onFollowChange
+  onFollowChange,
 }: FollowButtonProps) {
   return (
     <FollowButtonComponent
@@ -28,4 +28,4 @@ export function FollowButton({
       className={className}
     />
   )
-} 
+}

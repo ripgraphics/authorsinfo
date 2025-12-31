@@ -1,12 +1,25 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { supabaseClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
 
@@ -40,16 +53,12 @@ export function ContentModeration({ groupId }: ContentModerationProps) {
   const [selectedItem, setSelectedItem] = useState<ModerationItem | null>(null)
   const [filter, setFilter] = useState<'all' | 'pending' | 'flagged'>('all')
 
-  useEffect(() => {
-    fetchModerationItems()
-  }, [groupId, filter])
-
-  const fetchModerationItems = async () => {
+  const fetchModerationItems = useCallback(async () => {
     try {
       setLoading(true)
       let query = supabaseClient
         .from('group_moderation_queue')
-        .select('*')
+        .select('id, group_id, content_type, content_id, status, flagged_by, created_at, reason, priority')
         .eq('group_id', groupId)
         .order('created_at', { ascending: false })
 
@@ -67,16 +76,19 @@ export function ContentModeration({ groupId }: ContentModerationProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [groupId, filter])
+
+  useEffect(() => {
+    fetchModerationItems()
+  }, [fetchModerationItems])
 
   const handleModerate = async (itemId: string, decision: 'approve' | 'reject' | 'flag') => {
     try {
-      const { error } = await (supabaseClient
-        .from('group_moderation_queue') as any)
+      const { error } = await (supabaseClient.from('group_moderation_queue') as any)
         .update({
           status: decision,
           handled_at: new Date().toISOString(),
-          handled_by: (await supabaseClient.auth.getUser()).data.user?.id
+          handled_by: (await supabaseClient.auth.getUser()).data.user?.id,
         })
         .eq('id', itemId)
 
@@ -92,43 +104,45 @@ export function ContentModeration({ groupId }: ContentModerationProps) {
     {
       header: 'Type',
       accessorKey: 'content_type',
-      cell: ({ row }: { row: any }) => (
-        <Badge variant="outline">{row.original.content_type}</Badge>
-      )
+      cell: ({ row }: { row: any }) => <Badge variant="outline">{row.original.content_type}</Badge>,
     },
     {
       header: 'Reported',
       accessorKey: 'created_at',
-      cell: ({ row }: { row: any }) => format(new Date(row.original.created_at), 'MMM d, yyyy HH:mm')
+      cell: ({ row }: { row: any }) =>
+        format(new Date(row.original.created_at), 'MMM d, yyyy HH:mm'),
     },
     {
       header: 'Status',
       accessorKey: 'status',
       cell: ({ row }: { row: any }) => (
-        <Badge variant={
-          row.original.status === 'pending' ? 'default' :
-          row.original.status === 'approved' ? 'secondary' :
-          row.original.status === 'rejected' ? 'destructive' :
-          'outline'
-        }>
+        <Badge
+          variant={
+            row.original.status === 'pending'
+              ? 'default'
+              : row.original.status === 'approved'
+                ? 'secondary'
+                : row.original.status === 'rejected'
+                  ? 'destructive'
+                  : 'outline'
+          }
+        >
           {row.original.status}
         </Badge>
-      )
+      ),
     },
     {
       header: 'AI Risk Score',
       cell: ({ row }: { row: any }) => {
         const toxicity = row.original.metadata?.ai_analysis?.toxicity_score || 0
         return (
-          <Badge variant={
-            toxicity > 0.8 ? 'destructive' :
-            toxicity > 0.5 ? 'outline' :
-            'secondary'
-          }>
+          <Badge
+            variant={toxicity > 0.8 ? 'destructive' : toxicity > 0.5 ? 'outline' : 'secondary'}
+          >
             {(toxicity * 100).toFixed(0)}%
           </Badge>
         )
-      }
+      },
     },
     {
       header: 'Actions',
@@ -136,11 +150,7 @@ export function ContentModeration({ groupId }: ContentModerationProps) {
         <div className="flex gap-2">
           <Dialog>
             <DialogTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSelectedItem(row.original)}
-              >
+              <Button variant="outline" size="sm" onClick={() => setSelectedItem(row.original)}>
                 Review
               </Button>
             </DialogTrigger>
@@ -162,7 +172,10 @@ export function ContentModeration({ groupId }: ContentModerationProps) {
                       </CardHeader>
                       <CardContent>
                         <div className="text-2xl font-bold">
-                          {((row.original.metadata?.ai_analysis?.toxicity_score || 0) * 100).toFixed(0)}%
+                          {(
+                            (row.original.metadata?.ai_analysis?.toxicity_score || 0) * 100
+                          ).toFixed(0)}
+                          %
                         </div>
                       </CardContent>
                     </Card>
@@ -172,7 +185,8 @@ export function ContentModeration({ groupId }: ContentModerationProps) {
                       </CardHeader>
                       <CardContent>
                         <div className="text-2xl font-bold">
-                          {((row.original.metadata?.ai_analysis?.spam_score || 0) * 100).toFixed(0)}%
+                          {((row.original.metadata?.ai_analysis?.spam_score || 0) * 100).toFixed(0)}
+                          %
                         </div>
                       </CardContent>
                     </Card>
@@ -181,9 +195,13 @@ export function ContentModeration({ groupId }: ContentModerationProps) {
                     <div className="mt-4">
                       <h5 className="font-semibold mb-2">Flagged Keywords</h5>
                       <div className="flex gap-2 flex-wrap">
-                        {row.original.metadata.ai_analysis.flagged_keywords.map((keyword: string, i: number) => (
-                          <Badge key={i} variant="outline">{keyword}</Badge>
-                        ))}
+                        {row.original.metadata.ai_analysis.flagged_keywords.map(
+                          (keyword: string, i: number) => (
+                            <Badge key={i} variant="outline">
+                              {keyword}
+                            </Badge>
+                          )
+                        )}
                       </div>
                     </div>
                   )}
@@ -195,10 +213,7 @@ export function ContentModeration({ groupId }: ContentModerationProps) {
                   >
                     Reject
                   </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => handleModerate(row.original.id, 'flag')}
-                  >
+                  <Button variant="outline" onClick={() => handleModerate(row.original.id, 'flag')}>
                     Flag for Review
                   </Button>
                   <Button
@@ -212,8 +227,8 @@ export function ContentModeration({ groupId }: ContentModerationProps) {
             </DialogContent>
           </Dialog>
         </div>
-      )
-    }
+      ),
+    },
   ]
 
   return (
@@ -267,14 +282,21 @@ export function ContentModeration({ groupId }: ContentModerationProps) {
                       <TableCell>
                         <Badge variant="outline">{item.content_type}</Badge>
                       </TableCell>
-                      <TableCell>{format(new Date(item.created_at), 'MMM d, yyyy HH:mm')}</TableCell>
                       <TableCell>
-                        <Badge variant={
-                          item.status === 'pending' ? 'default' :
-                          item.status === 'approved' ? 'secondary' :
-                          item.status === 'rejected' ? 'destructive' :
-                          'outline'
-                        }>
+                        {format(new Date(item.created_at), 'MMM d, yyyy HH:mm')}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            item.status === 'pending'
+                              ? 'default'
+                              : item.status === 'approved'
+                                ? 'secondary'
+                                : item.status === 'rejected'
+                                  ? 'destructive'
+                                  : 'outline'
+                          }
+                        >
                           {item.status}
                         </Badge>
                       </TableCell>
@@ -282,11 +304,15 @@ export function ContentModeration({ groupId }: ContentModerationProps) {
                         {(() => {
                           const toxicity = item.metadata?.ai_analysis?.toxicity_score || 0
                           return (
-                            <Badge variant={
-                              toxicity > 0.8 ? 'destructive' :
-                              toxicity > 0.5 ? 'outline' :
-                              'secondary'
-                            }>
+                            <Badge
+                              variant={
+                                toxicity > 0.8
+                                  ? 'destructive'
+                                  : toxicity > 0.5
+                                    ? 'outline'
+                                    : 'secondary'
+                              }
+                            >
                               {(toxicity * 100).toFixed(0)}%
                             </Badge>
                           )
@@ -314,22 +340,32 @@ export function ContentModeration({ groupId }: ContentModerationProps) {
                                 </div>
                                 <div>
                                   <strong>Content:</strong>
-                                  <p className="mt-1 p-2 bg-muted rounded-sm">{item.metadata?.content_preview || 'No preview available'}</p>
+                                  <p className="mt-1 p-2 bg-muted rounded-sm">
+                                    {item.metadata?.content_preview || 'No preview available'}
+                                  </p>
                                 </div>
                                 {item.metadata?.ai_analysis && (
                                   <div>
                                     <h5 className="font-semibold mb-2">AI Analysis</h5>
                                     <div className="space-y-2">
                                       <div>
-                                        <strong>Toxicity Score:</strong> {(item.metadata.ai_analysis.toxicity_score * 100).toFixed(0)}%
+                                        <strong>Toxicity Score:</strong>{' '}
+                                        {(item.metadata.ai_analysis.toxicity_score * 100).toFixed(
+                                          0
+                                        )}
+                                        %
                                       </div>
                                       {item.metadata.ai_analysis.flagged_keywords && (
                                         <div>
                                           <h5 className="font-semibold mb-2">Flagged Keywords</h5>
                                           <div className="flex gap-2 flex-wrap">
-                                            {item.metadata.ai_analysis.flagged_keywords.map((keyword: string, i: number) => (
-                                              <Badge key={i} variant="outline">{keyword}</Badge>
-                                            ))}
+                                            {item.metadata.ai_analysis.flagged_keywords.map(
+                                              (keyword: string, i: number) => (
+                                                <Badge key={i} variant="outline">
+                                                  {keyword}
+                                                </Badge>
+                                              )
+                                            )}
                                           </div>
                                         </div>
                                       )}
@@ -351,4 +387,4 @@ export function ContentModeration({ groupId }: ContentModerationProps) {
       </Card>
     </div>
   )
-} 
+}

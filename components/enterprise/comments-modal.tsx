@@ -6,9 +6,9 @@ import EntityName from '@/components/entity-name'
 import EntityAvatar from '@/components/entity-avatar'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { 
-  MessageCircle, 
-  X, 
+import {
+  MessageCircle,
+  X,
   User,
   Heart,
   Reply,
@@ -16,7 +16,7 @@ import {
   Image as ImageIcon,
   Link,
   Smile,
-  Send
+  Send,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -67,8 +67,8 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
   entityId,
   entityType,
   commentCount,
-  title = "Comments",
-  description = "Join the conversation about this content",
+  title = 'Comments',
+  description = 'Join the conversation about this content',
   className,
   onUserClick,
   onAddFriend,
@@ -80,7 +80,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
   currentUserName,
   showReplies = true,
   maxComments = 100,
-  allowCommenting = true
+  allowCommenting = true,
 }) => {
   const [comments, setComments] = useState<Comment[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -97,12 +97,14 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
     try {
       setIsLoading(true)
       setError(null)
-      
-      const response = await fetch(`/api/engagement?entity_id=${entityId}&entity_type=${entityType}`)
-      
+
+      const response = await fetch(
+        `/api/engagement?entity_id=${entityId}&entity_type=${entityType}`
+      )
+
       if (response.ok) {
         const data = await response.json()
-        
+
         if (data.recent_comments && Array.isArray(data.recent_comments)) {
           setComments(data.recent_comments.slice(0, maxComments))
         } else {
@@ -201,7 +203,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
     const date = new Date(dateString)
     const now = new Date()
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
-    
+
     if (diffInHours < 1) return 'Just now'
     if (diffInHours < 24) return `${diffInHours}h ago`
     if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`
@@ -212,10 +214,12 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className={cn(
-        "bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden shadow-2xl",
-        className
-      )}>
+      <div
+        className={cn(
+          'bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden shadow-2xl',
+          className
+        )}
+      >
         {/* Modal Header */}
         <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
           <div className="flex items-center justify-between">
@@ -227,9 +231,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                 <h3 className="text-lg font-semibold text-gray-900">
                   {title} ({commentCount})
                 </h3>
-                <p className="text-sm text-gray-500">
-                  {description}
-                </p>
+                <p className="text-sm text-gray-500">{description}</p>
               </div>
             </div>
             <button
@@ -251,11 +253,22 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                   <div key={comment.id} className="space-y-3">
                     {/* Main Comment */}
                     <div className="flex gap-3">
-                      <EntityAvatar type="user" id={comment.user.id} name={comment.user.name} src={comment.user.avatar_url} size="sm" />
+                      <EntityAvatar
+                        type="user"
+                        id={comment.user.id}
+                        name={comment.user.name}
+                        src={comment.user.avatar_url}
+                        size="sm"
+                      />
                       <div className="flex-1 min-w-0">
                         <div className="bg-gray-100 rounded-2xl px-4 py-3">
                           <div className="flex items-center justify-between mb-2">
-                            <EntityName type="user" id={comment.user.id} name={comment.user.name} className="text-sm font-semibold text-gray-900" />
+                            <EntityName
+                              type="user"
+                              id={comment.user.id}
+                              name={comment.user.name}
+                              className="text-sm font-semibold text-gray-900"
+                            />
                             <span className="text-xs text-gray-500">
                               {formatDate(comment.created_at)}
                             </span>
@@ -264,17 +277,19 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                             {comment.comment_text}
                           </p>
                         </div>
-                        
+
                         {/* Comment Actions */}
                         <div className="flex items-center gap-4 mt-2 ml-2">
                           <button
                             className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors"
                             onClick={() => handleCommentLike(comment.id)}
                           >
-                            <Heart className={cn(
-                              "h-3 w-3",
-                              comment.user_has_liked ? "text-red-500 fill-current" : ""
-                            )} />
+                            <Heart
+                              className={cn(
+                                'h-3 w-3',
+                                comment.user_has_liked ? 'text-red-500 fill-current' : ''
+                              )}
+                            />
                             {comment.like_count || 0}
                           </button>
                           {showReplies && (
@@ -319,11 +334,22 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                           <div className="ml-8 mt-3 space-y-3">
                             {comment.replies.map((reply) => (
                               <div key={reply.id} className="flex gap-3">
-                                <EntityAvatar type="user" id={reply.user.id} name={reply.user.name} src={reply.user.avatar_url} size="xs" />
+                                <EntityAvatar
+                                  type="user"
+                                  id={reply.user.id}
+                                  name={reply.user.name}
+                                  src={reply.user.avatar_url}
+                                  size="xs"
+                                />
                                 <div className="flex-1 min-w-0">
                                   <div className="bg-gray-50 rounded-xl px-3 py-2">
                                     <div className="flex items-center justify-between mb-1">
-                                      <EntityName type="user" id={reply.user.id} name={reply.user.name} className="text-xs font-medium text-gray-900" />
+                                      <EntityName
+                                        type="user"
+                                        id={reply.user.id}
+                                        name={reply.user.name}
+                                        className="text-xs font-medium text-gray-900"
+                                      />
                                       <span className="text-xs text-gray-400">
                                         {formatDate(reply.created_at)}
                                       </span>
@@ -332,17 +358,19 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                                       {reply.comment_text}
                                     </p>
                                   </div>
-                                  
+
                                   {/* Reply Actions */}
                                   <div className="flex items-center gap-3 mt-1 ml-2">
                                     <button
                                       className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-500 transition-colors"
                                       onClick={() => handleCommentLike(reply.id)}
                                     >
-                                      <Heart className={cn(
-                                        "h-2.5 w-2.5",
-                                        reply.user_has_liked ? "text-red-500 fill-current" : ""
-                                      )} />
+                                      <Heart
+                                        className={cn(
+                                          'h-2.5 w-2.5',
+                                          reply.user_has_liked ? 'text-red-500 fill-current' : ''
+                                        )}
+                                      />
                                       {reply.like_count || 0}
                                     </button>
                                   </div>
@@ -374,11 +402,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                 </div>
                 <h3 className="text-lg font-medium text-red-900 mb-2">Error loading comments</h3>
                 <p className="text-red-500">{error}</p>
-                <Button
-                  variant="outline"
-                  onClick={fetchComments}
-                  className="mt-4"
-                >
+                <Button variant="outline" onClick={fetchComments} className="mt-4">
                   Try again
                 </Button>
               </div>

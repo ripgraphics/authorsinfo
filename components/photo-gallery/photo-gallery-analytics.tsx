@@ -1,16 +1,7 @@
 import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { 
-  BarChart3, 
-  TrendingUp, 
-  Eye, 
-  Heart, 
-  Share2, 
-  Users,
-  Activity,
-  Target
-} from 'lucide-react'
+import { BarChart3, TrendingUp, Eye, Heart, Share2, Users, Activity, Target } from 'lucide-react'
 
 interface PhotoGalleryAnalyticsProps {
   analytics: {
@@ -51,7 +42,7 @@ export function PhotoGalleryAnalytics({ analytics, className = '' }: PhotoGaller
               <div className="text-2xl font-bold">{formatNumber(analytics.total_views)}</div>
               <div className="text-sm text-muted-foreground">Views</div>
             </div>
-            
+
             <div className="text-center">
               <div className="flex items-center justify-center mb-2">
                 <Heart className="h-4 w-4 text-red-500" />
@@ -59,7 +50,7 @@ export function PhotoGalleryAnalytics({ analytics, className = '' }: PhotoGaller
               <div className="text-2xl font-bold">{formatNumber(analytics.total_likes)}</div>
               <div className="text-sm text-muted-foreground">Likes</div>
             </div>
-            
+
             <div className="text-center">
               <div className="flex items-center justify-center mb-2">
                 <Share2 className="h-4 w-4 text-green-500" />
@@ -67,7 +58,7 @@ export function PhotoGalleryAnalytics({ analytics, className = '' }: PhotoGaller
               <div className="text-2xl font-bold">{formatNumber(analytics.total_shares)}</div>
               <div className="text-sm text-muted-foreground">Shares</div>
             </div>
-            
+
             <div className="text-center">
               <div className="flex items-center justify-center mb-2">
                 <TrendingUp className="h-4 w-4 text-purple-500" />
@@ -75,15 +66,17 @@ export function PhotoGalleryAnalytics({ analytics, className = '' }: PhotoGaller
               <div className="text-2xl font-bold">${formatNumber(analytics.total_revenue)}</div>
               <div className="text-sm text-muted-foreground">Revenue</div>
             </div>
-            
+
             <div className="text-center">
               <div className="flex items-center justify-center mb-2">
                 <Activity className="h-4 w-4 text-orange-500" />
               </div>
-              <div className="text-2xl font-bold">{formatPercentage(analytics.engagement_rate)}</div>
+              <div className="text-2xl font-bold">
+                {formatPercentage(analytics.engagement_rate)}
+              </div>
               <div className="text-sm text-muted-foreground">Engagement</div>
             </div>
-            
+
             <div className="text-center">
               <div className="flex items-center justify-center mb-2">
                 <Target className="h-4 w-4 text-indigo-500" />
@@ -115,7 +108,9 @@ export function PhotoGalleryAnalytics({ analytics, className = '' }: PhotoGaller
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Revenue per View</span>
-                <Badge variant="secondary">${(analytics.total_revenue / Math.max(analytics.total_views, 1)).toFixed(2)}</Badge>
+                <Badge variant="secondary">
+                  ${(analytics.total_revenue / Math.max(analytics.total_views, 1)).toFixed(2)}
+                </Badge>
               </div>
             </div>
           </CardContent>
@@ -136,11 +131,15 @@ export function PhotoGalleryAnalytics({ analytics, className = '' }: PhotoGaller
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Engaged Users</span>
-                <Badge variant="outline">{formatNumber(analytics.total_likes + analytics.total_shares)}</Badge>
+                <Badge variant="outline">
+                  {formatNumber(analytics.total_likes + analytics.total_shares)}
+                </Badge>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Conversion Rate</span>
-                <Badge variant="outline">{formatPercentage(analytics.engagement_rate * 0.15)}</Badge>
+                <Badge variant="outline">
+                  {formatPercentage(analytics.engagement_rate * 0.15)}
+                </Badge>
               </div>
             </div>
           </CardContent>
@@ -148,4 +147,4 @@ export function PhotoGalleryAnalytics({ analytics, className = '' }: PhotoGaller
       </div>
     </div>
   )
-} 
+}

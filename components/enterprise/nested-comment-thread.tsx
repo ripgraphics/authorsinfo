@@ -45,7 +45,7 @@ export function NestedCommentThread({
   entityId,
   postId,
   onCommentUpdated,
-  className
+  className,
 }: NestedCommentThreadProps) {
   const [showReplyForm, setShowReplyForm] = useState(false)
   const [showReplies, setShowReplies] = useState(true)
@@ -58,24 +58,27 @@ export function NestedCommentThread({
       toast({
         title: 'Authentication required',
         description: 'Please sign in to reply to comments',
-        variant: 'destructive'
+        variant: 'destructive',
       })
       return
     }
     setShowReplyForm(true)
   }, [user, toast])
 
-  const handleReplyAdded = useCallback((newReply: Comment) => {
-    // Add the new reply to the comment's replies
-    const updatedComment = {
-      ...comment,
-      replies: [...(comment.replies || []), newReply],
-      reply_count: (comment.reply_count || 0) + 1
-    }
-    
-    onCommentUpdated(updatedComment)
-    setShowReplyForm(false)
-  }, [comment, onCommentUpdated])
+  const handleReplyAdded = useCallback(
+    (newReply: Comment) => {
+      // Add the new reply to the comment's replies
+      const updatedComment = {
+        ...comment,
+        replies: [...(comment.replies || []), newReply],
+        reply_count: (comment.reply_count || 0) + 1,
+      }
+
+      onCommentUpdated(updatedComment)
+      setShowReplyForm(false)
+    },
+    [comment, onCommentUpdated]
+  )
 
   const handleReplyCancel = useCallback(() => {
     setShowReplyForm(false)
@@ -86,7 +89,7 @@ export function NestedCommentThread({
       toast({
         title: 'Authentication required',
         description: 'Please sign in to like comments',
-        variant: 'destructive'
+        variant: 'destructive',
       })
       return
     }
@@ -115,34 +118,41 @@ export function NestedCommentThread({
   const hasReplies = comment.replies && comment.replies.length > 0
 
   return (
-    <div className={cn(
-      "space-y-3",
-      comment.comment_depth > 0 && "ml-6 border-l-2 border-gray-200 dark:border-gray-700 pl-4",
-      className
-    )}>
+    <div
+      className={cn(
+        'space-y-3',
+        comment.comment_depth > 0 && 'ml-6 border-l-2 border-gray-200 dark:border-gray-700 pl-4',
+        className
+      )}
+    >
       {/* Main comment */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
         <div className="flex items-start gap-3">
-          <EntityAvatar type="user" id={comment.user.id} name={comment.user.name} src={comment.user.avatar_url || undefined} size="md" />
-          
+          <EntityAvatar
+            type="user"
+            id={comment.user.id}
+            name={comment.user.name}
+            src={comment.user.avatar_url || undefined}
+            size="md"
+          />
+
           <div className="flex-1 min-w-0">
             {/* Comment header */}
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <EntityName type="user" id={comment.user.id} name={comment.user.name} className="font-semibold text-sm text-gray-900 dark:text-gray-100" />
-                <span className="text-xs text-gray-500">
-                  {formatTimestamp(comment.created_at)}
-                </span>
+                <EntityName
+                  type="user"
+                  id={comment.user.id}
+                  name={comment.user.name}
+                  className="font-semibold text-sm text-gray-900 dark:text-gray-100"
+                />
+                <span className="text-xs text-gray-500">{formatTimestamp(comment.created_at)}</span>
                 {comment.updated_at !== comment.created_at && (
                   <span className="text-xs text-gray-400">(edited)</span>
                 )}
               </div>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0"
-              >
+
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </div>
@@ -160,12 +170,9 @@ export function NestedCommentThread({
                 variant="ghost"
                 size="sm"
                 onClick={handleLikeClick}
-                className={cn(
-                  "h-8 px-2 text-xs",
-                  isLiked && "text-red-500 hover:text-red-600"
-                )}
+                className={cn('h-8 px-2 text-xs', isLiked && 'text-red-500 hover:text-red-600')}
               >
-                <Heart className={cn("h-3 w-3 mr-1", isLiked && "fill-current")} />
+                <Heart className={cn('h-3 w-3 mr-1', isLiked && 'fill-current')} />
                 {isLiked ? 'Liked' : 'Like'}
               </Button>
 

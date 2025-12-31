@@ -1,8 +1,8 @@
-"use server"
+'use server'
 
-import { createServerActionClientAsync } from "@/lib/supabase/client-helper"
-import { validateAndFilterPayload } from "@/lib/schema/schema-validators"
-import { supabaseAdmin } from "@/lib/supabase/server"
+import { createServerActionClientAsync } from '@/lib/supabase/client-helper'
+import { validateAndFilterPayload } from '@/lib/schema/schema-validators'
+import { supabaseAdmin } from '@/lib/supabase/server'
 
 export interface CreateActivityParams {
   user_id: string
@@ -55,12 +55,12 @@ async function validateEntityExists(
           .select('user_id')
           .eq('user_id', entityId)
           .single()
-        
+
         if (profileError && profileError.code !== 'PGRST116') {
           console.error('Error checking user profile:', profileError)
           // If there's a real error, still try to check users table as fallback
         }
-        
+
         if (profile) {
           exists = true
         } else {
@@ -70,7 +70,7 @@ async function validateEntityExists(
             .select('id')
             .eq('id', entityId)
             .single()
-          
+
           exists = !!user
         }
         break
@@ -128,7 +128,7 @@ async function validateEntityExists(
     if (!exists) {
       return {
         valid: false,
-        error: `Referenced entity does not exist: ${entityType}/${entityId}`
+        error: `Referenced entity does not exist: ${entityType}/${entityId}`,
       }
     }
 
@@ -149,7 +149,7 @@ export async function createActivityWithValidation(
 ): Promise<CreateActivityResult> {
   try {
     const supabase = await createServerActionClientAsync()
-    
+
     // Validate entity exists before proceeding
     const entityValidation = await validateEntityExists(params.entity_type, params.entity_id)
     if (!entityValidation.valid) {
@@ -157,10 +157,10 @@ export async function createActivityWithValidation(
         success: false,
         error: entityValidation.error || 'Entity validation failed',
         warnings: [],
-        removedColumns: []
+        removedColumns: [],
       }
     }
-    
+
     // Validate and filter payload against actual schema
     const { payload, removedColumns, warnings } = await validateAndFilterPayload(
       'activities',
@@ -173,30 +173,29 @@ export async function createActivityWithValidation(
     }
 
     // Insert the filtered payload
-    const { data: activity, error } = await (supabase
-      .from('activities') as any)
+    const { data: activity, error } = await (supabase.from('activities') as any)
       .insert([payload])
       .select()
       .single()
 
     if (error) {
       console.error('Error creating activity:', error)
-      
+
       // Provide more helpful error messages
       let errorMessage = error.message || 'Failed to create activity'
-      
+
       // Check if it's the entity reference error
       if (error.message?.includes('Referenced entity does not exist')) {
         errorMessage = error.message
       } else if (error.message?.includes('foreign key') || error.message?.includes('constraint')) {
         errorMessage = `Database constraint violation: ${error.message}. Please verify the entity exists.`
       }
-      
+
       return {
         success: false,
         error: errorMessage,
         warnings: warnings.length > 0 ? warnings : undefined,
-        removedColumns: removedColumns.length > 0 ? removedColumns : undefined
+        removedColumns: removedColumns.length > 0 ? removedColumns : undefined,
       }
     }
 
@@ -204,14 +203,13 @@ export async function createActivityWithValidation(
       success: true,
       activity,
       warnings: warnings.length > 0 ? warnings : undefined,
-      removedColumns: removedColumns.length > 0 ? removedColumns : undefined
+      removedColumns: removedColumns.length > 0 ? removedColumns : undefined,
     }
   } catch (error) {
     console.error('Unexpected error creating activity:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Internal server error'
+      error: error instanceof Error ? error.message : 'Internal server error',
     }
   }
 }
-

@@ -1,82 +1,84 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { createBrowserClient } from '@supabase/ssr';
-import type { Database } from '@/types/database';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { createBrowserClient } from '@supabase/ssr'
+import type { Database } from '@/types/database'
+import { useToast } from '@/hooks/use-toast'
 
 interface ContentModerationProps {
-  groupId: string;
-  userRole: string;
+  groupId: string
+  userRole: string
 }
 
 interface ModerationItem {
-  id: string;
-  content_type: string;
-  content_id: string;
-  reporter_id: string;
-  moderator_id: string | null;
-  status: 'pending' | 'approved' | 'rejected' | 'flagged';
-  reason: string;
-  ai_score: number;
-  ai_flags: any;
-  resolution_notes: string | null;
-  created_at: string;
-  resolved_at: string | null;
+  id: string
+  content_type: string
+  content_id: string
+  reporter_id: string
+  moderator_id: string | null
+  status: 'pending' | 'approved' | 'rejected' | 'flagged'
+  reason: string
+  ai_score: number
+  ai_flags: any
+  resolution_notes: string | null
+  created_at: string
+  resolved_at: string | null
 }
 
 export default function ContentModeration({ groupId, userRole }: ContentModerationProps) {
-  const [items, setItems] = useState<ModerationItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedStatus, setSelectedStatus] = useState<string>('pending');
-  const [selectedItem, setSelectedItem] = useState<ModerationItem | null>(null);
-  const [contentDetails, setContentDetails] = useState<any>(null);
+  const [items, setItems] = useState<ModerationItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [selectedStatus, setSelectedStatus] = useState<string>('pending')
+  const [selectedItem, setSelectedItem] = useState<ModerationItem | null>(null)
+  const [contentDetails, setContentDetails] = useState<any>(null)
 
   const supabase = createBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-  const { toast } = useToast();
+  )
+  const { toast } = useToast()
 
   useEffect(() => {
-    fetchModerationItems();
-  }, [selectedStatus]);
+    fetchModerationItems()
+  }, [selectedStatus])
 
   async function fetchModerationItems() {
     try {
-      setLoading(true);
+      setLoading(true)
       const { data, error } = await supabase
         .from('group_content_moderation')
-        .select(`
+        .select(
+          `
           *,
           reporter:reporter_id(id, email, full_name),
           moderator:moderator_id(id, email, full_name)
-        `)
+        `
+        )
         .eq('group_id', groupId)
         .eq('status', selectedStatus)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
 
-      if (error) throw error;
-      setItems(data || []);
+      if (error) throw error
+      setItems(data || [])
 
       // Fetch content details for each item
       for (const item of data || []) {
-        await fetchContentDetails(item);
+        await fetchContentDetails(item)
       }
     } catch (err: any) {
       toast({
         title: 'Error',
         description: 'Failed to load moderation queue',
         variant: 'destructive',
-      });
+      })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
@@ -86,79 +88,73 @@ export default function ContentModeration({ groupId, userRole }: ContentModerati
         .from(item.content_type)
         .select('*')
         .eq('id', item.content_id)
-        .single();
+        .single()
 
-      if (error) throw error;
+      if (error) throw error
       setContentDetails((prev: any) => ({
         ...prev,
         [item.content_id]: data,
-      }));
+      }))
     } catch (err) {
-      console.error('Error fetching content details:', err);
+      console.error('Error fetching content details:', err)
     }
   }
 
   async function handleModeration(item: ModerationItem, newStatus: string, notes?: string) {
     try {
-      const { error } = await (supabase
-        .from('group_content_moderation') as any)
+      const { error } = await (supabase.from('group_content_moderation') as any)
         .update({
           status: newStatus,
           moderator_id: supabase.auth.getUser(),
           resolution_notes: notes,
           resolved_at: new Date().toISOString(),
         })
-        .eq('id', item.id);
+        .eq('id', item.id)
 
-      if (error) throw error;
+      if (error) throw error
 
       toast({
         title: 'Success',
         description: `Content has been ${newStatus}`,
-      });
+      })
 
       // Refresh the list
-      fetchModerationItems();
+      fetchModerationItems()
     } catch (err: any) {
       toast({
         title: 'Error',
         description: 'Failed to update content status',
         variant: 'destructive',
-      });
+      })
     }
   }
 
   function renderAIFlags(flags: any) {
-    if (!flags) return null;
+    if (!flags) return null
 
     return (
       <div className="space-y-2">
         <h4 className="font-medium">AI Analysis</h4>
         <div className="flex flex-wrap gap-2">
           {Object.entries(flags).map(([key, value]: [string, any]) => (
-            <Badge
-              key={key}
-              variant={value > 0.7 ? 'destructive' : 'secondary'}
-            >
+            <Badge key={key} variant={value > 0.7 ? 'destructive' : 'secondary'}>
               {key}: {(value * 100).toFixed(1)}%
             </Badge>
           ))}
         </div>
       </div>
-    );
+    )
   }
 
   function renderContentPreview(item: ModerationItem) {
-    const content = contentDetails?.[item.content_id];
-    if (!content) return null;
+    const content = contentDetails?.[item.content_id]
+    if (!content) return null
 
     return (
       <div className="space-y-4">
         <div>
           <h4 className="font-medium">Content Preview</h4>
-          <p className="text-sm text-muted-foreground">
-            Type: {item.content_type}
-          </p>
+          <p className="text-sm text-muted-foreground">Type: {item.content_type}</p>
         </div>
         <div className="border rounded-lg p-4">
           {/* Render content based on type */}
@@ -168,21 +164,15 @@ export default function ContentModeration({ groupId, userRole }: ContentModerati
               <p className="mt-2">{content.content}</p>
             </>
           )}
-          {item.content_type === 'comments' && (
-            <p>{content.content}</p>
-          )}
+          {item.content_type === 'comments' && <p>{content.content}</p>}
           {item.content_type === 'images' && (
             <div>
-              <img
-                src={content.url}
-                alt="Content"
-                className="max-w-full h-auto rounded-sm"
-              />
+              <img src={content.url} alt="Content" className="max-w-full h-auto rounded-sm" />
             </div>
           )}
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -205,9 +195,7 @@ export default function ContentModeration({ groupId, userRole }: ContentModerati
                 <div className="text-center py-8">Loading moderation queue...</div>
               ) : items.length === 0 ? (
                 <Alert>
-                  <AlertDescription>
-                    No {selectedStatus} content to review.
-                  </AlertDescription>
+                  <AlertDescription>No {selectedStatus} content to review.</AlertDescription>
                 </Alert>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -217,9 +205,7 @@ export default function ContentModeration({ groupId, userRole }: ContentModerati
                         <Card
                           key={item.id}
                           className={`cursor-pointer transition-colors ${
-                            selectedItem?.id === item.id
-                              ? 'border-primary'
-                              : 'hover:border-muted'
+                            selectedItem?.id === item.id ? 'border-primary' : 'hover:border-muted'
                           }`}
                           onClick={() => setSelectedItem(item)}
                         >
@@ -238,13 +224,7 @@ export default function ContentModeration({ groupId, userRole }: ContentModerati
                             </div>
                             {item.ai_score && (
                               <div className="mt-2">
-                                <Badge
-                                  variant={
-                                    item.ai_score > 0.7
-                                      ? 'destructive'
-                                      : 'secondary'
-                                  }
-                                >
+                                <Badge variant={item.ai_score > 0.7 ? 'destructive' : 'secondary'}>
                                   AI Score: {(item.ai_score * 100).toFixed(1)}%
                                 </Badge>
                               </div>
@@ -264,26 +244,20 @@ export default function ContentModeration({ groupId, userRole }: ContentModerati
                         {selectedItem.status === 'pending' && (
                           <div className="flex space-x-2">
                             <Button
-                              onClick={() =>
-                                handleModeration(selectedItem, 'approved')
-                              }
+                              onClick={() => handleModeration(selectedItem, 'approved')}
                               className="flex-1"
                             >
                               Approve
                             </Button>
                             <Button
-                              onClick={() =>
-                                handleModeration(selectedItem, 'rejected')
-                              }
+                              onClick={() => handleModeration(selectedItem, 'rejected')}
                               variant="destructive"
                               className="flex-1"
                             >
                               Reject
                             </Button>
                             <Button
-                              onClick={() =>
-                                handleModeration(selectedItem, 'flagged')
-                              }
+                              onClick={() => handleModeration(selectedItem, 'flagged')}
                               variant="outline"
                               className="flex-1"
                             >
@@ -314,5 +288,5 @@ export default function ContentModeration({ groupId, userRole }: ContentModerati
         </CardContent>
       </Card>
     </div>
-  );
-} 
+  )
+}

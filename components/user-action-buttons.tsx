@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
-import { MessageCircle, UserMinus, UserPlus, Check, Clock, Loader2 } from 'lucide-react'
+import { MessageCircle, UserMinus, UserPlus, Clock, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
@@ -37,7 +37,7 @@ export function UserActionButtons({
   variant = 'outline',
   className,
   onFriendChange,
-  onFollowChange
+  onFollowChange: _onFollowChange,
 }: UserActionButtonsProps) {
   const { user } = useAuth()
   const router = useRouter()
@@ -46,7 +46,9 @@ export function UserActionButtons({
   const { toast } = useToast()
   const [isRemovingFriend, setIsRemovingFriend] = useState(false)
   const [isAddingFriend, setIsAddingFriend] = useState(false)
-  const [friendStatus, setFriendStatus] = useState<'none' | 'pending' | 'accepted' | 'rejected'>('none')
+  const [friendStatus, setFriendStatus] = useState<'none' | 'pending' | 'accepted' | 'rejected'>(
+    'none'
+  )
   const [isRequestedByMe, setIsRequestedByMe] = useState(false)
   const [isCheckingFriend, setIsCheckingFriend] = useState(true)
 
@@ -117,22 +119,22 @@ export function UserActionButtons({
       if (response.ok) {
         setFriendStatus('none')
         toast({
-          title: "Friend removed",
+          title: 'Friend removed',
           description: `${userName || 'Friend'} has been removed from your list`,
         })
         onFriendChange?.()
       } else {
         toast({
-          title: "Error",
-          description: "Failed to remove friend",
+          title: 'Error',
+          description: 'Failed to remove friend',
           variant: 'destructive',
         })
       }
     } catch (error) {
       console.error('Error removing friend:', error)
       toast({
-        title: "Error",
-        description: "Failed to remove friend",
+        title: 'Error',
+        description: 'Failed to remove friend',
         variant: 'destructive',
       })
     } finally {
@@ -159,13 +161,13 @@ export function UserActionButtons({
         setFriendStatus('pending')
         setIsRequestedByMe(true)
         toast({
-          title: "Friend request sent!",
+          title: 'Friend request sent!',
           description: `Friend request sent to ${userName || 'user'}`,
         })
         onFriendChange?.()
       } else {
         toast({
-          title: "Error",
+          title: 'Error',
           description: data.error || 'Failed to send friend request',
           variant: 'destructive',
         })
@@ -173,7 +175,7 @@ export function UserActionButtons({
     } catch (error) {
       console.error('Error sending friend request:', error)
       toast({
-        title: "Error",
+        title: 'Error',
         description: 'Failed to send friend request',
         variant: 'destructive',
       })
@@ -194,22 +196,22 @@ export function UserActionButtons({
         setFriendStatus('none')
         setIsRequestedByMe(false)
         toast({
-          title: "Request cancelled",
+          title: 'Request cancelled',
           description: `Friend request to ${userName || 'user'} has been cancelled`,
         })
         onFriendChange?.()
       } else {
         toast({
-          title: "Error",
-          description: "Failed to cancel friend request",
+          title: 'Error',
+          description: 'Failed to cancel friend request',
           variant: 'destructive',
         })
       }
     } catch (error) {
       console.error('Error cancelling friend request:', error)
       toast({
-        title: "Error",
-        description: "Failed to cancel friend request",
+        title: 'Error',
+        description: 'Failed to cancel friend request',
         variant: 'destructive',
       })
     } finally {
@@ -220,11 +222,7 @@ export function UserActionButtons({
   return (
     <div className={containerClass}>
       {showMessage && (
-        <Button
-          variant={variant}
-          size={size}
-          asChild
-        >
+        <Button variant={variant} size={size} asChild>
           <Link href={`/messages/${userPermalink || userId}`}>
             <MessageCircle className="h-4 w-4 mr-2" />
             Comment
@@ -235,11 +233,7 @@ export function UserActionButtons({
       {showFriend && (
         <>
           {isCheckingFriend ? (
-            <Button
-              variant={variant}
-              size={size}
-              disabled
-            >
+            <Button variant={variant} size={size} disabled>
               <Loader2 className="h-4 w-4 animate-spin" />
             </Button>
           ) : friendStatus === 'accepted' ? (
@@ -283,12 +277,7 @@ export function UserActionButtons({
                 )}
               </Button>
             ) : (
-              <Button
-                variant={variant}
-                size={size}
-                disabled
-                title="Request Received"
-              >
+              <Button variant={variant} size={size} disabled title="Request Received">
                 <Clock className="h-4 w-4 mr-2" />
                 Request Received
               </Button>
@@ -330,4 +319,3 @@ export function UserActionButtons({
     </div>
   )
 }
-

@@ -1,28 +1,45 @@
-"use client"
+'use client'
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Button } from "@/components/ui/button"
-
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { Button } from '@/components/ui/button'
 
 export function Navigation() {
   const pathname = usePathname()
 
   return (
     <nav className="main-navigation flex items-center gap-2">
-      <Button variant={pathname === "/" ? "default" : "ghost"} asChild className="nav-home-button">
+      <Button variant={pathname === '/' ? 'default' : 'ghost'} asChild className="nav-home-button">
         <Link href="/">Home</Link>
       </Button>
-      <Button variant={pathname.startsWith("/books") ? "default" : "ghost"} asChild className="nav-books-button">
+      <Button
+        variant={pathname.startsWith('/books') ? 'default' : 'ghost'}
+        asChild
+        className="nav-books-button"
+      >
         <Link href="/books">Books</Link>
       </Button>
-      <Button variant={pathname.startsWith("/authors") ? "default" : "ghost"} asChild className="nav-authors-button">
+      <Button
+        variant={pathname.startsWith('/authors') ? 'default' : 'ghost'}
+        asChild
+        className="nav-authors-button"
+      >
         <Link href="/authors">Authors</Link>
       </Button>
-      <Button variant={pathname.startsWith("/publishers") ? "default" : "ghost"} asChild className="nav-publishers-button">
+      <Button
+        variant={pathname.startsWith('/publishers') ? 'default' : 'ghost'}
+        asChild
+        className="nav-publishers-button"
+      >
         <Link href="/publishers">Publishers</Link>
       </Button>
-
+      <Button
+        variant={pathname.startsWith('/reading-challenge') ? 'default' : 'ghost'}
+        asChild
+        className="nav-challenges-button"
+      >
+        <Link href="/reading-challenge">Challenges</Link>
+      </Button>
     </nav>
   )
 }

@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "@/lib/supabase/server"
+import { supabaseAdmin } from '@/lib/supabase/server'
 
 export interface ColumnInfo {
   column_name: string
@@ -62,7 +62,7 @@ export class SupabaseSchemaService {
    */
   async getTableSchema(tableName: string, useCache = true): Promise<TableSchema> {
     const cacheKey = `schema:${tableName}`
-    
+
     if (useCache) {
       const cached = this.cache.get(cacheKey)
       if (cached && Date.now() - cached.timestamp < cached.ttl) {
@@ -74,20 +74,20 @@ export class SupabaseSchemaService {
       const [columns, rlsPolicies, hasRLSEnabled] = await Promise.all([
         this.getTableColumns(tableName),
         this.getRLSPolicies(tableName),
-        this.checkRLSEnabled(tableName)
+        this.checkRLSEnabled(tableName),
       ])
 
       const schema: TableSchema = {
         table_name: tableName,
         columns,
         rls_policies: rlsPolicies,
-        has_rls_enabled: hasRLSEnabled
+        has_rls_enabled: hasRLSEnabled,
       }
 
       this.cache.set(cacheKey, {
         schema,
         timestamp: Date.now(),
-        ttl: this.defaultTTL
+        ttl: this.defaultTTL,
       })
 
       return schema
@@ -104,7 +104,7 @@ export class SupabaseSchemaService {
     try {
       // Try RPC function first
       const { data: rpcData, error: rpcError } = await supabaseAdmin.rpc('get_table_columns', {
-        p_table_name: tableName
+        p_table_name: tableName,
       })
 
       if (!rpcError && rpcData && Array.isArray(rpcData) && rpcData.length > 0) {
@@ -113,7 +113,7 @@ export class SupabaseSchemaService {
           data_type: row.data_type,
           is_nullable: row.is_nullable === 'YES' ? 'YES' : 'NO',
           column_default: row.column_default,
-          udt_name: row.udt_name
+          udt_name: row.udt_name,
         }))
       }
 
@@ -128,7 +128,7 @@ export class SupabaseSchemaService {
         // If table is empty or doesn't exist, try to get at least column names
         // by attempting a select with known common columns
         console.warn(`Could not get sample row for ${tableName}, trying alternative method`)
-        
+
         // Return empty array if we can't determine columns
         return []
       }
@@ -146,7 +146,7 @@ export class SupabaseSchemaService {
           data_type: this.inferDataType(value),
           is_nullable: value === null ? 'YES' : 'NO',
           column_default: null,
-          udt_name: this.inferUdtName(value)
+          udt_name: this.inferUdtName(value),
         }
       })
 
@@ -164,7 +164,7 @@ export class SupabaseSchemaService {
     try {
       // Try RPC function first
       const { data: rpcData, error: rpcError } = await supabaseAdmin.rpc('get_table_rls_policies', {
-        p_table_name: tableName
+        p_table_name: tableName,
       })
 
       if (!rpcError && rpcData && Array.isArray(rpcData)) {
@@ -176,7 +176,7 @@ export class SupabaseSchemaService {
           roles: Array.isArray(row.roles) ? row.roles : [row.roles || 'public'],
           cmd: this.parseCmd(row.cmd || row.command),
           qual: row.qual || row.qualification || null,
-          with_check: row.with_check || null
+          with_check: row.with_check || null,
         }))
       }
 
@@ -194,7 +194,7 @@ export class SupabaseSchemaService {
   private async checkRLSEnabled(tableName: string): Promise<boolean> {
     try {
       const { data, error } = await supabaseAdmin.rpc('check_table_rls_enabled', {
-        p_table_name: tableName
+        p_table_name: tableName,
       })
 
       if (!error && data !== null && data !== undefined) {
@@ -204,7 +204,7 @@ export class SupabaseSchemaService {
       // Fallback: Assume RLS might be enabled if we have policies
       const policies = await this.getRLSPolicies(tableName)
       return policies.length > 0
-    } catch (error) {
+    } catch (_error) {
       // Default to false if we can't determine
       return false
     }
@@ -215,7 +215,7 @@ export class SupabaseSchemaService {
    */
   async getColumnInfo(tableName: string, columnName: string): Promise<ColumnInfo | null> {
     const schema = await this.getTableSchema(tableName)
-    return schema.columns.find(col => col.column_name === columnName) || null
+    return schema.columns.find((col) => col.column_name === columnName) || null
   }
 
   /**
@@ -223,7 +223,7 @@ export class SupabaseSchemaService {
    */
   async checkColumnExists(tableName: string, columnName: string): Promise<boolean> {
     const schema = await this.getTableSchema(tableName)
-    return schema.columns.some(col => col.column_name === columnName)
+    return schema.columns.some((col) => col.column_name === columnName)
   }
 
   /**
@@ -262,13 +262,16 @@ export class SupabaseSchemaService {
   /**
    * Validate insert payload against actual schema
    */
-  async validateInsertPayload(tableName: string, payload: Record<string, any>): Promise<ValidationResult> {
+  async validateInsertPayload(
+    tableName: string,
+    payload: Record<string, any>
+  ): Promise<ValidationResult> {
     const schema = await this.getTableSchema(tableName)
     const errors: string[] = []
     const warnings: string[] = []
     const filteredPayload: Record<string, any> = {}
 
-    const columnNames = new Set(schema.columns.map(col => col.column_name))
+    const columnNames = new Set(schema.columns.map((col) => col.column_name))
 
     for (const [key, value] of Object.entries(payload)) {
       if (columnNames.has(key)) {
@@ -280,9 +283,17 @@ export class SupabaseSchemaService {
 
     // Check for required columns (non-nullable without defaults)
     for (const column of schema.columns) {
-      if (column.is_nullable === 'NO' && !column.column_default && !(column.column_name in filteredPayload)) {
+      if (
+        column.is_nullable === 'NO' &&
+        !column.column_default &&
+        !(column.column_name in filteredPayload)
+      ) {
         // Skip auto-generated columns
-        if (column.column_name !== 'id' && column.column_name !== 'created_at' && column.column_name !== 'updated_at') {
+        if (
+          column.column_name !== 'id' &&
+          column.column_name !== 'created_at' &&
+          column.column_name !== 'updated_at'
+        ) {
           warnings.push(`Required column '${column.column_name}' is missing from payload`)
         }
       }
@@ -292,7 +303,7 @@ export class SupabaseSchemaService {
       valid: errors.length === 0,
       errors,
       warnings,
-      filteredPayload
+      filteredPayload,
     }
   }
 
@@ -325,10 +336,10 @@ export class SupabaseSchemaService {
 
     const jsType = typeof value
     const typeMap: Record<string, string> = {
-      'string': 'text',
-      'number': value % 1 === 0 ? 'integer' : 'numeric',
-      'boolean': 'boolean',
-      'bigint': 'bigint'
+      string: 'text',
+      number: value % 1 === 0 ? 'integer' : 'numeric',
+      boolean: 'boolean',
+      bigint: 'bigint',
     }
 
     return typeMap[jsType] || 'text'
@@ -352,10 +363,10 @@ export class SupabaseSchemaService {
 
     const jsType = typeof value
     const typeMap: Record<string, string> = {
-      'string': 'text',
-      'number': value % 1 === 0 ? 'int4' : 'numeric',
-      'boolean': 'bool',
-      'bigint': 'int8'
+      string: 'text',
+      number: value % 1 === 0 ? 'int4' : 'numeric',
+      boolean: 'bool',
+      bigint: 'int8',
     }
 
     return typeMap[jsType] || 'text'
@@ -375,4 +386,3 @@ export class SupabaseSchemaService {
 
 // Export singleton instance
 export const schemaService = SupabaseSchemaService.getInstance()
-

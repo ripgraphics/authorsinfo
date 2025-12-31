@@ -1,34 +1,39 @@
-import Link from "next/link"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { getRecentBooks, getRecentAuthors, getRecentPublishers } from "./actions/data"
-import { BookOpen, User, Building } from "lucide-react"
-import { PublisherAvatar } from "@/components/publisher-avatar"
-import FeaturedEvents from "@/components/featured-events"
-import { cn } from "@/lib/utils"
+import Link from 'next/link'
+import Image from 'next/image'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { getRecentBooks, getRecentAuthors, getRecentPublishers } from './actions/data'
+import { BookOpen, User, Building } from 'lucide-react'
+import { PublisherAvatar } from '@/components/publisher-avatar'
+import FeaturedEvents from '@/components/featured-events'
+import { cn } from '@/lib/utils'
 
 async function RecentBooks() {
   const books = await getRecentBooks(6)
 
   return (
-    <div className={cn("home-page__recent-books", "space-y-6")}>
-      <div className={cn("home-page__books-grid", "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4")}>
+    <div className={cn('home-page__recent-books', 'space-y-6')}>
+      <div
+        className={cn(
+          'home-page__books-grid',
+          'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4'
+        )}
+      >
         {books.length > 0 ? (
           books.map((book, index) => (
             <Link href={`/books/${book.id}`} key={book.id} className="block">
               <Card className="overflow-hidden h-full transition-transform hover:scale-105">
                 {/* Image container with 2:3 aspect ratio */}
-                <div className="relative w-full" style={{ aspectRatio: "2/3" }}>
+                <div className="relative w-full" style={{ aspectRatio: '2/3' }}>
                   {book.cover_image_url ? (
                     <Image
-                      src={book.cover_image_url || "/placeholder.svg"}
+                      src={book.cover_image_url || '/placeholder.svg'}
                       alt={book.title}
                       fill
                       className="object-cover"
                       sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
-                      loading={index === 0 ? "eager" : "lazy"}
+                      loading={index === 0 ? 'eager' : 'lazy'}
                       priority={index === 0}
                     />
                   ) : (
@@ -49,7 +54,7 @@ async function RecentBooks() {
           </div>
         )}
       </div>
-      <div className={cn("home-page__books-view-all", "text-center")}>
+      <div className={cn('home-page__books-view-all', 'text-center')}>
         <Button asChild>
           <Link href="/books">View All Books</Link>
         </Button>
@@ -62,8 +67,13 @@ async function RecentAuthors() {
   const authors = await getRecentAuthors(6)
 
   return (
-    <div className={cn("home-page__recent-authors", "space-y-6")}>
-      <div className={cn("home-page__authors-grid", "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4")}>
+    <div className={cn('home-page__recent-authors', 'space-y-6')}>
+      <div
+        className={cn(
+          'home-page__authors-grid',
+          'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4'
+        )}
+      >
         {authors.length > 0 ? (
           authors.map((author) => (
             <Link href={`/authors/${author.id}`} key={author.id} className="block">
@@ -71,7 +81,7 @@ async function RecentAuthors() {
                 <div className="relative aspect-square w-full">
                   {author.photo_url ? (
                     <Image
-                      src={author.photo_url || "/placeholder.svg"}
+                      src={author.photo_url || '/placeholder.svg'}
                       alt={author.name}
                       fill
                       className="object-cover"
@@ -95,7 +105,7 @@ async function RecentAuthors() {
           </div>
         )}
       </div>
-      <div className={cn("home-page__authors-view-all", "text-center")}>
+      <div className={cn('home-page__authors-view-all', 'text-center')}>
         <Button asChild>
           <Link href="/authors">View All Authors</Link>
         </Button>
@@ -108,14 +118,19 @@ async function RecentPublishers() {
   const publishers = await getRecentPublishers(6)
 
   return (
-    <div className={cn("home-page__recent-publishers", "space-y-6")}>
-      <div className={cn("home-page__publishers-grid", "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4")}>
+    <div className={cn('home-page__recent-publishers', 'space-y-6')}>
+      <div
+        className={cn(
+          'home-page__publishers-grid',
+          'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4'
+        )}
+      >
         {publishers.length > 0 ? (
           publishers.map((publisher) => (
             <PublisherAvatar
               key={publisher.id}
               publisherId={publisher.id}
-              name={publisher.name || "Unknown Publisher"}
+              name={publisher.name || 'Unknown Publisher'}
               avatarUrl={publisher.publisher_image?.url}
               size="md"
               showName={true}
@@ -128,7 +143,7 @@ async function RecentPublishers() {
           </div>
         )}
       </div>
-      <div className={cn("home-page__publishers-view-all", "text-center")}>
+      <div className={cn('home-page__publishers-view-all', 'text-center')}>
         <Button asChild>
           <Link href="/publishers">View All Publishers</Link>
         </Button>
@@ -139,8 +154,8 @@ async function RecentPublishers() {
 
 export default function Home() {
   return (
-    <div className={cn("home-page", "space-y-8")}>
-      <div className={cn("home-page__navigation-buttons", "flex justify-center gap-4")}>
+    <div className={cn('home-page', 'space-y-8')}>
+      <div className={cn('home-page__navigation-buttons', 'flex justify-center gap-4')}>
         <Button asChild size="lg">
           <Link href="/books">
             <BookOpen className="mr-2 h-5 w-5" />
@@ -161,28 +176,28 @@ export default function Home() {
         </Button>
       </div>
 
-      <Tabs defaultValue="books" className={cn("home-page__content-tabs", "w-full")}>
-        <TabsList className={cn("home-page__tabs-list", "grid w-full grid-cols-3")}>
+      <Tabs defaultValue="books" className={cn('home-page__content-tabs', 'w-full')}>
+        <TabsList className={cn('home-page__tabs-list', 'grid w-full grid-cols-3')}>
           <TabsTrigger value="books">Books</TabsTrigger>
           <TabsTrigger value="authors">Authors</TabsTrigger>
           <TabsTrigger value="publishers">Publishers</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="books" className={cn("home-page__books-tab", "mt-6")}>
+        <TabsContent value="books" className={cn('home-page__books-tab', 'mt-6')}>
           <RecentBooks />
         </TabsContent>
 
-        <TabsContent value="authors" className={cn("home-page__authors-tab", "mt-6")}>
+        <TabsContent value="authors" className={cn('home-page__authors-tab', 'mt-6')}>
           <RecentAuthors />
         </TabsContent>
 
-        <TabsContent value="publishers" className={cn("home-page__publishers-tab", "mt-6")}>
+        <TabsContent value="publishers" className={cn('home-page__publishers-tab', 'mt-6')}>
           <RecentPublishers />
         </TabsContent>
       </Tabs>
-      
+
       {/* Featured Events Section */}
-      <div className={cn("home-page__featured-events-section", "-mx-4 -mb-8")}>
+      <div className={cn('home-page__featured-events-section', '-mx-4 -mb-8')}>
         <FeaturedEvents />
       </div>
     </div>

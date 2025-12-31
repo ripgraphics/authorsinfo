@@ -1,8 +1,9 @@
-"use client"
+'use client'
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { useState } from "react"
+import Image from 'next/image'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { useState } from 'react'
 import {
   Book,
   BookOpen,
@@ -24,8 +25,8 @@ import {
   Link2,
   Activity,
   Clock,
-  Key
-} from "lucide-react"
+  Key,
+} from 'lucide-react'
 
 export function AdminSidebar() {
   const pathname = usePathname()
@@ -49,9 +50,11 @@ export function AdminSidebar() {
     <aside className="h-screen bg-[#121212] text-white fixed left-0 top-0 bottom-0 z-40 flex flex-col transition-all duration-300 shadow-lg w-64">
       <div className="flex items-center gap-2 px-4 h-16 bg-[#121212] border-b border-white/10">
         <div className="text-cyan-400">
-          <img 
-            src="/images/authorsinfo-logo-w-135x45.svg" 
-            alt="Author's Info Logo" 
+          <Image
+            src="/images/authorsinfo-logo-w-135x45.svg"
+            alt="Author's Info Logo"
+            width={135}
+            height={45}
             className="h-8 w-auto"
           />
         </div>
@@ -62,20 +65,24 @@ export function AdminSidebar() {
           <div className="relative">
             <button
               className="flex items-center justify-between w-full gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-white font-medium"
-              onClick={() => toggleExpand("dashboard")}
+              onClick={() => toggleExpand('dashboard')}
             >
               <div className="flex items-center gap-3">
                 <Home className="h-5 w-5" />
                 <span className="opacity-100">Dashboard</span>
               </div>
-              {expanded.dashboard ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              {expanded.dashboard ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
             </button>
 
             {expanded.dashboard && (
               <div className="pl-9 mt-1 space-y-1">
                 <Link
                   className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
-                    pathname === "/admin" ? "bg-white/10 text-white font-medium" : "text-gray-400"
+                    pathname === '/admin' ? 'bg-white/10 text-white font-medium' : 'text-gray-400'
                   }`}
                   href="/admin"
                 >
@@ -84,7 +91,9 @@ export function AdminSidebar() {
                 </Link>
                 <Link
                   className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
-                    pathname === "/admin/statistics" ? "bg-white/10 text-white font-medium" : "text-gray-400"
+                    pathname === '/admin/statistics'
+                      ? 'bg-white/10 text-white font-medium'
+                      : 'text-gray-400'
                   }`}
                   href="/admin/statistics"
                 >
@@ -93,7 +102,9 @@ export function AdminSidebar() {
                 </Link>
                 <Link
                   className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
-                    pathname === "/admin/reports" ? "bg-white/10 text-white font-medium" : "text-gray-400"
+                    pathname === '/admin/reports'
+                      ? 'bg-white/10 text-white font-medium'
+                      : 'text-gray-400'
                   }`}
                   href="/admin/reports"
                 >
@@ -110,20 +121,26 @@ export function AdminSidebar() {
             <div className="relative">
               <button
                 className="flex items-center justify-between w-full gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
-                onClick={() => toggleExpand("books")}
+                onClick={() => toggleExpand('books')}
               >
                 <div className="flex items-center gap-3">
                   <BookOpen className="h-5 w-5" />
                   <span className="opacity-100">Books</span>
                 </div>
-                {expanded.books ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                {expanded.books ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
               </button>
 
               {expanded.books && (
                 <div className="pl-9 mt-1 space-y-1">
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
-                      pathname === "/admin/books" ? "bg-white/10 text-white font-medium" : "text-gray-400"
+                      pathname === '/admin/books'
+                        ? 'bg-white/10 text-white font-medium'
+                        : 'text-gray-400'
                     }`}
                     href="/admin/books"
                   >
@@ -165,20 +182,26 @@ export function AdminSidebar() {
             <div className="relative">
               <button
                 className="flex items-center justify-between w-full gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
-                onClick={() => toggleExpand("authors")}
+                onClick={() => toggleExpand('authors')}
               >
                 <div className="flex items-center gap-3">
                   <User className="h-5 w-5" />
                   <span className="opacity-100">Authors</span>
                 </div>
-                {expanded.authors ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                {expanded.authors ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
               </button>
 
               {expanded.authors && (
                 <div className="pl-9 mt-1 space-y-1">
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
-                      pathname === "/admin/authors" ? "bg-white/10 text-white font-medium" : "text-gray-400"
+                      pathname === '/admin/authors'
+                        ? 'bg-white/10 text-white font-medium'
+                        : 'text-gray-400'
                     }`}
                     href="/admin/authors"
                   >
@@ -195,9 +218,9 @@ export function AdminSidebar() {
                   {/* Added Book-Author Connections link under Authors section */}
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
-                      pathname === "/admin/book-author-connections"
-                        ? "bg-white/10 text-white font-medium"
-                        : "text-gray-400"
+                      pathname === '/admin/book-author-connections'
+                        ? 'bg-white/10 text-white font-medium'
+                        : 'text-gray-400'
                     }`}
                     href="/admin/book-author-connections"
                   >
@@ -211,20 +234,26 @@ export function AdminSidebar() {
             <div className="relative">
               <button
                 className="flex items-center justify-between w-full gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
-                onClick={() => toggleExpand("publishers")}
+                onClick={() => toggleExpand('publishers')}
               >
                 <div className="flex items-center gap-3">
                   <Package className="h-5 w-5" />
                   <span className="opacity-100">Publishers</span>
                 </div>
-                {expanded.publishers ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                {expanded.publishers ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
               </button>
 
               {expanded.publishers && (
                 <div className="pl-9 mt-1 space-y-1">
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
-                      pathname === "/admin/publishers" ? "bg-white/10 text-white font-medium" : "text-gray-400"
+                      pathname === '/admin/publishers'
+                        ? 'bg-white/10 text-white font-medium'
+                        : 'text-gray-400'
                     }`}
                     href="/admin/publishers"
                   >
@@ -233,7 +262,9 @@ export function AdminSidebar() {
                   </Link>
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
-                      pathname === "/admin/publishers/add" ? "bg-white/10 text-white font-medium" : "text-gray-400"
+                      pathname === '/admin/publishers/add'
+                        ? 'bg-white/10 text-white font-medium'
+                        : 'text-gray-400'
                     }`}
                     href="/admin/publishers/add"
                   >
@@ -242,9 +273,9 @@ export function AdminSidebar() {
                   </Link>
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
-                      pathname === "/admin/book-publisher-connections"
-                        ? "bg-white/10 text-white font-medium"
-                        : "text-gray-400"
+                      pathname === '/admin/book-publisher-connections'
+                        ? 'bg-white/10 text-white font-medium'
+                        : 'text-gray-400'
                     }`}
                     href="/admin/book-publisher-connections"
                   >
@@ -270,20 +301,26 @@ export function AdminSidebar() {
             <div className="relative">
               <button
                 className="flex items-center justify-between w-full gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
-                onClick={() => toggleExpand("tools")}
+                onClick={() => toggleExpand('tools')}
               >
                 <div className="flex items-center gap-3">
                   <Settings className="h-5 w-5" />
                   <span className="opacity-100">System Tools</span>
                 </div>
-                {expanded.tools ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                {expanded.tools ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
               </button>
 
               {expanded.tools && (
                 <div className="pl-9 mt-1 space-y-1">
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
-                      pathname === "/admin/activities" ? "bg-white/10 text-white font-medium" : "text-gray-400"
+                      pathname === '/admin/activities'
+                        ? 'bg-white/10 text-white font-medium'
+                        : 'text-gray-400'
                     }`}
                     href="/admin/activities"
                   >
@@ -292,7 +329,9 @@ export function AdminSidebar() {
                   </Link>
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
-                      pathname === "/admin/reset-passwords" ? "bg-white/10 text-white font-medium" : "text-gray-400"
+                      pathname === '/admin/reset-passwords'
+                        ? 'bg-white/10 text-white font-medium'
+                        : 'text-gray-400'
                     }`}
                     href="/admin/reset-passwords"
                   >
@@ -305,25 +344,101 @@ export function AdminSidebar() {
           </div>
 
           <div className="pt-4">
+            <div className="px-3 py-2 text-xs font-semibold text-gray-400">Analytics</div>
+
+            <div className="relative">
+              <button
+                className="flex items-center justify-between w-full gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
+                onClick={() => toggleExpand('analytics')}
+              >
+                <div className="flex items-center gap-3">
+                  <BarChart3 className="h-5 w-5" />
+                  <span className="opacity-100">Advanced Analytics</span>
+                </div>
+                {expanded.analytics ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </button>
+
+              {expanded.analytics && (
+                <div className="pl-9 mt-1 space-y-1">
+                  <Link
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                      pathname === '/admin/analytics/cohorts'
+                        ? 'bg-white/10 text-white font-medium'
+                        : 'text-gray-400'
+                    }`}
+                    href="/admin/analytics/cohorts"
+                  >
+                    <BarChart3 className="h-4 w-4" />
+                    Cohort Analysis
+                  </Link>
+                  <Link
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                      pathname === '/admin/analytics/segmentation'
+                        ? 'bg-white/10 text-white font-medium'
+                        : 'text-gray-400'
+                    }`}
+                    href="/admin/analytics/segmentation"
+                  >
+                    <BarChart3 className="h-4 w-4" />
+                    User Segmentation
+                  </Link>
+                  <Link
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                      pathname === '/admin/analytics/churn'
+                        ? 'bg-white/10 text-white font-medium'
+                        : 'text-gray-400'
+                    }`}
+                    href="/admin/analytics/churn"
+                  >
+                    <BarChart3 className="h-4 w-4" />
+                    Churn Prediction
+                  </Link>
+                  <Link
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                      pathname === '/admin/analytics/engagement'
+                        ? 'bg-white/10 text-white font-medium'
+                        : 'text-gray-400'
+                    }`}
+                    href="/admin/analytics/engagement"
+                  >
+                    <BarChart3 className="h-4 w-4" />
+                    Engagement Trends
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="pt-4">
             <div className="px-3 py-2 text-xs font-semibold text-gray-400">System</div>
 
             <div className="relative">
               <button
                 className="flex items-center justify-between w-full gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 text-gray-400"
-                onClick={() => toggleExpand("settings")}
+                onClick={() => toggleExpand('settings')}
               >
                 <div className="flex items-center gap-3">
                   <Settings className="h-5 w-5" />
                   <span className="opacity-100">Settings</span>
                 </div>
-                {expanded.settings ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                {expanded.settings ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
               </button>
 
               {expanded.settings && (
                 <div className="pl-9 mt-1 space-y-1">
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
-                      pathname === "/admin/format-types" ? "bg-white/10 text-white font-medium" : "text-gray-400"
+                      pathname === '/admin/format-types'
+                        ? 'bg-white/10 text-white font-medium'
+                        : 'text-gray-400'
                     }`}
                     href="/admin/format-types"
                   >
@@ -332,7 +447,9 @@ export function AdminSidebar() {
                   </Link>
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
-                      pathname === "/admin/binding-types" ? "bg-white/10 text-white font-medium" : "text-gray-400"
+                      pathname === '/admin/binding-types'
+                        ? 'bg-white/10 text-white font-medium'
+                        : 'text-gray-400'
                     }`}
                     href="/admin/binding-types"
                   >
@@ -341,7 +458,9 @@ export function AdminSidebar() {
                   </Link>
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
-                      pathname === "/admin/image-types" ? "bg-white/10 text-white font-medium" : "text-gray-400"
+                      pathname === '/admin/image-types'
+                        ? 'bg-white/10 text-white font-medium'
+                        : 'text-gray-400'
                     }`}
                     href="/admin/image-types"
                   >
@@ -350,7 +469,9 @@ export function AdminSidebar() {
                   </Link>
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
-                      pathname === "/admin/book-genres" ? "bg-white/10 text-white font-medium" : "text-gray-400"
+                      pathname === '/admin/book-genres'
+                        ? 'bg-white/10 text-white font-medium'
+                        : 'text-gray-400'
                     }`}
                     href="/admin/book-genres"
                   >
@@ -359,7 +480,9 @@ export function AdminSidebar() {
                   </Link>
                   <Link
                     className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all hover:bg-white/10 ${
-                      pathname === "/admin/roles" ? "bg-white/10 text-white font-medium" : "text-gray-400"
+                      pathname === '/admin/roles'
+                        ? 'bg-white/10 text-white font-medium'
+                        : 'text-gray-400'
                     }`}
                     href="/admin/roles"
                   >

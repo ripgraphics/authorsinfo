@@ -1,14 +1,12 @@
 {
-  // Tailwind CSS v4 introduces new directives like @theme/@utility/@plugin/@custom-variant.
-  // The built-in CSS language service does not recognize them and reports "unknownAtRules".
-  // Tailwind processes these directives at build time, so we silence the editor warning.
+  "[typescript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno"
+  },
   "css.lint.unknownAtRules": "ignore",
-  "scss.lint.unknownAtRules": "ignore",
-  "less.lint.unknownAtRules": "ignore",
-
-  "npm.packageManager": "npm",
   "deno.enable": false,
-  "deno.enablePaths": ["supabase/functions"],
+  "deno.enablePaths": [
+    "supabase/functions"
+  ],
   "deno.lint": true,
   "deno.unstable": [
     "bare-node-builtins",
@@ -25,7 +23,7 @@
     "http",
     "net"
   ],
-  "[typescript]": {
-    "editor.defaultFormatter": "denoland.vscode-deno"
-  }
+  "less.lint.unknownAtRules": "ignore",
+  "npm.packageManager": "npm",
+  "scss.lint.unknownAtRules": "ignore"
 }

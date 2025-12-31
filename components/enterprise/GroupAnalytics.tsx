@@ -1,8 +1,14 @@
-"use client"
+'use client'
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { DateRangePicker } from '@/components/admin/date-range-picker'
 import { LineChart } from '@/components/admin/line-chart'
 import { BarChart } from '@/components/admin/bar-chart'
@@ -21,12 +27,11 @@ interface Metric {
   metadata: any
 }
 
-
 export function GroupAnalytics({ groupId }: GroupAnalyticsProps) {
   const [timeRange, setTimeRange] = useState('7d')
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-    to: new Date()
+    to: new Date(),
   })
   const [metrics, setMetrics] = useState<Record<string, Metric[]>>({})
   const [loading, setLoading] = useState(true)
@@ -37,7 +42,7 @@ export function GroupAnalytics({ groupId }: GroupAnalyticsProps) {
 
   const fetchAnalytics = async () => {
     if (!dateRange?.from || !dateRange?.to) return
-    
+
     try {
       setLoading(true)
       const { data, error } = await supabaseClient
@@ -59,7 +64,7 @@ export function GroupAnalytics({ groupId }: GroupAnalyticsProps) {
         groupedMetrics[row.metric].push({
           date: row.date,
           value: row.value,
-          metadata: row.metadata
+          metadata: row.metadata,
         })
       })
 
@@ -74,8 +79,8 @@ export function GroupAnalytics({ groupId }: GroupAnalyticsProps) {
   const prepareChartData = (metricName: string) => {
     const metricData = metrics[metricName] || []
     return {
-      labels: metricData.map(m => format(new Date(m.date), 'MMM d')),
-      data: metricData.map(m => m.value)
+      labels: metricData.map((m) => format(new Date(m.date), 'MMM d')),
+      data: metricData.map((m) => m.value),
     }
   }
 
@@ -97,25 +102,28 @@ export function GroupAnalytics({ groupId }: GroupAnalyticsProps) {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Group Analytics</h2>
         <div className="flex gap-4">
-          <Select value={timeRange} onValueChange={value => {
-            setTimeRange(value)
-            const now = new Date()
-            let fromDate: Date
-            switch (value) {
-              case '7d':
-                fromDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-                break
-              case '30d':
-                fromDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-                break
-              case '90d':
-                fromDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
-                break
-              default:
-                fromDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-            }
-            setDateRange({ from: fromDate, to: now })
-          }}>
+          <Select
+            value={timeRange}
+            onValueChange={(value) => {
+              setTimeRange(value)
+              const now = new Date()
+              let fromDate: Date
+              switch (value) {
+                case '7d':
+                  fromDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+                  break
+                case '30d':
+                  fromDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+                  break
+                case '90d':
+                  fromDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000)
+                  break
+                default:
+                  fromDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+              }
+              setDateRange({ from: fromDate, to: now })
+            }}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Select time range" />
             </SelectTrigger>
@@ -125,10 +133,7 @@ export function GroupAnalytics({ groupId }: GroupAnalyticsProps) {
               <SelectItem value="90d">Last 90 days</SelectItem>
             </SelectContent>
           </Select>
-          <DateRangePicker
-            dateRange={dateRange}
-            onDateRangeChange={setDateRange}
-          />
+          <DateRangePicker dateRange={dateRange} onDateRangeChange={setDateRange} />
         </div>
       </div>
 
@@ -155,7 +160,7 @@ export function GroupAnalytics({ groupId }: GroupAnalyticsProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {(metrics['active_members']?.[metrics['active_members'].length - 1]?.value || 0)}
+              {metrics['active_members']?.[metrics['active_members'].length - 1]?.value || 0}
             </div>
           </CardContent>
         </Card>
@@ -165,7 +170,7 @@ export function GroupAnalytics({ groupId }: GroupAnalyticsProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {(metrics['content_items']?.[metrics['content_items'].length - 1]?.value || 0)}
+              {metrics['content_items']?.[metrics['content_items'].length - 1]?.value || 0}
             </div>
           </CardContent>
         </Card>
@@ -194,7 +199,7 @@ export function GroupAnalytics({ groupId }: GroupAnalyticsProps) {
               title=""
               data={prepareChartData('engagement').labels.map((label, i) => ({
                 label,
-                value: prepareChartData('engagement').data[i] || 0
+                value: prepareChartData('engagement').data[i] || 0,
               }))}
             />
           </CardContent>
@@ -211,7 +216,7 @@ export function GroupAnalytics({ groupId }: GroupAnalyticsProps) {
                 metrics['posts']?.[metrics['posts'].length - 1]?.value || 0,
                 metrics['comments']?.[metrics['comments'].length - 1]?.value || 0,
                 metrics['reactions']?.[metrics['reactions'].length - 1]?.value || 0,
-                metrics['shares']?.[metrics['shares'].length - 1]?.value || 0
+                metrics['shares']?.[metrics['shares'].length - 1]?.value || 0,
               ]}
               colors={['#3b82f6', '#10b981', '#f59e0b', '#ef4444']}
             />
@@ -233,4 +238,4 @@ export function GroupAnalytics({ groupId }: GroupAnalyticsProps) {
       </div>
     </div>
   )
-} 
+}

@@ -8,15 +8,15 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { 
-  Search, 
-  Filter, 
-  Calendar, 
-  BarChart3, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  Users, 
+import {
+  Search,
+  Filter,
+  Calendar,
+  BarChart3,
+  Edit,
+  Trash2,
+  Eye,
+  Users,
   Lock,
   TrendingUp,
   Clock,
@@ -26,7 +26,7 @@ import {
   Plus,
   Download,
   Upload,
-  Settings
+  Settings,
 } from 'lucide-react'
 import PostEditor from './post-editor'
 import PostManager from './post-manager'
@@ -65,7 +65,7 @@ export default function PostManagementDashboard({ className }: PostManagementDas
     visibility: 'all',
     publishStatus: 'all',
     dateRange: 'all',
-    contentType: 'all'
+    contentType: 'all',
   })
   const [selectedPosts, setSelectedPosts] = useState<Set<string>>(new Set())
   const [isLoading, setIsLoading] = useState(true)
@@ -83,21 +83,21 @@ export default function PostManagementDashboard({ className }: PostManagementDas
     totalComments: 0,
     totalShares: 0,
     averageEngagement: 0,
-    trendingPosts: 0
+    trendingPosts: 0,
   })
 
   // Fetch posts from API
   const fetchPosts = useCallback(async () => {
     if (!user) return
-    
+
     try {
       setIsLoading(true)
       const response = await fetch(`/api/posts?user_id=${user.id}&limit=100`)
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch posts')
       }
-      
+
       const data = await response.json()
       setPosts(data.posts || [])
       setError(null)
@@ -112,46 +112,55 @@ export default function PostManagementDashboard({ className }: PostManagementDas
   const calculateAnalytics = useCallback((postsData: Post[]) => {
     const analytics: PostAnalytics = {
       totalPosts: postsData.length,
-      publishedPosts: postsData.filter(p => p.publish_status === 'published').length,
-      draftPosts: postsData.filter(p => p.publish_status === 'draft').length,
-      scheduledPosts: postsData.filter(p => p.publish_status === 'scheduled').length,
+      publishedPosts: postsData.filter((p) => p.publish_status === 'published').length,
+      draftPosts: postsData.filter((p) => p.publish_status === 'draft').length,
+      scheduledPosts: postsData.filter((p) => p.publish_status === 'scheduled').length,
       totalViews: postsData.reduce((sum, p) => sum + (p.view_count || 0), 0),
       totalLikes: postsData.reduce((sum, p) => sum + (p.like_count || 0), 0),
       totalComments: postsData.reduce((sum, p) => sum + (p.comment_count || 0), 0),
       totalShares: postsData.reduce((sum, p) => sum + (p.share_count || 0), 0),
-      averageEngagement: postsData.length > 0 
-        ? postsData.reduce((sum, p) => sum + (p.engagement_score || 0), 0) / postsData.length
-        : 0,
-      trendingPosts: postsData.filter(p => (p.engagement_score || 0) > 10).length
+      averageEngagement:
+        postsData.length > 0
+          ? postsData.reduce((sum, p) => sum + (p.engagement_score || 0), 0) / postsData.length
+          : 0,
+      trendingPosts: postsData.filter((p) => (p.engagement_score || 0) > 10).length,
     }
     setAnalytics(analytics)
   }, [])
 
   // Apply filters to posts
   const applyFilters = useCallback((postsData: Post[], filterSettings: PostFilters) => {
-    return postsData.filter(post => {
+    return postsData.filter((post) => {
       // Search filter
-      if (filterSettings.search && !(post.content?.text || (post as any).text || (post as any).data?.text || '').toLowerCase().includes(filterSettings.search.toLowerCase())) {
+      if (
+        filterSettings.search &&
+        !(post.content?.text || (post as any).text || (post as any).data?.text || '')
+          .toLowerCase()
+          .includes(filterSettings.search.toLowerCase())
+      ) {
         return false
       }
-      
+
       // Visibility filter
       if (filterSettings.visibility !== 'all' && post.visibility !== filterSettings.visibility) {
         return false
       }
-      
+
       // Publish status filter
-      if (filterSettings.publishStatus !== 'all' && post.publish_status !== filterSettings.publishStatus) {
+      if (
+        filterSettings.publishStatus !== 'all' &&
+        post.publish_status !== filterSettings.publishStatus
+      ) {
         return false
       }
-      
+
       // Date range filter
       if (filterSettings.dateRange !== 'all') {
         const postDate = new Date(post.created_at)
         const now = new Date()
         const diffTime = Math.abs(now.getTime() - postDate.getTime())
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-        
+
         switch (filterSettings.dateRange) {
           case 'today':
             if (diffDays > 1) return false
@@ -167,12 +176,15 @@ export default function PostManagementDashboard({ className }: PostManagementDas
             break
         }
       }
-      
+
       // Content type filter
-      if (filterSettings.contentType !== 'all' && post.content_type !== filterSettings.contentType) {
+      if (
+        filterSettings.contentType !== 'all' &&
+        post.content_type !== filterSettings.contentType
+      ) {
         return false
       }
-      
+
       return true
     })
   }, [])
@@ -191,7 +203,7 @@ export default function PostManagementDashboard({ className }: PostManagementDas
 
   // Handle filter changes
   const handleFilterChange = (key: keyof PostFilters, value: string) => {
-    setFilters(prev => ({ ...prev, [key]: value }))
+    setFilters((prev) => ({ ...prev, [key]: value }))
   }
 
   // Handle post selection
@@ -208,30 +220,32 @@ export default function PostManagementDashboard({ className }: PostManagementDas
   // Handle bulk operations
   const handleBulkOperation = async (operation: 'delete' | 'publish' | 'archive') => {
     if (selectedPosts.size === 0) return
-    
-    const confirmed = confirm(`Are you sure you want to ${operation} ${selectedPosts.size} selected posts?`)
+
+    const confirmed = confirm(
+      `Are you sure you want to ${operation} ${selectedPosts.size} selected posts?`
+    )
     if (!confirmed) return
-    
+
     try {
-      const promises = Array.from(selectedPosts).map(postId => {
+      const promises = Array.from(selectedPosts).map((postId) => {
         switch (operation) {
           case 'delete':
             return fetch(`/api/posts/${postId}`, { method: 'DELETE' })
           case 'publish':
-            return fetch(`/api/posts/${postId}`, { 
+            return fetch(`/api/posts/${postId}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ publish_status: 'published' })
+              body: JSON.stringify({ publish_status: 'published' }),
             })
           case 'archive':
-            return fetch(`/api/posts/${postId}`, { 
+            return fetch(`/api/posts/${postId}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ publish_status: 'archived' })
+              body: JSON.stringify({ publish_status: 'archived' }),
             })
         }
       })
-      
+
       await Promise.all(promises)
       await fetchPosts() // Refresh data
       setSelectedPosts(new Set()) // Clear selection
@@ -243,14 +257,14 @@ export default function PostManagementDashboard({ className }: PostManagementDas
 
   // Handle post updates
   const handlePostUpdated = (updatedPost: Post) => {
-    setPosts(prev => prev.map(p => p.id === updatedPost.id ? updatedPost : p))
+    setPosts((prev) => prev.map((p) => (p.id === updatedPost.id ? updatedPost : p)))
     setEditingPost(null)
   }
 
   // Handle post deletion
   const handlePostDeleted = (postId: string) => {
-    setPosts(prev => prev.filter(p => p.id !== postId))
-    setSelectedPosts(prev => {
+    setPosts((prev) => prev.filter((p) => p.id !== postId))
+    setSelectedPosts((prev) => {
       const newSet = new Set(prev)
       newSet.delete(postId)
       return newSet
@@ -260,23 +274,34 @@ export default function PostManagementDashboard({ className }: PostManagementDas
   // Get visibility icon
   const getVisibilityIcon = (visibility: PostVisibility) => {
     switch (visibility) {
-      case 'public': return <Eye className="h-4 w-4" />
-      case 'friends': return <Users className="h-4 w-4" />
-      case 'private': return <Lock className="h-4 w-4" />
-      case 'group': return <Users className="h-4 w-4" />
-      case 'custom': return <Users className="h-4 w-4" />
-      default: return <Eye className="h-4 w-4" />
+      case 'public':
+        return <Eye className="h-4 w-4" />
+      case 'friends':
+        return <Users className="h-4 w-4" />
+      case 'private':
+        return <Lock className="h-4 w-4" />
+      case 'group':
+        return <Users className="h-4 w-4" />
+      case 'custom':
+        return <Users className="h-4 w-4" />
+      default:
+        return <Eye className="h-4 w-4" />
     }
   }
 
   // Get publish status icon
   const getPublishStatusIcon = (status: PostPublishStatus) => {
     switch (status) {
-      case 'published': return <CheckCircle className="h-4 w-4 text-green-600" />
-      case 'draft': return <Clock className="h-4 w-4 text-yellow-600" />
-      case 'scheduled': return <Calendar className="h-4 w-4 text-blue-600" />
-      case 'archived': return <AlertCircle className="h-4 w-4 text-gray-600" />
-      default: return <AlertCircle className="h-4 w-4" />
+      case 'published':
+        return <CheckCircle className="h-4 w-4 text-green-600" />
+      case 'draft':
+        return <Clock className="h-4 w-4 text-yellow-600" />
+      case 'scheduled':
+        return <Calendar className="h-4 w-4 text-blue-600" />
+      case 'archived':
+        return <AlertCircle className="h-4 w-4 text-gray-600" />
+      default:
+        return <AlertCircle className="h-4 w-4" />
     }
   }
 
@@ -284,7 +309,9 @@ export default function PostManagementDashboard({ className }: PostManagementDas
     return (
       <Card>
         <CardContent className="p-6 text-center">
-          <p className="text-muted-foreground">Please log in to access the post management dashboard.</p>
+          <p className="text-muted-foreground">
+            Please log in to access the post management dashboard.
+          </p>
         </CardContent>
       </Card>
     )
@@ -296,7 +323,9 @@ export default function PostManagementDashboard({ className }: PostManagementDas
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Post Management Dashboard</h1>
-          <p className="text-muted-foreground">Manage all your posts, track performance, and optimize engagement</p>
+          <p className="text-muted-foreground">
+            Manage all your posts, track performance, and optimize engagement
+          </p>
         </div>
         <Button onClick={() => setShowPostEditor(true)}>
           <Plus className="h-4 w-4 mr-2" />
@@ -317,7 +346,7 @@ export default function PostManagementDashboard({ className }: PostManagementDas
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
@@ -329,7 +358,7 @@ export default function PostManagementDashboard({ className }: PostManagementDas
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
@@ -341,7 +370,7 @@ export default function PostManagementDashboard({ className }: PostManagementDas
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
@@ -353,7 +382,7 @@ export default function PostManagementDashboard({ className }: PostManagementDas
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
@@ -501,21 +530,22 @@ export default function PostManagementDashboard({ className }: PostManagementDas
                         onChange={(e) => handlePostSelection(post.id, e.target.checked)}
                         className="h-4 w-4"
                       />
-                      
+
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-2 mb-2">
                           {getPublishStatusIcon(post.publish_status)}
                           {getVisibilityIcon(post.visibility)}
                           <Badge variant="secondary">{post.content_type}</Badge>
-                          {post.is_featured && (
-                            <Badge variant="default">Featured</Badge>
-                          )}
+                          {post.is_featured && <Badge variant="default">Featured</Badge>}
                         </div>
-                        
+
                         <p className="font-medium truncate">
-                          {post.content?.text || (post as any).text || (post as any).data?.text || 'No content'}
+                          {post.content?.text ||
+                            (post as any).text ||
+                            (post as any).data?.text ||
+                            'No content'}
                         </p>
-                        
+
                         <div className="flex items-center space-x-4 text-sm text-muted-foreground mt-2">
                           <span>{new Date(post.created_at).toLocaleDateString()}</span>
                           <span>Views: {post.view_count || 0}</span>
@@ -524,13 +554,9 @@ export default function PostManagementDashboard({ className }: PostManagementDas
                           <span>Engagement: {post.engagement_score?.toFixed(1) || 0}</span>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setEditingPost(post)}
-                        >
+                        <Button variant="outline" size="sm" onClick={() => setEditingPost(post)}>
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button
@@ -563,7 +589,9 @@ export default function PostManagementDashboard({ className }: PostManagementDas
               <CardTitle>Post Performance Analytics</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">Detailed analytics and insights coming soon...</p>
+              <p className="text-muted-foreground">
+                Detailed analytics and insights coming soon...
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -575,7 +603,9 @@ export default function PostManagementDashboard({ className }: PostManagementDas
               <CardTitle>Content Calendar</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">Content calendar and scheduling interface coming soon...</p>
+              <p className="text-muted-foreground">
+                Content calendar and scheduling interface coming soon...
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -587,7 +617,9 @@ export default function PostManagementDashboard({ className }: PostManagementDas
               <CardTitle>Dashboard Settings</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">Dashboard configuration and preferences coming soon...</p>
+              <p className="text-muted-foreground">
+                Dashboard configuration and preferences coming soon...
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -599,7 +631,7 @@ export default function PostManagementDashboard({ className }: PostManagementDas
           <div className="bg-background rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <PostEditor
               onPostCreated={(newPost) => {
-                setPosts(prev => [newPost, ...prev])
+                setPosts((prev) => [newPost, ...prev])
                 setShowPostEditor(false)
               }}
               onCancel={() => setShowPostEditor(false)}

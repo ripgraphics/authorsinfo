@@ -1,5 +1,5 @@
-import { Suspense } from "react"
-import { ReportsClient } from "./client"
+import { Suspense } from 'react'
+import { ReportsClient } from './client'
 
 export default function ReportsPage() {
   return (

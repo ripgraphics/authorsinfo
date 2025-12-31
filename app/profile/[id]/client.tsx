@@ -1,15 +1,15 @@
-"use client"
+'use client'
 
-import React, { useState, useEffect } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { useSearchParams, useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { EntityHeader, TabConfig } from "@/components/entity-header"
-import { ContentSection } from "@/components/ui/content-section"
+import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { EntityHeader, TabConfig } from '@/components/entity-header'
+import { ContentSection } from '@/components/ui/content-section'
 import {
   BookOpen,
   Users,
@@ -30,14 +30,14 @@ import {
   Filter,
   ChevronDown,
   Search,
-} from "lucide-react"
+} from 'lucide-react'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from '@/components/ui/select'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
 import { EntityPhotoAlbums } from '@/components/user-photo-albums'
@@ -47,7 +47,7 @@ import { FollowersListTab } from '@/components/followers-list-tab'
 import { TimelineActivities } from '@/components/timeline-activities'
 import EnterpriseTimelineActivities from '@/components/enterprise/enterprise-timeline-activities-optimized'
 import { BookCard } from '@/components/book-card'
-
+import { ShelfManager } from '@/components/shelf-manager'
 
 interface ClientProfilePageProps {
   user: any
@@ -71,12 +71,23 @@ interface ClientProfilePageProps {
   }
 }
 
-export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, followers = [], followersCount = 0, friends = [], friendsCount = 0, books = [], params }: ClientProfilePageProps) {
+export function ClientProfilePage({
+  user,
+  userStats,
+  avatarUrl,
+  coverImageUrl,
+  followers = [],
+  followersCount = 0,
+  friends = [],
+  friendsCount = 0,
+  books = [],
+  params,
+}: ClientProfilePageProps) {
   const { user: authUser } = useAuth()
   const { toast } = useToast()
   const searchParams = useSearchParams()
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState("timeline")
+  const [activeTab, setActiveTab] = useState('timeline')
   const [isFollowing, setIsFollowing] = useState(false)
   const [isLoadingFollow, setIsLoadingFollow] = useState(false)
 
@@ -86,7 +97,10 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
   // Set initial tab based on URL search parameters
   useEffect(() => {
     const tabParam = searchParams.get('tab')
-    if (tabParam && ['timeline', 'about', 'books', 'friends', 'followers', 'photos', 'more'].includes(tabParam)) {
+    if (
+      tabParam &&
+      ['timeline', 'about', 'books', 'friends', 'followers', 'photos', 'more'].includes(tabParam)
+    ) {
       setActiveTab(tabParam)
     }
   }, [searchParams])
@@ -119,83 +133,86 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
   }
 
   // Use real data from props
-  const realName = user?.name || "Unknown User"
-  const realUsername = user?.permalink || user?.name?.split(" ").join("").toLowerCase() || "user"
+  const realName = user?.name || 'Unknown User'
+  const realUsername = user?.permalink || user?.name?.split(' ').join('').toLowerCase() || 'user'
   const realBooksRead = userStats.booksRead
   const realFriendsCount = userStats.friendsCount
   const realFollowersCount = userStats.followersCount || 0
   const realLocation = userStats.location
   const realWebsite = userStats.website
-  const realAbout = "Book lover, coffee addict, and aspiring writer. I read mostly fantasy, sci-fi, and literary fiction."
-  const realJoinedDate = userStats.joinedDate ? new Date(userStats.joinedDate).toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'long' 
-  }) : "Unknown"
+  const realAbout =
+    'Book lover, coffee addict, and aspiring writer. I read mostly fantasy, sci-fi, and literary fiction.'
+  const realJoinedDate = userStats.joinedDate
+    ? new Date(userStats.joinedDate).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+      })
+    : 'Unknown'
 
   // Mock currently reading books (can be replaced with real data later)
   const mockCurrentlyReading = [
     {
-      title: "The Name of the Wind",
-      author: "Patrick Rothfuss",
+      title: 'The Name of the Wind',
+      author: 'Patrick Rothfuss',
       progress: 65,
-      coverUrl: "/placeholder.svg?height=240&width=160",
+      coverUrl: '/placeholder.svg?height=240&width=160',
     },
     {
-      title: "Project Hail Mary",
-      author: "Andy Weir",
+      title: 'Project Hail Mary',
+      author: 'Andy Weir',
       progress: 23,
-      coverUrl: "/placeholder.svg?height=240&width=160",
+      coverUrl: '/placeholder.svg?height=240&width=160',
     },
   ]
 
   // Mock photos (can be replaced with real data later)
   const mockPhotos = [
-    "/placeholder.svg?height=300&width=300",
-    "/placeholder.svg?height=300&width=300",
-    "/placeholder.svg?height=300&width=300",
-    "/placeholder.svg?height=300&width=300",
-    "/placeholder.svg?height=300&width=300",
-    "/placeholder.svg?height=300&width=300",
+    '/placeholder.svg?height=300&width=300',
+    '/placeholder.svg?height=300&width=300',
+    '/placeholder.svg?height=300&width=300',
+    '/placeholder.svg?height=300&width=300',
+    '/placeholder.svg?height=300&width=300',
+    '/placeholder.svg?height=300&width=300',
   ]
 
   // Set up stats for the EntityHeader using real data
   const profileUrl = `/profile/${params.id}`
   const userStatsForHeader = [
-    { 
-      icon: <BookOpen className="h-4 w-4 mr-1" />, 
+    {
+      icon: <BookOpen className="h-4 w-4 mr-1" />,
       text: `${realBooksRead} books read`,
-      href: `${profileUrl}?tab=books`
+      href: `${profileUrl}?tab=books`,
     },
-    { 
-      icon: <Users className="h-4 w-4 mr-1" />, 
+    {
+      icon: <Users className="h-4 w-4 mr-1" />,
       text: `${realFriendsCount} friends`,
-      href: `${profileUrl}?tab=friends`
+      href: `${profileUrl}?tab=friends`,
     },
     {
       icon: <UserPlus className="h-4 w-4 mr-1" />,
       text: `${realFollowersCount} ${realFollowersCount === 1 ? 'follower' : 'followers'}`,
-      href: `${profileUrl}?tab=followers`
-    }
+      href: `${profileUrl}?tab=followers`,
+    },
   ]
 
   // Configure tabs for the EntityHeader
   const tabs: TabConfig[] = [
-    { id: "timeline", label: "Timeline" },
-    { id: "about", label: "About" },
-    { id: "books", label: "Books" },
-    { id: "friends", label: "Friends" },
-    { id: "followers", label: "Followers" },
-    { id: "photos", label: "Photos" },
-    { id: "more", label: "More" }
+    { id: 'timeline', label: 'Timeline' },
+    { id: 'about', label: 'About' },
+    { id: 'books', label: 'Books' },
+    { id: 'shelves', label: 'Shelves' },
+    { id: 'friends', label: 'Friends' },
+    { id: 'followers', label: 'Followers' },
+    { id: 'photos', label: 'Photos' },
+    { id: 'more', label: 'More' },
   ]
 
-
   // Determine if the current user can edit this profile
-  const canEdit = authUser && (
-    authUser.id === user.id || 
-    (authUser as any)?.role === 'admin' || 
-    (authUser as any)?.role === 'super_admin'
-  )
+  const canEdit =
+    authUser &&
+    (authUser.id === user.id ||
+      (authUser as any)?.role === 'admin' ||
+      (authUser as any)?.role === 'super_admin')
 
   return (
     <div className="profile-page">
@@ -216,9 +233,9 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
         isEditable={canEdit ? true : undefined}
         isMessageable={true}
       />
-      
+
       <div className="profile-page__content">
-        {activeTab === "timeline" && (
+        {activeTab === 'timeline' && (
           <div className="profile-page__timeline-tab">
             <div className="profile-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Left Sidebar */}
@@ -242,7 +259,11 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
                         <div className="flex items-center">
                           <Globe className="h-4 w-4 mr-2 text-muted-foreground" />
                           <a
-                            href={realWebsite.startsWith('http') ? realWebsite : `https://${realWebsite}`}
+                            href={
+                              realWebsite.startsWith('http')
+                                ? realWebsite
+                                : `https://${realWebsite}`
+                            }
                             target="_blank"
                             rel="noopener noreferrer"
                             className="hover:underline"
@@ -262,7 +283,7 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
                 </ContentSection>
 
                 {/* Currently Reading Section */}
-                <ContentSection 
+                <ContentSection
                   title="Currently Reading"
                   viewMoreLink="/my-books"
                   viewMoreText="See All"
@@ -272,7 +293,7 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
                       <div key={index} className="flex gap-3">
                         <div className="relative h-20 w-14 flex-shrink-0">
                           <Image
-                            src={book.coverUrl || "/placeholder.svg"}
+                            src={book.coverUrl || '/placeholder.svg'}
                             alt={book.title}
                             fill
                             className="object-cover rounded-md"
@@ -301,16 +322,19 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
                 </ContentSection>
 
                 {/* Photos Section */}
-                <ContentSection 
+                <ContentSection
                   title="Photos"
                   viewMoreLink={`/profile/${realUsername}/photos`}
                   viewMoreText="See All"
                 >
                   <div className="grid grid-cols-3 gap-2">
                     {mockPhotos.slice(0, 6).map((photoUrl, index) => (
-                      <div key={index} className="aspect-square relative rounded-sm overflow-hidden">
+                      <div
+                        key={index}
+                        className="aspect-square relative rounded-sm overflow-hidden"
+                      >
                         <Image
-                          src={photoUrl || "/placeholder.svg"}
+                          src={photoUrl || '/placeholder.svg'}
                           alt={`Photo ${index + 1}`}
                           fill
                           className="object-cover hover:scale-105 transition-transform"
@@ -326,14 +350,12 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
                   followersCount={followersCount}
                   entityId={user.id}
                   entityType="user"
-                  onViewMore={() => setActiveTab("followers")}
+                  onViewMore={() => setActiveTab('followers')}
                 />
               </div>
 
               {/* Main Content Area */}
               <div className="profile-page__main-content lg:col-span-2 space-y-6">
-
-                
                 {/* Enterprise Timeline Activities - Only render when we have a valid UUID */}
                 {/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(user.id) ? (
                   <EnterpriseTimelineActivities
@@ -359,7 +381,7 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
           </div>
         )}
 
-        {activeTab === "about" && (
+        {activeTab === 'about' && (
           <div className="profile-page__about-tab">
             <div className="profile-page__tab-content">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -375,17 +397,23 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
                       >
                         Overview
                       </a>
-                      <a href="#work-education" className="flex items-center px-3 py-2 rounded-md hover:bg-muted">
+                      <a
+                        href="#work-education"
+                        className="flex items-center px-3 py-2 rounded-md hover:bg-muted"
+                      >
                         Work and Education
                       </a>
-                      <a href="#contact-info" className="flex items-center px-3 py-2 rounded-md hover:bg-muted">
+                      <a
+                        href="#contact-info"
+                        className="flex items-center px-3 py-2 rounded-md hover:bg-muted"
+                      >
                         Contact Information
                       </a>
                     </nav>
                   </div>
                 </div>
-                                  <div className="lg:col-span-2 space-y-6">
-                    <ContentSection title="Overview">
+                <div className="lg:col-span-2 space-y-6">
+                  <ContentSection title="Overview">
                     <p className="text-muted-foreground">{realAbout}</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                       {realWebsite && (
@@ -394,7 +422,11 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
                           <div>
                             <h3 className="font-medium">Website</h3>
                             <a
-                              href={realWebsite.startsWith('http') ? realWebsite : `https://${realWebsite}`}
+                              href={
+                                realWebsite.startsWith('http')
+                                  ? realWebsite
+                                  : `https://${realWebsite}`
+                              }
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-primary hover:underline"
@@ -418,21 +450,17 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
             </div>
           </div>
         )}
-        
-        {activeTab === "books" && (
+
+        {activeTab === 'books' && (
           <div className="profile-page__books-tab">
             <div className="profile-page__tab-content">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                 <h2 className="text-2xl font-bold">My Books ({realBooksRead})</h2>
-                
+
                 <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
                   <div className="relative w-full sm:w-64">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="search"
-                      placeholder="Search books..."
-                      className="w-full pl-9"
-                    />
+                    <Input type="search" placeholder="Search books..." className="w-full pl-9" />
                   </div>
                   <div className="flex gap-2">
                     <Select defaultValue="all">
@@ -446,7 +474,7 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
                         <SelectItem value="want">Want to Read</SelectItem>
                       </SelectContent>
                     </Select>
-                    
+
                     <Button variant="outline" className="flex items-center gap-1">
                       <Filter className="h-4 w-4" />
                       <span className="hidden sm:inline">Filter</span>
@@ -455,7 +483,7 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
                   </div>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mt-6">
                 {books.length > 0 ? (
                   books.map((book) => (
@@ -471,23 +499,33 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
                   <div className="col-span-full text-center py-12">
                     <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
                     <p className="text-muted-foreground">No books yet</p>
-                    <p className="text-sm text-muted-foreground mt-2">Start reading to see your books here</p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Start reading to see your books here
+                    </p>
                   </div>
                 )}
               </div>
-              
+
               <div className="mt-8 text-center">
                 <Button>Load More Books</Button>
               </div>
             </div>
           </div>
         )}
-        
-        {activeTab === "friends" && (
+
+        {activeTab === 'shelves' && (
+          <div className="profile-page__shelves-tab">
+            <div className="profile-page__tab-content">
+              <ShelfManager />
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'friends' && (
           <div className="profile-page__friends-tab">
             <div className="profile-page__tab-content">
-              <FriendList 
-                userId={params.id} 
+              <FriendList
+                userId={params.id}
                 profileOwnerId={user.id}
                 profileOwnerName={user.name}
                 profileOwnerPermalink={user.permalink}
@@ -498,7 +536,7 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
           </div>
         )}
 
-        {activeTab === "followers" && (
+        {activeTab === 'followers' && (
           <div className="profile-page__followers-tab">
             <div className="profile-page__tab-content">
               <FollowersListTab
@@ -513,24 +551,24 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
             </div>
           </div>
         )}
-        
-        {activeTab === "photos" && (
+
+        {activeTab === 'photos' && (
           <div className="profile-page__photos-tab">
             <div className="profile-page__tab-content space-y-6">
-              <EntityPhotoAlbums 
-                entityId={params.id} 
+              <EntityPhotoAlbums
+                entityId={params.id}
                 entityType="user"
-                isOwnEntity={authUser?.id === params.id} 
+                isOwnEntity={authUser?.id === params.id}
               />
             </div>
           </div>
         )}
-        
-        {activeTab === "more" && (
+
+        {activeTab === 'more' && (
           <div className="profile-page__more-tab">
             <div className="profile-page__tab-content">
               <h2 className="text-2xl font-bold mb-6">More</h2>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card>
                   <CardContent className="p-6">
@@ -557,7 +595,7 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
                     </div>
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardContent className="p-6">
                     <h3 className="text-xl font-semibold mb-4">Reading Preferences</h3>
@@ -568,7 +606,7 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
                           <span className="text-sm text-muted-foreground">67%</span>
                         </div>
                         <div className="h-2 bg-muted rounded-full overflow-hidden">
-                          <div className="h-full bg-primary" style={{ width: "67%" }}></div>
+                          <div className="h-full bg-primary" style={{ width: '67%' }}></div>
                         </div>
                       </div>
                       <div>
@@ -577,7 +615,7 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
                           <span className="text-sm text-muted-foreground">33%</span>
                         </div>
                         <div className="h-2 bg-muted rounded-full overflow-hidden">
-                          <div className="h-full bg-primary" style={{ width: "33%" }}></div>
+                          <div className="h-full bg-primary" style={{ width: '33%' }}></div>
                         </div>
                       </div>
                       <div>
@@ -586,7 +624,7 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
                           <span className="text-sm text-muted-foreground">45%</span>
                         </div>
                         <div className="h-2 bg-muted rounded-full overflow-hidden">
-                          <div className="h-full bg-primary" style={{ width: "45%" }}></div>
+                          <div className="h-full bg-primary" style={{ width: '45%' }}></div>
                         </div>
                       </div>
                       <div>
@@ -595,7 +633,7 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
                           <span className="text-sm text-muted-foreground">40%</span>
                         </div>
                         <div className="h-2 bg-muted rounded-full overflow-hidden">
-                          <div className="h-full bg-primary" style={{ width: "40%" }}></div>
+                          <div className="h-full bg-primary" style={{ width: '40%' }}></div>
                         </div>
                       </div>
                       <div>
@@ -604,21 +642,21 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
                           <span className="text-sm text-muted-foreground">15%</span>
                         </div>
                         <div className="h-2 bg-muted rounded-full overflow-hidden">
-                          <div className="h-full bg-primary" style={{ width: "15%" }}></div>
+                          <div className="h-full bg-primary" style={{ width: '15%' }}></div>
                         </div>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardContent className="p-6">
                     <h3 className="text-xl font-semibold mb-4">Events</h3>
                     <div className="space-y-4">
                       {[
-                        { name: "Portland Book Fair", date: "June 15, 2023" },
-                        { name: "Author Meet & Greet: J.K. Rowling", date: "July 8, 2023" },
-                        { name: "Book Club Meeting - The Great Gatsby", date: "August 3, 2023" }
+                        { name: 'Portland Book Fair', date: 'June 15, 2023' },
+                        { name: 'Author Meet & Greet: J.K. Rowling', date: 'July 8, 2023' },
+                        { name: 'Book Club Meeting - The Great Gatsby', date: 'August 3, 2023' },
                       ].map((event, i) => (
                         <div key={i} className="border-b pb-3 last:border-0">
                           <h4 className="font-medium">{event.name}</h4>
@@ -626,10 +664,12 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
                         </div>
                       ))}
                     </div>
-                    <Button variant="outline" className="w-full mt-4">View All Events</Button>
+                    <Button variant="outline" className="w-full mt-4">
+                      View All Events
+                    </Button>
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardContent className="p-6">
                     <h3 className="text-xl font-semibold mb-4">Settings</h3>
@@ -659,4 +699,4 @@ export function ClientProfilePage({ user, userStats, avatarUrl, coverImageUrl, f
       </div>
     </div>
   )
-} 
+}

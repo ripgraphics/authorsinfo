@@ -4,23 +4,16 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-  DropdownMenuLabel
+  DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { 
-  Bell, 
-  UserPlus, 
-  Check, 
-  X, 
-  Loader2,
-  Users
-} from 'lucide-react'
+import { Bell, UserPlus, Check, X, Loader2, Users } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { formatDistanceToNow } from 'date-fns'
 import Link from 'next/link'
@@ -48,14 +41,14 @@ export function FriendRequestNotification() {
   const [processingRequest, setProcessingRequest] = useState<string | null>(null)
   const [isOpen, setIsOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  
+
   const { toast } = useToast()
 
   useEffect(() => {
     // Only fetch if user is authenticated
     if (user) {
       fetchPendingRequests()
-      
+
       // Poll for new requests every 30 seconds
       const interval = setInterval(fetchPendingRequests, 30000)
       return () => clearInterval(interval)
@@ -77,25 +70,30 @@ export function FriendRequestNotification() {
         console.log('🔍 Fetching pending friend requests for user:', user.id)
         console.log('🔍 API endpoint: /api/friends/pending')
       }
-      
+
+      // Create abort controller for timeout with fallback
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000)
+
       const response = await fetch('/api/friends/pending', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-        // Add timeout to prevent hanging requests
-        signal: AbortSignal.timeout(10000) // 10 second timeout
+        signal: controller.signal,
       })
-      
+
+      clearTimeout(timeoutId)
+
       if (process.env.NODE_ENV === 'development') {
         console.log('📡 Response received:', {
           status: response.status,
           statusText: response.statusText,
           ok: response.ok,
-          headers: Object.fromEntries(response.headers.entries())
+          headers: Object.fromEntries(response.headers.entries()),
         })
       }
-      
+
       if (response.ok) {
         const data = await response.json()
         if (process.env.NODE_ENV === 'development') {
@@ -109,13 +107,13 @@ export function FriendRequestNotification() {
           setError(null)
           return
         }
-        
+
         // Only log non-401 errors
         if (process.env.NODE_ENV === 'development') {
           console.error('❌ Failed to fetch pending requests')
           console.error('Response status:', response.status)
           console.error('Response status text:', response.statusText)
-          
+
           // Try to get error details from response
           try {
             const errorData = await response.json()
@@ -124,7 +122,7 @@ export function FriendRequestNotification() {
             console.error('Could not parse error response:', parseError)
           }
         }
-        
+
         if (response.status === 403) {
           setError('Access denied')
         } else if (response.status >= 500) {
@@ -134,26 +132,39 @@ export function FriendRequestNotification() {
         }
       }
     } catch (error) {
-      // Only log errors in development, and skip network errors for 401s
-      if (process.env.NODE_ENV === 'development' && error instanceof Error && !error.message.includes('401')) {
-        console.error('❌ Error fetching pending requests:', error)
-      }
-      
+      // Handle errors gracefully - network errors are handled silently
+
       if (error instanceof Error) {
-        if (error.name === 'AbortError') {
-          setError('Request timed out')
-        } else if (error.message.includes('Failed to fetch')) {
-          console.error('🔍 Network error details:', {
-            message: error.message,
-            name: error.name,
-            stack: error.stack
-          })
-          setError('Network error - please check your connection')
+        if (error.name === 'AbortError' || error.message.includes('aborted')) {
+          // Request was aborted (timeout or cancelled)
+          setError(null) // Don't show error for timeouts, just silently fail
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Request aborted:', error.message)
+          }
+        } else if (
+          error.message.includes('Failed to fetch') ||
+          error.message.includes('network') ||
+          error.name === 'TypeError'
+        ) {
+          // Network errors - handle gracefully without showing error to user
+          // These are usually transient connection issues
+          setError(null) // Don't show error state for network failures
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Network error (handled silently):', error.message)
+          }
         } else {
-          setError('An unexpected error occurred')
+          // Other errors - only log in development
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Error fetching pending requests:', error)
+          }
+          setError('Unable to load friend requests')
         }
       } else {
-        setError('An unknown error occurred')
+        // Unknown error type
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Unknown error fetching pending requests:', error)
+        }
+        setError(null) // Don't show error for unknown errors either
       }
     } finally {
       setIsLoading(false)
@@ -163,8 +174,8 @@ export function FriendRequestNotification() {
   const handleRequestAction = async (requestId: string, action: 'accept' | 'reject') => {
     if (!user) {
       toast({
-        title: "Authentication Error",
-        description: "Please log in to perform this action",
+        title: 'Authentication Error',
+        description: 'Please log in to perform this action',
         variant: 'destructive',
       })
       return
@@ -173,15 +184,21 @@ export function FriendRequestNotification() {
     try {
       setProcessingRequest(requestId)
       console.log('Sending request to update friend request:', { requestId, action })
-      
+
+      // Create abort controller for timeout with fallback
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000)
+
       const response = await fetch('/api/friends', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ requestId, action }),
-        signal: AbortSignal.timeout(10000) // 10 second timeout
+        signal: controller.signal,
       })
+
+      clearTimeout(timeoutId)
 
       console.log('Response status:', response.status)
       const responseData = await response.json()
@@ -189,43 +206,41 @@ export function FriendRequestNotification() {
 
       if (response.ok) {
         // Remove the request from the list
-        setRequests(prev => prev.filter(req => req.id !== requestId))
-        
+        setRequests((prev) => prev.filter((req) => req.id !== requestId))
+
         // Refresh the pending requests to ensure we have the latest data
         await fetchPendingRequests()
-        
+
         // If accepting, refresh the page to update friend counts in profile headers
         if (action === 'accept') {
           // Use router.refresh() to re-fetch server components and update friend counts
           router.refresh()
         }
-        
+
         toast({
           title: `Friend request ${action}ed!`,
-          description: action === 'accept' 
-            ? 'You are now friends!' 
-            : 'Friend request rejected',
+          description: action === 'accept' ? 'You are now friends!' : 'Friend request rejected',
         })
       } else {
         console.error('Failed to update friend request:', responseData)
         toast({
-          title: "Error",
+          title: 'Error',
           description: `Failed to ${action} friend request`,
           variant: 'destructive',
         })
       }
     } catch (error) {
       console.error(`Error ${action}ing friend request:`, error)
-      
+
       if (error instanceof Error && error.name === 'AbortError') {
         toast({
-          title: "Request Timeout",
-          description: "The request took too long. Please try again.",
+          title: 'Request Timeout',
+          description: 'The request took too long. Please try again.',
           variant: 'destructive',
         })
       } else {
         toast({
-          title: "Error",
+          title: 'Error',
           description: `Failed to ${action} friend request`,
           variant: 'destructive',
         })
@@ -248,8 +263,8 @@ export function FriendRequestNotification() {
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
           {pendingCount > 0 && (
-            <Badge 
-              variant="destructive" 
+            <Badge
+              variant="destructive"
               className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
             >
               {pendingCount > 9 ? '9+' : pendingCount}
@@ -257,7 +272,7 @@ export function FriendRequestNotification() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      
+
       <DropdownMenuContent align="end" className="w-80">
         <DropdownMenuLabel className="flex items-center justify-between">
           <span>Friend Requests</span>
@@ -267,9 +282,9 @@ export function FriendRequestNotification() {
             </Badge>
           )}
         </DropdownMenuLabel>
-        
+
         <DropdownMenuSeparator />
-        
+
         {isLoading ? (
           <div className="flex items-center justify-center p-4">
             <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -278,12 +293,7 @@ export function FriendRequestNotification() {
         ) : error ? (
           <div className="p-4 text-center">
             <p className="text-sm text-muted-foreground mb-2">{error}</p>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={fetchPendingRequests}
-              className="w-full"
-            >
+            <Button variant="outline" size="sm" onClick={fetchPendingRequests} className="w-full">
               Retry
             </Button>
           </div>
@@ -304,7 +314,7 @@ export function FriendRequestNotification() {
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <Link 
+                    <Link
                       href={getProfileUrlFromUser(request.user)}
                       className="font-medium text-sm hover:underline truncate block"
                       onClick={() => setIsOpen(false)}
@@ -316,7 +326,7 @@ export function FriendRequestNotification() {
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex gap-2">
                   <Button
                     size="sm"
@@ -353,4 +363,4 @@ export function FriendRequestNotification() {
       </DropdownMenuContent>
     </DropdownMenu>
   )
-} 
+}

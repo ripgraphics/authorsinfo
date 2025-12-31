@@ -1,43 +1,72 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Loader2, AlertCircle, CheckCircle, XCircle, Search, BookPlus, User, Building } from "lucide-react"
+import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import {
+  Loader2,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
+  Search,
+  BookPlus,
+  User,
+  Building,
+} from 'lucide-react'
 import {
   getDbAuthors,
   getDbPublishers,
   getBooksByAuthorName,
   getBooksByPublisherName,
   importBooksByEntity,
-} from "@/app/actions/import-by-entity"
-import { searchAuthors, searchPublishers } from "@/lib/isbndb"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { checkForDuplicates } from "@/app/actions/bulk-import-books"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
+} from '@/app/actions/import-by-entity'
+import { searchAuthors, searchPublishers } from '@/lib/isbndb'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { checkForDuplicates } from '@/app/actions/bulk-import-books'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
 
 export default function ImportByEntityPage() {
   // State for tabs
-  const [activeTab, setActiveTab] = useState<string>("author")
-  const [activeSubTab, setActiveSubTab] = useState<string>("existing")
+  const [activeTab, setActiveTab] = useState<string>('author')
+  const [activeSubTab, setActiveSubTab] = useState<string>('existing')
 
   // State for authors
   const [dbAuthors, setDbAuthors] = useState<any[]>([])
-  const [selectedAuthorId, setSelectedAuthorId] = useState<string>("")
-  const [selectedAuthorName, setSelectedAuthorName] = useState<string>("")
-  const [authorSearchQuery, setAuthorSearchQuery] = useState<string>("")
+  const [selectedAuthorId, setSelectedAuthorId] = useState<string>('')
+  const [selectedAuthorName, setSelectedAuthorName] = useState<string>('')
+  const [authorSearchQuery, setAuthorSearchQuery] = useState<string>('')
   const [authorSearchResults, setAuthorSearchResults] = useState<string[]>([])
 
   // State for publishers
   const [dbPublishers, setDbPublishers] = useState<any[]>([])
-  const [selectedPublisherId, setSelectedPublisherId] = useState<string>("")
-  const [selectedPublisherName, setSelectedPublisherName] = useState<string>("")
-  const [publisherSearchQuery, setPublisherSearchQuery] = useState<string>("")
+  const [selectedPublisherId, setSelectedPublisherId] = useState<string>('')
+  const [selectedPublisherName, setSelectedPublisherName] = useState<string>('')
+  const [publisherSearchQuery, setPublisherSearchQuery] = useState<string>('')
   const [publisherSearchResults, setPublisherSearchResults] = useState<string[]>([])
 
   // State for books
@@ -94,7 +123,7 @@ export default function ImportByEntityPage() {
       const results = await searchAuthors(authorSearchQuery)
       setAuthorSearchResults(results)
     } catch (error) {
-      console.error("Author search error:", error)
+      console.error('Author search error:', error)
     } finally {
       setSearching(false)
     }
@@ -109,7 +138,7 @@ export default function ImportByEntityPage() {
       const results = await searchPublishers(publisherSearchQuery)
       setPublisherSearchResults(results)
     } catch (error) {
-      console.error("Publisher search error:", error)
+      console.error('Publisher search error:', error)
     } finally {
       setSearching(false)
     }
@@ -129,7 +158,7 @@ export default function ImportByEntityPage() {
       // Auto-select all books
       setSelectedBooks(new Set(isbns))
     } catch (error) {
-      console.error("Error loading books by author:", error)
+      console.error('Error loading books by author:', error)
     } finally {
       setLoading(false)
     }
@@ -149,7 +178,7 @@ export default function ImportByEntityPage() {
       // Auto-select all books
       setSelectedBooks(new Set(isbns))
     } catch (error) {
-      console.error("Error loading books by publisher:", error)
+      console.error('Error loading books by publisher:', error)
     } finally {
       setLoading(false)
     }
@@ -191,7 +220,7 @@ export default function ImportByEntityPage() {
 
       setDuplicates(result.duplicates)
     } catch (error) {
-      console.error("Error checking duplicates:", error)
+      console.error('Error checking duplicates:', error)
     } finally {
       setChecking(false)
     }
@@ -205,14 +234,14 @@ export default function ImportByEntityPage() {
     setImportResult(null)
 
     try {
-      const entityType = activeTab as "author" | "publisher"
-      const entityName = entityType === "author" ? selectedAuthorName : selectedPublisherName
+      const entityType = activeTab as 'author' | 'publisher'
+      const entityName = entityType === 'author' ? selectedAuthorName : selectedPublisherName
       const selectedIsbns = Array.from(selectedBooks)
 
       const result = await importBooksByEntity(entityType, entityName, selectedIsbns)
       setImportResult(result)
     } catch (error) {
-      console.error("Import error:", error)
+      console.error('Import error:', error)
       setImportResult({ error: String(error) })
     } finally {
       setLoading(false)
@@ -235,7 +264,9 @@ export default function ImportByEntityPage() {
     <div className="book-page container mx-auto py-8">
       <div className="flex flex-col space-y-4">
         <h1 className="text-3xl font-bold">Import Books by Author or Publisher</h1>
-        <p className="text-gray-500">Add all books by a specific author or publisher to your library.</p>
+        <p className="text-gray-500">
+          Add all books by a specific author or publisher to your library.
+        </p>
 
         <Tabs defaultValue="author" onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2">
@@ -253,7 +284,9 @@ export default function ImportByEntityPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Import Books by Author</CardTitle>
-                <CardDescription>Select an existing author from your database or search for a new one.</CardDescription>
+                <CardDescription>
+                  Select an existing author from your database or search for a new one.
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <Tabs defaultValue="existing" onValueChange={setActiveSubTab}>
@@ -286,9 +319,12 @@ export default function ImportByEntityPage() {
                           placeholder="Search for an author..."
                           value={authorSearchQuery}
                           onChange={(e) => setAuthorSearchQuery(e.target.value)}
-                          onKeyDown={(e) => e.key === "Enter" && handleAuthorSearch()}
+                          onKeyDown={(e) => e.key === 'Enter' && handleAuthorSearch()}
                         />
-                        <Button onClick={handleAuthorSearch} disabled={searching || !authorSearchQuery.trim()}>
+                        <Button
+                          onClick={handleAuthorSearch}
+                          disabled={searching || !authorSearchQuery.trim()}
+                        >
                           {searching ? (
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           ) : (
@@ -312,7 +348,11 @@ export default function ImportByEntityPage() {
                                 <TableRow key={index}>
                                   <TableCell>{author}</TableCell>
                                   <TableCell>
-                                    <Button size="sm" variant="outline" onClick={() => selectAuthorFromSearch(author)}>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => selectAuthorFromSearch(author)}
+                                    >
                                       Select
                                     </Button>
                                   </TableCell>
@@ -378,28 +418,28 @@ export default function ImportByEntityPage() {
                             </TableHeader>
                             <TableBody>
                               {books.map((book, index) => {
-                                const isbn = book.isbn13 || book.isbn;
-                                const uniqueKey = `${isbn}-${index}-${book.title?.slice(0, 20) || ''}`;
+                                const isbn = book.isbn13 || book.isbn
+                                const uniqueKey = `${isbn}-${index}-${book.title?.slice(0, 20) || ''}`
                                 return (
-                                <TableRow
-                                  key={uniqueKey}
-                                  className="cursor-pointer hover:bg-gray-50"
-                                  onClick={() => toggleBookSelection(isbn)}
-                                >
-                                  <TableCell>
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedBooks.has(isbn)}
-                                      onChange={() => toggleBookSelection(isbn)}
-                                      className="h-4 w-4"
-                                    />
-                                  </TableCell>
-                                  <TableCell>{book.title}</TableCell>
-                                  <TableCell>{isbn}</TableCell>
-                                  <TableCell>{book.publisher}</TableCell>
-                                  <TableCell>{book.publish_date}</TableCell>
-                                </TableRow>
-                                );
+                                  <TableRow
+                                    key={uniqueKey}
+                                    className="cursor-pointer hover:bg-gray-50"
+                                    onClick={() => toggleBookSelection(isbn)}
+                                  >
+                                    <TableCell>
+                                      <input
+                                        type="checkbox"
+                                        checked={selectedBooks.has(isbn)}
+                                        onChange={() => toggleBookSelection(isbn)}
+                                        className="h-4 w-4"
+                                      />
+                                    </TableCell>
+                                    <TableCell>{book.title}</TableCell>
+                                    <TableCell>{isbn}</TableCell>
+                                    <TableCell>{book.publisher}</TableCell>
+                                    <TableCell>{book.publish_date}</TableCell>
+                                  </TableRow>
+                                )
                               })}
                             </TableBody>
                           </Table>
@@ -407,7 +447,9 @@ export default function ImportByEntityPage() {
                       ) : (
                         selectedAuthorName &&
                         !loading && (
-                          <div className="text-center py-8 text-gray-500">No books found for this author.</div>
+                          <div className="text-center py-8 text-gray-500">
+                            No books found for this author.
+                          </div>
                         )
                       )}
 
@@ -429,7 +471,10 @@ export default function ImportByEntityPage() {
                               )}
                               Check Duplicates
                             </Button>
-                            <Button onClick={handleImport} disabled={loading || selectedBooks.size === 0}>
+                            <Button
+                              onClick={handleImport}
+                              disabled={loading || selectedBooks.size === 0}
+                            >
                               {loading ? (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                               ) : (
@@ -503,9 +548,12 @@ export default function ImportByEntityPage() {
                           placeholder="Search for a publisher..."
                           value={publisherSearchQuery}
                           onChange={(e) => setPublisherSearchQuery(e.target.value)}
-                          onKeyDown={(e) => e.key === "Enter" && handlePublisherSearch()}
+                          onKeyDown={(e) => e.key === 'Enter' && handlePublisherSearch()}
                         />
-                        <Button onClick={handlePublisherSearch} disabled={searching || !publisherSearchQuery.trim()}>
+                        <Button
+                          onClick={handlePublisherSearch}
+                          disabled={searching || !publisherSearchQuery.trim()}
+                        >
                           {searching ? (
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           ) : (
@@ -614,7 +662,7 @@ export default function ImportByEntityPage() {
                                   </TableCell>
                                   <TableCell>{book.title}</TableCell>
                                   <TableCell>{book.isbn13 || book.isbn}</TableCell>
-                                  <TableCell>{book.authors?.join(", ")}</TableCell>
+                                  <TableCell>{book.authors?.join(', ')}</TableCell>
                                   <TableCell>{book.publish_date}</TableCell>
                                 </TableRow>
                               ))}
@@ -624,7 +672,9 @@ export default function ImportByEntityPage() {
                       ) : (
                         selectedPublisherName &&
                         !loading && (
-                          <div className="text-center py-8 text-gray-500">No books found for this publisher.</div>
+                          <div className="text-center py-8 text-gray-500">
+                            No books found for this publisher.
+                          </div>
                         )
                       )}
 
@@ -646,7 +696,10 @@ export default function ImportByEntityPage() {
                               )}
                               Check Duplicates
                             </Button>
-                            <Button onClick={handleImport} disabled={loading || selectedBooks.size === 0}>
+                            <Button
+                              onClick={handleImport}
+                              disabled={loading || selectedBooks.size === 0}
+                            >
                               {loading ? (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                               ) : (
@@ -731,7 +784,7 @@ export default function ImportByEntityPage() {
               )}
             </CardContent>
             <CardFooter>
-              <Button variant="outline" onClick={() => (window.location.href = "/books")}>
+              <Button variant="outline" onClick={() => (window.location.href = '/books')}>
                 Go to Books
               </Button>
             </CardFooter>

@@ -1,10 +1,10 @@
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { useToast } from "@/components/ui/use-toast"
-import { createBrowserClient } from "@supabase/ssr"
-import type { Database } from "@/types/database"
-import { Trash2, GripVertical, Eye } from "lucide-react"
-import { PhotoViewerModal } from "./photo-viewer-modal"
+import { useState } from 'react'
+import Image from 'next/image'
+import { Button } from '@/components/ui/button'
+import { useToast } from '@/components/ui/use-toast'
+import { createBrowserClient } from '@supabase/ssr'
+import { Trash2, GripVertical, Eye } from 'lucide-react'
+import { PhotoViewerModal } from './photo-viewer-modal'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,7 +14,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+} from '@/components/ui/alert-dialog'
 
 interface PhotoManagerProps {
   photos: {
@@ -27,19 +27,17 @@ interface PhotoManagerProps {
   onPhotosUpdated?: () => void
 }
 
-export function PhotoManager({
-  photos,
-  albumId,
-  onPhotosUpdated
-}: PhotoManagerProps) {
+export function PhotoManager({ photos, albumId, onPhotosUpdated }: PhotoManagerProps) {
   const [isViewerOpen, setIsViewerOpen] = useState(false)
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [photoToDelete, setPhotoToDelete] = useState<string | null>(null)
-  const [isDragging, setIsDragging] = useState(false)
   const [draggedPhotoId, setDraggedPhotoId] = useState<string | null>(null)
   const { toast } = useToast()
-  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   const handlePhotoClick = (index: number) => {
     setSelectedPhotoIndex(index)
@@ -67,23 +65,20 @@ export function PhotoManager({
       }
 
       // Delete the image record
-      const { error: imageError } = await supabase
-        .from('images')
-        .delete()
-        .eq('id', photoToDelete)
+      const { error: imageError } = await supabase.from('images').delete().eq('id', photoToDelete)
 
       if (imageError) throw imageError
 
       toast({
-        title: "Success",
-        description: "Photo deleted successfully"
+        title: 'Success',
+        description: 'Photo deleted successfully',
       })
       onPhotosUpdated?.()
     } catch (error) {
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to delete photo",
-        variant: "destructive"
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to delete photo',
+        variant: 'destructive',
       })
     } finally {
       setIsDeleteDialogOpen(false)
@@ -92,7 +87,6 @@ export function PhotoManager({
   }
 
   const handleDragStart = (photoId: string) => {
-    setIsDragging(true)
     setDraggedPhotoId(photoId)
   }
 
@@ -105,9 +99,9 @@ export function PhotoManager({
 
     try {
       // Get current order of both photos
-      const draggedPhoto = photos.find(p => p.id === draggedPhotoId)
-      const targetPhoto = photos.find(p => p.id === targetPhotoId)
-      
+      const draggedPhoto = photos.find((p) => p.id === draggedPhotoId)
+      const targetPhoto = photos.find((p) => p.id === targetPhotoId)
+
       if (!draggedPhoto || !targetPhoto) return
 
       // Update the order in album_images
@@ -131,12 +125,11 @@ export function PhotoManager({
       onPhotosUpdated?.()
     } catch (error) {
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to reorder photos",
-        variant: "destructive"
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to reorder photos',
+        variant: 'destructive',
       })
     } finally {
-      setIsDragging(false)
       setDraggedPhotoId(null)
     }
   }
@@ -154,10 +147,12 @@ export function PhotoManager({
               onDragOver={handleDragOver}
               onDrop={() => handleDrop(photo.id)}
             >
-              <img
+              <Image
                 src={photo.url}
-                alt={photo.alt || "Photo"}
-                className="object-cover w-full h-full"
+                alt={photo.alt || 'Photo'}
+                fill
+                className="object-cover"
+                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
               />
               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                 <Button
@@ -208,12 +203,10 @@ export function PhotoManager({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm}>
-              Delete
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleDeleteConfirm}>Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>
   )
-} 
+}

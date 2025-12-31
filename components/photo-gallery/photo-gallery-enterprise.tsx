@@ -82,234 +82,256 @@ interface AlbumState {
   images: (AlbumImage & { image: Image })[]
 }
 
-export function PhotoGallery({ 
-  entityId, 
-  entityType, 
-  initialAlbumId, 
+export function PhotoGallery({
+  entityId,
+  entityType,
+  initialAlbumId,
   isEditable = true,
   showStats = true,
   showShare = true,
   maxImages = 1000,
   className = '',
-  onPhotosUploaded
+  onPhotosUploaded,
 }: PhotoGalleryProps) {
   const [currentAlbumId, setCurrentAlbumId] = useState<string | undefined>(initialAlbumId)
   const [albumState, setAlbumState] = useState<AlbumState>({
     isLoading: false,
     error: null,
     album: null,
-    images: []
+    images: [],
   })
   const [showCreateAlbum, setShowCreateAlbum] = useState(false)
   const [newAlbumName, setNewAlbumName] = useState('')
 
-  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   // Load album and images
-  const loadAlbum = useCallback(async (albumId: string) => {
-    setAlbumState(prev => ({ ...prev, isLoading: true, error: null }))
+  const loadAlbum = useCallback(
+    async (albumId: string) => {
+      setAlbumState((prev) => ({ ...prev, isLoading: true, error: null }))
 
-    try {
-      // Get album details
-      const { data: album, error: albumError } = await supabase
-        .from('photo_albums')
-        .select('*')
-        .eq('id', albumId)
-        .eq('entity_id', entityId)
-        .eq('entity_type', entityType)
-        .is('deleted_at', null)
-        .single()
+      try {
+        // Get album details
+        const { data: album, error: albumError } = await supabase
+          .from('photo_albums')
+          .select('*')
+          .eq('id', albumId)
+          .eq('entity_id', entityId)
+          .eq('entity_type', entityType)
+          .is('deleted_at', null)
+          .single()
 
-      if (albumError) {
-        if (albumError.code === 'PGRST116') {
-          // Album not found, clear current album
-          setCurrentAlbumId(undefined)
-          setAlbumState(prev => ({ 
-            ...prev, 
-            isLoading: false, 
-            album: null, 
-            images: [] 
-          }))
-          return
+        if (albumError) {
+          if (albumError.code === 'PGRST116') {
+            // Album not found, clear current album
+            setCurrentAlbumId(undefined)
+            setAlbumState((prev) => ({
+              ...prev,
+              isLoading: false,
+              album: null,
+              images: [],
+            }))
+            return
+          }
+          throw albumError
         }
-        throw albumError
-      }
 
-      // Get album images with image details
-      const { data: albumImages, error: imagesError } = await supabase
-        .from('album_images')
-        .select(`
+        // Get album images with image details
+        const { data: albumImages, error: imagesError } = await supabase
+          .from('album_images')
+          .select(
+            `
           *,
           image:images(*)
-        `)
-        .eq('album_id', albumId)
-        .order('display_order', { ascending: true })
+        `
+          )
+          .eq('album_id', albumId)
+          .order('display_order', { ascending: true })
 
-      if (imagesError) throw imagesError
+        if (imagesError) throw imagesError
 
-      setAlbumState({
-        isLoading: false,
-        error: null,
-        album,
-        images: albumImages || []
-      })
-    } catch (error) {
-      console.error('Error loading album:', error)
-      setAlbumState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: error instanceof Error ? error.message : 'Failed to load album'
-      }))
-    }
-  }, [supabase, entityId, entityType])
+        setAlbumState({
+          isLoading: false,
+          error: null,
+          album,
+          images: albumImages || [],
+        })
+      } catch (error) {
+        console.error('Error loading album:', error)
+        setAlbumState((prev) => ({
+          ...prev,
+          isLoading: false,
+          error: error instanceof Error ? error.message : 'Failed to load album',
+        }))
+      }
+    },
+    [supabase, entityId, entityType]
+  )
 
   // Create new album
-  const createAlbum = useCallback(async (name: string, description?: string): Promise<PhotoAlbum> => {
-    try {
-      const { data, error } = await supabase
-        .from('photo_albums')
-        .insert({
-          name,
-          description,
-          owner_id: entityId, // Assuming entityId is the user ID for user albums
-          entity_id: entityId,
-          entity_type: entityType,
-          is_public: false,
-          metadata: {
-            total_images: 0,
-            total_size: 0,
-            last_modified: new Date().toISOString()
-          }
-        })
-        .select()
-        .single()
+  const createAlbum = useCallback(
+    async (name: string, description?: string): Promise<PhotoAlbum> => {
+      try {
+        const { data, error } = await supabase
+          .from('photo_albums')
+          .insert({
+            name,
+            description,
+            owner_id: entityId, // Assuming entityId is the user ID for user albums
+            entity_id: entityId,
+            entity_type: entityType,
+            is_public: false,
+            metadata: {
+              total_images: 0,
+              total_size: 0,
+              last_modified: new Date().toISOString(),
+            },
+          })
+          .select()
+          .single()
 
-      if (error) throw error
-      return data
-    } catch (error) {
-      console.error('Error creating album:', error)
-      throw error
-    }
-  }, [supabase, entityId, entityType])
+        if (error) throw error
+        return data
+      } catch (error) {
+        console.error('Error creating album:', error)
+        throw error
+      }
+    },
+    [supabase, entityId, entityType]
+  )
 
   // Add image to album
-  const addImageToAlbum = useCallback(async (albumId: string, imageId: string, displayOrder?: number) => {
-    try {
-      const { error } = await supabase
-        .from('album_images')
-        .insert({
+  const addImageToAlbum = useCallback(
+    async (albumId: string, imageId: string, displayOrder?: number) => {
+      try {
+        const { error } = await supabase.from('album_images').insert({
           album_id: albumId,
           image_id: imageId,
           display_order: displayOrder || 0,
           is_cover: false,
-          is_featured: false
+          is_featured: false,
         })
 
-      if (error) throw error
+        if (error) throw error
 
-      // Reload album to get updated images
-      await loadAlbum(albumId)
-    } catch (error) {
-      console.error('Error adding image to album:', error)
-      throw error
-    }
-  }, [supabase, loadAlbum])
+        // Reload album to get updated images
+        await loadAlbum(albumId)
+      } catch (error) {
+        console.error('Error adding image to album:', error)
+        throw error
+      }
+    },
+    [supabase, loadAlbum]
+  )
 
   // Remove image from album
-  const removeImageFromAlbum = useCallback(async (albumId: string, imageId: string) => {
-    try {
-      const { error } = await supabase
-        .from('album_images')
-        .delete()
-        .eq('album_id', albumId)
-        .eq('image_id', imageId)
+  const removeImageFromAlbum = useCallback(
+    async (albumId: string, imageId: string) => {
+      try {
+        const { error } = await supabase
+          .from('album_images')
+          .delete()
+          .eq('album_id', albumId)
+          .eq('image_id', imageId)
 
-      if (error) throw error
+        if (error) throw error
 
-      // Reload album to get updated images
-      await loadAlbum(albumId)
-    } catch (error) {
-      console.error('Error removing image from album:', error)
-      throw error
-    }
-  }, [supabase, loadAlbum])
+        // Reload album to get updated images
+        await loadAlbum(albumId)
+      } catch (error) {
+        console.error('Error removing image from album:', error)
+        throw error
+      }
+    },
+    [supabase, loadAlbum]
+  )
 
   // Handle file upload
-  const handleFileUpload = useCallback(async (files: File[]) => {
-    console.log('Upload started with files:', files.length)
-    
-    try {
-      if (!currentAlbumId) {
-        console.log('Creating new album...')
-        // Create a new album if none exists
-        const album = await createAlbum('Photo Album')
-        setCurrentAlbumId(album.id)
-        await loadAlbum(album.id)
-      }
+  const handleFileUpload = useCallback(
+    async (files: File[]) => {
+      console.log('Upload started with files:', files.length)
 
-      console.log('Uploading files to album:', currentAlbumId)
-
-      // Track uploaded photo IDs for callback
-      const uploadedPhotoIds: string[] = []
-
-      // Upload files to storage and create image records
-      for (const file of files) {
-        console.log('Processing file:', file.name, 'Size:', file.size, 'Type:', file.type)
-        
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
-          console.error('Invalid file type:', file.type)
-          throw new Error(`Invalid file type: ${file.type}. Only images are allowed.`)
+      try {
+        if (!currentAlbumId) {
+          console.log('Creating new album...')
+          // Create a new album if none exists
+          const album = await createAlbum('Photo Album')
+          setCurrentAlbumId(album.id)
+          await loadAlbum(album.id)
         }
-        
-        // Validate file size (10MB limit)
-        if (file.size > 10 * 1024 * 1024) {
-          console.error('File too large:', file.size)
-          throw new Error(`File too large: ${(file.size / 1024 / 1024).toFixed(2)}MB. Maximum size is 10MB.`)
+
+        console.log('Uploading files to album:', currentAlbumId)
+
+        // Track uploaded photo IDs for callback
+        const uploadedPhotoIds: string[] = []
+
+        // Upload files to storage and create image records
+        for (const file of files) {
+          console.log('Processing file:', file.name, 'Size:', file.size, 'Type:', file.type)
+
+          // Validate file type
+          if (!file.type.startsWith('image/')) {
+            console.error('Invalid file type:', file.type)
+            throw new Error(`Invalid file type: ${file.type}. Only images are allowed.`)
+          }
+
+          // Validate file size (10MB limit)
+          if (file.size > 10 * 1024 * 1024) {
+            console.error('File too large:', file.size)
+            throw new Error(
+              `File too large: ${(file.size / 1024 / 1024).toFixed(2)}MB. Maximum size is 10MB.`
+            )
+          }
+
+          // Upload to Cloudinary using server action
+          console.log('Uploading to Cloudinary via server action...')
+
+          const uploadResult = await uploadPhoto(file, entityType, entityId, currentAlbumId)
+
+          console.log('File uploaded to Cloudinary successfully:', {
+            fileName: file.name,
+            publicUrl: uploadResult.url,
+            publicId: uploadResult.publicId,
+            imageId: uploadResult.imageId,
+          })
+
+          uploadedPhotoIds.push(uploadResult.imageId)
         }
-        
-        // Upload to Cloudinary using server action
-        console.log('Uploading to Cloudinary via server action...')
 
-        const uploadResult = await uploadPhoto(file, entityType, entityId, currentAlbumId)
+        console.log('All files uploaded successfully')
 
-        console.log('File uploaded to Cloudinary successfully:', {
-          fileName: file.name,
-          publicUrl: uploadResult.url,
-          publicId: uploadResult.publicId,
-          imageId: uploadResult.imageId
-        })
-        
-        uploadedPhotoIds.push(uploadResult.imageId)
-      }
+        // Reload the album to show the new images
+        if (currentAlbumId) {
+          await loadAlbum(currentAlbumId)
+        }
 
-      console.log('All files uploaded successfully')
-      
-      // Reload the album to show the new images
-      if (currentAlbumId) {
-        await loadAlbum(currentAlbumId)
+        // Notify parent component of successful upload
+        if (onPhotosUploaded && uploadedPhotoIds.length > 0) {
+          onPhotosUploaded(uploadedPhotoIds)
+        }
+      } catch (error) {
+        console.error('Error uploading files:', error)
+        // Show user-friendly error message
+        alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
       }
-      
-      // Notify parent component of successful upload
-      if (onPhotosUploaded && uploadedPhotoIds.length > 0) {
-        onPhotosUploaded(uploadedPhotoIds)
-      }
-      
-    } catch (error) {
-      console.error('Error uploading files:', error)
-      // Show user-friendly error message
-      alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
-    }
-  }, [currentAlbumId, createAlbum, loadAlbum, addImageToAlbum, supabase, entityType, entityId])
+    },
+    [currentAlbumId, createAlbum, loadAlbum, addImageToAlbum, supabase, entityType, entityId]
+  )
 
   // Handle image deletion
-  const handleImageDelete = useCallback(async (imageId: string) => {
-    try {
-      await removeImageFromAlbum(currentAlbumId!, imageId)
-    } catch (error) {
-      console.error('Error deleting image:', error)
-    }
-  }, [currentAlbumId, removeImageFromAlbum])
+  const handleImageDelete = useCallback(
+    async (imageId: string) => {
+      try {
+        await removeImageFromAlbum(currentAlbumId!, imageId)
+      } catch (error) {
+        console.error('Error deleting image:', error)
+      }
+    },
+    [currentAlbumId, removeImageFromAlbum]
+  )
 
   // Handle album creation
   const handleCreateAlbum = useCallback(async () => {
@@ -350,10 +372,7 @@ export function PhotoGallery({
           showShare={showShare}
           onUpload={handleFileUpload}
         />
-        <PhotoGalleryEmpty
-          isEditable={isEditable}
-          onUpload={handleFileUpload}
-        />
+        <PhotoGalleryEmpty isEditable={isEditable} onUpload={handleFileUpload} />
       </div>
     )
   }
@@ -363,12 +382,9 @@ export function PhotoGallery({
       <div className="photo-gallery-empty">
         <div className="photo-gallery-empty-icon">📸</div>
         <div className="photo-gallery-empty-text">No album selected</div>
-            <button
-              className="photo-gallery-button"
-            onClick={() => setShowCreateAlbum(true)}
-          >
-            Create Album
-          </button>
+        <button className="photo-gallery-button" onClick={() => setShowCreateAlbum(true)}>
+          Create Album
+        </button>
       </div>
     )
   }
@@ -385,10 +401,7 @@ export function PhotoGallery({
           showShare={showShare}
           onUpload={handleFileUpload}
         />
-        <PhotoGalleryEmpty
-          isEditable={isEditable}
-          onUpload={handleFileUpload}
-        />
+        <PhotoGalleryEmpty isEditable={isEditable} onUpload={handleFileUpload} />
       </div>
     )
   }
@@ -405,7 +418,7 @@ export function PhotoGallery({
         onUpload={handleFileUpload}
       />
       <PhotoGalleryGrid
-        images={albumState.images.map(ai => ({
+        images={albumState.images.map((ai) => ({
           id: ai.image.id,
           url: ai.image.url,
           filename: ai.image.original_filename || 'image',
@@ -416,7 +429,7 @@ export function PhotoGallery({
             width: ai.image.width || 0,
             height: ai.image.height || 0,
             uploaded_at: ai.image.created_at,
-            ...ai.image.metadata
+            ...ai.image.metadata,
           },
           albumId: ai.album_id,
           entityType: entityType,
@@ -426,7 +439,7 @@ export function PhotoGallery({
           isFeatured: ai.is_featured,
           displayOrder: ai.display_order,
           createdAt: ai.image.created_at,
-          updatedAt: ai.image.updated_at
+          updatedAt: ai.image.updated_at,
         }))}
         gridCols={3}
         isEditable={isEditable}
@@ -449,4 +462,4 @@ export function PhotoGallery({
       />
     </div>
   )
-} 
+}

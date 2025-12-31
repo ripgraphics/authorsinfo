@@ -33,173 +33,189 @@ export function usePhotoGalleryAI(albumId?: string) {
   const [processingJobs, setProcessingJobs] = useState<AIProcessingJob[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  
-  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
-  const analyzeImage = useCallback(async (imageId: string, analysisTypes: string[] = ['content', 'quality', 'sentiment']) => {
-    setIsLoading(true)
-    setError(null)
-    
-    try {
-      const { data, error } = await supabase
-        .from('ai_image_analysis')
-        .insert({
-          image_id: imageId,
-          analysis_type: analysisTypes[0],
-          confidence_score: 0.85,
-          tags: ['automated', 'ai_generated'],
-          objects_detected: { objects: ['person', 'book', 'nature'] },
-          quality_metrics: { sharpness: 0.9, brightness: 0.8, contrast: 0.7 },
-          sentiment_score: 0.6,
-          content_safety_score: 0.95,
-          moderation_flags: [],
-          processing_time_ms: 1200,
-          model_version: 'v2.1'
-        })
-        .select()
-        .single()
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
-      if (error) throw error
+  const analyzeImage = useCallback(
+    async (imageId: string, analysisTypes: string[] = ['content', 'quality', 'sentiment']) => {
+      setIsLoading(true)
+      setError(null)
 
-      // Create processing job
-      await supabase
-        .from('image_processing_jobs')
-        .insert({
+      try {
+        const { data, error } = await supabase
+          .from('ai_image_analysis')
+          .insert({
+            image_id: imageId,
+            analysis_type: analysisTypes[0],
+            confidence_score: 0.85,
+            tags: ['automated', 'ai_generated'],
+            objects_detected: { objects: ['person', 'book', 'nature'] },
+            quality_metrics: { sharpness: 0.9, brightness: 0.8, contrast: 0.7 },
+            sentiment_score: 0.6,
+            content_safety_score: 0.95,
+            moderation_flags: [],
+            processing_time_ms: 1200,
+            model_version: 'v2.1',
+          })
+          .select()
+          .single()
+
+        if (error) throw error
+
+        // Create processing job
+        await supabase.from('image_processing_jobs').insert({
           image_id: imageId,
           job_type: 'ai_analysis',
           status: 'completed',
           priority: 8,
           parameters: { analysis_types: analysisTypes },
-          processing_time_ms: 1200
+          processing_time_ms: 1200,
         })
 
-      setAiAnalysis(prev => [...prev, data])
-      return data
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to analyze image')
-      throw err
-    } finally {
-      setIsLoading(false)
-    }
-  }, [supabase])
+        setAiAnalysis((prev) => [...prev, data])
+        return data
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to analyze image')
+        throw err
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [supabase]
+  )
 
-  const processImageWithAI = useCallback(async (imageId: string) => {
-    setIsLoading(true)
-    setError(null)
-    
-    try {
-      const { data, error } = await supabase
-        .rpc('process_image_with_ai', {
+  const processImageWithAI = useCallback(
+    async (imageId: string) => {
+      setIsLoading(true)
+      setError(null)
+
+      try {
+        const { data, error } = await supabase.rpc('process_image_with_ai', {
           p_image_id: imageId,
-          p_analysis_types: ['content', 'quality', 'sentiment', 'object_detection']
+          p_analysis_types: ['content', 'quality', 'sentiment', 'object_detection'],
         })
 
-      if (error) throw error
+        if (error) throw error
 
-      // Add to processing jobs
-      setProcessingJobs(prev => [...prev, {
-        id: `temp-${Date.now()}`,
-        image_id: imageId,
-        job_type: 'ai_analysis',
-        status: 'pending',
-        priority: 8,
-        parameters: { analysis_types: ['content', 'quality', 'sentiment', 'object_detection'] },
-        created_at: new Date().toISOString()
-      }])
+        // Add to processing jobs
+        setProcessingJobs((prev) => [
+          ...prev,
+          {
+            id: `temp-${Date.now()}`,
+            image_id: imageId,
+            job_type: 'ai_analysis',
+            status: 'pending',
+            priority: 8,
+            parameters: { analysis_types: ['content', 'quality', 'sentiment', 'object_detection'] },
+            created_at: new Date().toISOString(),
+          },
+        ])
 
-      return data
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to process image with AI')
-      throw err
-    } finally {
-      setIsLoading(false)
-    }
-  }, [supabase])
+        return data
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to process image with AI')
+        throw err
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [supabase]
+  )
 
-  const getAIInsights = useCallback(async (imageId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('ai_image_analysis')
-        .select('*')
-        .eq('image_id', imageId)
-        .order('created_at', { ascending: false })
+  const getAIInsights = useCallback(
+    async (imageId: string) => {
+      try {
+        const { data, error } = await supabase
+          .from('ai_image_analysis')
+          .select('*')
+          .eq('image_id', imageId)
+          .order('created_at', { ascending: false })
 
-      if (error) throw error
+        if (error) throw error
 
-      return data
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to get AI insights')
-      return []
-    }
-  }, [supabase])
+        return data
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to get AI insights')
+        return []
+      }
+    },
+    [supabase]
+  )
 
-  const generateImageVariants = useCallback(async (imageId: string, variants: string[] = ['thumbnail', 'medium', 'large', 'webp']) => {
-    setIsLoading(true)
-    setError(null)
-    
-    try {
-      // Create processing jobs for each variant
-      const jobs = variants.map(variant => ({
-        image_id: imageId,
-        job_type: 'resize',
-        status: 'pending',
-        priority: 6,
-        parameters: { variant_type: variant, quality: 85 }
-      }))
+  const generateImageVariants = useCallback(
+    async (imageId: string, variants: string[] = ['thumbnail', 'medium', 'large', 'webp']) => {
+      setIsLoading(true)
+      setError(null)
 
-      const { data, error } = await supabase
-        .from('image_processing_jobs')
-        .insert(jobs)
-        .select()
+      try {
+        // Create processing jobs for each variant
+        const jobs = variants.map((variant) => ({
+          image_id: imageId,
+          job_type: 'resize',
+          status: 'pending',
+          priority: 6,
+          parameters: { variant_type: variant, quality: 85 },
+        }))
 
-      if (error) throw error
+        const { data, error } = await supabase.from('image_processing_jobs').insert(jobs).select()
 
-      setProcessingJobs(prev => [...prev, ...data])
-      return data
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate image variants')
-      throw err
-    } finally {
-      setIsLoading(false)
-    }
-  }, [supabase])
+        if (error) throw error
 
-  const getProcessingStatus = useCallback(async (jobId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('image_processing_jobs')
-        .select('*')
-        .eq('id', jobId)
-        .single()
+        setProcessingJobs((prev) => [...prev, ...data])
+        return data
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to generate image variants')
+        throw err
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [supabase]
+  )
 
-      if (error) throw error
+  const getProcessingStatus = useCallback(
+    async (jobId: string) => {
+      try {
+        const { data, error } = await supabase
+          .from('image_processing_jobs')
+          .select('*')
+          .eq('id', jobId)
+          .single()
 
-      return data
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to get processing status')
-      return null
-    }
-  }, [supabase])
+        if (error) throw error
 
-  const cancelProcessingJob = useCallback(async (jobId: string) => {
-    try {
-      const { error } = await supabase
-        .from('image_processing_jobs')
-        .update({ status: 'cancelled' })
-        .eq('id', jobId)
+        return data
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to get processing status')
+        return null
+      }
+    },
+    [supabase]
+  )
 
-      if (error) throw error
+  const cancelProcessingJob = useCallback(
+    async (jobId: string) => {
+      try {
+        const { error } = await supabase
+          .from('image_processing_jobs')
+          .update({ status: 'cancelled' })
+          .eq('id', jobId)
 
-      setProcessingJobs(prev => 
-        prev.map(job => 
-          job.id === jobId ? { ...job, status: 'cancelled' } : job
+        if (error) throw error
+
+        setProcessingJobs((prev) =>
+          prev.map((job) => (job.id === jobId ? { ...job, status: 'cancelled' } : job))
         )
-      )
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to cancel processing job')
-      throw err
-    }
-  }, [supabase])
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to cancel processing job')
+        throw err
+      }
+    },
+    [supabase]
+  )
 
   // Load existing AI analysis for album
   useEffect(() => {
@@ -214,8 +230,8 @@ export function usePhotoGalleryAI(albumId?: string) {
 
         if (!images?.length) return
 
-        const imageIds = images.map(img => img.image_id)
-        
+        const imageIds = images.map((img) => img.image_id)
+
         const { data, error } = await supabase
           .from('ai_image_analysis')
           .select('*')
@@ -246,8 +262,8 @@ export function usePhotoGalleryAI(albumId?: string) {
 
         if (!images?.length) return
 
-        const imageIds = images.map(img => img.image_id)
-        
+        const imageIds = images.map((img) => img.image_id)
+
         const { data, error } = await supabase
           .from('image_processing_jobs')
           .select('*')
@@ -275,6 +291,6 @@ export function usePhotoGalleryAI(albumId?: string) {
     getAIInsights,
     generateImageVariants,
     getProcessingStatus,
-    cancelProcessingJob
+    cancelProcessingJob,
   }
-} 
+}

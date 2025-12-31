@@ -1,12 +1,12 @@
 export { PhotoGallery } from './photo-gallery-enterprise'
 export { SophisticatedPhotoGrid } from './sophisticated-photo-grid'
-export type { 
+export type {
   AlbumImageLegacy,
-  Album, 
-  ImageVariant, 
-  ProcessedImage, 
-  ShareLink, 
-  ImageEdit, 
+  Album,
+  ImageVariant,
+  ProcessedImage,
+  ShareLink,
+  ImageEdit,
   AnalyticsEvent,
   PhotoAlbum,
   AlbumImage,
@@ -19,5 +19,5 @@ export type {
   PhotoGalleryEmptyProps,
   PhotoGalleryLoadingProps,
   UsePhotoGalleryProps,
-  UsePhotoGalleryReturn
-} from './types' 
+  UsePhotoGalleryReturn,
+} from './types'

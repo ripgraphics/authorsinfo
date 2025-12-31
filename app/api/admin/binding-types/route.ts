@@ -1,14 +1,16 @@
-import { NextRequest, NextResponse } from "next/server"
-import { supabaseAdmin } from "@/lib/supabase/server"
+import { NextRequest, NextResponse } from 'next/server'
+import { supabaseAdmin } from '@/lib/supabase/server'
 
 export async function GET(request: NextRequest) {
   try {
     const { data: bindingTypes, error } = await supabaseAdmin
       .from('binding_types')
-      .select(`
+      .select(
+        `
         id,
         name
-      `)
+      `
+      )
       .order('name', { ascending: true })
 
     if (error) {
@@ -20,14 +22,10 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
-      bindingTypes: bindingTypes || []
+      bindingTypes: bindingTypes || [],
     })
-
   } catch (error) {
     console.error('Error in GET /api/admin/binding-types:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-} 
+}

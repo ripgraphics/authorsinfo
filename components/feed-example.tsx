@@ -5,10 +5,10 @@ import { useBulkUserData } from '../hooks/useBulkUserData'
 // Example feed component that efficiently fetches all user data upfront
 export function FeedExample() {
   const [feedItems, setFeedItems] = useState<any[]>([])
-  
+
   // Extract all user IDs from feed items (comments, posts, etc.)
-  const userIds = feedItems.map(item => item.userId).filter(Boolean)
-  
+  const userIds = feedItems.map((item) => item.userId).filter(Boolean)
+
   // Use the bulk data hook to fetch all user data at once
   const { getUserStats, isUserDataLoaded } = useBulkUserData(userIds)
 
@@ -28,13 +28,11 @@ export function FeedExample() {
     <div className="feed-container">
       {feedItems.map((item) => {
         const userStats = getUserStats(item.userId)
-        
+
         return (
           <div key={item.id} className="feed-item">
-            <div className="feed-content">
-              {item.content}
-            </div>
-            
+            <div className="feed-content">{item.content}</div>
+
             {/* Hover card with instant data - no API calls needed */}
             <EntityHoverCard
               type="user"
@@ -42,7 +40,7 @@ export function FeedExample() {
                 id: item.userId,
                 name: item.userName,
                 avatar_url: `/api/avatar/${item.userId}`,
-                created_at: new Date().toISOString()
+                created_at: new Date().toISOString(),
               }}
               userStats={userStats || undefined} // Pass the pre-fetched user stats
             >

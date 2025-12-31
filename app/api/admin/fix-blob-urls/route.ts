@@ -12,24 +12,21 @@ export async function GET(request: NextRequest) {
   try {
     // Authenticate user
     const supabase = await createRouteHandlerClientAsync()
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-    
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
+
     if (userError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Check if user is admin or super admin
     const isAdmin = await isUserAdmin(user.id)
     const isSuperAdmin = await isUserSuperAdmin(user.id)
-    
+
     if (!isAdmin && !isSuperAdmin) {
-      return NextResponse.json(
-        { error: 'Forbidden - Admin access required' },
-        { status: 403 }
-      )
+      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 })
     }
 
     // Query for images with invalid URLs
@@ -41,16 +38,11 @@ export async function GET(request: NextRequest) {
 
     if (queryError) {
       console.error('Error querying images:', queryError)
-      return NextResponse.json(
-        { error: 'Failed to query images' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Failed to query images' }, { status: 500 })
     }
 
     // Filter images with blob/data URLs
-    const invalidImages = (allImages || []).filter((img: any) => 
-      shouldRejectUrl(img.url)
-    )
+    const invalidImages = (allImages || []).filter((img: any) => shouldRejectUrl(img.url))
 
     // Get count of all invalid images (may be more than 1000)
     const { count: totalInvalidCount } = await supabaseAdmin
@@ -67,19 +59,16 @@ export async function GET(request: NextRequest) {
         url: img.url?.substring(0, 100), // Truncate for security
         created_at: img.created_at,
         storage_provider: img.storage_provider,
-        original_filename: img.original_filename
+        original_filename: img.original_filename,
       })),
-      message: invalidImages.length > 0 
-        ? `Found ${invalidImages.length} images with invalid URLs (blob/data URLs)`
-        : 'No invalid URLs found in recent images'
+      message:
+        invalidImages.length > 0
+          ? `Found ${invalidImages.length} images with invalid URLs (blob/data URLs)`
+          : 'No invalid URLs found in recent images',
     })
-
   } catch (error: any) {
     console.error('Error in fix-blob-urls endpoint:', error)
-    return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
   }
 }
 
@@ -91,18 +80,18 @@ export async function DELETE(request: NextRequest) {
   try {
     // Authenticate user
     const supabase = await createRouteHandlerClientAsync()
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-    
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
+
     if (userError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Check if user is super admin (only super admin can delete)
     const isSuperAdmin = await isUserSuperAdmin(user.id)
-    
+
     if (!isSuperAdmin) {
       return NextResponse.json(
         { error: 'Forbidden - Super admin access required' },
@@ -118,17 +107,14 @@ export async function DELETE(request: NextRequest) {
 
     if (queryError) {
       console.error('Error querying invalid images:', queryError)
-      return NextResponse.json(
-        { error: 'Failed to query invalid images' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Failed to query invalid images' }, { status: 500 })
     }
 
     if (!invalidImages || invalidImages.length === 0) {
       return NextResponse.json({
         success: true,
         deletedCount: 0,
-        message: 'No invalid URLs found to delete'
+        message: 'No invalid URLs found to delete',
       })
     }
 
@@ -157,31 +143,20 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete the images themselves
-    const { error: deleteError } = await supabaseAdmin
-      .from('images')
-      .delete()
-      .in('id', imageIds)
+    const { error: deleteError } = await supabaseAdmin.from('images').delete().in('id', imageIds)
 
     if (deleteError) {
       console.error('Error deleting images:', deleteError)
-      return NextResponse.json(
-        { error: 'Failed to delete images' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Failed to delete images' }, { status: 500 })
     }
 
     return NextResponse.json({
       success: true,
       deletedCount: imageIds.length,
-      message: `Successfully deleted ${imageIds.length} images with invalid URLs`
+      message: `Successfully deleted ${imageIds.length} images with invalid URLs`,
     })
-
   } catch (error: any) {
     console.error('Error in fix-blob-urls DELETE endpoint:', error)
-    return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
   }
 }
-

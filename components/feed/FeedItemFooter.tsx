@@ -1,5 +1,5 @@
-import { ThumbsUp, MessageSquare, Share2, Eye } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { ThumbsUp, MessageSquare, Share2, Eye } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 interface FeedItemFooterProps {
   views?: number
@@ -18,7 +18,7 @@ export function FeedItemFooter({
   onShare,
   likeCount = 0,
   replyCount = 0,
-  isLiked = false
+  isLiked = false,
 }: FeedItemFooterProps) {
   return (
     <div className="px-6 py-3 bg-muted/50 flex items-center justify-between text-sm">
@@ -32,21 +32,11 @@ export function FeedItemFooter({
           <ThumbsUp className="h-4 w-4" />
           <span>{likeCount > 0 ? likeCount : 'Like'}</span>
         </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onReply}
-          className="gap-1"
-        >
+        <Button variant="ghost" size="sm" onClick={onReply} className="gap-1">
           <MessageSquare className="h-4 w-4" />
           <span>{replyCount > 0 ? replyCount : 'Reply'}</span>
         </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onShare}
-          className="gap-1"
-        >
+        <Button variant="ghost" size="sm" onClick={onShare} className="gap-1">
           <Share2 className="h-4 w-4" />
           <span>Share</span>
         </Button>
@@ -57,4 +47,4 @@ export function FeedItemFooter({
       </div>
     </div>
   )
-} 
+}

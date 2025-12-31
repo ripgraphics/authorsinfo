@@ -1,26 +1,55 @@
-"use client"
+'use client'
 
-import type React from "react"
+import type React from 'react'
 
-import { useState, useRef } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Loader2, AlertCircle, CheckCircle, XCircle, FileText, Search, BookPlus, BookOpen } from "lucide-react"
-import { bulkImportBooks, checkForDuplicates } from "@/app/actions/bulk-import-books"
-import { searchBooks, getLatestBooks } from "@/lib/isbndb"
-import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
-import Image from "next/image"
+import { useState, useRef } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import {
+  Loader2,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
+  FileText,
+  Search,
+  BookPlus,
+  BookOpen,
+} from 'lucide-react'
+import { bulkImportBooks, checkForDuplicates } from '@/app/actions/bulk-import-books'
+import { searchBooks, getLatestBooks } from '@/lib/isbndb'
+import { Badge } from '@/components/ui/badge'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
+import Image from 'next/image'
 
 export default function ImportBooksPage() {
-  const [isbnList, setIsbnList] = useState<string>("")
-  const [searchQuery, setSearchQuery] = useState<string>("")
+  const [isbnList, setIsbnList] = useState<string>('')
+  const [searchQuery, setSearchQuery] = useState<string>('')
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [latestBooks, setLatestBooks] = useState<any[]>([])
   const [selectedBooks, setSelectedBooks] = useState<Set<string>>(new Set())
@@ -28,10 +57,10 @@ export default function ImportBooksPage() {
   const [checking, setChecking] = useState<boolean>(false)
   const [duplicates, setDuplicates] = useState<string[]>([])
   const [importResult, setImportResult] = useState<any>(null)
-  const [activeTab, setActiveTab] = useState<string>("manual")
+  const [activeTab, setActiveTab] = useState<string>('manual')
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString())
-  const [selectedMonth, setSelectedMonth] = useState<string>("all")
+  const [selectedMonth, setSelectedMonth] = useState<string>('all')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,7 +83,7 @@ export default function ImportBooksPage() {
       const results = await searchBooks(searchQuery)
       setSearchResults(results)
     } catch (error) {
-      console.error("Search error:", error)
+      console.error('Search error:', error)
     } finally {
       setLoading(false)
     }
@@ -67,15 +96,15 @@ export default function ImportBooksPage() {
       const month = monthOverride !== undefined ? monthOverride : selectedMonth
       const yearNum = year ? parseInt(year) : undefined
       const books = await getLatestBooks(currentPage, 20, yearNum)
-      
+
       // Apply month filtering if a month is selected (skip if "all")
       let filteredBooks = books
-      if (month && month !== "all") {
+      if (month && month !== 'all') {
         const monthNum = parseInt(month)
         filteredBooks = books.filter((book) => {
           const datePublished = book.date_published || book.publish_date
           if (!datePublished) return false
-          
+
           try {
             const date = new Date(datePublished)
             // Check if the date is valid and matches the selected month
@@ -86,19 +115,32 @@ export default function ImportBooksPage() {
             // Some dates might be in formats like "2025-09-01" or "September 2025"
             const dateStr = datePublished.toLowerCase()
             const monthNames = [
-              'january', 'february', 'march', 'april', 'may', 'june',
-              'july', 'august', 'september', 'october', 'november', 'december'
+              'january',
+              'february',
+              'march',
+              'april',
+              'may',
+              'june',
+              'july',
+              'august',
+              'september',
+              'october',
+              'november',
+              'december',
             ]
             const monthName = monthNames[monthNum - 1]
-            return dateStr.includes(monthName) || dateStr.includes(`-${String(monthNum).padStart(2, '0')}-`)
+            return (
+              dateStr.includes(monthName) ||
+              dateStr.includes(`-${String(monthNum).padStart(2, '0')}-`)
+            )
           }
         })
       }
-      
+
       // Check which books are already in the system
       if (filteredBooks.length > 0) {
         const isbns = filteredBooks.map((book) => book.isbn13 || book.isbn).filter(Boolean)
-        
+
         if (isbns.length > 0) {
           try {
             const checkRes = await fetch('/api/books/check-existing', {
@@ -106,17 +148,17 @@ export default function ImportBooksPage() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ isbns }),
             })
-            
+
             if (checkRes.ok) {
               const existingData = await checkRes.json()
               const existingIsbns = new Set(existingData.existingIsbns || [])
-              
+
               // Mark books that are already in the system
               const booksWithStatus = filteredBooks.map((book) => ({
                 ...book,
                 isInSystem: existingIsbns.has(book.isbn13 || book.isbn),
               }))
-              
+
               setLatestBooks(booksWithStatus)
             } else {
               setLatestBooks(filteredBooks)
@@ -131,12 +173,14 @@ export default function ImportBooksPage() {
       } else {
         setLatestBooks(filteredBooks)
         // Show a message if no books are returned (likely due to missing API key or no matches)
-        if (!month || month === "all") {
-          console.warn("No latest books returned. This may be due to missing ISBNDB_API_KEY environment variable.")
+        if (!month || month === 'all') {
+          console.warn(
+            'No latest books returned. This may be due to missing ISBNDB_API_KEY environment variable.'
+          )
         }
       }
     } catch (error) {
-      console.error("Error loading latest books:", error)
+      console.error('Error loading latest books:', error)
       // Don't show error to user, just log it and continue
     } finally {
       setLoading(false)
@@ -145,13 +189,13 @@ export default function ImportBooksPage() {
 
   const toggleBookSelection = (isbn: string) => {
     // Check if this book is already in the system (for latest books tab)
-    if (activeTab === "latest") {
+    if (activeTab === 'latest') {
       const book = latestBooks.find((b) => (b.isbn13 || b.isbn) === isbn)
       if (book && (book as any).isInSystem) {
         return // Don't allow selection of books already in system
       }
     }
-    
+
     const newSelection = new Set(selectedBooks)
     if (newSelection.has(isbn)) {
       newSelection.delete(isbn)
@@ -162,7 +206,7 @@ export default function ImportBooksPage() {
   }
 
   const selectAllOnCurrentPage = () => {
-    const currentBooks = activeTab === "search" ? searchResults : latestBooks
+    const currentBooks = activeTab === 'search' ? searchResults : latestBooks
     // Only select books that are not already in the system
     const isbns = currentBooks
       .filter((book) => !(book as any).isInSystem)
@@ -174,7 +218,7 @@ export default function ImportBooksPage() {
   }
 
   const deselectAllOnCurrentPage = () => {
-    const currentBooks = activeTab === "search" ? searchResults : latestBooks
+    const currentBooks = activeTab === 'search' ? searchResults : latestBooks
     const isbns = currentBooks.map((book) => book.isbn13 || book.isbn).filter(Boolean)
     const newSelection = new Set(selectedBooks)
     isbns.forEach((isbn) => newSelection.delete(isbn))
@@ -182,7 +226,7 @@ export default function ImportBooksPage() {
   }
 
   const areAllSelectedOnCurrentPage = () => {
-    const currentBooks = activeTab === "search" ? searchResults : latestBooks
+    const currentBooks = activeTab === 'search' ? searchResults : latestBooks
     if (currentBooks.length === 0) return false
     // Only consider books that are not already in the system
     const availableBooks = currentBooks.filter((book) => !(book as any).isInSystem)
@@ -220,7 +264,7 @@ export default function ImportBooksPage() {
 
       setDuplicates(result.duplicates)
     } catch (error) {
-      console.error("Error checking duplicates:", error)
+      console.error('Error checking duplicates:', error)
     } finally {
       setChecking(false)
     }
@@ -233,7 +277,7 @@ export default function ImportBooksPage() {
     try {
       let isbnsToImport: string[] = []
 
-      if (activeTab === "manual") {
+      if (activeTab === 'manual') {
         // Parse ISBNs from textarea
         isbnsToImport = isbnList
           .split(/[\n,;]/)
@@ -245,14 +289,14 @@ export default function ImportBooksPage() {
       }
 
       if (isbnsToImport.length === 0) {
-        setImportResult({ error: "No ISBNs provided" })
+        setImportResult({ error: 'No ISBNs provided' })
         return
       }
 
       const result = await bulkImportBooks(isbnsToImport)
       setImportResult(result)
     } catch (error) {
-      console.error("Import error:", error)
+      console.error('Import error:', error)
       setImportResult({ error: String(error) })
     } finally {
       setLoading(false)
@@ -264,7 +308,8 @@ export default function ImportBooksPage() {
       <div className="flex flex-col space-y-4">
         <h1 className="text-3xl font-bold">Import Books</h1>
         <p className="text-gray-500">
-          Add multiple books to your library at once. Your ISBNdb Basic plan allows up to 100 books per bulk import.
+          Add multiple books to your library at once. Your ISBNdb Basic plan allows up to 100 books
+          per bulk import.
         </p>
 
         <Tabs defaultValue="manual" onValueChange={setActiveTab}>
@@ -281,7 +326,8 @@ export default function ImportBooksPage() {
               <CardHeader>
                 <CardTitle>Enter ISBN Numbers</CardTitle>
                 <CardDescription>
-                  Enter ISBN numbers separated by commas, spaces, or new lines. You can also upload a text file.
+                  Enter ISBN numbers separated by commas, spaces, or new lines. You can also upload
+                  a text file.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -309,7 +355,7 @@ export default function ImportBooksPage() {
                     <Button
                       variant="secondary"
                       onClick={handleCheckDuplicates}
-                      disabled={checking || isbnList.trim() === ""}
+                      disabled={checking || isbnList.trim() === ''}
                     >
                       {checking ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -339,8 +385,12 @@ export default function ImportBooksPage() {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button onClick={handleImport} disabled={loading || isbnList.trim() === ""}>
-                  {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <BookPlus className="mr-2 h-4 w-4" />}
+                <Button onClick={handleImport} disabled={loading || isbnList.trim() === ''}>
+                  {loading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <BookPlus className="mr-2 h-4 w-4" />
+                  )}
                   Import Books
                 </Button>
               </CardFooter>
@@ -362,7 +412,7 @@ export default function ImportBooksPage() {
                       placeholder="Search by title, author, or ISBN..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                     />
                     <Button onClick={handleSearch} disabled={loading || !searchQuery.trim()}>
                       {loading ? (
@@ -397,45 +447,45 @@ export default function ImportBooksPage() {
                         </TableHeader>
                         <TableBody>
                           {searchResults.map((book, index) => {
-                            const isbn = book.isbn13 || book.isbn;
-                            const uniqueKey = `${isbn}-${index}-${book.title?.slice(0, 20) || ''}`;
+                            const isbn = book.isbn13 || book.isbn
+                            const uniqueKey = `${isbn}-${index}-${book.title?.slice(0, 20) || ''}`
                             return (
-                            <TableRow
-                              key={uniqueKey}
-                              className="cursor-pointer hover:bg-gray-50"
-                              onClick={() => toggleBookSelection(isbn)}
-                            >
-                              <TableCell>
-                                <input
-                                  type="checkbox"
-                                  checked={selectedBooks.has(isbn)}
-                                  onChange={() => toggleBookSelection(isbn)}
-                                  className="h-4 w-4"
-                                />
-                              </TableCell>
-                              <TableCell>
-                                {book.image ? (
-                                  <div className="relative w-16 h-24 rounded-sm overflow-hidden bg-gray-100 flex-shrink-0">
-                                    <Image
-                                      src={book.image}
-                                      alt={book.title || "Book cover"}
-                                      fill
-                                      className="object-cover"
-                                      sizes="64px"
-                                    />
-                                  </div>
-                                ) : (
-                                  <div className="w-16 h-24 rounded-sm bg-gray-100 flex items-center justify-center flex-shrink-0">
-                                    <BookOpen className="h-6 w-6 text-gray-400" />
-                                  </div>
-                                )}
-                              </TableCell>
-                              <TableCell>{book.title}</TableCell>
-                              <TableCell>{book.authors?.join(", ")}</TableCell>
-                              <TableCell>{isbn}</TableCell>
-                              <TableCell>{book.publisher}</TableCell>
-                            </TableRow>
-                            );
+                              <TableRow
+                                key={uniqueKey}
+                                className="cursor-pointer hover:bg-gray-50"
+                                onClick={() => toggleBookSelection(isbn)}
+                              >
+                                <TableCell>
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedBooks.has(isbn)}
+                                    onChange={() => toggleBookSelection(isbn)}
+                                    className="h-4 w-4"
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  {book.image ? (
+                                    <div className="relative w-16 h-24 rounded-sm overflow-hidden bg-gray-100 flex-shrink-0">
+                                      <Image
+                                        src={book.image}
+                                        alt={book.title || 'Book cover'}
+                                        fill
+                                        className="object-cover"
+                                        sizes="64px"
+                                      />
+                                    </div>
+                                  ) : (
+                                    <div className="w-16 h-24 rounded-sm bg-gray-100 flex items-center justify-center flex-shrink-0">
+                                      <BookOpen className="h-6 w-6 text-gray-400" />
+                                    </div>
+                                  )}
+                                </TableCell>
+                                <TableCell>{book.title}</TableCell>
+                                <TableCell>{book.authors?.join(', ')}</TableCell>
+                                <TableCell>{isbn}</TableCell>
+                                <TableCell>{book.publisher}</TableCell>
+                              </TableRow>
+                            )
                           })}
                         </TableBody>
                       </Table>
@@ -453,11 +503,17 @@ export default function ImportBooksPage() {
               <CardFooter className="flex justify-between">
                 <div>
                   {selectedBooks.size > 0 && (
-                    <span className="text-sm text-gray-500">{selectedBooks.size} book(s) selected</span>
+                    <span className="text-sm text-gray-500">
+                      {selectedBooks.size} book(s) selected
+                    </span>
                   )}
                 </div>
                 <Button onClick={handleImport} disabled={loading || selectedBooks.size === 0}>
-                  {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <BookPlus className="mr-2 h-4 w-4" />}
+                  {loading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <BookPlus className="mr-2 h-4 w-4" />
+                  )}
                   Import Selected Books
                 </Button>
               </CardFooter>
@@ -469,7 +525,8 @@ export default function ImportBooksPage() {
               <CardHeader>
                 <CardTitle>Latest Books</CardTitle>
                 <CardDescription>
-                  Browse the latest books added to ISBNdb and select the ones you want to import. Books already in your system are marked and cannot be selected.
+                  Browse the latest books added to ISBNdb and select the ones you want to import.
+                  Books already in your system are marked and cannot be selected.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -477,11 +534,14 @@ export default function ImportBooksPage() {
                 <div className="flex flex-col sm:flex-row gap-4 mb-6 pb-4 border-b">
                   <div className="flex-1 space-y-2">
                     <Label htmlFor="year-filter">Publication Year</Label>
-                    <Select value={selectedYear} onValueChange={(value) => {
-                      setSelectedYear(value)
-                      setCurrentPage(1) // Reset to first page when year changes
-                      loadLatestBooks(value, selectedMonth)
-                    }}>
+                    <Select
+                      value={selectedYear}
+                      onValueChange={(value) => {
+                        setSelectedYear(value)
+                        setCurrentPage(1) // Reset to first page when year changes
+                        loadLatestBooks(value, selectedMonth)
+                      }}
+                    >
                       <SelectTrigger id="year-filter">
                         <SelectValue placeholder="Select year" />
                       </SelectTrigger>
@@ -499,11 +559,14 @@ export default function ImportBooksPage() {
                   </div>
                   <div className="flex-1 space-y-2">
                     <Label htmlFor="month-filter">Month (Optional)</Label>
-                    <Select value={selectedMonth} onValueChange={(value) => {
-                      setSelectedMonth(value)
-                      setCurrentPage(1) // Reset to first page when month changes
-                      loadLatestBooks(selectedYear, value)
-                    }}>
+                    <Select
+                      value={selectedMonth}
+                      onValueChange={(value) => {
+                        setSelectedMonth(value)
+                        setCurrentPage(1) // Reset to first page when month changes
+                        loadLatestBooks(selectedYear, value)
+                      }}
+                    >
                       <SelectTrigger id="month-filter">
                         <SelectValue placeholder="All months" />
                       </SelectTrigger>
@@ -569,34 +632,37 @@ export default function ImportBooksPage() {
                                   className="h-4 w-4"
                                 />
                               </TableCell>
-                            <TableCell>
-                              {book.image ? (
-                                <div className="relative w-16 h-24 rounded-sm overflow-hidden bg-gray-100 flex-shrink-0">
-                                  <Image
-                                    src={book.image}
-                                    alt={book.title || "Book cover"}
-                                    fill
-                                    className="object-cover"
-                                    sizes="64px"
-                                  />
-                                </div>
-                              ) : (
-                                <div className="w-16 h-24 rounded-sm bg-gray-100 flex items-center justify-center flex-shrink-0">
-                                  <BookOpen className="h-6 w-6 text-gray-400" />
-                                </div>
-                              )}
-                            </TableCell>
+                              <TableCell>
+                                {book.image ? (
+                                  <div className="relative w-16 h-24 rounded-sm overflow-hidden bg-gray-100 flex-shrink-0">
+                                    <Image
+                                      src={book.image}
+                                      alt={book.title || 'Book cover'}
+                                      fill
+                                      className="object-cover"
+                                      sizes="64px"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="w-16 h-24 rounded-sm bg-gray-100 flex items-center justify-center flex-shrink-0">
+                                    <BookOpen className="h-6 w-6 text-gray-400" />
+                                  </div>
+                                )}
+                              </TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-2">
                                   {book.title}
                                   {isInSystem && (
-                                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                                    <Badge
+                                      variant="outline"
+                                      className="text-xs bg-blue-50 text-blue-700 border-blue-200"
+                                    >
                                       Already in system
                                     </Badge>
                                   )}
                                 </div>
                               </TableCell>
-                              <TableCell>{book.authors?.join(", ")}</TableCell>
+                              <TableCell>{book.authors?.join(', ')}</TableCell>
                               <TableCell>{isbn}</TableCell>
                               <TableCell>{book.publisher}</TableCell>
                             </TableRow>
@@ -614,11 +680,7 @@ export default function ImportBooksPage() {
                       <li>• Network connectivity issues</li>
                       <li>• API key restrictions</li>
                     </ul>
-                    <Button 
-                      variant="outline" 
-                      className="mt-4"
-                      onClick={() => loadLatestBooks()}
-                    >
+                    <Button variant="outline" className="mt-4" onClick={() => loadLatestBooks()}>
                       Try Again
                     </Button>
                   </div>
@@ -652,11 +714,17 @@ export default function ImportBooksPage() {
               <CardFooter className="flex justify-between">
                 <div>
                   {selectedBooks.size > 0 && (
-                    <span className="text-sm text-gray-500">{selectedBooks.size} book(s) selected</span>
+                    <span className="text-sm text-gray-500">
+                      {selectedBooks.size} book(s) selected
+                    </span>
                   )}
                 </div>
                 <Button onClick={handleImport} disabled={loading || selectedBooks.size === 0}>
-                  {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <BookPlus className="mr-2 h-4 w-4" />}
+                  {loading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <BookPlus className="mr-2 h-4 w-4" />
+                  )}
                   Import Selected Books
                 </Button>
               </CardFooter>
@@ -701,7 +769,10 @@ export default function ImportBooksPage() {
                       <AlertCircle className="h-4 w-4 text-yellow-600" />
                       <AlertTitle className="text-yellow-800">Duplicate Books Found</AlertTitle>
                       <AlertDescription className="text-yellow-700">
-                        <p className="mb-2">The following {importResult.duplicateIsbns.length} book(s) already exist in your library:</p>
+                        <p className="mb-2">
+                          The following {importResult.duplicateIsbns.length} book(s) already exist
+                          in your library:
+                        </p>
                         <ul className="list-disc pl-5 mt-2 space-y-1">
                           {importResult.duplicateIsbns.map((duplicate: string, index: number) => (
                             <li key={index} className="text-sm">
@@ -730,7 +801,7 @@ export default function ImportBooksPage() {
               )}
             </CardContent>
             <CardFooter>
-              <Button variant="outline" onClick={() => (window.location.href = "/books")}>
+              <Button variant="outline" onClick={() => (window.location.href = '/books')}>
                 Go to Books
               </Button>
             </CardFooter>

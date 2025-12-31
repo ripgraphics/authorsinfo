@@ -1,22 +1,28 @@
-"use client"
+'use client'
 
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import { createBrowserClient } from "@supabase/ssr"
-import type { Database } from "@/types/database"
-import { Loader } from "lucide-react"
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { createBrowserClient } from '@supabase/ssr'
+import type { Database } from '@/types/database'
+import { Loader } from 'lucide-react'
 
 export function AdminAuthCheck({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
   const router = useRouter()
-  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   useEffect(() => {
     async function checkAdminStatus() {
       try {
         // Check if user is authenticated
-        const { data: { user }, error: authError } = await supabase.auth.getUser()
+        const {
+          data: { user },
+          error: authError,
+        } = await supabase.auth.getUser()
 
         if (authError || !user) {
           router.push('/auth/login')
@@ -33,7 +39,10 @@ export function AdminAuthCheck({ children }: { children: React.ReactNode }) {
         let isUserAdmin = false
 
         if (!profileError && profile) {
-          isUserAdmin = profile.role === 'admin' || profile.role === 'super_admin' || profile.role === 'super-admin'
+          isUserAdmin =
+            profile.role === 'admin' ||
+            profile.role === 'super_admin' ||
+            profile.role === 'super-admin'
         }
 
         if (!isUserAdmin) {
@@ -71,4 +80,4 @@ export function AdminAuthCheck({ children }: { children: React.ReactNode }) {
   }
 
   return <>{children}</>
-} 
+}

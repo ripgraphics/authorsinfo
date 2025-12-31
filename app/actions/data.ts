@@ -1,6 +1,6 @@
-"use server"
+'use server'
 
-import { supabaseAdmin } from "@/lib/supabase/server"
+import { supabaseAdmin } from '@/lib/supabase/server'
 import type {
   Author,
   Book,
@@ -10,28 +10,28 @@ import type {
   Bookshelf,
   ReadingStatus,
   ReadingChallenge,
-} from "@/types/database"
+} from '@/types/database'
 
 // Books
 export async function testDatabaseConnection(): Promise<boolean> {
   try {
-    const { data, error } = await supabaseAdmin.from("books").select("id").limit(1)
-    
+    const { data, error } = await supabaseAdmin.from('books').select('id').limit(1)
+
     if (error) {
-      console.error("Database connection test failed:", {
+      console.error('Database connection test failed:', {
         error,
         errorCode: error.code,
         errorMessage: error.message,
-        errorDetails: error.details
+        errorDetails: error.details,
       })
       return false
     }
-    
+
     return true
   } catch (error) {
-    console.error("Database connection test error:", {
+    console.error('Database connection test error:', {
       error,
-      errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      errorMessage: error instanceof Error ? error.message : 'Unknown error',
     })
     return false
   }
@@ -39,16 +39,18 @@ export async function testDatabaseConnection(): Promise<boolean> {
 
 export async function getTotalBooksCount(): Promise<number> {
   try {
-    const { count, error } = await supabaseAdmin.from("books").select("*", { count: "exact", head: true })
+    const { count, error } = await supabaseAdmin
+      .from('books')
+      .select('*', { count: 'exact', head: true })
 
     if (error) {
-      console.error("Error counting books:", error)
+      console.error('Error counting books:', error)
       return 0
     }
 
     return count || 0
   } catch (error) {
-    console.error("Error counting books:", error)
+    console.error('Error counting books:', error)
     return 0
   }
 }
@@ -58,16 +60,18 @@ export async function getRecentBooks(limit = 10, offset = 0): Promise<Book[]> {
   try {
     // Fetch books with cover image and author data
     const { data, error } = await supabaseAdmin
-      .from("books")
-      .select(`
+      .from('books')
+      .select(
+        `
         *,
         cover_image:images!cover_image_id(id, url, alt_text),
         author:authors!author_id(id, name, author_image:images!author_image_id(id, url, alt_text))
-      `)
+      `
+      )
       .range(offset, offset + limit - 1)
 
     if (error) {
-      console.error("Error fetching books:", {
+      console.error('Error fetching books:', {
         message: error.message,
         details: error.details,
         hint: error.hint,
@@ -80,22 +84,31 @@ export async function getRecentBooks(limit = 10, offset = 0): Promise<Book[]> {
     const books = (data || []).map((book: any) => ({
       ...book,
       cover_image_url: book.cover_image?.url || null,
-      author: book.author ? {
-        ...book.author,
-        author_image: book.author.author_image ? {
-          url: book.author.author_image.url,
-          alt_text: book.author.author_image.alt_text
-        } : null
-      } : null
+      author: book.author
+        ? {
+            ...book.author,
+            author_image: book.author.author_image
+              ? {
+                  url: book.author.author_image.url,
+                  alt_text: book.author.author_image.alt_text,
+                }
+              : null,
+          }
+        : null,
     })) as Book[]
 
     return books
   } catch (error) {
-    console.error("Error fetching books:", error instanceof Error ? {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
-    } : error)
+    console.error(
+      'Error fetching books:',
+      error instanceof Error
+        ? {
+            message: error.message,
+            stack: error.stack,
+            name: error.name,
+          }
+        : error
+    )
     return []
   }
 }
@@ -103,52 +116,54 @@ export async function getRecentBooks(limit = 10, offset = 0): Promise<Book[]> {
 // Update the getBookById function
 export async function getBookById(id: string): Promise<Book | null> {
   // Special case: if id is "add", return null immediately
-  if (id === "add") {
+  if (id === 'add') {
     return null
   }
 
   try {
     // Quiet: remove verbose fetch log
-    
+
     // Add a timeout to the request
     const timeoutPromise = new Promise<Book | null>((_, reject) => {
-      setTimeout(() => reject(new Error("Request timed out")), 5000)
+      setTimeout(() => reject(new Error('Request timed out')), 5000)
     })
 
     const fetchPromise = new Promise<Book | null>(async (resolve) => {
       try {
         // Fetch book with cover image URL
         const { data, error } = await supabaseAdmin
-          .from("books")
-          .select(`
+          .from('books')
+          .select(
+            `
             *,
             cover_image:images!cover_image_id(id, url, alt_text)
-          `)
-          .eq("id", id)
+          `
+          )
+          .eq('id', id)
           .single()
 
         if (error) {
-          console.error("Error fetching book:", {
+          console.error('Error fetching book:', {
             errorCode: error.code,
             errorMessage: error.message,
             errorDetails: error.details,
             errorHint: error.hint,
-            bookId: id
+            bookId: id,
           })
           resolve(null)
           return
         }
 
         if (!data) {
-          console.error("No book found with ID:", id)
+          console.error('No book found with ID:', id)
           resolve(null)
           return
         }
 
         // If cover_image is not available from foreign key, try to get it from album
         if (!data.cover_image) {
-          console.log('Cover image not found via foreign key, checking album...');
-          
+          console.log('Cover image not found via foreign key, checking album...')
+
           // Find the "Cover Images" album for this book
           const { data: album } = await supabaseAdmin
             .from('photo_albums')
@@ -156,25 +171,27 @@ export async function getBookById(id: string): Promise<Book | null> {
             .eq('entity_type', 'book')
             .eq('entity_id', id)
             .eq('name', 'Cover Images')
-            .maybeSingle();
+            .maybeSingle()
 
           if (album) {
             // Get the cover image from the album
             const { data: albumImage } = await supabaseAdmin
               .from('album_images')
-              .select(`
+              .select(
+                `
                 image_id,
                 images!inner(id, url, alt_text)
-              `)
+              `
+              )
               .eq('album_id', album.id)
               .eq('is_cover', true)
               .order('created_at', { ascending: false })
               .limit(1)
-              .maybeSingle();
+              .maybeSingle()
 
             if (albumImage && albumImage.images) {
-              data.cover_image = albumImage.images as any;
-              console.log('✅ Found cover image from album:', data.cover_image.url);
+              data.cover_image = albumImage.images as any
+              console.log('✅ Found cover image from album:', data.cover_image.url)
             }
           }
         }
@@ -190,30 +207,30 @@ export async function getBookById(id: string): Promise<Book | null> {
           series_number: data.series_number !== null ? Number(data.series_number) : null,
         } as Book)
       } catch (error) {
-        console.error("Error in fetchPromise:", {
+        console.error('Error in fetchPromise:', {
           error,
           errorMessage: error instanceof Error ? error.message : 'Unknown error',
           errorStack: error instanceof Error ? error.stack : undefined,
-          bookId: id
+          bookId: id,
         })
         resolve(null)
       }
     })
 
     return Promise.race([fetchPromise, timeoutPromise]).catch((error) => {
-      console.error("Request failed or timed out:", {
+      console.error('Request failed or timed out:', {
         error,
         errorMessage: error instanceof Error ? error.message : 'Unknown error',
-        bookId: id
+        bookId: id,
       })
       return null
     })
   } catch (error) {
-    console.error("Error fetching book:", {
+    console.error('Error fetching book:', {
       error,
       errorMessage: error instanceof Error ? error.message : 'Unknown error',
       errorStack: error instanceof Error ? error.stack : undefined,
-      bookId: id
+      bookId: id,
     })
     return null
   }
@@ -222,21 +239,25 @@ export async function getBookById(id: string): Promise<Book | null> {
 export async function getBooksByAuthorId(authorId: string, limit = 10): Promise<Book[]> {
   try {
     // Try with single author_id field
-    const { data, error } = await supabaseAdmin.from("books").select("*").eq("author_id", authorId).limit(limit)
+    const { data, error } = await supabaseAdmin
+      .from('books')
+      .select('*')
+      .eq('author_id', authorId)
+      .limit(limit)
 
     if (error) {
-      console.error("Error fetching books by author with author_id:", error)
+      console.error('Error fetching books by author with author_id:', error)
 
       // If that fails, try with book_authors join table
       try {
         const { data: bookAuthors, error: bookAuthorsError } = await supabaseAdmin
-          .from("book_authors")
-          .select("book_id")
-          .eq("author_id", authorId)
+          .from('book_authors')
+          .select('book_id')
+          .eq('author_id', authorId)
           .limit(limit)
 
         if (bookAuthorsError || !bookAuthors || bookAuthors.length === 0) {
-          console.error("Error fetching from book_authors:", bookAuthorsError)
+          console.error('Error fetching from book_authors:', bookAuthorsError)
           return []
         }
 
@@ -244,39 +265,46 @@ export async function getBooksByAuthorId(authorId: string, limit = 10): Promise<
         const bookIds = bookAuthors.map((item: { book_id: string }) => item.book_id)
 
         // Get the books
-        const { data: books, error: booksError } = await supabaseAdmin.from("books").select("*").in("id", bookIds)
+        const { data: books, error: booksError } = await supabaseAdmin
+          .from('books')
+          .select('*')
+          .in('id', bookIds)
 
         if (booksError) {
-          console.error("Error fetching books by author IDs:", booksError)
+          console.error('Error fetching books by author IDs:', booksError)
           return []
         }
 
         return books as Book[]
       } catch (joinTableError) {
-        console.error("Error with join table approach:", joinTableError)
+        console.error('Error with join table approach:', joinTableError)
         return []
       }
     }
 
     return data as Book[]
   } catch (error) {
-    console.error("Error fetching books by author:", error)
+    console.error('Error fetching books by author:', error)
     return []
   }
 }
 
 export async function getBooksByPublisherId(publisherId: string, limit = 10): Promise<Book[]> {
   try {
-    const { data, error } = await supabaseAdmin.from("books").select("*").eq("publisher_id", publisherId).limit(limit)
+    const { data, error } = await supabaseAdmin
+      .from('books')
+      .select('*')
+      .eq('publisher_id', publisherId)
+      .limit(limit)
 
     if (error) {
-      console.error("Error fetching books by publisher:", error)
+      console.error('Error fetching books by publisher:', error)
       return []
     }
 
     return data as Book[]
   } catch (error) {
-    console.error("Error fetching books by publisher:", error)
+    console.error('Error fetching books by publisher:', error)
     return []
   }
 }
@@ -285,16 +313,18 @@ export async function getBooksByPublisherId(publisherId: string, limit = 10): Pr
 // Add this function to get the total count of authors
 export async function getTotalAuthorsCount(): Promise<number> {
   try {
-    const { count, error } = await supabaseAdmin.from("authors").select("*", { count: "exact", head: true })
+    const { count, error } = await supabaseAdmin
+      .from('authors')
+      .select('*', { count: 'exact', head: true })
 
     if (error) {
-      console.error("Error counting authors:", error)
+      console.error('Error counting authors:', error)
       return 0
     }
 
     return count || 0
   } catch (error) {
-    console.error("Error counting authors:", error)
+    console.error('Error counting authors:', error)
     return 0
   }
 }
@@ -304,19 +334,19 @@ export async function getRecentAuthors(limit = 10, offset = 0): Promise<Author[]
   try {
     // Fetch authors without foreign key relationships
     const { data, error } = await supabaseAdmin
-      .from("authors")
-      .select("*")
+      .from('authors')
+      .select('*')
       .range(offset, offset + limit - 1)
 
     if (error) {
-      console.error("Error fetching authors:", error)
+      console.error('Error fetching authors:', error)
       return []
     }
 
     // Return authors as-is, without trying to join with images
     return data as Author[]
   } catch (error) {
-    console.error("Error fetching authors:", error)
+    console.error('Error fetching authors:', error)
     return []
   }
 }
@@ -325,21 +355,17 @@ export async function getRecentAuthors(limit = 10, offset = 0): Promise<Author[]
 export async function getAuthorById(id: string): Promise<Author | null> {
   try {
     // Fetch author without foreign key relationships
-    const { data, error } = await supabaseAdmin
-      .from("authors")
-      .select("*")
-      .eq("id", id)
-      .single()
+    const { data, error } = await supabaseAdmin.from('authors').select('*').eq('id', id).single()
 
     if (error) {
-      console.error("Error fetching author:", error)
+      console.error('Error fetching author:', error)
       return null
     }
 
     // Return author as-is
     return data as Author
   } catch (error) {
-    console.error("Error fetching author:", error)
+    console.error('Error fetching author:', error)
     return null
   }
 }
@@ -349,23 +375,23 @@ export async function getAuthorsByBookId(bookId: string): Promise<Author[]> {
   try {
     // Since author_ids doesn't exist, let's check if there's a single author_id field
     const { data: book, error: bookError } = await supabaseAdmin
-      .from("books")
-      .select("author_id") // Try with singular author_id instead of author_ids array
-      .eq("id", bookId)
+      .from('books')
+      .select('author_id') // Try with singular author_id instead of author_ids array
+      .eq('id', bookId)
       .single()
 
     if (bookError) {
-      console.error("Error fetching book author_id:", bookError)
+      console.error('Error fetching book author_id:', bookError)
 
       // If that fails, let's try to see if there's a book_authors join table
       try {
         const { data: bookAuthors, error: bookAuthorsError } = await supabaseAdmin
-          .from("book_authors") // Assuming there might be a join table
-          .select("author_id")
-          .eq("book_id", bookId)
+          .from('book_authors') // Assuming there might be a join table
+          .select('author_id')
+          .eq('book_id', bookId)
 
         if (bookAuthorsError || !bookAuthors || bookAuthors.length === 0) {
-          console.error("Error fetching from book_authors:", bookAuthorsError)
+          console.error('Error fetching from book_authors:', bookAuthorsError)
           return []
         }
 
@@ -374,18 +400,18 @@ export async function getAuthorsByBookId(bookId: string): Promise<Author[]> {
 
         // Get the authors without foreign key relationships
         const { data: authors, error: authorsError } = await supabaseAdmin
-          .from("authors")
-          .select("*")
-          .in("id", authorIds)
+          .from('authors')
+          .select('*')
+          .in('id', authorIds)
 
         if (authorsError) {
-          console.error("Error fetching authors by book:", authorsError)
+          console.error('Error fetching authors by book:', authorsError)
           return []
         }
 
         return authors as Author[]
       } catch (joinTableError) {
-        console.error("Error with join table approach:", joinTableError)
+        console.error('Error with join table approach:', joinTableError)
         return []
       }
     }
@@ -398,24 +424,24 @@ export async function getAuthorsByBookId(bookId: string): Promise<Author[]> {
     // Get the author without foreign key relationships
     try {
       const { data: author, error: authorError } = await supabaseAdmin
-        .from("authors")
-        .select("*")
-        .eq("id", book.author_id)
+        .from('authors')
+        .select('*')
+        .eq('id', book.author_id)
         .single()
 
       if (authorError) {
-        console.error("Error fetching author by book:", authorError)
+        console.error('Error fetching author by book:', authorError)
         return []
       }
 
       // Return as an array with the single author
       return [author] as Author[]
     } catch (error) {
-      console.error("Error fetching author data:", error)
+      console.error('Error fetching author data:', error)
       return []
     }
   } catch (error) {
-    console.error("Error fetching authors by book:", error)
+    console.error('Error fetching authors by book:', error)
     return []
   }
 }
@@ -424,16 +450,18 @@ export async function getAuthorsByBookId(bookId: string): Promise<Author[]> {
 // Add this function to get the total count of publishers
 export async function getTotalPublishersCount(): Promise<number> {
   try {
-    const { count, error } = await supabaseAdmin.from("publishers").select("*", { count: "exact", head: true })
+    const { count, error } = await supabaseAdmin
+      .from('publishers')
+      .select('*', { count: 'exact', head: true })
 
     if (error) {
-      console.error("Error counting publishers:", error)
+      console.error('Error counting publishers:', error)
       return 0
     }
 
     return count || 0
   } catch (error) {
-    console.error("Error counting publishers:", error)
+    console.error('Error counting publishers:', error)
     return 0
   }
 }
@@ -443,21 +471,23 @@ export async function getRecentPublishers(limit = 10, offset = 0): Promise<Publi
   try {
     // Fetch publishers with their image relationships
     const { data, error } = await supabaseAdmin
-      .from("publishers")
-      .select(`
+      .from('publishers')
+      .select(
+        `
         *,
         publisher_image:images!publishers_publisher_image_id_fkey(id, url, alt_text)
-      `)
+      `
+      )
       .range(offset, offset + limit - 1)
 
     if (error) {
-      console.error("Error fetching publishers:", error)
+      console.error('Error fetching publishers:', error)
       return []
     }
 
     return data as Publisher[]
   } catch (error) {
-    console.error("Error fetching publishers:", error)
+    console.error('Error fetching publishers:', error)
     return []
   }
 }
@@ -465,16 +495,16 @@ export async function getRecentPublishers(limit = 10, offset = 0): Promise<Publi
 export async function getPublisherById(id: string): Promise<Publisher | null> {
   try {
     // Quiet: remove verbose publisher fetch log
-    
+
     // Fetch basic publisher data first
     const { data: publisherData, error: publisherError } = await supabaseAdmin
-      .from("publishers")
-      .select("*")
-      .eq("id", id)
+      .from('publishers')
+      .select('*')
+      .eq('id', id)
       .maybeSingle()
 
     if (publisherError) {
-      console.error("Error fetching publisher:", publisherError)
+      console.error('Error fetching publisher:', publisherError)
       return null
     }
 
@@ -494,13 +524,13 @@ export async function getPublisherById(id: string): Promise<Publisher | null> {
     if (publisherData.publisher_image_id) {
       try {
         const { data: imgData } = await supabaseAdmin
-          .from("images")
-          .select("id, url, alt_text, img_type_id")
-          .eq("id", publisherData.publisher_image_id)
+          .from('images')
+          .select('id, url, alt_text, img_type_id')
+          .eq('id', publisherData.publisher_image_id)
           .maybeSingle()
         publisher_image = imgData
       } catch (imgError) {
-        console.log("Could not fetch publisher image:", imgError)
+        console.log('Could not fetch publisher image:', imgError)
       }
     }
 
@@ -508,13 +538,13 @@ export async function getPublisherById(id: string): Promise<Publisher | null> {
     if (publisherData.cover_image_id) {
       try {
         const { data: imgData } = await supabaseAdmin
-          .from("images")
-          .select("id, url, alt_text, img_type_id")
-          .eq("id", publisherData.cover_image_id)
+          .from('images')
+          .select('id, url, alt_text, img_type_id')
+          .eq('id', publisherData.cover_image_id)
           .maybeSingle()
         cover_image = imgData
       } catch (imgError) {
-        console.log("Could not fetch cover image:", imgError)
+        console.log('Could not fetch cover image:', imgError)
       }
     }
 
@@ -522,13 +552,13 @@ export async function getPublisherById(id: string): Promise<Publisher | null> {
     if (publisherData.publisher_gallery_id) {
       try {
         const { data: imgData } = await supabaseAdmin
-          .from("images")
-          .select("id, url, alt_text, img_type_id")
-          .eq("id", publisherData.publisher_gallery_id)
+          .from('images')
+          .select('id, url, alt_text, img_type_id')
+          .eq('id', publisherData.publisher_gallery_id)
           .maybeSingle()
         publisher_gallery = imgData
       } catch (imgError) {
-        console.log("Could not fetch gallery image:", imgError)
+        console.log('Could not fetch gallery image:', imgError)
       }
     }
 
@@ -537,12 +567,12 @@ export async function getPublisherById(id: string): Promise<Publisher | null> {
       ...publisherData,
       publisher_image,
       cover_image,
-      publisher_gallery
+      publisher_gallery,
     } as Publisher
 
     return result
   } catch (error) {
-    console.error("Error fetching publisher:", error)
+    console.error('Error fetching publisher:', error)
     return null
   }
 }
@@ -551,32 +581,36 @@ export async function getPublisherById(id: string): Promise<Publisher | null> {
 export async function getRecentUsers(limit = 10): Promise<User[]> {
   try {
     // Remove the order by created_at in case it doesn't exist
-    const { data, error } = await supabaseAdmin.from("users").select("*, permalink").limit(limit)
+    const { data, error } = await supabaseAdmin.from('users').select('*, permalink').limit(limit)
 
     if (error) {
-      console.error("Error fetching users:", error)
+      console.error('Error fetching users:', error)
       return []
     }
 
     return data as User[]
   } catch (error) {
-    console.error("Error fetching users:", error)
+    console.error('Error fetching users:', error)
     return []
   }
 }
 
 export async function getUserById(id: string): Promise<User | null> {
   try {
-    const { data, error } = await supabaseAdmin.from("users").select("*, permalink").eq("id", id).single()
+    const { data, error } = await supabaseAdmin
+      .from('users')
+      .select('*, permalink')
+      .eq('id', id)
+      .single()
 
     if (error) {
-      console.error("Error fetching user:", error)
+      console.error('Error fetching user:', error)
       return null
     }
 
     return data as User
   } catch (error) {
-    console.error("Error fetching user:", error)
+    console.error('Error fetching user:', error)
     return null
   }
 }
@@ -587,31 +621,35 @@ export async function getReviewsByBookId(bookId: string, limit = 10): Promise<Re
   try {
     // Add a timeout to the request
     const timeoutPromise = new Promise<Review[]>((_, reject) => {
-      setTimeout(() => reject(new Error("Request timed out")), 5000)
+      setTimeout(() => reject(new Error('Request timed out')), 5000)
     })
 
     const fetchPromise = new Promise<Review[]>(async (resolve) => {
       try {
-        const { data, error } = await supabaseAdmin.from("reviews").select("*").eq("book_id", bookId).limit(limit)
+        const { data, error } = await supabaseAdmin
+          .from('reviews')
+          .select('*')
+          .eq('book_id', bookId)
+          .limit(limit)
 
         if (error) {
-          console.error("Error fetching reviews:", error)
+          console.error('Error fetching reviews:', error)
           resolve([])
         } else {
           resolve(data as Review[])
         }
       } catch (error) {
-        console.error("Error in fetchPromise:", error)
+        console.error('Error in fetchPromise:', error)
         resolve([])
       }
     })
 
     return Promise.race([fetchPromise, timeoutPromise]).catch((error) => {
-      console.error("Request failed or timed out:", error)
+      console.error('Request failed or timed out:', error)
       return []
     })
   } catch (error) {
-    console.error("Error fetching reviews:", error)
+    console.error('Error fetching reviews:', error)
     return []
   }
 }
@@ -619,58 +657,65 @@ export async function getReviewsByBookId(bookId: string, limit = 10): Promise<Re
 export async function getReviewsByUserId(userId: string, limit = 10): Promise<Review[]> {
   try {
     // Remove the order by created_at since that column doesn't exist
-    const { data, error } = await supabaseAdmin.from("reviews").select("*").eq("user_id", userId).limit(limit)
+    const { data, error } = await supabaseAdmin
+      .from('reviews')
+      .select('*')
+      .eq('user_id', userId)
+      .limit(limit)
 
     if (error) {
-      console.error("Error fetching reviews:", error)
+      console.error('Error fetching reviews:', error)
       return []
     }
 
     return data as Review[]
   } catch (error) {
-    console.error("Error fetching reviews:", error)
+    console.error('Error fetching reviews:', error)
     return []
   }
 }
 
 // Reading Status
-export async function getReadingStatusByUserAndBook(userId: string, bookId: string): Promise<ReadingStatus | null> {
+export async function getReadingStatusByUserAndBook(
+  userId: string,
+  bookId: string
+): Promise<ReadingStatus | null> {
   try {
     const { data, error } = await supabaseAdmin
-      .from("reading_status")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("book_id", bookId)
+      .from('reading_status')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('book_id', bookId)
       .single()
 
     if (error) {
-      console.error("Error fetching reading status:", error)
+      console.error('Error fetching reading status:', error)
       return null
     }
 
     return data as ReadingStatus
   } catch (error) {
-    console.error("Error fetching reading status:", error)
+    console.error('Error fetching reading status:', error)
     return null
   }
 }
 
 export async function getUserReadingList(
   userId: string,
-  status: "want_to_read" | "currently_reading" | "read",
-  limit = 10,
+  status: 'want_to_read' | 'currently_reading' | 'read',
+  limit = 10
 ): Promise<Book[]> {
   try {
     // First get the reading status entries
     const { data: statusData, error: statusError } = await supabaseAdmin
-      .from("reading_status")
-      .select("book_id")
-      .eq("user_id", userId)
-      .eq("status", status)
+      .from('reading_status')
+      .select('book_id')
+      .eq('user_id', userId)
+      .eq('status', status)
       .limit(limit)
 
     if (statusError || !statusData || statusData.length === 0) {
-      console.error("Error fetching reading status:", statusError)
+      console.error('Error fetching reading status:', statusError)
       return []
     }
 
@@ -678,16 +723,16 @@ export async function getUserReadingList(
     const bookIds = statusData.map((item: { book_id: string }) => item.book_id)
 
     // Then get the books
-    const { data, error } = await supabaseAdmin.from("books").select("*").in("id", bookIds)
+    const { data, error } = await supabaseAdmin.from('books').select('*').in('id', bookIds)
 
     if (error) {
-      console.error("Error fetching books for reading list:", error)
+      console.error('Error fetching books for reading list:', error)
       return []
     }
 
     return data as Book[]
   } catch (error) {
-    console.error("Error fetching reading list:", error)
+    console.error('Error fetching reading list:', error)
     return []
   }
 }
@@ -698,20 +743,20 @@ export async function getCurrentReadingChallenge(userId: string): Promise<Readin
 
   try {
     const { data, error } = await supabaseAdmin
-      .from("reading_challenges")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("year", currentYear)
+      .from('reading_challenges')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('year', currentYear)
       .single()
 
     if (error) {
-      console.error("Error fetching reading challenge:", error)
+      console.error('Error fetching reading challenge:', error)
       return null
     }
 
     return data as ReadingChallenge
   } catch (error) {
-    console.error("Error fetching reading challenge:", error)
+    console.error('Error fetching reading challenge:', error)
     return null
   }
 }
@@ -721,31 +766,36 @@ export async function getUserFriends(userId: string, limit = 20): Promise<User[]
   try {
     // Get accepted friend connections where the user is either user_id or friend_id
     const { data: friendsData, error: friendsError } = await supabaseAdmin
-      .from("user_friends")
-      .select("user_id, friend_id")
+      .from('user_friends')
+      .select('user_id, friend_id')
       .or(`user_id.eq.${userId},friend_id.eq.${userId}`)
-      .eq("status", "accepted")
+      .eq('status', 'accepted')
       .limit(limit)
 
     if (friendsError || !friendsData || friendsData.length === 0) {
-      console.error("Error fetching friends:", friendsError)
+      console.error('Error fetching friends:', friendsError)
       return []
     }
 
     // Extract friend IDs (the other user in each relationship)
-    const friendIds = friendsData.map((item: { user_id: string; friend_id: string }) => (item.user_id === userId ? item.friend_id : item.user_id))
+    const friendIds = friendsData.map((item: { user_id: string; friend_id: string }) =>
+      item.user_id === userId ? item.friend_id : item.user_id
+    )
 
     // Get the user data for all friends, including permalinks
-    const { data, error } = await supabaseAdmin.from("users").select("*, permalink").in("id", friendIds)
+    const { data, error } = await supabaseAdmin
+      .from('users')
+      .select('*, permalink')
+      .in('id', friendIds)
 
     if (error) {
-      console.error("Error fetching friend users:", error)
+      console.error('Error fetching friend users:', error)
       return []
     }
 
     return data as User[]
   } catch (error) {
-    console.error("Error fetching friends:", error)
+    console.error('Error fetching friends:', error)
     return []
   }
 }
@@ -754,16 +804,19 @@ export async function getUserFriends(userId: string, limit = 20): Promise<User[]
 export async function getUserBookshelves(userId: string): Promise<Bookshelf[]> {
   try {
     // Remove the order by created_at in case it doesn't exist
-    const { data, error } = await supabaseAdmin.from("bookshelves").select("*").eq("user_id", userId)
+    const { data, error } = await supabaseAdmin
+      .from('bookshelves')
+      .select('*')
+      .eq('user_id', userId)
 
     if (error) {
-      console.error("Error fetching bookshelves:", error)
+      console.error('Error fetching bookshelves:', error)
       return []
     }
 
     return data as Bookshelf[]
   } catch (error) {
-    console.error("Error fetching bookshelves:", error)
+    console.error('Error fetching bookshelves:', error)
     return []
   }
 }
@@ -772,12 +825,12 @@ export async function getBookshelfBooks(bookshelfId: string): Promise<Book[]> {
   try {
     // First get the bookshelf_books entries
     const { data: bookshelfData, error: bookshelfError } = await supabaseAdmin
-      .from("bookshelf_books")
-      .select("book_id")
-      .eq("bookshelf_id", bookshelfId)
+      .from('bookshelf_books')
+      .select('book_id')
+      .eq('bookshelf_id', bookshelfId)
 
     if (bookshelfError || !bookshelfData || bookshelfData.length === 0) {
-      console.error("Error fetching bookshelf books:", bookshelfError)
+      console.error('Error fetching bookshelf books:', bookshelfError)
       return []
     }
 
@@ -785,16 +838,16 @@ export async function getBookshelfBooks(bookshelfId: string): Promise<Book[]> {
     const bookIds = bookshelfData.map((item: { book_id: string }) => item.book_id)
 
     // Then get the books
-    const { data, error } = await supabaseAdmin.from("books").select("*").in("id", bookIds)
+    const { data, error } = await supabaseAdmin.from('books').select('*').in('id', bookIds)
 
     if (error) {
-      console.error("Error fetching books for bookshelf:", error)
+      console.error('Error fetching books for bookshelf:', error)
       return []
     }
 
     return data as Book[]
   } catch (error) {
-    console.error("Error fetching bookshelf books:", error)
+    console.error('Error fetching bookshelf books:', error)
     return []
   }
 }

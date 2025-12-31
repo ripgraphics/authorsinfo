@@ -15,27 +15,29 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {
     autoRefreshToken: false,
-    persistSession: false
-  }
+    persistSession: false,
+  },
 })
 
 async function findOrphanedAvatar(userIdentifier: string) {
   console.log(`\n🔍 Finding orphaned avatars for: ${userIdentifier}\n`)
-  
+
   // Find user
-  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userIdentifier)
-  
-  const { data: user } = await (isUUID 
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    userIdentifier
+  )
+
+  const { data: user } = await (isUUID
     ? supabase.from('users').select('id, name, permalink').eq('id', userIdentifier).single()
     : supabase.from('users').select('id, name, permalink').eq('permalink', userIdentifier).single())
-  
+
   if (!user) {
     console.error('❌ User not found')
     return
   }
-  
+
   console.log(`✅ User: ${user.name} (${user.id})\n`)
-  
+
   // Check entity_images for avatar entries
   const { data: entityImages } = await supabase
     .from('entity_images')
@@ -44,17 +46,17 @@ async function findOrphanedAvatar(userIdentifier: string) {
     .eq('entity_type', 'user')
     .eq('album_purpose', 'avatar')
     .order('created_at', { ascending: false })
-  
+
   if (entityImages && entityImages.length > 0) {
     console.log(`📁 Found ${entityImages.length} avatar entry/entries in entity_images:\n`)
-    
+
     for (const entry of entityImages) {
       const { data: image } = await supabase
         .from('images')
         .select('id, url, created_at, metadata')
         .eq('id', entry.image_id)
         .single()
-      
+
       if (image) {
         console.log(`   Image ID: ${image.id}`)
         console.log(`   URL: ${image.url}`)
@@ -67,20 +69,22 @@ async function findOrphanedAvatar(userIdentifier: string) {
         console.log('')
       }
     }
-    
+
     // Check if profile has avatar_image_id set
     const { data: profile } = await supabase
       .from('profiles')
       .select('avatar_image_id')
       .eq('user_id', user.id)
       .single()
-    
+
     if (profile) {
       if (profile.avatar_image_id) {
         console.log(`✅ Profile has avatar_image_id: ${profile.avatar_image_id}`)
         const latestImage = entityImages[0]
         if (profile.avatar_image_id !== latestImage.image_id) {
-          console.log(`⚠️  Profile avatar_image_id (${profile.avatar_image_id}) doesn't match latest album entry (${latestImage.image_id})`)
+          console.log(
+            `⚠️  Profile avatar_image_id (${profile.avatar_image_id}) doesn't match latest album entry (${latestImage.image_id})`
+          )
         }
       } else {
         console.log(`❌ Profile does NOT have avatar_image_id set`)
@@ -90,7 +94,7 @@ async function findOrphanedAvatar(userIdentifier: string) {
     }
   } else {
     console.log('❌ No avatar entries found in entity_images table')
-    
+
     // Check for recent images that might be avatars
     console.log('\n🔍 Checking for recent images that might be avatars...')
     const { data: recentImages } = await supabase
@@ -99,7 +103,7 @@ async function findOrphanedAvatar(userIdentifier: string) {
       .or('storage_path.ilike.%user_avatar%,metadata->entity_type.eq.user')
       .order('created_at', { ascending: false })
       .limit(10)
-    
+
     if (recentImages && recentImages.length > 0) {
       console.log(`\n📸 Found ${recentImages.length} recent images that might be avatars:\n`)
       recentImages.forEach((img, idx) => {
@@ -126,4 +130,3 @@ findOrphanedAvatar(userIdentifier)
     console.error('❌ Error:', error)
     process.exit(1)
   })
-

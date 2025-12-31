@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
 
     const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/destroy`, {
       method: 'POST',
-      body: formData
+      body: formData,
     })
 
     if (!response.ok) {
@@ -44,7 +44,6 @@ export async function POST(request: NextRequest) {
 
     const result = await response.json()
     return NextResponse.json({ success: true, result })
-
   } catch (error) {
     console.error('Error deleting image:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

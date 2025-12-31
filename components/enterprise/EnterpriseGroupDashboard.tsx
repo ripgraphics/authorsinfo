@@ -1,91 +1,93 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { createBrowserClient } from '@supabase/ssr';
-import { useToast } from '@/hooks/use-toast';
-import type { Database } from '@/types/database';
+import { useState, useEffect, useCallback } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { createBrowserClient } from '@supabase/ssr'
+import { useToast } from '@/hooks/use-toast'
+import type { Database } from '@/types/database'
 
 // Import enterprise components
-import GroupAnalytics from '../group/GroupAnalytics';
-import ContentModeration from '../group/ContentModeration';
-import AuditLog from '../group/AuditLog';
-import PermissionsManager from '../group/PermissionsManager';
-import GroupSettings from '../group/GroupSettings';
-import MemberManagement from '../group/MemberManagement';
+import GroupAnalytics from '../group/GroupAnalytics'
+import ContentModeration from '../group/ContentModeration'
+import AuditLog from '../group/AuditLog'
+import PermissionsManager from '../group/PermissionsManager'
+import GroupSettings from '../group/GroupSettings'
+import MemberManagement from '../group/MemberManagement'
 
 interface EnterpriseGroupDashboardProps {
-  groupId: string;
+  groupId: string
 }
 
 interface GroupData {
-  id: string;
-  name: string;
-  description: string;
-  created_at: string;
-  updated_at: string;
-  user_role: string;
-  member_count: number;
-  content_count: number;
-  activity_count: number;
+  id: string
+  name: string
+  description: string
+  created_at: string
+  updated_at: string
+  user_role: string
+  member_count: number
+  content_count: number
+  activity_count: number
 }
 
 export default function EnterpriseGroupDashboard({ groupId }: EnterpriseGroupDashboardProps) {
-  const [groupData, setGroupData] = useState<GroupData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [userRole, setUserRole] = useState<string>('');
-  const [error, setError] = useState<string | null>(null);
+  const [groupData, setGroupData] = useState<GroupData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [userRole, setUserRole] = useState<string>('')
+  const [error, setError] = useState<string | null>(null)
 
-  const supabase = createBrowserClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
-  const { toast } = useToast();
+  const supabase = createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+  const { toast } = useToast()
 
-  useEffect(() => {
-    fetchGroupData();
-  }, [groupId]); // Added groupId dependency
-
-  async function fetchGroupData() {
+  const fetchGroupData = useCallback(async () => {
     try {
-      setLoading(true);
-      setError(null);
+      setLoading(true)
+      setError(null)
 
       // First fetch basic group data
       const { data: basicGroupData, error: groupError } = await supabase
         .from('groups')
-        .select('*')
+        .select('id, name, description, image_url, visibility, created_at, updated_at, creator_id, member_count')
         .eq('id', groupId)
-        .single();
+        .single()
 
-      if (groupError) throw groupError;
+      if (groupError) throw groupError
 
       // Fetch member count
       const { count: memberCount, error: memberError } = await supabase
         .from('group_members')
         .select('*', { count: 'exact', head: true })
-        .eq('group_id', groupId);
+        .eq('group_id', groupId)
 
-      if (memberError) throw memberError;
+      if (memberError) throw memberError
 
       // Fetch content count
       const { count: contentCount, error: contentError } = await supabase
         .from('group_content')
         .select('*', { count: 'exact', head: true })
-        .eq('group_id', groupId);
+        .eq('group_id', groupId)
 
-      if (contentError) throw contentError;
+      if (contentError) throw contentError
 
       // Fetch activity count
       const { count: activityCount, error: activityError } = await supabase
         .from('group_activities')
         .select('*', { count: 'exact', head: true })
-        .eq('group_id', groupId);
+        .eq('group_id', groupId)
 
-      if (activityError) throw activityError;
+      if (activityError) throw activityError
 
       // Get current user's role
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError) throw userError;
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser()
+      if (userError) throw userError
 
       if (user) {
         const { data: memberData, error: roleError } = await supabase
@@ -93,7 +95,7 @@ export default function EnterpriseGroupDashboard({ groupId }: EnterpriseGroupDas
           .select('role_id')
           .eq('group_id', groupId)
           .eq('user_id', user.id)
-          .single();
+          .single()
 
         if (!roleError && memberData) {
           // Fetch role name
@@ -101,10 +103,10 @@ export default function EnterpriseGroupDashboard({ groupId }: EnterpriseGroupDas
             .from('roles')
             .select('name')
             .eq('id', (memberData as any).role_id)
-            .single();
+            .single()
 
           if (!roleNameError && roleData) {
-            setUserRole((roleData as any).name);
+            setUserRole((roleData as any).name)
           }
         }
       }
@@ -113,34 +115,39 @@ export default function EnterpriseGroupDashboard({ groupId }: EnterpriseGroupDas
         ...(basicGroupData as any),
         member_count: memberCount || 0,
         content_count: contentCount || 0,
-        activity_count: activityCount || 0
-      });
-
+        activity_count: activityCount || 0,
+      })
     } catch (err: any) {
-      console.error('Error fetching group data:', err);
-      setError(err.message);
+      console.error('Error fetching group data:', err)
+      setError(err.message)
       toast({
         title: 'Error',
         description: 'Failed to load group data: ' + err.message,
         variant: 'destructive',
-      });
+      })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }
+  }, [groupId, supabase, toast])
+
+  useEffect(() => {
+    fetchGroupData()
+  }, [fetchGroupData])
 
   if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading enterprise dashboard...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        Loading enterprise dashboard...
+      </div>
+    )
   }
 
   if (error || !groupData) {
     return (
       <Alert variant="destructive">
-        <AlertDescription>
-          {error || 'Failed to load group data'}
-        </AlertDescription>
+        <AlertDescription>{error || 'Failed to load group data'}</AlertDescription>
       </Alert>
-    );
+    )
   }
 
   return (
@@ -213,5 +220,5 @@ export default function EnterpriseGroupDashboard({ groupId }: EnterpriseGroupDas
         </CardContent>
       </Card>
     </div>
-  );
-} 
+  )
+}

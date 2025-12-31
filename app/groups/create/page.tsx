@@ -1,15 +1,17 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { supabaseClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { useToast } from "@/components/ui/use-toast"
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { supabaseClient as supabaseClientUnsafe } from '@/lib/supabase/client'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { useToast } from '@/components/ui/use-toast'
+
+const supabaseClient = supabaseClientUnsafe as any
 
 interface CreateGroupForm {
   name: string
@@ -22,10 +24,10 @@ export default function CreateGroupPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [form, setForm] = useState<CreateGroupForm>({
-    name: "",
-    description: "",
+    name: '',
+    description: '',
     isPrivate: false,
-    coverImage: null
+    coverImage: null,
   })
   const [loading, setLoading] = useState(false)
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
@@ -33,7 +35,7 @@ export default function CreateGroupPage() {
   const handleCoverImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      setForm(prev => ({ ...prev, coverImage: file }))
+      setForm((prev) => ({ ...prev, coverImage: file }))
       setCoverPreview(URL.createObjectURL(file))
     }
   }
@@ -44,9 +46,9 @@ export default function CreateGroupPage() {
 
     if (!form.name.trim()) {
       toast({
-        title: "Error",
-        description: "Group name is required",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Group name is required',
+        variant: 'destructive',
       })
       return
     }
@@ -55,7 +57,10 @@ export default function CreateGroupPage() {
       setLoading(true)
 
       // Check authentication
-      const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
+      const {
+        data: { user },
+        error: authError,
+      } = await supabaseClient.auth.getUser()
       if (authError || !user) {
         console.error('Auth error:', authError)
         router.push('/auth/signin?redirect=/groups/create')
@@ -66,7 +71,7 @@ export default function CreateGroupPage() {
         name: form.name,
         description: form.description,
         is_private: form.isPrivate,
-        created_by: user.id
+        created_by: user.id,
       })
 
       // Upload cover image if provided
@@ -74,7 +79,7 @@ export default function CreateGroupPage() {
       if (form.coverImage) {
         const fileExt = form.coverImage.name.split('.').pop()
         const filePath = `group-covers/${user.id}-${Date.now()}.${fileExt}`
-        
+
         console.log('Uploading cover image:', filePath)
         const { error: uploadError } = await supabaseClient.storage
           .from('groups')
@@ -85,9 +90,9 @@ export default function CreateGroupPage() {
           throw uploadError
         }
 
-        const { data: { publicUrl } } = supabaseClient.storage
-          .from('groups')
-          .getPublicUrl(filePath)
+        const {
+          data: { publicUrl },
+        } = supabaseClient.storage.from('groups').getPublicUrl(filePath)
 
         coverImageUrl = publicUrl
         console.log('Cover image uploaded:', coverImageUrl)
@@ -100,18 +105,18 @@ export default function CreateGroupPage() {
         is_private: form.isPrivate,
         created_by: user.id,
         cover_image_url: coverImageUrl,
-        member_count: 1
+        member_count: 1,
       })
 
-      const { data: group, error: groupError } = await (supabaseClient
-        .from('groups') as any)
+      const { data: group, error: groupError } = await supabaseClient
+        .from('groups')
         .insert({
           name: form.name,
           description: form.description,
           is_private: form.isPrivate,
           created_by: user.id,
           cover_image_url: coverImageUrl,
-          member_count: 1
+          member_count: 1,
         })
         .select()
         .single()
@@ -122,7 +127,7 @@ export default function CreateGroupPage() {
           details: groupError.details,
           hint: groupError.hint,
           code: groupError.code,
-          error: groupError
+          error: groupError,
         })
         throw groupError
       }
@@ -137,19 +142,19 @@ export default function CreateGroupPage() {
           name: 'Owner',
           description: 'Group owner with full permissions',
           permissions: ['manage_group', 'manage_members', 'manage_content'],
-          is_default: false
+          is_default: false,
         },
         {
           group_id: group.id,
           name: 'Member',
           description: 'Regular group member',
           permissions: ['view_content', 'create_content'],
-          is_default: true
-        }
+          is_default: true,
+        },
       ]
       console.log('Attempting to insert roles:', rolesToInsert)
-      const { data: roles, error: rolesError } = await (supabaseClient
-        .from('group_roles') as any)
+      const { data: roles, error: rolesError } = await supabaseClient
+        .from('group_roles')
         .insert(rolesToInsert)
         .select()
 
@@ -167,15 +172,15 @@ export default function CreateGroupPage() {
         throw new Error('Owner role not found')
       }
 
-      const { error: memberError } = await (supabaseClient
-        .from('group_members') as any)
+      const { error: memberError } = await supabaseClient
+        .from('group_members')
         .insert({
           group_id: group.id,
           user_id: user.id,
           role_id: ownerRole.id,
           joined_at: new Date().toISOString(),
-          status: 'active'
-        })
+          status: 'active',
+      })
 
       if (memberError) {
         console.error('Member creation error:', memberError)
@@ -185,8 +190,8 @@ export default function CreateGroupPage() {
       console.log('Member added successfully')
 
       toast({
-        title: "Success",
-        description: "Group created successfully"
+        title: 'Success',
+        description: 'Group created successfully',
       })
 
       router.push(`/groups/${group.id}`)
@@ -196,12 +201,12 @@ export default function CreateGroupPage() {
         details: err.details,
         hint: err.hint,
         code: err.code,
-        error: err
+        error: err,
       })
       toast({
-        title: "Error",
+        title: 'Error',
         description: err.message || err.details || err.hint || 'Failed to create group',
-        variant: "destructive"
+        variant: 'destructive',
       })
     } finally {
       setLoading(false)
@@ -221,7 +226,7 @@ export default function CreateGroupPage() {
               <Input
                 id="name"
                 value={form.name}
-                onChange={e => setForm(prev => ({ ...prev, name: e.target.value }))}
+                onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
                 placeholder="Enter group name"
                 disabled={loading}
               />
@@ -232,7 +237,7 @@ export default function CreateGroupPage() {
               <Textarea
                 id="description"
                 value={form.description}
-                onChange={e => setForm(prev => ({ ...prev, description: e.target.value }))}
+                onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
                 placeholder="Enter group description"
                 disabled={loading}
               />
@@ -262,7 +267,7 @@ export default function CreateGroupPage() {
               <Switch
                 id="isPrivate"
                 checked={form.isPrivate}
-                onCheckedChange={checked => setForm(prev => ({ ...prev, isPrivate: checked }))}
+                onCheckedChange={(checked) => setForm((prev) => ({ ...prev, isPrivate: checked }))}
                 disabled={loading}
               />
               <Label htmlFor="isPrivate">Make group private</Label>
@@ -279,11 +284,11 @@ export default function CreateGroupPage() {
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Creating..." : "Create Group"}
+              {loading ? 'Creating...' : 'Create Group'}
             </Button>
           </CardFooter>
         </form>
       </Card>
     </div>
   )
-} 
+}

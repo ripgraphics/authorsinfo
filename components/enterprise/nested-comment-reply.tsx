@@ -68,7 +68,7 @@ export function NestedCommentReply({
   postId,
   onReplyAdded,
   onCancel,
-  className
+  className,
 }: NestedCommentReplyProps) {
   const [replyContent, setReplyContent] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -80,7 +80,7 @@ export function NestedCommentReply({
       toast({
         title: 'Authentication required',
         description: 'Please sign in to reply to comments',
-        variant: 'destructive'
+        variant: 'destructive',
       })
       return
     }
@@ -89,7 +89,7 @@ export function NestedCommentReply({
       toast({
         title: 'Reply cannot be empty',
         description: 'Please enter some content for your reply',
-        variant: 'destructive'
+        variant: 'destructive',
       })
       return
     }
@@ -106,7 +106,7 @@ export function NestedCommentReply({
         body: JSON.stringify({
           action: 'comment',
           comment_text: replyContent.trim(),
-          parent_comment_id: parentComment.id
+          parent_comment_id: parentComment.id,
         }),
       })
 
@@ -117,7 +117,7 @@ export function NestedCommentReply({
           title: 'Reply posted successfully',
           description: 'Your reply has been added to the conversation',
         })
-        
+
         // Transform the response to match the expected comment format
         const comment = data.comment as CommentResponse
         const newReply: CommentReply = {
@@ -127,19 +127,20 @@ export function NestedCommentReply({
           updated_at: comment.updated_at,
           user: {
             id: comment.user_id || user.id,
-            name: (user as any)?.name || user.user_metadata?.full_name || user.email || 'Unknown User',
-            avatar_url: (user as any)?.avatar_url || null
+            name:
+              (user as any)?.name || user.user_metadata?.full_name || user.email || 'Unknown User',
+            avatar_url: (user as any)?.avatar_url || null,
           },
           parent_comment_id: comment.parent_comment_id,
           comment_depth: (parentComment.comment_depth || 0) + 1,
           thread_id: comment.thread_id || parentComment.thread_id || parentComment.id,
           reply_count: 0,
-          replies: []
+          replies: [],
         }
-        
+
         // Call the callback with the new reply
         onReplyAdded(newReply)
-        
+
         // Reset form
         setReplyContent('')
         onCancel()
@@ -151,30 +152,35 @@ export function NestedCommentReply({
       toast({
         title: 'Error posting reply',
         description: error instanceof Error ? error.message : 'Something went wrong',
-        variant: 'destructive'
+        variant: 'destructive',
       })
     } finally {
       setIsSubmitting(false)
     }
   }, [replyContent, user, entityId, parentComment, onReplyAdded, onCancel, toast])
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-      e.preventDefault()
-      handleSubmit()
-    }
-  }, [handleSubmit])
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault()
+        handleSubmit()
+      }
+    },
+    [handleSubmit]
+  )
 
   if (!user) {
     return null
   }
 
   return (
-    <div className={cn(
-      "bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border-l-4 border-blue-500",
-      "ml-4", // Indent based on parent comment depth
-      className
-    )}>
+    <div
+      className={cn(
+        'bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border-l-4 border-blue-500',
+        'ml-4', // Indent based on parent comment depth
+        className
+      )}
+    >
       {/* Reply header */}
       <div className="flex items-center gap-2 mb-3 text-sm text-gray-600 dark:text-gray-400">
         <Reply className="h-4 w-4" />
@@ -202,9 +208,7 @@ export function NestedCommentReply({
                 {new Date(parentComment.created_at).toLocaleDateString()}
               </span>
             </div>
-            <p className="text-sm text-gray-700 dark:text-gray-300">
-              {parentComment.content}
-            </p>
+            <p className="text-sm text-gray-700 dark:text-gray-300">{parentComment.content}</p>
           </div>
         </div>
       </div>

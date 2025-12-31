@@ -1,12 +1,19 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { Check, ChevronsUpDown, X } from "lucide-react"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import * as React from 'react'
+import { Check, ChevronsUpDown, X } from 'lucide-react'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 
 export interface Option {
   value: string
@@ -29,15 +36,15 @@ export function MultiCombobox({
   options,
   selected,
   onChange,
-  placeholder = "Select options",
-  emptyMessage = "No options found.",
+  placeholder = 'Select options',
+  emptyMessage = 'No options found.',
   className,
   onSearch,
   onScrollEnd,
   loading = false,
 }: MultiComboboxProps) {
   const [open, setOpen] = React.useState(false)
-  const [searchValue, setSearchValue] = React.useState("")
+  const [searchValue, setSearchValue] = React.useState('')
   const commandRef = React.useRef<HTMLDivElement>(null)
 
   // Handle scroll to load more
@@ -52,11 +59,11 @@ export function MultiCombobox({
       }
     }
 
-    const commandList = commandRef.current?.querySelector("[cmdk-list]")
-    commandList?.addEventListener("scroll", handleScroll)
+    const commandList = commandRef.current?.querySelector('[cmdk-list]')
+    commandList?.addEventListener('scroll', handleScroll)
 
     return () => {
-      commandList?.removeEventListener("scroll", handleScroll)
+      commandList?.removeEventListener('scroll', handleScroll)
     }
   }, [onScrollEnd])
 
@@ -64,20 +71,23 @@ export function MultiCombobox({
   const searchTimeoutRef = React.useRef<NodeJS.Timeout | undefined>(undefined)
 
   // Handle search input with proper debouncing
-  const handleSearchChange = React.useCallback((value: string) => {
-    setSearchValue(value)
-    if (onSearch) {
-      // Clear any existing timeout
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current)
+  const handleSearchChange = React.useCallback(
+    (value: string) => {
+      setSearchValue(value)
+      if (onSearch) {
+        // Clear any existing timeout
+        if (searchTimeoutRef.current) {
+          clearTimeout(searchTimeoutRef.current)
+        }
+
+        // Set a new timeout
+        searchTimeoutRef.current = setTimeout(() => {
+          onSearch(value)
+        }, 300) // 300ms debounce
       }
-      
-      // Set a new timeout
-      searchTimeoutRef.current = setTimeout(() => {
-        onSearch(value)
-      }, 300) // 300ms debounce
-    }
-  }, [onSearch])
+    },
+    [onSearch]
+  )
 
   // Clean up timeout on unmount
   React.useEffect(() => {
@@ -91,7 +101,7 @@ export function MultiCombobox({
   // Reset search when popover closes
   React.useEffect(() => {
     if (!open) {
-      setSearchValue("")
+      setSearchValue('')
     }
   }, [open])
 
@@ -112,7 +122,7 @@ export function MultiCombobox({
   }
 
   return (
-    <div className={cn("space-y-2", className)}>
+    <div className={cn('space-y-2', className)}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <div className="w-full">
@@ -131,15 +141,13 @@ export function MultiCombobox({
         </PopoverTrigger>
         <PopoverContent className="w-full p-0" align="start">
           <Command ref={commandRef} className="w-full">
-            <CommandInput 
-              placeholder="Search..." 
-              value={searchValue} 
+            <CommandInput
+              placeholder="Search..."
+              value={searchValue}
               onValueChange={handleSearchChange}
             />
             <CommandList className="max-h-60 overflow-auto">
-              <CommandEmpty>
-                {loading ? "Loading..." : emptyMessage}
-              </CommandEmpty>
+              <CommandEmpty>{loading ? 'Loading...' : emptyMessage}</CommandEmpty>
               <CommandGroup>
                 {options.map((option) => (
                   <CommandItem
@@ -149,7 +157,7 @@ export function MultiCombobox({
                       onChange(
                         selected.includes(option.value)
                           ? selected.filter((item) => item !== option.value)
-                          : [...selected, option.value],
+                          : [...selected, option.value]
                       )
                       // Close the popover after selection if only one item is allowed
                       if (selected.length === 0) {
@@ -158,7 +166,10 @@ export function MultiCombobox({
                     }}
                   >
                     <Check
-                      className={cn("mr-2 h-4 w-4", selected.includes(option.value) ? "opacity-100" : "opacity-0")}
+                      className={cn(
+                        'mr-2 h-4 w-4',
+                        selected.includes(option.value) ? 'opacity-100' : 'opacity-0'
+                      )}
                     />
                     {option.label}
                   </CommandItem>
@@ -193,7 +204,13 @@ export function MultiCombobox({
             )
           })}
           {selected.length > 1 && (
-            <Button variant="ghost" size="sm" className="h-auto px-2 py-1 text-xs" onClick={handleClear} type="button">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-auto px-2 py-1 text-xs"
+              onClick={handleClear}
+              type="button"
+            >
               Clear all
             </Button>
           )}

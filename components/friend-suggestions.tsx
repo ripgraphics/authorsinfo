@@ -5,14 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { 
-  Users, 
-  UserPlus, 
-  X, 
-  Sparkles,
-  Loader2,
-  RefreshCw
-} from 'lucide-react'
+import { Users, UserPlus, X, Sparkles, Loader2, RefreshCw } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import Link from 'next/link'
 import { getProfileUrlFromUser } from '@/lib/utils/profile-url-client'
@@ -36,7 +29,7 @@ export function FriendSuggestions() {
   const [isLoading, setIsLoading] = useState(true)
   const [isGenerating, setIsGenerating] = useState(false)
   const [processingSuggestion, setProcessingSuggestion] = useState<string | null>(null)
-  
+
   const { toast } = useToast()
 
   useEffect(() => {
@@ -47,7 +40,7 @@ export function FriendSuggestions() {
     try {
       setIsLoading(true)
       const response = await fetch('/api/friends/suggestions')
-      
+
       if (response.ok) {
         const data = await response.json()
         setSuggestions(data.suggestions || [])
@@ -71,21 +64,21 @@ export function FriendSuggestions() {
       if (response.ok) {
         await fetchSuggestions()
         toast({
-          title: "Suggestions updated",
-          description: "New friend suggestions have been generated",
+          title: 'Suggestions updated',
+          description: 'New friend suggestions have been generated',
         })
       } else {
         toast({
-          title: "Error",
-          description: "Failed to generate new suggestions",
+          title: 'Error',
+          description: 'Failed to generate new suggestions',
           variant: 'destructive',
         })
       }
     } catch (error) {
       console.error('Error generating suggestions:', error)
       toast({
-        title: "Error",
-        description: "Failed to generate new suggestions",
+        title: 'Error',
+        description: 'Failed to generate new suggestions',
         variant: 'destructive',
       })
     } finally {
@@ -106,17 +99,16 @@ export function FriendSuggestions() {
 
       if (response.ok) {
         // Remove the suggestion from the list
-        setSuggestions(prev => prev.filter(s => s.id !== suggestionId))
-        
+        setSuggestions((prev) => prev.filter((s) => s.id !== suggestionId))
+
         toast({
           title: action === 'accept' ? 'Friend request sent!' : 'Suggestion dismissed',
-          description: action === 'accept' 
-            ? 'Friend request has been sent' 
-            : 'Suggestion has been dismissed',
+          description:
+            action === 'accept' ? 'Friend request has been sent' : 'Suggestion has been dismissed',
         })
       } else {
         toast({
-          title: "Error",
+          title: 'Error',
           description: `Failed to ${action} suggestion`,
           variant: 'destructive',
         })
@@ -124,7 +116,7 @@ export function FriendSuggestions() {
     } catch (error) {
       console.error(`Error ${action}ing suggestion:`, error)
       toast({
-        title: "Error",
+        title: 'Error',
         description: `Failed to ${action} suggestion`,
         variant: 'destructive',
       })
@@ -159,7 +151,7 @@ export function FriendSuggestions() {
             </p>
           </div>
         </div>
-        
+
         <Button
           variant="outline"
           size="sm"
@@ -204,35 +196,38 @@ export function FriendSuggestions() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <Avatar className="h-12 w-12">
-                      <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(suggestion.suggested_user.name)}`} />
+                      <AvatarImage
+                        src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(suggestion.suggested_user.name)}`}
+                      />
                       <AvatarFallback>
                         {suggestion.suggested_user.name.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    
+
                     <div className="flex-1">
-                      <Link 
+                      <Link
                         href={getProfileUrlFromUser(suggestion.suggested_user)}
                         className="font-semibold hover:underline"
                       >
                         {suggestion.suggested_user.name}
                       </Link>
-                      
+
                       <div className="flex items-center space-x-2 mt-1">
                         {suggestion.mutual_friends_count > 0 && (
                           <Badge variant="secondary" className="text-xs">
                             <Users className="h-3 w-3 mr-1" />
-                            {suggestion.mutual_friends_count} mutual friend{suggestion.mutual_friends_count !== 1 ? 's' : ''}
+                            {suggestion.mutual_friends_count} mutual friend
+                            {suggestion.mutual_friends_count !== 1 ? 's' : ''}
                           </Badge>
                         )}
-                        
+
                         <Badge variant="outline" className="text-xs">
                           {Math.round(suggestion.suggestion_score * 100)}% match
                         </Badge>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     <Button
                       variant="outline"
@@ -247,7 +242,7 @@ export function FriendSuggestions() {
                         <X className="h-4 w-4" />
                       )}
                     </Button>
-                    
+
                     <Button
                       size="sm"
                       onClick={() => handleSuggestionAction(suggestion.id, 'accept')}
@@ -269,4 +264,4 @@ export function FriendSuggestions() {
       </div>
     </div>
   )
-} 
+}

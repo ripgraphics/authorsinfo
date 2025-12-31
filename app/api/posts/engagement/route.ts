@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 
-
 /**
  * Enterprise-Grade Engagement API
- * 
+ *
  * Handles:
  * - Reactions (like, love, etc.)
  * - Comments
@@ -16,11 +15,14 @@ import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 export async function POST(request: NextRequest) {
   try {
     console.log('=== ENTERPRISE ENGAGEMENT API START ===')
-    
+
     // Authentication
     const supabase = await createRouteHandlerClientAsync()
-    
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
     if (userError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -29,7 +31,7 @@ export async function POST(request: NextRequest) {
     // Parse request
     const requestBody = await request.json()
     console.log('Engagement request body:', JSON.stringify(requestBody, null, 2))
-    
+
     const { post_id, action_type, action_data } = requestBody
 
     // Validation
@@ -43,8 +45,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify post exists
-    const { data: post, error: postError } = await (supabase
-      .from('activities') as any)
+    const { data: post, error: postError } = await (supabase.from('activities') as any)
       .select('*')
       .eq('id', post_id)
       .eq('activity_type', 'post_created')
@@ -94,14 +95,16 @@ export async function POST(request: NextRequest) {
       success: true,
       action_type,
       post_id,
-      result: engagementResult
+      result: engagementResult,
     })
-
   } catch (error) {
     console.error('=== ENTERPRISE ENGAGEMENT API ERROR ===')
     console.error('Error in engagement:', error)
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     )
   }
@@ -113,10 +116,9 @@ export async function POST(request: NextRequest) {
 async function handleReaction(supabase: any, userId: string, postId: string, actionData: any) {
   try {
     const reactionType = actionData?.reaction_type || 'like'
-    
+
     // Check if user already reacted
-    const { data: existingReaction } = await (supabase
-      .from('post_reactions') as any)
+    const { data: existingReaction } = await (supabase.from('post_reactions') as any)
       .select('*')
       .eq('post_id', postId)
       .eq('user_id', userId)
@@ -125,8 +127,7 @@ async function handleReaction(supabase: any, userId: string, postId: string, act
 
     if (existingReaction) {
       // Remove reaction
-      const { error: deleteError } = await (supabase
-        .from('post_reactions') as any)
+      const { error: deleteError } = await (supabase.from('post_reactions') as any)
         .delete()
         .eq('id', existingReaction.id)
 
@@ -138,13 +139,11 @@ async function handleReaction(supabase: any, userId: string, postId: string, act
       return { action: 'removed', reaction_type: reactionType }
     } else {
       // Add reaction
-      const { error: insertError } = await (supabase
-        .from('post_reactions') as any)
-        .insert({
-          post_id: postId,
-          user_id: userId,
-          reaction_type: reactionType
-        })
+      const { error: insertError } = await (supabase.from('post_reactions') as any).insert({
+        post_id: postId,
+        user_id: userId,
+        reaction_type: reactionType,
+      })
 
       if (insertError) {
         console.error('Error adding reaction:', insertError)
@@ -173,12 +172,11 @@ async function handleComment(supabase: any, userId: string, postId: string, acti
       return { error: 'Comment too long (max 1000 characters)' }
     }
 
-    const { data: comment, error: insertError } = await (supabase
-      .from('post_comments') as any)
+    const { data: comment, error: insertError } = await (supabase.from('post_comments') as any)
       .insert({
         post_id: postId,
         user_id: userId,
-        content: content.trim()
+        content: content.trim(),
       })
       .select()
       .single()
@@ -201,10 +199,9 @@ async function handleComment(supabase: any, userId: string, postId: string, acti
 async function handleShare(supabase: any, userId: string, postId: string, actionData: any) {
   try {
     const shareType = actionData?.share_type || 'general'
-    
+
     // Check if user already shared
-    const { data: existingShare } = await (supabase
-      .from('post_shares') as any)
+    const { data: existingShare } = await (supabase.from('post_shares') as any)
       .select('*')
       .eq('post_id', postId)
       .eq('user_id', userId)
@@ -214,13 +211,11 @@ async function handleShare(supabase: any, userId: string, postId: string, action
       return { error: 'Already shared this post' }
     }
 
-    const { error: insertError } = await (supabase
-      .from('post_shares') as any)
-      .insert({
-        post_id: postId,
-        user_id: userId,
-        share_type: shareType
-      })
+    const { error: insertError } = await (supabase.from('post_shares') as any).insert({
+      post_id: postId,
+      user_id: userId,
+      share_type: shareType,
+    })
 
     if (insertError) {
       console.error('Error adding share:', insertError)
@@ -240,8 +235,7 @@ async function handleShare(supabase: any, userId: string, postId: string, action
 async function handleBookmark(supabase: any, userId: string, postId: string, actionData: any) {
   try {
     // Check if user already bookmarked
-    const { data: existingBookmark } = await (supabase
-      .from('post_bookmarks') as any)
+    const { data: existingBookmark } = await (supabase.from('post_bookmarks') as any)
       .select('*')
       .eq('post_id', postId)
       .eq('user_id', userId)
@@ -249,8 +243,7 @@ async function handleBookmark(supabase: any, userId: string, postId: string, act
 
     if (existingBookmark) {
       // Remove bookmark
-      const { error: deleteError } = await (supabase
-        .from('post_bookmarks') as any)
+      const { error: deleteError } = await (supabase.from('post_bookmarks') as any)
         .delete()
         .eq('id', existingBookmark.id)
 
@@ -262,12 +255,10 @@ async function handleBookmark(supabase: any, userId: string, postId: string, act
       return { action: 'removed' }
     } else {
       // Add bookmark
-      const { error: insertError } = await (supabase
-        .from('post_bookmarks') as any)
-        .insert({
-          post_id: postId,
-          user_id: userId
-        })
+      const { error: insertError } = await (supabase.from('post_bookmarks') as any).insert({
+        post_id: postId,
+        user_id: userId,
+      })
 
       if (insertError) {
         console.error('Error adding bookmark:', insertError)
@@ -288,10 +279,9 @@ async function handleBookmark(supabase: any, userId: string, postId: string, act
 async function handleView(supabase: any, userId: string, postId: string, actionData: any) {
   try {
     // For views, we just update the post view count
-    const { error: updateError } = await (supabase
-      .from('activities') as any)
+    const { error: updateError } = await (supabase.from('activities') as any)
       .update({
-        view_count: supabase.sql`COALESCE(view_count, 0) + 1`
+        view_count: supabase.sql`COALESCE(view_count, 0) + 1`,
       })
       .eq('id', postId)
 
@@ -314,10 +304,16 @@ async function updatePostEngagementCounts(supabase: any, postId: string) {
   try {
     // Get counts from engagement tables
     const [reactionsResult, commentsResult, sharesResult, bookmarksResult] = await Promise.all([
-      (supabase.from('post_reactions') as any).select('id', { count: 'exact' }).eq('post_id', postId),
-      (supabase.from('post_comments') as any).select('id', { count: 'exact' }).eq('post_id', postId),
+      (supabase.from('post_reactions') as any)
+        .select('id', { count: 'exact' })
+        .eq('post_id', postId),
+      (supabase.from('post_comments') as any)
+        .select('id', { count: 'exact' })
+        .eq('post_id', postId),
       (supabase.from('post_shares') as any).select('id', { count: 'exact' }).eq('post_id', postId),
-      (supabase.from('post_bookmarks') as any).select('id', { count: 'exact' }).eq('post_id', postId)
+      (supabase.from('post_bookmarks') as any)
+        .select('id', { count: 'exact' })
+        .eq('post_id', postId),
     ])
 
     const likeCount = reactionsResult.count || 0
@@ -326,15 +322,14 @@ async function updatePostEngagementCounts(supabase: any, postId: string) {
     const bookmarkCount = bookmarksResult.count || 0
 
     // Update post with new counts
-    const { error: updateError } = await (supabase
-      .from('activities') as any)
+    const { error: updateError } = await (supabase.from('activities') as any)
       .update({
         like_count: likeCount,
         comment_count: commentCount,
         share_count: shareCount,
         bookmark_count: bookmarkCount,
         engagement_score: likeCount + commentCount + shareCount + bookmarkCount,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .eq('id', postId)
 
@@ -353,8 +348,11 @@ export async function GET(request: NextRequest) {
   try {
     // Authentication
     const supabase = await createRouteHandlerClientAsync()
-    
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
     if (userError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -374,8 +372,9 @@ export async function GET(request: NextRequest) {
     // Fetch data based on action type
     switch (actionType) {
       case 'reactions':
-        const { data: reactions, error: reactionsError } = await (supabase
-          .from('post_reactions') as any)
+        const { data: reactions, error: reactionsError } = await (
+          supabase.from('post_reactions') as any
+        )
           .select('id, reaction_type, created_at')
           .eq('post_id', postId)
           .order('created_at', { ascending: false })
@@ -384,20 +383,20 @@ export async function GET(request: NextRequest) {
         error = reactionsError
         break
 
-              case 'comments':
-          const { data: comments, error: commentsError } = await (supabase
-            .from('post_comments') as any)
-            .select('id, content, created_at')
-            .eq('post_id', postId)
-            .order('created_at', { ascending: false })
+      case 'comments':
+        const { data: comments, error: commentsError } = await (
+          supabase.from('post_comments') as any
+        )
+          .select('id, content, created_at')
+          .eq('post_id', postId)
+          .order('created_at', { ascending: false })
 
-          data = comments
-          error = commentsError
-          break
+        data = comments
+        error = commentsError
+        break
 
       case 'shares':
-        const { data: shares, error: sharesError } = await (supabase
-          .from('post_shares') as any)
+        const { data: shares, error: sharesError } = await (supabase.from('post_shares') as any)
           .select('id, share_type, created_at')
           .eq('post_id', postId)
           .order('created_at', { ascending: false })
@@ -407,8 +406,9 @@ export async function GET(request: NextRequest) {
         break
 
       case 'bookmarks':
-        const { data: bookmarks, error: bookmarksError } = await (supabase
-          .from('post_bookmarks') as any)
+        const { data: bookmarks, error: bookmarksError } = await (
+          supabase.from('post_bookmarks') as any
+        )
           .select('id, created_at')
           .eq('post_id', postId)
           .order('created_at', { ascending: false })
@@ -427,7 +427,6 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ data, count: data?.length || 0 })
-
   } catch (error) {
     console.error('Error in engagement GET:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

@@ -27,8 +27,7 @@ async function verifyUserOwnsImage(userId: string, imageId: string) {
   // - image is linked via album_images.entity_id == userId, OR
   // - images.metadata contains entity_id == userId and entity_type == 'user'
 
-  const { data: imageRow, error: imageError } = await (supabaseAdmin
-    .from('images') as any)
+  const { data: imageRow, error: imageError } = await (supabaseAdmin.from('images') as any)
     .select('id, url, metadata')
     .eq('id', imageId)
     .maybeSingle()
@@ -47,8 +46,9 @@ async function verifyUserOwnsImage(userId: string, imageId: string) {
   }
 
   // Check album ownership via album_images -> photo_albums.owner_id
-  const { data: albumImageRows, error: albumImagesError } = await (supabaseAdmin
-    .from('album_images') as any)
+  const { data: albumImageRows, error: albumImagesError } = await (
+    supabaseAdmin.from('album_images') as any
+  )
     .select('album_id, entity_id')
     .eq('image_id', imageId)
     .limit(50)
@@ -70,8 +70,9 @@ async function verifyUserOwnsImage(userId: string, imageId: string) {
     return { ok: false as const, error: 'Image is not associated with this user' }
   }
 
-  const { data: ownedAlbum, error: ownedAlbumError } = await (supabaseAdmin
-    .from('photo_albums') as any)
+  const { data: ownedAlbum, error: ownedAlbumError } = await (
+    supabaseAdmin.from('photo_albums') as any
+  )
     .select('id')
     .in('id', albumIds)
     .eq('owner_id', userId)
@@ -110,7 +111,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (!isUuid(entityId) || !isUuid(imageId)) {
-      return NextResponse.json({ success: false, error: 'entityId and imageId must be UUIDs' }, { status: 400 })
+      return NextResponse.json(
+        { success: false, error: 'entityId and imageId must be UUIDs' },
+        { status: 400 }
+      )
     }
 
     // Strict auth: users can only update their own profile primary images
@@ -130,19 +134,20 @@ export async function POST(request: NextRequest) {
     const columnName = primaryKind === 'avatar' ? 'avatar_image_id' : 'cover_image_id'
 
     // Ensure profile exists, then update the canonical pointer.
-    const { error: upsertError } = await (supabaseAdmin
-      .from('profiles') as any)
-      .upsert(
-        {
-          user_id: entityId,
-          [columnName]: imageId,
-        },
-        { onConflict: 'user_id' }
-      )
+    const { error: upsertError } = await (supabaseAdmin.from('profiles') as any).upsert(
+      {
+        user_id: entityId,
+        [columnName]: imageId,
+      },
+      { onConflict: 'user_id' }
+    )
 
     if (upsertError) {
       return NextResponse.json(
-        { success: false, error: `Failed to update profile: ${upsertError.message || 'Unknown error'}` },
+        {
+          success: false,
+          error: `Failed to update profile: ${upsertError.message || 'Unknown error'}`,
+        },
         { status: 500 }
       )
     }
@@ -160,5 +165,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
-
-

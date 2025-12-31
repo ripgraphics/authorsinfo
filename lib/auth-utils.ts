@@ -1,6 +1,6 @@
 import { supabaseClient } from '@/lib/supabase/client'
-import { createBrowserClient } from "@supabase/ssr"
-import type { Database } from "@/types/database"
+import { createBrowserClient } from '@supabase/ssr'
+import type { Database } from '@/types/database'
 
 export interface UserWithRole {
   id: string
@@ -17,7 +17,7 @@ export async function isUserAdmin(userId?: string): Promise<boolean> {
 
   try {
     const supabase = supabaseClient
-    
+
     // Check public.profiles table for admin role (auth.users doesn't exist in current schema)
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
@@ -44,7 +44,7 @@ export async function isUserSuperAdmin(userId?: string): Promise<boolean> {
 
   try {
     const supabase = supabaseClient
-    
+
     // Check public.profiles table for super admin role (auth.users doesn't exist in current schema)
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
@@ -71,7 +71,7 @@ export async function getUserRole(userId?: string): Promise<string> {
 
   try {
     const supabase = supabaseClient
-    
+
     // Check public.profiles table for user role (auth.users doesn't exist in current schema)
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
@@ -94,16 +94,19 @@ export async function getUserRole(userId?: string): Promise<string> {
  * Check if a user can edit an entity based on ownership or admin privileges
  */
 export async function canUserEditEntity(
-  userId?: string, 
-  entityType?: string, 
+  userId?: string,
+  entityType?: string,
   entityId?: string,
   entityData?: any
 ): Promise<boolean> {
   if (!userId) return false
 
   try {
-    const supabase = createBrowserClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-    
+    const supabase = createBrowserClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+
     // First check if user is admin (admins can edit everything)
     const isAdmin = await isUserAdmin(userId)
     if (isAdmin) return true
@@ -121,8 +124,11 @@ export async function canUserEditEntity(
           .eq('group_id', entityId)
           .eq('user_id', userId)
           .single()
-        
-        if ((groupMember as any)?.group_roles?.name === 'Owner' || (groupMember as any)?.group_roles?.name === 'Admin') {
+
+        if (
+          (groupMember as any)?.group_roles?.name === 'Owner' ||
+          (groupMember as any)?.group_roles?.name === 'Admin'
+        ) {
           return true
         }
         break
@@ -134,7 +140,7 @@ export async function canUserEditEntity(
           .select('created_by')
           .eq('id', entityId)
           .single()
-        
+
         if ((event as any)?.created_by === userId) {
           return true
         }
@@ -147,7 +153,7 @@ export async function canUserEditEntity(
           .select('owner_id')
           .eq('id', entityId)
           .single()
-        
+
         if ((album as any)?.owner_id === userId) {
           return true
         }
@@ -160,7 +166,7 @@ export async function canUserEditEntity(
           .select('user_id')
           .eq('id', entityId)
           .single()
-        
+
         if ((readingList as any)?.user_id === userId) {
           return true
         }
@@ -173,7 +179,7 @@ export async function canUserEditEntity(
           .select('created_by')
           .eq('id', entityId)
           .single()
-        
+
         if ((bookClub as any)?.created_by === userId) {
           return true
         }
@@ -186,7 +192,7 @@ export async function canUserEditEntity(
           .select('user_id')
           .eq('id', entityId)
           .single()
-        
+
         if ((discussion as any)?.user_id === userId) {
           return true
         }
@@ -199,7 +205,7 @@ export async function canUserEditEntity(
           .select('user_id')
           .eq('id', entityId)
           .single()
-        
+
         if ((review as any)?.user_id === userId) {
           return true
         }
@@ -219,7 +225,7 @@ export async function canUserEditEntity(
           .select('created_by')
           .eq('id', entityId)
           .single()
-        
+
         if ((author as any)?.created_by === userId) {
           return true
         }
@@ -237,7 +243,7 @@ export async function canUserEditEntity(
           .select('created_by')
           .eq('id', entityId)
           .single()
-        
+
         if ((book as any)?.created_by === userId) {
           return true
         }
@@ -259,4 +265,4 @@ export async function canUserEditEntity(
     console.error('Error checking edit permissions:', error)
     return false
   }
-} 
+}

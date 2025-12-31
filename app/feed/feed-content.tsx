@@ -9,25 +9,30 @@ import { AlertCircle } from 'lucide-react'
 export function FeedContent() {
   const [user, setUser] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   useEffect(() => {
     const getUser = async () => {
       try {
-        const { data: { user: userData } } = await supabase.auth.getUser()
+        const {
+          data: { user: userData },
+        } = await supabase.auth.getUser()
         setUser(userData)
       } catch (error) {
         console.error('Error getting user:', error)
-    } finally {
-      setIsLoading(false)
+      } finally {
+        setIsLoading(false)
+      }
     }
-  }
 
     getUser()
   }, [supabase])
 
   if (isLoading) {
-        return (
+    return (
       <div className="space-y-4">
         {Array.from({ length: 3 }).map((_, index) => (
           <Card key={index} className="animate-pulse">
@@ -43,8 +48,8 @@ export function FeedContent() {
             </CardContent>
           </Card>
         ))}
-              </div>
-        )
+      </div>
+    )
   }
 
   if (!user) {
@@ -79,4 +84,4 @@ export function FeedContent() {
       enablePrivacyControls={true}
     />
   )
-} 
+}

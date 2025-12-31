@@ -31,7 +31,7 @@ export default function FixAuthPage() {
     setFixResult(null)
     try {
       const response = await fetch('/api/fix-auth-users', {
-        method: 'POST'
+        method: 'POST',
       })
       const data = await response.json()
       setFixResult(data)
@@ -55,16 +55,10 @@ export default function FixAuthPage() {
         <Card>
           <CardHeader>
             <CardTitle>Debug Auth System</CardTitle>
-            <CardDescription>
-              Check the current state of your Supabase Auth system
-            </CardDescription>
+            <CardDescription>Check the current state of your Supabase Auth system</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button 
-              onClick={debugAuth} 
-              disabled={isDebugging}
-              className="w-full"
-            >
+            <Button onClick={debugAuth} disabled={isDebugging} className="w-full">
               {isDebugging ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -74,18 +68,16 @@ export default function FixAuthPage() {
                 'Debug Auth System'
               )}
             </Button>
-            
+
             {debugData && (
               <div className="mt-4">
-                <Alert variant={debugData.error ? "destructive" : "default"}>
+                <Alert variant={debugData.error ? 'destructive' : 'default'}>
                   {debugData.error ? (
                     <AlertCircle className="h-4 w-4" />
                   ) : (
                     <CheckCircle2 className="h-4 w-4" />
                   )}
-                  <AlertTitle>
-                    {debugData.error ? 'Error' : 'Debug Results'}
-                  </AlertTitle>
+                  <AlertTitle>{debugData.error ? 'Error' : 'Debug Results'}</AlertTitle>
                   <AlertDescription>
                     <pre className="text-xs mt-2 overflow-auto">
                       {JSON.stringify(debugData, null, 2)}
@@ -105,8 +97,8 @@ export default function FixAuthPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button 
-              onClick={fixAuthUsers} 
+            <Button
+              onClick={fixAuthUsers}
               disabled={isFixing}
               className="w-full"
               variant="destructive"
@@ -120,18 +112,16 @@ export default function FixAuthPage() {
                 'Fix All Users'
               )}
             </Button>
-            
+
             {fixResult && (
               <div className="mt-4">
-                <Alert variant={fixResult.error ? "destructive" : "default"}>
+                <Alert variant={fixResult.error ? 'destructive' : 'default'}>
                   {fixResult.error ? (
                     <AlertCircle className="h-4 w-4" />
                   ) : (
                     <CheckCircle2 className="h-4 w-4" />
                   )}
-                  <AlertTitle>
-                    {fixResult.error ? 'Error' : 'Fix Results'}
-                  </AlertTitle>
+                  <AlertTitle>{fixResult.error ? 'Error' : 'Fix Results'}</AlertTitle>
                   <AlertDescription>
                     <pre className="text-xs mt-2 overflow-auto">
                       {JSON.stringify(fixResult, null, 2)}
@@ -152,11 +142,16 @@ export default function FixAuthPage() {
           <ol className="list-decimal list-inside space-y-2">
             <li>First, click "Debug Auth System" to see the current state</li>
             <li>If users have issues, click "Fix All Users" to reset their passwords</li>
-            <li>After fixing, go to <code>/login</code> and try logging in with any user email and password: <code>password123</code></li>
-            <li>If the fix doesn't work, you may need to recreate users or reset your Supabase Auth</li>
+            <li>
+              After fixing, go to <code>/login</code> and try logging in with any user email and
+              password: <code>password123</code>
+            </li>
+            <li>
+              If the fix doesn't work, you may need to recreate users or reset your Supabase Auth
+            </li>
           </ol>
         </CardContent>
       </Card>
     </div>
   )
-} 
+}

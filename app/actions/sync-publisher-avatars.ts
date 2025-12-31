@@ -1,6 +1,6 @@
-"use server"
+'use server'
 
-import { supabaseAdmin } from "@/lib/supabase-admin"
+import { supabaseAdmin } from '@/lib/supabase-admin'
 
 interface SyncResult {
   success: boolean
@@ -20,7 +20,7 @@ export async function syncPublisherAvatars(): Promise<SyncResult> {
     totalPublishers: 0,
     updatedCount: 0,
     skippedCount: 0,
-    errors: []
+    errors: [],
   }
 
   try {
@@ -44,7 +44,7 @@ export async function syncPublisherAvatars(): Promise<SyncResult> {
     console.log(`📊 Found ${publishers.length} publishers`)
 
     // Process each publisher
-    for (const publisher of (publishers as any[])) {
+    for (const publisher of publishers as any[]) {
       try {
         // Skip if already has publisher_image_id
         if ((publisher as any).publisher_image_id) {
@@ -64,7 +64,9 @@ export async function syncPublisherAvatars(): Promise<SyncResult> {
           .maybeSingle()
 
         if (albumsError) {
-          result.errors.push(`Error fetching album for ${(publisher as any).name}: ${albumsError.message}`)
+          result.errors.push(
+            `Error fetching album for ${(publisher as any).name}: ${albumsError.message}`
+          )
           continue
         }
 
@@ -77,11 +79,13 @@ export async function syncPublisherAvatars(): Promise<SyncResult> {
         // Get the cover image (or first image if no cover)
         const { data: coverImage, error: coverError } = await supabaseAdmin
           .from('album_images')
-          .select(`
+          .select(
+            `
             image_id,
             is_cover,
             image:images(id)
-          `)
+          `
+          )
           .eq('album_id', (avatarAlbums as any).id)
           .order('is_cover', { ascending: false })
           .order('display_order', { ascending: true })
@@ -89,7 +93,9 @@ export async function syncPublisherAvatars(): Promise<SyncResult> {
           .maybeSingle()
 
         if (coverError) {
-          result.errors.push(`Error fetching cover image for ${(publisher as any).name}: ${coverError.message}`)
+          result.errors.push(
+            `Error fetching cover image for ${(publisher as any).name}: ${coverError.message}`
+          )
           continue
         }
 
@@ -100,8 +106,7 @@ export async function syncPublisherAvatars(): Promise<SyncResult> {
         }
 
         // Update publisher_image_id
-        const { error: updateError } = await (supabaseAdmin
-          .from('publishers') as any)
+        const { error: updateError } = await (supabaseAdmin.from('publishers') as any)
           .update({ publisher_image_id: (coverImage as any).image_id })
           .eq('id', (publisher as any).id)
 
@@ -111,7 +116,9 @@ export async function syncPublisherAvatars(): Promise<SyncResult> {
         }
 
         result.updatedCount++
-        console.log(`✅ Updated ${(publisher as any).name} with image_id: ${(coverImage as any).image_id}`)
+        console.log(
+          `✅ Updated ${(publisher as any).name} with image_id: ${(coverImage as any).image_id}`
+        )
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error)
         result.errors.push(`Error processing ${(publisher as any).name}: ${errorMessage}`)
@@ -127,7 +134,7 @@ export async function syncPublisherAvatars(): Promise<SyncResult> {
 
     if (result.errors.length > 0) {
       console.log(`\n⚠️ Errors encountered:`)
-      result.errors.forEach(error => console.log(`   - ${error}`))
+      result.errors.forEach((error) => console.log(`   - ${error}`))
     }
 
     return result
@@ -139,4 +146,3 @@ export async function syncPublisherAvatars(): Promise<SyncResult> {
     return result
   }
 }
-

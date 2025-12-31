@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { supabaseClient } from '@/lib/supabase/client'
@@ -22,13 +22,7 @@ interface GroupContextValue {
 
 const GroupContext = createContext<GroupContextValue | undefined>(undefined)
 
-export function GroupProvider({
-  groupId,
-  children
-}: {
-  groupId: string
-  children: ReactNode
-}) {
+export function GroupProvider({ groupId, children }: { groupId: string; children: ReactNode }) {
   const [group, setGroup] = useState<Group | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -39,16 +33,20 @@ export function GroupProvider({
     const initializeUser = async () => {
       try {
         console.log('Initializing user session...')
-        const { data: { user }, error } = await supabaseClient.auth.getUser()
-        
+        const {
+          data: { user },
+          error,
+        } = await supabaseClient.auth.getUser()
+
         // Handle AuthSessionMissingError gracefully - this is normal for public users
         if (error) {
           const errorName = (error as any)?.name || error?.constructor?.name || ''
           const errorMessage = error?.message || String(error) || ''
-          const isSessionError = errorName === 'AuthSessionMissingError' || 
-                                errorMessage.includes('session') || 
-                                errorMessage.includes('Auth session missing')
-          
+          const isSessionError =
+            errorName === 'AuthSessionMissingError' ||
+            errorMessage.includes('session') ||
+            errorMessage.includes('Auth session missing')
+
           if (isSessionError) {
             // This is normal for public users - don't log as error
             console.log('No authenticated user (public user)')
@@ -57,7 +55,7 @@ export function GroupProvider({
           console.error('Error authenticating user:', error)
           throw error
         }
-        
+
         console.log('User data:', user)
         if (user) {
           console.log('Current user:', user)
@@ -67,7 +65,9 @@ export function GroupProvider({
         }
 
         // Set up auth state change listener
-        const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
+        const {
+          data: { subscription },
+        } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
           console.log('Auth state changed:', event, session?.user)
           if (session?.user) {
             setUserId(session.user.id)
@@ -83,10 +83,11 @@ export function GroupProvider({
         // Only log non-session errors
         const errorName = err?.name || err?.constructor?.name || ''
         const errorMessage = err?.message || String(err) || ''
-        const isSessionError = errorName === 'AuthSessionMissingError' || 
-                              errorMessage.includes('session') || 
-                              errorMessage.includes('Auth session missing')
-        
+        const isSessionError =
+          errorName === 'AuthSessionMissingError' ||
+          errorMessage.includes('session') ||
+          errorMessage.includes('Auth session missing')
+
         if (!isSessionError) {
           console.error('Error initializing user:', err)
         }
@@ -103,7 +104,7 @@ export function GroupProvider({
     hasPermission,
     isOwner,
     isAdmin,
-    isMember
+    isMember,
   } = useGroupPermissions(groupId, userId)
 
   console.log('Group context state:', {
@@ -114,11 +115,13 @@ export function GroupProvider({
     isOwner: isOwner(),
     isAdmin: isAdmin(),
     isMember,
-    group: group ? {
-      id: group.id,
-      name: group.name,
-      created_by: group.created_by
-    } : null
+    group: group
+      ? {
+          id: group.id,
+          name: group.name,
+          created_by: group.created_by,
+        }
+      : null,
   })
 
   const loadGroup = async () => {
@@ -158,7 +161,7 @@ export function GroupProvider({
           event: '*',
           schema: 'public',
           table: 'groups',
-          filter: `id=eq.${groupId}`
+          filter: `id=eq.${groupId}`,
         },
         loadGroup
       )
@@ -179,16 +182,12 @@ export function GroupProvider({
       hasPermission,
       isOwner,
       isAdmin,
-      isMember
+      isMember,
     },
-    refreshGroup: loadGroup
+    refreshGroup: loadGroup,
   }
 
-  return (
-    <GroupContext.Provider value={value}>
-      {children}
-    </GroupContext.Provider>
-  )
+  return <GroupContext.Provider value={value}>{children}</GroupContext.Provider>
 }
 
 export function useGroup() {
@@ -197,4 +196,4 @@ export function useGroup() {
     throw new Error('useGroup must be used within a GroupProvider')
   }
   return context
-} 
+}

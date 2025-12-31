@@ -6,20 +6,20 @@ import { supabaseAdmin } from '@/lib/supabase'
 export async function POST(request: Request) {
   try {
     const supabase = await createRouteHandlerClientAsync()
-    
+
     // Get the current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
     // Parse request body
     const { entity_type, entity_id, bookmark_note } = await request.json()
-    
+
     if (!entity_type || !entity_id) {
       return NextResponse.json(
         { error: 'Missing required fields: entity_type, entity_id' },
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       user_id: user.id,
       entity_type,
       entity_id,
-      bookmark_note: bookmark_note?.substring(0, 100) + '...'
+      bookmark_note: bookmark_note?.substring(0, 100) + '...',
     })
 
     // Check if user already bookmarked this entity
@@ -43,12 +43,10 @@ export async function POST(request: Request) {
       .eq('entity_id', entity_id)
       .single()
 
-    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
+    if (checkError && checkError.code !== 'PGRST116') {
+      // PGRST116 = no rows returned
       console.error('❌ Error checking existing bookmark:', checkError)
-      return NextResponse.json(
-        { error: 'Failed to check existing bookmark' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Failed to check existing bookmark' }, { status: 500 })
     }
 
     let action: 'added' | 'removed' = 'added'
@@ -63,10 +61,7 @@ export async function POST(request: Request) {
 
       if (deleteError) {
         console.error('❌ Error removing bookmark:', deleteError)
-        return NextResponse.json(
-          { error: 'Failed to remove bookmark' },
-          { status: 500 }
-        )
+        return NextResponse.json({ error: 'Failed to remove bookmark' }, { status: 500 })
       }
 
       action = 'removed'
@@ -81,17 +76,14 @@ export async function POST(request: Request) {
           entity_id,
           bookmark_note: bookmark_note || null,
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .select('id')
         .single()
 
       if (insertError) {
         console.error('❌ Error inserting bookmark:', insertError)
-        return NextResponse.json(
-          { error: 'Failed to add bookmark' },
-          { status: 500 }
-        )
+        return NextResponse.json({ error: 'Failed to add bookmark' }, { status: 500 })
       }
 
       action = 'added'
@@ -114,7 +106,7 @@ export async function POST(request: Request) {
             .from('activities')
             .update({
               bookmark_count: bookmarkCount.length,
-              updated_at: new Date().toISOString()
+              updated_at: new Date().toISOString(),
             })
             .eq('id', entity_id)
 
@@ -133,7 +125,7 @@ export async function POST(request: Request) {
       action,
       bookmark_id,
       entity_type,
-      entity_id
+      entity_id,
     })
 
     return NextResponse.json({
@@ -142,16 +134,11 @@ export async function POST(request: Request) {
       bookmark_id,
       entity_type,
       entity_id,
-      message: action === 'removed' 
-        ? 'Bookmark removed successfully' 
-        : 'Bookmark added successfully'
+      message:
+        action === 'removed' ? 'Bookmark removed successfully' : 'Bookmark added successfully',
     })
-
   } catch (error) {
     console.error('❌ Unexpected error in bookmark API:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

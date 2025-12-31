@@ -1,12 +1,12 @@
-"use client"
+'use client'
 
-import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { useToast } from "@/components/ui/use-toast"
-import { createClient } from "@/lib/supabase-client"
+import { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { useToast } from '@/components/ui/use-toast'
+import { createClient } from '@/lib/supabase-client'
 
 export default function GroupAnnouncementsPage() {
   const params = useParams()
@@ -14,10 +14,10 @@ export default function GroupAnnouncementsPage() {
   const [announcements, setAnnouncements] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ title: "", body: "", scheduled_at: "" })
+  const [form, setForm] = useState({ title: '', body: '', scheduled_at: '' })
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const user = { id: "mock", name: "Test User", role: "admin" }
+  const user = { id: 'mock', name: 'Test User', role: 'admin' }
   const { toast } = useToast()
 
   useEffect(() => {
@@ -30,18 +30,37 @@ export default function GroupAnnouncementsPage() {
   // Real-time notifications for new announcements
   useEffect(() => {
     const supabase = createClient()
-    const channel = supabase.channel(`group_announcements_${groupId}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'group_announcements', filter: `group_id=eq.${groupId}` }, (payload: any) => {
-        toast({
-          title: "New Announcement",
-          description: payload.new.title,
-          duration: 4000,
-        })
-        setAnnouncements((prev) => [payload.new, ...prev])
-      })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'group_announcements', filter: `group_id=eq.${groupId}` }, (payload: any) => {
-        setAnnouncements((prev) => prev.map(a => a.id === payload.new.id ? payload.new : a))
-      })
+    const channel = supabase
+      .channel(`group_announcements_${groupId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'group_announcements',
+          filter: `group_id=eq.${groupId}`,
+        },
+        (payload: any) => {
+          toast({
+            title: 'New Announcement',
+            description: payload.new.title,
+            duration: 4000,
+          })
+          setAnnouncements((prev) => [payload.new, ...prev])
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'group_announcements',
+          filter: `group_id=eq.${groupId}`,
+        },
+        (payload: any) => {
+          setAnnouncements((prev) => prev.map((a) => (a.id === payload.new.id ? payload.new : a)))
+        }
+      )
       .subscribe()
     return () => {
       supabase.removeChannel(channel)
@@ -57,37 +76,39 @@ export default function GroupAnnouncementsPage() {
     setError(null)
     setSuccess(null)
     const res = await fetch(`/api/groups/${groupId}/announcements`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...form, created_by: user.id }),
     })
     if (res.ok) {
-      setSuccess("Announcement posted!")
-      setForm({ title: "", body: "", scheduled_at: "" })
+      setSuccess('Announcement posted!')
+      setForm({ title: '', body: '', scheduled_at: '' })
       setShowForm(false)
     } else {
       const err = await res.json()
-      setError(err.error || "Failed to post announcement")
+      setError(err.error || 'Failed to post announcement')
     }
   }
 
   const handlePin = async (id: string, pinned: boolean) => {
     await fetch(`/api/groups/${groupId}/announcements`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, pinned }),
     })
-    setSuccess("Announcement updated!")
+    setSuccess('Announcement updated!')
   }
 
   const handleDelete = async (id: string) => {
-    const res = await fetch(`/api/groups/${groupId}/announcements?id=${id}&user_id=${user.id}`, { method: "DELETE" })
+    const res = await fetch(`/api/groups/${groupId}/announcements?id=${id}&user_id=${user.id}`, {
+      method: 'DELETE',
+    })
     if (res.ok) {
-      setAnnouncements((prev) => prev.filter(a => a.id !== id))
-      setSuccess("Announcement deleted!")
+      setAnnouncements((prev) => prev.filter((a) => a.id !== id))
+      setSuccess('Announcement deleted!')
     } else {
       const err = await res.json()
-      setError(err.error || "Failed to delete announcement")
+      setError(err.error || 'Failed to delete announcement')
     }
   }
 
@@ -102,10 +123,10 @@ export default function GroupAnnouncementsPage() {
 
   // Editing logic
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [editForm, setEditForm] = useState({ title: "", body: "", scheduled_at: "" })
+  const [editForm, setEditForm] = useState({ title: '', body: '', scheduled_at: '' })
   const handleEdit = (a: any) => {
     setEditingId(a.id)
-    setEditForm({ title: a.title, body: a.body, scheduled_at: a.scheduled_at || "" })
+    setEditForm({ title: a.title, body: a.body, scheduled_at: a.scheduled_at || '' })
   }
   const handleEditChange = (e: any) => {
     setEditForm({ ...editForm, [e.target.name]: e.target.value })
@@ -113,19 +134,19 @@ export default function GroupAnnouncementsPage() {
   const handleEditSubmit = async (e: any) => {
     e.preventDefault()
     await fetch(`/api/groups/${groupId}/announcements`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: editingId, ...editForm }),
     })
     setEditingId(null)
-    setSuccess("Announcement updated!")
+    setSuccess('Announcement updated!')
   }
 
   return (
     <div className="max-w-2xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-4">Group Announcements</h2>
       <Button onClick={() => setShowForm((v) => !v)} className="mb-4">
-        {showForm ? "Cancel" : "Add Announcement"}
+        {showForm ? 'Cancel' : 'Add Announcement'}
       </Button>
       {showForm && (
         <form onSubmit={handleSubmit} className="mb-6 space-y-2">
@@ -167,10 +188,19 @@ export default function GroupAnnouncementsPage() {
             <div className="text-gray-500">No announcements yet.</div>
           ) : (
             sorted.map((a) => (
-              <div key={a.id} className={`border rounded-lg p-4 bg-white shadow-xs relative ${a.pinned ? 'border-yellow-400' : ''}`}>
-                {a.pinned && <span className="absolute top-2 right-2 bg-yellow-400 text-xs px-2 py-0.5 rounded-sm">Pinned</span>}
+              <div
+                key={a.id}
+                className={`border rounded-lg p-4 bg-white shadow-xs relative ${a.pinned ? 'border-yellow-400' : ''}`}
+              >
+                {a.pinned && (
+                  <span className="absolute top-2 right-2 bg-yellow-400 text-xs px-2 py-0.5 rounded-sm">
+                    Pinned
+                  </span>
+                )}
                 {a.scheduled_at && new Date(a.scheduled_at) > new Date() && (
-                  <span className="absolute top-2 left-2 bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-sm">Scheduled</span>
+                  <span className="absolute top-2 left-2 bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-sm">
+                    Scheduled
+                  </span>
                 )}
                 {editingId === a.id ? (
                   <form onSubmit={handleEditSubmit} className="space-y-2 mb-2">
@@ -200,22 +230,38 @@ export default function GroupAnnouncementsPage() {
                       />
                     </div>
                     <div className="flex gap-2">
-                      <Button size="sm" type="submit">Save</Button>     
-                      <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>Cancel</Button>
+                      <Button size="sm" type="submit">
+                        Save
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>
+                        Cancel
+                      </Button>
                     </div>
                   </form>
                 ) : (
                   <>
                     <div className="font-semibold text-lg mb-1">{a.title}</div>
                     <div className="text-gray-700 mb-2 whitespace-pre-line">{a.body}</div>
-                    <div className="text-xs text-gray-500">{a.scheduled_at ? `Scheduled: ${a.scheduled_at.replace('T', ' ').slice(0, 16)}` : a.created_at?.slice(0, 16).replace("T", " ")}</div>
+                    <div className="text-xs text-gray-500">
+                      {a.scheduled_at
+                        ? `Scheduled: ${a.scheduled_at.replace('T', ' ').slice(0, 16)}`
+                        : a.created_at?.slice(0, 16).replace('T', ' ')}
+                    </div>
                     <div className="flex gap-2 mt-2">
-                      <Button size="sm" variant={a.pinned ? "secondary" : "outline"} onClick={() => handlePin(a.id, !a.pinned)}>
-                        {a.pinned ? "Unpin" : "Pin"}
+                      <Button
+                        size="sm"
+                        variant={a.pinned ? 'secondary' : 'outline'}
+                        onClick={() => handlePin(a.id, !a.pinned)}
+                      >
+                        {a.pinned ? 'Unpin' : 'Pin'}
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={() => handleEdit(a)}>Edit</Button>
-                      {(a.created_by === user.id || user.role === "admin") && (
-                        <Button size="sm" variant="destructive" onClick={() => handleDelete(a.id)}>Delete</Button>
+                      <Button size="sm" variant="ghost" onClick={() => handleEdit(a)}>
+                        Edit
+                      </Button>
+                      {(a.created_by === user.id || user.role === 'admin') && (
+                        <Button size="sm" variant="destructive" onClick={() => handleDelete(a.id)}>
+                          Delete
+                        </Button>
                       )}
                     </div>
                   </>
@@ -227,4 +273,4 @@ export default function GroupAnnouncementsPage() {
       )}
     </div>
   )
-} 
+}

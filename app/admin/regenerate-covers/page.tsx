@@ -1,24 +1,31 @@
-"use client"
+'use client'
 
-import { useState, useEffect, useRef } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Progress } from "@/components/ui/progress"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Checkbox } from "@/components/ui/checkbox"
+import { useState, useEffect, useRef } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Progress } from '@/components/ui/progress'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   regenerateBookCovers,
   getTotalBooksWithOriginalImages,
   getProblematicCoverStats,
   getTotalBooksWithProblematicCoversAlt,
-} from "@/app/actions/regenerate-book-covers"
-import { AlertCircle, CheckCircle2, XCircle, Pause, Play, RotateCw, Clock } from "lucide-react"
-import { useToast } from "@/components/ui/use-toast"
+} from '@/app/actions/regenerate-book-covers'
+import { AlertCircle, CheckCircle2, XCircle, Pause, Play, RotateCw, Clock } from 'lucide-react'
+import { useToast } from '@/components/ui/use-toast'
 
 export default function RegenerateCoversPage() {
   const { toast } = useToast()
@@ -26,7 +33,7 @@ export default function RegenerateCoversPage() {
   const [maxWidth, setMaxWidth] = useState(400)
   const [maxHeight, setMaxHeight] = useState(600)
   const [filterEmptyCovers, setFilterEmptyCovers] = useState(true)
-  const [problemTypes, setProblemTypes] = useState<string[]>(["empty", "broken", "null_id", "null"])
+  const [problemTypes, setProblemTypes] = useState<string[]>(['empty', 'broken', 'null_id', 'null'])
   const [isProcessing, setIsProcessing] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
@@ -69,7 +76,7 @@ export default function RegenerateCoversPage() {
         ...problemStats,
       })
     } catch (error) {
-      console.error("Error fetching stats:", error)
+      console.error('Error fetching stats:', error)
       // Set default values if there's an error
       setStats({
         totalWithOriginalImages: 0,
@@ -156,7 +163,8 @@ export default function RegenerateCoversPage() {
 
       // Add a smaller batch size if we've encountered errors before
       // This helps with rate limiting issues
-      const adjustedBatchSize = progress.errors.length > 0 ? Math.max(1, Math.floor(batchSize / 2)) : batchSize
+      const adjustedBatchSize =
+        progress.errors.length > 0 ? Math.max(1, Math.floor(batchSize / 2)) : batchSize
 
       const result = await regenerateBookCovers(
         adjustedBatchSize,
@@ -164,7 +172,7 @@ export default function RegenerateCoversPage() {
         maxHeight,
         progress.lastProcessedId,
         filterEmptyCovers,
-        problemTypes,
+        problemTypes
       )
 
       // Update progress with new results
@@ -185,7 +193,7 @@ export default function RegenerateCoversPage() {
 
         // Show success toast
         toast({
-          title: "Processing Complete",
+          title: 'Processing Complete',
           description: `Successfully processed ${progress.processed} book covers.`,
           duration: 5000,
         })
@@ -202,7 +210,7 @@ export default function RegenerateCoversPage() {
         }
       }
     } catch (error) {
-      console.error("Error processing batch:", error)
+      console.error('Error processing batch:', error)
       setIsPaused(true)
     }
   }
@@ -262,7 +270,8 @@ export default function RegenerateCoversPage() {
     }
   }
 
-  const percentComplete = progress.total > 0 ? Math.round((progress.processed / progress.total) * 100) : 0
+  const percentComplete =
+    progress.total > 0 ? Math.round((progress.processed / progress.total) * 100) : 0
 
   return (
     <div className="container mx-auto py-8">
@@ -292,7 +301,7 @@ export default function RegenerateCoversPage() {
                     <span>{stats.nullId}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Empty braces {"{}"}:</span>
+                    <span>Empty braces {'{}'}:</span>
                     <span>{stats.emptyBraces}</span>
                   </div>
                   <div className="flex justify-between">
@@ -359,7 +368,9 @@ export default function RegenerateCoversPage() {
                   onCheckedChange={setFilterEmptyCovers}
                   disabled={isProcessing}
                 />
-                <Label htmlFor="filterEmptyCovers">Only process books with problematic covers</Label>
+                <Label htmlFor="filterEmptyCovers">
+                  Only process books with problematic covers
+                </Label>
               </div>
             </div>
 
@@ -369,8 +380,10 @@ export default function RegenerateCoversPage() {
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="null_id"
-                    checked={problemTypes.includes("null_id")}
-                    onCheckedChange={(checked) => handleProblemTypeChange("null_id", checked === true)}
+                    checked={problemTypes.includes('null_id')}
+                    onCheckedChange={(checked) =>
+                      handleProblemTypeChange('null_id', checked === true)
+                    }
                     disabled={isProcessing}
                   />
                   <Label htmlFor="null_id">NULL cover_image_id</Label>
@@ -378,17 +391,19 @@ export default function RegenerateCoversPage() {
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="empty"
-                    checked={problemTypes.includes("empty")}
-                    onCheckedChange={(checked) => handleProblemTypeChange("empty", checked === true)}
+                    checked={problemTypes.includes('empty')}
+                    onCheckedChange={(checked) =>
+                      handleProblemTypeChange('empty', checked === true)
+                    }
                     disabled={isProcessing}
                   />
-                  <Label htmlFor="empty">Empty braces {"{}"}</Label>
+                  <Label htmlFor="empty">Empty braces {'{}'}</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="null"
-                    checked={problemTypes.includes("null")}
-                    onCheckedChange={(checked) => handleProblemTypeChange("null", checked === true)}
+                    checked={problemTypes.includes('null')}
+                    onCheckedChange={(checked) => handleProblemTypeChange('null', checked === true)}
                     disabled={isProcessing}
                   />
                   <Label htmlFor="null">NULL URL in images</Label>
@@ -396,8 +411,10 @@ export default function RegenerateCoversPage() {
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="broken"
-                    checked={problemTypes.includes("broken")}
-                    onCheckedChange={(checked) => handleProblemTypeChange("broken", checked === true)}
+                    checked={problemTypes.includes('broken')}
+                    onCheckedChange={(checked) =>
+                      handleProblemTypeChange('broken', checked === true)
+                    }
                     disabled={isProcessing}
                   />
                   <Label htmlFor="broken">Broken URLs (with fetch:)</Label>
@@ -406,22 +423,33 @@ export default function RegenerateCoversPage() {
             </div>
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Button variant="outline" onClick={resetProcess} disabled={!isProcessing && progress.processed === 0}>
+            <Button
+              variant="outline"
+              onClick={resetProcess}
+              disabled={!isProcessing && progress.processed === 0}
+            >
               <RotateCw className="mr-2 h-4 w-4" />
               Reset
             </Button>
             <div className="space-x-2">
               {isProcessing && (
                 <Button onClick={togglePause} variant="secondary">
-                  {isPaused ? <Play className="mr-2 h-4 w-4" /> : <Pause className="mr-2 h-4 w-4" />}
-                  {isPaused ? "Resume" : "Pause"}
+                  {isPaused ? (
+                    <Play className="mr-2 h-4 w-4" />
+                  ) : (
+                    <Pause className="mr-2 h-4 w-4" />
+                  )}
+                  {isPaused ? 'Resume' : 'Pause'}
                 </Button>
               )}
               <Button
                 onClick={isProcessing ? processBatch : startProcessing}
-                disabled={(isProcessing && !isPaused) || (isComplete && progress.processed >= progress.total)}
+                disabled={
+                  (isProcessing && !isPaused) ||
+                  (isComplete && progress.processed >= progress.total)
+                }
               >
-                {isProcessing ? "Process Next Batch Now" : "Start Processing"}
+                {isProcessing ? 'Process Next Batch Now' : 'Start Processing'}
               </Button>
             </div>
           </CardFooter>
@@ -434,7 +462,7 @@ export default function RegenerateCoversPage() {
             <CardHeader>
               <CardTitle>Processing Progress</CardTitle>
               <CardDescription>
-                Batch {progress.currentBatch} of {progress.totalBatches || "?"}
+                Batch {progress.currentBatch} of {progress.totalBatches || '?'}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -460,7 +488,9 @@ export default function RegenerateCoversPage() {
                   <Alert variant="default" className="mt-4 border-yellow-200 bg-yellow-50">
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>Processing Paused</AlertTitle>
-                    <AlertDescription>Processing has been paused. Click Resume to continue.</AlertDescription>
+                    <AlertDescription>
+                      Processing has been paused. Click Resume to continue.
+                    </AlertDescription>
                   </Alert>
                 )}
 
@@ -470,7 +500,8 @@ export default function RegenerateCoversPage() {
                     <AlertTitle>Processing Complete</AlertTitle>
                     <AlertDescription>
                       All {progress.processed} book covers have been processed successfully.
-                      {progress.success.length > 0 && ` ${progress.success.length} covers were successfully updated.`}
+                      {progress.success.length > 0 &&
+                        ` ${progress.success.length} covers were successfully updated.`}
                       {progress.errors.length > 0 && ` ${progress.errors.length} errors occurred.`}
                     </AlertDescription>
                   </Alert>
@@ -498,7 +529,7 @@ export default function RegenerateCoversPage() {
                           <div className="flex items-start gap-4">
                             <div className="flex-shrink-0 w-16 h-24 bg-gray-100 rounded-sm overflow-hidden">
                               <img
-                                src={item.newUrl || "/placeholder.svg"}
+                                src={item.newUrl || '/placeholder.svg'}
                                 alt="New cover"
                                 className="w-full h-full object-cover"
                               />
@@ -551,7 +582,9 @@ export default function RegenerateCoversPage() {
                         </div>
                       ))}
                       {progress.errors.length === 0 && (
-                        <div className="text-center py-8 text-gray-500">No errors have occurred during processing.</div>
+                        <div className="text-center py-8 text-gray-500">
+                          No errors have occurred during processing.
+                        </div>
                       )}
                     </div>
                   </ScrollArea>

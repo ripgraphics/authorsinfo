@@ -4,9 +4,9 @@ import React, { useState, useCallback, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
-import { 
-  Heart, 
-  MessageSquare, 
+import {
+  Heart,
+  MessageSquare,
   Eye,
   TrendingUp,
   Zap,
@@ -22,23 +22,19 @@ import {
   Users,
   BarChart3,
   Star,
-  AlertTriangle
+  AlertTriangle,
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/useAuth'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
-import { 
-  useEntityEngagement, 
-  EntityType, 
-  ReactionType 
-} from '@/contexts/engagement-context'
-import { 
-  EnterpriseReactionPopup, 
-  QuickReactionButton, 
-  ReactionSummary 
+import { useEntityEngagement, EntityType, ReactionType } from '@/contexts/engagement-context'
+import {
+  EnterpriseReactionPopup,
+  QuickReactionButton,
+  ReactionSummary,
 } from './enterprise-reaction-popup'
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -72,7 +68,12 @@ export interface EnterpriseEngagementActionsProps {
     price?: number
     currency?: string
   }
-  onEngagement?: (action: 'reaction' | 'comment' | 'share' | 'bookmark' | 'view', entityId: string, entityType: EntityType, reactionType?: ReactionType) => Promise<void>
+  onEngagement?: (
+    action: 'reaction' | 'comment' | 'share' | 'bookmark' | 'view',
+    entityId: string,
+    entityType: EntityType,
+    reactionType?: ReactionType
+  ) => Promise<void>
   onCommentAdded?: (comment: any) => void
   onShare?: (entityId: string, entityType: EntityType) => Promise<void>
   onBookmark?: (entityId: string, entityType: EntityType) => Promise<void>
@@ -118,7 +119,7 @@ export function EnterpriseEngagementActions({
   onCommentAdded,
   onShare,
   onBookmark,
-  className = "",
+  className = '',
   variant = 'default',
   showReactionCounts = true,
   showCommentInput = true,
@@ -133,11 +134,11 @@ export function EnterpriseEngagementActions({
   showReactionSummary = true,
   customReactionIcons,
   customColors,
-  onCommentClick
+  onCommentClick,
 }: EnterpriseEngagementActionsProps) {
   const { user } = useAuth()
   const { toast } = useToast()
-  
+
   // Use the enterprise engagement context
   const {
     engagement,
@@ -149,26 +150,27 @@ export function EnterpriseEngagementActions({
     currentReaction: contextReaction,
     stats,
   } = useEntityEngagement(entityId, entityType)
-  
+
   // Local state
   const [showReactionPopup, setShowReactionPopup] = useState(false)
   const [isCommentInputVisible, setIsCommentInputVisible] = useState(false)
-  const [commentText, setCommentText] = useState("")
+  const [commentText, setCommentText] = useState('')
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
   const [showShareMenu, setShowShareMenu] = useState(false)
   const [showBookmarkMenu, setShowBookmarkMenu] = useState(false)
-  const [reactionPopupPositionState, setReactionPopupPositionState] = useState(reactionPopupPosition)
-  
+  const [reactionPopupPositionState, setReactionPopupPositionState] =
+    useState(reactionPopupPosition)
+
   // Refs
   const reactionButtonRef = useRef<HTMLButtonElement>(null)
   const commentInputRef = useRef<HTMLTextAreaElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const hasTrackedViewRef = useRef<boolean>(false)
-  
+
   // ============================================================================
   // EFFECTS AND INITIALIZATION
   // ============================================================================
-  
+
   useEffect(() => {
     if (!autoTrackViews || hasTrackedViewRef.current) return
     if (engagement?.userHasViewed) {
@@ -177,91 +179,97 @@ export function EnterpriseEngagementActions({
     }
     const el = containerRef.current
     if (!el) return
-    const observer = new IntersectionObserver((entries) => {
-      const entry = entries[0]
-      if (entry.isIntersecting && entry.intersectionRatio > 0) {
-        hasTrackedViewRef.current = true
-        viewEntity()
-        observer.disconnect()
-      }
-    }, { threshold: 0.25 })
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0]
+        if (entry.isIntersecting && entry.intersectionRatio > 0) {
+          hasTrackedViewRef.current = true
+          viewEntity()
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.25 }
+    )
     observer.observe(el)
     return () => observer.disconnect()
   }, [autoTrackViews, engagement?.userHasViewed, viewEntity])
-  
+
   useEffect(() => {
     if (isCommentInputVisible && commentInputRef.current) {
       commentInputRef.current.focus()
     }
   }, [isCommentInputVisible])
-  
+
   // ============================================================================
   // EVENT HANDLERS
   // ============================================================================
-  
+
   const handleReactionButtonHover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     const button = event.currentTarget
     const rect = button.getBoundingClientRect()
     const viewportHeight = window.innerHeight
-    
+
     // Determine optimal popup position
     const spaceBelow = viewportHeight - rect.bottom
     const spaceAbove = rect.top
-    
+
     if (spaceBelow < 120 && spaceAbove > 120) {
       setReactionPopupPositionState('top')
     } else {
       setReactionPopupPositionState('bottom')
     }
-    
+
     setShowReactionPopup(true)
   }, [])
-  
+
   const handleReactionButtonLeave = useCallback(() => {
     // Small delay to allow moving mouse to popup
     setTimeout(() => {
       if (!showReactionPopup) return
-      
+
       // Check if mouse is over the popup
       const popup = document.querySelector('[data-reaction-popup]')
       if (popup && popup.matches(':hover')) return
-      
+
       setShowReactionPopup(false)
     }, 100)
   }, [showReactionPopup])
-  
-  const handleReactionSelect = useCallback(async (reactionType: ReactionType) => {
-    try {
-      const success = await setReaction(reactionType)
-      
-      if (success) {
-        if (onEngagement) {
-          await onEngagement('reaction', entityId, entityType, reactionType)
+
+  const handleReactionSelect = useCallback(
+    async (reactionType: ReactionType) => {
+      try {
+        const success = await setReaction(reactionType)
+
+        if (success) {
+          if (onEngagement) {
+            await onEngagement('reaction', entityId, entityType, reactionType)
+          }
+
+          // Auto-close popup after successful reaction
+          setTimeout(() => setShowReactionPopup(false), 500)
         }
-        
-        // Auto-close popup after successful reaction
-        setTimeout(() => setShowReactionPopup(false), 500)
+      } catch (error) {
+        console.error('Error setting reaction:', error)
       }
-    } catch (error) {
-      console.error('Error setting reaction:', error)
-    }
-  }, [setReaction, onEngagement, entityId, entityType])
-  
+    },
+    [setReaction, onEngagement, entityId, entityType]
+  )
+
   const handleCommentSubmit = useCallback(async () => {
     if (!commentText.trim()) {
       toast({
-        title: "Comment required",
-        description: "Please enter a comment",
-        variant: "destructive"
+        title: 'Comment required',
+        description: 'Please enter a comment',
+        variant: 'destructive',
       })
       return
     }
-    
+
     setIsSubmittingComment(true)
-    
+
     try {
       const success = await addComment(commentText.trim())
-      
+
       if (success) {
         if (onCommentAdded) {
           onCommentAdded({
@@ -271,134 +279,144 @@ export function EnterpriseEngagementActions({
             user: {
               id: user?.id || '',
               name: (user as any)?.name || user?.user_metadata?.full_name || user?.email || 'User',
-              avatar_url: (user as any)?.avatar_url || null
-            }
+              avatar_url: (user as any)?.avatar_url || null,
+            },
           })
         }
-        
+
         if (onEngagement) {
           await onEngagement('comment', entityId, entityType)
         }
-        
-        setCommentText("")
+
+        setCommentText('')
         setIsCommentInputVisible(false)
-        
+
         toast({
-          title: "Comment posted!",
-          description: "Your comment has been added",
-          variant: "default"
+          title: 'Comment posted!',
+          description: 'Your comment has been added',
+          variant: 'default',
         })
       }
     } catch (error) {
       console.error('Error posting comment:', error)
       toast({
-        title: "Error",
-        description: "Failed to post comment. Please try again.",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to post comment. Please try again.',
+        variant: 'destructive',
       })
     } finally {
       setIsSubmittingComment(false)
     }
   }, [commentText, addComment, onCommentAdded, onEngagement, entityId, entityType, user, toast])
-  
+
   const handleShare = useCallback(async () => {
     try {
       const success = await shareEntity()
-      
+
       if (success) {
         if (onShare) {
           await onShare(entityId, entityType)
         }
-        
+
         if (onEngagement) {
           await onEngagement('share', entityId, entityType)
         }
-        
+
         setShowShareMenu(false)
-        
+
         toast({
-          title: "Content shared!",
-          description: "Your share has been recorded",
-          variant: "default"
+          title: 'Content shared!',
+          description: 'Your share has been recorded',
+          variant: 'default',
         })
       }
     } catch (error) {
       console.error('Error sharing content:', error)
       toast({
-        title: "Error",
-        description: "Failed to share content. Please try again.",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to share content. Please try again.',
+        variant: 'destructive',
       })
     }
   }, [shareEntity, onShare, onEngagement, entityId, entityType, toast])
-  
+
   const handleBookmark = useCallback(async () => {
     try {
       const success = await bookmarkEntity()
-      
+
       if (success) {
         if (onBookmark) {
           await onBookmark(entityId, entityType)
         }
-        
+
         if (onEngagement) {
           await onEngagement('bookmark', entityId, entityType)
         }
-        
+
         setShowBookmarkMenu(false)
-        
+
         const isBookmarked = engagement?.userHasBookmarked
         toast({
-          title: isBookmarked ? "Bookmark removed" : "Bookmarked!",
-          description: isBookmarked 
-            ? "Content removed from bookmarks" 
-            : "Content added to your bookmarks",
-          variant: "default"
+          title: isBookmarked ? 'Bookmark removed' : 'Bookmarked!',
+          description: isBookmarked
+            ? 'Content removed from bookmarks'
+            : 'Content added to your bookmarks',
+          variant: 'default',
         })
       }
     } catch (error) {
       console.error('Error bookmarking content:', error)
       toast({
-        title: "Error",
-        description: "Failed to bookmark content. Please try again.",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to bookmark content. Please try again.',
+        variant: 'destructive',
       })
     }
-  }, [bookmarkEntity, onBookmark, onEngagement, entityId, entityType, engagement?.userHasBookmarked, toast])
-  
+  }, [
+    bookmarkEntity,
+    onBookmark,
+    onEngagement,
+    entityId,
+    entityType,
+    engagement?.userHasBookmarked,
+    toast,
+  ])
+
   // ============================================================================
   // UTILITY FUNCTIONS
   // ============================================================================
-  
+
   const formatCount = useCallback((count: number, label: string) => {
-    if (count === 0) return ""
+    if (count === 0) return ''
     if (count === 1) return `1 ${label}`
     if (count < 1000) return `${count} ${label}s`
     if (count < 1000000) return `${(count / 1000).toFixed(1)}K ${label}s`
     return `${(count / 1000000).toFixed(1)}M ${label}s`
   }, [])
-  
+
   const getCurrentReactionDisplay = useCallback(() => {
     const reaction = contextReaction || currentReaction
-    if (!reaction) return { icon: <ThumbsUp className="h-5 w-5" />, color: "text-gray-600", label: "Like" }
-    
-    const reactionOption = REACTION_OPTIONS.find(r => r.type === reaction)
-    if (!reactionOption) return { icon: <ThumbsUp className="h-5 w-5" />, color: "text-gray-600", label: "Like" }
-    
+    if (!reaction)
+      return { icon: <ThumbsUp className="h-5 w-5" />, color: 'text-gray-600', label: 'Like' }
+
+    const reactionOption = REACTION_OPTIONS.find((r) => r.type === reaction)
+    if (!reactionOption)
+      return { icon: <ThumbsUp className="h-5 w-5" />, color: 'text-gray-600', label: 'Like' }
+
     return {
       icon: customReactionIcons?.[reaction] || reactionOption.icon,
       color: customColors?.[reaction]?.color || reactionOption.color,
-      label: reaction.charAt(0).toUpperCase() + reaction.slice(1)
+      label: reaction.charAt(0).toUpperCase() + reaction.slice(1),
     }
   }, [contextReaction, currentReaction, customReactionIcons, customColors])
-  
+
   // ============================================================================
   // RENDER FUNCTIONS
   // ============================================================================
-  
+
   const renderReactionButton = useCallback(() => {
     const currentDisplay = getCurrentReactionDisplay()
-    
+
     return (
       <div className="relative flex-1">
         <Button
@@ -410,21 +428,24 @@ export function EnterpriseEngagementActions({
           onClick={() => setShowReactionPopup(true)}
           disabled={!!engagement?.isLoading}
           className={cn(
-            "engagement-action-button w-full h-10 rounded-lg transition-colors",
-            "flex items-center justify-center gap-2",
+            'engagement-action-button w-full h-10 rounded-lg transition-colors',
+            'flex items-center justify-center gap-2',
             contextReaction || currentReaction
-              ? `${currentDisplay.color} hover:bg-gray-50` 
-              : "text-gray-600 hover:text-gray-700 hover:bg-gray-50"
+              ? `${currentDisplay.color} hover:bg-gray-50`
+              : 'text-gray-600 hover:text-gray-700 hover:bg-gray-50'
           )}
         >
-          <span className={cn("flex items-center", contextReaction || currentReaction && "fill-current")}>
+          <span
+            className={cn(
+              'flex items-center',
+              contextReaction || (currentReaction && 'fill-current')
+            )}
+          >
             {currentDisplay.icon}
           </span>
-          <span className="engagement-action-label">
-            {currentDisplay.label}
-          </span>
+          <span className="engagement-action-label">{currentDisplay.label}</span>
         </Button>
-        
+
         {/* Reaction Popup */}
         {showReactionPopup && (
           <EnterpriseReactionPopup
@@ -437,7 +458,11 @@ export function EnterpriseEngagementActions({
             showReactionCounts={showReactionCounts}
             showQuickReactions={enableQuickReactions}
             maxQuickReactions={3}
-            onReactionChange={(rt) => { if (rt) { handleReactionSelect(rt) } }}
+            onReactionChange={(rt) => {
+              if (rt) {
+                handleReactionSelect(rt)
+              }
+            }}
             triggerRef={reactionButtonRef as unknown as React.RefObject<HTMLElement>}
             autoPosition={true}
             size="md"
@@ -458,12 +483,12 @@ export function EnterpriseEngagementActions({
     handleReactionSelect,
     getCurrentReactionDisplay,
     handleReactionButtonHover,
-    handleReactionButtonLeave
+    handleReactionButtonLeave,
   ])
-  
+
   const renderCommentButton = useCallback(() => {
     if (!showCommentInput) return null
-    
+
     return (
       <Button
         variant="ghost"
@@ -483,10 +508,10 @@ export function EnterpriseEngagementActions({
       </Button>
     )
   }, [showCommentInput, isCommentInputVisible, onCommentClick, engagement?.isLoading])
-  
+
   const renderShareButton = useCallback(() => {
     if (!showShareOptions) return null
-    
+
     return (
       <Popover open={showShareMenu} onOpenChange={setShowShareMenu}>
         <PopoverTrigger asChild>
@@ -522,10 +547,10 @@ export function EnterpriseEngagementActions({
       </Popover>
     )
   }, [showShareOptions, showShareMenu, entityType, handleShare])
-  
+
   const renderBookmarkButton = useCallback(() => {
     if (!showBookmarkOptions) return null
-    
+
     return (
       <Button
         variant="ghost"
@@ -533,26 +558,34 @@ export function EnterpriseEngagementActions({
         onClick={handleBookmark}
         disabled={!!engagement?.isLoading}
         className={cn(
-          "engagement-action-button flex-1 h-10 rounded-lg transition-colors",
+          'engagement-action-button flex-1 h-10 rounded-lg transition-colors',
           engagement?.userHasBookmarked || isBookmarked
-            ? "text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-            : "text-gray-600 hover:text-gray-700 hover:bg-gray-50"
+            ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
+            : 'text-gray-600 hover:text-gray-700 hover:bg-gray-50'
         )}
       >
-        <Bookmark className={cn(
-          "h-5 w-5 mr-2",
-          (engagement?.userHasBookmarked || isBookmarked) && "fill-current"
-        )} />
+        <Bookmark
+          className={cn(
+            'h-5 w-5 mr-2',
+            (engagement?.userHasBookmarked || isBookmarked) && 'fill-current'
+          )}
+        />
         <span className="engagement-action-label">
-          {(engagement?.userHasBookmarked || isBookmarked) ? 'Saved' : 'Save'}
+          {engagement?.userHasBookmarked || isBookmarked ? 'Saved' : 'Save'}
         </span>
       </Button>
     )
-  }, [showBookmarkOptions, engagement?.isLoading, engagement?.userHasBookmarked, isBookmarked, handleBookmark])
-  
+  }, [
+    showBookmarkOptions,
+    engagement?.isLoading,
+    engagement?.userHasBookmarked,
+    isBookmarked,
+    handleBookmark,
+  ])
+
   const renderCommentInput = useCallback(() => {
     if (!showCommentInput || !isCommentInputVisible) return null
-    
+
     return (
       <div className="engagement-comment-input px-4 py-3 border-t border-gray-100">
         <div className="engagement-comment-input-container flex items-start gap-3">
@@ -565,7 +598,7 @@ export function EnterpriseEngagementActions({
               className="w-8 h-8"
             />
           </div>
-          
+
           {/* Comment Input */}
           <div className="engagement-comment-input-field flex-1">
             <Textarea
@@ -576,7 +609,7 @@ export function EnterpriseEngagementActions({
               className="min-h-[80px] resize-none border-gray-200 focus:border-blue-500 focus:ring-blue-500"
               disabled={isSubmittingComment}
             />
-            
+
             {/* Comment Actions */}
             <div className="flex items-center justify-between mt-3">
               <div className="flex items-center gap-2">
@@ -591,7 +624,7 @@ export function EnterpriseEngagementActions({
                   Photo
                 </Button>
               </div>
-              
+
               <div className="flex items-center gap-2">
                 {/* Cancel Button */}
                 <Button
@@ -599,14 +632,14 @@ export function EnterpriseEngagementActions({
                   size="sm"
                   onClick={() => {
                     setIsCommentInputVisible(false)
-                    setCommentText("")
+                    setCommentText('')
                   }}
                   disabled={isSubmittingComment}
                   className="h-8 px-3 text-xs"
                 >
                   Cancel
                 </Button>
-                
+
                 {/* Submit Button */}
                 <Button
                   size="sm"
@@ -632,21 +665,15 @@ export function EnterpriseEngagementActions({
         </div>
       </div>
     )
-  }, [
-    isCommentInputVisible,
-    commentText,
-    isSubmittingComment,
-    user,
-    handleCommentSubmit
-  ])
-  
+  }, [isCommentInputVisible, commentText, isSubmittingComment, user, handleCommentSubmit])
+
   const renderEngagementSummary = useCallback(() => {
     if (variant === 'minimal') return null
-    
+
     const hasEngagement = (stats?.reactionCount || 0) > 0 || (stats?.commentCount || 0) > 0
-    
+
     if (!hasEngagement) return null
-    
+
     return (
       <div className="engagement-reactions-display flex items-center justify-between px-4 py-2 border-b border-gray-100">
         <div className="engagement-reactions-left flex items-center gap-2">
@@ -661,7 +688,7 @@ export function EnterpriseEngagementActions({
               />
             </div>
           )}
-          
+
           {/* Comment Count */}
           {stats?.commentCount > 0 && (
             <div className="engagement-comment-count text-sm text-gray-600 hover:underline cursor-pointer">
@@ -669,7 +696,7 @@ export function EnterpriseEngagementActions({
             </div>
           )}
         </div>
-        
+
         {/* Right side - Analytics or additional info */}
         {showAnalytics && (
           <div className="engagement-reactions-right flex items-center gap-2">
@@ -689,31 +716,34 @@ export function EnterpriseEngagementActions({
     entityType,
     maxVisibleReactions,
     showAnalytics,
-    formatCount
+    formatCount,
   ])
-  
+
   // ============================================================================
   // MAIN RENDER
   // ============================================================================
-  
+
   const getVariantClasses = useCallback(() => {
     switch (variant) {
       case 'compact':
-        return "space-y-1"
+        return 'space-y-1'
       case 'detailed':
-        return "space-y-3"
+        return 'space-y-3'
       case 'minimal':
-        return "space-y-1"
+        return 'space-y-1'
       default:
-        return "space-y-2"
+        return 'space-y-2'
     }
   }, [variant])
-  
+
   return (
-    <div ref={containerRef} className={cn("enterprise-engagement-actions", getVariantClasses(), className)}>
+    <div
+      ref={containerRef}
+      className={cn('enterprise-engagement-actions', getVariantClasses(), className)}
+    >
       {/* Engagement Summary */}
       {renderEngagementSummary()}
-      
+
       {/* Action Buttons Row */}
       <div className="engagement-action-buttons flex items-center justify-between px-4 py-2 border-b border-gray-100">
         {renderReactionButton()}
@@ -721,10 +751,10 @@ export function EnterpriseEngagementActions({
         {renderShareButton()}
         {renderBookmarkButton()}
       </div>
-      
+
       {/* Comment Input Section */}
       {renderCommentInput()}
-      
+
       {/* Additional Features for Detailed Variant */}
       {variant === 'detailed' && (
         <div className="px-4 py-2 border-t border-gray-100">
@@ -748,13 +778,48 @@ export function EnterpriseEngagementActions({
 // ============================================================================
 
 const REACTION_OPTIONS = [
-  { type: 'like' as ReactionType, icon: <ThumbsUp className="h-5 w-5" />, color: 'text-blue-600', bgColor: 'bg-blue-50' },
-  { type: 'love' as ReactionType, icon: <Heart className="h-5 w-5" />, color: 'text-red-500', bgColor: 'bg-red-50' },
-  { type: 'care' as ReactionType, icon: <Heart className="h-5 w-5" />, color: 'text-yellow-500', bgColor: 'bg-yellow-50' },
-  { type: 'haha' as ReactionType, icon: <Smile className="h-5 w-5" />, color: 'text-yellow-500', bgColor: 'bg-yellow-50' },
-  { type: 'wow' as ReactionType, icon: <Star className="h-5 w-5" />, color: 'text-purple-500', bgColor: 'bg-purple-50' },
-  { type: 'sad' as ReactionType, icon: <AlertTriangle className="h-5 w-5" />, color: 'text-blue-500', bgColor: 'bg-blue-50' },
-  { type: 'angry' as ReactionType, icon: <Zap className="h-5 w-5" />, color: 'text-red-600', bgColor: 'bg-red-50' }
+  {
+    type: 'like' as ReactionType,
+    icon: <ThumbsUp className="h-5 w-5" />,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50',
+  },
+  {
+    type: 'love' as ReactionType,
+    icon: <Heart className="h-5 w-5" />,
+    color: 'text-red-500',
+    bgColor: 'bg-red-50',
+  },
+  {
+    type: 'care' as ReactionType,
+    icon: <Heart className="h-5 w-5" />,
+    color: 'text-yellow-500',
+    bgColor: 'bg-yellow-50',
+  },
+  {
+    type: 'haha' as ReactionType,
+    icon: <Smile className="h-5 w-5" />,
+    color: 'text-yellow-500',
+    bgColor: 'bg-yellow-50',
+  },
+  {
+    type: 'wow' as ReactionType,
+    icon: <Star className="h-5 w-5" />,
+    color: 'text-purple-500',
+    bgColor: 'bg-purple-50',
+  },
+  {
+    type: 'sad' as ReactionType,
+    icon: <AlertTriangle className="h-5 w-5" />,
+    color: 'text-blue-500',
+    bgColor: 'bg-blue-50',
+  },
+  {
+    type: 'angry' as ReactionType,
+    icon: <Zap className="h-5 w-5" />,
+    color: 'text-red-600',
+    bgColor: 'bg-red-50',
+  },
 ]
 
 // ============================================================================

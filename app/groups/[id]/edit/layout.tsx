@@ -1,7 +1,7 @@
-"use client"
+'use client'
 
-import { use } from "react"
-import { GroupProvider } from "@/contexts/GroupContext"
+import { use } from 'react'
+import { GroupProvider } from '@/contexts/GroupContext'
 
 export default function GroupEditLayout({
   children,
@@ -12,4 +12,4 @@ export default function GroupEditLayout({
 }) {
   const resolvedParams = use(params)
   return <GroupProvider groupId={resolvedParams.id}>{children}</GroupProvider>
-} 
+}

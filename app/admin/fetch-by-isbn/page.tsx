@@ -1,65 +1,68 @@
-"use client";
+'use client'
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { BookOpen } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { BookOpen } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
 
 interface Book {
-  title: string;
-  image: string;
-  authors: string[];
-  date_published: string;
-  publisher: string;
-  pages: number;
-  isbn?: string;
-  description?: string;
+  title: string
+  image: string
+  authors: string[]
+  date_published: string
+  publisher: string
+  pages: number
+  isbn?: string
+  description?: string
 }
 
 export default function FetchByIsbnPage() {
-  const [isbnInput, setIsbnInput] = useState('');
-  const [books, setBooks] = useState<Book[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [uploadingBooks, setUploadingBooks] = useState<Set<number>>(new Set());
-  const { toast } = useToast();
+  const [isbnInput, setIsbnInput] = useState('')
+  const [books, setBooks] = useState<Book[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [uploadingBooks, setUploadingBooks] = useState<Set<number>>(new Set())
+  const { toast } = useToast()
 
   const handleFetch = async () => {
-    setLoading(true);
-    setError(null);
-    setBooks([]);
-    const isbns = isbnInput.split(',').map((s) => s.trim()).filter(Boolean);
+    setLoading(true)
+    setError(null)
+    setBooks([])
+    const isbns = isbnInput
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
     if (isbns.length === 0) {
-      setError('Please enter at least one ISBN.');
-      setLoading(false);
-      return;
+      setError('Please enter at least one ISBN.')
+      setLoading(false)
+      return
     }
     try {
       const res = await fetch('/api/isbn/fetch-by-isbn', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isbns }),
-      });
+      })
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Failed to fetch books');
+        const err = await res.json()
+        throw new Error(err.error || 'Failed to fetch books')
       }
-      const data = await res.json();
-      setBooks(data.books);
+      const data = await res.json()
+      setBooks(data.books)
     } catch (err) {
-      if (err instanceof Error) setError(err.message);
-      else setError('An unknown error occurred');
+      if (err instanceof Error) setError(err.message)
+      else setError('An unknown error occurred')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleUploadBook = async (book: Book, index: number) => {
-    setUploadingBooks(prev => new Set(prev).add(index));
-    
+    setUploadingBooks((prev) => new Set(prev).add(index))
+
     try {
       const bookData = {
         title: book.title,
@@ -70,48 +73,48 @@ export default function FetchByIsbnPage() {
         page_count: book.pages,
         published_date: book.date_published,
         isbn: book.isbn || '',
-      };
+      }
 
-      console.log('Sending book data to API:', bookData);
+      console.log('Sending book data to API:', bookData)
 
       const res = await fetch('/api/admin/add-book', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(bookData),
-      });
+      })
 
       if (!res.ok) {
-        const errorData = await res.json();
-        console.error('API Error:', errorData);
-        throw new Error(errorData.error || 'Failed to upload book');
+        const errorData = await res.json()
+        console.error('API Error:', errorData)
+        throw new Error(errorData.error || 'Failed to upload book')
       }
 
-      const result = await res.json();
-      console.log('API Success:', result);
-      
+      const result = await res.json()
+      console.log('API Success:', result)
+
       toast({
-        title: "Success!",
+        title: 'Success!',
         description: `Book "${book.title}" has been added to the system.`,
-      });
+      })
 
       // Remove the book from the list after successful upload
-      setBooks(prev => prev.filter((_, i) => i !== index));
+      setBooks((prev) => prev.filter((_, i) => i !== index))
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to upload book';
-      console.error('Upload error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to upload book'
+      console.error('Upload error:', err)
       toast({
-        title: "Upload Failed",
+        title: 'Upload Failed',
         description: errorMessage,
-        variant: "destructive",
-      });
+        variant: 'destructive',
+      })
     } finally {
-      setUploadingBooks(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(index);
-        return newSet;
-      });
+      setUploadingBooks((prev) => {
+        const newSet = new Set(prev)
+        newSet.delete(index)
+        return newSet
+      })
     }
-  };
+  }
 
   return (
     <div className="p-6">
@@ -131,11 +134,7 @@ export default function FetchByIsbnPage() {
         />
       </div>
 
-      <Button
-        onClick={handleFetch}
-        disabled={loading}
-        className="mb-6"
-      >
+      <Button onClick={handleFetch} disabled={loading} className="mb-6">
         {loading ? 'Fetching...' : 'Fetch Books'}
       </Button>
 
@@ -145,7 +144,7 @@ export default function FetchByIsbnPage() {
         {books.map((book, idx) => (
           <Card key={idx} className="overflow-hidden hover:shadow-lg transition-shadow">
             {/* Image container with 2:3 aspect ratio */}
-            <div className="relative w-full" style={{ aspectRatio: "2/3" }}>
+            <div className="relative w-full" style={{ aspectRatio: '2/3' }}>
               {book.image ? (
                 <Image
                   src={book.image}
@@ -160,9 +159,11 @@ export default function FetchByIsbnPage() {
                 </div>
               )}
             </div>
-            
+
             <CardContent className="p-4">
-              <h2 className="font-semibold text-lg mb-2 line-clamp-2 min-h-[3rem] leading-tight">{book.title}</h2>
+              <h2 className="font-semibold text-lg mb-2 line-clamp-2 min-h-[3rem] leading-tight">
+                {book.title}
+              </h2>
               <p className="text-muted-foreground text-sm mb-2 line-clamp-1">
                 by {book.authors.join(', ')}
               </p>
@@ -172,7 +173,7 @@ export default function FetchByIsbnPage() {
                 <p>{book.pages} pages</p>
                 {book.isbn && <p>ISBN: {book.isbn}</p>}
               </div>
-              
+
               <Button
                 onClick={() => handleUploadBook(book, idx)}
                 disabled={uploadingBooks.has(idx)}
@@ -193,5 +194,5 @@ export default function FetchByIsbnPage() {
         </div>
       )}
     </div>
-  );
-} 
+  )
+}

@@ -1,14 +1,15 @@
-import type { Metadata } from "next"
-import { ReadingStats } from "@/components/reading-progress/reading-stats"
-import { ActivityFeed } from "@/components/reading-progress/activity-feed"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { getRecentBooks } from "@/app/actions/data"
-import { BookCard } from "@/components/book-card"
+import type { Metadata } from 'next'
+import { ReadingStats } from '@/components/reading-progress/reading-stats'
+import { ActivityFeed } from '@/components/reading-progress/activity-feed'
+import { ReadingChallengeWidget } from '@/components/reading-challenge-widget'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { getRecentBooks } from '@/app/actions/data'
+import { BookCard } from '@/components/book-card'
 
 export const metadata: Metadata = {
   title: "Reading Dashboard | Author's Info",
-  description: "Track your reading progress and see what your friends are reading",
+  description: 'Track your reading progress and see what your friends are reading',
 }
 
 export default async function ReadingDashboardPage() {
@@ -19,7 +20,9 @@ export default async function ReadingDashboardPage() {
     <div className="space-y-6">
       <div className="py-6">
         <h1 className="text-3xl font-bold tracking-tight">Reading Dashboard</h1>
-        <p className="text-muted-foreground mt-2">Track your reading progress and see what your friends are reading</p>
+        <p className="text-muted-foreground mt-2">
+          Track your reading progress and see what your friends are reading
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -27,15 +30,7 @@ export default async function ReadingDashboardPage() {
         <div className="space-y-6">
           <ReadingStats />
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Reading Goals</CardTitle>
-              <CardDescription>Set and track your reading goals</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-center text-muted-foreground py-6">Reading goals feature coming soon!</p>
-            </CardContent>
-          </Card>
+          <ReadingChallengeWidget maxChallenges={3} />
         </div>
 
         {/* Middle Column - Activity */}
@@ -66,19 +61,25 @@ export default async function ReadingDashboardPage() {
                         key={book.id}
                         id={book.id}
                         title={book.title}
-                        author={(book.author && typeof book.author === 'object') ? {
-                          id: (book.author as any).id,
-                          name: (book.author as any).name,
-                          author_image: (book.author as any).author_image
-                        } : undefined}
-                        coverImageUrl={book.cover_image_url || "/placeholder.svg"}
+                        author={
+                          book.author && typeof book.author === 'object'
+                            ? {
+                                id: (book.author as any).id,
+                                name: (book.author as any).name,
+                                author_image: (book.author as any).author_image,
+                              }
+                            : undefined
+                        }
+                        coverImageUrl={book.cover_image_url || '/placeholder.svg'}
                       />
                     ))}
                   </div>
                 </TabsContent>
 
                 <TabsContent value="similar">
-                  <p className="text-center text-muted-foreground py-6">Personalized recommendations coming soon!</p>
+                  <p className="text-center text-muted-foreground py-6">
+                    Personalized recommendations coming soon!
+                  </p>
                 </TabsContent>
               </Tabs>
             </CardContent>

@@ -1,17 +1,22 @@
-"use client"
+'use client'
 
-import React, { useState, useEffect, useCallback } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { useToast } from "@/hooks/use-toast"
-import { supabase } from "@/lib/supabase/client"
-import { useAuth } from "@/hooks/useAuth"
+import React, { useState, useEffect, useCallback } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { useToast } from '@/hooks/use-toast'
+import { supabase } from '@/lib/supabase/client'
+import { useAuth } from '@/hooks/useAuth'
 import {
   X,
   ChevronLeft,
@@ -55,8 +60,8 @@ import {
   ExternalLink,
   Archive,
   Eye,
-  EyeOff
-} from "lucide-react"
+  EyeOff,
+} from 'lucide-react'
 
 interface Photo {
   id: string
@@ -108,11 +113,11 @@ export function EnterprisePhotoViewer({
   albumId,
   isEditable = false,
   onPhotoUpdate,
-  onPhotoDelete
+  onPhotoDelete,
 }: EnterprisePhotoViewerProps) {
   const { user } = useAuth()
   const { toast } = useToast()
-  
+
   // State management
   const [currentIndex, setCurrentIndex] = useState(initialPhotoIndex)
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -123,7 +128,7 @@ export function EnterprisePhotoViewer({
   const [showInfo, setShowInfo] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  
+
   // Edit form state
   const [editForm, setEditForm] = useState({
     title: '',
@@ -131,20 +136,20 @@ export function EnterprisePhotoViewer({
     tags: '',
     location: '',
     is_featured: false,
-    is_private: false
+    is_private: false,
   })
 
   const currentPhoto = photos[currentIndex]
 
   // Navigation
   const goToPrevious = useCallback(() => {
-    setCurrentIndex(prev => prev > 0 ? prev - 1 : photos.length - 1)
+    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : photos.length - 1))
     setZoom(1)
     setRotation(0)
   }, [photos.length])
 
   const goToNext = useCallback(() => {
-    setCurrentIndex(prev => prev < photos.length - 1 ? prev + 1 : 0)
+    setCurrentIndex((prev) => (prev < photos.length - 1 ? prev + 1 : 0))
     setZoom(1)
     setRotation(0)
   }, [photos.length])
@@ -153,7 +158,7 @@ export function EnterprisePhotoViewer({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isOpen) return
-      
+
       switch (e.key) {
         case 'ArrowLeft':
           goToPrevious()
@@ -166,23 +171,23 @@ export function EnterprisePhotoViewer({
           break
         case ' ':
           e.preventDefault()
-          setIsSlideshow(prev => !prev)
+          setIsSlideshow((prev) => !prev)
           break
         case 'f':
-          setIsFullscreen(prev => !prev)
+          setIsFullscreen((prev) => !prev)
           break
         case 'i':
-          setShowInfo(prev => !prev)
+          setShowInfo((prev) => !prev)
           break
         case '+':
         case '=':
-          setZoom(prev => Math.min(prev + 0.25, 3))
+          setZoom((prev) => Math.min(prev + 0.25, 3))
           break
         case '-':
-          setZoom(prev => Math.max(prev - 0.25, 0.25))
+          setZoom((prev) => Math.max(prev - 0.25, 0.25))
           break
         case 'r':
-          setRotation(prev => (prev + 90) % 360)
+          setRotation((prev) => (prev + 90) % 360)
           break
       }
     }
@@ -194,11 +199,11 @@ export function EnterprisePhotoViewer({
   // Slideshow
   useEffect(() => {
     if (!isSlideshow) return
-    
+
     const interval = setInterval(() => {
       goToNext()
     }, slideshowInterval)
-    
+
     return () => clearInterval(interval)
   }, [isSlideshow, slideshowInterval, goToNext])
 
@@ -211,7 +216,7 @@ export function EnterprisePhotoViewer({
         tags: currentPhoto.metadata?.tags?.join(', ') || '',
         location: currentPhoto.metadata?.location || '',
         is_featured: currentPhoto.is_featured,
-        is_private: false // You'd get this from the actual photo privacy settings
+        is_private: false, // You'd get this from the actual photo privacy settings
       })
     }
   }, [currentPhoto])
@@ -219,17 +224,18 @@ export function EnterprisePhotoViewer({
   // Like/Unlike photo
   const toggleLike = async () => {
     if (!user || !currentPhoto) return
-    
+
     try {
-      const { error } = await (supabase
-        .from('photo_likes') as any)
-        .upsert({
+      const { error } = await (supabase.from('photo_likes') as any).upsert(
+        {
           photo_id: currentPhoto.id,
           user_id: user.id,
-          liked: !currentPhoto.is_liked
-        }, {
-          onConflict: 'photo_id,user_id'
-        })
+          liked: !currentPhoto.is_liked,
+        },
+        {
+          onConflict: 'photo_id,user_id',
+        }
+      )
 
       if (error) throw error
 
@@ -237,18 +243,18 @@ export function EnterprisePhotoViewer({
       const updatedPhoto = {
         ...currentPhoto,
         is_liked: !currentPhoto.is_liked,
-        like_count: currentPhoto.is_liked 
+        like_count: currentPhoto.is_liked
           ? (currentPhoto.like_count || 0) - 1
-          : (currentPhoto.like_count || 0) + 1
+          : (currentPhoto.like_count || 0) + 1,
       }
 
       onPhotoUpdate?.(updatedPhoto)
     } catch (error) {
       console.error('Error toggling like:', error)
       toast({
-        title: "Error",
-        description: "Failed to update like status",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to update like status',
+        variant: 'destructive',
       })
     }
   }
@@ -256,19 +262,21 @@ export function EnterprisePhotoViewer({
   // Save photo edits
   const savePhotoEdits = async () => {
     if (!currentPhoto) return
-    
+
     setIsLoading(true)
     try {
-      const { error } = await (supabase
-        .from('album_images') as any)
+      const { error } = await (supabase.from('album_images') as any)
         .update({
           is_featured: editForm.is_featured,
           metadata: {
             title: editForm.title,
             description: editForm.description,
-            tags: editForm.tags.split(',').map(tag => tag.trim()).filter(Boolean),
-            location: editForm.location
-          }
+            tags: editForm.tags
+              .split(',')
+              .map((tag) => tag.trim())
+              .filter(Boolean),
+            location: editForm.location,
+          },
         })
         .eq('album_id', albumId)
         .eq('image_id', currentPhoto.id)
@@ -276,17 +284,19 @@ export function EnterprisePhotoViewer({
       if (error) throw error
 
       // Update the images table as well
-      const { error: imageError } = await (supabase
-        .from('images') as any)
+      const { error: imageError } = await (supabase.from('images') as any)
         .update({
           alt_text: editForm.title || currentPhoto.alt_text,
           metadata: {
             ...currentPhoto.metadata,
             title: editForm.title,
             description: editForm.description,
-            tags: editForm.tags.split(',').map(tag => tag.trim()).filter(Boolean),
-            location: editForm.location
-          }
+            tags: editForm.tags
+              .split(',')
+              .map((tag) => tag.trim())
+              .filter(Boolean),
+            location: editForm.location,
+          },
         })
         .eq('id', currentPhoto.id)
 
@@ -299,24 +309,27 @@ export function EnterprisePhotoViewer({
           ...currentPhoto.metadata,
           title: editForm.title,
           description: editForm.description,
-          tags: editForm.tags.split(',').map(tag => tag.trim()).filter(Boolean),
-          location: editForm.location
-        }
+          tags: editForm.tags
+            .split(',')
+            .map((tag) => tag.trim())
+            .filter(Boolean),
+          location: editForm.location,
+        },
       }
 
       onPhotoUpdate?.(updatedPhoto)
       setShowEditDialog(false)
-      
+
       toast({
-        title: "Photo updated",
-        description: "Changes saved successfully"
+        title: 'Photo updated',
+        description: 'Changes saved successfully',
       })
     } catch (error) {
       console.error('Error saving photo edits:', error)
       toast({
-        title: "Error",
-        description: "Failed to save changes",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to save changes',
+        variant: 'destructive',
       })
     } finally {
       setIsLoading(false)
@@ -326,7 +339,7 @@ export function EnterprisePhotoViewer({
   // Delete photo
   const deletePhoto = async () => {
     if (!currentPhoto) return
-    
+
     try {
       // Remove from album
       const { error } = await supabase
@@ -338,7 +351,7 @@ export function EnterprisePhotoViewer({
       if (error) throw error
 
       onPhotoDelete?.(currentPhoto.id)
-      
+
       // Navigate to next photo or close if last one
       if (photos.length > 1) {
         if (currentIndex >= photos.length - 1) {
@@ -347,17 +360,17 @@ export function EnterprisePhotoViewer({
       } else {
         onClose()
       }
-      
+
       toast({
-        title: "Photo deleted",
-        description: "Photo removed from album"
+        title: 'Photo deleted',
+        description: 'Photo removed from album',
       })
     } catch (error) {
       console.error('Error deleting photo:', error)
       toast({
-        title: "Error",
-        description: "Failed to delete photo",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to delete photo',
+        variant: 'destructive',
       })
     }
   }
@@ -365,7 +378,7 @@ export function EnterprisePhotoViewer({
   // Download photo
   const downloadPhoto = () => {
     if (!currentPhoto) return
-    
+
     const link = document.createElement('a')
     link.href = currentPhoto.url
     link.download = `${currentPhoto.metadata?.title || 'photo'}.jpg`
@@ -377,13 +390,13 @@ export function EnterprisePhotoViewer({
   // Share photo
   const sharePhoto = async () => {
     if (!currentPhoto) return
-    
+
     if (navigator.share) {
       try {
         await navigator.share({
           title: currentPhoto.metadata?.title || 'Photo',
           text: currentPhoto.metadata?.description || 'Check out this photo',
-          url: currentPhoto.url
+          url: currentPhoto.url,
         })
       } catch (error) {
         console.error('Error sharing:', error)
@@ -392,8 +405,8 @@ export function EnterprisePhotoViewer({
       // Fallback to clipboard
       navigator.clipboard.writeText(currentPhoto.url)
       toast({
-        title: "Link copied",
-        description: "Photo link copied to clipboard"
+        title: 'Link copied',
+        description: 'Photo link copied to clipboard',
       })
     }
   }
@@ -412,7 +425,7 @@ export function EnterprisePhotoViewer({
       month: 'long',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     })
   }
 
@@ -420,7 +433,9 @@ export function EnterprisePhotoViewer({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={`max-w-7xl h-[95vh] p-0 overflow-hidden ${isFullscreen ? 'max-w-full h-screen' : ''}`}>
+      <DialogContent
+        className={`max-w-7xl h-[95vh] p-0 overflow-hidden ${isFullscreen ? 'max-w-full h-screen' : ''}`}
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur-sm">
           <div className="flex items-center gap-4">
@@ -431,35 +446,23 @@ export function EnterprisePhotoViewer({
               {currentIndex + 1} of {photos.length}
             </Badge>
           </div>
-          
+
           <div className="flex items-center gap-2">
             {/* Slideshow Controls */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsSlideshow(!isSlideshow)}
-            >
+            <Button variant="ghost" size="sm" onClick={() => setIsSlideshow(!isSlideshow)}>
               {isSlideshow ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
             </Button>
-            
+
             {/* Info Toggle */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowInfo(!showInfo)}
-            >
+            <Button variant="ghost" size="sm" onClick={() => setShowInfo(!showInfo)}>
               <Info className="h-4 w-4" />
             </Button>
-            
+
             {/* Fullscreen Toggle */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsFullscreen(!isFullscreen)}
-            >
+            <Button variant="ghost" size="sm" onClick={() => setIsFullscreen(!isFullscreen)}>
               {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
             </Button>
-            
+
             {/* More Options */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -490,7 +493,7 @@ export function EnterprisePhotoViewer({
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
-            
+
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-4 w-4" />
             </Button>
@@ -510,7 +513,7 @@ export function EnterprisePhotoViewer({
             >
               <ChevronLeft className="h-6 w-6" />
             </Button>
-            
+
             <Button
               variant="ghost"
               size="sm"
@@ -528,7 +531,7 @@ export function EnterprisePhotoViewer({
               className="max-w-full max-h-full object-contain transition-transform duration-200"
               style={{
                 transform: `scale(${zoom}) rotate(${rotation}deg)`,
-                cursor: zoom > 1 ? 'grab' : 'default'
+                cursor: zoom > 1 ? 'grab' : 'default',
               }}
             />
 
@@ -537,7 +540,7 @@ export function EnterprisePhotoViewer({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setZoom(prev => Math.max(prev - 0.25, 0.25))}
+                onClick={() => setZoom((prev) => Math.max(prev - 0.25, 0.25))}
                 className="text-white hover:bg-white/20"
               >
                 <ZoomOut className="h-4 w-4" />
@@ -548,7 +551,7 @@ export function EnterprisePhotoViewer({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setZoom(prev => Math.min(prev + 0.25, 3))}
+                onClick={() => setZoom((prev) => Math.min(prev + 0.25, 3))}
                 className="text-white hover:bg-white/20"
               >
                 <ZoomIn className="h-4 w-4" />
@@ -557,7 +560,7 @@ export function EnterprisePhotoViewer({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setRotation(prev => (prev + 90) % 360)}
+                onClick={() => setRotation((prev) => (prev + 90) % 360)}
                 className="text-white hover:bg-white/20"
               >
                 <RotateCw className="h-4 w-4" />
@@ -579,7 +582,7 @@ export function EnterprisePhotoViewer({
                 )}
                 {currentPhoto.like_count || 0}
               </Button>
-              
+
               {currentPhoto.is_featured && (
                 <Badge className="bg-yellow-500">
                   <Star className="h-3 w-3 mr-1" />
@@ -595,20 +598,20 @@ export function EnterprisePhotoViewer({
               <div className="p-4 space-y-4">
                 <div>
                   <h3 className="font-semibold text-lg mb-2">Photo Details</h3>
-                  
+
                   <div className="space-y-3 text-sm">
                     <div>
                       <Label className="text-xs text-muted-foreground">Title</Label>
                       <p className="font-medium">{currentPhoto.metadata?.title || 'Untitled'}</p>
                     </div>
-                    
+
                     {currentPhoto.metadata?.description && (
                       <div>
                         <Label className="text-xs text-muted-foreground">Description</Label>
                         <p>{currentPhoto.metadata.description}</p>
                       </div>
                     )}
-                    
+
                     {currentPhoto.metadata?.tags && currentPhoto.metadata.tags.length > 0 && (
                       <div>
                         <Label className="text-xs text-muted-foreground">Tags</Label>
@@ -621,22 +624,24 @@ export function EnterprisePhotoViewer({
                         </div>
                       </div>
                     )}
-                    
+
                     <div>
                       <Label className="text-xs text-muted-foreground">Uploaded</Label>
                       <p>{formatDate(currentPhoto.created_at)}</p>
                     </div>
-                    
+
                     <div>
                       <Label className="text-xs text-muted-foreground">File Size</Label>
                       <p>{formatFileSize(currentPhoto.file_size)}</p>
                     </div>
-                    
+
                     <div>
                       <Label className="text-xs text-muted-foreground">Dimensions</Label>
-                      <p>{currentPhoto.width} × {currentPhoto.height}</p>
+                      <p>
+                        {currentPhoto.width} × {currentPhoto.height}
+                      </p>
                     </div>
-                    
+
                     {currentPhoto.metadata?.location && (
                       <div>
                         <Label className="text-xs text-muted-foreground">Location</Label>
@@ -719,48 +724,52 @@ export function EnterprisePhotoViewer({
                   <Input
                     id="edit-title"
                     value={editForm.title}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, title: e.target.value }))}
                     placeholder="Enter photo title"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="edit-description">Description</Label>
                   <Textarea
                     id="edit-description"
                     value={editForm.description}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                    onChange={(e) =>
+                      setEditForm((prev) => ({ ...prev, description: e.target.value }))
+                    }
                     placeholder="Describe this photo"
                     rows={3}
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="edit-tags">Tags (comma separated)</Label>
                   <Input
                     id="edit-tags"
                     value={editForm.tags}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, tags: e.target.value }))}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, tags: e.target.value }))}
                     placeholder="nature, landscape, sunset"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="edit-location">Location</Label>
                   <Input
                     id="edit-location"
                     value={editForm.location}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, location: e.target.value }))}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, location: e.target.value }))}
                     placeholder="Where was this taken?"
                   />
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <Label htmlFor="edit-featured">Featured Photo</Label>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => setEditForm(prev => ({ ...prev, is_featured: !prev.is_featured }))}
+                    onClick={() =>
+                      setEditForm((prev) => ({ ...prev, is_featured: !prev.is_featured }))
+                    }
                   >
                     {editForm.is_featured ? (
                       <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
@@ -769,19 +778,12 @@ export function EnterprisePhotoViewer({
                     )}
                   </Button>
                 </div>
-                
+
                 <div className="flex gap-2">
-                  <Button
-                    onClick={savePhotoEdits}
-                    disabled={isLoading}
-                    className="flex-1"
-                  >
-                    {isLoading ? "Saving..." : "Save Changes"}
+                  <Button onClick={savePhotoEdits} disabled={isLoading} className="flex-1">
+                    {isLoading ? 'Saving...' : 'Save Changes'}
                   </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowEditDialog(false)}
-                  >
+                  <Button variant="outline" onClick={() => setShowEditDialog(false)}>
                     Cancel
                   </Button>
                 </div>
@@ -792,4 +794,4 @@ export function EnterprisePhotoViewer({
       </DialogContent>
     </Dialog>
   )
-} 
+}

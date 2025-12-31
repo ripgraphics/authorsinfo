@@ -1,5 +1,5 @@
-import { createBrowserClient } from "@supabase/ssr"
-import type { Database } from "@/types/database"
+import { createBrowserClient } from '@supabase/ssr'
+import type { Database } from '@/types/database'
 
 // Create a singleton instance of the Supabase client
 let supabaseClientInstance: ReturnType<typeof createBrowserClient<Database>> | null = null

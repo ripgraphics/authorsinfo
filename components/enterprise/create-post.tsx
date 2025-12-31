@@ -6,10 +6,27 @@ import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
-import { MessageSquare, Image as ImageIcon, Link as LinkIcon, Globe, Lock, Users, BookOpen, User, Building, Calendar } from 'lucide-react'
+import {
+  MessageSquare,
+  Image as ImageIcon,
+  Link as LinkIcon,
+  Globe,
+  Lock,
+  Users,
+  BookOpen,
+  User,
+  Building,
+  Calendar,
+} from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth' // Add this import
 
 interface CreatePostProps {
@@ -19,11 +36,11 @@ interface CreatePostProps {
   className?: string
 }
 
-export default function CreatePost({ 
-  entityType = 'user', 
-  entityId, 
+export default function CreatePost({
+  entityType = 'user',
+  entityId,
   onPostCreated,
-  className = ''
+  className = '',
 }: CreatePostProps) {
   const { toast } = useToast()
   const { user } = useAuth() // Get current user
@@ -33,16 +50,14 @@ export default function CreatePost({
   const [visibility, setVisibility] = useState('public')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!content.trim() && (!imageUrl || !linkUrl)) {
       toast({
         title: 'Error',
         description: 'Please enter some content or add an image/link for your post',
-        variant: 'destructive'
+        variant: 'destructive',
       })
       return
     }
@@ -52,7 +67,7 @@ export default function CreatePost({
       toast({
         title: 'Authentication Error',
         description: 'You must be logged in to create posts',
-        variant: 'destructive'
+        variant: 'destructive',
       })
       return
     }
@@ -67,13 +82,13 @@ export default function CreatePost({
         },
         body: JSON.stringify({
           content: {
-            text: content.trim()
+            text: content.trim(),
           },
           image_url: imageUrl || undefined,
           link_url: linkUrl || undefined,
           visibility,
           entity_type: entityType,
-          entity_id: entityId
+          entity_id: entityId,
         }),
       })
 
@@ -83,9 +98,7 @@ export default function CreatePost({
       }
 
       const result = await response.json()
-      
 
-      
       toast({
         title: 'Success!',
         description: 'Your post has been created successfully',
@@ -95,18 +108,17 @@ export default function CreatePost({
       setContent('')
       setImageUrl('')
       setLinkUrl('')
-      
+
       // Notify parent component
       if (onPostCreated) {
         onPostCreated()
       }
-
     } catch (error) {
       console.error('Error creating post:', error)
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to create post',
-        variant: 'destructive'
+        variant: 'destructive',
       })
     } finally {
       setIsSubmitting(false)
@@ -177,12 +189,7 @@ export default function CreatePost({
                 onChange={(e) => setImageUrl(e.target.value)}
               />
               {imageUrl && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setImageUrl('')}
-                >
+                <Button type="button" variant="outline" size="sm" onClick={() => setImageUrl('')}>
                   Clear
                 </Button>
               )}
@@ -201,12 +208,7 @@ export default function CreatePost({
                 onChange={(e) => setLinkUrl(e.target.value)}
               />
               {linkUrl && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setLinkUrl('')}
-                >
+                <Button type="button" variant="outline" size="sm" onClick={() => setLinkUrl('')}>
                   Clear
                 </Button>
               )}
@@ -259,11 +261,7 @@ export default function CreatePost({
           )}
 
           {/* Submit Button */}
-          <Button 
-            type="submit" 
-            className="w-full" 
-            disabled={isSubmitting || !content.trim()}
-          >
+          <Button type="submit" className="w-full" disabled={isSubmitting || !content.trim()}>
             {isSubmitting ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -280,4 +278,4 @@ export default function CreatePost({
       </CardContent>
     </Card>
   )
-} 
+}

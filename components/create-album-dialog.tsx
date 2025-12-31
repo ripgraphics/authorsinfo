@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -15,7 +21,11 @@ interface CreateAlbumDialogProps {
   onAlbumCreated: () => void
 }
 
-export function CreateAlbumDialog({ entityId, entityType, onAlbumCreated }: CreateAlbumDialogProps) {
+export function CreateAlbumDialog({
+  entityId,
+  entityType,
+  onAlbumCreated,
+}: CreateAlbumDialogProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [name, setName] = useState('')
@@ -29,10 +39,16 @@ export function CreateAlbumDialog({ entityId, entityType, onAlbumCreated }: Crea
   useEffect(() => {
     const initializeClient = async () => {
       try {
-        const client = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+        const client = createBrowserClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        )
         setSupabase(client)
 
-        const { data: { user }, error: userError } = await client.auth.getUser()
+        const {
+          data: { user },
+          error: userError,
+        } = await client.auth.getUser()
         if (userError) {
           console.error('Error authenticating user:', userError)
           return
@@ -60,13 +76,13 @@ export function CreateAlbumDialog({ entityId, entityType, onAlbumCreated }: Crea
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!supabase) {
       console.error('Supabase client not initialized')
       toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to create album: Database connection not available"
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to create album: Database connection not available',
       })
       return
     }
@@ -74,9 +90,9 @@ export function CreateAlbumDialog({ entityId, entityType, onAlbumCreated }: Crea
     if (!userId) {
       console.error('User not authenticated')
       toast({
-        variant: "destructive",
-        title: "Authentication Required",
-        description: "Please sign in to create albums"
+        variant: 'destructive',
+        title: 'Authentication Required',
+        description: 'Please sign in to create albums',
       })
       handleSignIn()
       return
@@ -88,7 +104,7 @@ export function CreateAlbumDialog({ entityId, entityType, onAlbumCreated }: Crea
     try {
       // Convert entityId to UUID format
       const uuidEntityId = `00000000-0000-0000-0000-${entityId.padStart(12, '0')}`
-      
+
       const albumData = {
         name: name.trim(),
         description: description.trim(),
@@ -96,7 +112,7 @@ export function CreateAlbumDialog({ entityId, entityType, onAlbumCreated }: Crea
         entity_id: uuidEntityId,
         entity_type: entityType,
         album_type: 'author',
-        owner_id: userId
+        owner_id: userId,
       }
       console.log('Creating album with data:', albumData)
 
@@ -113,8 +129,8 @@ export function CreateAlbumDialog({ entityId, entityType, onAlbumCreated }: Crea
 
       console.log('Album created:', album)
       toast({
-        title: "Success",
-        description: "Album created successfully"
+        title: 'Success',
+        description: 'Album created successfully',
       })
       setName('')
       setDescription('')
@@ -124,9 +140,9 @@ export function CreateAlbumDialog({ entityId, entityType, onAlbumCreated }: Crea
     } catch (error) {
       console.error('Error creating album:', error)
       toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to create album"
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to create album',
       })
     } finally {
       setIsLoading(false)
@@ -144,13 +160,9 @@ export function CreateAlbumDialog({ entityId, entityType, onAlbumCreated }: Crea
         </DialogHeader>
         {!userId ? (
           <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Please sign in to create albums
-            </p>
+            <p className="text-sm text-muted-foreground">Please sign in to create albums</p>
             <div className="flex justify-end">
-              <Button onClick={handleSignIn}>
-                Sign In
-              </Button>
+              <Button onClick={handleSignIn}>Sign In</Button>
             </div>
           </div>
         ) : (
@@ -175,11 +187,7 @@ export function CreateAlbumDialog({ entityId, entityType, onAlbumCreated }: Crea
               />
             </div>
             <div className="flex items-center space-x-2">
-              <Switch
-                id="public"
-                checked={isPublic}
-                onCheckedChange={setIsPublic}
-              />
+              <Switch id="public" checked={isPublic} onCheckedChange={setIsPublic} />
               <Label htmlFor="public">Public Album</Label>
             </div>
             <div className="flex justify-end space-x-2">
@@ -191,11 +199,8 @@ export function CreateAlbumDialog({ entityId, entityType, onAlbumCreated }: Crea
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={isLoading}
-              >
-                {isLoading ? "Creating..." : "Create Album"}
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? 'Creating...' : 'Create Album'}
               </Button>
             </div>
           </form>
@@ -203,4 +208,4 @@ export function CreateAlbumDialog({ entityId, entityType, onAlbumCreated }: Crea
       </DialogContent>
     </Dialog>
   )
-} 
+}

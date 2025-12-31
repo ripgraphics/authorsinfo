@@ -16,7 +16,16 @@ interface EntityNameProps {
   children?: React.ReactNode
 }
 
-export function EntityName({ type, id, name, avatar_url, permalink, className, showActions = true, children }: EntityNameProps) {
+export function EntityName({
+  type,
+  id,
+  name,
+  avatar_url,
+  permalink,
+  className,
+  showActions = true,
+  children,
+}: EntityNameProps) {
   const content = (
     <span className={className || 'hover:underline cursor-pointer text-gray-900'}>
       {children ?? name}
@@ -26,7 +35,14 @@ export function EntityName({ type, id, name, avatar_url, permalink, className, s
   if (type === 'user') {
     return (
       <UserHoverCard
-        user={{ id, name, avatar_url: avatar_url || undefined, permalink: permalink || undefined } as any}
+        user={
+          {
+            id,
+            name,
+            avatar_url: avatar_url || undefined,
+            permalink: permalink || undefined,
+          } as any
+        }
         showActions={showActions}
       >
         {content}
@@ -47,5 +63,3 @@ export function EntityName({ type, id, name, avatar_url, permalink, className, s
 }
 
 export default EntityName
-
-

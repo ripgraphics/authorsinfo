@@ -1,18 +1,24 @@
-"use client"
+'use client'
 
-import { useTransition } from 'react';
+import { useTransition } from 'react'
 
-export function ModerateCommentButton({ commentId, isHidden }: { commentId: string, isHidden: boolean }) {
-  const [isPending, startTransition] = useTransition();
+export function ModerateCommentButton({
+  commentId,
+  isHidden,
+}: {
+  commentId: string
+  isHidden: boolean
+}) {
+  const [isPending, startTransition] = useTransition()
   async function handleModerate() {
     startTransition(async () => {
       await fetch(`/api/admin/comments/${commentId}/moderate`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_hidden: !isHidden })
-      });
-      window.location.reload();
-    });
+        body: JSON.stringify({ is_hidden: !isHidden }),
+      })
+      window.location.reload()
+    })
   }
   return (
     <button
@@ -22,20 +28,26 @@ export function ModerateCommentButton({ commentId, isHidden }: { commentId: stri
     >
       {isHidden ? 'Unhide' : 'Hide'}
     </button>
-  );
+  )
 }
 
-export function ModerateChatButton({ messageId, isHidden }: { messageId: string, isHidden: boolean }) {
-  const [isPending, startTransition] = useTransition();
+export function ModerateChatButton({
+  messageId,
+  isHidden,
+}: {
+  messageId: string
+  isHidden: boolean
+}) {
+  const [isPending, startTransition] = useTransition()
   async function handleModerate() {
     startTransition(async () => {
       await fetch(`/api/admin/chat-messages/${messageId}/moderate`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_hidden: !isHidden })
-      });
-      window.location.reload();
-    });
+        body: JSON.stringify({ is_hidden: !isHidden }),
+      })
+      window.location.reload()
+    })
   }
   return (
     <button
@@ -45,6 +57,5 @@ export function ModerateChatButton({ messageId, isHidden }: { messageId: string,
     >
       {isHidden ? 'Unhide' : 'Hide'}
     </button>
-  );
+  )
 }
-

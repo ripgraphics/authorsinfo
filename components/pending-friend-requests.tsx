@@ -30,7 +30,7 @@ export function PendingFriendRequests() {
   const [requests, setRequests] = useState<PendingRequest[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [processingRequest, setProcessingRequest] = useState<string | null>(null)
-  
+
   const { toast } = useToast()
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export function PendingFriendRequests() {
     try {
       setIsLoading(true)
       const response = await fetch('/api/friends/pending')
-      
+
       if (response.ok) {
         const data = await response.json()
         setRequests(data.requests || [])
@@ -70,17 +70,15 @@ export function PendingFriendRequests() {
 
       if (response.ok) {
         // Remove the request from the list
-        setRequests(prev => prev.filter(req => req.id !== requestId))
-        
+        setRequests((prev) => prev.filter((req) => req.id !== requestId))
+
         toast({
           title: `Friend request ${action}ed!`,
-          description: action === 'accept' 
-            ? 'You are now friends!' 
-            : 'Friend request rejected',
+          description: action === 'accept' ? 'You are now friends!' : 'Friend request rejected',
         })
       } else {
         toast({
-          title: "Error",
+          title: 'Error',
           description: data.error || `Failed to ${action} friend request`,
           variant: 'destructive',
         })
@@ -88,7 +86,7 @@ export function PendingFriendRequests() {
     } catch (error) {
       console.error(`Error ${action}ing friend request:`, error)
       toast({
-        title: "Error",
+        title: 'Error',
         description: `Failed to ${action} friend request`,
         variant: 'destructive',
       })
@@ -132,7 +130,7 @@ export function PendingFriendRequests() {
         <h2 className="text-xl font-semibold">Friend Requests</h2>
         <Badge variant="secondary">{requests.length} pending</Badge>
       </div>
-      
+
       <div className="space-y-3">
         {requests.map((request) => (
           <Card key={request.id}>
@@ -140,25 +138,26 @@ export function PendingFriendRequests() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(request.user.name)}`} />
-                    <AvatarFallback>
-                      {request.user.name.charAt(0).toUpperCase()}
-                    </AvatarFallback>
+                    <AvatarImage
+                      src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(request.user.name)}`}
+                    />
+                    <AvatarFallback>{request.user.name.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
-                  
+
                   <div className="flex-1">
-                    <Link 
+                    <Link
                       href={getProfileUrlFromUser(request.user)}
                       className="font-semibold hover:underline"
                     >
                       {request.user.name}
                     </Link>
                     <p className="text-sm text-muted-foreground">
-                      Sent {formatDistanceToNow(new Date(request.requested_at), { addSuffix: true })}
+                      Sent{' '}
+                      {formatDistanceToNow(new Date(request.requested_at), { addSuffix: true })}
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   <Button
                     variant="outline"
@@ -173,7 +172,7 @@ export function PendingFriendRequests() {
                       <X className="h-4 w-4" />
                     )}
                   </Button>
-                  
+
                   <Button
                     size="sm"
                     onClick={() => handleRequestAction(request.id, 'accept')}
@@ -194,4 +193,4 @@ export function PendingFriendRequests() {
       </div>
     </div>
   )
-} 
+}

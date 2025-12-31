@@ -1,15 +1,15 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { Camera, Crop } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useState } from 'react'
+import { Camera, Crop } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { cn } from "@/lib/utils"
+} from '@/components/ui/dropdown-menu'
+import { cn } from '@/lib/utils'
 
 interface CameraIconButtonProps {
   onChangeCover?: () => void
@@ -18,23 +18,23 @@ interface CameraIconButtonProps {
   showCrop?: boolean
   changeCoverLabel?: string
   cropLabel?: string
-  size?: "sm" | "md" | "lg"
+  size?: 'sm' | 'md' | 'lg'
   className?: string
   onOpenChange?: (open: boolean) => void
 }
 
 const sizeMap = {
   sm: {
-    button: "h-10 w-10",
-    icon: "h-5 w-5",
+    button: 'h-10 w-10',
+    icon: 'h-5 w-5',
   },
   md: {
-    button: "h-12 w-12",
-    icon: "h-6 w-6",
+    button: 'h-12 w-12',
+    icon: 'h-6 w-6',
   },
   lg: {
-    button: "h-14 w-14",
-    icon: "h-7 w-7",
+    button: 'h-14 w-14',
+    icon: 'h-7 w-7',
   },
 }
 
@@ -43,9 +43,9 @@ export function CameraIconButton({
   onCrop,
   showChangeCover = true,
   showCrop = true,
-  changeCoverLabel = "Change Cover",
-  cropLabel = "Crop Cover",
-  size = "md",
+  changeCoverLabel = 'Change Cover',
+  cropLabel = 'Crop Cover',
+  size = 'md',
   className,
   onOpenChange,
 }: CameraIconButtonProps) {
@@ -79,7 +79,7 @@ export function CameraIconButton({
           variant="outline"
           size="icon"
           className={cn(
-            "rounded-full bg-white/90 hover:bg-white border-white shadow-lg",
+            'rounded-full bg-white/90 hover:bg-white border-white shadow-lg',
             config.button,
             className
           )}
@@ -104,4 +104,3 @@ export function CameraIconButton({
     </DropdownMenu>
   )
 }
-

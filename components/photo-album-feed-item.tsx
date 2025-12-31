@@ -7,16 +7,16 @@ import { createBrowserClient } from '@supabase/ssr'
 import type { Database } from '@/types/database'
 import { useAuth } from '@/hooks/useAuth'
 import { PhotoGallery } from './photo-gallery'
-import { 
-  Heart, 
-  Share2, 
-  MessageCircle, 
-  Eye, 
-  Users, 
-  Globe, 
+import {
+  Heart,
+  Share2,
+  MessageCircle,
+  Eye,
+  Users,
+  Globe,
   Image as ImageIcon,
   Calendar,
-  MoreHorizontal
+  MoreHorizontal,
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -47,18 +47,18 @@ interface PhotoAlbumFeedItemProps {
   onComment?: (activityId: string) => void
 }
 
-export function PhotoAlbumFeedItem({ 
-  activity, 
-  onLike, 
-  onShare, 
-  onComment 
+export function PhotoAlbumFeedItem({
+  activity,
+  onLike,
+  onShare,
+  onComment,
 }: PhotoAlbumFeedItemProps) {
   const [isLiked, setIsLiked] = useState(false)
   const [likeCount, setLikeCount] = useState(0)
   const [showAlbum, setShowAlbum] = useState(false)
   const [albumData, setAlbumData] = useState<any>(null)
   const [isLoadingAlbum, setIsLoadingAlbum] = useState(false)
-  
+
   const { user } = useAuth()
   const supabase = createBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -76,19 +76,17 @@ export function PhotoAlbumFeedItem({
           .delete()
           .eq('activity_id', activity.id)
           .eq('user_id', user.id)
-        
-        setLikeCount(prev => Math.max(0, prev - 1))
+
+        setLikeCount((prev) => Math.max(0, prev - 1))
         setIsLiked(false)
       } else {
         // Like
-        await (supabase
-          .from('activity_likes') as any)
-          .insert({
-            activity_id: activity.id,
-            user_id: user.id
-          })
-        
-        setLikeCount(prev => prev + 1)
+        await (supabase.from('activity_likes') as any).insert({
+          activity_id: activity.id,
+          user_id: user.id,
+        })
+
+        setLikeCount((prev) => prev + 1)
         setIsLiked(true)
       }
 
@@ -102,10 +100,10 @@ export function PhotoAlbumFeedItem({
     try {
       const shareUrl = `${window.location.origin}/albums/${activity.entity_id}`
       await navigator.clipboard.writeText(shareUrl)
-      
+
       // You could show a toast notification here
       console.log('Album link copied to clipboard')
-      
+
       onShare?.(activity.id)
     } catch (error) {
       console.error('Error sharing album:', error)
@@ -118,7 +116,8 @@ export function PhotoAlbumFeedItem({
       // Load album data
       const { data: album, error } = await supabase
         .from('photo_albums')
-        .select(`
+        .select(
+          `
           id,
           name,
           description,
@@ -134,7 +133,8 @@ export function PhotoAlbumFeedItem({
               thumbnail_url
             )
           )
-        `)
+        `
+        )
         .eq('id', activity.entity_id)
         .single()
 
@@ -150,7 +150,7 @@ export function PhotoAlbumFeedItem({
 
   const getPrivacyIcon = () => {
     const privacyLevel = activity.metadata?.privacy_level || 'public'
-    
+
     switch (privacyLevel) {
       case 'public':
         return <Globe className="h-4 w-4" />
@@ -163,7 +163,7 @@ export function PhotoAlbumFeedItem({
 
   const getPrivacyLabel = () => {
     const privacyLevel = activity.metadata?.privacy_level || 'public'
-    
+
     switch (privacyLevel) {
       case 'public':
         return 'Public'
@@ -181,14 +181,12 @@ export function PhotoAlbumFeedItem({
           <div className="flex items-center space-x-3">
             <Avatar className="h-10 w-10">
               <AvatarImage src={activity.user.avatar_url} alt={activity.user.name} />
-              <AvatarFallback>
-                {activity.user.name.charAt(0).toUpperCase()}
-              </AvatarFallback>
+              <AvatarFallback>{activity.user.name.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
-            
+
             <div className="flex-1">
               <div className="flex items-center space-x-2">
-                <Link 
+                <Link
                   href={getProfileUrlFromUser(activity.user)}
                   className="font-semibold hover:underline"
                 >
@@ -196,10 +194,12 @@ export function PhotoAlbumFeedItem({
                 </Link>
                 <span className="text-muted-foreground">created a photo album</span>
               </div>
-              
+
               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                 <Calendar className="h-3 w-3" />
-                <span>{formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}</span>
+                <span>
+                  {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
+                </span>
                 <Badge variant="outline" className="flex items-center gap-1 text-xs">
                   {getPrivacyIcon()}
                   {getPrivacyLabel()}
@@ -241,13 +241,9 @@ export function PhotoAlbumFeedItem({
                   <ImageIcon className="h-12 w-12 text-muted-foreground" />
                 </div>
               )}
-              
+
               <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                <Button
-                  variant="secondary"
-                  onClick={handleViewAlbum}
-                  disabled={isLoadingAlbum}
-                >
+                <Button variant="secondary" onClick={handleViewAlbum} disabled={isLoadingAlbum}>
                   {isLoadingAlbum ? 'Loading...' : 'View Album'}
                 </Button>
               </div>
@@ -268,7 +264,7 @@ export function PhotoAlbumFeedItem({
                 <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
                 <span>{likeCount}</span>
               </Button>
-              
+
               <Button
                 variant="ghost"
                 size="sm"
@@ -278,7 +274,7 @@ export function PhotoAlbumFeedItem({
                 <MessageCircle className="h-4 w-4" />
                 <span>Comment</span>
               </Button>
-              
+
               <Button
                 variant="ghost"
                 size="sm"
@@ -290,12 +286,7 @@ export function PhotoAlbumFeedItem({
               </Button>
             </div>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleViewAlbum}
-              disabled={isLoadingAlbum}
-            >
+            <Button variant="outline" size="sm" onClick={handleViewAlbum} disabled={isLoadingAlbum}>
               <Eye className="h-4 w-4 mr-1" />
               View Album
             </Button>
@@ -314,14 +305,11 @@ export function PhotoAlbumFeedItem({
                   <p className="text-muted-foreground">{albumData.description}</p>
                 )}
                 <p className="text-sm text-muted-foreground">
-                  Created by {activity.user.name} • {formatDistanceToNow(new Date(albumData.created_at), { addSuffix: true })}
+                  Created by {activity.user.name} •{' '}
+                  {formatDistanceToNow(new Date(albumData.created_at), { addSuffix: true })}
                 </p>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowAlbum(false)}
-              >
+              <Button variant="ghost" size="icon" onClick={() => setShowAlbum(false)}>
                 ×
               </Button>
             </div>
@@ -341,4 +329,4 @@ export function PhotoAlbumFeedItem({
       )}
     </>
   )
-} 
+}

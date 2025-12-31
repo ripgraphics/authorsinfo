@@ -5,7 +5,13 @@ import { supabaseClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useToast } from '@/hooks/use-toast'
@@ -23,19 +29,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { 
-  Grid3X3, 
-  Grid2X2, 
-  List, 
-  Search, 
-  Filter, 
-  SortAsc, 
-  SortDesc, 
-  Heart, 
-  MessageCircle, 
-  Share2, 
-  Download, 
-  Tag, 
+import {
+  Grid3X3,
+  Grid2X2,
+  List,
+  Search,
+  Filter,
+  SortAsc,
+  SortDesc,
+  Heart,
+  MessageCircle,
+  Share2,
+  Download,
+  Tag,
   MoreVertical,
   Play,
   CheckSquare,
@@ -45,7 +51,7 @@ import {
   User,
   ImageIcon,
   Star,
-  Trash2
+  Trash2,
 } from 'lucide-react'
 
 interface Photo {
@@ -152,28 +158,29 @@ export function EnterprisePhotoGrid({
   onCoverImageChange,
   maxHeight = '70vh',
   enhancedAlbumData,
-  entityDisplayInfo
+  entityDisplayInfo,
 }: EnterprisePhotoGridProps) {
-  
-
-  
   console.log('🖼️ EnterprisePhotoGrid mounted with props:', {
     albumId,
     entityId,
     entityType,
     isOwner,
-    enhancedAlbumData: enhancedAlbumData ? {
-      id: enhancedAlbumData.id,
-      name: enhancedAlbumData.name,
-      imageCount: enhancedAlbumData.images?.length || 0,
-      hasEnhancedData: !!enhancedAlbumData.images
-    } : null
+    enhancedAlbumData: enhancedAlbumData
+      ? {
+          id: enhancedAlbumData.id,
+          name: enhancedAlbumData.name,
+          imageCount: enhancedAlbumData.images?.length || 0,
+          hasEnhancedData: !!enhancedAlbumData.images,
+        }
+      : null,
   })
   const [photos, setPhotos] = useState<Photo[]>([])
   const [loading, setLoading] = useState(true)
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(0)
-  const [viewMode, setViewMode] = useState<'grid-large' | 'grid-medium' | 'grid-small' | 'list'>('grid-medium')
+  const [viewMode, setViewMode] = useState<'grid-large' | 'grid-medium' | 'grid-small' | 'list'>(
+    'grid-medium'
+  )
   const [sortBy, setSortBy] = useState<'date' | 'name' | 'views' | 'likes'>('date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [searchQuery, setSearchQuery] = useState('')
@@ -187,7 +194,7 @@ export function EnterprisePhotoGrid({
   const [deletePhotoId, setDeletePhotoId] = useState<string | null>(null)
   const [deletePhotoUrl, setDeletePhotoUrl] = useState<string | null>(null)
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false)
-  
+
   const supabase = supabaseClient
   const { toast } = useToast()
   const { user } = useAuth()
@@ -205,81 +212,104 @@ export function EnterprisePhotoGrid({
     }
   }, [user])
 
-  const loadPhotos = useCallback(async (pageNum: number = 0, reset: boolean = false, forceDatabaseQuery: boolean = false) => {
-    console.log('🖼️ loadPhotos called with:', { pageNum, reset, forceDatabaseQuery, enhancedAlbumData: !!enhancedAlbumData, albumId })
-    try {
-      setLoading(true)
-      
-      // SUPABASE IS THE SOURCE OF TRUTH
-      // Only use enhancedAlbumData if it matches the current albumId AND we're not forcing a database query
-      // If albumId doesn't match or enhancedAlbumData is missing, always query from Supabase
-      // forceDatabaseQuery=true bypasses enhancedAlbumData to ensure fresh data (e.g., after deletion)
-      if (!forceDatabaseQuery && enhancedAlbumData && enhancedAlbumData.images && pageNum === 0 && enhancedAlbumData.id === albumId) {
-        console.log('🖼️ Using enhanced album data for photos (verified album ID match):', enhancedAlbumData.images.length)
-        console.log('🖼️ Enhanced album data sample:', enhancedAlbumData.images[0])
-        
-        // Filter out items where image lookup completely failed (image is null)
-        // But include images with blob URLs so they can be displayed (even if invalid)
-        const processedPhotos: Photo[] = enhancedAlbumData.images
-          .filter((item: any) => {
-            // Only exclude if image is completely null (lookup failed)
-            // Include images even if they have blob URLs (so user can see them)
-            return item.image && item.image.id && item.image.url
-          })
-          .map((item: any) => {
-            const image = item.image
-            
-            return {
-              id: image.id,
-              url: image.url,
-              thumbnail_url: image.url, // Use full URL as thumbnail for now
-              alt_text: item.alt_text || image.alt_text,
-              description: item.description || image.description || image.caption,
-              created_at: image.created_at,
-              metadata: image.metadata,
-              is_cover: item.is_cover,
-              is_featured: item.is_featured,
-              tags: [],
-              likes: [],
-              comments: [],
-              shares: [],
-              analytics: {
-                views: 0,
-                unique_views: 0,
-                downloads: 0,
-                shares: 0,
-                engagement_rate: 0
-              }
-            }
-          })
-        
-        console.log('🖼️ Processed photos count:', processedPhotos.length, 'out of', enhancedAlbumData.images.length, 'total items')
-        setPhotos(processedPhotos)
-        setLoading(false)
-        return
-      } else if (enhancedAlbumData && enhancedAlbumData.id !== albumId) {
-        // Enhanced data exists but doesn't match current album - ignore it and query from Supabase
-        console.log('🖼️ Enhanced album data ID mismatch - querying from Supabase instead', { 
-          enhancedDataId: enhancedAlbumData.id, 
-          currentAlbumId: albumId 
-        })
-      }
-      
-      // If no albumId provided and no enhanced data, skip querying
-      if (!albumId) {
-        if (process.env.NODE_ENV === 'development') {
-          console.warn('EnterprisePhotoGrid: No albumId provided; skipping DB query')
-        }
-        setHasMore(false)
-        setLoading(false)
-        return
-      }
+  const loadPhotos = useCallback(
+    async (pageNum: number = 0, reset: boolean = false, forceDatabaseQuery: boolean = false) => {
+      console.log('🖼️ loadPhotos called with:', {
+        pageNum,
+        reset,
+        forceDatabaseQuery,
+        enhancedAlbumData: !!enhancedAlbumData,
+        albumId,
+      })
+      try {
+        setLoading(true)
 
-      // Fallback to database query if no enhanced data
-      console.log('🖼️ No enhanced data, falling back to database query')
-      let query = supabase
-        .from('album_images')
-        .select(`
+        // SUPABASE IS THE SOURCE OF TRUTH
+        // Only use enhancedAlbumData if it matches the current albumId AND we're not forcing a database query
+        // If albumId doesn't match or enhancedAlbumData is missing, always query from Supabase
+        // forceDatabaseQuery=true bypasses enhancedAlbumData to ensure fresh data (e.g., after deletion)
+        if (
+          !forceDatabaseQuery &&
+          enhancedAlbumData &&
+          enhancedAlbumData.images &&
+          pageNum === 0 &&
+          enhancedAlbumData.id === albumId
+        ) {
+          console.log(
+            '🖼️ Using enhanced album data for photos (verified album ID match):',
+            enhancedAlbumData.images.length
+          )
+          console.log('🖼️ Enhanced album data sample:', enhancedAlbumData.images[0])
+
+          // Filter out items where image lookup completely failed (image is null)
+          // But include images with blob URLs so they can be displayed (even if invalid)
+          const processedPhotos: Photo[] = enhancedAlbumData.images
+            .filter((item: any) => {
+              // Only exclude if image is completely null (lookup failed)
+              // Include images even if they have blob URLs (so user can see them)
+              return item.image && item.image.id && item.image.url
+            })
+            .map((item: any) => {
+              const image = item.image
+
+              return {
+                id: image.id,
+                url: image.url,
+                thumbnail_url: image.url, // Use full URL as thumbnail for now
+                alt_text: item.alt_text || image.alt_text,
+                description: item.description || image.description || image.caption,
+                created_at: image.created_at,
+                metadata: image.metadata,
+                is_cover: item.is_cover,
+                is_featured: item.is_featured,
+                tags: [],
+                likes: [],
+                comments: [],
+                shares: [],
+                analytics: {
+                  views: 0,
+                  unique_views: 0,
+                  downloads: 0,
+                  shares: 0,
+                  engagement_rate: 0,
+                },
+              }
+            })
+
+          console.log(
+            '🖼️ Processed photos count:',
+            processedPhotos.length,
+            'out of',
+            enhancedAlbumData.images.length,
+            'total items'
+          )
+          setPhotos(processedPhotos)
+          setLoading(false)
+          return
+        } else if (enhancedAlbumData && enhancedAlbumData.id !== albumId) {
+          // Enhanced data exists but doesn't match current album - ignore it and query from Supabase
+          console.log('🖼️ Enhanced album data ID mismatch - querying from Supabase instead', {
+            enhancedDataId: enhancedAlbumData.id,
+            currentAlbumId: albumId,
+          })
+        }
+
+        // If no albumId provided and no enhanced data, skip querying
+        if (!albumId) {
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('EnterprisePhotoGrid: No albumId provided; skipping DB query')
+          }
+          setHasMore(false)
+          setLoading(false)
+          return
+        }
+
+        // Fallback to database query if no enhanced data
+        console.log('🖼️ No enhanced data, falling back to database query')
+        let query = supabase
+          .from('album_images')
+          .select(
+            `
           id,
           image_id,
           alt_text,
@@ -307,146 +337,159 @@ export function EnterprisePhotoGrid({
             quality_score,
             is_featured
           )
-        `)
-        .eq('album_id', albumId)
-        .range(pageNum * 20, (pageNum + 1) * 20 - 1)
+        `
+          )
+          .eq('album_id', albumId)
+          .range(pageNum * 20, (pageNum + 1) * 20 - 1)
 
-      // Apply sorting
-      if (sortBy === 'date') {
-        query = query.order('created_at', { ascending: sortOrder === 'asc' })
-      }
+        // Apply sorting
+        if (sortBy === 'date') {
+          query = query.order('created_at', { ascending: sortOrder === 'asc' })
+        }
 
-      const { data, error } = await query
+        const { data, error } = await query
 
-      if (error) throw error
+        if (error) throw error
 
-      const processedPhotos: Photo[] = (data || []).map((item: any) => {
-        const image = item.images
-        
-        // If we have enhanced album data, use it to get the correct is_cover status
-        let isCover = item.is_cover
-        if (enhancedAlbumData && enhancedAlbumData.images) {
-          const enhancedImage = enhancedAlbumData.images.find((img: any) => img.image?.id === image.id)
-          if (enhancedImage) {
-            isCover = enhancedImage.is_cover
-            console.log(`🖼️ Photo ${image.id} is_cover set to ${isCover} from enhanced data`)
+        const processedPhotos: Photo[] = (data || []).map((item: any) => {
+          const image = item.images
+
+          // If we have enhanced album data, use it to get the correct is_cover status
+          let isCover = item.is_cover
+          if (enhancedAlbumData && enhancedAlbumData.images) {
+            const enhancedImage = enhancedAlbumData.images.find(
+              (img: any) => img.image?.id === image.id
+            )
+            if (enhancedImage) {
+              isCover = enhancedImage.is_cover
+              console.log(`🖼️ Photo ${image.id} is_cover set to ${isCover} from enhanced data`)
+            } else {
+              console.log(
+                `🖼️ Photo ${image.id} not found in enhanced data, using default is_cover: ${isCover}`
+              )
+            }
           } else {
-            console.log(`🖼️ Photo ${image.id} not found in enhanced data, using default is_cover: ${isCover}`)
+            console.log(`🖼️ No enhanced album data available, using default is_cover: ${isCover}`)
           }
-        } else {
-          console.log(`🖼️ No enhanced album data available, using default is_cover: ${isCover}`)
-        }
-        
-        const processedPhoto = {
-          id: image.id,
-          url: image.url,
-          thumbnail_url: image.thumbnail_url,
-          alt_text: item.alt_text || image.alt_text,
-          description: item.description || image.description || item.caption,
-          created_at: image.created_at,
-          metadata: image.metadata,
-          is_cover: isCover,
-          is_featured: item.is_featured || image.is_featured,
-          // Full enterprise data
-          // Note: photo_tags, photo_likes, photo_comments, photo_shares are not included in the query
-          // to avoid 400 errors from Supabase. They can be loaded separately if needed.
-          tags: [],
-          likes: [],
-          comments: [],
-          shares: [],
-          analytics: {
-            views: image.view_count || item.view_count || 0,
-            unique_views: Math.floor((image.view_count || 0) * 0.7), // Estimate
-            downloads: 0, // Will be loaded separately if needed
-            shares: image.share_count || item.share_count || 0,
-            engagement_rate: image.view_count > 0 ? 
-              ((image.like_count || 0) + (image.comment_count || 0) + (image.share_count || 0)) / image.view_count * 100 : 0
+
+          const processedPhoto = {
+            id: image.id,
+            url: image.url,
+            thumbnail_url: image.thumbnail_url,
+            alt_text: item.alt_text || image.alt_text,
+            description: item.description || image.description || item.caption,
+            created_at: image.created_at,
+            metadata: image.metadata,
+            is_cover: isCover,
+            is_featured: item.is_featured || image.is_featured,
+            // Full enterprise data
+            // Note: photo_tags, photo_likes, photo_comments, photo_shares are not included in the query
+            // to avoid 400 errors from Supabase. They can be loaded separately if needed.
+            tags: [],
+            likes: [],
+            comments: [],
+            shares: [],
+            analytics: {
+              views: image.view_count || item.view_count || 0,
+              unique_views: Math.floor((image.view_count || 0) * 0.7), // Estimate
+              downloads: 0, // Will be loaded separately if needed
+              shares: image.share_count || item.share_count || 0,
+              engagement_rate:
+                image.view_count > 0
+                  ? (((image.like_count || 0) +
+                      (image.comment_count || 0) +
+                      (image.share_count || 0)) /
+                      image.view_count) *
+                    100
+                  : 0,
+            },
           }
-        }
-        
 
-        
-        return processedPhoto
-      })
-
-      // Apply client-side filtering and sorting
-      let filteredPhotos = processedPhotos
-
-      if (searchQuery) {
-        filteredPhotos = filteredPhotos.filter(photo =>
-          photo.alt_text?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          photo.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          photo.tags?.some(tag => tag.entity_name.toLowerCase().includes(searchQuery.toLowerCase()))
-        )
-      }
-
-      if (filterBy !== 'all') {
-        filteredPhotos = filteredPhotos.filter(photo => {
-          switch (filterBy) {
-            case 'tagged':
-              return photo.tags && photo.tags.length > 0
-            case 'untagged':
-              return !photo.tags || photo.tags.length === 0
-            case 'liked':
-              return photo.likes && photo.likes.length > 0
-            default:
-              return true
-          }
+          return processedPhoto
         })
-      }
 
-      // Apply sorting
-      filteredPhotos.sort((a, b) => {
-        let aValue, bValue
-        
-        switch (sortBy) {
-          case 'name':
-            aValue = a.alt_text || a.id
-            bValue = b.alt_text || b.id
-            break
-          case 'views':
-            aValue = a.analytics?.views || 0
-            bValue = b.analytics?.views || 0
-            break
-          case 'likes':
-            aValue = a.likes?.length || 0
-            bValue = b.likes?.length || 0
-            break
-          default:
-            aValue = new Date(a.created_at).getTime()
-            bValue = new Date(b.created_at).getTime()
+        // Apply client-side filtering and sorting
+        let filteredPhotos = processedPhotos
+
+        if (searchQuery) {
+          filteredPhotos = filteredPhotos.filter(
+            (photo) =>
+              photo.alt_text?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              photo.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              photo.tags?.some((tag) =>
+                tag.entity_name.toLowerCase().includes(searchQuery.toLowerCase())
+              )
+          )
         }
-        
-        const result = aValue < bValue ? -1 : aValue > bValue ? 1 : 0
-        return sortOrder === 'asc' ? result : -result
-      })
 
-      if (reset) {
-        setPhotos(filteredPhotos)
-      } else {
-        setPhotos(prev => [...prev, ...filteredPhotos])
-      }
+        if (filterBy !== 'all') {
+          filteredPhotos = filteredPhotos.filter((photo) => {
+            switch (filterBy) {
+              case 'tagged':
+                return photo.tags && photo.tags.length > 0
+              case 'untagged':
+                return !photo.tags || photo.tags.length === 0
+              case 'liked':
+                return photo.likes && photo.likes.length > 0
+              default:
+                return true
+            }
+          })
+        }
 
-      setHasMore(filteredPhotos.length === 20)
-    } catch (error: any) {
-      if (process.env.NODE_ENV === 'development') {
-        console.warn('Error loading photos:', error)
+        // Apply sorting
+        filteredPhotos.sort((a, b) => {
+          let aValue, bValue
+
+          switch (sortBy) {
+            case 'name':
+              aValue = a.alt_text || a.id
+              bValue = b.alt_text || b.id
+              break
+            case 'views':
+              aValue = a.analytics?.views || 0
+              bValue = b.analytics?.views || 0
+              break
+            case 'likes':
+              aValue = a.likes?.length || 0
+              bValue = b.likes?.length || 0
+              break
+            default:
+              aValue = new Date(a.created_at).getTime()
+              bValue = new Date(b.created_at).getTime()
+          }
+
+          const result = aValue < bValue ? -1 : aValue > bValue ? 1 : 0
+          return sortOrder === 'asc' ? result : -result
+        })
+
+        if (reset) {
+          setPhotos(filteredPhotos)
+        } else {
+          setPhotos((prev) => [...prev, ...filteredPhotos])
+        }
+
+        setHasMore(filteredPhotos.length === 20)
+      } catch (error: any) {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Error loading photos:', error)
+        }
+        const message =
+          typeof error === 'string'
+            ? error
+            : error?.message || error?.details || 'Unable to load photos'
+        toast({
+          title: 'Error',
+          description: message,
+          variant: 'destructive',
+        })
+        setHasMore(false)
+      } finally {
+        setLoading(false)
       }
-      const message = typeof error === 'string' 
-        ? error 
-        : error?.message 
-          || error?.details 
-          || 'Unable to load photos'
-      toast({
-        title: 'Error',
-        description: message,
-        variant: 'destructive'
-      })
-      setHasMore(false)
-    } finally {
-      setLoading(false)
-    }
-  }, [albumId, sortBy, sortOrder, searchQuery, filterBy, supabase])
+    },
+    [albumId, sortBy, sortOrder, searchQuery, filterBy, supabase]
+  )
 
   // Infinite scroll observer
   useEffect(() => {
@@ -455,7 +498,7 @@ export function EnterprisePhotoGrid({
     observerRef.current = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasMore && !loading) {
-          setPage(prev => {
+          setPage((prev) => {
             const newPage = prev + 1
             loadPhotos(newPage, false)
             return newPage
@@ -479,7 +522,7 @@ export function EnterprisePhotoGrid({
     setPage(0)
     loadPhotos(0, true)
   }, [loadPhotos, enhancedAlbumData]) // Also reload when enhanced data changes
-  
+
   // Listen for cover image changes from other components
   useEffect(() => {
     const handleCoverImageChange = () => {
@@ -491,7 +534,7 @@ export function EnterprisePhotoGrid({
         loadPhotos(0, true)
       }, 50)
     }
-    
+
     // Listen for photo updates (when photo metadata is edited)
     const handlePhotoUpdated = () => {
       console.log('📸 Photo updated event received, refreshing photos')
@@ -504,10 +547,10 @@ export function EnterprisePhotoGrid({
         loadPhotos(0, true)
       }, 100) // Increased delay to ensure database changes are committed
     }
-    
+
     window.addEventListener('entityImageChanged', handleCoverImageChange)
     window.addEventListener('photoUpdated', handlePhotoUpdated)
-    
+
     return () => {
       window.removeEventListener('entityImageChanged', handleCoverImageChange)
       window.removeEventListener('photoUpdated', handlePhotoUpdated)
@@ -516,10 +559,10 @@ export function EnterprisePhotoGrid({
 
   // Handle photo selection
   const handlePhotoSelect = (photoId: string, selected: boolean) => {
-    const newSelection = selected 
+    const newSelection = selected
       ? [...selectedPhotos, photoId]
-      : selectedPhotos.filter(id => id !== photoId)
-    
+      : selectedPhotos.filter((id) => id !== photoId)
+
     setSelectedPhotos(newSelection)
     onSelectionChange?.(newSelection)
   }
@@ -529,7 +572,7 @@ export function EnterprisePhotoGrid({
       setSelectedPhotos([])
       onSelectionChange?.([])
     } else {
-      const allIds = photos.map(p => p.id)
+      const allIds = photos.map((p) => p.id)
       setSelectedPhotos(allIds)
       onSelectionChange?.(allIds)
     }
@@ -550,8 +593,7 @@ export function EnterprisePhotoGrid({
   const handleSetAsCover = async (photoId: string) => {
     try {
       // Fetch album context so we can update canonical pointers for system albums (avatar/header cover).
-      const { data: albumData, error: albumError } = await (supabase
-        .from('photo_albums') as any)
+      const { data: albumData, error: albumError } = await (supabase.from('photo_albums') as any)
         .select('id, name, entity_type, entity_id')
         .eq('id', albumId)
         .maybeSingle()
@@ -561,23 +603,21 @@ export function EnterprisePhotoGrid({
       }
 
       // First, unset all other images as cover in this album
-      await (supabase
-        .from('album_images') as any)
+      await (supabase.from('album_images') as any)
         .update({ is_cover: false })
         .eq('album_id', albumId)
-      
+
       // Then set this image as cover
-      const { error } = await (supabase
-        .from('album_images') as any)
+      const { error } = await (supabase.from('album_images') as any)
         .update({ is_cover: true })
         .eq('album_id', albumId)
         .eq('image_id', photoId)
-      
+
       if (error) {
         console.error('Error setting image as cover:', error)
         return
       }
-      
+
       // If this is a user system album, also update the canonical profile pointer.
       // Albums are history only; profile header uses profiles.avatar_image_id / profiles.cover_image_id.
       const albumName = (albumData as any)?.name as string | undefined
@@ -592,7 +632,7 @@ export function EnterprisePhotoGrid({
 
       if (shouldUpdatePrimary) {
         const primaryKind = albumName === 'Avatar Images' ? 'avatar' : 'cover'
-        const selectedPhoto = photos.find(p => p.id === photoId)
+        const selectedPhoto = photos.find((p) => p.id === photoId)
         const imageUrl = selectedPhoto?.url
 
         const resp = await fetch('/api/entity-primary-image', {
@@ -602,8 +642,8 @@ export function EnterprisePhotoGrid({
             entityType: 'user',
             entityId: albumEntityId,
             imageId: photoId,
-            primaryKind
-          })
+            primaryKind,
+          }),
         })
 
         const payload = await resp.json().catch(() => null)
@@ -612,49 +652,50 @@ export function EnterprisePhotoGrid({
           toast({
             title: 'Error',
             description: payload?.error || 'Failed to update profile image',
-            variant: 'destructive'
+            variant: 'destructive',
           })
         } else {
           // Update EntityHeader instantly without any album fetch.
-          window.dispatchEvent(new CustomEvent('entityPrimaryImageChanged', {
-            detail: {
-              entityType: 'user',
-              entityId: albumEntityId,
-              primaryKind,
-              imageUrl: imageUrl || payload.imageUrl
-            }
-          }))
+          window.dispatchEvent(
+            new CustomEvent('entityPrimaryImageChanged', {
+              detail: {
+                entityType: 'user',
+                entityId: albumEntityId,
+                primaryKind,
+                imageUrl: imageUrl || payload.imageUrl,
+              },
+            })
+          )
         }
       }
 
       // Show success message
       toast({
-        title: "Success!",
-        description: "Cover image updated",
+        title: 'Success!',
+        description: 'Cover image updated',
       })
-      
+
       // If this is an entity header or avatar album, refresh the entity header
       if (onCoverImageChange) {
         onCoverImageChange()
       }
-      
+
       // Update local state immediately for instant visual feedback
-      setPhotos(prevPhotos => 
-        prevPhotos.map(photo => ({
+      setPhotos((prevPhotos) =>
+        prevPhotos.map((photo) => ({
           ...photo,
-          is_cover: photo.id === photoId
+          is_cover: photo.id === photoId,
         }))
       )
-      
+
       // Trigger the entity image changed event to refresh the grid completely
       window.dispatchEvent(new CustomEvent('entityImageChanged'))
-      
     } catch (error) {
       console.error('Error setting image as cover:', error)
       toast({
-        title: "Error",
-        description: "Failed to update cover image",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to update cover image',
+        variant: 'destructive',
       })
     }
   }
@@ -677,7 +718,7 @@ export function EnterprisePhotoGrid({
       // Delete each photo sequentially to avoid overwhelming the server
       for (const photoId of selectedPhotos) {
         try {
-          const photo = photos.find(p => p.id === photoId)
+          const photo = photos.find((p) => p.id === photoId)
           if (!photo) {
             failCount++
             continue
@@ -703,13 +744,14 @@ export function EnterprisePhotoGrid({
               const folderParts = pathParts.slice(uploadIndex + 1, -1)
               const filename = pathParts[pathParts.length - 1]
               const nameWithoutExt = filename.split('.')[0]
-              publicId = folderParts.length > 0 
-                ? `${folderParts.join('/')}/${nameWithoutExt}`
-                : nameWithoutExt
+              publicId =
+                folderParts.length > 0
+                  ? `${folderParts.join('/')}/${nameWithoutExt}`
+                  : nameWithoutExt
             }
           } else if (photo.url) {
             const urlParts = photo.url.split('/')
-            const uploadIndex = urlParts.findIndex(part => part === 'upload')
+            const uploadIndex = urlParts.findIndex((part) => part === 'upload')
             if (uploadIndex > -1 && uploadIndex < urlParts.length - 1) {
               const pathParts = urlParts.slice(uploadIndex + 1)
               const filename = pathParts[pathParts.length - 1]
@@ -720,8 +762,7 @@ export function EnterprisePhotoGrid({
           }
 
           // Step 1: Remove from album_images
-          const { error: albumImageError } = await (supabase
-            .from('album_images') as any)
+          const { error: albumImageError } = await (supabase.from('album_images') as any)
             .delete()
             .eq('album_id', albumId)
             .eq('image_id', photoId)
@@ -743,7 +784,7 @@ export function EnterprisePhotoGrid({
               await fetch('/api/cloudinary/delete', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ publicId })
+                body: JSON.stringify({ publicId }),
               })
             } catch (cloudinaryError) {
               console.error('Error deleting from Cloudinary:', cloudinaryError)
@@ -759,10 +800,7 @@ export function EnterprisePhotoGrid({
               .limit(1)
 
             if (!entityImages || entityImages.length === 0) {
-              await supabase
-                .from('images')
-                .delete()
-                .eq('id', photoId)
+              await supabase.from('images').delete().eq('id', photoId)
             }
           }
 
@@ -779,20 +817,20 @@ export function EnterprisePhotoGrid({
       const deletedPhotoIds = [...selectedPhotos]
 
       // Remove deleted photos from local state
-      setPhotos(prevPhotos => prevPhotos.filter(photo => !selectedPhotos.includes(photo.id)))
+      setPhotos((prevPhotos) => prevPhotos.filter((photo) => !selectedPhotos.includes(photo.id)))
       setSelectedPhotos([])
 
       // Show result message
       if (failCount === 0) {
         toast({
-          title: "Success!",
+          title: 'Success!',
           description: `${successCount} photo${successCount !== 1 ? 's' : ''} deleted successfully`,
         })
       } else {
         toast({
-          title: "Partial Success",
+          title: 'Partial Success',
           description: `${successCount} deleted, ${failCount} failed`,
-          variant: "destructive"
+          variant: 'destructive',
         })
         console.error('Bulk delete errors:', errors)
       }
@@ -806,16 +844,18 @@ export function EnterprisePhotoGrid({
 
       // Trigger refresh events
       window.dispatchEvent(new CustomEvent('albumRefresh'))
-      window.dispatchEvent(new CustomEvent('photoDeleted', { detail: { photoIds: deletedPhotoIds, albumId } }))
+      window.dispatchEvent(
+        new CustomEvent('photoDeleted', { detail: { photoIds: deletedPhotoIds, albumId } })
+      )
       if (onCoverImageChange) {
         onCoverImageChange()
       }
     } catch (error) {
       console.error('Error in bulk delete:', error)
       toast({
-        title: "Error",
-        description: "Failed to delete photos",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to delete photos',
+        variant: 'destructive',
       })
     }
   }
@@ -848,14 +888,13 @@ export function EnterprisePhotoGrid({
           const folderParts = pathParts.slice(uploadIndex + 1, -1)
           const filename = pathParts[pathParts.length - 1]
           const nameWithoutExt = filename.split('.')[0]
-          publicId = folderParts.length > 0 
-            ? `${folderParts.join('/')}/${nameWithoutExt}`
-            : nameWithoutExt
+          publicId =
+            folderParts.length > 0 ? `${folderParts.join('/')}/${nameWithoutExt}` : nameWithoutExt
         }
       } else if (photoUrl) {
         // Extract from URL
         const urlParts = photoUrl.split('/')
-        const uploadIndex = urlParts.findIndex(part => part === 'upload')
+        const uploadIndex = urlParts.findIndex((part) => part === 'upload')
         if (uploadIndex > -1 && uploadIndex < urlParts.length - 1) {
           const pathParts = urlParts.slice(uploadIndex + 1)
           const filename = pathParts[pathParts.length - 1]
@@ -866,8 +905,7 @@ export function EnterprisePhotoGrid({
       }
 
       // Step 1: Remove from album_images
-      const { error: albumImageError } = await (supabase
-        .from('album_images') as any)
+      const { error: albumImageError } = await (supabase.from('album_images') as any)
         .delete()
         .eq('album_id', albumId)
         .eq('image_id', photoId)
@@ -895,7 +933,7 @@ export function EnterprisePhotoGrid({
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ publicId })
+            body: JSON.stringify({ publicId }),
           })
 
           if (!deleteResponse.ok) {
@@ -929,15 +967,15 @@ export function EnterprisePhotoGrid({
       }
 
       // Remove from local state immediately for instant UI feedback
-      setPhotos(prevPhotos => prevPhotos.filter(photo => photo.id !== photoId))
-      
+      setPhotos((prevPhotos) => prevPhotos.filter((photo) => photo.id !== photoId))
+
       // Also remove from selected photos if it was selected
-      setSelectedPhotos(prev => prev.filter(id => id !== photoId))
+      setSelectedPhotos((prev) => prev.filter((id) => id !== photoId))
 
       // Show success message
       toast({
-        title: "Success!",
-        description: "Photo deleted successfully",
+        title: 'Success!',
+        description: 'Photo deleted successfully',
       })
 
       // Immediately reload photos from database to ensure UI matches database state
@@ -956,13 +994,12 @@ export function EnterprisePhotoGrid({
       if (onCoverImageChange) {
         onCoverImageChange()
       }
-
     } catch (error) {
       console.error('Error deleting photo:', error)
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to delete photo",
-        variant: "destructive"
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to delete photo',
+        variant: 'destructive',
       })
     }
   }
@@ -985,10 +1022,7 @@ export function EnterprisePhotoGrid({
   const LoadingSkeleton = () => (
     <div className={`grid ${getGridClass()}`}>
       {Array.from({ length: 20 }).map((_, i) => (
-        <Skeleton
-          key={i}
-          className={viewMode === 'list' ? 'h-32' : 'aspect-square'}
-        />
+        <Skeleton key={i} className={viewMode === 'list' ? 'h-32' : 'aspect-square'} />
       ))}
     </div>
   )
@@ -1017,11 +1051,15 @@ export function EnterprisePhotoGrid({
         )}
 
         {/* Photo Image */}
-        <div className={`relative overflow-hidden rounded-lg ${
-          isListView ? 'w-32 h-32 flex-shrink-0' : 'aspect-square'
-        }`}>
+        <div
+          className={`relative overflow-hidden rounded-lg ${
+            isListView ? 'w-32 h-32 flex-shrink-0' : 'aspect-square'
+          }`}
+        >
           <img
-            src={addCacheBusting(photo.thumbnail_url || photo.url) || (photo.thumbnail_url || photo.url)}
+            src={
+              addCacheBusting(photo.thumbnail_url || photo.url) || photo.thumbnail_url || photo.url
+            }
             alt={photo.alt_text || 'Photo'}
             className="w-full h-full object-cover"
             loading="lazy"
@@ -1066,7 +1104,7 @@ export function EnterprisePhotoGrid({
                   {photo.comments?.length || 0}
                 </div>
               </div>
-              
+
               {/* Action Buttons - Only show if owner, admin, or super admin */}
               {(isOwner || isAdmin || isSuperAdmin) && (
                 <div className="flex gap-2">
@@ -1098,8 +1136,6 @@ export function EnterprisePhotoGrid({
                   </Button>
                 </div>
               )}
-              
-
             </div>
           </div>
 
@@ -1118,13 +1154,9 @@ export function EnterprisePhotoGrid({
         {isListView && (
           <div className="flex-1 space-y-2">
             <div>
-              <h4 className="font-medium line-clamp-1">
-                {photo.alt_text || `Photo ${index + 1}`}
-              </h4>
+              <h4 className="font-medium line-clamp-1">{photo.alt_text || `Photo ${index + 1}`}</h4>
               {photo.description && (
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {photo.description}
-                </p>
+                <p className="text-sm text-muted-foreground line-clamp-2">{photo.description}</p>
               )}
             </div>
 
@@ -1203,137 +1235,131 @@ export function EnterprisePhotoGrid({
     <div className="flex flex-col h-full">
       {/* Header Controls */}
       <div className="flex-shrink-0">
-          <div className="flex flex-col gap-4 p-4">
-            {/* Search and Filters */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search photos..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-
-              <div className="flex gap-2">
-                <Select value={filterBy} onValueChange={(value: any) => setFilterBy(value)}>
-                  <SelectTrigger className="w-32">
-                    <Filter className="h-4 w-4 mr-2" />
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Photos</SelectItem>
-                    <SelectItem value="tagged">Tagged</SelectItem>
-                    <SelectItem value="untagged">Untagged</SelectItem>
-                    <SelectItem value="liked">Liked</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="date">Date</SelectItem>
-                    <SelectItem value="name">Name</SelectItem>
-                    <SelectItem value="views">Views</SelectItem>
-                    <SelectItem value="likes">Likes</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                >
-                  {sortOrder === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />}
-                </Button>
-              </div>
+        <div className="flex flex-col gap-4 p-4">
+          {/* Search and Filters */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search photos..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
             </div>
 
-            {/* View Controls */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">
-                  {photos.length} photo{photos.length !== 1 ? 's' : ''}
-                </span>
-                
-                {enableSelection && selectedPhotos.length > 0 && (
-                  <Badge variant="secondary">
-                    {selectedPhotos.length} selected
-                  </Badge>
-                )}
-              </div>
+            <div className="flex gap-2">
+              <Select value={filterBy} onValueChange={(value: any) => setFilterBy(value)}>
+                <SelectTrigger className="w-32">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Photos</SelectItem>
+                  <SelectItem value="tagged">Tagged</SelectItem>
+                  <SelectItem value="untagged">Untagged</SelectItem>
+                  <SelectItem value="liked">Liked</SelectItem>
+                </SelectContent>
+              </Select>
 
-              <div className="flex items-center gap-2">
-                {/* Always show selection controls for owners/admins */}
-                {(enableSelection || isOwner || isAdmin || isSuperAdmin) && (
-                  <>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleSelectAll}
-                    >
-                      {selectedPhotos.length === photos.length ? (
-                        <CheckSquare className="h-4 w-4 mr-2" />
-                      ) : (
-                        <Square className="h-4 w-4 mr-2" />
-                      )}
-                      Select All
-                    </Button>
-                    
-                    {selectedPhotos.length > 0 && (
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={handleBulkDelete}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete {selectedPhotos.length}
-                      </Button>
+              <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="date">Date</SelectItem>
+                  <SelectItem value="name">Name</SelectItem>
+                  <SelectItem value="views">Views</SelectItem>
+                  <SelectItem value="likes">Likes</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              >
+                {sortOrder === 'asc' ? (
+                  <SortAsc className="h-4 w-4" />
+                ) : (
+                  <SortDesc className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+          </div>
+
+          {/* View Controls */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                {photos.length} photo{photos.length !== 1 ? 's' : ''}
+              </span>
+
+              {enableSelection && selectedPhotos.length > 0 && (
+                <Badge variant="secondary">{selectedPhotos.length} selected</Badge>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Always show selection controls for owners/admins */}
+              {(enableSelection || isOwner || isAdmin || isSuperAdmin) && (
+                <>
+                  <Button variant="outline" size="sm" onClick={handleSelectAll}>
+                    {selectedPhotos.length === photos.length ? (
+                      <CheckSquare className="h-4 w-4 mr-2" />
+                    ) : (
+                      <Square className="h-4 w-4 mr-2" />
                     )}
-                  </>
-                )}
+                    Select All
+                  </Button>
 
-                <div className="flex border rounded-lg">
-                  <Button
-                    variant={viewMode === 'grid-large' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setViewMode('grid-large')}
-                    className="rounded-r-none"
-                  >
-                    <Grid2X2 className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === 'grid-medium' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setViewMode('grid-medium')}
-                    className="rounded-none"
-                  >
-                    <Grid3X3 className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === 'grid-small' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setViewMode('grid-small')}
-                    className="rounded-none"
-                  >
-                    <ImageIcon className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === 'list' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setViewMode('list')}
-                    className="rounded-l-none"
-                  >
-                    <List className="h-4 w-4" />
-                  </Button>
-                </div>
+                  {selectedPhotos.length > 0 && (
+                    <Button variant="destructive" size="sm" onClick={handleBulkDelete}>
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete {selectedPhotos.length}
+                    </Button>
+                  )}
+                </>
+              )}
+
+              <div className="flex border rounded-lg">
+                <Button
+                  variant={viewMode === 'grid-large' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('grid-large')}
+                  className="rounded-r-none"
+                >
+                  <Grid2X2 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'grid-medium' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('grid-medium')}
+                  className="rounded-none"
+                >
+                  <Grid3X3 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'grid-small' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('grid-small')}
+                  className="rounded-none"
+                >
+                  <ImageIcon className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                  className="rounded-l-none"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
       {/* Photo Grid */}
       <div className="grow overflow-auto p-4 pb-8">
@@ -1344,10 +1370,9 @@ export function EnterprisePhotoGrid({
             <ImageIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">No photos found</h3>
             <p className="text-muted-foreground">
-              {searchQuery || filterBy !== 'all' 
+              {searchQuery || filterBy !== 'all'
                 ? 'Try adjusting your search or filters'
-                : 'Upload some photos to get started'
-              }
+                : 'Upload some photos to get started'}
             </p>
           </div>
         ) : (
@@ -1363,10 +1388,7 @@ export function EnterprisePhotoGrid({
               <div ref={loadingRef} className="py-8">
                 <div className={`grid ${getGridClass()}`}>
                   {Array.from({ length: 8 }).map((_, i) => (
-                    <Skeleton
-                      key={i}
-                      className={viewMode === 'list' ? 'h-32' : 'aspect-square'}
-                    />
+                    <Skeleton key={i} className={viewMode === 'list' ? 'h-32' : 'aspect-square'} />
                   ))}
                 </div>
               </div>

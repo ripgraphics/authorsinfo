@@ -1,19 +1,19 @@
-"use client"
+'use client'
 
-import { useRouter, useSearchParams } from "next/navigation"
-import { useEffect, useState } from "react"
-import { BookFilterSidebar } from "@/components/admin/book-filter-sidebar"
-import { BookDataTable } from "@/components/admin/book-data-table"
-import type { BookFilter } from "@/app/actions/admin-books"
-import { Button } from "@/components/ui/button"
-import { Filter } from "lucide-react"
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { BookFilterSidebar } from '@/components/admin/book-filter-sidebar'
+import { BookDataTable } from '@/components/admin/book-data-table'
+import type { BookFilter } from '@/app/actions/admin-books'
+import { Button } from '@/components/ui/button'
+import { Filter } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from '@/components/ui/dialog'
 
 interface Book {
   id: string
@@ -34,7 +34,7 @@ interface BookManagementClientProps {
   initialPage: number
   initialPageSize: number
   initialSortField: string
-  initialSortDirection: "asc" | "desc"
+  initialSortDirection: 'asc' | 'desc'
   initialFilters: BookFilter
   genres: { id: string; name: string }[]
   formatTypes: { id: string; name: string }[]
@@ -70,14 +70,14 @@ export function BookManagementClient({
     const params = new URLSearchParams()
 
     // Add pagination and sorting
-    params.set("page", page.toString())
-    params.set("pageSize", pageSize.toString())
-    params.set("sort", sortField)
-    params.set("direction", sortDirection)
+    params.set('page', page.toString())
+    params.set('pageSize', pageSize.toString())
+    params.set('sort', sortField)
+    params.set('direction', sortDirection)
 
     // Add filters
     Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== "") {
+      if (value !== undefined && value !== null && value !== '') {
         params.set(key, String(value))
       }
     })
@@ -89,7 +89,7 @@ export function BookManagementClient({
     setPage(newPage)
   }
 
-  const handleSortChange = (field: string, direction: "asc" | "desc") => {
+  const handleSortChange = (field: string, direction: 'asc' | 'desc') => {
     setSortField(field)
     setSortDirection(direction)
   }

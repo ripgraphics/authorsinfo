@@ -79,7 +79,7 @@ export function ClientBooksList({
             <BookCard
               key={book.id}
               id={book.id}
-              title={book.title || ""}
+              title={book.title || ''}
               coverImageUrl={book.cover_image_url}
             />
           ))
@@ -105,11 +105,7 @@ export function ClientBooksList({
 
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
               const pageNumber =
-                page <= 3
-                  ? i + 1
-                  : page >= totalPages - 2
-                    ? totalPages - 4 + i
-                    : page - 2 + i
+                page <= 3 ? i + 1 : page >= totalPages - 2 ? totalPages - 4 + i : page - 2 + i
 
               if (pageNumber <= 0 || pageNumber > totalPages) return null
 
@@ -133,4 +129,3 @@ export function ClientBooksList({
     </div>
   )
 }
-

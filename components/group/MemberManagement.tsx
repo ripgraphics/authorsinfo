@@ -1,138 +1,153 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { createBrowserClient } from '@supabase/ssr';
-import type { Database } from '@/types/database';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { createBrowserClient } from '@supabase/ssr'
+import type { Database } from '@/types/database'
+import { useToast } from '@/hooks/use-toast'
 
 interface MemberManagementProps {
-  groupId: string;
-  userRole: string;
+  groupId: string
+  userRole: string
 }
 
 interface Member {
-  id: string;
-  user_id: string;
-  role_id: string;
-  status: 'active' | 'suspended' | 'banned';
-  joined_at: string;
-  last_active: string;
+  id: string
+  user_id: string
+  role_id: string
+  status: 'active' | 'suspended' | 'banned'
+  joined_at: string
+  last_active: string
   user: {
-    id: string;
-    email: string;
-    full_name: string;
-    avatar_url?: string;
-  };
+    id: string
+    email: string
+    full_name: string
+    avatar_url?: string
+  }
   role: {
-    id: string;
-    name: string;
-  };
+    id: string
+    name: string
+  }
 }
 
 interface Role {
-  id: string;
-  name: string;
-  description: string;
+  id: string
+  name: string
+  description: string
 }
 
 interface Invitation {
-  id: string;
-  email: string;
-  role_id: string;
-  status: 'pending' | 'accepted' | 'expired';
-  created_at: string;
-  expires_at: string;
+  id: string
+  email: string
+  role_id: string
+  status: 'pending' | 'accepted' | 'expired'
+  created_at: string
+  expires_at: string
   role: {
-    id: string;
-    name: string;
-  };
+    id: string
+    name: string
+  }
 }
 
 export default function MemberManagement({ groupId, userRole }: MemberManagementProps) {
-  const [members, setMembers] = useState<Member[]>([]);
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [invitations, setInvitations] = useState<Invitation[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
-  const [showInviteDialog, setShowInviteDialog] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState('');
-  const [filter, setFilter] = useState<'all' | 'active' | 'suspended' | 'banned'>('all');
+  const [members, setMembers] = useState<Member[]>([])
+  const [roles, setRoles] = useState<Role[]>([])
+  const [invitations, setInvitations] = useState<Invitation[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null)
+  const [showInviteDialog, setShowInviteDialog] = useState(false)
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteRole, setInviteRole] = useState('')
+  const [filter, setFilter] = useState<'all' | 'active' | 'suspended' | 'banned'>('all')
 
   const supabase = createBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-  const { toast } = useToast();
+  )
+  const { toast } = useToast()
 
   useEffect(() => {
-    fetchMembersAndRoles();
-  }, []);
+    fetchMembersAndRoles()
+  }, [])
 
   async function fetchMembersAndRoles() {
     try {
-      setLoading(true);
+      setLoading(true)
 
       // Fetch members
       const { data: membersData, error: membersError } = await supabase
         .from('group_members')
-        .select(`
+        .select(
+          `
           *,
           user:user_id(*),
           role:role_id(*)
-        `)
-        .eq('group_id', groupId);
+        `
+        )
+        .eq('group_id', groupId)
 
-      if (membersError) throw membersError;
-      setMembers(membersData || []);
+      if (membersError) throw membersError
+      setMembers(membersData || [])
 
       // Fetch roles
       const { data: rolesData, error: rolesError } = await supabase
         .from('group_roles')
         .select('*')
-        .eq('group_id', groupId);
+        .eq('group_id', groupId)
 
-      if (rolesError) throw rolesError;
-      setRoles(rolesData || []);
+      if (rolesError) throw rolesError
+      setRoles(rolesData || [])
 
       // Fetch invitations
       const { data: invitationsData, error: invitationsError } = await supabase
         .from('group_invitations')
-        .select(`
+        .select(
+          `
           *,
           role:role_id(*)
-        `)
+        `
+        )
         .eq('group_id', groupId)
-        .not('status', 'eq', 'expired');
+        .not('status', 'eq', 'expired')
 
-      if (invitationsError) throw invitationsError;
-      setInvitations(invitationsData || []);
+      if (invitationsError) throw invitationsError
+      setInvitations(invitationsData || [])
     } catch (err: any) {
       toast({
         title: 'Error',
         description: 'Failed to load members and roles',
         variant: 'destructive',
-      });
+      })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
   async function handleInviteMember() {
     try {
-      const { data, error } = await (supabase
-        .from('group_invitations') as any)
+      const { data, error } = await (supabase.from('group_invitations') as any)
         .insert({
           group_id: groupId,
           email: inviteEmail,
@@ -141,139 +156,133 @@ export default function MemberManagement({ groupId, userRole }: MemberManagement
           expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
         })
         .select()
-        .single();
+        .single()
 
-      if (error) throw error;
+      if (error) throw error
 
-      setInvitations([...invitations, data]);
-      setShowInviteDialog(false);
-      setInviteEmail('');
-      setInviteRole('');
+      setInvitations([...invitations, data])
+      setShowInviteDialog(false)
+      setInviteEmail('')
+      setInviteRole('')
 
       toast({
         title: 'Success',
         description: 'Invitation sent successfully',
-      });
+      })
     } catch (err: any) {
       toast({
         title: 'Error',
         description: 'Failed to send invitation',
         variant: 'destructive',
-      });
+      })
     }
   }
 
   async function handleUpdateMemberStatus(memberId: string, status: Member['status']) {
     try {
-      const { error } = await (supabase
-        .from('group_members') as any)
+      const { error } = await (supabase.from('group_members') as any)
         .update({ status })
-        .eq('id', memberId);
+        .eq('id', memberId)
 
-      if (error) throw error;
+      if (error) throw error
 
-      setMembers(members.map(m => (m.id === memberId ? { ...m, status } : m)));
+      setMembers(members.map((m) => (m.id === memberId ? { ...m, status } : m)))
       toast({
         title: 'Success',
         description: `Member ${status} successfully`,
-      });
+      })
     } catch (err: any) {
       toast({
         title: 'Error',
         description: 'Failed to update member status',
         variant: 'destructive',
-      });
+      })
     }
   }
 
   async function handleUpdateMemberRole(memberId: string, roleId: string) {
     try {
-      const { error } = await (supabase
-        .from('group_members') as any)
+      const { error } = await (supabase.from('group_members') as any)
         .update({ role_id: roleId })
-        .eq('id', memberId);
+        .eq('id', memberId)
 
-      if (error) throw error;
+      if (error) throw error
 
       setMembers(
-        members.map(m =>
+        members.map((m) =>
           m.id === memberId
             ? {
                 ...m,
                 role_id: roleId,
-                role: roles.find(r => r.id === roleId) || m.role,
+                role: roles.find((r) => r.id === roleId) || m.role,
               }
             : m
         )
-      );
+      )
 
       toast({
         title: 'Success',
         description: 'Member role updated successfully',
-      });
+      })
     } catch (err: any) {
       toast({
         title: 'Error',
         description: 'Failed to update member role',
         variant: 'destructive',
-      });
+      })
     }
   }
 
   async function handleRemoveMember(memberId: string) {
     try {
-      const { error } = await supabase
-        .from('group_members')
-        .delete()
-        .eq('id', memberId);
+      const { error } = await supabase.from('group_members').delete().eq('id', memberId)
 
-      if (error) throw error;
+      if (error) throw error
 
-      setMembers(members.filter(m => m.id !== memberId));
-      setSelectedMember(null);
+      setMembers(members.filter((m) => m.id !== memberId))
+      setSelectedMember(null)
       toast({
         title: 'Success',
         description: 'Member removed successfully',
-      });
+      })
     } catch (err: any) {
       toast({
         title: 'Error',
         description: 'Failed to remove member',
         variant: 'destructive',
-      });
+      })
     }
   }
 
   async function handleCancelInvitation(invitationId: string) {
     try {
-      const { error } = await (supabase
-        .from('group_invitations') as any)
+      const { error } = await (supabase.from('group_invitations') as any)
         .update({ status: 'expired' })
-        .eq('id', invitationId);
+        .eq('id', invitationId)
 
-      if (error) throw error;
+      if (error) throw error
 
-      setInvitations(invitations.filter(i => i.id !== invitationId));
+      setInvitations(invitations.filter((i) => i.id !== invitationId))
       toast({
         title: 'Success',
         description: 'Invitation cancelled successfully',
-      });
+      })
     } catch (err: any) {
       toast({
         title: 'Error',
         description: 'Failed to cancel invitation',
         variant: 'destructive',
-      });
+      })
     }
   }
 
-  const filteredMembers = members.filter(member => {
+  const filteredMembers = members.filter((member) => {
     const matchesSearch =
       member.user.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.user.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = filter === 'all' || member.status === filter;
-    return matchesSearch && matchesFilter;
-  });
+      member.user.email.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesFilter = filter === 'all' || member.status === filter
+    return matchesSearch && matchesFilter
+  })
 
   return (
     <div className="space-y-6">
@@ -342,10 +351,7 @@ export default function MemberManagement({ groupId, userRole }: MemberManagement
                           </SelectContent>
                         </Select>
                       </div>
-                      <Button
-                        onClick={handleInviteMember}
-                        disabled={!inviteEmail || !inviteRole}
-                      >
+                      <Button onClick={handleInviteMember} disabled={!inviteEmail || !inviteRole}>
                         Send Invitation
                       </Button>
                     </div>
@@ -362,27 +368,19 @@ export default function MemberManagement({ groupId, userRole }: MemberManagement
                           <div
                             key={member.id}
                             className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                              selectedMember?.id === member.id
-                                ? 'bg-primary/10'
-                                : 'hover:bg-muted'
+                              selectedMember?.id === member.id ? 'bg-primary/10' : 'hover:bg-muted'
                             }`}
                             onClick={() => setSelectedMember(member)}
                           >
                             <div className="flex items-center justify-between">
                               <div>
-                                <div className="font-medium">
-                                  {member.user.full_name}
-                                </div>
+                                <div className="font-medium">{member.user.full_name}</div>
                                 <div className="text-sm text-muted-foreground">
                                   {member.user.email}
                                 </div>
                               </div>
                               <Badge
-                                variant={
-                                  member.status === 'active'
-                                    ? 'default' 
-                                    : 'destructive'
-                                }
+                                variant={member.status === 'active' ? 'default' : 'destructive'}
                               >
                                 {member.status}
                               </Badge>
@@ -441,18 +439,14 @@ export default function MemberManagement({ groupId, userRole }: MemberManagement
                         <div>
                           <Label>Member Since</Label>
                           <div className="text-sm text-muted-foreground">
-                            {new Date(
-                              selectedMember.joined_at
-                            ).toLocaleDateString()}
+                            {new Date(selectedMember.joined_at).toLocaleDateString()}
                           </div>
                         </div>
 
                         <div>
                           <Label>Last Active</Label>
                           <div className="text-sm text-muted-foreground">
-                            {new Date(
-                              selectedMember.last_active
-                            ).toLocaleDateString()}
+                            {new Date(selectedMember.last_active).toLocaleDateString()}
                           </div>
                         </div>
 
@@ -489,19 +483,12 @@ export default function MemberManagement({ groupId, userRole }: MemberManagement
                               Role: {invitation.role.name}
                             </div>
                             <div className="text-sm text-muted-foreground">
-                              Expires:{' '}
-                              {new Date(
-                                invitation.expires_at
-                              ).toLocaleDateString()}
+                              Expires: {new Date(invitation.expires_at).toLocaleDateString()}
                             </div>
                           </div>
                           <div className="flex items-center space-x-2">
                             <Badge
-                              variant={
-                                invitation.status === 'pending'
-                                  ? 'default'
-                                  : 'secondary'
-                              }
+                              variant={invitation.status === 'pending' ? 'default' : 'secondary'}
                             >
                               {invitation.status}
                             </Badge>
@@ -509,9 +496,7 @@ export default function MemberManagement({ groupId, userRole }: MemberManagement
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() =>
-                                  handleCancelInvitation(invitation.id)
-                                }
+                                onClick={() => handleCancelInvitation(invitation.id)}
                               >
                                 Cancel
                               </Button>
@@ -528,5 +513,5 @@ export default function MemberManagement({ groupId, userRole }: MemberManagement
         </CardContent>
       </Card>
     </div>
-  );
-} 
+  )
+}

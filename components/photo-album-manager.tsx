@@ -1,12 +1,18 @@
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { useToast } from "@/components/ui/use-toast"
-import { createBrowserClient } from "@supabase/ssr"
-import type { Database } from "@/types/database"
-import { FolderPlus } from "lucide-react"
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { useToast } from '@/components/ui/use-toast'
+import { createBrowserClient } from '@supabase/ssr'
+import type { Database } from '@/types/database'
+import { FolderPlus } from 'lucide-react'
 
 interface PhotoAlbumManagerProps {
   entityId: string
@@ -17,21 +23,24 @@ interface PhotoAlbumManagerProps {
 export function PhotoAlbumManager({
   entityId,
   entityType,
-  onAlbumCreated
+  onAlbumCreated,
 }: PhotoAlbumManagerProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
-  const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
   const { toast } = useToast()
-  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   const handleCreateAlbum = async () => {
     if (!title.trim()) {
       toast({
-        title: "Error",
-        description: "Please enter an album title",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Please enter an album title',
+        variant: 'destructive',
       })
       return
     }
@@ -47,7 +56,7 @@ export function PhotoAlbumManager({
           entity_type: entityType,
           entity_id: entityId,
           is_public: true,
-          album_type: 'author'
+          album_type: 'author',
         })
         .select()
         .single()
@@ -55,19 +64,19 @@ export function PhotoAlbumManager({
       if (error) throw error
 
       toast({
-        title: "Success",
-        description: "Album created successfully"
+        title: 'Success',
+        description: 'Album created successfully',
       })
 
-      setTitle("")
-      setDescription("")
+      setTitle('')
+      setDescription('')
       setIsOpen(false)
       onAlbumCreated?.()
     } catch (error) {
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create album",
-        variant: "destructive"
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to create album',
+        variant: 'destructive',
       })
     } finally {
       setIsCreating(false)
@@ -112,22 +121,15 @@ export function PhotoAlbumManager({
             />
           </div>
           <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setIsOpen(false)}
-              disabled={isCreating}
-            >
+            <Button variant="outline" onClick={() => setIsOpen(false)} disabled={isCreating}>
               Cancel
             </Button>
-            <Button
-              onClick={handleCreateAlbum}
-              disabled={isCreating}
-            >
-              {isCreating ? "Creating..." : "Create Album"}
+            <Button onClick={handleCreateAlbum} disabled={isCreating}>
+              {isCreating ? 'Creating...' : 'Create Album'}
             </Button>
           </div>
         </div>
       </DialogContent>
     </Dialog>
   )
-} 
+}

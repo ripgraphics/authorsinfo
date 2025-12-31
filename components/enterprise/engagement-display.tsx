@@ -2,16 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react'
 import { Avatar } from '@/components/ui/avatar'
-import { 
-  Heart, 
-  MessageCircle, 
-  ThumbsUp,
-  Smile,
-  Star,
-  AlertTriangle,
-  Zap,
-  User
-} from 'lucide-react'
+import { Heart, MessageCircle, ThumbsUp, Smile, Star, AlertTriangle, Zap, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface EngagementUser {
@@ -55,10 +46,10 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
   onUserClick,
   onAddFriend,
   customReactionIcon,
-  customReactionColor = "from-red-500 to-pink-500",
+  customReactionColor = 'from-red-500 to-pink-500',
   showReactionTypes = false,
   maxPreviewItems = 6,
-  showAddFriendButtons = true
+  showAddFriendButtons = true,
 }) => {
   const [reactions, setReactions] = useState<EngagementUser[]>([])
   const [comments, setComments] = useState<EngagementUser[]>([])
@@ -72,16 +63,18 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
     try {
       setIsLoadingReactions(true)
       setIsLoadingComments(true)
-      
-      const response = await fetch(`/api/engagement?entity_id=${entityId}&entity_type=${entityType}`)
-      
+
+      const response = await fetch(
+        `/api/engagement?entity_id=${entityId}&entity_type=${entityType}`
+      )
+
       if (response.ok) {
         const data = await response.json()
-        
+
         if (data.recent_likes && Array.isArray(data.recent_likes)) {
           setReactions(data.recent_likes.slice(0, maxPreviewItems))
         }
-        
+
         if (data.recent_comments && Array.isArray(data.recent_comments)) {
           setComments(data.recent_comments.slice(0, maxPreviewItems))
         }
@@ -102,7 +95,7 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
   // Get reaction icon based on type
   const getReactionIcon = (reactionType?: string) => {
     if (customReactionIcon) return customReactionIcon
-    
+
     switch (reactionType?.toLowerCase()) {
       case 'love':
         return <Heart className="h-3.5 w-3.5" />
@@ -126,7 +119,7 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
   // Get reaction color based on type
   const getReactionColor = (reactionType?: string) => {
     if (customReactionColor) return customReactionColor
-    
+
     switch (reactionType?.toLowerCase()) {
       case 'love':
         return 'from-red-500 to-pink-500'
@@ -166,37 +159,47 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
   }
 
   return (
-    <div className={cn("engagement-display flex items-center justify-between px-4 py-2 border-b border-gray-100", className)}>
+    <div
+      className={cn(
+        'engagement-display flex items-center justify-between px-4 py-2 border-b border-gray-100',
+        className
+      )}
+    >
       <div className="engagement-left flex items-center gap-2">
         {/* Reactions Display */}
         {reactionCount > 0 && (
           <div className="engagement-reactions flex items-center gap-2 relative group">
-            <div className={cn(
-              "engagement-reaction-icon rounded-full p-1.5 shadow-xs",
-              `bg-gradient-to-r ${getReactionColor()}`
-            )}>
+            <div
+              className={cn(
+                'engagement-reaction-icon rounded-full p-1.5 shadow-xs',
+                `bg-gradient-to-r ${getReactionColor()}`
+              )}
+            >
               {customReactionIcon || <Heart className="h-3.5 w-3.5 text-white" />}
             </div>
-            <span 
+            <span
               className="engagement-reaction-count text-sm text-gray-600 hover:text-red-600 cursor-pointer font-medium px-2 py-1 rounded-md hover:bg-red-50 transition-all duration-200"
               onClick={onReactionsClick}
             >
               {reactionCount} like{reactionCount !== 1 ? 's' : ''}
             </span>
-            
+
             {/* Enhanced Facebook-style hover dropdown for reactions */}
             <div className="absolute bottom-full left-0 mb-2 px-4 py-3 bg-white border border-gray-200 rounded-xl shadow-xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto z-50 min-w-64 max-h-64 overflow-y-auto">
               <div className="text-sm font-semibold text-gray-700 mb-3 border-b border-gray-100 pb-2 flex items-center gap-2">
                 {customReactionIcon || <Heart className="h-4 w-4 text-red-500" />}
                 People who liked this
               </div>
-              
+
               {!isLoadingReactions && reactions.length > 0 ? (
                 <div className="space-y-2">
                   {reactions.map((reaction) => {
                     if (!reaction || !reaction.user) return null
                     return (
-                      <div key={reaction.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors duration-150">
+                      <div
+                        key={reaction.id}
+                        className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors duration-150"
+                      >
                         <Avatar
                           src={reaction.user?.avatar_url || '/placeholder.svg?height=24&width=24'}
                           alt={`${reaction.user?.name || 'User'} avatar`}
@@ -254,25 +257,28 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
         {/* Comments Display */}
         {commentCount > 0 && (
           <div className="engagement-comments text-sm text-gray-600 hover:text-blue-600 cursor-pointer relative group transition-colors duration-200">
-            <span 
+            <span
               onClick={onCommentsClick}
               className="cursor-pointer font-medium hover:underline px-2 py-1 rounded-md hover:bg-blue-50 transition-all duration-200"
             >
               {commentCount} comment{commentCount !== 1 ? 's' : ''}
             </span>
-            
+
             {/* Enhanced hover dropdown for comments */}
             <div className="absolute bottom-full left-0 mb-2 px-4 py-3 bg-white border border-gray-200 rounded-xl shadow-xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto z-50 min-w-56 max-h-64 overflow-y-auto">
               <div className="text-sm font-semibold text-gray-700 mb-3 border-b border-gray-100 pb-2">
                 Recent Comments
               </div>
-              
+
               {!isLoadingComments && comments.length > 0 ? (
                 <div className="space-y-2">
                   {comments.map((comment) => {
                     if (!comment || !comment.user) return null
                     return (
-                      <div key={comment.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors duration-150">
+                      <div
+                        key={comment.id}
+                        className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors duration-150"
+                      >
                         <Avatar
                           src={comment.user?.avatar_url || '/placeholder.svg?height=24&width=24'}
                           alt={`${comment.user?.name || 'User'} avatar`}
@@ -319,7 +325,7 @@ export const EngagementDisplay: React.FC<EngagementDisplayProps> = ({
           </div>
         )}
       </div>
-      
+
       <div className="engagement-right"></div>
     </div>
   )

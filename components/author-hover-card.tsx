@@ -1,10 +1,10 @@
-import type React from "react"
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
-import Link from "next/link"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { BookOpen } from "lucide-react"
-import type { Author } from "@/types/book"
-import Image from "next/image"
+import type React from 'react'
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card'
+import Link from 'next/link'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { BookOpen } from 'lucide-react'
+import type { Author } from '@/types/book'
+import Image from 'next/image'
 
 interface AuthorHoverCardProps {
   author: Author
@@ -14,7 +14,7 @@ interface AuthorHoverCardProps {
 
 export function AuthorHoverCard({ author, bookCount, children }: AuthorHoverCardProps) {
   // Determine the image URL to use
-  const imageUrl = author.author_image?.url || author.photo_url || "/placeholder.svg"
+  const imageUrl = author.author_image?.url || author.photo_url || '/placeholder.svg'
 
   return (
     <HoverCard>
@@ -23,7 +23,7 @@ export function AuthorHoverCard({ author, bookCount, children }: AuthorHoverCard
         <Link href={`/authors/${author.id}`} className="block no-underline">
           <div className="flex items-start space-x-4">
             <Avatar
-              src={imageUrl || "/placeholder.svg"}
+              src={imageUrl || '/placeholder.svg'}
               name={author.name}
               size="md"
               className="h-12 w-12"

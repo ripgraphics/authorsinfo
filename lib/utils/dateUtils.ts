@@ -10,16 +10,16 @@
 export function formatDate(date: string | Date | number): string {
   try {
     const dateObj = typeof date === 'string' || typeof date === 'number' ? new Date(date) : date
-    
+
     if (isNaN(dateObj.getTime())) {
       console.warn('Invalid date provided to formatDate:', date)
       return 'Invalid Date'
     }
-    
+
     return dateObj.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
     })
   } catch (error) {
     console.error('Error formatting date:', error)
@@ -35,24 +35,24 @@ export function formatDate(date: string | Date | number): string {
 export function formatDateTime(date: string | Date | number): string {
   try {
     const dateObj = typeof date === 'string' || typeof date === 'number' ? new Date(date) : date
-    
+
     if (isNaN(dateObj.getTime())) {
       console.warn('Invalid date provided to formatDateTime:', date)
       return 'Invalid Date'
     }
-    
+
     const dateStr = dateObj.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
     })
-    
+
     const timeStr = dateObj.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
     })
-    
+
     return `${dateStr} at ${timeStr}`
   } catch (error) {
     console.error('Error formatting date time:', error)
@@ -68,12 +68,12 @@ export function formatDateTime(date: string | Date | number): string {
 export function formatRelativeTime(date: string | Date | number): string {
   try {
     const dateObj = typeof date === 'string' || typeof date === 'number' ? new Date(date) : date
-    
+
     if (isNaN(dateObj.getTime())) {
       console.warn('Invalid date provided to formatRelativeTime:', date)
       return 'Invalid Date'
     }
-    
+
     const now = new Date()
     const diffInMs = now.getTime() - dateObj.getTime()
     const diffInSeconds = Math.floor(diffInMs / 1000)
@@ -83,7 +83,7 @@ export function formatRelativeTime(date: string | Date | number): string {
     const diffInWeeks = Math.floor(diffInDays / 7)
     const diffInMonths = Math.floor(diffInDays / 30)
     const diffInYears = Math.floor(diffInDays / 365)
-    
+
     if (diffInSeconds < 60) {
       return 'just now'
     } else if (diffInMinutes < 60) {
@@ -113,12 +113,12 @@ export function formatRelativeTime(date: string | Date | number): string {
 export function formatISO(date: string | Date | number): string {
   try {
     const dateObj = typeof date === 'string' || typeof date === 'number' ? new Date(date) : date
-    
+
     if (isNaN(dateObj.getTime())) {
       console.warn('Invalid date provided to formatISO:', date)
       return ''
     }
-    
+
     return dateObj.toISOString()
   } catch (error) {
     console.error('Error formatting ISO date:', error)
@@ -135,7 +135,7 @@ export function isToday(date: string | Date | number): boolean {
   try {
     const dateObj = typeof date === 'string' || typeof date === 'number' ? new Date(date) : date
     const today = new Date()
-    
+
     return dateObj.toDateString() === today.toDateString()
   } catch (error) {
     console.error('Error checking if date is today:', error)
@@ -153,7 +153,7 @@ export function isYesterday(date: string | Date | number): boolean {
     const dateObj = typeof date === 'string' || typeof date === 'number' ? new Date(date) : date
     const yesterday = new Date()
     yesterday.setDate(yesterday.getDate() - 1)
-    
+
     return dateObj.toDateString() === yesterday.toDateString()
   } catch (error) {
     console.error('Error checking if date is yesterday:', error)

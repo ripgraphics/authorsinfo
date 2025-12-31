@@ -1,81 +1,79 @@
-import { useState } from 'react';
-import { createClient } from '@/lib/supabase-client';
-import { toast } from 'react-hot-toast';
+import { useState } from 'react'
+import { createClient } from '@/lib/supabase-client'
+import { toast } from 'react-hot-toast'
 
 interface Props {
-  isOpen: boolean;
-  onClose: () => void;
-  groupId: string;
+  isOpen: boolean
+  onClose: () => void
+  groupId: string
+  userId: string // User ID passed from parent (no hardcoded values)
 }
 
-export default function StartDiscussionModal({ isOpen, onClose, groupId }: Props) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [selectedBook, setSelectedBook] = useState<any>(null);
+export default function StartDiscussionModal({ isOpen, onClose, groupId, userId }: Props) {
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+  const [selectedBook, setSelectedBook] = useState<any>(null)
   const [discussionDetails, setDiscussionDetails] = useState({
     title: '',
-    description: ''
-  });
-  const supabase = createClient();
+    description: '',
+  })
+  const supabase = createClient()
 
   const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
+    if (!searchQuery.trim()) return
 
-    setIsSearching(true);
+    setIsSearching(true)
     const { data, error } = await supabase
       .from('books')
       .select('id, title, author, cover_image_id, average_rating, review_count')
       .ilike('title', `%${searchQuery}%`)
-      .limit(10);
+      .limit(10)
 
     if (error) {
-      toast.error('Failed to search books');
-      return;
+      toast.error('Failed to search books')
+      return
     }
 
-    setSearchResults(data || []);
-    setIsSearching(false);
-  };
+    setSearchResults(data || [])
+    setIsSearching(false)
+  }
 
   const handleStartDiscussion = async () => {
     if (!selectedBook || !discussionDetails.title) {
-      toast.error('Please fill in all required fields');
-      return;
+      toast.error('Please fill in all required fields')
+      return
     }
 
-    const { error } = await (supabase
-      .from('book_discussions') as any)
-      .insert([{
+    const { error } = await (supabase.from('book_discussions') as any).insert([
+      {
         group_id: groupId,
         book_id: selectedBook.id,
         title: discussionDetails.title,
         description: discussionDetails.description,
-        created_by: 'current_user_id', // TODO: Get from auth context
+        created_by: userId,
         status: 'active',
-        is_pinned: false
-      }]);
+        is_pinned: false,
+      },
+    ])
 
     if (error) {
-      toast.error('Failed to start discussion');
-      return;
+      toast.error('Failed to start discussion')
+      return
     }
 
-    toast.success('Discussion started successfully');
-    onClose();
-  };
+    toast.success('Discussion started successfully')
+    onClose()
+  }
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Start a Book Discussion</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
             ✕
           </button>
         </div>
@@ -139,16 +137,22 @@ export default function StartDiscussionModal({ isOpen, onClose, groupId }: Props
                 <input
                   type="text"
                   value={discussionDetails.title}
-                  onChange={(e) => setDiscussionDetails(prev => ({ ...prev, title: e.target.value }))}
+                  onChange={(e) =>
+                    setDiscussionDetails((prev) => ({ ...prev, title: e.target.value }))
+                  }
                   placeholder="Enter discussion title..."
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description (Optional)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description (Optional)
+                </label>
                 <textarea
                   value={discussionDetails.description}
-                  onChange={(e) => setDiscussionDetails(prev => ({ ...prev, description: e.target.value }))}
+                  onChange={(e) =>
+                    setDiscussionDetails((prev) => ({ ...prev, description: e.target.value }))
+                  }
                   placeholder="Enter discussion description..."
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   rows={4}
@@ -174,5 +178,5 @@ export default function StartDiscussionModal({ isOpen, onClose, groupId }: Props
         </div>
       </div>
     </div>
-  );
-} 
+  )
+}

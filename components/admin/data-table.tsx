@@ -1,14 +1,21 @@
-"use client"
+'use client'
 
-import type React from "react"
+import type React from 'react'
 
-import { useState } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { BookOpen } from "lucide-react"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
+import { useState } from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { BookOpen } from 'lucide-react'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface DataTableProps {
   title: string
@@ -32,14 +39,14 @@ export function DataTable({
   linkPrefix,
 }: DataTableProps) {
   const [sortColumn, setSortColumn] = useState<string | null>(null)
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
 
   const handleSort = (columnKey: string) => {
     if (sortColumn === columnKey) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
     } else {
       setSortColumn(columnKey)
-      setSortDirection("asc")
+      setSortDirection('asc')
     }
   }
 
@@ -53,9 +60,9 @@ export function DataTable({
     if (aValue === null || aValue === undefined) return 1
     if (bValue === null || bValue === undefined) return -1
 
-    const comparison = typeof aValue === "string" ? aValue.localeCompare(bValue) : aValue - bValue
+    const comparison = typeof aValue === 'string' ? aValue.localeCompare(bValue) : aValue - bValue
 
-    return sortDirection === "asc" ? comparison : -comparison
+    return sortDirection === 'asc' ? comparison : -comparison
   })
 
   return (
@@ -74,11 +81,15 @@ export function DataTable({
                 <TableRow>
                   {imageField && <TableHead className="w-[60px]">Image</TableHead>}
                   {columns.map((column) => (
-                    <TableHead key={column.key} className="cursor-pointer" onClick={() => handleSort(column.key)}>
+                    <TableHead
+                      key={column.key}
+                      className="cursor-pointer"
+                      onClick={() => handleSort(column.key)}
+                    >
                       <div className="flex items-center">
                         {column.label}
                         {sortColumn === column.key && (
-                          <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                          <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                         )}
                       </div>
                     </TableHead>
@@ -94,8 +105,8 @@ export function DataTable({
                           <div className="relative h-10 w-8 overflow-hidden rounded-sm">
                             {row[imageField]?.url ? (
                               <Image
-                                src={row[imageField].url || "/placeholder.svg"}
-                                alt={row[imageField].alt_text || "Image"}
+                                src={row[imageField].url || '/placeholder.svg'}
+                                alt={row[imageField].alt_text || 'Image'}
                                 fill
                                 className="object-cover"
                               />
@@ -122,7 +133,10 @@ export function DataTable({
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={columns.length + (imageField ? 1 : 0)} className="h-24 text-center">
+                    <TableCell
+                      colSpan={columns.length + (imageField ? 1 : 0)}
+                      className="h-24 text-center"
+                    >
                       No data available
                     </TableCell>
                   </TableRow>
@@ -138,20 +152,20 @@ export function DataTable({
 
 function formatCellValue(value: any): React.ReactNode {
   if (value === null || value === undefined) {
-    return "N/A"
+    return 'N/A'
   }
 
-  if (typeof value === "number") {
+  if (typeof value === 'number') {
     // Format numbers with 2 decimal places if they have decimals
     return Number.isInteger(value) ? value : value.toFixed(2)
   }
 
-  if (typeof value === "boolean") {
-    return value ? "Yes" : "No"
+  if (typeof value === 'boolean') {
+    return value ? 'Yes' : 'No'
   }
 
   // Check if it's a date string
-  if (typeof value === "string" && value.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)) {
+  if (typeof value === 'string' && value.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)) {
     return new Date(value).toLocaleDateString()
   }
 

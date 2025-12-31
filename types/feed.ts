@@ -11,17 +11,17 @@ export interface FeedPost {
   is_public: boolean
   metadata?: any
   created_at: string
-  
+
   // User information
   user_name?: string
   user_avatar_url?: string
-  
+
   // Engagement data
   like_count: number
   comment_count: number
   share_count?: number
   is_liked: boolean
-  
+
   // Post content fields (new structure)
   text?: string
   image_url?: string
@@ -30,19 +30,19 @@ export interface FeedPost {
   content_type?: string
   updated_at?: string
   content_summary?: string
-  
+
   // Legacy fields for backward compatibility
   content?: PostContent
   content_type_legacy?: string
-  
+
   // Database fields from activities table
   data?: any // JSONB field from activities table
-  
+
   // Content safety and restrictions
   content_safety_score?: number
   age_restriction?: string
   sensitive_content?: boolean
-  
+
   // User interaction state
   user_has_reacted?: boolean
   user_has_commented?: boolean
@@ -50,12 +50,12 @@ export interface FeedPost {
   user_reaction_type?: string // Type of reaction user has made (like, love, care, haha, wow, sad, angry)
   user_has_bookmarked?: boolean
   user_has_viewed?: boolean
-  
+
   // Additional fields for backward compatibility
   view_count?: number
   bookmark_count?: number
   tags?: string[]
-  
+
   // Post metadata fields
   scheduled_at?: string
   is_featured?: boolean
@@ -137,7 +137,9 @@ export interface PostPublishStatus {
 }
 
 // Type guards for checking post structure
-export function isNewPostStructure(post: FeedPost): post is FeedPost & { text: string; content_type: string } {
+export function isNewPostStructure(
+  post: FeedPost
+): post is FeedPost & { text: string; content_type: string } {
   return post.text !== undefined && post.content_type !== undefined
 }
 
@@ -158,7 +160,7 @@ export function getPostText(post: FeedPost): string {
   if (post.activity_type === 'like') {
     return post.text || 'liked a post'
   }
-  
+
   if (post.text) return post.text
   if (post.content?.text) return post.content.text
   return 'Post content'
@@ -168,7 +170,10 @@ export function getPostImages(post: FeedPost): string[] {
   // Handle like activities - show the original post's image if available
   if (post.activity_type === 'like') {
     if (post.image_url) {
-      return post.image_url.split(',').map(url => url.trim()).filter(Boolean)
+      return post.image_url
+        .split(',')
+        .map((url) => url.trim())
+        .filter(Boolean)
     }
     // Fallback to data field for like activities
     if (post.metadata?.liked_activity_image) {
@@ -176,14 +181,15 @@ export function getPostImages(post: FeedPost): string[] {
     }
     return []
   }
-  
+
   if (post.image_url) {
-    return post.image_url.split(',').map(url => url.trim()).filter(Boolean)
+    return post.image_url
+      .split(',')
+      .map((url) => url.trim())
+      .filter(Boolean)
   }
   if (post.content?.media_files) {
-    return post.content.media_files
-      .filter(file => file.type === 'image')
-      .map(file => file.url)
+    return post.content.media_files.filter((file) => file.type === 'image').map((file) => file.url)
   }
   return []
 }
@@ -193,15 +199,15 @@ export function getPostContentType(post: FeedPost): string {
   if (post.activity_type === 'like') {
     return 'like'
   }
-  
+
   if (post.content_type) return post.content_type
   if (post.content_type_legacy) return post.content_type_legacy
-  
+
   // Infer from content
   if (hasImageContent(post)) return 'image'
-  if (post.content?.media_files?.some(f => f.type === 'video')) return 'video'
+  if (post.content?.media_files?.some((f) => f.type === 'video')) return 'video'
   if (post.content?.links && post.content.links.length > 0) return 'link'
-  
+
   return 'text'
 }
 
@@ -212,9 +218,9 @@ export function isLikeActivity(post: FeedPost): boolean {
 
 export function getLikeActivitySummary(post: FeedPost): string {
   if (!isLikeActivity(post)) return ''
-  
+
   const userName = post.user_name || 'User'
   const likedContent = post.text || post.metadata?.liked_activity_content || 'a post'
-  
+
   return `${userName} liked ${likedContent}`
 }

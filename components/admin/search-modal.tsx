@@ -1,10 +1,16 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { ReusableSearch } from "@/components/ui/reusable-search"
-import { Button } from "@/components/ui/button"
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { ReusableSearch } from '@/components/ui/reusable-search'
+import { Button } from '@/components/ui/button'
 
 interface SearchModalProps {
   open: boolean
@@ -12,7 +18,7 @@ interface SearchModalProps {
 }
 
 export function SearchModal({ open, onClose }: SearchModalProps) {
-  const [query, setQuery] = useState("")
+  const [query, setQuery] = useState('')
   const router = useRouter()
 
   const handleSearchChange = (value: string) => {
@@ -24,7 +30,7 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
     if (query.trim()) {
       router.push(`/search?q=${encodeURIComponent(query.trim())}`)
       onClose()
-      setQuery("")
+      setQuery('')
     }
   }
 

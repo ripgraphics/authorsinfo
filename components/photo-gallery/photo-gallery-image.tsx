@@ -1,24 +1,24 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import Image from 'next/image';
-import { motion } from 'framer-motion';
-import { AlbumImageLegacy } from './types';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Trash2, Tag, Edit2, Move } from 'lucide-react';
+import { useState } from 'react'
+import Image from 'next/image'
+import { motion } from 'framer-motion'
+import { AlbumImageLegacy } from './types'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Trash2, Tag } from 'lucide-react'
 
 interface PhotoGalleryImageProps {
-  image: AlbumImageLegacy;
-  isEditable: boolean;
-  showTags: boolean;
-  isDragging?: boolean;
-  onImageClick: (image: AlbumImageLegacy) => void;
-  onImageDelete: (imageId: number) => Promise<void>;
-  onImageTag: (imageId: number, tags: string[]) => Promise<void>;
+  image: AlbumImageLegacy
+  isEditable: boolean
+  showTags: boolean
+  isDragging?: boolean
+  onImageClick: (image: AlbumImageLegacy) => void
+  onImageDelete: (imageId: number) => Promise<void>
+  onImageTag: (imageId: number, tags: string[]) => Promise<void>
 }
 
 export function PhotoGalleryImage({
@@ -30,20 +30,20 @@ export function PhotoGalleryImage({
   onImageDelete,
   onImageTag,
 }: PhotoGalleryImageProps) {
-  const [isHovered, setIsHovered] = useState(false);
-  const [isTagging, setIsTagging] = useState(false);
-  const [newTags, setNewTags] = useState('');
+  const [isHovered, setIsHovered] = useState(false)
+  const [isTagging, setIsTagging] = useState(false)
+  const [newTags, setNewTags] = useState('')
 
   const handleTagSubmit = async () => {
     const tags = newTags
       .split(',')
-      .map(tag => tag.trim())
-      .filter(tag => tag.length > 0);
-    
-    await onImageTag(Number(image.id), tags);
-    setIsTagging(false);
-    setNewTags('');
-  };
+      .map((tag) => tag.trim())
+      .filter((tag) => tag.length > 0)
+
+    await onImageTag(Number(image.id), tags)
+    setIsTagging(false)
+    setNewTags('')
+  }
 
   return (
     <motion.div
@@ -79,8 +79,8 @@ export function PhotoGalleryImage({
                   size="icon"
                   className="photo-gallery__image-action-button"
                   onClick={(e) => {
-                    e.stopPropagation();
-                    setIsTagging(true);
+                    e.stopPropagation()
+                    setIsTagging(true)
                   }}
                 >
                   <Tag className="h-4 w-4" />
@@ -90,8 +90,8 @@ export function PhotoGalleryImage({
                   size="icon"
                   className="photo-gallery__image-action-button"
                   onClick={(e) => {
-                    e.stopPropagation();
-                    onImageDelete(Number(image.id));
+                    e.stopPropagation()
+                    onImageDelete(Number(image.id))
                   }}
                 >
                   <Trash2 className="h-4 w-4" />
@@ -103,11 +103,7 @@ export function PhotoGalleryImage({
           {showTags && image.tags && image.tags.length > 0 && (
             <div className="photo-gallery__image-tags flex flex-wrap gap-2">
               {image.tags.map((tag) => (
-                <Badge
-                  key={tag.id}
-                  variant="secondary"
-                  className="photo-gallery__image-tag"
-                >
+                <Badge key={tag.id} variant="secondary" className="photo-gallery__image-tag">
                   {tag.name}
                 </Badge>
               ))}
@@ -132,19 +128,14 @@ export function PhotoGalleryImage({
               />
             </div>
             <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setIsTagging(false)}
-              >
+              <Button variant="outline" onClick={() => setIsTagging(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleTagSubmit}>
-                Save Tags
-              </Button>
+              <Button onClick={handleTagSubmit}>Save Tags</Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
     </motion.div>
-  );
-} 
+  )
+}

@@ -1,9 +1,9 @@
-import { createServerComponentClientAsync } from "@/lib/supabase/client-helper"
-import { notFound, redirect } from "next/navigation"
-import { supabaseAdmin } from "@/lib/supabase"
-import type { Group } from "@/types/group"
-import { ClientGroupPage } from "./client"
-import { getFollowers, getFollowersCount } from "@/lib/follows-server"
+import { createServerComponentClientAsync } from '@/lib/supabase/client-helper'
+import { notFound, redirect } from 'next/navigation'
+import { supabaseAdmin } from '@/lib/supabase'
+import type { Group } from '@/types/group'
+import { ClientGroupPage } from './client'
+import { getFollowers, getFollowersCount } from '@/lib/follows-server'
 import { createClient } from '@/lib/supabase-server'
 
 interface GroupPageProps {
@@ -14,87 +14,127 @@ interface GroupPageProps {
 
 async function getGroup(id: string) {
   try {
-    console.log("Fetching group with ID:", id)
-    
+    console.log('Fetching group with ID:', id)
+
     const { data: group, error } = await supabaseAdmin
-      .from("groups")
-      .select(`
+      .from('groups')
+      .select(
+        `
         *
-      `)
-      .eq("id", id)
+      `
+      )
+      .eq('id', id)
       .single()
 
     if (error) {
-      console.error("Error fetching group:", error)
-      console.error("Error details:", {
+      console.error('Error fetching group:', error)
+      console.error('Error details:', {
         message: error.message,
         details: error.details,
         hint: error.hint,
-        code: error.code
+        code: error.code,
       })
       return null
     }
 
-    console.log("Group fetched successfully:", group ? "Found" : "Not found")
+    console.log('Group fetched successfully:', group ? 'Found' : 'Not found')
     return group as Group
   } catch (error) {
-    console.error("Unexpected error fetching group:", error)
+    console.error('Unexpected error fetching group:', error)
     return null
   }
 }
 
 async function getGroupMembers(groupId: string) {
   try {
+    // Get group members
     const { data: members, error } = await supabaseAdmin
-      .from("group_members")
-      .select(`
+      .from('group_members')
+      .select(
+        `
         user_id,
         status,
         joined_at
-      `)
-      .eq("group_id", groupId)
-      .eq("status", "active")
-      .order("joined_at", { ascending: false })
+      `
+      )
+      .eq('group_id', groupId)
+      .eq('status', 'active')
+      .order('joined_at', { ascending: false })
 
     if (error) {
-      console.error("Error fetching group members:", error)
+      console.error('Error fetching group members:', error)
       return []
     }
 
-    // Get user details for each member
-    const membersWithDetails = []
-    for (const member of members || []) {
-      try {
-        const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(member.user_id)
-        if (!userError && userData.user) {
-          membersWithDetails.push({
-            ...member,
-            user: {
-              id: userData.user.id,
-              name: userData.user.user_metadata?.name || userData.user.user_metadata?.full_name || 'Unknown User',
-              email: userData.user.email || 'unknown@email.com',
-              avatar_url: userData.user.user_metadata?.avatar_url || null
-            }
-          })
-        }
-      } catch (error) {
-        console.error("Error fetching user details for member:", member.user_id, error)
-        // Add member with fallback data
-        membersWithDetails.push({
-          ...member,
-          user: {
-            id: member.user_id,
-            name: 'Unknown User',
-            email: 'unknown@email.com',
-            avatar_url: null
-          }
-        })
+    if (!members || members.length === 0) {
+      return []
+    }
+
+    // Get user IDs from members
+    const memberIds = members.map((member: any) => member.user_id)
+
+    // Fetch user details from users table and profiles (same pattern as getFollowers)
+    const [usersResult, profilesResult] = await Promise.all([
+      supabaseAdmin.from('users').select('id, name, email').in('id', memberIds),
+      supabaseAdmin.from('profiles').select('user_id, avatar_image_id').in('user_id', memberIds),
+    ])
+
+    const users = usersResult.data || []
+    const profiles = profilesResult.data || []
+
+    // Create profile map by user_id
+    const profileMap = new Map(profiles.map((p: any) => [p.user_id, p]))
+
+    // Get unique avatar_image_ids
+    const avatarImageIds = Array.from(
+      new Set(profiles.map((p: any) => p.avatar_image_id).filter(Boolean))
+    )
+
+    // Fetch avatar URLs from images table
+    let avatarImageMap = new Map()
+    if (avatarImageIds.length > 0) {
+      const { data: images } = await supabaseAdmin
+        .from('images')
+        .select('id, url')
+        .in('id', avatarImageIds)
+
+      if (images) {
+        avatarImageMap = new Map(images.map((img: any) => [img.id, img.url]))
       }
     }
 
-    return membersWithDetails
+    // Create a map of user data for quick lookup
+    const userMap = new Map()
+    users.forEach((user: any) => {
+      const profile = profileMap.get((user as any).id)
+      const avatarImageId = (profile as any)?.avatar_image_id
+      const avatarUrl = avatarImageId ? avatarImageMap.get(avatarImageId) : null
+
+      userMap.set((user as any).id, {
+        id: (user as any).id,
+        name: (user as any).name || 'Unknown User',
+        email: (user as any).email || 'unknown@email.com',
+        avatar_url: avatarUrl,
+      })
+    })
+
+    // Map members to include user data
+    return members.map((member: any) => {
+      const userData = userMap.get(member.user_id) || {
+        id: member.user_id,
+        name: 'Unknown User',
+        email: 'unknown@email.com',
+        avatar_url: null,
+      }
+      return {
+        user_id: member.user_id,
+        status: member.status,
+        joined_at: member.joined_at,
+        user: userData,
+      }
+    })
   } catch (error) {
-    console.error("Error fetching group members:", error)
+    console.error('Error fetching group members:', error)
     return []
   }
 }
@@ -102,16 +142,18 @@ async function getGroupMembers(groupId: string) {
 async function getGroupBooks(groupId: string) {
   try {
     const { data: groupBooks, error } = await supabaseAdmin
-      .from("group_books")
-      .select(`
+      .from('group_books')
+      .select(
+        `
         book_id,
         added_at
-      `)
-      .eq("group_id", groupId)
-      .order("added_at", { ascending: false })
+      `
+      )
+      .eq('group_id', groupId)
+      .order('added_at', { ascending: false })
 
     if (error) {
-      console.error("Error fetching group books:", error)
+      console.error('Error fetching group books:', error)
       return []
     }
 
@@ -120,25 +162,27 @@ async function getGroupBooks(groupId: string) {
     }
 
     // Get book details for each group book
-    const bookIds = groupBooks.map(gb => gb.book_id)
+    const bookIds = groupBooks.map((gb) => gb.book_id)
     const { data: books, error: booksError } = await supabaseAdmin
-      .from("books")
-      .select(`
+      .from('books')
+      .select(
+        `
         id,
         title,
         cover_image:cover_image_id(id, url, alt_text),
         original_image_url
-      `)
-      .in("id", bookIds)
+      `
+      )
+      .in('id', bookIds)
 
     if (booksError) {
-      console.error("Error fetching books:", booksError)
+      console.error('Error fetching books:', booksError)
       return []
     }
 
     return books || []
   } catch (error) {
-    console.error("Error fetching group books:", error)
+    console.error('Error fetching group books:', error)
     return []
   }
 }
@@ -146,20 +190,22 @@ async function getGroupBooks(groupId: string) {
 async function getGroupDiscussions(groupId: string) {
   try {
     const { data: discussions, error } = await supabaseAdmin
-      .from("discussions")
-      .select(`
+      .from('discussions')
+      .select(
+        `
         id,
         title,
         content,
         created_at,
         user_id
-      `)
-      .eq("group_id", groupId)
-      .order("created_at", { ascending: false })
+      `
+      )
+      .eq('group_id', groupId)
+      .order('created_at', { ascending: false })
       .limit(10)
 
     if (error) {
-      console.error("Error fetching group discussions:", error)
+      console.error('Error fetching group discussions:', error)
       return []
     }
 
@@ -167,20 +213,25 @@ async function getGroupDiscussions(groupId: string) {
     const discussionsWithDetails = []
     for (const discussion of discussions || []) {
       try {
-        const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(discussion.user_id)
+        const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(
+          discussion.user_id
+        )
         if (!userError && userData.user) {
           discussionsWithDetails.push({
             ...discussion,
             user: {
               id: userData.user.id,
-              name: userData.user.user_metadata?.name || userData.user.user_metadata?.full_name || 'Unknown User',
+              name:
+                userData.user.user_metadata?.name ||
+                userData.user.user_metadata?.full_name ||
+                'Unknown User',
               email: userData.user.email || 'unknown@email.com',
-              avatar_url: userData.user.user_metadata?.avatar_url || null
-            }
+              avatar_url: userData.user.user_metadata?.avatar_url || null,
+            },
           })
         }
       } catch (error) {
-        console.error("Error fetching user details for discussion:", discussion.user_id, error)
+        console.error('Error fetching user details for discussion:', discussion.user_id, error)
         // Add discussion with fallback data
         discussionsWithDetails.push({
           ...discussion,
@@ -188,15 +239,15 @@ async function getGroupDiscussions(groupId: string) {
             id: discussion.user_id,
             name: 'Unknown User',
             email: 'unknown@email.com',
-            avatar_url: null
-          }
+            avatar_url: null,
+          },
         })
       }
     }
 
     return discussionsWithDetails
   } catch (error) {
-    console.error("Error fetching group discussions:", error)
+    console.error('Error fetching group discussions:', error)
     return []
   }
 }
@@ -204,20 +255,22 @@ async function getGroupDiscussions(groupId: string) {
 async function getGroupActivities(groupId: string) {
   try {
     const { data: activities, error } = await supabaseAdmin
-      .from("activities")
-      .select(`
+      .from('activities')
+      .select(
+        `
         id,
         activity_type,
         created_at,
         data,
         user_id
-      `)
-      .eq("group_id", groupId)
-      .order("created_at", { ascending: false })
+      `
+      )
+      .eq('group_id', groupId)
+      .order('created_at', { ascending: false })
       .limit(20)
 
     if (error) {
-      console.error("Error fetching group activities:", error)
+      console.error('Error fetching group activities:', error)
       return []
     }
 
@@ -225,20 +278,25 @@ async function getGroupActivities(groupId: string) {
     const activitiesWithDetails = []
     for (const activity of activities || []) {
       try {
-        const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(activity.user_id)
+        const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(
+          activity.user_id
+        )
         if (!userError && userData.user) {
           activitiesWithDetails.push({
             ...activity,
             user: {
               id: userData.user.id,
-              name: userData.user.user_metadata?.name || userData.user.user_metadata?.full_name || 'Unknown User',
+              name:
+                userData.user.user_metadata?.name ||
+                userData.user.user_metadata?.full_name ||
+                'Unknown User',
               email: userData.user.email || 'unknown@email.com',
-              avatar_url: userData.user.user_metadata?.avatar_url || null
-            }
+              avatar_url: userData.user.user_metadata?.avatar_url || null,
+            },
           })
         }
       } catch (error) {
-        console.error("Error fetching user details for activity:", activity.user_id, error)
+        console.error('Error fetching user details for activity:', activity.user_id, error)
         // Add activity with fallback data
         activitiesWithDetails.push({
           ...activity,
@@ -246,15 +304,15 @@ async function getGroupActivities(groupId: string) {
             id: activity.user_id,
             name: 'Unknown User',
             email: 'unknown@email.com',
-            avatar_url: null
-          }
+            avatar_url: null,
+          },
         })
       }
     }
 
     return activitiesWithDetails
   } catch (error) {
-    console.error("Error fetching group activities:", error)
+    console.error('Error fetching group activities:', error)
     return []
   }
 }
@@ -264,7 +322,7 @@ async function getGroupFollowers(groupId: string) {
     const { followers, count } = await getFollowers(groupId, 'group', 1, 50)
     return { followers, count }
   } catch (error) {
-    console.error("Error fetching group followers:", error)
+    console.error('Error fetching group followers:', error)
     return { followers: [], count: 0 }
   }
 }
@@ -286,35 +344,38 @@ export default async function GroupPage({ params }: GroupPageProps) {
   const supabase = await createServerComponentClientAsync()
 
   // Special case: if id is "add", redirect to the add page
-  if (id === "add") {
-    redirect("/groups/add")
+  if (id === 'add') {
+    redirect('/groups/add')
   }
 
   try {
-    console.log("Starting to fetch group data for ID:", id)
-    
+    console.log('Starting to fetch group data for ID:', id)
+
     const group = await getGroup(id)
     if (!group) {
-      console.log("Group not found, redirecting to 404")
+      console.log('Group not found, redirecting to 404')
       notFound()
     }
 
     // Get group image URLs
-    let groupImageUrl = group.cover_image_url || "/placeholder.svg?height=200&width=200"
-    
-    let coverImageUrl = group.cover_image_url || "/placeholder.svg?height=400&width=1200"
+    const groupImageUrl = group.cover_image_url || '/placeholder.svg?height=200&width=200'
+
+    const coverImageUrl = group.cover_image_url || '/placeholder.svg?height=400&width=1200'
 
     // Fetch related data
-    const [members, books, discussions, activities, { followers, count: followersCount }] = await Promise.all([
-      getGroupMembers(id),
-      getGroupBooks(id),
-      getGroupDiscussions(id),
-      getGroupActivities(id),
-      getGroupFollowers(id)
-    ])
+    const [members, books, discussions, activities, { followers, count: followersCount }] =
+      await Promise.all([
+        getGroupMembers(id),
+        getGroupBooks(id),
+        getGroupDiscussions(id),
+        getGroupActivities(id),
+        getGroupFollowers(id),
+      ])
 
     // Get current user for permissions
-    const { data: { user } } = await supabase.auth.getUser()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
     return (
       <ClientGroupPage
@@ -334,10 +395,10 @@ export default async function GroupPage({ params }: GroupPageProps) {
       />
     )
   } catch (error) {
-    console.error("Error in GroupPage:", error)
-    console.error("Error details:", {
-      message: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : undefined
+    console.error('Error in GroupPage:', error)
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
     })
     return <div>Error loading group. Please try again later.</div>
   }

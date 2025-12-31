@@ -9,13 +9,13 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { CheckCircle, AlertCircle, Loader2, Link, Copy } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import { 
-  validatePermalinkFormat, 
-  checkPermalinkAvailability, 
+import {
+  validatePermalinkFormat,
+  checkPermalinkAvailability,
   updateEntityPermalink,
   generatePermalink,
   generatePermalinkAPI,
-  type EntityType 
+  type EntityType,
 } from '@/lib/permalink-utils'
 
 interface PermalinkSettingsProps {
@@ -31,7 +31,7 @@ export function PermalinkSettings({
   entityType,
   currentPermalink,
   entityName,
-  className = ''
+  className = '',
 }: PermalinkSettingsProps) {
   const [permalink, setPermalink] = useState(currentPermalink || '')
   const [isChecking, setIsChecking] = useState(false)
@@ -96,17 +96,17 @@ export function PermalinkSettings({
         setPermalink(result.permalink)
       } else {
         toast({
-          title: "Generation failed",
-          description: result.error || "Failed to generate permalink",
-          variant: "destructive"
+          title: 'Generation failed',
+          description: result.error || 'Failed to generate permalink',
+          variant: 'destructive',
         })
       }
     } catch (error) {
       console.error('Error generating permalink:', error)
       toast({
-        title: "Generation failed",
-        description: "An unexpected error occurred",
-        variant: "destructive"
+        title: 'Generation failed',
+        description: 'An unexpected error occurred',
+        variant: 'destructive',
       })
     } finally {
       setIsChecking(false)
@@ -119,32 +119,32 @@ export function PermalinkSettings({
     }
 
     setIsUpdating(true)
-    
+
     try {
       const result = await updateEntityPermalink(entityId, entityType, permalink)
-      
+
       if (result.success) {
         toast({
-          title: "Permalink updated",
+          title: 'Permalink updated',
           description: `Your permalink has been updated to "${permalink}"`,
         })
-        
+
         // Update the URL to reflect the new permalink
         const newUrl = `/${entityType}s/${permalink}`
         window.history.replaceState({}, '', newUrl)
       } else {
         toast({
-          title: "Update failed",
-          description: result.error || "Failed to update permalink",
-          variant: "destructive"
+          title: 'Update failed',
+          description: result.error || 'Failed to update permalink',
+          variant: 'destructive',
         })
       }
     } catch (error) {
       console.error('Error updating permalink:', error)
       toast({
-        title: "Update failed",
-        description: "An unexpected error occurred",
-        variant: "destructive"
+        title: 'Update failed',
+        description: 'An unexpected error occurred',
+        variant: 'destructive',
       })
     } finally {
       setIsUpdating(false)
@@ -155,8 +155,8 @@ export function PermalinkSettings({
     const url = `${window.location.origin}/${entityType}s/${permalink}`
     navigator.clipboard.writeText(url)
     toast({
-      title: "Copied!",
-      description: "Permalink URL copied to clipboard",
+      title: 'Copied!',
+      description: 'Permalink URL copied to clipboard',
     })
   }
 
@@ -164,47 +164,48 @@ export function PermalinkSettings({
     if (isChecking) {
       return <Loader2 className="h-4 w-4 animate-spin" />
     }
-    
+
     if (!validation.isValid) {
       return <AlertCircle className="h-4 w-4 text-destructive" />
     }
-    
+
     if (!availability.isAvailable) {
       return <AlertCircle className="h-4 w-4 text-destructive" />
     }
-    
+
     return <CheckCircle className="h-4 w-4 text-green-600" />
   }
 
   const getStatusText = () => {
     if (isChecking) {
-      return "Checking availability..."
+      return 'Checking availability...'
     }
-    
+
     if (!validation.isValid) {
-      return validation.error || "Invalid format"
+      return validation.error || 'Invalid format'
     }
-    
+
     if (!availability.isAvailable) {
-      return availability.error || "Already taken"
+      return availability.error || 'Already taken'
     }
-    
-    return "Available"
+
+    return 'Available'
   }
 
   const getStatusColor = () => {
     if (isChecking) {
-      return "text-muted-foreground"
+      return 'text-muted-foreground'
     }
-    
+
     if (!validation.isValid || !availability.isAvailable) {
-      return "text-destructive"
+      return 'text-destructive'
     }
-    
-    return "text-green-600"
+
+    return 'text-green-600'
   }
 
-  const isUpdateDisabled = !permalink || !validation.isValid || !availability.isAvailable || isChecking || isUpdating
+  const isUpdateDisabled =
+    !permalink || !validation.isValid || !availability.isAvailable || isChecking || isUpdating
 
   return (
     <Card className={className}>
@@ -235,11 +236,7 @@ export function PermalinkSettings({
               onClick={handleGeneratePermalink}
               disabled={!entityName || isChecking}
             >
-              {isChecking ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                "Generate"
-              )}
+              {isChecking ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Generate'}
             </Button>
           </div>
         </div>
@@ -247,9 +244,7 @@ export function PermalinkSettings({
         {/* Status and validation */}
         <div className="flex items-center gap-2">
           {getStatusIcon()}
-          <span className={`text-sm ${getStatusColor()}`}>
-            {getStatusText()}
-          </span>
+          <span className={`text-sm ${getStatusColor()}`}>{getStatusText()}</span>
         </div>
 
         {/* Suggestions */}
@@ -293,11 +288,7 @@ export function PermalinkSettings({
         )}
 
         {/* Update button */}
-        <Button
-          onClick={handleUpdatePermalink}
-          disabled={isUpdateDisabled}
-          className="w-full"
-        >
+        <Button onClick={handleUpdatePermalink} disabled={isUpdateDisabled} className="w-full">
           {isUpdating ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -315,11 +306,11 @@ export function PermalinkSettings({
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Permalinks can only contain lowercase letters, numbers, and hyphens. 
-            They must be between 3 and 100 characters long.
+            Permalinks can only contain lowercase letters, numbers, and hyphens. They must be
+            between 3 and 100 characters long.
           </AlertDescription>
         </Alert>
       </CardContent>
     </Card>
   )
-} 
+}

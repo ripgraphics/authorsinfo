@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -6,16 +6,28 @@ import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { PrivacyService } from '@/lib/privacy-service'
 import type { PrivacyLevel } from '@/types/privacy'
-import { Shield, Users, UserCheck, Eye, EyeOff, Lock, Globe, Settings } from 'lucide-react'
+import { Shield, Users, UserCheck, Lock, Globe } from 'lucide-react'
 
 interface PrivacySelectorProps {
   currentPrivacyLevel?: PrivacyLevel
-  onPrivacyChange: (privacyLevel: PrivacyLevel, allowFriends?: boolean, allowFollowers?: boolean) => void
+  onPrivacyChange: (
+    privacyLevel: PrivacyLevel,
+    allowFriends?: boolean,
+    allowFollowers?: boolean
+  ) => void
   disabled?: boolean
   className?: string
 }
@@ -27,7 +39,7 @@ const privacyOptions = [
     description: 'Only you can see this book',
     icon: Lock,
     color: 'text-gray-600',
-    bgColor: 'bg-gray-100'
+    bgColor: 'bg-gray-100',
   },
   {
     value: 'friends' as PrivacyLevel,
@@ -35,7 +47,7 @@ const privacyOptions = [
     description: 'Only your friends can see this book',
     icon: Users,
     color: 'text-blue-600',
-    bgColor: 'bg-blue-100'
+    bgColor: 'bg-blue-100',
   },
   {
     value: 'followers' as PrivacyLevel,
@@ -43,7 +55,7 @@ const privacyOptions = [
     description: 'Only your followers can see this book',
     icon: UserCheck,
     color: 'text-purple-600',
-    bgColor: 'bg-purple-100'
+    bgColor: 'bg-purple-100',
   },
   {
     value: 'public' as PrivacyLevel,
@@ -51,15 +63,15 @@ const privacyOptions = [
     description: 'Anyone can see this book',
     icon: Globe,
     color: 'text-green-600',
-    bgColor: 'bg-green-100'
-  }
+    bgColor: 'bg-green-100',
+  },
 ]
 
-export function PrivacySelector({ 
-  currentPrivacyLevel = 'private', 
-  onPrivacyChange, 
+export function PrivacySelector({
+  currentPrivacyLevel = 'private',
+  onPrivacyChange,
   disabled = false,
-  className 
+  className,
 }: PrivacySelectorProps) {
   const [selectedPrivacy, setSelectedPrivacy] = useState<PrivacyLevel>(currentPrivacyLevel)
   const [allowFriends, setAllowFriends] = useState(false)
@@ -68,7 +80,7 @@ export function PrivacySelector({
 
   const handlePrivacyChange = (privacyLevel: PrivacyLevel) => {
     setSelectedPrivacy(privacyLevel)
-    
+
     // Reset additional options when changing privacy level
     if (privacyLevel !== 'friends') {
       setAllowFriends(false)
@@ -84,7 +96,9 @@ export function PrivacySelector({
   }
 
   const getCurrentPrivacyOption = () => {
-    return privacyOptions.find(option => option.value === currentPrivacyLevel) || privacyOptions[0]
+    return (
+      privacyOptions.find((option) => option.value === currentPrivacyLevel) || privacyOptions[0]
+    )
   }
 
   const currentOption = getCurrentPrivacyOption()
@@ -93,9 +107,9 @@ export function PrivacySelector({
     <div className={className}>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             disabled={disabled}
             className="flex items-center gap-2"
           >
@@ -113,7 +127,7 @@ export function PrivacySelector({
               Control who can see this book in your reading list
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <RadioGroup value={selectedPrivacy} onValueChange={handlePrivacyChange}>
               {privacyOptions.map((option) => {
@@ -121,8 +135,8 @@ export function PrivacySelector({
                 return (
                   <div key={option.value} className="flex items-center space-x-3">
                     <RadioGroupItem value={option.value} id={option.value} />
-                    <Label 
-                      htmlFor={option.value} 
+                    <Label
+                      htmlFor={option.value}
                       className="flex items-center gap-3 flex-1 cursor-pointer p-3 rounded-lg border hover:bg-muted/50"
                     >
                       <div className={`p-2 rounded-full ${option.bgColor}`}>
@@ -150,10 +164,7 @@ export function PrivacySelector({
                       Let your friends see this book in your reading list
                     </p>
                   </div>
-                  <Switch
-                    checked={allowFriends}
-                    onCheckedChange={setAllowFriends}
-                  />
+                  <Switch checked={allowFriends} onCheckedChange={setAllowFriends} />
                 </div>
               </div>
             )}
@@ -167,10 +178,7 @@ export function PrivacySelector({
                       Let your followers see this book in your reading list
                     </p>
                   </div>
-                  <Switch
-                    checked={allowFollowers}
-                    onCheckedChange={setAllowFollowers}
-                  />
+                  <Switch checked={allowFollowers} onCheckedChange={setAllowFollowers} />
                 </div>
               </div>
             )}
@@ -181,7 +189,9 @@ export function PrivacySelector({
                 <div className="flex items-start gap-2">
                   <Shield className="h-4 w-4 mt-0.5 text-muted-foreground" />
                   <div className="text-sm">
-                    <p className="font-medium">{PrivacyService.getPrivacyLevelDisplayName(selectedPrivacy)}</p>
+                    <p className="font-medium">
+                      {PrivacyService.getPrivacyLevelDisplayName(selectedPrivacy)}
+                    </p>
                     <p className="text-muted-foreground">
                       {PrivacyService.getPrivacyLevelDescription(selectedPrivacy)}
                     </p>
@@ -195,12 +205,10 @@ export function PrivacySelector({
             <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSave}>
-              Save Privacy Settings
-            </Button>
+            <Button onClick={handleSave}>Save Privacy Settings</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   )
-} 
+}

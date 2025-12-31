@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import Image from 'next/image'
 
 interface Photo {
   id: string
@@ -72,33 +72,33 @@ interface SophisticatedPhotoGridProps {
 export function SophisticatedPhotoGrid({
   photos,
   onPhotoClick,
-  onPhotoLike,
-  onPhotoComment,
-  onPhotoShare,
-  onPhotoDownload,
+  onPhotoLike: _onPhotoLike,
+  onPhotoComment: _onPhotoComment,
+  onPhotoShare: _onPhotoShare,
+  onPhotoDownload: _onPhotoDownload,
   className = '',
-  maxHeight = '70vh',
-  showActions = true,
-  showStats = true
+  maxHeight: _maxHeight = '70vh',
+  showActions: _showActions = true,
+  showStats: _showStats = true,
 }: SophisticatedPhotoGridProps) {
-
   // Handle different image counts with flexbox layout
   if (photos.length === 1) {
     return (
-      <div 
-        className={`${className} w-full min-h-fit`} 
-        style={{ 
+      <div
+        className={`${className} w-full min-h-fit`}
+        style={{
           maxHeight: 'none',
           height: 'auto',
-          overflow: 'visible'
+          overflow: 'visible',
         }}
       >
-        <div className="w-full">
-          <img
+        <div className="relative w-full h-[600px]">
+          <Image
             src={photos[0].thumbnail_url || photos[0].url}
             alt={photos[0].alt_text || photos[0].description || 'Photo 1'}
-            className="w-full max-h-[1200px] object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-            loading="lazy"
+            fill
+            className="object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+            sizes="100vw"
             onClick={() => onPhotoClick?.(photos[0], 0)}
           />
         </div>
@@ -108,30 +108,32 @@ export function SophisticatedPhotoGrid({
 
   if (photos.length === 2) {
     return (
-      <div 
-        className={`${className} w-full min-h-fit`} 
-        style={{ 
+      <div
+        className={`${className} w-full min-h-fit`}
+        style={{
           maxHeight: 'none',
           height: 'auto',
-          overflow: 'visible'
+          overflow: 'visible',
         }}
       >
         <div className="flex gap-1 w-full">
-          <div className="flex-1">
-            <img
+          <div className="relative flex-1 h-64">
+            <Image
               src={photos[0].thumbnail_url || photos[0].url}
               alt={photos[0].alt_text || photos[0].description || 'Photo 1'}
-              className="w-full h-64 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-              loading="lazy"
+              fill
+              className="object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+              sizes="50vw"
               onClick={() => onPhotoClick?.(photos[0], 0)}
             />
           </div>
-          <div className="flex-1">
-            <img
+          <div className="relative flex-1 h-64">
+            <Image
               src={photos[1].thumbnail_url || photos[1].url}
               alt={photos[1].alt_text || photos[1].description || 'Photo 2'}
-              className="w-full h-64 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-              loading="lazy"
+              fill
+              className="object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+              sizes="50vw"
               onClick={() => onPhotoClick?.(photos[1], 1)}
             />
           </div>
@@ -142,43 +144,46 @@ export function SophisticatedPhotoGrid({
 
   if (photos.length === 3) {
     return (
-      <div 
-        className={`${className} w-full min-h-fit`} 
-        style={{ 
+      <div
+        className={`${className} w-full min-h-fit`}
+        style={{
           maxHeight: 'none',
           height: 'auto',
-          overflow: 'visible'
+          overflow: 'visible',
         }}
       >
         <div className="flex gap-1 w-full">
           <div className="w-2/3">
-            <div className="aspect-square w-full">
-              <img
+            <div className="relative aspect-square w-full">
+              <Image
                 src={photos[0].thumbnail_url || photos[0].url}
                 alt={photos[0].alt_text || photos[0].description || 'Photo 1'}
-                className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                loading="lazy"
+                fill
+                className="object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                sizes="(max-width: 768px) 66vw, 40vw"
                 onClick={() => onPhotoClick?.(photos[0], 0)}
               />
             </div>
           </div>
           <div className="w-1/3">
             <div className="grid grid-rows-2 gap-1 h-full">
-              <div className="aspect-square">
-                <img
+              <div className="relative aspect-square">
+                <Image
                   src={photos[1].thumbnail_url || photos[1].url}
                   alt={photos[1].alt_text || photos[1].description || 'Photo 2'}
-                  className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                  loading="lazy"
+                  fill
+                  className="object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                  sizes="(max-width: 768px) 33vw, 20vw"
                   onClick={() => onPhotoClick?.(photos[1], 1)}
                 />
               </div>
-              <div className="aspect-square">
-                <img
+              <div className="relative aspect-square">
+                <Image
                   src={photos[2].thumbnail_url || photos[2].url}
                   alt={photos[2].alt_text || photos[2].description || 'Photo 3'}
-                  className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                  loading="lazy"
+                  fill
+                  className="object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                  sizes="(max-width: 768px) 33vw, 20vw"
                   onClick={() => onPhotoClick?.(photos[2], 2)}
                 />
               </div>
@@ -191,22 +196,23 @@ export function SophisticatedPhotoGrid({
 
   if (photos.length === 4) {
     return (
-      <div 
-        className={`${className} w-full min-h-fit`} 
-        style={{ 
+      <div
+        className={`${className} w-full min-h-fit`}
+        style={{
           maxHeight: 'none',
           height: 'auto',
-          overflow: 'visible'
+          overflow: 'visible',
         }}
       >
         <div className="grid grid-cols-2 gap-1 w-full">
           {photos.map((photo, index) => (
-            <div key={photo.id} className="aspect-square">
-              <img
+            <div key={photo.id} className="relative aspect-square">
+              <Image
                 src={photo.thumbnail_url || photo.url}
                 alt={photo.alt_text || photo.description || `Photo ${index + 1}`}
-                className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                loading="lazy"
+                fill
+                className="object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                sizes="(max-width: 768px) 50vw, 33vw"
                 onClick={() => onPhotoClick?.(photo, index)}
               />
             </div>
@@ -218,68 +224,73 @@ export function SophisticatedPhotoGrid({
 
   if (photos.length === 5) {
     return (
-      <div 
-        className={`${className} w-full min-h-fit`} 
-        style={{ 
+      <div
+        className={`${className} w-full min-h-fit`}
+        style={{
           maxHeight: 'none',
           height: 'auto',
-          overflow: 'visible'
+          overflow: 'visible',
         }}
       >
         {/* Top row - 3 images using same approach as 3-image layout */}
         <div className="flex gap-1 mb-1 w-full">
           <div className="w-2/3">
-            <div className="aspect-square w-full">
-              <img
+            <div className="relative aspect-square w-full">
+              <Image
                 src={photos[0].thumbnail_url || photos[0].url}
                 alt={photos[0].alt_text || photos[0].description || 'Photo 1'}
-                className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                loading="lazy"
+                fill
+                className="object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                sizes="(max-width: 768px) 66vw, 40vw"
                 onClick={() => onPhotoClick?.(photos[0], 0)}
               />
             </div>
           </div>
           <div className="w-1/3">
             <div className="grid grid-rows-2 gap-1 h-full">
-              <div className="aspect-square">
-                <img
+              <div className="relative aspect-square">
+                <Image
                   src={photos[1].thumbnail_url || photos[1].url}
                   alt={photos[1].alt_text || photos[1].description || 'Photo 2'}
-                  className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                  loading="lazy"
+                  fill
+                  className="object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                  sizes="(max-width: 768px) 33vw, 20vw"
                   onClick={() => onPhotoClick?.(photos[1], 1)}
                 />
               </div>
-              <div className="aspect-square">
-                <img
+              <div className="relative aspect-square">
+                <Image
                   src={photos[2].thumbnail_url || photos[2].url}
                   alt={photos[2].alt_text || photos[2].description || 'Photo 3'}
-                  className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                  loading="lazy"
+                  fill
+                  className="object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                  sizes="(max-width: 768px) 33vw, 20vw"
                   onClick={() => onPhotoClick?.(photos[2], 2)}
                 />
               </div>
             </div>
           </div>
         </div>
-        
+
         {/* Bottom row - 2 equal squares */}
         <div className="grid grid-cols-2 gap-1 w-full">
-          <div className="aspect-square w-full">
-            <img
+          <div className="relative aspect-square w-full">
+            <Image
               src={photos[3].thumbnail_url || photos[3].url}
               alt={photos[3].alt_text || photos[3].description || 'Photo 4'}
-              className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-              loading="lazy"
+              fill
+              className="object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+              sizes="(max-width: 768px) 50vw, 33vw"
               onClick={() => onPhotoClick?.(photos[3], 3)}
             />
           </div>
-          <div className="aspect-square w-full">
-            <img
+          <div className="relative aspect-square w-full">
+            <Image
               src={photos[4].thumbnail_url || photos[4].url}
               alt={photos[4].alt_text || photos[4].description || 'Photo 5'}
-              className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-              loading="lazy"
+              fill
+              className="object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+              sizes="(max-width: 768px) 50vw, 33vw"
               onClick={() => onPhotoClick?.(photos[4], 4)}
             />
           </div>
@@ -290,82 +301,88 @@ export function SophisticatedPhotoGrid({
 
   if (photos.length === 6) {
     return (
-      <div 
-        className={`${className} w-full min-h-fit`} 
-        style={{ 
+      <div
+        className={`${className} w-full min-h-fit`}
+        style={{
           maxHeight: 'none',
           height: 'auto',
-          overflow: 'visible'
+          overflow: 'visible',
         }}
       >
         {/* Top row - 3 images using same approach as 3-image layout */}
         <div className="flex gap-1 mb-1 w-full">
           <div className="w-2/3">
-            <div className="aspect-square w-full">
-              <img
+            <div className="relative aspect-square w-full">
+              <Image
                 src={photos[0].thumbnail_url || photos[0].url}
                 alt={photos[0].alt_text || photos[0].description || 'Photo 1'}
-                className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                loading="lazy"
+                fill
+                className="object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                sizes="(max-width: 768px) 66vw, 40vw"
                 onClick={() => onPhotoClick?.(photos[0], 0)}
               />
             </div>
           </div>
           <div className="w-1/3">
             <div className="grid grid-rows-2 gap-1 h-full">
-              <div className="aspect-square">
-                <img
+              <div className="relative aspect-square">
+                <Image
                   src={photos[1].thumbnail_url || photos[1].url}
                   alt={photos[1].alt_text || photos[1].description || 'Photo 2'}
-                  className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                  loading="lazy"
+                  fill
+                  className="object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                  sizes="(max-width: 768px) 33vw, 20vw"
                   onClick={() => onPhotoClick?.(photos[1], 1)}
                 />
               </div>
-              <div className="aspect-square">
-                <img
+              <div className="relative aspect-square">
+                <Image
                   src={photos[2].thumbnail_url || photos[2].url}
                   alt={photos[2].alt_text || photos[2].description || 'Photo 3'}
-                  className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                  loading="lazy"
+                  fill
+                  className="object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                  sizes="(max-width: 768px) 33vw, 20vw"
                   onClick={() => onPhotoClick?.(photos[2], 2)}
                 />
               </div>
             </div>
           </div>
         </div>
-        
+
         {/* Bottom row - 3 images mirrored (Images 4-6) */}
         <div className="flex gap-1 w-full">
           <div className="w-1/3">
             <div className="grid grid-rows-2 gap-1 h-full">
-              <div className="aspect-square">
-                <img
+              <div className="relative aspect-square">
+                <Image
                   src={photos[3].thumbnail_url || photos[3].url}
                   alt={photos[3].alt_text || photos[3].description || 'Photo 4'}
-                  className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                  loading="lazy"
+                  fill
+                  className="object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                  sizes="(max-width: 768px) 33vw, 20vw"
                   onClick={() => onPhotoClick?.(photos[3], 3)}
                 />
               </div>
-              <div className="aspect-square">
-                <img
+              <div className="relative aspect-square">
+                <Image
                   src={photos[4].thumbnail_url || photos[4].url}
                   alt={photos[4].alt_text || photos[4].description || 'Photo 5'}
-                  className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                  loading="lazy"
+                  fill
+                  className="object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                  sizes="(max-width: 768px) 33vw, 20vw"
                   onClick={() => onPhotoClick?.(photos[4], 4)}
                 />
               </div>
             </div>
           </div>
           <div className="w-2/3">
-            <div className="aspect-square w-full">
-              <img
+            <div className="relative aspect-square w-full">
+              <Image
                 src={photos[5].thumbnail_url || photos[5].url}
                 alt={photos[5].alt_text || photos[5].description || 'Photo 6'}
-                className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                loading="lazy"
+                fill
+                className="object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                sizes="(max-width: 768px) 66vw, 40vw"
                 onClick={() => onPhotoClick?.(photos[5], 5)}
               />
             </div>
@@ -377,92 +394,98 @@ export function SophisticatedPhotoGrid({
 
   if (photos.length >= 7) {
     return (
-      <div 
-        className={`${className} w-full min-h-fit`} 
-        style={{ 
+      <div
+        className={`${className} w-full min-h-fit`}
+        style={{
           maxHeight: 'none',
           height: 'auto',
-          overflow: 'visible'
+          overflow: 'visible',
         }}
       >
         {/* Show first 6 images using the 6-image layout */}
         <div className="flex gap-1 mb-1 w-full">
           <div className="w-2/3">
-            <div className="aspect-square w-full">
-              <img
+            <div className="relative aspect-square w-full">
+              <Image
                 src={photos[0].thumbnail_url || photos[0].url}
                 alt={photos[0].alt_text || photos[0].description || 'Photo 1'}
-                className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                loading="lazy"
+                fill
+                className="object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                sizes="(max-width: 768px) 66vw, 40vw"
                 onClick={() => onPhotoClick?.(photos[0], 0)}
               />
             </div>
           </div>
           <div className="w-1/3">
             <div className="grid grid-rows-2 gap-1 h-full">
-              <div className="aspect-square">
-                <img
+              <div className="relative aspect-square">
+                <Image
                   src={photos[1].thumbnail_url || photos[1].url}
                   alt={photos[1].alt_text || photos[1].description || 'Photo 2'}
-                  className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                  loading="lazy"
+                  fill
+                  className="object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                  sizes="(max-width: 768px) 33vw, 20vw"
                   onClick={() => onPhotoClick?.(photos[1], 1)}
                 />
               </div>
-              <div className="aspect-square">
-                <img
+              <div className="relative aspect-square">
+                <Image
                   src={photos[2].thumbnail_url || photos[2].url}
                   alt={photos[2].alt_text || photos[2].description || 'Photo 3'}
-                  className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                  loading="lazy"
+                  fill
+                  className="object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                  sizes="(max-width: 768px) 33vw, 20vw"
                   onClick={() => onPhotoClick?.(photos[2], 2)}
                 />
               </div>
             </div>
           </div>
         </div>
-        
+
         {/* Bottom row - 3 images mirrored (Images 4-6) */}
         <div className="flex gap-1 w-full">
           <div className="w-1/3">
             <div className="grid grid-rows-2 gap-1 h-full">
-              <div className="aspect-square">
-                <img
+              <div className="relative aspect-square">
+                <Image
                   src={photos[3].thumbnail_url || photos[3].url}
                   alt={photos[3].alt_text || photos[3].description || 'Photo 4'}
-                  className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                  loading="lazy"
+                  fill
+                  className="object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                  sizes="(max-width: 768px) 33vw, 20vw"
                   onClick={() => onPhotoClick?.(photos[3], 3)}
                 />
               </div>
-              <div className="aspect-square">
-                <img
+              <div className="relative aspect-square">
+                <Image
                   src={photos[4].thumbnail_url || photos[4].url}
                   alt={photos[4].alt_text || photos[4].description || 'Photo 5'}
-                  className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                  loading="lazy"
+                  fill
+                  className="object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                  sizes="(max-width: 768px) 33vw, 20vw"
                   onClick={() => onPhotoClick?.(photos[4], 4)}
                 />
               </div>
             </div>
           </div>
           <div className="w-2/3">
-            <div className="aspect-square w-full">
-              <img
+            <div className="relative aspect-square w-full">
+              <Image
                 src={photos[5].thumbnail_url || photos[5].url}
                 alt={photos[5].alt_text || photos[5].description || 'Photo 6'}
-                className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                loading="lazy"
+                fill
+                className="object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                sizes="(max-width: 768px) 66vw, 40vw"
                 onClick={() => onPhotoClick?.(photos[5], 5)}
               />
             </div>
           </div>
         </div>
-        
+
         {/* Show "View X more" button for 7+ photos */}
         {photos.length > 6 && (
           <div className="mt-2 text-center">
-            <button 
+            <button
               className="w-full px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
               onClick={() => {
                 // TODO: Navigate to album view

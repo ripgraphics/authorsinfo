@@ -28,15 +28,24 @@ export default function PostEditor({
   entityType = 'user',
   entityId,
   isEditing = false,
-  existingPost
+  existingPost,
 }: PostEditorProps) {
   const { user } = useAuth()
-  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  
-  const [content, setContent] = useState(initialData?.content?.text || existingPost?.content?.text || '')
-  const [hashtags, setHashtags] = useState<string[]>(initialData?.content?.hashtags || existingPost?.content?.hashtags || [])
-  const [visibility, setVisibility] = useState<PostVisibility>(initialData?.visibility || existingPost?.visibility || 'public')
+
+  const [content, setContent] = useState(
+    initialData?.content?.text || existingPost?.content?.text || ''
+  )
+  const [hashtags, setHashtags] = useState<string[]>(
+    initialData?.content?.hashtags || existingPost?.content?.hashtags || []
+  )
+  const [visibility, setVisibility] = useState<PostVisibility>(
+    initialData?.visibility || existingPost?.visibility || 'public'
+  )
   const [isSubmitting, setSubmitting] = useState(false)
   const [errors, setErrors] = useState<string[]>([])
   const [charCount, setCharCount] = useState(0)
@@ -48,41 +57,36 @@ export default function PostEditor({
 
   const handleSubmit = useCallback(async () => {
     if (!user || !content.trim()) return
-    
+
     setSubmitting(true)
     setErrors([])
-    
+
     try {
       const postData: any = {
         user_id: user.id,
-        text: content,  // Store text directly in the text column
+        text: content, // Store text directly in the text column
         data: {
           type: 'text',
-          hashtags: hashtags
+          hashtags: hashtags,
         },
         visibility: visibility,
         content_type: 'text',
         publish_status: 'published',
         entity_type: entityType,
-        entity_id: entityId
+        entity_id: entityId,
       }
-      
-      const { data, error } = await supabase
-        .from('activities')
-        .insert(postData)
-        .select()
-        .single()
-      
+
+      const { data, error } = await supabase.from('activities').insert(postData).select().single()
+
       if (error) throw error
-      
+
       if (onPostCreated && data) {
         onPostCreated(data)
       }
-      
+
       // Reset form
       setContent('')
       setHashtags([])
-      
     } catch (error) {
       console.error('Error creating post:', error)
       setErrors(['Failed to create post'])
@@ -91,15 +95,21 @@ export default function PostEditor({
     }
   }, [user, content, hashtags, visibility, entityType, entityId, onPostCreated, supabase])
 
-  const addHashtag = useCallback((tag: string) => {
-    if (tag && !hashtags.includes(tag)) {
-      setHashtags([...hashtags, tag])
-    }
-  }, [hashtags])
+  const addHashtag = useCallback(
+    (tag: string) => {
+      if (tag && !hashtags.includes(tag)) {
+        setHashtags([...hashtags, tag])
+      }
+    },
+    [hashtags]
+  )
 
-  const removeHashtag = useCallback((tagToRemove: string) => {
-    setHashtags(hashtags.filter(tag => tag !== tagToRemove))
-  }, [hashtags])
+  const removeHashtag = useCallback(
+    (tagToRemove: string) => {
+      setHashtags(hashtags.filter((tag) => tag !== tagToRemove))
+    },
+    [hashtags]
+  )
 
   if (!user) {
     return (
@@ -123,12 +133,14 @@ export default function PostEditor({
           )}
         </CardTitle>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         {errors.length > 0 && (
           <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
             {errors.map((error, index) => (
-              <p key={index} className="text-sm text-destructive">{error}</p>
+              <p key={index} className="text-sm text-destructive">
+                {error}
+              </p>
             ))}
           </div>
         )}
@@ -142,9 +154,11 @@ export default function PostEditor({
             className="min-h-[120px]"
             maxLength={maxChars}
           />
-          
+
           <div className="flex justify-between items-center text-sm text-muted-foreground">
-            <span>{charCount} / {maxChars} characters</span>
+            <span>
+              {charCount} / {maxChars} characters
+            </span>
           </div>
         </div>
 
@@ -154,10 +168,7 @@ export default function PostEditor({
             {hashtags.map((tag, index) => (
               <Badge key={index} variant="secondary" className="cursor-pointer">
                 #{tag}
-                <button
-                  onClick={() => removeHashtag(tag)}
-                  className="ml-1 hover:text-destructive"
-                >
+                <button onClick={() => removeHashtag(tag)} className="ml-1 hover:text-destructive">
                   <X className="h-3 w-3" />
                 </button>
               </Badge>
@@ -193,18 +204,11 @@ export default function PostEditor({
         </div>
 
         <div className="flex items-center justify-between pt-4 border-t">
-          <Button
-            variant="outline"
-            onClick={onCancel}
-            disabled={isSubmitting}
-          >
+          <Button variant="outline" onClick={onCancel} disabled={isSubmitting}>
             Cancel
           </Button>
-          
-          <Button
-            onClick={handleSubmit}
-            disabled={isSubmitting || !content.trim()}
-          >
+
+          <Button onClick={handleSubmit} disabled={isSubmitting || !content.trim()}>
             <Send className="h-4 w-4 mr-2" />
             {isEditing ? 'Update Post' : 'Post'}
           </Button>

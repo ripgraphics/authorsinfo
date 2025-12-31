@@ -10,4 +10,4 @@ export async function GET() {
     console.error('Error importing all books:', error)
     return NextResponse.json({ error: String(error) }, { status: 500 })
   }
-} 
+}

@@ -61,9 +61,12 @@ export async function createActivity(params: CreateActivityParams): Promise<{
 }> {
   try {
     const supabase = await createServerActionClientAsync()
-    
+
     // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
     if (authError || !user) {
       return { success: false, error: 'Authentication required' }
     }
@@ -78,15 +81,15 @@ export async function createActivity(params: CreateActivityParams): Promise<{
       .from('activities')
       .insert({
         user_id: user.id,
-        activity_type: params.activity_type,     
+        activity_type: params.activity_type,
         entity_type: params.entity_type || 'unknown',
-        entity_id: params.entity_id || null,     
-        is_public: params.is_public ?? true,   
+        entity_id: params.entity_id || null,
+        is_public: params.is_public ?? true,
         metadata: params.metadata || {},
-        group_id: params.group_id || null,       
+        group_id: params.group_id || null,
         book_id: params.book_id || null,
         author_id: params.author_id || null,
-        event_id: params.event_id || null
+        event_id: params.event_id || null,
       } as any)
       .select()
       .single()
@@ -124,20 +127,22 @@ export async function getUserFeedActivities(
 }> {
   try {
     const supabase = await createServerActionClientAsync()
-    
+
     // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
     if (authError || !user) {
       return { success: false, error: 'Authentication required' }
     }
 
     // Use the fixed database function
-    const { data, error } = await supabase      
-      .rpc('get_user_feed_activities', {      
-        p_user_id: user.id,
-        p_limit: limit,
-        p_offset: offset
-      } as any)
+    const { data, error } = await supabase.rpc('get_user_feed_activities', {
+      p_user_id: user.id,
+      p_limit: limit,
+      p_offset: offset,
+    } as any)
 
     if (error) {
       console.error('Error fetching user activities:', error)
@@ -147,10 +152,10 @@ export async function getUserFeedActivities(
     const activities = (data || []) as any[]
     const hasMore = activities.length === limit
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       activities: activities as Activity[],
-      hasMore
+      hasMore,
     }
   } catch (error) {
     console.error('Unexpected error fetching user activities:', error)
@@ -172,20 +177,22 @@ export async function getPublicFeedActivities(
 }> {
   try {
     const supabase = await createServerActionClientAsync()
-    
+
     // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
     if (authError || !user) {
       return { success: false, error: 'Authentication required' }
     }
 
     // Use the public feed function
-    const { data, error } = await supabase
-      .rpc('get_public_feed_activities', {
-        p_current_user_id: user.id,
-        p_limit: limit,
-        p_offset: offset
-      } as any)
+    const { data, error } = await supabase.rpc('get_public_feed_activities', {
+      p_current_user_id: user.id,
+      p_limit: limit,
+      p_offset: offset,
+    } as any)
 
     if (error) {
       console.error('Error fetching public activities:', error)
@@ -195,10 +202,10 @@ export async function getPublicFeedActivities(
     const activities = (data || []) as any[]
     const hasMore = activities.length === limit
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       activities: activities as Activity[],
-      hasMore
+      hasMore,
     }
   } catch (error) {
     console.error('Unexpected error fetching public activities:', error)
@@ -209,9 +216,7 @@ export async function getPublicFeedActivities(
 /**
  * Toggle like on an activity
  */
-export async function toggleActivityLike(
-  activityId: string
-): Promise<{
+export async function toggleActivityLike(activityId: string): Promise<{
   success: boolean
   result?: {
     action: string
@@ -222,19 +227,21 @@ export async function toggleActivityLike(
 }> {
   try {
     const supabase = await createServerActionClientAsync()
-    
+
     // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
     if (authError || !user) {
       return { success: false, error: 'Authentication required' }
     }
 
     // Use the database function to toggle like
-    const { data, error } = await supabase
-      .rpc('toggle_activity_like', {
-        p_activity_id: activityId,
-        p_user_id: user.id
-      } as any)
+    const { data, error } = await supabase.rpc('toggle_activity_like', {
+      p_activity_id: activityId,
+      p_user_id: user.id,
+    } as any)
 
     if (error) {
       console.error('Error toggling like:', error)
@@ -268,9 +275,12 @@ export async function addActivityComment(
 }> {
   try {
     const supabase = await createServerActionClientAsync()
-    
+
     // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
     if (authError || !user) {
       return { success: false, error: 'Authentication required' }
     }
@@ -281,12 +291,11 @@ export async function addActivityComment(
     }
 
     // Use the database function to add comment
-    const { data, error } = await supabase
-      .rpc('add_activity_comment', {
-        p_activity_id: activityId,
-        p_user_id: user.id,
-        p_comment_text: commentText.trim()
-      } as any)
+    const { data, error } = await supabase.rpc('add_activity_comment', {
+      p_activity_id: activityId,
+      p_user_id: user.id,
+      p_comment_text: commentText.trim(),
+    } as any)
 
     if (error) {
       console.error('Error adding comment:', error)
@@ -307,18 +316,19 @@ export async function addActivityComment(
 /**
  * Get engagement data for an activity (likes and comments)
  */
-export async function getActivityEngagement(
-  activityId: string
-): Promise<{
+export async function getActivityEngagement(activityId: string): Promise<{
   success: boolean
   engagement?: ActivityEngagement
   error?: string
 }> {
   try {
     const supabase = await createServerActionClientAsync()
-    
+
     // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
     if (authError || !user) {
       return { success: false, error: 'Authentication required' }
     }
@@ -326,7 +336,8 @@ export async function getActivityEngagement(
     // Get likes
     const { data: likes, error: likesError } = await supabase
       .from('activity_likes')
-      .select(`
+      .select(
+        `
         id,
         user_id,
         created_at,
@@ -335,7 +346,8 @@ export async function getActivityEngagement(
           email,
           raw_user_meta_data
         )
-      `)
+      `
+      )
       .eq('activity_id', activityId)
       .order('created_at', { ascending: false })
 
@@ -347,7 +359,8 @@ export async function getActivityEngagement(
     // Get comments
     const { data: comments, error: commentsError } = await supabase
       .from('activity_comments')
-      .select(`
+      .select(
+        `
         id,
         user_id,
         comment_text,
@@ -358,7 +371,8 @@ export async function getActivityEngagement(
           email,
           raw_user_meta_data
         )
-      `)
+      `
+      )
       .eq('activity_id', activityId)
       .eq('is_deleted', false)
       .order('created_at', { ascending: true })
@@ -372,30 +386,32 @@ export async function getActivityEngagement(
     const processedLikes = (likes || []).map((like: any) => ({
       id: like.id,
       user_id: like.user_id,
-      user_name: like.user?.raw_user_meta_data?.name || 
-                 like.user?.raw_user_meta_data?.full_name || 
-                 like.user?.email || 
-                 'Unknown User',
+      user_name:
+        like.user?.raw_user_meta_data?.name ||
+        like.user?.raw_user_meta_data?.full_name ||
+        like.user?.email ||
+        'Unknown User',
       user_avatar_url: like.user?.raw_user_meta_data?.avatar_url || '',
-      created_at: like.created_at
+      created_at: like.created_at,
     }))
 
     const processedComments = (comments || []).map((comment: any) => ({
       id: comment.id,
       user_id: comment.user_id,
-      user_name: comment.user?.raw_user_meta_data?.name || 
-                 comment.user?.raw_user_meta_data?.full_name || 
-                 comment.user?.email || 
-                 'Unknown User',
+      user_name:
+        comment.user?.raw_user_meta_data?.name ||
+        comment.user?.raw_user_meta_data?.full_name ||
+        comment.user?.email ||
+        'Unknown User',
       user_avatar_url: comment.user?.raw_user_meta_data?.avatar_url || '',
       comment_text: comment.comment_text,
       created_at: comment.created_at,
-      updated_at: comment.updated_at
+      updated_at: comment.updated_at,
     }))
 
     const engagement: ActivityEngagement = {
       likes: processedLikes,
-      comments: processedComments
+      comments: processedComments,
     }
 
     return { success: true, engagement }
@@ -412,36 +428,36 @@ export const ActivityTypes = {
   // User activities
   PROFILE_UPDATED: 'profile_updated',
   USER_JOINED: 'user_joined',
-  
+
   // Book activities
   BOOK_ADDED: 'book_added',
   BOOK_UPDATED: 'book_updated',
   BOOK_REVIEWED: 'book_reviewed',
   BOOK_RATED: 'book_rated',
   READING_PROGRESS: 'reading_progress',
-  
+
   // Author activities
   AUTHOR_CREATED: 'author_created',
   AUTHOR_UPDATED: 'author_updated',
-  
+
   // Publisher activities
   PUBLISHER_CREATED: 'publisher_created',
   PUBLISHER_UPDATED: 'publisher_updated',
-  
+
   // Group activities
   GROUP_CREATED: 'group_created',
   GROUP_JOINED: 'group_joined',
   GROUP_LEFT: 'group_left',
-  
+
   // Photo album activities
   ALBUM_CREATED: 'album_created',
   ALBUM_UPDATED: 'album_updated',
   PHOTO_ADDED: 'photo_added',
-  
+
   // Event activities
   EVENT_CREATED: 'event_created',
   EVENT_JOINED: 'event_joined',
-  EVENT_LEFT: 'event_left'
+  EVENT_LEFT: 'event_left',
 } as const
 
 /**
@@ -457,7 +473,7 @@ export async function createBookActivity(
     entity_type: 'book',
     entity_id: bookId,
     book_id: bookId,
-    metadata: metadata || {}
+    metadata: metadata || {},
   })
 }
 
@@ -474,6 +490,6 @@ export async function createGroupActivity(
     entity_type: 'group',
     entity_id: groupId,
     group_id: groupId,
-    metadata: metadata || {}
+    metadata: metadata || {},
   })
 }

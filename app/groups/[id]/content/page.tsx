@@ -1,4 +1,4 @@
-import GroupContentPageClient from "./page-client"
+import GroupContentPageClient from './page-client'
 
 export default async function GroupContentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params

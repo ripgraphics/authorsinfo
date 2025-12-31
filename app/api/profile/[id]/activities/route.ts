@@ -1,29 +1,27 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/server'
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
     const { searchParams } = new URL(request.url)
-    
+
     // Enterprise: Extract query parameters
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
     const filter = searchParams.get('filter') || 'all'
     const search = searchParams.get('search') || ''
-    
+
     // Performance: Calculate offset for pagination
     const offset = (page - 1) * limit
-    
+
     // First resolve the user ID (handle both UUID and permalink)
     let userId = id
-    
+
     // Check if the ID looks like a UUID
-    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)
-    
+    const isUUID =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)
+
     if (!isUUID) {
       // Try to find user by permalink
       const { data: user, error: userError } = await supabaseAdmin
@@ -31,22 +29,20 @@ export async function GET(
         .select('id, name, email')
         .eq('permalink', id)
         .single()
-      
+
       if (userError || !user) {
         console.error('User not found for permalink:', id, userError)
-        return NextResponse.json(
-          { error: 'User not found' },
-          { status: 404 }
-        )
+        return NextResponse.json({ error: 'User not found' }, { status: 404 })
       }
-      
+
       userId = user.id
     }
-    
+
     // Enterprise: Build optimized query with filters
     let query = supabaseAdmin
       .from('activities')
-      .select(`
+      .select(
+        `
         id,
         activity_type,
         entity_type,
@@ -54,11 +50,12 @@ export async function GET(
         data,
         created_at,
         user_id
-      `)
+      `
+      )
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
-    
+
     // Apply activity type filter
     if (filter !== 'all') {
       query = query.eq('activity_type', filter)
@@ -71,15 +68,12 @@ export async function GET(
     }
 
     const { data: activities, error, count } = await query
-    
+
     if (error) {
       console.error('Error fetching activities:', error)
-      return NextResponse.json(
-        { error: 'Failed to fetch activities' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Failed to fetch activities' }, { status: 500 })
     }
-    
+
     // Ensure activities is not null
     if (!activities) {
       return NextResponse.json({
@@ -95,8 +89,8 @@ export async function GET(
           top_activity_type: 'book_added',
           average_engagement: 0,
           revenue_generated: 0,
-          growth_rate: 0
-        }
+          growth_rate: 0,
+        },
       })
     }
 
@@ -104,7 +98,7 @@ export async function GET(
     const enhancedActivities = await Promise.all(
       activities.map(async (activity) => {
         let entityDetails = null
-        
+
         try {
           // Only fetch entity details if entity_type and entity_id are present
           if (activity.entity_type && activity.entity_id) {
@@ -113,16 +107,18 @@ export async function GET(
               case 'book':
                 const { data: book } = await supabaseAdmin
                   .from('books')
-                  .select(`
+                  .select(
+                    `
                     id, 
                     title, 
                     synopsis,
                     author_id,
                     cover_image_id
-                  `)
+                  `
+                  )
                   .eq('id', activity.entity_id)
                   .single()
-                
+
                 if (book) {
                   // Get author details if available
                   let authorDetails = null
@@ -134,7 +130,7 @@ export async function GET(
                       .single()
                     authorDetails = author
                   }
-                  
+
                   // Get cover image if available
                   let coverImage = null
                   if (book.cover_image_id) {
@@ -145,15 +141,15 @@ export async function GET(
                       .single()
                     coverImage = image
                   }
-                  
+
                   entityDetails = {
                     ...book,
                     cover_image: coverImage,
-                    author: authorDetails
+                    author: authorDetails,
                   }
                 }
                 break
-                
+
               case 'author':
                 const { data: author } = await supabaseAdmin
                   .from('authors')
@@ -162,7 +158,7 @@ export async function GET(
                   .single()
                 entityDetails = author
                 break
-                
+
               case 'publisher':
                 const { data: publisher } = await supabaseAdmin
                   .from('publishers')
@@ -171,7 +167,7 @@ export async function GET(
                   .single()
                 entityDetails = publisher
                 break
-                
+
               case 'user':
                 const { data: user } = await supabaseAdmin
                   .from('users')
@@ -180,7 +176,7 @@ export async function GET(
                   .single()
                 entityDetails = user
                 break
-                
+
               case 'group':
                 const { data: group } = await supabaseAdmin
                   .from('groups')
@@ -200,10 +196,11 @@ export async function GET(
         let postContent = null
         if (activity.activity_type === 'post_created' && activity.data) {
           // Try to get content from multiple possible fields
-          postContent = activity.data.content || 
-                       activity.data.text || 
-                       activity.data.content_summary || 
-                       'No content available'
+          postContent =
+            activity.data.content ||
+            activity.data.text ||
+            activity.data.content_summary ||
+            'No content available'
         }
 
         return {
@@ -213,17 +210,17 @@ export async function GET(
           metadata: {
             engagement_count: 0,
             is_premium: false,
-            privacy_level: 'public'
-          }
+            privacy_level: 'public',
+          },
         }
       })
     )
 
     // Enterprise: Calculate analytics
     const analytics = await calculateTimelineAnalytics(userId)
-    
+
     // Enterprise: Determine if there are more activities
-    const hasMore = count ? (offset + limit) < count : false
+    const hasMore = count ? offset + limit < count : false
 
     const response = {
       success: true,
@@ -232,17 +229,13 @@ export async function GET(
       total_count: count,
       page,
       limit,
-      analytics
+      analytics,
     }
-    
-    return NextResponse.json(response)
 
+    return NextResponse.json(response)
   } catch (error) {
     console.error('Error in profile activities API:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
@@ -268,12 +261,13 @@ async function calculateTimelineAnalytics(userId: string) {
     // Calculate engagement metrics (simplified without metadata)
     const recentActivitiesCount = recentActivities?.length || 0
     const totalEngagement = recentActivitiesCount * 2 // Simulated engagement
-    
+
     // Engagement calculation based on activity count
-    const engagementRate = recentActivitiesCount > 0 
-      ? Math.min(Math.round((totalEngagement / recentActivitiesCount) * 10), 100)
-      : 0
-    
+    const engagementRate =
+      recentActivitiesCount > 0
+        ? Math.min(Math.round((totalEngagement / recentActivitiesCount) * 10), 100)
+        : 0
+
     // Get top activity type
     const { data: activityTypes } = await supabaseAdmin
       .from('activities')
@@ -281,43 +275,46 @@ async function calculateTimelineAnalytics(userId: string) {
       .eq('user_id', userId)
 
     // Average engagement based on activity diversity
-    const uniqueActivityTypes = new Set(activityTypes?.map(a => a.activity_type) || []).size
+    const uniqueActivityTypes = new Set(activityTypes?.map((a) => a.activity_type) || []).size
     const averageEngagement = Math.round(uniqueActivityTypes * 1.5) // More types = higher engagement
 
-    const activityTypeCounts = activityTypes?.reduce((acc, activity) => {
-      acc[activity.activity_type] = (acc[activity.activity_type] || 0) + 1
-      return acc
-    }, {} as Record<string, number>) || {}
+    const activityTypeCounts =
+      activityTypes?.reduce(
+        (acc, activity) => {
+          acc[activity.activity_type] = (acc[activity.activity_type] || 0) + 1
+          return acc
+        },
+        {} as Record<string, number>
+      ) || {}
 
-    const topActivityType = Object.entries(activityTypeCounts)
-      .sort(([,a], [,b]) => b - a)[0]?.[0] || 'book_added'
+    const topActivityType =
+      Object.entries(activityTypeCounts).sort(([, a], [, b]) => b - a)[0]?.[0] || 'book_added'
 
     // Calculate real growth rate based on activity trends
     const sevenDaysAgo = new Date()
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-    
+
     const { count: weeklyActivities } = await supabaseAdmin
       .from('activities')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
       .gte('created_at', sevenDaysAgo.toISOString())
-    
+
     const fourteenDaysAgo = new Date()
     fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14)
-    
+
     const { count: previousWeekActivities } = await supabaseAdmin
       .from('activities')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
       .gte('created_at', fourteenDaysAgo.toISOString())
       .lt('created_at', sevenDaysAgo.toISOString())
-    
+
     // Calculate growth rate as percentage change
     const thisWeek = weeklyActivities || 0
     const lastWeek = previousWeekActivities || 0
-    const growthRate = lastWeek > 0 
-      ? Math.round(((thisWeek - lastWeek) / lastWeek) * 100)
-      : thisWeek > 0 ? 100 : 0
+    const growthRate =
+      lastWeek > 0 ? Math.round(((thisWeek - lastWeek) / lastWeek) * 100) : thisWeek > 0 ? 100 : 0
 
     // Calculate revenue (simplified without metadata)
     const revenueGenerated = recentActivitiesCount * 0.5 // Simulated revenue
@@ -328,7 +325,7 @@ async function calculateTimelineAnalytics(userId: string) {
       top_activity_type: topActivityType,
       average_engagement: averageEngagement,
       revenue_generated: revenueGenerated,
-      growth_rate: growthRate
+      growth_rate: growthRate,
     }
   } catch (error) {
     console.error('Error calculating analytics:', error)
@@ -338,7 +335,7 @@ async function calculateTimelineAnalytics(userId: string) {
       top_activity_type: 'book_added',
       average_engagement: 0,
       revenue_generated: 0,
-      growth_rate: 0
+      growth_rate: 0,
     }
   }
 }

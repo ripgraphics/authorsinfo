@@ -1,6 +1,6 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { canUserEditEntity } from '@/lib/auth-utils'
 import { EntityHeader } from '@/components/entity-header'
@@ -35,15 +35,15 @@ interface ReadingListClientProps {
   followersCount?: number
 }
 
-export function ReadingListClient({ 
-  readingList, 
-  books = [], 
+export function ReadingListClient({
+  readingList,
+  books = [],
   booksCount = 0,
-  followersCount = 0 
+  followersCount = 0,
 }: ReadingListClientProps) {
   const { user } = useAuth()
   const [canEdit, setCanEdit] = useState(false)
-  const [activeTab, setActiveTab] = useState("books")
+  const [activeTab, setActiveTab] = useState('books')
 
   // Check edit permissions
   useEffect(() => {
@@ -55,8 +55,8 @@ export function ReadingListClient({
 
       // Use the new ownership function for reading lists
       const canEditEntity = await canUserEditEntity(
-        user.id, 
-        'reading_list', 
+        user.id,
+        'reading_list',
         readingList.id,
         readingList
       )
@@ -67,24 +67,28 @@ export function ReadingListClient({
   }, [user, readingList])
 
   const tabs = [
-    { id: "books", label: "Books" },
-    { id: "about", label: "About" },
-    { id: "followers", label: "Followers" }
+    { id: 'books', label: 'Books' },
+    { id: 'about', label: 'About' },
+    { id: 'followers', label: 'Followers' },
   ]
 
   const stats = [
-    { 
-      icon: <BookOpen className="h-4 w-4 mr-1" />, 
-      text: `${booksCount} books` 
-    },
-    { 
-      icon: <Users className="h-4 w-4 mr-1" />, 
-      text: `${followersCount} followers` 
+    {
+      icon: <BookOpen className="h-4 w-4 mr-1" />,
+      text: `${booksCount} books`,
     },
     {
-      icon: readingList.is_public ? <Eye className="h-4 w-4 mr-1" /> : <EyeOff className="h-4 w-4 mr-1" />,
-      text: readingList.is_public ? "Public" : "Private"
-    }
+      icon: <Users className="h-4 w-4 mr-1" />,
+      text: `${followersCount} followers`,
+    },
+    {
+      icon: readingList.is_public ? (
+        <Eye className="h-4 w-4 mr-1" />
+      ) : (
+        <EyeOff className="h-4 w-4 mr-1" />
+      ),
+      text: readingList.is_public ? 'Public' : 'Private',
+    },
   ]
 
   return (
@@ -105,7 +109,7 @@ export function ReadingListClient({
       />
 
       <div className="reading-list-page__content">
-        {activeTab === "books" && (
+        {activeTab === 'books' && (
           <div className="reading-list-page__books-tab">
             <div className="reading-list-page__tab-content">
               <div className="reading-list-page__header flex justify-between items-center mb-6">
@@ -127,16 +131,13 @@ export function ReadingListClient({
                       <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                       <h3 className="text-lg font-medium mb-2">No books yet</h3>
                       <p className="text-muted-foreground mb-4">
-                        {canEdit 
-                          ? "Add some books to get started!" 
-                          : "This list doesn't have any books yet."
-                        }
+                        {canEdit
+                          ? 'Add some books to get started!'
+                          : "This list doesn't have any books yet."}
                       </p>
                       {canEdit && (
                         <Button asChild>
-                          <Link href={`/reading-lists/${readingList.id}/add-books`}>
-                            Add Books
-                          </Link>
+                          <Link href={`/reading-lists/${readingList.id}/add-books`}>Add Books</Link>
                         </Button>
                       )}
                     </div>
@@ -150,14 +151,14 @@ export function ReadingListClient({
                         <div className="flex gap-4">
                           <div className="relative h-20 w-14 flex-shrink-0">
                             <img
-                              src={book.cover_image_url || "/placeholder.svg"}
+                              src={book.cover_image_url || '/placeholder.svg'}
                               alt={book.title}
                               className="object-cover rounded-md absolute inset-0 w-full h-full"
                             />
                           </div>
                           <div className="flex-1 min-w-0">
                             <h3 className="font-medium line-clamp-2 mb-1">
-                              <Link 
+                              <Link
                                 href={`/books/${book.id}`}
                                 className="hover:text-primary transition-colors"
                               >
@@ -165,9 +166,9 @@ export function ReadingListClient({
                               </Link>
                             </h3>
                             {canEdit && (
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 className="mt-2 h-6 px-2 text-xs"
                                 onClick={() => {
                                   // Handle remove book from list
@@ -188,7 +189,7 @@ export function ReadingListClient({
           </div>
         )}
 
-        {activeTab === "about" && (
+        {activeTab === 'about' && (
           <div className="reading-list-page__about-tab">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
@@ -202,14 +203,14 @@ export function ReadingListClient({
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  {readingList.description || "No description provided."}
+                  {readingList.description || 'No description provided.'}
                 </p>
               </CardContent>
             </Card>
           </div>
         )}
 
-        {activeTab === "followers" && (
+        {activeTab === 'followers' && (
           <div className="reading-list-page__followers-tab">
             <Card>
               <CardHeader>
@@ -217,10 +218,9 @@ export function ReadingListClient({
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  {followersCount === 0 
-                    ? "No followers yet." 
-                    : `${followersCount} people are following this list.`
-                  }
+                  {followersCount === 0
+                    ? 'No followers yet.'
+                    : `${followersCount} people are following this list.`}
                 </p>
               </CardContent>
             </Card>
@@ -229,4 +229,4 @@ export function ReadingListClient({
       </div>
     </div>
   )
-} 
+}

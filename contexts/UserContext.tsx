@@ -22,14 +22,14 @@ const UserContext = createContext<UserContextType | undefined>(undefined)
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserWithRole | null>(null)
   const [loading, setLoading] = useState(true)
-  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
   const isInitialized = React.useRef(false)
 
   // Debounced setUser to reduce state updates
-  const debouncedSetUser = React.useMemo(
-    () => debounce(setUser, 100),
-    []
-  )
+  const debouncedSetUser = React.useMemo(() => debounce(setUser, 100), [])
 
   // Centralized user data fetching with deduplication and caching
   const fetchUserData = async (): Promise<UserWithRole | null> => {
@@ -38,20 +38,20 @@ export function UserProvider({ children }: { children: ReactNode }) {
       async () => {
         try {
           console.log('🚀 Fetching fresh user data')
-          
+
           const controller = new AbortController()
           const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
-          
+
           const response = await fetch('/api/auth-users', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            signal: controller.signal
+            signal: controller.signal,
           })
-          
+
           clearTimeout(timeoutId)
-          
+
           if (response.ok) {
             const data = await response.json()
             if (data.user) {
@@ -59,7 +59,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
               return data.user
             }
           }
-          
+
           console.warn('⚠️ API response not ok, using fallback')
           return null
         } catch (apiError) {
@@ -91,16 +91,20 @@ export function UserProvider({ children }: { children: ReactNode }) {
     isInitialized.current = true
 
     try {
-      const { data: { user }, error } = await supabase.auth.getUser()
-      
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser()
+
       // Handle AuthSessionMissingError gracefully - this is normal for public users
       if (error) {
         const errorName = (error as any)?.name || error?.constructor?.name || ''
         const errorMessage = error?.message || String(error) || ''
-        const isSessionError = errorName === 'AuthSessionMissingError' || 
-                              errorMessage.includes('session') || 
-                              errorMessage.includes('Auth session missing')
-        
+        const isSessionError =
+          errorName === 'AuthSessionMissingError' ||
+          errorMessage.includes('session') ||
+          errorMessage.includes('Auth session missing')
+
         if (isSessionError) {
           // This is normal for public users - don't log as error
           setLoading(false)
@@ -108,7 +112,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         }
         throw error
       }
-      
+
       if (user) {
         const userData = await fetchUserData()
         if (userData) {
@@ -118,7 +122,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
           const userWithRole = {
             ...user,
             role: 'user',
-            permalink: null
+            permalink: null,
           }
           debouncedSetUser(userWithRole)
         }
@@ -127,10 +131,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
       // Only log non-session errors
       const errorName = err?.name || err?.constructor?.name || ''
       const errorMessage = err?.message || String(err) || ''
-      const isSessionError = errorName === 'AuthSessionMissingError' || 
-                            errorMessage.includes('session') || 
-                            errorMessage.includes('Auth session missing')
-      
+      const isSessionError =
+        errorName === 'AuthSessionMissingError' ||
+        errorMessage.includes('session') ||
+        errorMessage.includes('Auth session missing')
+
       if (!isSessionError) {
         console.error('Error initializing user:', err)
       }
@@ -142,12 +147,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     initializeUser()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       // Clear cache on sign in/out to ensure fresh data
       if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
         clearCache('current-user-data')
       }
-      
+
       if (session?.user) {
         const userData = await fetchUserData()
         if (userData) {
@@ -157,7 +164,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
           const userWithRole = {
             ...user,
             role: 'user',
-            permalink: null
+            permalink: null,
           } as any
           debouncedSetUser(userWithRole)
         }
@@ -175,14 +182,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const value: UserContextType = {
     user,
     loading,
-    refreshUser
+    refreshUser,
   }
 
-  return (
-    <UserContext.Provider value={value}>
-      {children}
-    </UserContext.Provider>
-  )
+  return <UserContext.Provider value={value}>{children}</UserContext.Provider>
 }
 
 export function useUser() {

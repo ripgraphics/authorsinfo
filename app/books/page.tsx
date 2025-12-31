@@ -1,10 +1,10 @@
-import { Suspense } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { BookOpen, Search, Filter } from "lucide-react"
-import { PageContainer } from "@/components/page-container"
+import { Suspense } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { BookOpen, Search, Filter } from 'lucide-react'
+import { PageContainer } from '@/components/page-container'
 import {
   Pagination,
   PaginationContent,
@@ -12,10 +12,16 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination"
-import { supabaseAdmin } from "@/lib/supabase/server"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+} from '@/components/ui/pagination'
+import { supabaseAdmin } from '@/lib/supabase/server'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Sheet,
   SheetContent,
@@ -25,11 +31,11 @@ import {
   SheetTrigger,
   SheetFooter,
   SheetClose,
-} from "@/components/ui/sheet"
-import { Label } from "@/components/ui/label"
-import { BookCard } from "@/components/book-card"
-import { InteractiveControls } from "./components/InteractiveControls"
-import { BooksListWrapper } from "./components/BooksListWrapper"
+} from '@/components/ui/sheet'
+import { Label } from '@/components/ui/label'
+import { BookCard } from '@/components/book-card'
+import { InteractiveControls } from './components/InteractiveControls'
+import { BooksListWrapper } from './components/BooksListWrapper'
 
 interface BooksPageProps {
   searchParams: Promise<{
@@ -43,13 +49,13 @@ interface BooksPageProps {
 
 async function getUniqueLanguages() {
   const { data, error } = await supabaseAdmin
-    .from("books")
-    .select("language")
-    .not("language", "is", null)
-    .order("language")
+    .from('books')
+    .select('language')
+    .not('language', 'is', null)
+    .order('language')
 
   if (error) {
-    console.error("Error fetching languages:", error)
+    console.error('Error fetching languages:', error)
     return []
   }
 
@@ -61,10 +67,13 @@ async function getUniqueLanguages() {
 
 async function getPublicationYears() {
   // First, let's check what date-related fields exist in the books table
-  const { data: bookSample, error: sampleError } = await supabaseAdmin.from("books").select("*").limit(1)
+  const { data: bookSample, error: sampleError } = await supabaseAdmin
+    .from('books')
+    .select('*')
+    .limit(1)
 
   if (sampleError || !bookSample || bookSample.length === 0) {
-    console.error("Error fetching book sample:", sampleError)
+    console.error('Error fetching book sample:', sampleError)
     return { years: [], dateField: null }
   }
 
@@ -74,24 +83,27 @@ async function getPublicationYears() {
 
   // Check potential date field names
   if (sampleBook.publication_date !== undefined) {
-    dateField = "publication_date"
+    dateField = 'publication_date'
   } else if (sampleBook.published_date !== undefined) {
-    dateField = "published_date"
+    dateField = 'published_date'
   } else if (sampleBook.release_date !== undefined) {
-    dateField = "release_date"
+    dateField = 'release_date'
   } else if (sampleBook.year !== undefined) {
-    dateField = "year"
+    dateField = 'year'
   } else if (sampleBook.publication_year !== undefined) {
-    dateField = "publication_year"
+    dateField = 'publication_year'
   }
 
   if (!dateField) {
-    console.log("No date field found in books table. Sample book:", sampleBook)
+    console.log('No date field found in books table. Sample book:', sampleBook)
     return { years: [], dateField: null }
   }
 
   // Now use the correct field to get the years
-  const { data, error } = await supabaseAdmin.from("books").select(dateField).not(dateField, "is", null)
+  const { data, error } = await supabaseAdmin
+    .from('books')
+    .select(dateField)
+    .not(dateField, 'is', null)
 
   if (error) {
     console.error(`Error fetching ${dateField}:`, error)
@@ -104,7 +116,7 @@ async function getPublicationYears() {
       if (!item[dateField!]) return null
 
       // If it's already a year (number or string representing a year)
-      if (typeof item[dateField!] === "number" || /^\d{4}$/.test(String(item[dateField!]))) {
+      if (typeof item[dateField!] === 'number' || /^\d{4}$/.test(String(item[dateField!]))) {
         return String(item[dateField!])
       }
 
@@ -112,7 +124,9 @@ async function getPublicationYears() {
       const match = String(item[dateField!]).match(/(\d{4})/)
       return match ? match[1] : null
     })
-    .filter((year): year is string => year !== null && year !== undefined && typeof year === 'string')
+    .filter(
+      (year): year is string => year !== null && year !== undefined && typeof year === 'string'
+    )
 
   const uniqueYears = Array.from(new Set(years)).sort((a, b) => Number(b) - Number(a)) // Sort descending
 
@@ -139,7 +153,7 @@ async function BooksList({
 
   // Build the query - fetch ALL books (for client-side filtering)
   // We'll filter by search client-side for instant results
-  let query = supabaseAdmin.from("books").select(`
+  let query = supabaseAdmin.from('books').select(`
       *,
       cover_image:cover_image_id(id, url, alt_text),
       author:author_id(id, name),
@@ -147,14 +161,14 @@ async function BooksList({
     `)
 
   // Apply language filter if provided (server-side)
-  if (language && language !== "all") {
-    query = query.eq("language", language)
+  if (language && language !== 'all') {
+    query = query.eq('language', language)
   }
 
   // Apply year filter if provided (server-side)
-  if (year && year !== "all" && dateField) {
+  if (year && year !== 'all' && dateField) {
     // If the field is a year field, use exact match
-    if (dateField === "year" || dateField === "publication_year") {
+    if (dateField === 'year' || dateField === 'publication_year') {
       query = query.eq(dateField, year)
     } else {
       // For date fields, use date range filter instead of ilike
@@ -166,17 +180,17 @@ async function BooksList({
   }
 
   // Apply sorting (server-side)
-  if (sort === "title_asc") {
-    query = query.order("title", { ascending: true })
-  } else if (sort === "title_desc") {
-    query = query.order("title", { ascending: false })
-  } else if (sort === "date_asc" && dateField) {
+  if (sort === 'title_asc') {
+    query = query.order('title', { ascending: true })
+  } else if (sort === 'title_desc') {
+    query = query.order('title', { ascending: false })
+  } else if (sort === 'date_asc' && dateField) {
     query = query.order(dateField, { ascending: true })
-  } else if (sort === "date_desc" && dateField) {
+  } else if (sort === 'date_desc' && dateField) {
     query = query.order(dateField, { ascending: false })
   } else {
     // Default sorting
-    query = query.order("title", { ascending: true })
+    query = query.order('title', { ascending: true })
   }
 
   // Fetch all matching books (no pagination limit for client-side filtering)
@@ -188,10 +202,10 @@ async function BooksList({
 
   if (error) {
     // Log the full error object to understand its structure
-    console.error("Error fetching books - Full error:", JSON.stringify(error, null, 2))
-    console.error("Error fetching books - Error type:", typeof error)
-    console.error("Error fetching books - Error keys:", Object.keys(error))
-    console.error("Error fetching books - Error properties:", {
+    console.error('Error fetching books - Full error:', JSON.stringify(error, null, 2))
+    console.error('Error fetching books - Error type:', typeof error)
+    console.error('Error fetching books - Error keys:', Object.keys(error))
+    console.error('Error fetching books - Error properties:', {
       message: error.message,
       details: error.details,
       hint: error.hint,
@@ -209,7 +223,7 @@ async function BooksList({
     // Safely extract publication year
     let publicationYear = null
     if (dateField && book[dateField]) {
-      if (typeof book[dateField] === "number" || /^\d{4}$/.test(String(book[dateField]))) {
+      if (typeof book[dateField] === 'number' || /^\d{4}$/.test(String(book[dateField]))) {
         publicationYear = String(book[dateField])
       } else {
         const match = String(book[dateField]).match(/(\d{4})/)
@@ -230,14 +244,14 @@ async function BooksList({
   })
 
   // Get total count (for initial pagination calculation)
-  let countQuery = supabaseAdmin.from("books").select("*", { count: "exact", head: true })
+  let countQuery = supabaseAdmin.from('books').select('*', { count: 'exact', head: true })
 
-  if (language && language !== "all") {
-    countQuery = countQuery.eq("language", language)
+  if (language && language !== 'all') {
+    countQuery = countQuery.eq('language', language)
   }
 
-  if (year && year !== "all" && dateField) {
-    if (dateField === "year" || dateField === "publication_year") {
+  if (year && year !== 'all' && dateField) {
+    if (dateField === 'year' || dateField === 'publication_year') {
       countQuery = countQuery.eq(dateField, year)
     } else {
       const yearStart = `${year}-01-01`
@@ -249,7 +263,7 @@ async function BooksList({
   const { count, error: countError } = await countQuery
 
   if (countError) {
-    console.error("Error counting books:", countError)
+    console.error('Error counting books:', countError)
     return <div>Error loading books</div>
   }
 
@@ -283,12 +297,12 @@ async function BooksListContent({
     sort,
     year,
   })
-  
+
   // Handle error case (returns JSX)
-  if (!result || typeof result === 'object' && 'books' in result === false) {
+  if (!result || (typeof result === 'object' && 'books' in result === false)) {
     return <div>Error loading books</div>
   }
-  
+
   const { books, totalCount, pageSize } = result
 
   return (
@@ -307,16 +321,16 @@ async function BooksListContent({
 
 export default async function BooksPage({ searchParams }: BooksPageProps) {
   // Await searchParams before accessing its properties
-  const params = await searchParams;
-  
-  const page = Number(params.page) || 1
-  const search = params.search || ""
-  const language = params.language || ""
-  const year = params.year || ""
-  const sort = params.sort || "title_asc"
+  const params = await searchParams
 
-  const languages = await getUniqueLanguages();
-  const { years } = await getPublicationYears();
+  const page = Number(params.page) || 1
+  const search = params.search || ''
+  const language = params.language || ''
+  const year = params.year || ''
+  const sort = params.sort || 'title_asc'
+
+  const languages = await getUniqueLanguages()
+  const { years } = await getPublicationYears()
 
   return (
     <div className="space-y-6">
@@ -333,13 +347,7 @@ export default async function BooksPage({ searchParams }: BooksPageProps) {
         year={year}
       />
       <Suspense fallback={<div>Loading...</div>}>
-        <BooksListContent
-          page={page}
-          search={search}
-          language={language}
-          year={year}
-          sort={sort}
-        />
+        <BooksListContent page={page} search={search} language={language} year={year} sort={sort} />
       </Suspense>
     </div>
   )

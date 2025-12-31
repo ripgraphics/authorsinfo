@@ -1,10 +1,10 @@
-"use client"
+'use client'
 
-import { Users } from "lucide-react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { getProfileUrlFromUser } from "@/lib/utils/profile-url-client"
-import { ContentSection } from "@/components/ui/content-section"
+import { Users } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { getProfileUrlFromUser } from '@/lib/utils/profile-url-client'
+import { ContentSection } from '@/components/ui/content-section'
 
 interface Follower {
   id: string
@@ -22,13 +22,13 @@ interface FollowersListProps {
   className?: string
 }
 
-export function FollowersList({ 
-  followers, 
-  followersCount, 
-  entityId, 
+export function FollowersList({
+  followers,
+  followersCount,
+  entityId,
   entityType,
   onViewMore,
-  className
+  className,
 }: FollowersListProps) {
   const router = useRouter()
 
@@ -49,7 +49,9 @@ export function FollowersList({
           <div className="tracking-tight followers-list__title text-sm font-medium">
             <div className="followers-list__title-content flex items-center gap-2">
               <Users className="followers-list__icon h-4 w-4" />
-              <span className="followers-list__count text-sm text-muted-foreground">{followersCount}</span>
+              <span className="followers-list__count text-sm text-muted-foreground">
+                {followersCount}
+              </span>
             </div>
           </div>
         </div>
@@ -71,8 +73,11 @@ export function FollowersList({
                   decoding="async"
                   data-nimg="1"
                   className="object-cover rounded-full"
-                  src={follower.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(follower.name || 'User')}`}
-                  style={{ color: "transparent", aspectRatio: "1 / 1" }}
+                  src={
+                    follower.avatar_url ||
+                    `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(follower.name || 'User')}`
+                  }
+                  style={{ color: 'transparent', aspectRatio: '1 / 1' }}
                 />
               </div>
             </span>
@@ -93,4 +98,4 @@ export function FollowersList({
       {followersGrid}
     </ContentSection>
   )
-} 
+}

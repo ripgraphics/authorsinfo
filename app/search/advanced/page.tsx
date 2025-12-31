@@ -1,56 +1,62 @@
-"use client"
+'use client'
 
-import type React from "react"
+import type React from 'react'
 
-import { useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { PageHeader } from "@/components/page-header"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
-import { BookOpen, Building, Search } from "lucide-react"
+import { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { PageHeader } from '@/components/page-header'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
+import { BookOpen, Building, Search } from 'lucide-react'
 
 export default function AdvancedSearchPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [activeTab, setActiveTab] = useState(searchParams.get("type") || "books")
+  const [activeTab, setActiveTab] = useState(searchParams.get('type') || 'books')
 
   // Book search form state
-  const [bookTitle, setBookTitle] = useState(searchParams.get("title") || "")
-  const [bookAuthor, setBookAuthor] = useState(searchParams.get("author") || "")
-  const [isbn10, setIsbn10] = useState(searchParams.get("isbn10") || "")
-  const [isbn13, setIsbn13] = useState(searchParams.get("isbn13") || "")
-  const [bookLanguage, setBookLanguage] = useState(searchParams.get("language") || "")
-  const [publishYear, setPublishYear] = useState(searchParams.get("publishYear") || "")
-  const [minRating, setMinRating] = useState(searchParams.get("minRating") || "")
-  const [maxPrice, setMaxPrice] = useState(searchParams.get("maxPrice") || "")
-  const [bookFormat, setBookFormat] = useState(searchParams.get("format") || "")
+  const [bookTitle, setBookTitle] = useState(searchParams.get('title') || '')
+  const [bookAuthor, setBookAuthor] = useState(searchParams.get('author') || '')
+  const [isbn10, setIsbn10] = useState(searchParams.get('isbn10') || '')
+  const [isbn13, setIsbn13] = useState(searchParams.get('isbn13') || '')
+  const [bookLanguage, setBookLanguage] = useState(searchParams.get('language') || '')
+  const [publishYear, setPublishYear] = useState(searchParams.get('publishYear') || '')
+  const [minRating, setMinRating] = useState(searchParams.get('minRating') || '')
+  const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') || '')
+  const [bookFormat, setBookFormat] = useState(searchParams.get('format') || '')
 
   // Publisher search form state
-  const [publisherName, setPublisherName] = useState(searchParams.get("name") || "")
-  const [publisherLocation, setPublisherLocation] = useState(searchParams.get("location") || "")
-  const [foundedYear, setFoundedYear] = useState(searchParams.get("foundedYear") || "")
+  const [publisherName, setPublisherName] = useState(searchParams.get('name') || '')
+  const [publisherLocation, setPublisherLocation] = useState(searchParams.get('location') || '')
+  const [foundedYear, setFoundedYear] = useState(searchParams.get('foundedYear') || '')
 
   const handleBookSearch = (e: React.FormEvent) => {
     e.preventDefault()
 
     // Build query string
     const params = new URLSearchParams()
-    params.set("type", "books")
+    params.set('type', 'books')
 
-    if (bookTitle) params.set("title", bookTitle)
-    if (bookAuthor) params.set("author", bookAuthor)
-    if (isbn10) params.set("isbn10", isbn10)
-    if (isbn13) params.set("isbn13", isbn13)
-    if (bookLanguage) params.set("language", bookLanguage)
-    if (publishYear) params.set("publishYear", publishYear)
-    if (minRating) params.set("minRating", minRating)
-    if (maxPrice) params.set("maxPrice", maxPrice)
-    if (bookFormat) params.set("format", bookFormat)
+    if (bookTitle) params.set('title', bookTitle)
+    if (bookAuthor) params.set('author', bookAuthor)
+    if (isbn10) params.set('isbn10', isbn10)
+    if (isbn13) params.set('isbn13', isbn13)
+    if (bookLanguage) params.set('language', bookLanguage)
+    if (publishYear) params.set('publishYear', publishYear)
+    if (minRating) params.set('minRating', minRating)
+    if (maxPrice) params.set('maxPrice', maxPrice)
+    if (bookFormat) params.set('format', bookFormat)
 
     router.push(`/search/advanced/results?${params.toString()}`)
   }
@@ -60,11 +66,11 @@ export default function AdvancedSearchPage() {
 
     // Build query string
     const params = new URLSearchParams()
-    params.set("type", "publishers")
+    params.set('type', 'publishers')
 
-    if (publisherName) params.set("name", publisherName)
-    if (publisherLocation) params.set("location", publisherLocation)
-    if (foundedYear) params.set("foundedYear", foundedYear)
+    if (publisherName) params.set('name', publisherName)
+    if (publisherLocation) params.set('location', publisherLocation)
+    if (foundedYear) params.set('foundedYear', foundedYear)
 
     router.push(`/search/advanced/results?${params.toString()}`)
   }
@@ -76,7 +82,9 @@ export default function AdvancedSearchPage() {
         <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold">Advanced Search</h1>
-            <p className="text-muted-foreground">Search for books and publishers with specific criteria</p>
+            <p className="text-muted-foreground">
+              Search for books and publishers with specific criteria
+            </p>
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

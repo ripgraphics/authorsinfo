@@ -1,10 +1,18 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { getReadingStats } from "@/app/actions/reading-progress"
-import { BookOpen, BookMarked, Clock, CheckCircle, PauseCircle, XCircle, Trophy } from "lucide-react"
+import { useState, useEffect } from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
+import { getReadingStats } from '@/app/actions/reading-progress'
+import {
+  BookOpen,
+  BookMarked,
+  Clock,
+  CheckCircle,
+  PauseCircle,
+  XCircle,
+  Trophy,
+} from 'lucide-react'
 
 interface ReadingStatsProps {
   className?: string
@@ -14,12 +22,12 @@ interface ReadingStatsProps {
   onStatsChange?: (stats: any) => void
 }
 
-export function ReadingStats({ 
-  className, 
-  entityType = 'user', 
-  entityId, 
+export function ReadingStats({
+  className,
+  entityType = 'user',
+  entityId,
   showDetailedStats = false,
-  onStatsChange 
+  onStatsChange,
 }: ReadingStatsProps) {
   const [stats, setStats] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -28,18 +36,18 @@ export function ReadingStats({
   useEffect(() => {
     async function fetchStats() {
       if (!entityId || !entityType) return
-      
+
       setLoading(true)
       setError(null)
 
       try {
         // Use the new entity-agnostic API
         const response = await fetch(`/api/entities/${entityType}/${entityId}/reading-progress`)
-        
+
         if (response.ok) {
           const data = await response.json()
           setStats(data)
-          
+
           // Notify parent component of stats
           if (onStatsChange) {
             onStatsChange(data)
@@ -49,8 +57,8 @@ export function ReadingStats({
           setError(errorData.error || 'Failed to load reading statistics')
         }
       } catch (err) {
-        console.error("Error fetching reading stats:", err)
-        setError("Failed to load reading statistics")
+        console.error('Error fetching reading stats:', err)
+        setError('Failed to load reading statistics')
       } finally {
         setLoading(false)
       }
@@ -90,9 +98,9 @@ export function ReadingStats({
         </CardHeader>
         <CardContent>
           <p className="text-center text-muted-foreground py-6">
-            {error === "User not authenticated"
-              ? "Please sign in to view your reading statistics"
-              : "Failed to load reading statistics. Please try again."}
+            {error === 'User not authenticated'
+              ? 'Please sign in to view your reading statistics'
+              : 'Failed to load reading statistics. Please try again.'}
           </p>
         </CardContent>
       </Card>

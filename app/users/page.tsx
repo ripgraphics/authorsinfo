@@ -1,5 +1,5 @@
-import { supabaseAdmin } from "@/lib/supabase"
-import { UserCard } from "./user-card"
+import { supabaseAdmin } from '@/lib/supabase'
+import { UserCard } from './user-card'
 
 export default async function UsersPage() {
   // Fetch user id, name, and permalink from the database
@@ -26,4 +26,4 @@ export default async function UsersPage() {
       </div>
     </div>
   )
-} 
+}

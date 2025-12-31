@@ -1,6 +1,6 @@
-"use server"
-import { supabaseAdmin } from "@/lib/supabase/server"
-import crypto from "crypto"
+'use server'
+import { supabaseAdmin } from '@/lib/supabase/server'
+import crypto from 'crypto'
 
 export async function uploadPhoto(
   file: File,
@@ -15,7 +15,7 @@ export async function uploadPhoto(
     const apiSecret = process.env.CLOUDINARY_API_SECRET
 
     if (!cloudName || !apiKey || !apiSecret) {
-      throw new Error("Cloudinary credentials are not properly configured")
+      throw new Error('Cloudinary credentials are not properly configured')
     }
 
     // Validate file type
@@ -25,14 +25,16 @@ export async function uploadPhoto(
 
     // Validate file size (10MB limit)
     if (file.size > 10 * 1024 * 1024) {
-      throw new Error(`File too large: ${(file.size / 1024 / 1024).toFixed(2)}MB. Maximum size is 10MB.`)
+      throw new Error(
+        `File too large: ${(file.size / 1024 / 1024).toFixed(2)}MB. Maximum size is 10MB.`
+      )
     }
 
     // Create a timestamp for the signature
     const timestamp = Math.round(new Date().getTime() / 1000)
 
     // Prepare transformation parameters
-    const transformationString = "f_webp,q_95" // Convert to WebP with 95% quality
+    const transformationString = 'f_webp,q_95' // Convert to WebP with 95% quality
 
     // Create the parameters object for signature
     const params: Record<string, string> = {
@@ -53,10 +55,10 @@ export async function uploadPhoto(
     const signatureString =
       Object.entries(sortedParams)
         .map(([key, value]) => `${key}=${value}`)
-        .join("&") + apiSecret
+        .join('&') + apiSecret
 
     // Generate the signature
-    const signature = crypto.createHash("sha1").update(signatureString).digest("hex")
+    const signature = crypto.createHash('sha1').update(signatureString).digest('hex')
 
     // Convert file to base64
     const arrayBuffer = await file.arrayBuffer()
@@ -65,16 +67,16 @@ export async function uploadPhoto(
 
     // Prepare the form data
     const formData = new FormData()
-    formData.append("file", dataUrl)
-    formData.append("api_key", apiKey)
-    formData.append("timestamp", timestamp.toString())
-    formData.append("signature", signature)
-    formData.append("folder", `authorsinfo/${entityType}_photos`)
-    formData.append("transformation", transformationString)
+    formData.append('file', dataUrl)
+    formData.append('api_key', apiKey)
+    formData.append('timestamp', timestamp.toString())
+    formData.append('signature', signature)
+    formData.append('folder', `authorsinfo/${entityType}_photos`)
+    formData.append('transformation', transformationString)
 
     // Upload to Cloudinary
     const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-      method: "POST",
+      method: 'POST',
       body: formData,
     })
 
@@ -100,7 +102,7 @@ export async function uploadPhoto(
         file_size: file.size,
         mime_type: file.type,
         is_processed: true,
-        processing_status: 'completed'
+        processing_status: 'completed',
       })
       .select()
       .single()
@@ -124,22 +126,20 @@ export async function uploadPhoto(
 
         const nextDisplayOrder = maxOrderData?.display_order ? maxOrderData.display_order + 1 : 0
 
-        const { error: albumImageError } = await supabaseAdmin
-          .from('album_images')
-          .insert({
-            album_id: albumId,
-            image_id: imageData.id,
-            display_order: nextDisplayOrder,
-            is_cover: false,
-            is_featured: false,
-            metadata: {
-              uploaded_at: new Date().toISOString(),
-              original_filename: file.name,
-              file_size: file.size,
-              mime_type: file.type,
-              upload_method: 'cloudinary'
-            }
-          })
+        const { error: albumImageError } = await supabaseAdmin.from('album_images').insert({
+          album_id: albumId,
+          image_id: imageData.id,
+          display_order: nextDisplayOrder,
+          is_cover: false,
+          is_featured: false,
+          metadata: {
+            uploaded_at: new Date().toISOString(),
+            original_filename: file.name,
+            file_size: file.size,
+            mime_type: file.type,
+            upload_method: 'cloudinary',
+          },
+        })
 
         if (albumImageError) {
           console.error('Album image insert error:', albumImageError)
@@ -157,7 +157,7 @@ export async function uploadPhoto(
       imageId: imageData.id,
     }
   } catch (error) {
-    console.error("Error uploading photo:", error)
+    console.error('Error uploading photo:', error)
     throw error
   }
-} 
+}

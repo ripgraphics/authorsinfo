@@ -1,9 +1,9 @@
-import { supabaseAdmin } from "@/lib/supabase"
-import { notFound } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import Image from "next/image"
+import { supabaseAdmin } from '@/lib/supabase'
+import { notFound } from 'next/navigation'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import Image from 'next/image'
 
-export const dynamic = "force-dynamic"
+export const dynamic = 'force-dynamic'
 
 interface PhotoPageProps {
   params: Promise<{ id: string }>
@@ -40,9 +40,7 @@ export default async function PhotoPage({ params }: PhotoPageProps) {
               />
             </div>
           )}
-          {photo.description && (
-            <p className="text-muted-foreground">{photo.description}</p>
-          )}
+          {photo.description && <p className="text-muted-foreground">{photo.description}</p>}
         </CardContent>
       </Card>
     </div>

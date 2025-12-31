@@ -79,7 +79,7 @@ export function ReusableSearch({
     const timeSinceLastTyping = now - globalLastTyping
     const recentlyTyped = timeSinceLastTyping < TYPING_WINDOW_MS
     const urlValue = searchParams.get(paramName) || ''
-    
+
     // If user typed recently, use global value to prevent reset on remount
     if (recentlyTyped && globalInputValue) {
       return globalInputValue

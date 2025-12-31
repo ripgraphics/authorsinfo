@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 
-
 // Hide or unhide all comments authored by a specific user (per viewer)
 // Records an entry in activity_log: action='hide_user_comments', target_type='user', target_id=<blocked user id>
 
@@ -9,7 +8,10 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClientAsync()
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
     if (authError || !user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
@@ -30,14 +32,12 @@ export async function POST(request: NextRequest) {
       .maybeSingle()
 
     if (!existing) {
-      const { error: insertError } = await (supabase
-        .from('activity_log') as any)
-        .insert({
-          user_id: user.id,
-          action: 'hide_user_comments',
-          target_type: 'user',
-          target_id: targetUserId
-        })
+      const { error: insertError } = await (supabase.from('activity_log') as any).insert({
+        user_id: user.id,
+        action: 'hide_user_comments',
+        target_type: 'user',
+        target_id: targetUserId,
+      })
 
       if (insertError) {
         return NextResponse.json({ error: insertError.message }, { status: 500 })
@@ -46,7 +46,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 })
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    )
   }
 }
 
@@ -54,7 +57,10 @@ export async function DELETE(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClientAsync()
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
     if (authError || !user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
@@ -79,8 +85,9 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 })
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    )
   }
 }
-
-

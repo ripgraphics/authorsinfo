@@ -1,11 +1,11 @@
-'use client';
+'use client'
 
-import { PhotoGalleryLoadingProps } from './types';
-import { Skeleton } from '@/components/ui/skeleton';
+import { PhotoGalleryLoadingProps } from './types'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export function PhotoGalleryLoading({ gridCols = 3 }: PhotoGalleryLoadingProps) {
   // Generate an array of skeleton items based on gridCols
-  const skeletonItems = Array.from({ length: gridCols * 2 }, (_, i) => i);
+  const skeletonItems = Array.from({ length: gridCols * 2 }, (_, i) => i)
 
   return (
     <div className="photo-gallery__loading">
@@ -24,10 +24,10 @@ export function PhotoGalleryLoading({ gridCols = 3 }: PhotoGalleryLoadingProps) 
           gridCols === 1
             ? 'grid-cols-1'
             : gridCols === 2
-            ? 'grid-cols-1 md:grid-cols-2'
-            : gridCols === 3
-            ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-            : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+              ? 'grid-cols-1 md:grid-cols-2'
+              : gridCols === 3
+                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
         }`}
       >
         {skeletonItems.map((index) => (
@@ -40,5 +40,5 @@ export function PhotoGalleryLoading({ gridCols = 3 }: PhotoGalleryLoadingProps) 
         ))}
       </div>
     </div>
-  );
-} 
+  )
+}

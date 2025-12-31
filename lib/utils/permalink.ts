@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "@/lib/supabase/server"
+import { supabaseAdmin } from '@/lib/supabase/server'
 
 /**
  * Generates a permalink from a user's name in the format firstname.lastname
@@ -11,7 +11,7 @@ export function generatePermalink(name: string): string {
     .trim()
     .replace(/[^a-z0-9\s]/g, '') // Remove special characters
     .replace(/\s+/g, '.') // Replace spaces with dots
-  
+
   return cleanName
 }
 
@@ -58,9 +58,9 @@ export async function assignPermalink(userId: string, userName: string): Promise
   // Update the user's permalink
   const { error } = await supabaseAdmin
     .from('users')
-    .update({ 
+    .update({
       permalink: availablePermalink,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     })
     .eq('id', userId)
 
@@ -102,4 +102,4 @@ export async function ensureAllUsersHavePermalinks(): Promise<void> {
       console.error(`❌ Failed to assign permalink to ${user.name}:`, error)
     }
   }
-} 
+}

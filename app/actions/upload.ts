@@ -1,14 +1,14 @@
-"use server"
-import { supabaseAdmin } from "@/lib/supabase/server"
-import crypto from "crypto"
+'use server'
+import { supabaseAdmin } from '@/lib/supabase/server'
+import crypto from 'crypto'
 
 export async function uploadImage(
   base64Image: string,
-  folder = "general",
-  alt_text = "",
+  folder = 'general',
+  alt_text = '',
   maxWidth?: number,
   maxHeight?: number,
-  img_type_id?: string,
+  img_type_id?: string
 ) {
   try {
     // Get Cloudinary credentials from environment variables
@@ -17,14 +17,14 @@ export async function uploadImage(
     const apiSecret = process.env.CLOUDINARY_API_SECRET
 
     if (!cloudName || !apiKey || !apiSecret) {
-      throw new Error("Cloudinary credentials are not properly configured")
+      throw new Error('Cloudinary credentials are not properly configured')
     }
 
     // Create a timestamp for the signature
     const timestamp = Math.round(new Date().getTime() / 1000)
 
     // Prepare transformation parameters if provided
-    let transformationString = "f_webp"  // Always convert to WebP format
+    let transformationString = 'f_webp' // Always convert to WebP format
     if (maxWidth && maxHeight) {
       transformationString += `,c_fit,w_${maxWidth},h_${maxHeight}`
     } else if (maxWidth) {
@@ -56,10 +56,10 @@ export async function uploadImage(
     const signatureString =
       Object.entries(sortedParams)
         .map(([key, value]) => `${key}=${value}`)
-        .join("&") + apiSecret
+        .join('&') + apiSecret
 
     // Generate the signature
-    const signature = crypto.createHash("sha1").update(signatureString).digest("hex")
+    const signature = crypto.createHash('sha1').update(signatureString).digest('hex')
 
     // Prepare the form data
     // Handle both raw base64 strings and data URLs
@@ -71,20 +71,20 @@ export async function uploadImage(
         base64Data = base64Image.substring(commaIndex + 1)
       }
     }
-    
+
     const formData = new FormData()
-    formData.append("file", `data:image/jpeg;base64,${base64Data}`)
-    formData.append("api_key", apiKey)
-    formData.append("timestamp", timestamp.toString())
-    formData.append("signature", signature)
-    formData.append("folder", folder)
-    
+    formData.append('file', `data:image/jpeg;base64,${base64Data}`)
+    formData.append('api_key', apiKey)
+    formData.append('timestamp', timestamp.toString())
+    formData.append('signature', signature)
+    formData.append('folder', folder)
+
     // Always add transformation, even if just WebP conversion
-    formData.append("transformation", transformationString)
+    formData.append('transformation', transformationString)
 
     // Upload to Cloudinary
     const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-      method: "POST",
+      method: 'POST',
       body: formData,
     })
 
@@ -92,10 +92,10 @@ export async function uploadImage(
     if (!response.ok) {
       // Handle rate limiting specifically
       if (response.status === 429) {
-        console.error("Cloudinary rate limit exceeded. Waiting before retrying...")
+        console.error('Cloudinary rate limit exceeded. Waiting before retrying...')
         // Wait for 1 second before continuing
         await new Promise((resolve) => setTimeout(resolve, 1000))
-        throw new Error("Cloudinary rate limit exceeded. Please try again in a moment.")
+        throw new Error('Cloudinary rate limit exceeded. Please try again in a moment.')
       }
 
       // For other errors, try to get the error text
@@ -113,15 +113,15 @@ export async function uploadImage(
     try {
       data = await response.json()
     } catch (jsonError) {
-      console.error("Error parsing Cloudinary response:", jsonError)
-      throw new Error("Invalid response from Cloudinary. Could not parse JSON.")
+      console.error('Error parsing Cloudinary response:', jsonError)
+      throw new Error('Invalid response from Cloudinary. Could not parse JSON.')
     }
 
     // Get actual schema columns from Supabase by querying a sample row
     // (information_schema is not accessible via PostgREST)
     // Use Supabase as the one source of truth for the schema
     const { data: sampleImageRow, error: tableError } = await supabaseAdmin
-      .from("images")
+      .from('images')
       .select('*')
       .limit(1)
       .maybeSingle()
@@ -131,33 +131,38 @@ export async function uploadImage(
 
     // If we can't get the table structure, use minimal required fields
     if (tableError || !sampleImageRow) {
-      console.warn("Could not determine images table structure, using minimal fields:", tableError?.message)
+      console.warn(
+        'Could not determine images table structure, using minimal fields:',
+        tableError?.message
+      )
       // Fallback to minimal insert with only required fields
       const { data: imageData, error } = await supabaseAdmin
-        .from("images")
+        .from('images')
         .insert([
           {
             url: data.secure_url,
-            alt_text: alt_text || "",
+            alt_text: alt_text || '',
             storage_provider: 'cloudinary',
             storage_path: folder,
-            ...(availableColumns.has('metadata') ? { metadata: { cloudinary_public_id: data.public_id } } : {}),
+            ...(availableColumns.has('metadata')
+              ? { metadata: { cloudinary_public_id: data.public_id } }
+              : {}),
           },
         ])
         .select()
 
       if (error) {
-        console.error("Error inserting image record:", error)
+        console.error('Error inserting image record:', error)
         throw new Error(
           `Failed to create image record in database: ${error.message || 'Unknown error'}. ` +
-          `Code: ${error.code || 'N/A'}. ` +
-          `Details: ${error.details || 'N/A'}. ` +
-          `Hint: ${error.hint || 'N/A'}`
+            `Code: ${error.code || 'N/A'}. ` +
+            `Details: ${error.details || 'N/A'}. ` +
+            `Hint: ${error.hint || 'N/A'}`
         )
       }
 
       if (!imageData || imageData.length === 0) {
-        throw new Error("Image upload succeeded but no image record was created in the database")
+        throw new Error('Image upload succeeded but no image record was created in the database')
       }
 
       return {
@@ -170,7 +175,7 @@ export async function uploadImage(
     // Build insert object using only columns that exist in the schema
     const insertObject: Record<string, any> = {
       url: data.secure_url,
-      alt_text: alt_text || "",
+      alt_text: alt_text || '',
       storage_provider: 'cloudinary',
       storage_path: folder,
     }
@@ -221,28 +226,31 @@ export async function uploadImage(
     }
 
     // Insert the image record into the database
-    const { data: imageData, error } = await supabaseAdmin.from("images").insert([insertObject]).select()
+    const { data: imageData, error } = await supabaseAdmin
+      .from('images')
+      .insert([insertObject])
+      .select()
 
     if (error) {
-      console.error("Error inserting image record:", error)
-      console.error("Insert object:", insertObject)
-      console.error("Error details:", {
+      console.error('Error inserting image record:', error)
+      console.error('Insert object:', insertObject)
+      console.error('Error details:', {
         code: error.code,
         message: error.message,
         details: error.details,
-        hint: error.hint
+        hint: error.hint,
       })
       throw new Error(
         `Failed to create image record in database: ${error.message || 'Unknown error'}. ` +
-        `Code: ${error.code || 'N/A'}. ` +
-        `Details: ${error.details || 'N/A'}. ` +
-        `Hint: ${error.hint || 'N/A'}`
+          `Code: ${error.code || 'N/A'}. ` +
+          `Details: ${error.details || 'N/A'}. ` +
+          `Hint: ${error.hint || 'N/A'}`
       )
     }
 
     if (!imageData || imageData.length === 0) {
-      console.error("No image data returned from insert")
-      throw new Error("Image upload succeeded but no image record was created in the database")
+      console.error('No image data returned from insert')
+      throw new Error('Image upload succeeded but no image record was created in the database')
     }
 
     return {
@@ -251,7 +259,7 @@ export async function uploadImage(
       imageId: imageData[0].id,
     }
   } catch (error) {
-    console.error("Error uploading image:", error)
+    console.error('Error uploading image:', error)
     // Re-throw the error if it's already an Error instance with a message
     if (error instanceof Error) {
       throw error
@@ -269,7 +277,7 @@ export async function deleteImage(publicId: string) {
     const apiSecret = process.env.CLOUDINARY_API_SECRET
 
     if (!cloudName || !apiKey || !apiSecret) {
-      throw new Error("Cloudinary credentials are not properly configured")
+      throw new Error('Cloudinary credentials are not properly configured')
     }
 
     // Create a timestamp for the signature
@@ -277,18 +285,18 @@ export async function deleteImage(publicId: string) {
 
     // Create a signature string
     const signatureString = `public_id=${publicId}&timestamp=${timestamp}${apiSecret}`
-    const signature = crypto.createHash("sha1").update(signatureString).digest("hex")
+    const signature = crypto.createHash('sha1').update(signatureString).digest('hex')
 
     // Prepare the form data
     const formData = new FormData()
-    formData.append("public_id", publicId)
-    formData.append("api_key", apiKey)
-    formData.append("timestamp", timestamp.toString())
-    formData.append("signature", signature)
+    formData.append('public_id', publicId)
+    formData.append('api_key', apiKey)
+    formData.append('timestamp', timestamp.toString())
+    formData.append('signature', signature)
 
     // Delete from Cloudinary
     const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/destroy`, {
-      method: "POST",
+      method: 'POST',
       body: formData,
     })
 
@@ -306,23 +314,23 @@ export async function deleteImage(publicId: string) {
 
       // Find images that might match this public_id
       const { data: images, error } = await supabaseAdmin
-        .from("images")
-        .select("*")
+        .from('images')
+        .select('*')
         .or(`url.ilike.%${publicId}%`)
         .limit(1)
 
       if (!error && images && images.length > 0) {
         // Delete the found image
-        await supabaseAdmin.from("images").delete().eq("id", images[0].id)
+        await supabaseAdmin.from('images').delete().eq('id', images[0].id)
       }
     } catch (findError) {
-      console.error("Error finding image to delete:", findError)
+      console.error('Error finding image to delete:', findError)
       // Continue even if we can't find the image to delete
     }
 
     return data
   } catch (error) {
-    console.error("Error deleting image:", error)
+    console.error('Error deleting image:', error)
     return null
   }
 }
@@ -330,7 +338,7 @@ export async function deleteImage(publicId: string) {
 export async function getPublicIdFromUrl(url: string): Promise<string | null> {
   try {
     // Check if the URL is empty or invalid
-    if (!url || url === "{}" || url.includes("fetch:")) {
+    if (!url || url === '{}' || url.includes('fetch:')) {
       return null
     }
 
@@ -343,7 +351,7 @@ export async function getPublicIdFromUrl(url: string): Promise<string | null> {
 
     // If we couldn't extract from URL, try the database as a fallback
     try {
-      const { data, error } = await supabaseAdmin.from("images").select("*").eq("url", url).single()
+      const { data, error } = await supabaseAdmin.from('images').select('*').eq('url', url).single()
 
       if (!error && data) {
         // Check various possible field names for the public_id
@@ -353,12 +361,12 @@ export async function getPublicIdFromUrl(url: string): Promise<string | null> {
         if (data.metadata?.cloudinary_public_id) return data.metadata.cloudinary_public_id
       }
     } catch (dbError) {
-      console.error("Error querying database for public_id:", dbError)
+      console.error('Error querying database for public_id:', dbError)
     }
 
     return null
   } catch (error) {
-    console.error("Error getting public ID from URL:", error)
+    console.error('Error getting public ID from URL:', error)
     return null
   }
 }
@@ -366,10 +374,10 @@ export async function getPublicIdFromUrl(url: string): Promise<string | null> {
 export async function replaceImage(
   oldImageUrl: string | null,
   newBase64Image: string,
-  folder = "general",
-  altText = "",
+  folder = 'general',
+  altText = '',
   maxWidth?: number,
-  maxHeight?: number,
+  maxHeight?: number
 ): Promise<{ url: string; publicId: string; imageId: string } | null> {
   try {
     // Upload the new image first
@@ -385,7 +393,7 @@ export async function replaceImage(
 
     return newImageData
   } catch (error) {
-    console.error("Error replacing image:", error)
+    console.error('Error replacing image:', error)
     return null
   }
 }

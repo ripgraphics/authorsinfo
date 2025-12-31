@@ -1,25 +1,25 @@
-"use client"
+'use client'
 
-import { useEffect, useRef, useState } from "react"
-import { useParams } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { createClient } from "@/lib/supabase-client"
-import dynamic from "next/dynamic"
+import { useEffect, useRef, useState } from 'react'
+import { useParams } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { createClient } from '@/lib/supabase-client'
+import dynamic from 'next/dynamic'
 
-const EMOJIS = ["👍", "😂", "🔥", "❤️", "😮", "🎉"];
-const GroupChatThreadsPage = dynamic(() => import("./threads"), { ssr: false })
-const GroupChatThreadPage = dynamic(() => import("./thread"), { ssr: false })
+const EMOJIS = ['👍', '😂', '🔥', '❤️', '😮', '🎉']
+const GroupChatThreadsPage = dynamic(() => import('./threads'), { ssr: false })
+const GroupChatThreadPage = dynamic(() => import('./thread'), { ssr: false })
 
 export default function GroupChatPage() {
   const params = useParams()
   const groupId = params.id as string
   const [messages, setMessages] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [body, setBody] = useState("")
+  const [body, setBody] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const user = { id: "mock", name: "Test User" } // Replace with real user
+  const user = { id: 'mock', name: 'Test User' } // Replace with real user
   const bottomRef = useRef<HTMLDivElement>(null)
   const [typingUsers, setTypingUsers] = useState<any[]>([])
   const [reactions, setReactions] = useState<{ [msgId: string]: string[] }>({})
@@ -39,16 +39,30 @@ export default function GroupChatPage() {
     const supabase = createClient()
     const channel = supabase.channel(`group_chat_${groupId}`)
     channelRef.current = channel
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'group_chat_messages', filter: `group_id=eq.${groupId}` }, (payload: any) => {
-        setMessages((prev: any[]) => [...prev, payload.new])
-      })
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'group_chat_messages',
+          filter: `group_id=eq.${groupId}`,
+        },
+        (payload: any) => {
+          setMessages((prev: any[]) => [...prev, payload.new])
+        }
+      )
       .on('presence', { event: 'sync' }, () => {
         const state = channel.presenceState()
-        const typing = Object.values(state).flat().filter((u: any) => u.typing && u.user_id !== user.id)
+        const typing = Object.values(state)
+          .flat()
+          .filter((u: any) => u.typing && u.user_id !== user.id)
         setTypingUsers(typing)
       })
       .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-        setTypingUsers((prev: any[]) => [...prev, ...newPresences.filter((u: any) => u.typing && u.user_id !== user.id)])
+        setTypingUsers((prev: any[]) => [
+          ...prev,
+          ...newPresences.filter((u: any) => u.typing && u.user_id !== user.id),
+        ])
       })
       .on('presence', { event: 'leave' }, ({ key }) => {
         setTypingUsers((prev: any[]) => prev.filter((u: any) => u.user_id !== key))
@@ -62,7 +76,7 @@ export default function GroupChatPage() {
   }, [groupId])
 
   useEffect(() => {
-    if (bottomRef.current) bottomRef.current.scrollIntoView({ behavior: "smooth" })
+    if (bottomRef.current) bottomRef.current.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
   const handleSubmit = async (e: any) => {
@@ -70,15 +84,15 @@ export default function GroupChatPage() {
     setError(null)
     setSuccess(null)
     const res = await fetch(`/api/groups/${groupId}/chat`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ user_id: user.id, body }),
     })
     if (res.ok) {
-      setBody("")
+      setBody('')
     } else {
       const err = await res.json()
-      setError(err.error || "Failed to send message")
+      setError(err.error || 'Failed to send message')
     }
   }
 
@@ -108,10 +122,20 @@ export default function GroupChatPage() {
   // Real-time updates for threads
   useEffect(() => {
     const supabase = createClient()
-    const channel = supabase.channel(`group_chat_threads_${groupId}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'group_chat_threads', filter: `group_id=eq.${groupId}` }, (payload: any) => {
-        setThreads((prev: any[]) => [payload.new, ...prev])
-      })
+    const channel = supabase
+      .channel(`group_chat_threads_${groupId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'group_chat_threads',
+          filter: `group_id=eq.${groupId}`,
+        },
+        (payload: any) => {
+          setThreads((prev: any[]) => [payload.new, ...prev])
+        }
+      )
       .subscribe()
     return () => {
       if (channel) supabase.removeChannel(channel)
@@ -143,19 +167,30 @@ export default function GroupChatPage() {
         {/* Show thread reactions */}
         {selectedThread && (
           <div className="p-2 border-t flex gap-1">
-            {["👍", "😂", "🔥", "❤️", "😮", "🎉"].map((emoji) => (
-              <button key={emoji} type="button" className="text-lg hover:scale-110" onClick={() => handleThreadReaction(selectedThread.id, emoji)}>{emoji}</button>
+            {['👍', '😂', '🔥', '❤️', '😮', '🎉'].map((emoji) => (
+              <button
+                key={emoji}
+                type="button"
+                className="text-lg hover:scale-110"
+                onClick={() => handleThreadReaction(selectedThread.id, emoji)}
+              >
+                {emoji}
+              </button>
             ))}
             <div className="flex gap-1 ml-2">
               {(threadReactions[selectedThread.id] || []).map((emoji) => (
-                <span key={emoji} className="text-lg">{emoji}</span>
+                <span key={emoji} className="text-lg">
+                  {emoji}
+                </span>
               ))}
             </div>
           </div>
         )}
         {/* Show thread participants */}
         {selectedThread && (
-          <div className="p-2 text-xs text-gray-500">Participants: {(threadParticipants[selectedThread.id] || []).join(", ")}</div>
+          <div className="p-2 text-xs text-gray-500">
+            Participants: {(threadParticipants[selectedThread.id] || []).join(', ')}
+          </div>
         )}
       </div>
       {/* Main: Chat or Thread */}
@@ -173,21 +208,39 @@ export default function GroupChatPage() {
               ) : (
                 <div className="space-y-2">
                   {messages.map((msg) => (
-                    <div key={msg.id} className={`flex ${msg.user_id === user.id ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`rounded-lg px-4 py-2 max-w-xs ${msg.user_id === user.id ? 'bg-blue-500 text-white' : 'bg-white border'}`}>
-                        <div className="text-xs font-semibold mb-1">{msg.user_id === user.id ? 'You' : msg.user_id}</div>
+                    <div
+                      key={msg.id}
+                      className={`flex ${msg.user_id === user.id ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`rounded-lg px-4 py-2 max-w-xs ${msg.user_id === user.id ? 'bg-blue-500 text-white' : 'bg-white border'}`}
+                      >
+                        <div className="text-xs font-semibold mb-1">
+                          {msg.user_id === user.id ? 'You' : msg.user_id}
+                        </div>
                         <div>{msg.body}</div>
                         <div className="flex gap-1 mt-1">
                           {EMOJIS.map((emoji) => (
-                            <button key={emoji} type="button" className="text-lg hover:scale-110 transition-transform" onClick={() => handleReaction(msg.id, emoji)}>{emoji}</button>
+                            <button
+                              key={emoji}
+                              type="button"
+                              className="text-lg hover:scale-110 transition-transform"
+                              onClick={() => handleReaction(msg.id, emoji)}
+                            >
+                              {emoji}
+                            </button>
                           ))}
                         </div>
                         <div className="flex gap-1 mt-1">
                           {(reactions[msg.id] || []).map((emoji) => (
-                            <span key={emoji} className="text-lg">{emoji}</span>
+                            <span key={emoji} className="text-lg">
+                              {emoji}
+                            </span>
                           ))}
                         </div>
-                        <div className="text-[10px] text-gray-400 mt-1">{msg.created_at?.slice(0, 16).replace("T", " ")}</div>
+                        <div className="text-[10px] text-gray-400 mt-1">
+                          {msg.created_at?.slice(0, 16).replace('T', ' ')}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -196,7 +249,8 @@ export default function GroupChatPage() {
               )}
               {typingUsers.length > 0 && (
                 <div className="text-xs text-blue-500 mt-2 animate-pulse">
-                  {typingUsers.map((u) => u.name || u.user_id).join(", ")} {typingUsers.length === 1 ? 'is' : 'are'} typing...
+                  {typingUsers.map((u) => u.name || u.user_id).join(', ')}{' '}
+                  {typingUsers.length === 1 ? 'is' : 'are'} typing...
                 </div>
               )}
             </div>
@@ -217,4 +271,4 @@ export default function GroupChatPage() {
       </div>
     </div>
   )
-} 
+}

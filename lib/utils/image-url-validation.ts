@@ -30,8 +30,9 @@ export function isValidCloudinaryUrl(url: string | null | undefined): boolean {
 
   // Check if it's a valid Cloudinary URL
   // Cloudinary URLs typically look like: https://res.cloudinary.com/{cloud_name}/image/upload/...
-  const cloudinaryPattern = /^https?:\/\/(res|api)\.cloudinary\.com\/[^\/]+\/(image|video)\/upload\//
-  
+  const cloudinaryPattern =
+    /^https?:\/\/(res|api)\.cloudinary\.com\/[^\/]+\/(image|video)\/upload\//
+
   return cloudinaryPattern.test(url)
 }
 
@@ -102,20 +103,22 @@ export function addCacheBusting(url: string | null | undefined): string | null {
  * @param storagePath - The storage path to extract entity type from
  * @returns The entity type string or null if cannot be determined
  */
-export function extractEntityTypeFromStoragePath(storagePath: string | null | undefined): string | null {
-  if (!storagePath) return null;
-  
-  const path = storagePath.toLowerCase();
-  
-  // Check for explicit entity type patterns
-  if (path.includes('book_') || path.includes('/book/')) return 'book';
-  if (path.includes('author_') || path.includes('/author/')) return 'author';
-  if (path.includes('publisher_') || path.includes('/publisher/')) return 'publisher';
-  if (path.includes('event_') || path.includes('/event/')) return 'event';
-  
-  // User patterns (most common fallback)
-  if (path.includes('user_') || path.includes('user_photos') || path.includes('user_album')) return 'user';
-  
-  return null;
-}
+export function extractEntityTypeFromStoragePath(
+  storagePath: string | null | undefined
+): string | null {
+  if (!storagePath) return null
 
+  const path = storagePath.toLowerCase()
+
+  // Check for explicit entity type patterns
+  if (path.includes('book_') || path.includes('/book/')) return 'book'
+  if (path.includes('author_') || path.includes('/author/')) return 'author'
+  if (path.includes('publisher_') || path.includes('/publisher/')) return 'publisher'
+  if (path.includes('event_') || path.includes('/event/')) return 'event'
+
+  // User patterns (most common fallback)
+  if (path.includes('user_') || path.includes('user_photos') || path.includes('user_album'))
+    return 'user'
+
+  return null
+}

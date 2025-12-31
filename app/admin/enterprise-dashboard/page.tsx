@@ -7,14 +7,14 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
-import { 
-  BarChart3, 
-  DollarSign, 
-  Users, 
-  TrendingUp, 
-  Brain, 
-  Image, 
-  BookOpen, 
+import {
+  BarChart3,
+  DollarSign,
+  Users,
+  TrendingUp,
+  Brain,
+  Image,
+  BookOpen,
   Star,
   Eye,
   Heart,
@@ -22,7 +22,7 @@ import {
   Download,
   MessageCircle,
   Settings,
-  Zap
+  Zap,
 } from 'lucide-react'
 
 interface EnterpriseMetrics {
@@ -93,9 +93,9 @@ export default function EnterpriseDashboard() {
     totalSubscribers: 0,
     communityScore: 0,
     aiAnalysisCount: 0,
-    processingJobs: 0
+    processingJobs: 0,
   })
-  
+
   const [analytics, setAnalytics] = useState<AnalyticsData>({
     views: 0,
     likes: 0,
@@ -104,9 +104,9 @@ export default function EnterpriseDashboard() {
     comments: 0,
     revenue: 0,
     engagement: 0,
-    viralScore: 0
+    viralScore: 0,
   })
-  
+
   const [monetization, setMonetization] = useState<MonetizationData>({
     totalEarnings: 0,
     premiumSubscribers: 0,
@@ -115,18 +115,18 @@ export default function EnterpriseDashboard() {
     lifetimeValue: 0,
     conversionRate: 0,
     averageOrderValue: 0,
-    topRevenueSources: []
+    topRevenueSources: [],
   })
-  
+
   const [community, setCommunity] = useState<CommunityData>({
     activeFollowers: 0,
     totalInteractions: 0,
     communityScore: 0,
     userGeneratedContent: 0,
     averageRating: 0,
-    topContributors: []
+    topContributors: [],
   })
-  
+
   const [ai, setAI] = useState<AIData>({
     analyzedImages: 0,
     processingJobs: 0,
@@ -136,13 +136,16 @@ export default function EnterpriseDashboard() {
     qualityMetrics: {
       sharpness: 0,
       brightness: 0,
-      contrast: 0
-    }
+      contrast: 0,
+    },
   })
 
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('overview')
-  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   useEffect(() => {
     loadEnterpriseData()
@@ -158,42 +161,32 @@ export default function EnterpriseDashboard() {
         .select('*')
         .is('deleted_at', null)
 
-      const { data: images } = await supabase
-        .from('album_images')
-        .select('*')
+      const { data: images } = await supabase.from('album_images').select('*')
 
-      const { data: analytics } = await supabase
-        .from('photo_analytics')
-        .select('*')
+      const { data: analytics } = await supabase.from('photo_analytics').select('*')
 
       const { data: monetization } = await supabase
         .from('photo_monetization')
         .select('*')
         .eq('status', 'completed')
 
-      const { data: community } = await supabase
-        .from('photo_community')
-        .select('*')
+      const { data: community } = await supabase.from('photo_community').select('*')
 
-      const { data: aiAnalysis } = await supabase
-        .from('ai_image_analysis')
-        .select('*')
+      const { data: aiAnalysis } = await supabase.from('ai_image_analysis').select('*')
 
-      const { data: processingJobs } = await supabase
-        .from('image_processing_jobs')
-        .select('*')
+      const { data: processingJobs } = await supabase.from('image_processing_jobs').select('*')
 
       // Calculate metrics
       const totalAlbums = albums?.length || 0
       const totalImages = images?.length || 0
-      const totalViews = analytics?.filter(a => a.event_type === 'view').length || 0
-      const totalLikes = analytics?.filter(a => a.event_type === 'like').length || 0
-      const totalShares = analytics?.filter(a => a.event_type === 'share').length || 0
+      const totalViews = analytics?.filter((a) => a.event_type === 'view').length || 0
+      const totalLikes = analytics?.filter((a) => a.event_type === 'like').length || 0
+      const totalShares = analytics?.filter((a) => a.event_type === 'share').length || 0
       const totalRevenue = monetization?.reduce((sum, m) => sum + (m.amount || 0), 0) || 0
-      const totalSubscribers = albums?.filter(a => a.premium_content).length || 0
+      const totalSubscribers = albums?.filter((a) => a.premium_content).length || 0
       const communityScore = community?.length ? Math.min(community.length / 100, 1) : 0
       const aiAnalysisCount = aiAnalysis?.length || 0
-      const processingJobsCount = processingJobs?.filter(p => p.status === 'pending').length || 0
+      const processingJobsCount = processingJobs?.filter((p) => p.status === 'pending').length || 0
 
       setMetrics({
         totalAlbums,
@@ -205,15 +198,15 @@ export default function EnterpriseDashboard() {
         totalSubscribers,
         communityScore,
         aiAnalysisCount,
-        processingJobs: processingJobsCount
+        processingJobs: processingJobsCount,
       })
 
       // Calculate analytics data
       const views = totalViews
       const likes = totalLikes
       const shares = totalShares
-      const downloads = analytics?.filter(a => a.event_type === 'download').length || 0
-      const comments = community?.filter(c => c.interaction_type === 'comment').length || 0
+      const downloads = analytics?.filter((a) => a.event_type === 'download').length || 0
+      const comments = community?.filter((c) => c.interaction_type === 'comment').length || 0
       const revenue = totalRevenue
       const engagement = totalImages ? ((views + likes + shares) / totalImages) * 100 : 0
       const viralScore = shares > 0 ? (shares / views) * 100 : 0
@@ -226,7 +219,7 @@ export default function EnterpriseDashboard() {
         comments,
         revenue,
         engagement,
-        viralScore
+        viralScore,
       })
 
       // Calculate monetization data
@@ -237,7 +230,7 @@ export default function EnterpriseDashboard() {
       const lifetimeValue = totalRevenue
       const conversionRate = views > 0 ? (likes / views) * 100 : 0
       const averageOrderValue = monetization?.length ? totalRevenue / monetization.length : 0
-      const topRevenueSources = monetization?.slice(0, 5).map(m => m.event_type) || []
+      const topRevenueSources = monetization?.slice(0, 5).map((m) => m.event_type) || []
 
       setMonetization({
         totalEarnings,
@@ -247,16 +240,18 @@ export default function EnterpriseDashboard() {
         lifetimeValue,
         conversionRate,
         averageOrderValue,
-        topRevenueSources
+        topRevenueSources,
       })
 
       // Calculate community data
-      const activeFollowers = community?.filter(c => c.interaction_type === 'follow').length || 0
+      const activeFollowers = community?.filter((c) => c.interaction_type === 'follow').length || 0
       const totalInteractions = community?.length || 0
       const communityScoreValue = communityScore
-      const userGeneratedContent = community?.filter(c => c.content).length || 0
-      const averageRating = community?.filter(c => c.rating).reduce((sum, c) => sum + (c.rating || 0), 0) / (community?.filter(c => c.rating).length || 1) || 0
-      const topContributors = community?.slice(0, 5).map(c => c.user_id) || []
+      const userGeneratedContent = community?.filter((c) => c.content).length || 0
+      const averageRating =
+        community?.filter((c) => c.rating).reduce((sum, c) => sum + (c.rating || 0), 0) /
+          (community?.filter((c) => c.rating).length || 1) || 0
+      const topContributors = community?.slice(0, 5).map((c) => c.user_id) || []
 
       setCommunity({
         activeFollowers,
@@ -264,18 +259,22 @@ export default function EnterpriseDashboard() {
         communityScore: communityScoreValue,
         userGeneratedContent,
         averageRating,
-        topContributors
+        topContributors,
       })
 
       // Calculate AI data
       const analyzedImages = aiAnalysisCount
-      const averageConfidence = aiAnalysis?.reduce((sum, a) => sum + (a.confidence_score || 0), 0) / (aiAnalysis?.length || 1) || 0
-      const contentSafetyScore = aiAnalysis?.reduce((sum, a) => sum + (a.content_safety_score || 0), 0) / (aiAnalysis?.length || 1) || 0
-      const topTags = aiAnalysis?.flatMap(a => a.tags || []).slice(0, 10) || []
+      const averageConfidence =
+        aiAnalysis?.reduce((sum, a) => sum + (a.confidence_score || 0), 0) /
+          (aiAnalysis?.length || 1) || 0
+      const contentSafetyScore =
+        aiAnalysis?.reduce((sum, a) => sum + (a.content_safety_score || 0), 0) /
+          (aiAnalysis?.length || 1) || 0
+      const topTags = aiAnalysis?.flatMap((a) => a.tags || []).slice(0, 10) || []
       const qualityMetrics = {
         sharpness: 0.85,
         brightness: 0.78,
-        contrast: 0.72
+        contrast: 0.72,
       }
 
       setAI({
@@ -284,9 +283,8 @@ export default function EnterpriseDashboard() {
         averageConfidence,
         contentSafetyScore,
         topTags,
-        qualityMetrics
+        qualityMetrics,
       })
-
     } catch (error) {
       console.error('Error loading enterprise data:', error)
     } finally {
@@ -402,9 +400,7 @@ export default function EnterpriseDashboard() {
                   <TrendingUp className="h-5 w-5" />
                   <span>Engagement Metrics</span>
                 </CardTitle>
-                <CardDescription>
-                  Real-time engagement tracking across all content
-                </CardDescription>
+                <CardDescription>Real-time engagement tracking across all content</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -452,9 +448,7 @@ export default function EnterpriseDashboard() {
                   <DollarSign className="h-5 w-5" />
                   <span>Revenue Overview</span>
                 </CardTitle>
-                <CardDescription>
-                  Monetization performance and earnings
-                </CardDescription>
+                <CardDescription>Monetization performance and earnings</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -467,7 +461,9 @@ export default function EnterpriseDashboard() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Monthly Recurring</span>
-                  <span className="font-semibold">${monetization.monthlyRecurringRevenue.toFixed(2)}</span>
+                  <span className="font-semibold">
+                    ${monetization.monthlyRecurringRevenue.toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Conversion Rate</span>
@@ -475,7 +471,9 @@ export default function EnterpriseDashboard() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Avg Order Value</span>
-                  <span className="font-semibold">${monetization.averageOrderValue.toFixed(2)}</span>
+                  <span className="font-semibold">
+                    ${monetization.averageOrderValue.toFixed(2)}
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -522,9 +520,7 @@ export default function EnterpriseDashboard() {
                   <Users className="h-5 w-5" />
                   <span>Community Health</span>
                 </CardTitle>
-                <CardDescription>
-                  Community engagement and social metrics
-                </CardDescription>
+                <CardDescription>Community engagement and social metrics</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -537,7 +533,9 @@ export default function EnterpriseDashboard() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Community Score</span>
-                  <span className="font-semibold">{(community.communityScore * 100).toFixed(1)}%</span>
+                  <span className="font-semibold">
+                    {(community.communityScore * 100).toFixed(1)}%
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>User Content</span>
@@ -558,9 +556,7 @@ export default function EnterpriseDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Engagement Analytics</CardTitle>
-                <CardDescription>
-                  Detailed engagement metrics and trends
-                </CardDescription>
+                <CardDescription>Detailed engagement metrics and trends</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -580,9 +576,17 @@ export default function EnterpriseDashboard() {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span>Revenue per View</span>
-                    <span className="font-semibold">${analytics.views > 0 ? (analytics.revenue / analytics.views).toFixed(4) : '0.0000'}</span>
+                    <span className="font-semibold">
+                      $
+                      {analytics.views > 0
+                        ? (analytics.revenue / analytics.views).toFixed(4)
+                        : '0.0000'}
+                    </span>
                   </div>
-                  <Progress value={analytics.views > 0 ? (analytics.revenue / analytics.views) * 1000 : 0} className="w-full" />
+                  <Progress
+                    value={analytics.views > 0 ? (analytics.revenue / analytics.views) * 1000 : 0}
+                    className="w-full"
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -590,26 +594,32 @@ export default function EnterpriseDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Performance Metrics</CardTitle>
-                <CardDescription>
-                  Key performance indicators and benchmarks
-                </CardDescription>
+                <CardDescription>Key performance indicators and benchmarks</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">{analytics.views.toLocaleString()}</div>
+                    <div className="text-2xl font-bold text-blue-600">
+                      {analytics.views.toLocaleString()}
+                    </div>
                     <div className="text-sm text-muted-foreground">Total Views</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{analytics.likes.toLocaleString()}</div>
+                    <div className="text-2xl font-bold text-green-600">
+                      {analytics.likes.toLocaleString()}
+                    </div>
                     <div className="text-sm text-muted-foreground">Total Likes</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">{analytics.shares.toLocaleString()}</div>
+                    <div className="text-2xl font-bold text-purple-600">
+                      {analytics.shares.toLocaleString()}
+                    </div>
                     <div className="text-sm text-muted-foreground">Total Shares</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-orange-600">{analytics.comments.toLocaleString()}</div>
+                    <div className="text-2xl font-bold text-orange-600">
+                      {analytics.comments.toLocaleString()}
+                    </div>
                     <div className="text-sm text-muted-foreground">Total Comments</div>
                   </div>
                 </div>
@@ -624,9 +634,7 @@ export default function EnterpriseDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Revenue Streams</CardTitle>
-                <CardDescription>
-                  Breakdown of revenue sources and performance
-                </CardDescription>
+                <CardDescription>Breakdown of revenue sources and performance</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -634,21 +642,44 @@ export default function EnterpriseDashboard() {
                     <span>Total Earnings</span>
                     <span className="font-semibold">${monetization.totalEarnings.toFixed(2)}</span>
                   </div>
-                  <Progress value={monetization.totalEarnings > 0 ? Math.min(monetization.totalEarnings / 1000 * 100, 100) : 0} className="w-full" />
+                  <Progress
+                    value={
+                      monetization.totalEarnings > 0
+                        ? Math.min((monetization.totalEarnings / 1000) * 100, 100)
+                        : 0
+                    }
+                    className="w-full"
+                  />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span>Monthly Recurring</span>
-                    <span className="font-semibold">${monetization.monthlyRecurringRevenue.toFixed(2)}</span>
+                    <span className="font-semibold">
+                      ${monetization.monthlyRecurringRevenue.toFixed(2)}
+                    </span>
                   </div>
-                  <Progress value={monetization.monthlyRecurringRevenue > 0 ? Math.min(monetization.monthlyRecurringRevenue / 500 * 100, 100) : 0} className="w-full" />
+                  <Progress
+                    value={
+                      monetization.monthlyRecurringRevenue > 0
+                        ? Math.min((monetization.monthlyRecurringRevenue / 500) * 100, 100)
+                        : 0
+                    }
+                    className="w-full"
+                  />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span>Lifetime Value</span>
                     <span className="font-semibold">${monetization.lifetimeValue.toFixed(2)}</span>
                   </div>
-                  <Progress value={monetization.lifetimeValue > 0 ? Math.min(monetization.lifetimeValue / 2000 * 100, 100) : 0} className="w-full" />
+                  <Progress
+                    value={
+                      monetization.lifetimeValue > 0
+                        ? Math.min((monetization.lifetimeValue / 2000) * 100, 100)
+                        : 0
+                    }
+                    className="w-full"
+                  />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
@@ -663,26 +694,32 @@ export default function EnterpriseDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Revenue Analytics</CardTitle>
-                <CardDescription>
-                  Detailed revenue metrics and trends
-                </CardDescription>
+                <CardDescription>Detailed revenue metrics and trends</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{monetization.premiumSubscribers}</div>
+                    <div className="text-2xl font-bold text-green-600">
+                      {monetization.premiumSubscribers}
+                    </div>
                     <div className="text-sm text-muted-foreground">Premium Subscribers</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">{monetization.revenueShare}%</div>
+                    <div className="text-2xl font-bold text-blue-600">
+                      {monetization.revenueShare}%
+                    </div>
                     <div className="text-sm text-muted-foreground">Revenue Share</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">${monetization.averageOrderValue.toFixed(2)}</div>
+                    <div className="text-2xl font-bold text-purple-600">
+                      ${monetization.averageOrderValue.toFixed(2)}
+                    </div>
                     <div className="text-sm text-muted-foreground">Avg Order Value</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-orange-600">{monetization.topRevenueSources.length}</div>
+                    <div className="text-2xl font-bold text-orange-600">
+                      {monetization.topRevenueSources.length}
+                    </div>
                     <div className="text-sm text-muted-foreground">Revenue Sources</div>
                   </div>
                 </div>
@@ -697,15 +734,15 @@ export default function EnterpriseDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Community Engagement</CardTitle>
-                <CardDescription>
-                  Social metrics and community health indicators
-                </CardDescription>
+                <CardDescription>Social metrics and community health indicators</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span>Community Score</span>
-                    <span className="font-semibold">{(community.communityScore * 100).toFixed(1)}%</span>
+                    <span className="font-semibold">
+                      {(community.communityScore * 100).toFixed(1)}%
+                    </span>
                   </div>
                   <Progress value={community.communityScore * 100} className="w-full" />
                 </div>
@@ -714,14 +751,28 @@ export default function EnterpriseDashboard() {
                     <span>Active Followers</span>
                     <span className="font-semibold">{community.activeFollowers}</span>
                   </div>
-                  <Progress value={community.activeFollowers > 0 ? Math.min(community.activeFollowers / 100 * 100, 100) : 0} className="w-full" />
+                  <Progress
+                    value={
+                      community.activeFollowers > 0
+                        ? Math.min((community.activeFollowers / 100) * 100, 100)
+                        : 0
+                    }
+                    className="w-full"
+                  />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span>User Generated Content</span>
                     <span className="font-semibold">{community.userGeneratedContent}</span>
                   </div>
-                  <Progress value={community.userGeneratedContent > 0 ? Math.min(community.userGeneratedContent / 50 * 100, 100) : 0} className="w-full" />
+                  <Progress
+                    value={
+                      community.userGeneratedContent > 0
+                        ? Math.min((community.userGeneratedContent / 50) * 100, 100)
+                        : 0
+                    }
+                    className="w-full"
+                  />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
@@ -736,26 +787,32 @@ export default function EnterpriseDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Community Metrics</CardTitle>
-                <CardDescription>
-                  Detailed community performance indicators
-                </CardDescription>
+                <CardDescription>Detailed community performance indicators</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">{community.activeFollowers}</div>
+                    <div className="text-2xl font-bold text-blue-600">
+                      {community.activeFollowers}
+                    </div>
                     <div className="text-sm text-muted-foreground">Active Followers</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{community.totalInteractions}</div>
+                    <div className="text-2xl font-bold text-green-600">
+                      {community.totalInteractions}
+                    </div>
                     <div className="text-sm text-muted-foreground">Total Interactions</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">{community.userGeneratedContent}</div>
+                    <div className="text-2xl font-bold text-purple-600">
+                      {community.userGeneratedContent}
+                    </div>
                     <div className="text-sm text-muted-foreground">User Content</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-orange-600">{community.topContributors.length}</div>
+                    <div className="text-2xl font-bold text-orange-600">
+                      {community.topContributors.length}
+                    </div>
                     <div className="text-sm text-muted-foreground">Top Contributors</div>
                   </div>
                 </div>
@@ -778,14 +835,18 @@ export default function EnterpriseDashboard() {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span>Average Confidence</span>
-                    <span className="font-semibold">{(ai.averageConfidence * 100).toFixed(1)}%</span>
+                    <span className="font-semibold">
+                      {(ai.averageConfidence * 100).toFixed(1)}%
+                    </span>
                   </div>
                   <Progress value={ai.averageConfidence * 100} className="w-full" />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span>Content Safety Score</span>
-                    <span className="font-semibold">{(ai.contentSafetyScore * 100).toFixed(1)}%</span>
+                    <span className="font-semibold">
+                      {(ai.contentSafetyScore * 100).toFixed(1)}%
+                    </span>
                   </div>
                   <Progress value={ai.contentSafetyScore * 100} className="w-full" />
                 </div>
@@ -794,14 +855,24 @@ export default function EnterpriseDashboard() {
                     <span>Processing Jobs</span>
                     <span className="font-semibold">{ai.processingJobs}</span>
                   </div>
-                  <Progress value={ai.processingJobs > 0 ? Math.min(ai.processingJobs / 10 * 100, 100) : 0} className="w-full" />
+                  <Progress
+                    value={
+                      ai.processingJobs > 0 ? Math.min((ai.processingJobs / 10) * 100, 100) : 0
+                    }
+                    className="w-full"
+                  />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span>Analyzed Images</span>
                     <span className="font-semibold">{ai.analyzedImages}</span>
                   </div>
-                  <Progress value={ai.analyzedImages > 0 ? Math.min(ai.analyzedImages / 100 * 100, 100) : 0} className="w-full" />
+                  <Progress
+                    value={
+                      ai.analyzedImages > 0 ? Math.min((ai.analyzedImages / 100) * 100, 100) : 0
+                    }
+                    className="w-full"
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -809,22 +880,26 @@ export default function EnterpriseDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Quality Metrics</CardTitle>
-                <CardDescription>
-                  Image quality assessment and optimization
-                </CardDescription>
+                <CardDescription>Image quality assessment and optimization</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">{(ai.qualityMetrics.sharpness * 100).toFixed(0)}%</div>
+                    <div className="text-2xl font-bold text-blue-600">
+                      {(ai.qualityMetrics.sharpness * 100).toFixed(0)}%
+                    </div>
                     <div className="text-sm text-muted-foreground">Sharpness</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{(ai.qualityMetrics.brightness * 100).toFixed(0)}%</div>
+                    <div className="text-2xl font-bold text-green-600">
+                      {(ai.qualityMetrics.brightness * 100).toFixed(0)}%
+                    </div>
                     <div className="text-sm text-muted-foreground">Brightness</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">{(ai.qualityMetrics.contrast * 100).toFixed(0)}%</div>
+                    <div className="text-2xl font-bold text-purple-600">
+                      {(ai.qualityMetrics.contrast * 100).toFixed(0)}%
+                    </div>
                     <div className="text-sm text-muted-foreground">Contrast</div>
                   </div>
                   <div className="text-center">

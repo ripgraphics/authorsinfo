@@ -1,10 +1,10 @@
-import Link from "next/link"
-import type { Author } from "@/types/book"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { AuthorAvatar } from "@/components/author-avatar"
-import { EntityHoverCard } from "@/components/entity-hover-cards"
-import { Pencil } from "lucide-react"
+import Link from 'next/link'
+import type { Author } from '@/types/book'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { AuthorAvatar } from '@/components/author-avatar'
+import { EntityHoverCard } from '@/components/entity-hover-cards'
+import { Pencil } from 'lucide-react'
 
 interface AboutAuthorProps {
   authors: Author[]
@@ -28,21 +28,21 @@ function getAuthorImageUrl(author: Author): string {
   }
 
   // Default placeholder
-  return "/placeholder.svg"
+  return '/placeholder.svg'
 }
 
-export function AboutAuthor({ 
-  authors, 
-  bookId, 
-  showEditButton = true, 
-  className = "", 
+export function AboutAuthor({
+  authors,
+  bookId,
+  showEditButton = true,
+  className = '',
   books = [],
-  authorBookCounts = {} 
+  authorBookCounts = {},
 }: AboutAuthorProps) {
   return (
     <Card className={`about-author-card ${className}`}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle>About the Author{authors.length > 1 ? "s" : ""}</CardTitle>
+        <CardTitle>About the Author{authors.length > 1 ? 's' : ''}</CardTitle>
         {showEditButton && (
           <Button variant="ghost" size="sm" className="h-8 w-8 p-0" asChild>
             <Link
@@ -51,11 +51,13 @@ export function AboutAuthor({
                   ? `/authors/${authors[0].id}/edit`
                   : bookId
                     ? `/authors/new?book_id=${bookId}`
-                    : "/authors/new"
+                    : '/authors/new'
               }
             >
               <Pencil className="h-4 w-4" />
-              <span className="sr-only">{authors && authors.length > 0 ? "Edit Author" : "Add Author"}</span>
+              <span className="sr-only">
+                {authors && authors.length > 0 ? 'Edit Author' : 'Add Author'}
+              </span>
             </Link>
           </Button>
         )}
@@ -82,7 +84,7 @@ export function AboutAuthor({
                   id: author.id,
                   name: author.name,
                   author_image: author.author_image ? { url: author.author_image.url } : undefined,
-                  bookCount: authorBookCounts[author.id] || books.length || 0
+                  bookCount: authorBookCounts[author.id] || books.length || 0,
                 }}
               >
                 <span className="text-muted-foreground">{author.name}</span>
@@ -90,7 +92,9 @@ export function AboutAuthor({
 
               {/* Author Bio - Truncated */}
               {author.bio && (
-                <p className="author-bio text-sm mt-2 line-clamp-5 text-muted-foreground text-left">{author.bio}</p>
+                <p className="author-bio text-sm mt-2 line-clamp-5 text-muted-foreground text-left">
+                  {author.bio}
+                </p>
               )}
             </div>
           ))

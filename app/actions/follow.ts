@@ -45,13 +45,19 @@ async function getTargetTypeId(targetType: string): Promise<string | null> {
   return targetTypeData.id
 }
 
-export async function followEntity(followingId: string | number, targetType: string): Promise<FollowResponse> {
+export async function followEntity(
+  followingId: string | number,
+  targetType: string
+): Promise<FollowResponse> {
   try {
     const supabase = await createServerActionClientAsync()
-    
+
     // Get current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-    
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
+
     if (userError || !user) {
       return { success: false, error: 'Authentication required' }
     }
@@ -71,24 +77,25 @@ export async function followEntity(followingId: string | number, targetType: str
     const followingIdUUID = convertToUUID(followingId)
 
     // Check if already following using direct SQL
-    const { data: existingFollow, error: checkError } = await supabaseAdmin
-      .rpc('check_existing_follow', {
+    const { data: existingFollow, error: checkError } = await supabaseAdmin.rpc(
+      'check_existing_follow',
+      {
         p_follower_id: user.id,
         p_following_id: followingIdUUID,
-        p_target_type_id: targetTypeId
-      })
+        p_target_type_id: targetTypeId,
+      }
+    )
 
     if (existingFollow && existingFollow.follow_exists) {
       return { success: false, error: 'Already following this entity' }
     }
 
     // Insert follow record using direct SQL to bypass any triggers
-    const { data, error } = await supabaseAdmin
-      .rpc('insert_follow_record', {
-        p_follower_id: user.id,
-        p_following_id: followingIdUUID,
-        p_target_type_id: targetTypeId
-      })
+    const { data, error } = await supabaseAdmin.rpc('insert_follow_record', {
+      p_follower_id: user.id,
+      p_following_id: followingIdUUID,
+      p_target_type_id: targetTypeId,
+    })
 
     if (error) {
       console.error('Server: Error following entity:', error)
@@ -106,13 +113,19 @@ export async function followEntity(followingId: string | number, targetType: str
   }
 }
 
-export async function unfollowEntity(followingId: string | number, targetType: string): Promise<FollowResponse> {
+export async function unfollowEntity(
+  followingId: string | number,
+  targetType: string
+): Promise<FollowResponse> {
   try {
     const supabase = await createServerActionClientAsync()
-    
+
     // Get current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-    
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
+
     if (userError || !user) {
       return { success: false, error: 'Authentication required' }
     }
@@ -132,12 +145,11 @@ export async function unfollowEntity(followingId: string | number, targetType: s
     const followingIdUUID = convertToUUID(followingId)
 
     // Delete follow record using direct SQL
-    const { data, error } = await supabaseAdmin
-      .rpc('delete_follow_record', {
-        p_follower_id: user.id,
-        p_following_id: followingIdUUID,
-        p_target_type_id: targetTypeId
-      })
+    const { data, error } = await supabaseAdmin.rpc('delete_follow_record', {
+      p_follower_id: user.id,
+      p_following_id: followingIdUUID,
+      p_target_type_id: targetTypeId,
+    })
 
     if (error) {
       console.error('Server: Error unfollowing entity:', error)
@@ -159,13 +171,19 @@ export async function unfollowEntity(followingId: string | number, targetType: s
   }
 }
 
-export async function isFollowing(followingId: string | number, targetType: string): Promise<FollowResponse> {
+export async function isFollowing(
+  followingId: string | number,
+  targetType: string
+): Promise<FollowResponse> {
   try {
     const supabase = await createServerActionClientAsync()
-    
+
     // Get current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-    
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
+
     if (userError || !user) {
       return { success: true, isFollowing: false }
     }
@@ -180,12 +198,11 @@ export async function isFollowing(followingId: string | number, targetType: stri
     const followingIdUUID = convertToUUID(followingId)
 
     // Check follow status using direct SQL
-    const { data, error } = await supabaseAdmin
-      .rpc('check_is_following', {
-        p_follower_id: user.id,
-        p_following_id: followingIdUUID,
-        p_target_type_id: targetTypeId
-      })
+    const { data, error } = await supabaseAdmin.rpc('check_is_following', {
+      p_follower_id: user.id,
+      p_following_id: followingIdUUID,
+      p_target_type_id: targetTypeId,
+    })
 
     if (error) {
       console.error('Server: Error checking follow status:', error)
@@ -195,6 +212,10 @@ export async function isFollowing(followingId: string | number, targetType: stri
     return { success: true, isFollowing: data || false }
   } catch (error: any) {
     console.error('Server: Error checking follow status:', error)
-    return { success: false, error: error?.message || 'An unexpected error occurred', isFollowing: false }
+    return {
+      success: false,
+      error: error?.message || 'An unexpected error occurred',
+      isFollowing: false,
+    }
   }
-} 
+}

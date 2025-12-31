@@ -7,7 +7,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')
-    
+
     if (!userId) {
       return NextResponse.json({ error: 'userId parameter is required' }, { status: 400 })
     }
@@ -19,12 +19,14 @@ export async function GET(request: Request) {
     // Check public.profiles table
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
-      .select(`
+      .select(
+        `
         id,
         user_id,
         role,
         created_at
-      `)
+      `
+      )
       .eq('user_id', userId)
       .single()
 
@@ -33,13 +35,15 @@ export async function GET(request: Request) {
     // Check public.users table
     const { data: publicUser, error: publicUserError } = await supabaseAdmin
       .from('users')
-      .select(`
+      .select(
+        `
         id,
         email,
         name,
         role_id,
         created_at
-      `)
+      `
+      )
       .eq('id', userId)
       .single()
 
@@ -50,11 +54,13 @@ export async function GET(request: Request) {
     if (publicUser && (publicUser as any).role_id) {
       const { data: roleData, error: roleError } = await supabaseAdmin
         .from('roles')
-        .select(`
+        .select(
+          `
           id,
           name,
           description
-        `)
+        `
+        )
         .eq('id', (publicUser as any).role_id)
         .single()
 
@@ -93,8 +99,8 @@ export async function GET(request: Request) {
       errors: {
         authUserError: null, // auth.users table doesn't exist in current schema
         profileError: profileError?.message,
-        publicUserError: publicUserError?.message
-      }
+        publicUserError: publicUserError?.message,
+      },
     }
 
     console.log('Final result:', result)
@@ -104,4 +110,4 @@ export async function GET(request: Request) {
     console.error('Error checking user role:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-} 
+}

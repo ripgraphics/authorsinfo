@@ -9,24 +9,27 @@ export default function DebugDatabase() {
   const [isLoading, setIsLoading] = useState(false)
 
   const addResult = (type: 'SUCCESS' | 'ERROR' | 'INFO', message: string, data?: any) => {
-    setResults(prev => [{
-      id: Date.now(),
-      type,
-      message,
-      data,
-      timestamp: new Date().toISOString()
-    }, ...prev])
+    setResults((prev) => [
+      {
+        id: Date.now(),
+        type,
+        message,
+        data,
+        timestamp: new Date().toISOString(),
+      },
+      ...prev,
+    ])
   }
 
   const testDatabaseConnection = async () => {
     setIsLoading(true)
     try {
       // Quiet: remove verbose test log
-      
+
       const response = await fetch('/api/test-supabase', {
-        method: 'GET'
+        method: 'GET',
       })
-      
+
       if (response.ok) {
         const data = await response.json()
         addResult('SUCCESS', 'Database connection successful', data)
@@ -45,11 +48,11 @@ export default function DebugDatabase() {
     setIsLoading(true)
     try {
       addResult('INFO', 'Testing photo_albums table access...')
-      
+
       const response = await fetch('/api/test-db', {
-        method: 'GET'
+        method: 'GET',
       })
-      
+
       if (response.ok) {
         const data = await response.json()
         addResult('SUCCESS', 'Photo albums table accessible', data)
@@ -75,26 +78,15 @@ export default function DebugDatabase() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex gap-4">
-          <Button
-            onClick={testDatabaseConnection}
-            disabled={isLoading}
-            variant="outline"
-          >
+          <Button onClick={testDatabaseConnection} disabled={isLoading} variant="outline">
             Test DB Connection
           </Button>
-          
-          <Button
-            onClick={testPhotoAlbumsTable}
-            disabled={isLoading}
-            variant="outline"
-          >
+
+          <Button onClick={testPhotoAlbumsTable} disabled={isLoading} variant="outline">
             Test Photo Albums Table
           </Button>
-          
-          <Button
-            onClick={clearResults}
-            variant="ghost"
-          >
+
+          <Button onClick={clearResults} variant="ghost">
             Clear Results
           </Button>
         </div>
@@ -112,18 +104,23 @@ export default function DebugDatabase() {
               <div
                 key={result.id}
                 className={`p-3 rounded-lg border text-sm ${
-                  result.type === 'SUCCESS' 
-                    ? 'border-green-200 bg-green-50' 
+                  result.type === 'SUCCESS'
+                    ? 'border-green-200 bg-green-50'
                     : result.type === 'ERROR'
-                    ? 'border-red-200 bg-red-50'
-                    : 'border-blue-200 bg-blue-50'
+                      ? 'border-red-200 bg-red-50'
+                      : 'border-blue-200 bg-blue-50'
                 }`}
               >
                 <div className="flex items-center gap-2 mb-1">
-                  <span className={`font-medium ${
-                    result.type === 'SUCCESS' ? 'text-green-800' :
-                    result.type === 'ERROR' ? 'text-red-800' : 'text-blue-800'
-                  }`}>
+                  <span
+                    className={`font-medium ${
+                      result.type === 'SUCCESS'
+                        ? 'text-green-800'
+                        : result.type === 'ERROR'
+                          ? 'text-red-800'
+                          : 'text-blue-800'
+                    }`}
+                  >
                     {result.type}
                   </span>
                   <span className="text-xs text-muted-foreground">
@@ -144,24 +141,3 @@ export default function DebugDatabase() {
     </Card>
   )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

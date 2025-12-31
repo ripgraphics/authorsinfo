@@ -1,8 +1,8 @@
-"use client"
+'use client'
 
-import { useEffect, useRef } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
+import { useEffect, useRef } from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface PieChartProps {
   title: string
@@ -20,16 +20,16 @@ export function PieChart({
   labels,
   data,
   colors = [
-    "#3b82f6",
-    "#ef4444",
-    "#10b981",
-    "#f59e0b",
-    "#8b5cf6",
-    "#ec4899",
-    "#6366f1",
-    "#14b8a6",
-    "#f43f5e",
-    "#84cc16",
+    '#3b82f6',
+    '#ef4444',
+    '#10b981',
+    '#f59e0b',
+    '#8b5cf6',
+    '#ec4899',
+    '#6366f1',
+    '#14b8a6',
+    '#f43f5e',
+    '#84cc16',
   ],
   height = 300,
   loading = false,
@@ -39,7 +39,7 @@ export function PieChart({
   useEffect(() => {
     if (loading || !canvasRef.current) return
 
-    const ctx = canvasRef.current.getContext("2d")
+    const ctx = canvasRef.current.getContext('2d')
     if (!ctx) return
 
     // Clear previous chart
@@ -47,20 +47,20 @@ export function PieChart({
 
     if (labels.length === 0 || data.length === 0) {
       // Draw "No data" message
-      ctx.font = "16px sans-serif"
-      ctx.fillStyle = "#6b7280"
-      ctx.textAlign = "center"
-      ctx.fillText("No data available", canvasRef.current.width / 2, canvasRef.current.height / 2)
+      ctx.font = '16px sans-serif'
+      ctx.fillStyle = '#6b7280'
+      ctx.textAlign = 'center'
+      ctx.fillText('No data available', canvasRef.current.width / 2, canvasRef.current.height / 2)
       return
     }
 
     // Calculate total
     const total = data.reduce((sum, value) => sum + value, 0)
     if (total === 0) {
-      ctx.font = "16px sans-serif"
-      ctx.fillStyle = "#6b7280"
-      ctx.textAlign = "center"
-      ctx.fillText("No data available", canvasRef.current.width / 2, canvasRef.current.height / 2)
+      ctx.font = '16px sans-serif'
+      ctx.fillStyle = '#6b7280'
+      ctx.textAlign = 'center'
+      ctx.fillText('No data available', canvasRef.current.width / 2, canvasRef.current.height / 2)
       return
     }
 
@@ -82,7 +82,7 @@ export function PieChart({
       ctx.closePath()
       ctx.fillStyle = colors[i % colors.length]
       ctx.fill()
-      ctx.strokeStyle = "#ffffff"
+      ctx.strokeStyle = '#ffffff'
       ctx.lineWidth = 2
       ctx.stroke()
 
@@ -95,10 +95,10 @@ export function PieChart({
       // Draw percentage if slice is big enough
       if (data[i] / total > 0.05) {
         const percentage = Math.round((data[i] / total) * 100)
-        ctx.font = "bold 14px sans-serif"
-        ctx.fillStyle = "#ffffff"
-        ctx.textAlign = "center"
-        ctx.textBaseline = "middle"
+        ctx.font = 'bold 14px sans-serif'
+        ctx.fillStyle = '#ffffff'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
         ctx.fillText(`${percentage}%`, labelX, labelY)
       }
 
@@ -116,16 +116,16 @@ export function PieChart({
       // Draw color box
       ctx.fillStyle = colors[i % colors.length]
       ctx.fillRect(legendX, y, 15, 15)
-      ctx.strokeStyle = "#ffffff"
+      ctx.strokeStyle = '#ffffff'
       ctx.lineWidth = 1
       ctx.strokeRect(legendX, y, 15, 15)
 
       // Draw label
-      ctx.font = "12px sans-serif"
-      ctx.fillStyle = "#6b7280"
-      ctx.textAlign = "left"
-      ctx.textBaseline = "middle"
-      const labelText = labels[i].length > 15 ? labels[i].substring(0, 15) + "..." : labels[i]
+      ctx.font = '12px sans-serif'
+      ctx.fillStyle = '#6b7280'
+      ctx.textAlign = 'left'
+      ctx.textBaseline = 'middle'
+      const labelText = labels[i].length > 15 ? labels[i].substring(0, 15) + '...' : labels[i]
       ctx.fillText(labelText, legendX + 25, y + 7.5)
     }
   }, [labels, data, colors, height, loading])

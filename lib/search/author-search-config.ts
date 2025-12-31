@@ -45,11 +45,10 @@ export function authorSearchScorer(
   const name = (author.name || '').toLowerCase()
 
   // All words in name gets extra boost
-  const allWordsInName = searchWords.every(word => name.includes(word))
+  const allWordsInName = searchWords.every((word) => name.includes(word))
   if (allWordsInName) {
     score += 1000
   }
 
   return score
 }
-

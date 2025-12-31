@@ -11,12 +11,10 @@ export default function TestFacebookClosePage() {
   return (
     <div className="container mx-auto p-8">
       <h1 className="text-2xl font-bold mb-4">Close Button Test</h1>
-      
+
       <div className="space-y-4">
-        <Button onClick={() => setIsOpen(true)}>
-          Open Test Modal
-        </Button>
-        
+        <Button onClick={() => setIsOpen(true)}>Open Test Modal</Button>
+
         <div className="p-4 border rounded-sm">
           <h2 className="font-semibold mb-2">Close Button Preview:</h2>
           <div className="flex items-center gap-4">
@@ -43,4 +41,4 @@ export default function TestFacebookClosePage() {
       </Dialog>
     </div>
   )
-} 
+}

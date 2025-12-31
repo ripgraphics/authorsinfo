@@ -1,86 +1,84 @@
-import { NextResponse } from 'next/server';
-import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper';
-import { supabaseAdmin } from '@/lib/supabase';
+import { NextResponse } from 'next/server'
+import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
+import { supabaseAdmin } from '@/lib/supabase'
 
-export async function GET(
-  request: Request,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const resolvedParams = await context.params;
-    const id = resolvedParams.id;
+    const resolvedParams = await context.params
+    const id = resolvedParams.id
     if (!id) {
-      return NextResponse.json({ error: 'Author ID is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Author ID is required' }, { status: 400 })
     }
 
     const { data: author, error } = await supabaseAdmin
       .from('authors')
-      .select(`
+      .select(
+        `
         *,
         cover_image:cover_image_id(id, url, alt_text),
         author_image:author_image_id(id, url, alt_text)
-      `)
+      `
+      )
       .eq('id', id)
-      .single();
+      .single()
 
     if (error) {
-      console.error('Error fetching author:', error);
-      return NextResponse.json({ error: 'Failed to fetch author' }, { status: 500 });
+      console.error('Error fetching author:', error)
+      return NextResponse.json({ error: 'Failed to fetch author' }, { status: 500 })
     }
 
     if (!author) {
-      return NextResponse.json({ error: 'Author not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Author not found' }, { status: 404 })
     }
 
-    return NextResponse.json(author);
+    return NextResponse.json(author)
   } catch (err) {
-    console.error('Internal server error in author route:', err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('Internal server error in author route:', err)
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }
 
-export async function PATCH(
-  request: Request,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const resolvedParams = await context.params;
-    const id = resolvedParams.id;
+    const resolvedParams = await context.params
+    const id = resolvedParams.id
     if (!id) {
-      return NextResponse.json({ error: 'Author ID is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Author ID is required' }, { status: 400 })
     }
 
-    const body = await request.json();
-    
+    const body = await request.json()
+
     if (!body || typeof body !== 'object') {
-      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
     }
 
-    const supabase = await createRouteHandlerClientAsync();
-    const { data: { user } } = await supabase.auth.getUser();
-    
+    const supabase = await createRouteHandlerClientAsync()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
     const allowedFields = [
-      'name', 
-      'bio', 
-      'nationality', 
-      'birth_date', 
-      'website', 
-      'twitter_handle', 
-      'facebook_handle', 
-      'instagram_handle', 
-      'goodreads_url'
-    ];
-    
-    const updateData: Record<string, any> = {};
-    
+      'name',
+      'bio',
+      'nationality',
+      'birth_date',
+      'website',
+      'twitter_handle',
+      'facebook_handle',
+      'instagram_handle',
+      'goodreads_url',
+    ]
+
+    const updateData: Record<string, any> = {}
+
     for (const field of allowedFields) {
       if (body[field] !== undefined) {
-        updateData[field] = body[field];
+        updateData[field] = body[field]
       }
     }
-    
+
     if (Object.keys(updateData).length === 0) {
-      return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
+      return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
     }
 
     const { data: updatedAuthor, error } = await supabaseAdmin
@@ -88,11 +86,11 @@ export async function PATCH(
       .update(updateData)
       .eq('id', id)
       .select()
-      .single();
+      .single()
 
     if (error) {
-      console.error('Error updating author:', error);
-      return NextResponse.json({ error: 'Failed to update author' }, { status: 500 });
+      console.error('Error updating author:', error)
+      return NextResponse.json({ error: 'Failed to update author' }, { status: 500 })
     }
 
     try {
@@ -102,17 +100,17 @@ export async function PATCH(
         data: {
           author_id: id,
           author_name: updatedAuthor.name,
-          updated_fields: Object.keys(updateData)
+          updated_fields: Object.keys(updateData),
         },
-        created_at: new Date().toISOString()
-      });
+        created_at: new Date().toISOString(),
+      })
     } catch (logError) {
-      console.error('Error creating activity log:', logError);
+      console.error('Error creating activity log:', logError)
     }
 
-    return NextResponse.json(updatedAuthor);
+    return NextResponse.json(updatedAuthor)
   } catch (err) {
-    console.error('Internal server error in author update route:', err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('Internal server error in author update route:', err)
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
-} 
+}

@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "@/lib/supabase"
+import { supabaseAdmin } from '@/lib/supabase'
 
 // Enterprise Activity System
 // Provides high-performance, scalable activity management
@@ -40,25 +40,48 @@ export interface ActivityTemplate {
 // Activity type validation
 const VALID_ACTIVITY_TYPES = [
   // User activities
-  'user_registered', 'user_profile_updated', 'user_login', 'user_logout',
+  'user_registered',
+  'user_profile_updated',
+  'user_login',
+  'user_logout',
   // Book activities
-  'book_added', 'book_updated', 'book_deleted', 'book_reviewed', 'book_rated',
+  'book_added',
+  'book_updated',
+  'book_deleted',
+  'book_reviewed',
+  'book_rated',
   // Author activities
-  'author_created', 'author_updated', 'author_deleted',
+  'author_created',
+  'author_updated',
+  'author_deleted',
   // Publisher activities
-  'publisher_created', 'publisher_updated', 'publisher_deleted',
+  'publisher_created',
+  'publisher_updated',
+  'publisher_deleted',
   // Group activities
-  'group_created', 'group_joined', 'group_left', 'group_updated',
+  'group_created',
+  'group_joined',
+  'group_left',
+  'group_updated',
   // Reading activities
-  'reading_started', 'reading_finished', 'reading_paused', 'reading_resumed',
+  'reading_started',
+  'reading_finished',
+  'reading_paused',
+  'reading_resumed',
   // Social activities
-  'friend_requested', 'friend_accepted', 'friend_declined',
+  'friend_requested',
+  'friend_accepted',
+  'friend_declined',
   // Content activities
-  'comment_added', 'comment_updated', 'comment_deleted',
-  'post_created', 'post_updated', 'post_deleted'
+  'comment_added',
+  'comment_updated',
+  'comment_deleted',
+  'post_created',
+  'post_updated',
+  'post_deleted',
 ] as const
 
-export type ActivityType = typeof VALID_ACTIVITY_TYPES[number]
+export type ActivityType = (typeof VALID_ACTIVITY_TYPES)[number]
 
 // Enterprise Activity Generator with batching and validation
 export class EnterpriseActivityGenerator {
@@ -111,7 +134,7 @@ export class EnterpriseActivityGenerator {
     inserted: number
     errors: string[]
   }> {
-    const validActivities = activities.filter(activity => this.validateActivity(activity))
+    const validActivities = activities.filter((activity) => this.validateActivity(activity))
     const errors: string[] = []
 
     if (validActivities.length === 0) {
@@ -124,17 +147,17 @@ export class EnterpriseActivityGenerator {
 
     for (let i = 0; i < batches.length; i++) {
       const batch = batches[i]
-      
+
       try {
-        const { error } = await supabaseAdmin
-          .from('activities')
-          .insert(batch.map(activity => ({
+        const { error } = await supabaseAdmin.from('activities').insert(
+          batch.map((activity) => ({
             ...activity,
             metadata: {
               ...activity.metadata,
-              batch_id: this.batchId
-            }
-          })))
+              batch_id: this.batchId,
+            },
+          }))
+        )
 
         if (error) {
           console.error(`Batch ${i + 1} insertion error:`, error)
@@ -151,13 +174,13 @@ export class EnterpriseActivityGenerator {
     return {
       success: errors.length === 0,
       inserted: totalInserted,
-      errors
+      errors,
     }
   }
 
   // Generate activities for authors with enterprise features
   async generateAuthorActivities(
-    authorIds: string[], 
+    authorIds: string[],
     adminUserId: string,
     options: {
       skipDuplicates?: boolean
@@ -171,11 +194,7 @@ export class EnterpriseActivityGenerator {
     duplicates: number
     errors: string[]
   }> {
-    const {
-      skipDuplicates = true,
-      includeMetadata = true,
-      batchSize = this.batchSize
-    } = options
+    const { skipDuplicates = true, includeMetadata = true, batchSize = this.batchSize } = options
 
     this.batchSize = batchSize
     const activities: EnterpriseActivityData[] = []
@@ -186,13 +205,15 @@ export class EnterpriseActivityGenerator {
       // Get all authors in one query
       const { data: authors, error: authorsError } = await supabaseAdmin
         .from('authors')
-        .select(`
+        .select(
+          `
           id, 
           name, 
           bio, 
           created_at,
           updated_at
-        `)
+        `
+        )
         .in('id', authorIds)
 
       if (authorsError) {
@@ -200,19 +221,27 @@ export class EnterpriseActivityGenerator {
       }
 
       if (!authors || authors.length === 0) {
-        return { success: false, processed: 0, inserted: 0, duplicates: 0, errors: ['No authors found'] }
+        return {
+          success: false,
+          processed: 0,
+          inserted: 0,
+          duplicates: 0,
+          errors: ['No authors found'],
+        }
       }
 
       // Get all books for these authors in one query
       const { data: books, error: booksError } = await supabaseAdmin
         .from('books')
-        .select(`
+        .select(
+          `
           id, 
           title, 
           author_id, 
           created_at,
           updated_at
-        `)
+        `
+        )
         .in('author_id', authorIds)
 
       if (booksError) {
@@ -220,13 +249,17 @@ export class EnterpriseActivityGenerator {
       }
 
       // Group books by author
-      const booksByAuthor = books?.reduce((acc, book) => {
-        if (!acc[book.author_id]) {
-          acc[book.author_id] = []
-        }
-        acc[book.author_id].push(book)
-        return acc
-      }, {} as Record<string, any[]>) || {}
+      const booksByAuthor =
+        books?.reduce(
+          (acc, book) => {
+            if (!acc[book.author_id]) {
+              acc[book.author_id] = []
+            }
+            acc[book.author_id].push(book)
+            return acc
+          },
+          {} as Record<string, any[]>
+        ) || {}
 
       // Generate activities for each author
       for (const author of authors) {
@@ -242,14 +275,16 @@ export class EnterpriseActivityGenerator {
             author_id: author.id,
             author_name: author.name,
             books_count: authorBooks.length,
-            bio: author.bio
+            bio: author.bio,
           },
-          metadata: includeMetadata ? {
-            batch_id: this.batchId,
-            ip_address: 'system',
-            user_agent: 'enterprise-activity-generator'
-          } : undefined,
-          created_at: author.created_at
+          metadata: includeMetadata
+            ? {
+                batch_id: this.batchId,
+                ip_address: 'system',
+                user_agent: 'enterprise-activity-generator',
+              }
+            : undefined,
+          created_at: author.created_at,
         }
 
         // Check for duplicates if enabled
@@ -274,14 +309,16 @@ export class EnterpriseActivityGenerator {
               book_id: book.id,
               book_title: book.title,
               author_id: author.id,
-              author_name: author.name
+              author_name: author.name,
             },
-            metadata: includeMetadata ? {
-              batch_id: this.batchId,
-              ip_address: 'system',
-              user_agent: 'enterprise-activity-generator'
-            } : undefined,
-            created_at: book.created_at
+            metadata: includeMetadata
+              ? {
+                  batch_id: this.batchId,
+                  ip_address: 'system',
+                  user_agent: 'enterprise-activity-generator',
+                }
+              : undefined,
+            created_at: book.created_at,
           }
 
           if (skipDuplicates) {
@@ -304,9 +341,8 @@ export class EnterpriseActivityGenerator {
         processed: authors.length,
         inserted: insertResult.inserted,
         duplicates,
-        errors: [...errors, ...insertResult.errors]
+        errors: [...errors, ...insertResult.errors],
       }
-
     } catch (error) {
       console.error('Enterprise author activity generation failed:', error)
       return {
@@ -314,7 +350,7 @@ export class EnterpriseActivityGenerator {
         processed: 0,
         inserted: 0,
         duplicates: 0,
-        errors: [error instanceof Error ? error.message : 'Unknown error']
+        errors: [error instanceof Error ? error.message : 'Unknown error'],
       }
     }
   }
@@ -335,11 +371,7 @@ export class EnterpriseActivityGenerator {
     duplicates: number
     errors: string[]
   }> {
-    const {
-      skipDuplicates = true,
-      includeMetadata = true,
-      batchSize = this.batchSize
-    } = options
+    const { skipDuplicates = true, includeMetadata = true, batchSize = this.batchSize } = options
 
     this.batchSize = batchSize
     const activities: EnterpriseActivityData[] = []
@@ -350,14 +382,16 @@ export class EnterpriseActivityGenerator {
       // Get all books with author information
       const { data: books, error: booksError } = await supabaseAdmin
         .from('books')
-        .select(`
+        .select(
+          `
           id, 
           title, 
           author_id,
           created_at,
           updated_at,
           authors!inner(id, name)
-        `)
+        `
+        )
         .in('id', bookIds)
 
       if (booksError) {
@@ -365,7 +399,13 @@ export class EnterpriseActivityGenerator {
       }
 
       if (!books || books.length === 0) {
-        return { success: false, processed: 0, inserted: 0, duplicates: 0, errors: ['No books found'] }
+        return {
+          success: false,
+          processed: 0,
+          inserted: 0,
+          duplicates: 0,
+          errors: ['No books found'],
+        }
       }
 
       // Generate activities for each book
@@ -379,14 +419,18 @@ export class EnterpriseActivityGenerator {
             book_id: book.id,
             book_title: book.title,
             author_id: book.author_id,
-            author_name: Array.isArray(book.authors) ? book.authors[0]?.name : (book.authors as any)?.name
+            author_name: Array.isArray(book.authors)
+              ? book.authors[0]?.name
+              : (book.authors as any)?.name,
           },
-          metadata: includeMetadata ? {
-            batch_id: this.batchId,
-            ip_address: 'system',
-            user_agent: 'enterprise-activity-generator'
-          } : undefined,
-          created_at: book.created_at
+          metadata: includeMetadata
+            ? {
+                batch_id: this.batchId,
+                ip_address: 'system',
+                user_agent: 'enterprise-activity-generator',
+              }
+            : undefined,
+          created_at: book.created_at,
         }
 
         if (skipDuplicates) {
@@ -408,9 +452,8 @@ export class EnterpriseActivityGenerator {
         processed: books.length,
         inserted: insertResult.inserted,
         duplicates,
-        errors: [...errors, ...insertResult.errors]
+        errors: [...errors, ...insertResult.errors],
       }
-
     } catch (error) {
       console.error('Enterprise book activity generation failed:', error)
       return {
@@ -418,7 +461,7 @@ export class EnterpriseActivityGenerator {
         processed: 0,
         inserted: 0,
         duplicates: 0,
-        errors: [error instanceof Error ? error.message : 'Unknown error']
+        errors: [error instanceof Error ? error.message : 'Unknown error'],
       }
     }
   }
@@ -452,7 +495,7 @@ export class EnterpriseActivityGenerator {
       skipDuplicates = true,
       includeMetadata = true,
       batchSize = this.batchSize,
-      entityTypes = ['authors', 'books', 'publishers', 'users', 'groups']
+      entityTypes = ['authors', 'books', 'publishers', 'users', 'groups'],
     } = options
 
     this.batchSize = batchSize
@@ -461,7 +504,7 @@ export class EnterpriseActivityGenerator {
       books: { processed: 0, inserted: 0, duplicates: 0 },
       publishers: { processed: 0, inserted: 0, duplicates: 0 },
       users: { processed: 0, inserted: 0, duplicates: 0 },
-      groups: { processed: 0, inserted: 0, duplicates: 0 }
+      groups: { processed: 0, inserted: 0, duplicates: 0 },
     }
 
     const allErrors: string[] = []
@@ -472,51 +515,66 @@ export class EnterpriseActivityGenerator {
 
       if (entityTypes.includes('authors')) {
         entityPromises.push(
-          supabaseAdmin.from('authors').select('id').then(({ data, error }) => ({
-            type: 'authors',
-            ids: data?.map(a => a.id) || [],
-            error
-          }))
+          supabaseAdmin
+            .from('authors')
+            .select('id')
+            .then(({ data, error }) => ({
+              type: 'authors',
+              ids: data?.map((a) => a.id) || [],
+              error,
+            }))
         )
       }
 
       if (entityTypes.includes('books')) {
         entityPromises.push(
-          supabaseAdmin.from('books').select('id').then(({ data, error }) => ({
-            type: 'books',
-            ids: data?.map(b => b.id) || [],
-            error
-          }))
+          supabaseAdmin
+            .from('books')
+            .select('id')
+            .then(({ data, error }) => ({
+              type: 'books',
+              ids: data?.map((b) => b.id) || [],
+              error,
+            }))
         )
       }
 
       if (entityTypes.includes('publishers')) {
         entityPromises.push(
-          supabaseAdmin.from('publishers').select('id').then(({ data, error }) => ({
-            type: 'publishers',
-            ids: data?.map(p => p.id) || [],
-            error
-          }))
+          supabaseAdmin
+            .from('publishers')
+            .select('id')
+            .then(({ data, error }) => ({
+              type: 'publishers',
+              ids: data?.map((p) => p.id) || [],
+              error,
+            }))
         )
       }
 
       if (entityTypes.includes('users')) {
         entityPromises.push(
-          supabaseAdmin.from('users').select('id').then(({ data, error }) => ({
-            type: 'users',
-            ids: data?.map(u => u.id) || [],
-            error
-          }))
+          supabaseAdmin
+            .from('users')
+            .select('id')
+            .then(({ data, error }) => ({
+              type: 'users',
+              ids: data?.map((u) => u.id) || [],
+              error,
+            }))
         )
       }
 
       if (entityTypes.includes('groups')) {
         entityPromises.push(
-          supabaseAdmin.from('groups').select('id').then(({ data, error }) => ({
-            type: 'groups',
-            ids: data?.map(g => g.id) || [],
-            error
-          }))
+          supabaseAdmin
+            .from('groups')
+            .select('id')
+            .then(({ data, error }) => ({
+              type: 'groups',
+              ids: data?.map((g) => g.id) || [],
+              error,
+            }))
         )
       }
 
@@ -540,12 +598,12 @@ export class EnterpriseActivityGenerator {
             typeResult = await this.generateAuthorActivities(result.ids, adminUserId, {
               skipDuplicates,
               includeMetadata,
-              batchSize
+              batchSize,
             })
             results.authors = {
               processed: typeResult.processed,
               inserted: typeResult.inserted,
-              duplicates: typeResult.duplicates
+              duplicates: typeResult.duplicates,
             }
             break
 
@@ -553,12 +611,12 @@ export class EnterpriseActivityGenerator {
             typeResult = await this.generateBookActivities(result.ids, adminUserId, {
               skipDuplicates,
               includeMetadata,
-              batchSize
+              batchSize,
             })
             results.books = {
               processed: typeResult.processed,
               inserted: typeResult.inserted,
-              duplicates: typeResult.duplicates
+              duplicates: typeResult.duplicates,
             }
             break
 
@@ -574,15 +632,14 @@ export class EnterpriseActivityGenerator {
         processed: Object.values(results).reduce((sum, r) => sum + r.processed, 0),
         inserted: Object.values(results).reduce((sum, r) => sum + r.inserted, 0),
         duplicates: Object.values(results).reduce((sum, r) => sum + r.duplicates, 0),
-        errors: allErrors
+        errors: allErrors,
       }
 
       return {
         success: allErrors.length === 0,
         total,
-        breakdown: results
+        breakdown: results,
       }
-
     } catch (error) {
       console.error('Enterprise all activities generation failed:', error)
       return {
@@ -591,9 +648,9 @@ export class EnterpriseActivityGenerator {
           processed: 0,
           inserted: 0,
           duplicates: 0,
-          errors: [error instanceof Error ? error.message : 'Unknown error']
+          errors: [error instanceof Error ? error.message : 'Unknown error'],
         },
-        breakdown: results
+        breakdown: results,
       }
     }
   }
@@ -652,10 +709,14 @@ export class EnterpriseActivityGenerator {
         .select('activity_type')
         .limit(1000) // Sample for breakdown
 
-      const byType = typeBreakdown?.reduce((acc, activity) => {
-        acc[activity.activity_type] = (acc[activity.activity_type] || 0) + 1
-        return acc
-      }, {} as Record<string, number>) || {}
+      const byType =
+        typeBreakdown?.reduce(
+          (acc, activity) => {
+            acc[activity.activity_type] = (acc[activity.activity_type] || 0) + 1
+            return acc
+          },
+          {} as Record<string, number>
+        ) || {}
 
       // Get breakdown by entity type
       const { data: entityBreakdown } = await supabaseAdmin
@@ -663,12 +724,16 @@ export class EnterpriseActivityGenerator {
         .select('entity_type')
         .limit(1000) // Sample for breakdown
 
-      const byEntity = entityBreakdown?.reduce((acc, activity) => {
-        if (activity.entity_type) {
-          acc[activity.entity_type] = (acc[activity.entity_type] || 0) + 1
-        }
-        return acc
-      }, {} as Record<string, number>) || {}
+      const byEntity =
+        entityBreakdown?.reduce(
+          (acc, activity) => {
+            if (activity.entity_type) {
+              acc[activity.entity_type] = (acc[activity.entity_type] || 0) + 1
+            }
+            return acc
+          },
+          {} as Record<string, number>
+        ) || {}
 
       return {
         total_activities: total || 0,
@@ -676,9 +741,8 @@ export class EnterpriseActivityGenerator {
         activities_this_week: weekCount || 0,
         activities_this_month: monthCount || 0,
         by_type: byType,
-        by_entity: byEntity
+        by_entity: byEntity,
       }
-
     } catch (error) {
       console.error('Error getting activity stats:', error)
       return {
@@ -687,11 +751,11 @@ export class EnterpriseActivityGenerator {
         activities_this_week: 0,
         activities_this_month: 0,
         by_type: {},
-        by_entity: {}
+        by_entity: {},
       }
     }
   }
 }
 
 // Export singleton instance
-export const enterpriseActivityGenerator = new EnterpriseActivityGenerator() 
+export const enterpriseActivityGenerator = new EnterpriseActivityGenerator()

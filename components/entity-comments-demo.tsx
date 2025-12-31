@@ -17,7 +17,7 @@ export function EntityCommentsDemo({
   entityName,
   entityAvatar,
   entityCreatedAt,
-  isOwner = false
+  isOwner = false,
 }: EntityCommentsDemoProps) {
   return (
     <div className="flex h-screen">
@@ -61,4 +61,4 @@ export function EntityCommentsDemo({
       />
     </div>
   )
-} 
+}

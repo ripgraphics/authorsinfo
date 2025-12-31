@@ -1,13 +1,32 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { supabaseClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
 
@@ -37,26 +56,24 @@ export function AuditLog({ groupId }: AuditLogProps) {
     action: '',
     targetType: '',
     search: '',
-    dateRange: '7d'
+    dateRange: '7d',
   })
   const [selectedEntry, setSelectedEntry] = useState<AuditEntry | null>(null)
 
-  useEffect(() => {
-    fetchAuditLog()
-  }, [groupId, filter])
-
-  const fetchAuditLog = async () => {
+  const fetchAuditLog = useCallback(async () => {
     try {
       setLoading(true)
       let query = supabaseClient
         .from('group_audit_logs')
-        .select(`
+        .select(
+          `
           *,
           actor:actor_id(
             name,
             email
           )
-        `)
+        `
+        )
         .eq('group_id', groupId)
         .order('created_at', { ascending: false })
 
@@ -99,11 +116,12 @@ export function AuditLog({ groupId }: AuditLogProps) {
       let filtered = data
       if (filter.search) {
         const searchLower = filter.search.toLowerCase()
-        filtered = data.filter((entry: any) =>
-          entry.action.toLowerCase().includes(searchLower) ||
-          entry.target_type.toLowerCase().includes(searchLower) ||
-          entry.actor?.name?.toLowerCase().includes(searchLower) ||
-          JSON.stringify(entry.changes).toLowerCase().includes(searchLower)
+        filtered = data.filter(
+          (entry: any) =>
+            entry.action.toLowerCase().includes(searchLower) ||
+            entry.target_type.toLowerCase().includes(searchLower) ||
+            entry.actor?.name?.toLowerCase().includes(searchLower) ||
+            JSON.stringify(entry.changes).toLowerCase().includes(searchLower)
         )
       }
 
@@ -113,7 +131,11 @@ export function AuditLog({ groupId }: AuditLogProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [groupId, filter])
+
+  useEffect(() => {
+    fetchAuditLog()
+  }, [fetchAuditLog])
 
   const formatChanges = (changes: any) => {
     if (!changes) return null
@@ -124,15 +146,9 @@ export function AuditLog({ groupId }: AuditLogProps) {
             <span className="font-semibold">{key}:</span>
             <br />
             {value.old && (
-              <span className="text-red-500 line-through block">
-                {JSON.stringify(value.old)}
-              </span>
+              <span className="text-red-500 line-through block">{JSON.stringify(value.old)}</span>
             )}
-            {value.new && (
-              <span className="text-green-500 block">
-                {JSON.stringify(value.new)}
-              </span>
-            )}
+            {value.new && <span className="text-green-500 block">{JSON.stringify(value.new)}</span>}
           </div>
         ))}
       </div>
@@ -143,7 +159,8 @@ export function AuditLog({ groupId }: AuditLogProps) {
     {
       header: 'Time',
       accessorKey: 'created_at',
-      cell: ({ row }: { row: any }) => format(new Date(row.original.created_at), 'MMM d, yyyy HH:mm:ss')
+      cell: ({ row }: { row: any }) =>
+        format(new Date(row.original.created_at), 'MMM d, yyyy HH:mm:ss'),
     },
     {
       header: 'Actor',
@@ -152,14 +169,12 @@ export function AuditLog({ groupId }: AuditLogProps) {
           <div>{row.original.actor?.name || 'Unknown'}</div>
           <div className="text-sm text-muted-foreground">{row.original.actor?.email}</div>
         </div>
-      )
+      ),
     },
     {
       header: 'Action',
       accessorKey: 'action',
-      cell: ({ row }: { row: any }) => (
-        <Badge variant="outline">{row.original.action}</Badge>
-      )
+      cell: ({ row }: { row: any }) => <Badge variant="outline">{row.original.action}</Badge>,
     },
     {
       header: 'Target',
@@ -168,18 +183,14 @@ export function AuditLog({ groupId }: AuditLogProps) {
           <Badge variant="secondary">{row.original.target_type}</Badge>
           <div className="text-sm text-muted-foreground mt-1">{row.original.target_id}</div>
         </div>
-      )
+      ),
     },
     {
       header: 'Details',
       cell: ({ row }: { row: any }) => (
         <Dialog>
           <DialogTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setSelectedEntry(row.original)}
-            >
+            <Button variant="outline" size="sm" onClick={() => setSelectedEntry(row.original)}>
               View Changes
             </Button>
           </DialogTrigger>
@@ -203,8 +214,8 @@ export function AuditLog({ groupId }: AuditLogProps) {
             </div>
           </DialogContent>
         </Dialog>
-      )
-    }
+      ),
+    },
   ]
 
   return (
@@ -287,7 +298,9 @@ export function AuditLog({ groupId }: AuditLogProps) {
                 <TableBody>
                   {entries.map((entry) => (
                     <TableRow key={entry.id}>
-                      <TableCell>{format(new Date(entry.created_at), 'MMM d, yyyy HH:mm:ss')}</TableCell>
+                      <TableCell>
+                        {format(new Date(entry.created_at), 'MMM d, yyyy HH:mm:ss')}
+                      </TableCell>
                       <TableCell>
                         <div>
                           <div>{entry.actor?.name || 'Unknown'}</div>
@@ -300,7 +313,9 @@ export function AuditLog({ groupId }: AuditLogProps) {
                       <TableCell>
                         <div>
                           <Badge variant="secondary">{entry.target_type}</Badge>
-                          <div className="text-sm text-muted-foreground mt-1">{entry.target_id}</div>
+                          <div className="text-sm text-muted-foreground mt-1">
+                            {entry.target_id}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -355,4 +370,4 @@ export function AuditLog({ groupId }: AuditLogProps) {
       </Card>
     </div>
   )
-} 
+}

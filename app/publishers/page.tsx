@@ -1,7 +1,7 @@
-import { Suspense } from "react"
-import { Button } from "@/components/ui/button"
-import { Search, Filter } from "lucide-react"
-import { PublisherAvatar } from "@/components/publisher-avatar"
+import { Suspense } from 'react'
+import { Button } from '@/components/ui/button'
+import { Search, Filter } from 'lucide-react'
+import { PublisherAvatar } from '@/components/publisher-avatar'
 import {
   Pagination,
   PaginationContent,
@@ -9,10 +9,16 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination"
-import { db } from "@/lib/db"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+} from '@/components/ui/pagination'
+import { db } from '@/lib/db'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Sheet,
   SheetContent,
@@ -22,10 +28,10 @@ import {
   SheetTrigger,
   SheetFooter,
   SheetClose,
-} from "@/components/ui/sheet"
-import { Label } from "@/components/ui/label"
-import { InteractiveControls } from "./components/InteractiveControls"
-import { PublishersListWrapper } from "./components/PublishersListWrapper"
+} from '@/components/ui/sheet'
+import { Label } from '@/components/ui/label'
+import { InteractiveControls } from './components/InteractiveControls'
+import { PublishersListWrapper } from './components/PublishersListWrapper'
 
 interface Publisher {
   id: number
@@ -68,31 +74,32 @@ async function detectLocationField() {
   try {
     // Get a sample publisher to examine its structure
     const publishers = await db.query<Publisher>(
-      "publishers",
+      'publishers',
       {},
       {
         ttl: 3600, // Cache for 1 hour
-        cacheKey: "sample_publisher",
+        cacheKey: 'sample_publisher',
         limit: 1,
-        select: "*, publisher_image:publisher_image_id(id, url, alt_text), country_details:country_id(id, name, code)"
+        select:
+          '*, publisher_image:publisher_image_id(id, url, alt_text), country_details:country_id(id, name, code)',
       }
     )
 
     if (!Array.isArray(publishers) || publishers.length === 0) {
-      console.error("No sample publisher found")
+      console.error('No sample publisher found')
       return null
     }
 
     // Check if country_id exists in the publisher object
     if ('country_id' in publishers[0] && publishers[0].country_id !== null) {
-      console.log("Detected location field: country_id")
+      console.log('Detected location field: country_id')
       return 'country_id'
     }
 
-    console.log("No location field found in publishers table")
+    console.log('No location field found in publishers table')
     return null
   } catch (error) {
-    console.error("Error detecting location field:", error)
+    console.error('Error detecting location field:', error)
     return null
   }
 }
@@ -103,19 +110,20 @@ async function getUniqueLocations() {
     const locationField = await detectLocationField()
 
     if (!locationField) {
-      console.log("No location field found in publishers table")
+      console.log('No location field found in publishers table')
       return []
     }
 
     // Use the detected field to fetch unique locations with country details
     const publishers = await db.query<Publisher>(
-      "publishers",
-      { [locationField]: { not: "is", value: null } },
+      'publishers',
+      { [locationField]: { not: 'is', value: null } },
       {
         ttl: 3600, // Cache for 1 hour
         cacheKey: `unique_locations_${locationField}`,
-        orderBy: { [locationField]: "asc" },
-        select: "*, publisher_image:publisher_image_id(id, url, alt_text), country_details:country_id(id, name, code)"
+        orderBy: { [locationField]: 'asc' },
+        select:
+          '*, publisher_image:publisher_image_id(id, url, alt_text), country_details:country_id(id, name, code)',
       }
     )
 
@@ -135,7 +143,7 @@ async function getUniqueLocations() {
 
     return uniqueLocations
   } catch (error) {
-    console.error("Error fetching locations:", error)
+    console.error('Error fetching locations:', error)
     return []
   }
 }
@@ -155,20 +163,17 @@ async function PublishersList({
 
   // Build the query - apply location filter server-side if provided
   const query = {
-    ...(location && location !== "all" && { country_id: location }),
+    ...(location && location !== 'all' && { country_id: location }),
   }
 
   // Fetch all publishers (or large subset) for client-side filtering
-  const publishers = await db.query<Publisher>(
-    "publishers",
-    query,
-    {
-      ttl: 300, // Cache for 5 minutes
-      cacheKey: `publishers_all:${JSON.stringify({ location })}`,
-      limit: 1000, // Fetch up to 1000 publishers for client-side filtering
-      select: "*, publisher_image:publisher_image_id(id, url, alt_text), country_details:country_id(id, name, code)"
-    }
-  )
+  const publishers = await db.query<Publisher>('publishers', query, {
+    ttl: 300, // Cache for 5 minutes
+    cacheKey: `publishers_all:${JSON.stringify({ location })}`,
+    limit: 1000, // Fetch up to 1000 publishers for client-side filtering
+    select:
+      '*, publisher_image:publisher_image_id(id, url, alt_text), country_details:country_id(id, name, code)',
+  })
 
   if (!Array.isArray(publishers)) {
     return {
@@ -179,15 +184,11 @@ async function PublishersList({
   }
 
   // Get total count for initial pagination calculation
-  const countResponse = await db.query<Publisher>(
-    "publishers",
-    query,
-    {
-      ttl: 300, // Cache for 5 minutes
-      cacheKey: `publishers_count:${JSON.stringify({ location })}`,
-      count: true
-    }
-  )
+  const countResponse = await db.query<Publisher>('publishers', query, {
+    ttl: 300, // Cache for 5 minutes
+    cacheKey: `publishers_count:${JSON.stringify({ location })}`,
+    count: true,
+  })
 
   const totalCount = ('count' in countResponse && countResponse.count) || 0
 
@@ -232,10 +233,7 @@ async function PublishersListContent({
 
 export default async function PublishersPage({ searchParams }: PublishersPageProps) {
   // Get all required data first
-  const [locationsList, params] = await Promise.all([
-    getUniqueLocations(),
-    searchParams
-  ])
+  const [locationsList, params] = await Promise.all([getUniqueLocations(), searchParams])
 
   const page = params?.page ? parseInt(params.page) : 1
   const search = params?.search
@@ -246,7 +244,9 @@ export default async function PublishersPage({ searchParams }: PublishersPagePro
     <div className="space-y-6">
       <div className="py-6">
         <h1 className="text-3xl font-bold tracking-tight">Publishers</h1>
-        <p className="text-muted-foreground mt-2">Browse and discover publishers from our collection.</p>
+        <p className="text-muted-foreground mt-2">
+          Browse and discover publishers from our collection.
+        </p>
       </div>
       <InteractiveControls
         locations={locationsList}
@@ -255,12 +255,7 @@ export default async function PublishersPage({ searchParams }: PublishersPagePro
         sort={sort}
       />
       <Suspense fallback={<div>Loading...</div>}>
-        <PublishersListContent
-          page={page}
-          search={search}
-          location={location}
-          sort={sort}
-        />
+        <PublishersListContent page={page} search={search} location={location} sort={sort} />
       </Suspense>
     </div>
   )

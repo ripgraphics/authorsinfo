@@ -38,35 +38,38 @@ export async function deduplicatedRequest<T>(
 
   // Check if there's an active request
   const active = activeRequests.get(key)
-  if (active && active.promise && Date.now() - active.timestamp < 30000) { // 30 second request timeout
+  if (active && active.promise && Date.now() - active.timestamp < 30000) {
+    // 30 second request timeout
     console.log(`🔄 Returning active request for: ${key}`)
     return active.promise
   }
 
   // Create new request
   console.log(`🚀 Creating new request for: ${key}`)
-  const promise = fetcher().then(result => {
-    // Cache the result
-    cache.set(key, {
-      data: result,
-      timestamp: Date.now(),
-      ttl
+  const promise = fetcher()
+    .then((result) => {
+      // Cache the result
+      cache.set(key, {
+        data: result,
+        timestamp: Date.now(),
+        ttl,
+      })
+
+      // Remove from active requests
+      activeRequests.delete(key)
+
+      return result
     })
-    
-    // Remove from active requests
-    activeRequests.delete(key)
-    
-    return result
-  }).catch(error => {
-    // Remove from active requests on error
-    activeRequests.delete(key)
-    throw error
-  })
+    .catch((error) => {
+      // Remove from active requests on error
+      activeRequests.delete(key)
+      throw error
+    })
 
   // Store active request
   activeRequests.set(key, {
     promise,
-    timestamp: Date.now()
+    timestamp: Date.now(),
   })
 
   return promise
@@ -97,7 +100,7 @@ export function getCacheStats() {
     cacheSize: cache.size,
     activeRequests: activeRequests.size,
     cacheKeys: Array.from(cache.keys()),
-    activeRequestKeys: Array.from(activeRequests.keys())
+    activeRequestKeys: Array.from(activeRequests.keys()),
   }
 }
 
@@ -133,7 +136,7 @@ export function throttle<T extends (...args: any[]) => any>(
     if (!inThrottle) {
       func(...args)
       inThrottle = true
-      setTimeout(() => inThrottle = false, limit)
+      setTimeout(() => (inThrottle = false), limit)
     }
   }
 }

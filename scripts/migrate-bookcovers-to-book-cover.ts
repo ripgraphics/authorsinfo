@@ -1,14 +1,14 @@
 /**
  * Migration Script: Move book covers from authorsinfo/bookcovers to authorsinfo/book_cover
- * 
+ *
  * This script:
  * 1. Finds all images in Supabase database with URLs in the 'authorsinfo/bookcovers' folder
  * 2. Uses Cloudinary Admin API to rename/move images from 'authorsinfo/bookcovers' to 'authorsinfo/book_cover'
  * 3. Updates Supabase database URLs to reflect the new paths
- * 
+ *
  * Usage:
  *   npx tsx scripts/migrate-bookcovers-to-book-cover.ts
- * 
+ *
  * Or if using ts-node:
  *   npx ts-node scripts/migrate-bookcovers-to-book-cover.ts
  */
@@ -29,12 +29,16 @@ const apiKey = process.env.CLOUDINARY_API_KEY
 const apiSecret = process.env.CLOUDINARY_API_SECRET
 
 if (!supabaseUrl || !supabaseServiceKey) {
-  console.error('❌ Missing Supabase credentials. Please set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY')
+  console.error(
+    '❌ Missing Supabase credentials. Please set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY'
+  )
   process.exit(1)
 }
 
 if (!cloudName || !apiKey || !apiSecret) {
-  console.error('❌ Missing Cloudinary credentials. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET')
+  console.error(
+    '❌ Missing Cloudinary credentials. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET'
+  )
   process.exit(1)
 }
 
@@ -92,7 +96,7 @@ function generateSignature(params: Record<string, string>): string {
 async function renameImageInCloudinary(oldPublicId: string, newPublicId: string): Promise<boolean> {
   try {
     const timestamp = Math.round(new Date().getTime() / 1000)
-    
+
     const params: Record<string, string> = {
       from_public_id: oldPublicId,
       to_public_id: newPublicId,
@@ -140,12 +144,13 @@ function convertUrl(oldUrl: string): string {
   return oldUrl.replace('/authorsinfo/bookcovers/', '/authorsinfo/book_cover/')
 }
 
-async function updateDatabaseUrl(imageId: string, oldUrl: string, newUrl: string): Promise<boolean> {
+async function updateDatabaseUrl(
+  imageId: string,
+  oldUrl: string,
+  newUrl: string
+): Promise<boolean> {
   try {
-    const { error } = await supabase
-      .from('images')
-      .update({ url: newUrl })
-      .eq('id', imageId)
+    const { error } = await supabase.from('images').update({ url: newUrl }).eq('id', imageId)
 
     if (error) {
       console.error(`❌ Failed to update database for image ${imageId}:`, error)
@@ -169,7 +174,7 @@ async function migrateBookCovers() {
   try {
     // Step 1: Find all images with URLs containing 'authorsinfo/bookcovers'
     console.log('📋 Step 1: Finding all images in Supabase with bookcovers URLs...')
-    
+
     const { data: images, error } = await supabase
       .from('images')
       .select('id, url, metadata')
@@ -197,7 +202,9 @@ async function migrateBookCovers() {
       const publicId = extractPublicId(oldUrl)
 
       if (!publicId || !publicId.includes('authorsinfo/bookcovers')) {
-        console.log(`⚠️  Skipping image ${image.id}: Could not extract public_id or not in bookcovers folder`)
+        console.log(
+          `⚠️  Skipping image ${image.id}: Could not extract public_id or not in bookcovers folder`
+        )
         continue
       }
 
@@ -212,26 +219,26 @@ async function migrateBookCovers() {
 
       // Step 2a: Rename in Cloudinary
       const renamed = await renameImageInCloudinary(publicId, newPublicId)
-      
+
       if (!renamed) {
         failureCount++
         failures.push({
           id: image.id,
           url: oldUrl,
-          error: 'Failed to rename in Cloudinary'
+          error: 'Failed to rename in Cloudinary',
         })
         continue
       }
 
       // Step 2b: Update database
       const updated = await updateDatabaseUrl(image.id, oldUrl, newUrl)
-      
+
       if (!updated) {
         failureCount++
         failures.push({
           id: image.id,
           url: oldUrl,
-          error: 'Failed to update database (image may have been renamed in Cloudinary)'
+          error: 'Failed to update database (image may have been renamed in Cloudinary)',
         })
         continue
       }
@@ -239,7 +246,7 @@ async function migrateBookCovers() {
       successCount++
 
       // Small delay to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 100))
+      await new Promise((resolve) => setTimeout(resolve, 100))
     }
 
     // Step 3: Summary
@@ -247,15 +254,15 @@ async function migrateBookCovers() {
     console.log('📊 Migration Summary:')
     console.log(`   ✅ Successfully migrated: ${successCount}`)
     console.log(`   ❌ Failed: ${failureCount}`)
-    
+
     if (failures.length > 0) {
       console.log('\n❌ Failed images:')
-      failures.forEach(failure => {
+      failures.forEach((failure) => {
         console.log(`   - Image ${failure.id}: ${failure.error}`)
         console.log(`     URL: ${failure.url}`)
       })
     }
-    
+
     console.log('='.repeat(60))
 
     if (failureCount > 0) {
@@ -264,7 +271,6 @@ async function migrateBookCovers() {
     } else {
       console.log('\n✅ Migration completed successfully!')
     }
-
   } catch (error) {
     console.error('❌ Fatal error during migration:', error)
     process.exit(1)
@@ -281,4 +287,3 @@ migrateBookCovers()
     console.error('\n❌ Migration failed:', error)
     process.exit(1)
   })
-

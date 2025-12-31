@@ -1,13 +1,19 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Pencil, Plus, Save, Trash, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { useToast } from "@/hooks/use-toast"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Pencil, Plus, Save, Trash, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { useToast } from '@/hooks/use-toast'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 
 // Update the TableItem interface to include description
 interface TableItem {
@@ -44,13 +50,13 @@ export function TableEditor({
   hasDescription = true,
 }: TableEditorProps) {
   const router = useRouter()
-  const [newItemName, setNewItemName] = useState("")
+  const [newItemName, setNewItemName] = useState('')
   // Add a new state for description
-  const [newItemDescription, setNewItemDescription] = useState("")
+  const [newItemDescription, setNewItemDescription] = useState('')
   const [editingId, setEditingId] = useState<number | null>(null)
-  const [editingName, setEditingName] = useState("")
+  const [editingName, setEditingName] = useState('')
   // Add a new state for description
-  const [editingDescription, setEditingDescription] = useState("")
+  const [editingDescription, setEditingDescription] = useState('')
   const [editingExtra, setEditingExtra] = useState<Record<string, string>>({})
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -61,9 +67,9 @@ export function TableEditor({
   const handleAdd = async () => {
     if (!newItemName.trim()) {
       toast({
-        title: "Error",
-        description: "Name cannot be empty",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Name cannot be empty',
+        variant: 'destructive',
       })
       return
     }
@@ -71,20 +77,20 @@ export function TableEditor({
     setIsLoading(true)
     try {
       await onAdd(newItemName, hasDescription ? newItemDescription : undefined)
-      setNewItemName("")
-      setNewItemDescription("")
+      setNewItemName('')
+      setNewItemDescription('')
       setIsAddDialogOpen(false)
       toast({
-        title: "Success",
+        title: 'Success',
         description: `${title} added successfully`,
       })
       router.refresh()
     } catch (error) {
-      console.error("Error adding item:", error)
+      console.error('Error adding item:', error)
       toast({
-        title: "Error",
+        title: 'Error',
         description: `Failed to add ${title.toLowerCase()}`,
-        variant: "destructive",
+        variant: 'destructive',
       })
     } finally {
       setIsLoading(false)
@@ -95,29 +101,29 @@ export function TableEditor({
   const startEditing = (item: TableItem) => {
     setEditingId(item.id)
     setEditingName(item.name)
-    setEditingDescription(item.description || "")
+    setEditingDescription(item.description || '')
 
     const extraValues: Record<string, string> = {}
     extraColumns.forEach((col) => {
-      extraValues[col.key] = item[col.key]?.toString() || ""
+      extraValues[col.key] = item[col.key]?.toString() || ''
     })
     setEditingExtra(extraValues)
   }
 
   const cancelEditing = () => {
     setEditingId(null)
-    setEditingName("")
+    setEditingName('')
     setEditingExtra({})
-    setEditingDescription("")
+    setEditingDescription('')
   }
 
   // Update the handleUpdate function to include description
   const handleUpdate = async (id: number) => {
     if (!editingName.trim()) {
       toast({
-        title: "Error",
-        description: "Name cannot be empty",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Name cannot be empty',
+        variant: 'destructive',
       })
       return
     }
@@ -137,16 +143,16 @@ export function TableEditor({
 
       setEditingId(null)
       toast({
-        title: "Success",
+        title: 'Success',
         description: `${title} updated successfully`,
       })
       router.refresh()
     } catch (error) {
-      console.error("Error updating item:", error)
+      console.error('Error updating item:', error)
       toast({
-        title: "Error",
+        title: 'Error',
         description: `Failed to update ${title.toLowerCase()}`,
-        variant: "destructive",
+        variant: 'destructive',
       })
     } finally {
       setIsLoading(false)
@@ -162,16 +168,16 @@ export function TableEditor({
     try {
       await onDelete(id)
       toast({
-        title: "Success",
+        title: 'Success',
         description: `${title} deleted successfully`,
       })
       router.refresh()
     } catch (error) {
-      console.error("Error deleting item:", error)
+      console.error('Error deleting item:', error)
       toast({
-        title: "Error",
+        title: 'Error',
         description: `Failed to delete ${title.toLowerCase()}`,
-        variant: "destructive",
+        variant: 'destructive',
       })
     } finally {
       setIsLoading(false)
@@ -229,8 +235,10 @@ export function TableEditor({
                   </label>
                   <Input
                     id={col.key}
-                    value={editingExtra[col.key] || ""}
-                    onChange={(e) => setEditingExtra({ ...editingExtra, [col.key]: e.target.value })}
+                    value={editingExtra[col.key] || ''}
+                    onChange={(e) =>
+                      setEditingExtra({ ...editingExtra, [col.key]: e.target.value })
+                    }
                     placeholder={`Enter ${col.label.toLowerCase()}`}
                   />
                 </div>
@@ -241,7 +249,7 @@ export function TableEditor({
                   Cancel
                 </Button>
                 <Button onClick={handleAdd} disabled={isLoading}>
-                  {isLoading ? "Adding..." : "Add"}
+                  {isLoading ? 'Adding...' : 'Add'}
                 </Button>
               </div>
             </div>
@@ -281,7 +289,11 @@ export function TableEditor({
                 <TableCell>{item.id}</TableCell>
                 <TableCell>
                   {editingId === item.id ? (
-                    <Input value={editingName} onChange={(e) => setEditingName(e.target.value)} className="max-w-xs" />
+                    <Input
+                      value={editingName}
+                      onChange={(e) => setEditingName(e.target.value)}
+                      className="max-w-xs"
+                    />
                   ) : (
                     item.name
                   )}
@@ -305,8 +317,10 @@ export function TableEditor({
                   <TableCell key={col.key}>
                     {editingId === item.id ? (
                       <Input
-                        value={editingExtra[col.key] || ""}
-                        onChange={(e) => setEditingExtra({ ...editingExtra, [col.key]: e.target.value })}
+                        value={editingExtra[col.key] || ''}
+                        onChange={(e) =>
+                          setEditingExtra({ ...editingExtra, [col.key]: e.target.value })
+                        }
                         className="max-w-xs"
                       />
                     ) : (
@@ -318,10 +332,19 @@ export function TableEditor({
                 <TableCell className="text-right">
                   {editingId === item.id ? (
                     <div className="flex justify-end space-x-2">
-                      <Button size="icon" variant="outline" onClick={cancelEditing} disabled={isLoading}>
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        onClick={cancelEditing}
+                        disabled={isLoading}
+                      >
                         <X className="h-4 w-4" />
                       </Button>
-                      <Button size="icon" onClick={() => handleUpdate(item.id)} disabled={isLoading}>
+                      <Button
+                        size="icon"
+                        onClick={() => handleUpdate(item.id)}
+                        disabled={isLoading}
+                      >
                         <Save className="h-4 w-4" />
                       </Button>
                     </div>

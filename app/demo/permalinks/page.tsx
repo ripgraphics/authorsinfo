@@ -9,10 +9,13 @@ import { Link, ExternalLink, Copy, CheckCircle, AlertCircle } from 'lucide-react
 
 export default async function PermalinkDemoPage() {
   const supabase = await createServerComponentClientAsync()
-  
+
   // Get the current user from the session
-  const { data: { user }, error } = await supabase.auth.getUser()
-  
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
+
   if (error || !user) {
     redirect('/login')
   }
@@ -31,43 +34,43 @@ export default async function PermalinkDemoPage() {
       name: 'John Smith',
       permalink: 'john-smith',
       url: '/profile/john-smith',
-      description: 'User profile with custom permalink'
+      description: 'User profile with custom permalink',
     },
     {
       entityType: 'group',
       name: 'Book Club 2024',
       permalink: 'book-club-2024',
       url: '/groups/book-club-2024',
-      description: 'Reading group with memorable URL'
+      description: 'Reading group with memorable URL',
     },
     {
       entityType: 'event',
       name: 'Summer Reading Festival',
       permalink: 'summer-reading-festival',
       url: '/events/summer-reading-festival',
-      description: 'Event page with SEO-friendly URL'
+      description: 'Event page with SEO-friendly URL',
     },
     {
       entityType: 'book',
       name: 'The Great Gatsby',
       permalink: 'the-great-gatsby',
       url: '/books/the-great-gatsby',
-      description: 'Book page with clean permalink'
+      description: 'Book page with clean permalink',
     },
     {
       entityType: 'author',
       name: 'F. Scott Fitzgerald',
       permalink: 'f-scott-fitzgerald',
       url: '/authors/f-scott-fitzgerald',
-      description: 'Author profile with custom URL'
+      description: 'Author profile with custom URL',
     },
     {
       entityType: 'publisher',
       name: 'Simon & Schuster',
       permalink: 'simon-schuster',
       url: '/publishers/simon-schuster',
-      description: 'Publisher page with branded URL'
-    }
+      description: 'Publisher page with branded URL',
+    },
   ]
 
   return (
@@ -77,8 +80,8 @@ export default async function PermalinkDemoPage() {
         <div className="text-center space-y-4">
           <h1 className="text-4xl font-bold">Permalink System Demo</h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Experience the enterprise-level permalink system that transforms complex UUIDs into memorable, 
-            SEO-friendly URLs for all entity types.
+            Experience the enterprise-level permalink system that transforms complex UUIDs into
+            memorable, SEO-friendly URLs for all entity types.
           </p>
         </div>
 
@@ -89,9 +92,7 @@ export default async function PermalinkDemoPage() {
               <Link className="h-5 w-5" />
               Your Current Permalink
             </CardTitle>
-            <CardDescription>
-              Manage your personal permalink settings
-            </CardDescription>
+            <CardDescription>Manage your personal permalink settings</CardDescription>
           </CardHeader>
           <CardContent>
             <PermalinkSettings
@@ -114,7 +115,8 @@ export default async function PermalinkDemoPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Transform complex UUIDs into memorable, human-readable URLs that are easy to share and remember.
+                Transform complex UUIDs into memorable, human-readable URLs that are easy to share
+                and remember.
               </p>
             </CardContent>
           </Card>
@@ -128,7 +130,8 @@ export default async function PermalinkDemoPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Instant validation and availability checking with helpful suggestions for alternatives.
+                Instant validation and availability checking with helpful suggestions for
+                alternatives.
               </p>
             </CardContent>
           </Card>
@@ -152,9 +155,7 @@ export default async function PermalinkDemoPage() {
         <Card>
           <CardHeader>
             <CardTitle>Example Permalinks</CardTitle>
-            <CardDescription>
-              See how permalinks work across different entity types
-            </CardDescription>
+            <CardDescription>See how permalinks work across different entity types</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -167,7 +168,7 @@ export default async function PermalinkDemoPage() {
                     </div>
                     <Badge variant="outline">{example.entityType}</Badge>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">Permalink:</span>
@@ -175,12 +176,10 @@ export default async function PermalinkDemoPage() {
                         {example.permalink}
                       </code>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">URL:</span>
-                      <code className="text-xs bg-muted px-2 py-1 rounded-sm">
-                        {example.url}
-                      </code>
+                      <code className="text-xs bg-muted px-2 py-1 rounded-sm">{example.url}</code>
                       <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
                         <Copy className="h-3 w-3" />
                       </Button>
@@ -223,19 +222,15 @@ export default async function PermalinkDemoPage() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div>
                   <h3 className="font-semibold text-green-600 mb-2">After (Permalinks)</h3>
                   <div className="space-y-2">
                     <div className="p-3 bg-green-50 rounded-sm border">
-                      <code className="text-xs text-green-700">
-                        /profile/john-smith
-                      </code>
+                      <code className="text-xs text-green-700">/profile/john-smith</code>
                     </div>
                     <div className="p-3 bg-green-50 rounded-sm border">
-                      <code className="text-xs text-green-700">
-                        /groups/book-club-2024
-                      </code>
+                      <code className="text-xs text-green-700">/groups/book-club-2024</code>
                     </div>
                     <div className="p-3 bg-green-50 rounded-sm border">
                       <code className="text-xs text-green-700">
@@ -269,7 +264,7 @@ export default async function PermalinkDemoPage() {
                     <li>• Brand consistency</li>
                   </ul>
                 </div>
-                
+
                 <div>
                   <h4 className="font-semibold">SEO & Marketing</h4>
                   <ul className="text-sm text-muted-foreground space-y-1 mt-2">
@@ -280,7 +275,7 @@ export default async function PermalinkDemoPage() {
                   </ul>
                 </div>
               </div>
-              
+
               <div className="space-y-4">
                 <div>
                   <h4 className="font-semibold">Technical Excellence</h4>
@@ -291,7 +286,7 @@ export default async function PermalinkDemoPage() {
                     <li>• Scalable architecture</li>
                   </ul>
                 </div>
-                
+
                 <div>
                   <h4 className="font-semibold">Security & Performance</h4>
                   <ul className="text-sm text-muted-foreground space-y-1 mt-2">
@@ -308,4 +303,4 @@ export default async function PermalinkDemoPage() {
       </div>
     </div>
   )
-} 
+}

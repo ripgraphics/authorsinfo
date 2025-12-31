@@ -3,8 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 
 // Get publisher target type ID
 async function getPublisherTargetTypeId() {
-  const { data, error } = await (supabaseAdmin
-    .from('follow_target_types') as any)
+  const { data, error } = await (supabaseAdmin.from('follow_target_types') as any)
     .select('id')
     .eq('name', 'publisher')
     .single()
@@ -20,17 +19,14 @@ async function getPublisherTargetTypeId() {
 // Add followers to a publisher
 async function addFollowersToPublisher(publisherId: number, userIds: string[]) {
   const targetTypeId = await getPublisherTargetTypeId()
-  
-  const followData = userIds.map(userId => ({
+
+  const followData = userIds.map((userId) => ({
     follower_id: userId,
     following_id: publisherId,
     target_type_id: targetTypeId,
   }))
 
-  const { data, error } = await (supabaseAdmin
-    .from('follows') as any)
-    .insert(followData)
-    .select()
+  const { data, error } = await (supabaseAdmin.from('follows') as any).insert(followData).select()
 
   if (error) {
     console.error('Error adding followers to publisher:', error)
@@ -43,7 +39,7 @@ async function addFollowersToPublisher(publisherId: number, userIds: string[]) {
 export async function POST(request: Request) {
   try {
     const { publisherId, userIds } = await request.json()
-    
+
     if (!publisherId || !userIds || !Array.isArray(userIds) || userIds.length === 0) {
       return NextResponse.json(
         { error: 'Invalid request. publisherId and userIds array are required.' },
@@ -52,18 +48,15 @@ export async function POST(request: Request) {
     }
 
     const result = await addFollowersToPublisher(publisherId, userIds)
-    
+
     return NextResponse.json({
       success: true,
       message: `Successfully added ${result.length} followers to publisher ID ${publisherId}`,
-      data: result
+      data: result,
     })
   } catch (error) {
     console.error('Error in add-followers API route:', error)
-    return NextResponse.json(
-      { error: 'Failed to add followers to publisher' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to add followers to publisher' }, { status: 500 })
   }
 }
 
@@ -87,21 +80,18 @@ export async function GET() {
       '751dbc76-b23d-4d4d-961e-fcf198a2cd08', // James Williams
       '8748d399-822b-4b68-b010-d420da5d6b14', // James Martinez
     ]
-    
+
     const publisherId = 291
-    
+
     const result = await addFollowersToPublisher(publisherId, userIds)
-    
+
     return NextResponse.json({
       success: true,
       message: `Successfully added ${result.length} followers to publisher ID ${publisherId}`,
-      data: result
+      data: result,
     })
   } catch (error) {
     console.error('Error in add-followers API route:', error)
-    return NextResponse.json(
-      { error: 'Failed to add followers to publisher' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to add followers to publisher' }, { status: 500 })
   }
-} 
+}

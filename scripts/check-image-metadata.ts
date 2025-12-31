@@ -14,8 +14,8 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {
     autoRefreshToken: false,
-    persistSession: false
-  }
+    persistSession: false,
+  },
 })
 
 async function checkImage() {
@@ -34,5 +34,9 @@ async function checkImage() {
   }
 }
 
-checkImage().then(() => process.exit(0)).catch(err => { console.error(err); process.exit(1) })
-
+checkImage()
+  .then(() => process.exit(0))
+  .catch((err) => {
+    console.error(err)
+    process.exit(1)
+  })

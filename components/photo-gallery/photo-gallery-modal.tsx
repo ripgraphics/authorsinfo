@@ -1,16 +1,13 @@
-'use client';
+'use client'
 
-import { useEffect } from 'react';
-import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
-import { PhotoGalleryModalProps } from './types';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { X, ChevronLeft, ChevronRight, Tag, Download, Share2 } from 'lucide-react';
-import { CloseButton } from '@/components/ui/close-button';
+import { useEffect } from 'react'
+import Image from 'next/image'
+import { PhotoGalleryModalProps } from './types'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { ChevronLeft, ChevronRight, Tag, Download, Share2 } from 'lucide-react'
+import { CloseButton } from '@/components/ui/close-button'
 
 export function PhotoGalleryModal({
   isOpen,
@@ -20,40 +17,37 @@ export function PhotoGalleryModal({
   onPrev,
   showTags,
   isEditable,
-  onImageTag,
+  onImageTag: _onImageTag,
 }: PhotoGalleryModalProps) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isOpen) return;
-      
+      if (!isOpen) return
+
       switch (e.key) {
         case 'Escape':
-          onClose();
-          break;
+          onClose()
+          break
         case 'ArrowLeft':
-          onPrev();
-          break;
+          onPrev()
+          break
         case 'ArrowRight':
-          onNext();
-          break;
+          onNext()
+          break
       }
-    };
+    }
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose, onNext, onPrev]);
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose, onNext, onPrev])
 
-  if (!image) return null;
+  if (!image) return null
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="photo-gallery__modal max-w-7xl p-0">
         <div className="photo-gallery__modal-content relative">
           {/* Close button */}
-                     <CloseButton
-             onClick={onClose}
-             className="absolute right-4 top-4 z-10"
-           />
+          <CloseButton onClick={onClose} className="absolute right-4 top-4 z-10" />
 
           {/* Navigation buttons */}
           <Button
@@ -108,7 +102,7 @@ export function PhotoGalleryModal({
                   className="photo-gallery__modal-action-button"
                   onClick={() => {
                     // Handle download
-                    window.open(image.url, '_blank');
+                    window.open(image.url, '_blank')
                   }}
                 >
                   <Download className="h-4 w-4 mr-2" />
@@ -124,7 +118,7 @@ export function PhotoGalleryModal({
                       title: image.altText,
                       text: image.caption,
                       url: image.url,
-                    });
+                    })
                   }}
                 >
                   <Share2 className="h-4 w-4 mr-2" />
@@ -143,11 +137,7 @@ export function PhotoGalleryModal({
               {showTags && image.tags && image.tags.length > 0 && (
                 <div className="photo-gallery__modal-tags mt-2 flex flex-wrap gap-2">
                   {image.tags.map((tag) => (
-                    <Badge
-                      key={tag.id}
-                      variant="secondary"
-                      className="photo-gallery__modal-tag"
-                    >
+                    <Badge key={tag.id} variant="secondary" className="photo-gallery__modal-tag">
                       {tag.name}
                     </Badge>
                   ))}
@@ -158,5 +148,5 @@ export function PhotoGalleryModal({
         </div>
       </DialogContent>
     </Dialog>
-  );
-} 
+  )
+}

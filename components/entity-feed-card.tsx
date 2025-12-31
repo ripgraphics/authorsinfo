@@ -8,11 +8,11 @@ import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { 
-  Heart, 
-  MessageCircle, 
-  Share2, 
-  Bookmark, 
+import {
+  Heart,
+  MessageCircle,
+  Share2,
+  Bookmark,
   MoreHorizontal,
   Eye,
   ThumbsUp,
@@ -50,7 +50,7 @@ import {
   Zap,
   Activity,
   Save,
-  X
+  X,
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
@@ -63,7 +63,17 @@ import { ReactionType } from '@/contexts/engagement-context'
 import { NestedCommentThread } from '@/components/enterprise/nested-comment-thread'
 import { SophisticatedPhotoGrid } from '@/components/photo-gallery/sophisticated-photo-grid'
 import { EnterprisePhotoViewer } from '@/components/photo-gallery/enterprise-photo-viewer'
-import { FeedPost, PostContent, PostVisibility, PostPublishStatus, getPostText, getPostImages, getPostContentType, hasImageContent, hasTextContent } from '@/types/feed'
+import {
+  FeedPost,
+  PostContent,
+  PostVisibility,
+  PostPublishStatus,
+  getPostText,
+  getPostImages,
+  getPostContentType,
+  hasImageContent,
+  hasTextContent,
+} from '@/types/feed'
 import { useAuth } from '@/hooks/useAuth'
 import { deduplicatedRequest } from '@/lib/request-utils'
 import { ReactionsModal } from '@/components/enterprise/reactions-modal'
@@ -75,9 +85,13 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
-import { DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from '@/components/ui/dropdown-menu'
+import {
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+} from '@/components/ui/dropdown-menu'
 
 export interface EntityFeedCardProps {
   post: FeedPost
@@ -124,7 +138,7 @@ export default function EntityFeedCard({
   showEngagement = true,
   className,
   onPostUpdated,
-  onPostDeleted
+  onPostDeleted,
 }: EntityFeedCardProps) {
   // Safety check for post object
   if (!post) {
@@ -142,7 +156,7 @@ export default function EntityFeedCard({
     hasContent: !!(post.text || post.data),
     hasData: !!(post as any).data,
     allKeys: Object.keys(post),
-    fullPost: post
+    fullPost: post,
   })
 
   const { toast } = useToast()
@@ -153,21 +167,21 @@ export default function EntityFeedCard({
     reactions: [],
     comments: [],
     shares: [],
-    bookmarks: []
+    bookmarks: [],
   })
   const [isLoadingEngagement, setIsLoadingEngagement] = useState(false)
-  
-      // Add state for comments and likes
-    const [comments, setComments] = useState<any[]>([])
-    const [likes, setLikes] = useState<any[]>([])
-    const [isLoadingComments, setIsLoadingComments] = useState(false)
-    const [isLoadingLikes, setIsLoadingLikes] = useState(false)
-    const [showLikesModal, setShowLikesModal] = useState(false)
-    const [showCommentsModal, setShowCommentsModal] = useState(false)
-    const [commentFilter, setCommentFilter] = useState<'relevant' | 'all'>('relevant')
-    const [expandedReplies, setExpandedReplies] = useState<Record<string, boolean>>({})
-    const [canCommentModal, setCanCommentModal] = useState<boolean>(false)
-  
+
+  // Add state for comments and likes
+  const [comments, setComments] = useState<any[]>([])
+  const [likes, setLikes] = useState<any[]>([])
+  const [isLoadingComments, setIsLoadingComments] = useState(false)
+  const [isLoadingLikes, setIsLoadingLikes] = useState(false)
+  const [showLikesModal, setShowLikesModal] = useState(false)
+  const [showCommentsModal, setShowCommentsModal] = useState(false)
+  const [commentFilter, setCommentFilter] = useState<'relevant' | 'all'>('relevant')
+  const [expandedReplies, setExpandedReplies] = useState<Record<string, boolean>>({})
+  const [canCommentModal, setCanCommentModal] = useState<boolean>(false)
+
   // Inline editing state
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState('')
@@ -177,9 +191,9 @@ export default function EntityFeedCard({
   const [showImageUpload, setShowImageUpload] = useState(false)
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
-  
+
   // Image modal state
-  const [selectedImage, setSelectedImage] = useState<{url: string, index: number} | null>(null)
+  const [selectedImage, setSelectedImage] = useState<{ url: string; index: number } | null>(null)
   const [showImageModal, setShowImageModal] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
@@ -195,7 +209,8 @@ export default function EntityFeedCard({
   const postOwnerName = userDetails?.name || post.user_name || 'User'
   const postOwnerAvatar = userDetails?.avatar_url || post.user_avatar_url
   // Use hooks for current user data
-  const currentUserDisplayName = (user as any)?.name || (user as any)?.user_metadata?.full_name || (user as any)?.email || 'You'
+  const currentUserDisplayName =
+    (user as any)?.name || (user as any)?.user_metadata?.full_name || (user as any)?.email || 'You'
   const currentUserAvatar = (user as any)?.avatar_url || undefined
 
   // Single-comment preview helpers
@@ -240,15 +255,18 @@ export default function EntityFeedCard({
     try {
       setIsLoadingComments(true)
       console.log('🔍 FeedCard: Fetching comments for post:', post.id)
-      
-      const response = await fetch(`/api/engagement?entity_id=${post.id}&entity_type=${post.entity_type || 'activity'}`, {
-        signal: AbortSignal.timeout(30000) // 30 second timeout
-      })
-      
+
+      const response = await fetch(
+        `/api/engagement?entity_id=${post.id}&entity_type=${post.entity_type || 'activity'}`,
+        {
+          signal: AbortSignal.timeout(30000), // 30 second timeout
+        }
+      )
+
       if (response.ok) {
         const data = await response.json()
         console.log('🔍 FeedCard: Comments API response:', data)
-        
+
         if (data.recent_comments && Array.isArray(data.recent_comments)) {
           console.log('🔍 FeedCard: Setting comments:', data.recent_comments)
           setComments(data.recent_comments)
@@ -267,7 +285,7 @@ export default function EntityFeedCard({
         toast({
           title: 'Timeout',
           description: 'Loading comments took too long. Please try again.',
-          variant: 'destructive'
+          variant: 'destructive',
         })
       }
       setComments([])
@@ -288,9 +306,9 @@ export default function EntityFeedCard({
           entity_id: post.id,
           entity_type: post.entity_type || 'activity',
           engagement_type: 'comment',
-          content: text
+          content: text,
         }),
-        signal: AbortSignal.timeout(30000) // 30 second timeout
+        signal: AbortSignal.timeout(30000), // 30 second timeout
       })
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
       setBottomComment('')
@@ -300,7 +318,7 @@ export default function EntityFeedCard({
         onPostUpdated(updatedPost)
       }
       // Add a small delay to ensure the database transaction is committed
-      await new Promise(resolve => setTimeout(resolve, 500))
+      await new Promise((resolve) => setTimeout(resolve, 500))
       fetchComments()
     } catch (e) {
       console.error('Failed to submit comment', e)
@@ -308,13 +326,13 @@ export default function EntityFeedCard({
         toast({
           title: 'Timeout',
           description: 'The request took too long. Please try again.',
-          variant: 'destructive'
+          variant: 'destructive',
         })
       } else {
         toast({
           title: 'Error',
           description: 'Failed to post comment. Please try again.',
-          variant: 'destructive'
+          variant: 'destructive',
         })
       }
     }
@@ -336,13 +354,15 @@ export default function EntityFeedCard({
     try {
       setIsLoadingLikes(true)
       console.log('🔍 FeedCard: Fetching likes for post:', post.id)
-      
-      const response = await fetch(`/api/engagement?entity_id=${post.id}&entity_type=${post.entity_type || 'activity'}`)
-      
+
+      const response = await fetch(
+        `/api/engagement?entity_id=${post.id}&entity_type=${post.entity_type || 'activity'}`
+      )
+
       if (response.ok) {
         const data = await response.json()
         console.log('🔍 FeedCard: Likes API response:', data)
-        
+
         if (data.recent_likes && Array.isArray(data.recent_likes)) {
           console.log('🔍 FeedCard: Setting likes:', data.recent_likes)
           setLikes(data.recent_likes)
@@ -365,7 +385,7 @@ export default function EntityFeedCard({
   // Check if current user can edit this post
   const canEdit = user && post.user_id === user.id && !(post as any).is_deleted
   const canDelete = user && post.user_id === user.id && !(post as any).is_deleted
-  
+
   // Fetch comments when component mounts
   useEffect(() => {
     if (showComments && post.comment_count > 0) {
@@ -379,7 +399,7 @@ export default function EntityFeedCard({
       fetchLikes()
     }
   }, [post.like_count, fetchLikes])
-  
+
   // Debug logging
   console.log('Debug - User:', user)
   console.log('Debug - Post user_id:', post.user_id)
@@ -401,7 +421,8 @@ export default function EntityFeedCard({
         comment_count: post.comment_count,
         share_count: post.share_count,
         user_has_reacted: post.user_has_reacted,
-        calculatedEngagement: (post.like_count || 0) + (post.comment_count || 0) + (post.share_count || 0)
+        calculatedEngagement:
+          (post.like_count || 0) + (post.comment_count || 0) + (post.share_count || 0),
       })
     }
   }, [post?.like_count, post?.comment_count, post?.share_count, post?.user_has_reacted])
@@ -411,38 +432,38 @@ export default function EntityFeedCard({
     text: {
       icon: MessageSquare,
       label: 'Text Post',
-      color: 'bg-blue-100 text-blue-800'
+      color: 'bg-blue-100 text-blue-800',
     },
     photo: {
       icon: ImageIcon,
       label: 'Photo Post',
-      color: 'bg-green-100 text-green-800'
+      color: 'bg-green-100 text-green-800',
     },
     video: {
       icon: Video,
       label: 'Video Post',
-      color: 'bg-purple-100 text-purple-800'
+      color: 'bg-purple-100 text-purple-800',
     },
     link: {
       icon: ExternalLink,
       label: 'Link Post',
-      color: 'bg-orange-100 text-orange-800'
+      color: 'bg-orange-100 text-orange-800',
     },
     poll: {
       icon: HashIcon,
       label: 'Poll Post',
-      color: 'bg-pink-100 text-pink-800'
+      color: 'bg-pink-100 text-pink-800',
     },
     review: {
       icon: StarIcon,
       label: 'Review Post',
-      color: 'bg-yellow-100 text-yellow-800'
+      color: 'bg-yellow-100 text-yellow-800',
     },
     article: {
       icon: BookOpen,
       label: 'Article Post',
-      color: 'bg-indigo-100 text-indigo-800'
-    }
+      color: 'bg-indigo-100 text-indigo-800',
+    },
   }
 
   // Entity type configurations
@@ -451,7 +472,7 @@ export default function EntityFeedCard({
     book: { icon: BookOpen, label: 'Book Post', color: 'bg-green-100 text-green-800' },
     author: { icon: Building, label: 'Author Post', color: 'bg-purple-100 text-purple-800' },
     publisher: { icon: Building, label: 'Publisher Post', color: 'bg-orange-100 text-orange-800' },
-    group: { icon: Users2, label: 'Group Post', color: 'bg-indigo-100 text-indigo-800' }
+    group: { icon: Users2, label: 'Group Post', color: 'bg-indigo-100 text-indigo-800' },
   }
 
   // Visibility configurations
@@ -460,14 +481,19 @@ export default function EntityFeedCard({
     private: { icon: Lock, label: 'Private', color: 'text-red-600' },
     friends: { icon: Users, label: 'Friends', color: 'text-blue-600' },
     followers: { icon: Users2, label: 'Followers', color: 'text-purple-600' },
-    custom: { icon: Eye, label: 'Custom', color: 'text-orange-600' }
+    custom: { icon: Eye, label: 'Custom', color: 'text-orange-600' },
   }
 
   // Content safety configurations
   const safetyConfigs = {
     high: { icon: Shield, label: 'Safe', color: 'text-green-600', bgColor: 'bg-green-50' },
-    medium: { icon: AlertTriangle, label: 'Caution', color: 'text-yellow-600', bgColor: 'bg-yellow-50' },
-    low: { icon: Flag, label: 'Flagged', color: 'text-red-600', bgColor: 'bg-red-50' }
+    medium: {
+      icon: AlertTriangle,
+      label: 'Caution',
+      color: 'text-yellow-600',
+      bgColor: 'bg-yellow-50',
+    },
+    low: { icon: Flag, label: 'Flagged', color: 'text-red-600', bgColor: 'bg-red-50' },
   }
 
   // Get content safety level
@@ -479,12 +505,11 @@ export default function EntityFeedCard({
 
   // Helper functions to extract content from current data structure
   const getPostText = (post: any): string => {
-    
     // PRIORITY 1: Check for direct columns first (from updated database function)
     if (post.text && post.text.trim() !== '') {
       return post.text
     }
-    
+
     // PRIORITY 2: Check for content in the data JSONB field (old structure)
     if (post.data) {
       if (post.data.text && post.data.text.trim() !== '') {
@@ -503,7 +528,7 @@ export default function EntityFeedCard({
         return post.data.description
       }
     }
-    
+
     // PRIORITY 3: Check for content in metadata field (if it exists)
     if (post.metadata) {
       if (post.metadata.text && post.metadata.text.trim() !== '') {
@@ -513,89 +538,106 @@ export default function EntityFeedCard({
         return post.metadata.content
       }
     }
-    
+
     // PRIORITY 4: Check for content_summary field
     if (post.content_summary && post.content_summary.trim() !== '') {
       return post.content_summary
     }
-    
-      // FINAL FALLBACK: Provide meaningful fallback based on activity type and content type
-  if (post.content_type === 'image') {
-    return post.image_url ? 'Shared an image' : 'Shared an image'
-  } else if (post.content_type === 'video') {
-    return 'Shared a video'
-  } else if (post.content_type === 'link') {
-    return post.link_url ? 'Shared a link' : 'Shared a link'
-  } else if (post.content_type === 'book') {
-    return 'Shared a book'
-  } else if (post.content_type === 'author') {
-    return 'Shared an author'
-  } else if (post.content_type === 'text') {
+
+    // FINAL FALLBACK: Provide meaningful fallback based on activity type and content type
+    if (post.content_type === 'image') {
+      return post.image_url ? 'Shared an image' : 'Shared an image'
+    } else if (post.content_type === 'video') {
+      return 'Shared a video'
+    } else if (post.content_type === 'link') {
+      return post.link_url ? 'Shared a link' : 'Shared a link'
+    } else if (post.content_type === 'book') {
+      return 'Shared a book'
+    } else if (post.content_type === 'author') {
+      return 'Shared an author'
+    } else if (post.content_type === 'text') {
+      return 'Shared an update'
+    } else if (post.activity_type === 'book_review') {
+      return 'Shared a book review'
+    } else if (post.activity_type === 'book_share') {
+      return 'Shared a book'
+    } else if (post.activity_type === 'reading_progress') {
+      return 'Updated reading progress'
+    } else if (post.activity_type === 'book_added') {
+      return 'Added a book to their library'
+    } else if (post.activity_type === 'author_follow') {
+      return 'Started following an author'
+    } else if (post.activity_type === 'book_recommendation') {
+      return 'Recommended a book'
+    } else if (post.activity_type) {
+      return `Shared a ${post.activity_type.replace('_', ' ')}`
+    }
+
+    console.log('getPostText - No text found, returning default')
     return 'Shared an update'
-  } else if (post.activity_type === 'book_review') {
-    return 'Shared a book review'
-  } else if (post.activity_type === 'book_share') {
-    return 'Shared a book'
-  } else if (post.activity_type === 'reading_progress') {
-    return 'Updated reading progress'
-  } else if (post.activity_type === 'book_added') {
-    return 'Added a book to their library'
-  } else if (post.activity_type === 'author_follow') {
-    return 'Started following an author'
-  } else if (post.activity_type === 'book_recommendation') {
-    return 'Recommended a book'
-  } else if (post.activity_type) {
-    return `Shared a ${post.activity_type.replace('_', ' ')}`
-  }
-  
-  console.log('getPostText - No text found, returning default')
-  return 'Shared an update'
   }
 
   const getPostImages = (post: any): string[] => {
     // Debug: Log the actual post structure for images
     console.log('getPostImages - Post image structure:', {
       hasImageUrl: !!post.image_url,
-          hasContent: !!(post.text || post.data),
-    contentImageUrl: post.image_url
+      hasContent: !!(post.text || post.data),
+      contentImageUrl: post.image_url,
     })
-    
+
     // PRIORITY 1: Check for direct image_url column (from current schema)
     if (post.image_url && post.image_url.trim() !== '') {
       console.log('getPostImages - Found image_url in direct column:', post.image_url)
-      return post.image_url.split(',').map((url: string) => url.trim()).filter(Boolean)
+      return post.image_url
+        .split(',')
+        .map((url: string) => url.trim())
+        .filter(Boolean)
     }
-    
+
     // PRIORITY 2: Check for images in data JSONB field
     if (post.data?.images) {
       console.log('getPostImages - Found images in data.images:', post.data.images)
       return Array.isArray(post.data.images) ? post.data.images : [post.data.images]
     }
-    
+
     if (post.data?.image_url && post.data.image_url.trim() !== '') {
       console.log('getPostImages - Found image_url in data.image_url:', post.data.image_url)
-      return post.data.image_url.split(',').map((url: string) => url.trim()).filter(Boolean)
+      return post.data.image_url
+        .split(',')
+        .map((url: string) => url.trim())
+        .filter(Boolean)
     }
-    
+
     // PRIORITY 3: Check for media_url in data
     if (post.data?.media_url && post.data.media_url.trim() !== '') {
       console.log('getPostImages - Found media_url in data.media_url:', post.data.media_url)
-      return post.data.media_url.split(',').map((url: string) => url.trim()).filter(Boolean)
+      return post.data.media_url
+        .split(',')
+        .map((url: string) => url.trim())
+        .filter(Boolean)
     }
-    
+
     // PRIORITY 4: Check for nested content structure
     if (post.data?.content?.image_url && post.data.content.image_url.trim() !== '') {
-      console.log('getPostImages - Found image_url in data.content.image_url:', post.data.content.image_url)
-      return post.data.content.image_url.split(',').map((url: string) => url.trim()).filter(Boolean)
+      console.log(
+        'getPostImages - Found image_url in data.content.image_url:',
+        post.data.content.image_url
+      )
+      return post.data.content.image_url
+        .split(',')
+        .map((url: string) => url.trim())
+        .filter(Boolean)
     }
-    
+
     if (post.data?.content?.images) {
       console.log('getPostImages - Found images in data.content.images:', post.data.content.images)
-      return Array.isArray(post.data.content.images) ? post.data.content.images : [post.data.content.images]
+      return Array.isArray(post.data.content.images)
+        ? post.data.content.images
+        : [post.data.content.images]
     }
-    
+
     // Note: post.data.data nesting doesn't exist in current schema, removed these checks
-    
+
     console.log('getPostImages - No images found, returning empty array')
     return []
   }
@@ -603,21 +645,21 @@ export default function EntityFeedCard({
   const getPostContentType = (post: any): string => {
     // Debug: Log the actual post structure for content type
     console.log('getPostContentType - Post content type structure:', {
-          hasContentType: !!post.content_type,
-    hasContent: !!(post.text || post.data),
-    contentType: post.content_type,
+      hasContentType: !!post.content_type,
+      hasContent: !!(post.text || post.data),
+      contentType: post.content_type,
       postId: post.id,
       activityType: post.activity_type,
       hasText: !!(post.text || post.data?.text),
-      hasImages: getPostImages(post).length > 0
+      hasImages: getPostImages(post).length > 0,
     })
-    
+
     // Handle like activities specifically
     if (post.activity_type === 'like') {
       console.log('getPostContentType - Returning like for like activity')
       return 'like'
     }
-    
+
     // Try to get content type from various possible locations
     if (post.content_type) {
       console.log('getPostContentType - Found post.content_type:', post.content_type)
@@ -633,9 +675,9 @@ export default function EntityFeedCard({
       return post.data.type
     }
     // Note: post.data.content doesn't exist in current schema, removed this check
-    
+
     // Note: post.data.data nesting doesn't exist in current schema, removed these checks
-    
+
     // Infer from content
     const images = getPostImages(post)
     if (images.length > 0) {
@@ -646,13 +688,13 @@ export default function EntityFeedCard({
       console.log('getPostContentType - Inferring link from link URLs')
       return 'link'
     }
-    
+
     // If we have text content, default to text
     if (post.text || post.data?.text) {
       console.log('getPostContentType - Inferring text from text content')
       return 'text'
     }
-    
+
     console.log('getPostContentType - No content type found, defaulting to text')
     return 'text'
   }
@@ -670,40 +712,40 @@ export default function EntityFeedCard({
       textType: typeof text,
       textLength: text?.length,
       trimmedLength: text?.trim()?.length,
-      result
+      result,
     })
     return result
   }
 
-      // Get display values using helper functions
-    const displayText = getPostText(post)
-    const displayImageUrl = getPostImages(post).join(',')
-    const displayContentType = getPostContentType(post)
-    
-    // Debug: Log what we got from the helper functions
-    console.log('EntityFeedCard - Helper function results:', {
-      postId: post.id,
-      displayText,
-      displayImageUrl,
-      displayContentType,
-      hasTextContent: hasTextContent(post),
-      hasImageContent: hasImageContent(post)
-    })
+  // Get display values using helper functions
+  const displayText = getPostText(post)
+  const displayImageUrl = getPostImages(post).join(',')
+  const displayContentType = getPostContentType(post)
+
+  // Debug: Log what we got from the helper functions
+  console.log('EntityFeedCard - Helper function results:', {
+    postId: post.id,
+    displayText,
+    displayImageUrl,
+    displayContentType,
+    hasTextContent: hasTextContent(post),
+    hasImageContent: hasImageContent(post),
+  })
 
   // Handle image click for modal
   const handleImageClick = (url: string, index: number) => {
-    console.log('Image clicked:', { url, index, postId: post.id });
-    setSelectedImage({ url, index });
-    setCurrentImageIndex(index); // Set current index for EnterprisePhotoViewer
-    setShowImageModal(true);
-  };
+    console.log('Image clicked:', { url, index, postId: post.id })
+    setSelectedImage({ url, index })
+    setCurrentImageIndex(index) // Set current index for EnterprisePhotoViewer
+    setShowImageModal(true)
+  }
 
   // Close image modal
   const closeImageModal = () => {
-    setShowImageModal(false);
-    setSelectedImage(null);
-    setCurrentImageIndex(0); // Reset current index
-  };
+    setShowImageModal(false)
+    setSelectedImage(null)
+    setCurrentImageIndex(0) // Reset current index
+  }
 
   // Handle inline editing
   const handleEditToggle = () => {
@@ -723,7 +765,7 @@ export default function EntityFeedCard({
   // Handle image upload
   const handleImageUpload = async (files: FileList) => {
     const newImages: string[] = []
-    
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
       if (file.type.startsWith('image/')) {
@@ -732,7 +774,7 @@ export default function EntityFeedCard({
         reader.onload = (e) => {
           if (e.target?.result) {
             newImages.push(e.target.result as string)
-            setEditImages(prev => [...prev, ...newImages])
+            setEditImages((prev) => [...prev, ...newImages])
           }
         }
         reader.readAsDataURL(file)
@@ -742,7 +784,7 @@ export default function EntityFeedCard({
 
   // Handle image removal
   const handleRemoveImage = (index: number) => {
-    setEditImages(prev => prev.filter((_, i) => i !== index))
+    setEditImages((prev) => prev.filter((_, i) => i !== index))
   }
 
   // Handle drag and drop reordering
@@ -772,9 +814,9 @@ export default function EntityFeedCard({
   const handleSaveEdit = async () => {
     if (!editContent.trim()) {
       toast({
-        title: "Error",
-        description: "Post content cannot be empty",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Post content cannot be empty',
+        variant: 'destructive',
       })
       return
     }
@@ -789,21 +831,21 @@ export default function EntityFeedCard({
       console.log('Current user:', user)
       console.log('Update data:', {
         content: { text: editContent.trim() },
-        image_url: editImages.join(',')
+        image_url: editImages.join(','),
       })
       console.log('API URL:', `/api/posts/${post.id}`)
-      
+
       // Validate post ID format
       if (!post.id || typeof post.id !== 'string' || post.id.trim() === '') {
         throw new Error('Invalid post ID')
       }
-      
+
       // Check if post ID looks like a valid UUID
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
       if (!uuidRegex.test(post.id)) {
         console.warn('Post ID does not look like a valid UUID:', post.id)
       }
-      
+
       console.log('========================')
 
       const response = await fetch(`/api/activities`, {
@@ -812,8 +854,8 @@ export default function EntityFeedCard({
         body: JSON.stringify({
           id: post.id,
           text: editContent.trim(),
-          image_url: editImages.join(',')
-        })
+          image_url: editImages.join(','),
+        }),
       })
 
       console.log('Response status:', response.status)
@@ -827,10 +869,10 @@ export default function EntityFeedCard({
 
       const responseData = await response.json()
       console.log('Updated activity received:', responseData)
-      
+
       // Extract the activity from the response
       const updatedActivity = responseData.activity || responseData
-      
+
       // Update local state
       if (onPostUpdated) {
         onPostUpdated(updatedActivity)
@@ -840,20 +882,20 @@ export default function EntityFeedCard({
       Object.assign(post, {
         content: { text: updatedActivity.text },
         image_url: updatedActivity.image_url,
-        updated_at: updatedActivity.updated_at
+        updated_at: updatedActivity.updated_at,
       })
 
       setIsEditing(false)
       toast({
-        title: "Success",
-        description: "Post updated successfully",
+        title: 'Success',
+        description: 'Post updated successfully',
       })
     } catch (error) {
       console.error('Error updating post:', error)
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update post",
-        variant: "destructive"
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to update post',
+        variant: 'destructive',
       })
     } finally {
       setIsSaving(false)
@@ -885,7 +927,7 @@ export default function EntityFeedCard({
       const response = await fetch(endpoint, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: post.id })
+        body: JSON.stringify({ id: post.id }),
       })
 
       console.log('Delete response status:', response.status)
@@ -902,15 +944,15 @@ export default function EntityFeedCard({
       }
 
       toast({
-        title: "Success",
-        description: "Post deleted successfully",
+        title: 'Success',
+        description: 'Post deleted successfully',
       })
     } catch (error) {
       console.error('Error deleting post:', error)
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to delete post",
-        variant: "destructive"
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to delete post',
+        variant: 'destructive',
       })
     }
   }
@@ -926,15 +968,15 @@ export default function EntityFeedCard({
       console.log('✅ Using built-in engagement data from post:', {
         like_count: post.like_count,
         comment_count: post.comment_count,
-        share_count: post.share_count
+        share_count: post.share_count,
       })
 
       // Use the engagement data directly from the post
       setEngagementData({
         likes: [], // Individual likes not stored separately anymore
-        comments: [], // Individual comments not stored separately anymore  
+        comments: [], // Individual comments not stored separately anymore
         shares: [],
-        bookmarks: []
+        bookmarks: [],
       })
     } catch (error) {
       console.error('Error setting engagement data:', error)
@@ -953,7 +995,9 @@ export default function EntityFeedCard({
     async function checkPermission() {
       if (!showCommentsModal) return
       try {
-        const resp = await fetch(`/api/engagement/can-comment?entity_id=${post.id}&entity_type=${post.entity_type || 'activity'}`)
+        const resp = await fetch(
+          `/api/engagement/can-comment?entity_id=${post.id}&entity_type=${post.entity_type || 'activity'}`
+        )
         if (!resp.ok) {
           if (!cancelled) setCanCommentModal(false)
           return
@@ -965,7 +1009,9 @@ export default function EntityFeedCard({
       }
     }
     checkPermission()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [showCommentsModal, post.id, post.entity_type])
 
   // Close actions menu when clicking outside
@@ -973,7 +1019,7 @@ export default function EntityFeedCard({
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element
       const actionsMenu = document.querySelector('.enterprise-feed-card-actions')
-      
+
       if (showActionsMenu && actionsMenu && !actionsMenu.contains(target)) {
         setShowActionsMenu(false)
       }
@@ -989,15 +1035,16 @@ export default function EntityFeedCard({
 
   // Render content warnings
   const renderContentWarnings = () => {
-    if (!post.metadata?.content_safety_score || post.metadata.content_safety_score >= 0.8) return null
+    if (!post.metadata?.content_safety_score || post.metadata.content_safety_score >= 0.8)
+      return null
 
     const safetyLevel = getContentSafetyLevel(post.metadata.content_safety_score)
     const config = safetyConfigs[safetyLevel]
 
     return (
-      <div className={cn("p-3 rounded-lg mb-4 flex items-center gap-2", config.bgColor)}>
-        <config.icon className={cn("h-4 w-4", config.color)} />
-        <span className={cn("text-sm font-medium", config.color)}>
+      <div className={cn('p-3 rounded-lg mb-4 flex items-center gap-2', config.bgColor)}>
+        <config.icon className={cn('h-4 w-4', config.color)} />
+        <span className={cn('text-sm font-medium', config.color)}>
           {config.label}: This content may contain sensitive material
         </span>
       </div>
@@ -1018,7 +1065,7 @@ export default function EntityFeedCard({
             className="min-h-[100px] resize-none"
             maxLength={5000}
           />
-          
+
           {/* Image Management Section */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -1034,10 +1081,10 @@ export default function EntityFeedCard({
                 </Button>
               </div>
             </div>
-            
+
             {/* Image Upload Area */}
             {showImageUpload && (
-              <div 
+              <div
                 className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center transition-colors hover:border-blue-400"
                 onDragOver={(e) => {
                   e.preventDefault()
@@ -1066,11 +1113,13 @@ export default function EntityFeedCard({
                 <label htmlFor="image-upload" className="cursor-pointer">
                   <ImageIcon className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                   <p className="text-sm text-gray-600">Click to upload images or drag and drop</p>
-                  <p className="text-xs text-gray-500 mt-1">Supports JPG, PNG, GIF up to 10MB each</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Supports JPG, PNG, GIF up to 10MB each
+                  </p>
                 </label>
               </div>
             )}
-            
+
             {/* Image Grid with Drag & Drop */}
             {editImages.length > 0 && (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -1079,9 +1128,7 @@ export default function EntityFeedCard({
                     key={index}
                     className={`relative group cursor-move ${
                       dragIndex === index ? 'opacity-50' : ''
-                    } ${
-                      dragOverIndex === index ? 'ring-2 ring-blue-500' : ''
-                    }`}
+                    } ${dragOverIndex === index ? 'ring-2 ring-blue-500' : ''}`}
                     draggable
                     onDragStart={(e) => handleDragStart(e, index)}
                     onDragOver={(e) => handleDragOver(e, index)}
@@ -1092,7 +1139,7 @@ export default function EntityFeedCard({
                       alt={`Image ${index + 1}`}
                       className="w-full h-24 object-cover rounded-lg"
                     />
-                    
+
                     {/* Remove Button */}
                     <button
                       onClick={() => handleRemoveImage(index)}
@@ -1100,7 +1147,7 @@ export default function EntityFeedCard({
                     >
                       <X className="h-3 w-3" />
                     </button>
-                    
+
                     {/* Drag Handle */}
                     <div className="absolute bottom-1 left-1 bg-black/50 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <div className="w-3 h-1 bg-white rounded-full mb-1"></div>
@@ -1112,32 +1159,23 @@ export default function EntityFeedCard({
               </div>
             )}
           </div>
-          
+
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">
               {editContent.length}/5000 characters
             </span>
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleEditToggle}
-                disabled={isSaving}
-              >
+              <Button variant="outline" size="sm" onClick={handleEditToggle} disabled={isSaving}>
                 <X className="h-4 w-4 mr-2" />
                 Cancel
               </Button>
-              <Button
-                size="sm"
-                onClick={handleSaveEdit}
-                disabled={isSaving || !editContent.trim()}
-              >
+              <Button size="sm" onClick={handleSaveEdit} disabled={isSaving || !editContent.trim()}>
                 {isSaving ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
                     Saving...
                   </>
-                  ) : (
+                ) : (
                   <>
                     <Save className="h-4 w-4 mr-2" />
                     Save
@@ -1149,31 +1187,31 @@ export default function EntityFeedCard({
         </div>
       )
     }
-    
+
     // Debug logging
-    console.log('EntityFeedCard renderContent:', { 
+    console.log('EntityFeedCard renderContent:', {
       postId: post.id,
-      contentType: post.content_type, 
+      contentType: post.content_type,
       imageUrl: post.image_url,
       hasText: !!post.text,
       hasData: !!post.data,
-      contentText: post.text || post.data?.text
+      contentText: post.text || post.data?.text,
     })
-    
+
     // Handle both old and new post structures
     // Old posts: direct text, image_url fields
     // New posts: content object with content_type
     const displayText = getPostText(post)
     const displayImageUrl = getPostImages(post)
     const displayContentType = getPostContentType(post)
-    
+
     if (!hasTextContent(post) && !hasImageContent(post)) {
-      console.log('No content available for post:', { 
+      console.log('No content available for post:', {
         postId: post.id,
         hasText: hasTextContent(post),
         hasImage: hasImageContent(post),
         displayText,
-        displayImageUrl
+        displayImageUrl,
       })
       return (
         <div className="enterprise-feed-card-no-content">
@@ -1181,32 +1219,32 @@ export default function EntityFeedCard({
         </div>
       )
     }
-    
+
     // Special check for posts that have images but wrong content_type
     if (hasImageContent(post) && displayContentType !== 'image') {
       console.log('Post has image but wrong content_type:', {
         postId: post.id,
         contentType: displayContentType,
         hasImage: true,
-        shouldBeImage: true
+        shouldBeImage: true,
       })
     }
 
     const content = { text: post.text || post.data?.text || '' } as PostContent
 
-    console.log('Content type switch:', { 
-      contentType: displayContentType, 
+    console.log('Content type switch:', {
+      contentType: displayContentType,
       postId: post.id,
       postContentType: post.content_type,
-      postContent: { text: post.text || post.data?.text || '' }
+      postContent: { text: post.text || post.data?.text || '' },
     })
-    
+
     switch (displayContentType) {
       case 'text':
         console.log('Rendering text content case:', {
           postId: post.id,
           displayText,
-          hasDisplayText: !!displayText
+          hasDisplayText: !!displayText,
         })
         return (
           <div className="enterprise-feed-card-text-content">
@@ -1223,16 +1261,16 @@ export default function EntityFeedCard({
         )
 
       case 'image':
-        console.log('Rendering image content:', { 
+        console.log('Rendering image content:', {
           postId: post.id,
           imageUrl: post.image_url,
-          hasImageUrl: !!post.image_url
+          hasImageUrl: !!post.image_url,
         })
-        
+
         // Handle multiple images using the new helper function
         const imageUrls = displayImageUrl
         const isMultiImage = imageUrls.length > 1
-        
+
         // Convert image URLs to photo objects for SophisticatedPhotoGrid
         const photos = imageUrls.map((url: string, index: number) => ({
           id: `post-${post.id}-${index}`,
@@ -1246,9 +1284,9 @@ export default function EntityFeedCard({
           shares: [],
           analytics: { views: 0, unique_views: 0, downloads: 0, shares: 0, engagement_rate: 0 },
           is_cover: false,
-          is_featured: false
+          is_featured: false,
         }))
-        
+
         return (
           <div className="enterprise-feed-card-photo-content">
             {/* Use SophisticatedPhotoGrid for photo display */}
@@ -1264,7 +1302,7 @@ export default function EntityFeedCard({
                 />
               </div>
             )}
-            
+
             {/* Fallback to content.media_files for posts table */}
             {!post.image_url && content.media_files && content.media_files.length > 0 && (
               <div className="enterprise-feed-card-photo-grid">
@@ -1279,7 +1317,7 @@ export default function EntityFeedCard({
                 ))}
               </div>
             )}
-            
+
             {displayText && (
               <div className="enterprise-feed-card-photo-caption mt-3">
                 <p className="text-sm text-muted-foreground">{displayText}</p>
@@ -1291,9 +1329,9 @@ export default function EntityFeedCard({
       case 'video':
         return (
           <div className="enterprise-feed-card-video-content">
-            {content.media_files && content.media_files.find(m => m.type === 'video') && (
+            {content.media_files && content.media_files.find((m) => m.type === 'video') && (
               <video
-                src={content.media_files.find(m => m.type === 'video')?.url}
+                src={content.media_files.find((m) => m.type === 'video')?.url}
                 controls
                 className="enterprise-feed-card-video w-full rounded-lg"
               />
@@ -1325,21 +1363,21 @@ export default function EntityFeedCard({
                   <div>
                     <span className="font-semibold text-sm">{post.user_name || 'User'}</span>
                     <span className="text-sm text-muted-foreground ml-2">
-                      {post.metadata?.aggregated_likes_count > 1 
+                      {post.metadata?.aggregated_likes_count > 1
                         ? `and ${post.metadata.aggregated_likes_count - 1} others liked a post`
-                        : 'liked a post'
-                      }
+                        : 'liked a post'}
                     </span>
                   </div>
                 </div>
-                
+
                 {/* Show recent likers if aggregated */}
                 {post.metadata?.recent_likers && post.metadata.recent_likers.length > 1 && (
                   <div className="flex items-center gap-1 mb-2">
                     <span className="text-xs text-muted-foreground">Recent likers:</span>
                     {post.metadata.recent_likers.slice(0, 3).map((liker: string, index: number) => (
                       <span key={index} className="text-xs font-medium text-blue-600">
-                        {liker}{index < Math.min(2, post.metadata.recent_likers.length - 1) ? ', ' : ''}
+                        {liker}
+                        {index < Math.min(2, post.metadata.recent_likers.length - 1) ? ', ' : ''}
                       </span>
                     ))}
                     {post.metadata.recent_likers.length > 3 && (
@@ -1349,7 +1387,7 @@ export default function EntityFeedCard({
                     )}
                   </div>
                 )}
-                
+
                 {/* Show the original post content if available */}
                 {post.metadata?.liked_activity_content && (
                   <div className="bg-white p-3 rounded-sm border-l-4 border-blue-300">
@@ -1358,7 +1396,7 @@ export default function EntityFeedCard({
                     </p>
                   </div>
                 )}
-                
+
                 {/* Show the original post image if available */}
                 {post.metadata?.liked_activity_image && (
                   <div className="mt-2">
@@ -1382,7 +1420,9 @@ export default function EntityFeedCard({
                 <div className="enterprise-feed-card-book-info">
                   <h4 className="font-semibold text-lg">{content.book_details.title}</h4>
                   {content.book_details.author && (
-                    <p className="text-sm text-muted-foreground">by {content.book_details.author}</p>
+                    <p className="text-sm text-muted-foreground">
+                      by {content.book_details.author}
+                    </p>
                   )}
                 </div>
               )}
@@ -1392,8 +1432,10 @@ export default function EntityFeedCard({
                     <StarIcon
                       key={star}
                       className={cn(
-                        "h-4 w-4",
-                        star <= (content.book_details!.rating || 0) ? "text-yellow-500 fill-current" : "text-gray-300"
+                        'h-4 w-4',
+                        star <= (content.book_details!.rating || 0)
+                          ? 'text-yellow-500 fill-current'
+                          : 'text-gray-300'
                       )}
                     />
                   ))}
@@ -1411,7 +1453,11 @@ export default function EntityFeedCard({
                   <div className="enterprise-feed-card-review-preview">
                     {content.book_details.review.length > 300 ? (
                       <>
-                        <div dangerouslySetInnerHTML={{ __html: content.book_details.review.substring(0, 300) }} />
+                        <div
+                          dangerouslySetInnerHTML={{
+                            __html: content.book_details.review.substring(0, 300),
+                          }}
+                        />
                         <Button
                           variant="ghost"
                           size="sm"
@@ -1449,7 +1495,7 @@ export default function EntityFeedCard({
                       onClick={() => {
                         // Handle poll vote
                         toast({
-                          title: "Vote Cast",
+                          title: 'Vote Cast',
                           description: `You voted for: ${option}`,
                         })
                       }}
@@ -1473,13 +1519,9 @@ export default function EntityFeedCard({
                   <div key={index} className="flex items-start gap-3 mb-2">
                     <ExternalLink className="h-5 w-5 text-muted-foreground mt-1" />
                     <div className="flex-1">
-                      {link.title && (
-                        <h4 className="font-semibold text-sm">{link.title}</h4>
-                      )}
+                      {link.title && <h4 className="font-semibold text-sm">{link.title}</h4>}
                       {link.description && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {link.description}
-                        </p>
+                        <p className="text-sm text-muted-foreground mt-1">{link.description}</p>
                       )}
                       <a
                         href={link.url}
@@ -1502,14 +1544,12 @@ export default function EntityFeedCard({
           </div>
         )
 
-              default:
-          return (
-            <div className="enterprise-feed-card-default-content">
-              <p className="text-sm text-muted-foreground">
-                {displayText}
-              </p>
-            </div>
-          )
+      default:
+        return (
+          <div className="enterprise-feed-card-default-content">
+            <p className="text-sm text-muted-foreground">{displayText}</p>
+          </div>
+        )
     }
   }
 
@@ -1542,8 +1582,6 @@ export default function EntityFeedCard({
     )
   }
 
-
-
   // Render tags
   const renderTags = () => {
     if (!post.tags || post.tags.length === 0) return null
@@ -1559,11 +1597,11 @@ export default function EntityFeedCard({
     )
   }
 
-
-
-  const currentContentConfig = contentTypeConfigs[getPostContentType(post) as keyof typeof contentTypeConfigs]
+  const currentContentConfig =
+    contentTypeConfigs[getPostContentType(post) as keyof typeof contentTypeConfigs]
   const currentEntityConfig = entityTypeConfigs[post.entity_type as keyof typeof entityTypeConfigs]
-  const currentVisibilityConfig = visibilityConfigs[post.visibility as keyof typeof visibilityConfigs]
+  const currentVisibilityConfig =
+    visibilityConfigs[post.visibility as keyof typeof visibilityConfigs]
   const contentSafetyLevel = getContentSafetyLevel(post.metadata?.content_safety_score || 1)
   const currentSafetyConfig = safetyConfigs[contentSafetyLevel]
 
@@ -1577,10 +1615,13 @@ export default function EntityFeedCard({
             entity={{
               id: post.user_id,
               name: postOwnerName,
-              avatar_url: postOwnerAvatar
+              avatar_url: postOwnerAvatar,
             }}
           >
-            <span className="hover:underline cursor-pointer text-muted-foreground" data-state="closed">
+            <span
+              className="hover:underline cursor-pointer text-muted-foreground"
+              data-state="closed"
+            >
               <div className="avatar-container relative w-10 h-10 overflow-hidden rounded-full border-2 border-white shadow-md enterprise-feed-card-user-avatar cursor-pointer">
                 <Avatar
                   src={postOwnerAvatar}
@@ -1601,10 +1642,13 @@ export default function EntityFeedCard({
                 entity={{
                   id: post.user_id,
                   name: postOwnerName,
-                  avatar_url: postOwnerAvatar
+                  avatar_url: postOwnerAvatar,
                 }}
               >
-                <span className="hover:underline cursor-pointer text-muted-foreground" data-state="closed">
+                <span
+                  className="hover:underline cursor-pointer text-muted-foreground"
+                  data-state="closed"
+                >
                   <EntityName
                     type="user"
                     id={post.user_id}
@@ -1633,10 +1677,10 @@ export default function EntityFeedCard({
 
               {/* Content Safety Badge */}
               {post.content_safety_score && (
-                <Badge 
-                  variant="outline" 
+                <Badge
+                  variant="outline"
                   className={cn(
-                    "enterprise-feed-card-safety",
+                    'enterprise-feed-card-safety',
                     currentSafetyConfig.bgColor,
                     currentSafetyConfig.color
                   )}
@@ -1676,7 +1720,7 @@ export default function EntityFeedCard({
                   month: 'short',
                   day: 'numeric',
                   hour: 'numeric',
-                  minute: 'numeric'
+                  minute: 'numeric',
                 })}
               </span>
 
@@ -1684,11 +1728,12 @@ export default function EntityFeedCard({
               {post.scheduled_at && (
                 <span className="enterprise-feed-card-scheduled flex items-center gap-1">
                   <Clock className="h-3 w-3" />
-                  Scheduled for {new Date(post.scheduled_at).toLocaleDateString('en-US', {
+                  Scheduled for{' '}
+                  {new Date(post.scheduled_at).toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric',
                     hour: 'numeric',
-                    minute: 'numeric'
+                    minute: 'numeric',
                   })}
                 </span>
               )}
@@ -1729,18 +1774,18 @@ export default function EntityFeedCard({
 
           {/* Post Actions Menu */}
           <div className="enterprise-feed-card-actions relative">
-            <Button 
-              variant={showActionsMenu ? "secondary" : "ghost"}
+            <Button
+              variant={showActionsMenu ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => {
                 console.log('Actions menu button clicked!')
                 setShowActionsMenu(!showActionsMenu)
               }}
-              className={showActionsMenu ? "bg-gray-100" : ""}
+              className={showActionsMenu ? 'bg-gray-100' : ''}
             >
               <MoreHorizontal className="h-4 w-4" />
             </Button>
-            
+
             {/* Actions Dropdown */}
             {showActionsMenu && (
               <div className="absolute right-0 top-full mt-1 w-48 bg-white border rounded-lg shadow-lg z-50">
@@ -1780,9 +1825,7 @@ export default function EntityFeedCard({
         {renderContentWarnings()}
 
         {/* Main Content */}
-        <div className="enterprise-feed-card-main-content">
-          {renderContent()}
-        </div>
+        <div className="enterprise-feed-card-main-content">{renderContent()}</div>
 
         {/* Tags */}
         {renderTags()}
@@ -1796,7 +1839,9 @@ export default function EntityFeedCard({
             <EnterpriseEngagementActions
               entityId={post.id}
               entityType="activity"
-              initialEngagementCount={post.like_count + post.comment_count + (post.share_count || 0)}
+              initialEngagementCount={
+                post.like_count + post.comment_count + (post.share_count || 0)
+              }
               commentCount={post.comment_count || 0}
               shareCount={post.share_count || 0}
               bookmarkCount={post.bookmark_count || 0}
@@ -1806,8 +1851,13 @@ export default function EntityFeedCard({
               isShared={post.user_has_shared}
               isBookmarked={post.user_has_bookmarked}
               isViewed={post.user_has_viewed}
-              currentReaction={post.user_reaction_type as ReactionType | null || null}
-              onEngagement={async (action: 'reaction' | 'comment' | 'share' | 'bookmark' | 'view', entityId: string, entityType: string, reactionType?: any) => {
+              currentReaction={(post.user_reaction_type as ReactionType | null) || null}
+              onEngagement={async (
+                action: 'reaction' | 'comment' | 'share' | 'bookmark' | 'view',
+                entityId: string,
+                entityType: string,
+                reactionType?: any
+              ) => {
                 // Handle engagement
                 console.log('Engagement action:', action, entityId, entityType, reactionType)
                 // Update local state if needed
@@ -1820,9 +1870,9 @@ export default function EntityFeedCard({
                 // Add the new comment to the local state
                 setEngagementData((prev: any) => ({
                   ...prev,
-                  comments: [newComment, ...prev.comments]
+                  comments: [newComment, ...prev.comments],
                 }))
-                
+
                 // Update the post's comment count
                 if (onPostUpdated) {
                   const updatedPost = { ...post, comment_count: (post.comment_count || 0) + 1 }
@@ -1857,26 +1907,44 @@ export default function EntityFeedCard({
             {(() => {
               const first = comments[0]
               if (!first) return null
-              const firstReply = Array.isArray(first.replies) && first.replies.length > 0 ? first.replies[0] : null
+              const firstReply =
+                Array.isArray(first.replies) && first.replies.length > 0 ? first.replies[0] : null
               return (
                 <div className="space-y-3">
                   {/* First comment bubble */}
                   <div className="flex items-start gap-3">
-                    <EntityAvatar type="user" id={first.user?.id} name={first.user?.name || 'User'} src={first.user?.avatar_url} size="sm" />
+                    <EntityAvatar
+                      type="user"
+                      id={first.user?.id}
+                      name={first.user?.name || 'User'}
+                      src={first.user?.avatar_url}
+                      size="sm"
+                    />
                     <div className="flex-1 min-w-0">
                       <div className="bg-gray-100 rounded-2xl px-4 py-3 inline-block max-w-full">
                         <div className="flex items-center gap-2 mb-1">
-                          <EntityName type="user" id={first.user?.id} name={first.user?.name || 'User'} className="text-sm font-semibold text-gray-900" />
-            </div>
-                        <div ref={firstCommentTextRef} className="text-sm text-gray-800 leading-relaxed line-clamp-5">
+                          <EntityName
+                            type="user"
+                            id={first.user?.id}
+                            name={first.user?.name || 'User'}
+                            className="text-sm font-semibold text-gray-900"
+                          />
+                        </div>
+                        <div
+                          ref={firstCommentTextRef}
+                          className="text-sm text-gray-800 leading-relaxed line-clamp-5"
+                        >
                           {first.comment_text}
-              </div>
+                        </div>
                         {isFirstCommentClamped && (
-                          <button onClick={() => setShowCommentsModal(true)} className="mt-1 text-xs font-medium text-gray-600 hover:underline">
+                          <button
+                            onClick={() => setShowCommentsModal(true)}
+                            className="mt-1 text-xs font-medium text-gray-600 hover:underline"
+                          >
                             View more
                           </button>
                         )}
-            </div>
+                      </div>
                       <div className="flex items-center justify-between mt-1 ml-2">
                         <div className="flex items-center gap-4 text-xs text-gray-500">
                           <span>{formatTimeAgo(first.created_at)}</span>
@@ -1885,7 +1953,10 @@ export default function EntityFeedCard({
                         </div>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <button className="p-1 rounded-full hover:bg-gray-100" aria-label="Comment actions">
+                            <button
+                              className="p-1 rounded-full hover:bg-gray-100"
+                              aria-label="Comment actions"
+                            >
                               <MoreHorizontal className="h-4 w-4 text-gray-500" />
                             </button>
                           </DropdownMenuTrigger>
@@ -1896,7 +1967,7 @@ export default function EntityFeedCard({
                                   await fetch('/api/comments/hide', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ comment_id: first.id })
+                                    body: JSON.stringify({ comment_id: first.id }),
                                   })
                                   fetchComments()
                                 } catch (e) {
@@ -1912,7 +1983,7 @@ export default function EntityFeedCard({
                                   await fetch('/api/users/block', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ user_id: first.user?.id })
+                                    body: JSON.stringify({ user_id: first.user?.id }),
                                   })
                                   fetchComments()
                                 } catch (e) {
@@ -1931,7 +2002,7 @@ export default function EntityFeedCard({
                                       await fetch('/api/comments/hide-user', {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ user_id: first.user?.id })
+                                        body: JSON.stringify({ user_id: first.user?.id }),
                                       })
                                       fetchComments()
                                     } catch (e) {
@@ -1947,7 +2018,7 @@ export default function EntityFeedCard({
                                       await fetch('/api/users/block', {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ user_id: first.user?.id })
+                                        body: JSON.stringify({ user_id: first.user?.id }),
                                       })
                                       fetchComments()
                                     } catch (e) {
@@ -1965,7 +2036,7 @@ export default function EntityFeedCard({
                                   await fetch('/api/users/block', {
                                     method: 'DELETE',
                                     headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ user_id: first.user?.id })
+                                    body: JSON.stringify({ user_id: first.user?.id }),
                                   })
                                   fetchComments()
                                 } catch (e) {
@@ -1982,7 +2053,10 @@ export default function EntityFeedCard({
                                   await fetch('/api/report', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ target_type: 'comment', target_id: first.id })
+                                    body: JSON.stringify({
+                                      target_type: 'comment',
+                                      target_id: first.id,
+                                    }),
                                   })
                                 } catch (e) {
                                   console.error(e)
@@ -1993,28 +2067,46 @@ export default function EntityFeedCard({
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
-              </div>
+                      </div>
                     </div>
                   </div>
 
                   {/* First reply (if any) */}
                   {firstReply && (
                     <div className="ml-10 flex items-start gap-2">
-                      <EntityAvatar type="user" id={firstReply.user?.id} name={firstReply.user?.name || 'User'} src={firstReply.user?.avatar_url} size="xs" />
+                      <EntityAvatar
+                        type="user"
+                        id={firstReply.user?.id}
+                        name={firstReply.user?.name || 'User'}
+                        src={firstReply.user?.avatar_url}
+                        size="xs"
+                      />
                       <div className="flex-1 min-w-0">
                         <div className="bg-gray-50 rounded-2xl px-3 py-2 inline-block max-w-full">
                           <div className="flex items-center gap-2 mb-0.5">
-                            <EntityName type="user" id={firstReply.user?.id} name={firstReply.user?.name || 'User'} className="text-xs font-semibold text-gray-900" />
-                    </div>
+                            <EntityName
+                              type="user"
+                              id={firstReply.user?.id}
+                              name={firstReply.user?.name || 'User'}
+                              className="text-xs font-semibold text-gray-900"
+                            />
+                          </div>
                           <div className="text-xs text-gray-800 leading-relaxed">
                             {firstReply.comment_text}
-                  </div>
-                </div>
+                          </div>
+                        </div>
                         <div className="flex items-center gap-3 mt-1 ml-2 text-[11px] text-gray-500">
                           <span>{formatTimeAgo(firstReply.created_at)}</span>
                           <button className="hover:underline">Like</button>
-                          <button className="hover:underline" onClick={() => setExpandedReplies(prev => ({ ...prev, [first.id]: true }))}>Reply</button>
-              </div>
+                          <button
+                            className="hover:underline"
+                            onClick={() =>
+                              setExpandedReplies((prev) => ({ ...prev, [first.id]: true }))
+                            }
+                          >
+                            Reply
+                          </button>
+                        </div>
                         {expandedReplies[first.id] && (
                           <div className="mt-2">
                             <EntityCommentComposer
@@ -2031,9 +2123,9 @@ export default function EntityFeedCard({
                             />
                           </div>
                         )}
-            </div>
-          </div>
-        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )
             })()}
@@ -2078,30 +2170,40 @@ export default function EntityFeedCard({
         <EnterprisePhotoViewer
           isOpen={showImageModal}
           onClose={closeImageModal}
-          photos={(post.image_url ? post.image_url.split(',').map((url: string, index: number) => ({
-            id: `post-${post.id}-${index}`,
-            url: url,
-            thumbnail_url: url,
-            alt_text: `Post image ${index + 1}`,
-            description: post.text || post.data?.text || `Image ${index + 1} from post`,
-            created_at: post.created_at || new Date().toISOString(),
-            metadata: {
-              source: 'timeline_post',
-              post_id: post.id,
-              user_id: post.user_id,
-              user_name: post.user_name
-            },
-            tags: [],
-            likes: [],
-            comments: [],
-            shares: [],
-            analytics: { views: 0, unique_views: 0, downloads: 0, shares: 0, engagement_rate: 0 },
-            is_featured: false,
-            user: {
-              name: post.user_name || 'User',
-              avatar_url: post.user_avatar_url
-            }
-          })) : [])}
+          photos={
+            post.image_url
+              ? post.image_url.split(',').map((url: string, index: number) => ({
+                  id: `post-${post.id}-${index}`,
+                  url: url,
+                  thumbnail_url: url,
+                  alt_text: `Post image ${index + 1}`,
+                  description: post.text || post.data?.text || `Image ${index + 1} from post`,
+                  created_at: post.created_at || new Date().toISOString(),
+                  metadata: {
+                    source: 'timeline_post',
+                    post_id: post.id,
+                    user_id: post.user_id,
+                    user_name: post.user_name,
+                  },
+                  tags: [],
+                  likes: [],
+                  comments: [],
+                  shares: [],
+                  analytics: {
+                    views: 0,
+                    unique_views: 0,
+                    downloads: 0,
+                    shares: 0,
+                    engagement_rate: 0,
+                  },
+                  is_featured: false,
+                  user: {
+                    name: post.user_name || 'User',
+                    avatar_url: post.user_avatar_url,
+                  },
+                }))
+              : []
+          }
           currentIndex={currentImageIndex}
           onIndexChange={setCurrentImageIndex}
           entityId={post.user_id || post.entity_id || 'unknown'}
@@ -2145,12 +2247,8 @@ export default function EntityFeedCard({
                     <MessageCircle className="h-5 w-5 text-blue-600" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {postOwnerName}'s Post
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      Join the conversation about this post
-                    </p>
+                    <h3 className="text-lg font-semibold text-gray-900">{postOwnerName}'s Post</h3>
+                    <p className="text-sm text-gray-500">Join the conversation about this post</p>
                   </div>
                 </div>
                 <button
@@ -2171,9 +2269,16 @@ export default function EntityFeedCard({
                   <div className="enterprise-feed-card-header-content flex items-start gap-3">
                     <EntityHoverCard
                       type="user"
-                      entity={{ id: post.user_id, name: postOwnerName, avatar_url: postOwnerAvatar }}
+                      entity={{
+                        id: post.user_id,
+                        name: postOwnerName,
+                        avatar_url: postOwnerAvatar,
+                      }}
                     >
-                      <span className="hover:underline cursor-pointer text-muted-foreground" data-state="closed">
+                      <span
+                        className="hover:underline cursor-pointer text-muted-foreground"
+                        data-state="closed"
+                      >
                         <div className="avatar-container relative w-10 h-10 overflow-hidden rounded-full border-2 border-white shadow-md enterprise-feed-card-user-avatar cursor-pointer">
                           <Avatar
                             src={postOwnerAvatar}
@@ -2189,9 +2294,16 @@ export default function EntityFeedCard({
                       <div className="enterprise-feed-card-header-top flex items-center gap-2 mb-1">
                         <EntityHoverCard
                           type="user"
-                          entity={{ id: post.user_id, name: postOwnerName, avatar_url: postOwnerAvatar }}
+                          entity={{
+                            id: post.user_id,
+                            name: postOwnerName,
+                            avatar_url: postOwnerAvatar,
+                          }}
                         >
-                          <span className="hover:underline cursor-pointer text-muted-foreground" data-state="closed">
+                          <span
+                            className="hover:underline cursor-pointer text-muted-foreground"
+                            data-state="closed"
+                          >
                             <EntityName
                               type="user"
                               id={post.user_id}
@@ -2208,7 +2320,7 @@ export default function EntityFeedCard({
                             month: 'short',
                             day: 'numeric',
                             hour: 'numeric',
-                            minute: 'numeric'
+                            minute: 'numeric',
                           })}
                         </span>
                       </div>
@@ -2217,9 +2329,7 @@ export default function EntityFeedCard({
                 </div>
 
                 {/* Post content */}
-                <div className="px-6 pt-2">
-                  {renderContent()}
-                </div>
+                <div className="px-6 pt-2">{renderContent()}</div>
 
                 {/* Filter */}
                 <div className="px-6 pt-2">
@@ -2233,14 +2343,18 @@ export default function EntityFeedCard({
                       <DropdownMenuItem onClick={() => setCommentFilter('relevant')}>
                         <div>
                           <div className="font-medium">Most relevant</div>
-                          <div className="text-xs text-gray-500">Show friends' comments and the most engaging comments first.</div>
+                          <div className="text-xs text-gray-500">
+                            Show friends' comments and the most engaging comments first.
+                          </div>
                         </div>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => setCommentFilter('all')}>
                         <div>
                           <div className="font-medium">All comments</div>
-                          <div className="text-xs text-gray-500">Show all comments, including potential spam.</div>
+                          <div className="text-xs text-gray-500">
+                            Show all comments, including potential spam.
+                          </div>
                         </div>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -2249,212 +2363,494 @@ export default function EntityFeedCard({
 
                 {/* Comments List */}
                 <div className="px-6 py-4">
-                {!isLoadingComments && comments.length > 0 ? (
+                  {!isLoadingComments && comments.length > 0 ? (
                     <div className="space-y-4">
-                    {(commentFilter === 'all' ? [...comments] : comments).map((comment) => (
-                      <div key={comment.id} className="comment-item">
-                      {/* Comment Header */}
-                        <div className="flex items-start gap-3">
-                        <EntityAvatar
-                          type="user"
-                          id={comment.user?.id}
-                          name={comment.user?.name || 'User'}
-                          src={comment.user?.avatar_url}
-                          size="sm"
-                        />
-                          <div className="flex-1 min-w-0">
-                            {/* Comment Bubble */}
-                            <div className="bg-gray-100 rounded-2xl px-4 py-3 inline-block max-w-full">
-                              <div className="flex items-center gap-2 mb-2">
-                                <EntityName type="user" id={comment.user?.id} name={comment.user?.name || 'Unknown User'} className="text-sm font-semibold text-gray-900" />
-                                <span className="text-xs text-gray-500">
-                                  {new Date(comment.created_at).toLocaleDateString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    hour: 'numeric',
-                                    minute: 'numeric'
-                                  })}
-                                </span>
+                      {(commentFilter === 'all' ? [...comments] : comments).map((comment) => (
+                        <div key={comment.id} className="comment-item">
+                          {/* Comment Header */}
+                          <div className="flex items-start gap-3">
+                            <EntityAvatar
+                              type="user"
+                              id={comment.user?.id}
+                              name={comment.user?.name || 'User'}
+                              src={comment.user?.avatar_url}
+                              size="sm"
+                            />
+                            <div className="flex-1 min-w-0">
+                              {/* Comment Bubble */}
+                              <div className="bg-gray-100 rounded-2xl px-4 py-3 inline-block max-w-full">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <EntityName
+                                    type="user"
+                                    id={comment.user?.id}
+                                    name={comment.user?.name || 'Unknown User'}
+                                    className="text-sm font-semibold text-gray-900"
+                                  />
+                                  <span className="text-xs text-gray-500">
+                                    {new Date(comment.created_at).toLocaleDateString('en-US', {
+                                      month: 'short',
+                                      day: 'numeric',
+                                      hour: 'numeric',
+                                      minute: 'numeric',
+                                    })}
+                                  </span>
+                                </div>
+
+                                {/* Comment Text */}
+                                <div className="text-sm text-gray-800 leading-relaxed">
+                                  {comment.comment_text}
+                                </div>
                               </div>
-                      
-                      {/* Comment Text */}
-                              <div className="text-sm text-gray-800 leading-relaxed">
-                        {comment.comment_text}
-                              </div>
-                      </div>
-                      
-                            {/* Comment Actions */}
-                            <div className="flex items-center justify-between mt-2 ml-2">
-                              <div className="flex items-center gap-4">
-                              <button className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline">
-                                Like
-                              </button>
-                              <button className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline" onClick={() => setExpandedReplies(prev => ({ ...prev, [comment.id]: true }))}>
-                                Reply
-                              </button>
-                              <span className="text-xs text-gray-400">
-                                {comment.reply_count > 0 && `${comment.reply_count} replies`}
-                              </span>
-                              {Array.isArray(comment.replies) && comment.replies.length > 0 && (
-                                <button
-                                  className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline"
-                                  onClick={() => setExpandedReplies(prev => ({ ...prev, [comment.id]: !prev[comment.id] }))}
-                                >
-                                  {expandedReplies[comment.id] ? 'Hide replies' : 'Show replies'}
-                                </button>
-                              )}
-                              </div>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <button className="p-1 rounded-full hover:bg-gray-100" aria-label="Comment actions">
-                                    <MoreHorizontal className="h-4 w-4 text-gray-500" />
+
+                              {/* Comment Actions */}
+                              <div className="flex items-center justify-between mt-2 ml-2">
+                                <div className="flex items-center gap-4">
+                                  <button className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline">
+                                    Like
                                   </button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={async () => { try { await fetch('/api/comments/hide', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment_id: comment.id }) }); fetchComments() } catch(e){ console.error(e) } }}>Hide comment</DropdownMenuItem>
-                                  <DropdownMenuItem onClick={async () => { try { await fetch('/api/users/block', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: comment.user?.id }) }); fetchComments() } catch(e){ console.error(e) } }}>Block {comment.user?.name || 'user'}</DropdownMenuItem>
-                                  <DropdownMenuItem onClick={async () => { try { await fetch('/api/users/block', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: comment.user?.id }) }); fetchComments() } catch(e){ console.error(e) } }}>Unblock {comment.user?.name || 'user'}</DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem onClick={async () => { try { await fetch('/api/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target_type: 'comment', target_id: comment.id }) }) } catch(e){ console.error(e) } }}>Report comment</DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-                            
-                            {/* Nested Replies */}
-                            {(comment.replies && comment.replies.length > 0 && expandedReplies[comment.id]) && (
-                              <div className="ml-8 mt-3 space-y-3">
-                                {comment.replies.map((reply: any) => (
-                                  <div key={reply.id} className="flex items-start gap-3">
-                                    <EntityAvatar type="user" id={reply.user?.id} name={reply.user?.name || 'User'} src={reply.user?.avatar_url} size="xs" />
-                                    <div className="flex-1 min-w-0">
-                                      <div className="bg-gray-50 rounded-2xl px-3 py-2 inline-block max-w-full">
-                                        <div className="flex items-center gap-2 mb-1">
-                                          <EntityName type="user" id={reply.user?.id} name={reply.user?.name || 'Unknown User'} className="text-xs font-semibold text-gray-900" />
-                                          <span className="text-xs text-gray-400">
-                                            {new Date(reply.created_at).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          hour: 'numeric',
-                          minute: 'numeric'
-                        })}
-                                          </span>
-                                        </div>
-                                        <div className="text-xs text-gray-800 leading-relaxed">
-                                          {reply.comment_text}
-                                        </div>
-                                      </div>
-                                      <div className="flex items-center justify-between mt-1 ml-2">
-                                        <div className="flex items-center gap-3">
-                                          <button className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline">
-                                            Like
-                                          </button>
-                                          <button className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline">
-                                            Reply
-                                          </button>
-                                        </div>
-                                        <DropdownMenu>
-                                          <DropdownMenuTrigger asChild>
-                                            <button className="p-1 rounded-full hover:bg-gray-100" aria-label="Reply actions">
-                                              <MoreHorizontal className="h-3 w-3 text-gray-500" />
-                                            </button>
-                                          </DropdownMenuTrigger>
-                                          <DropdownMenuContent align="end">
-                                            <DropdownMenuItem onClick={async () => { try { await fetch('/api/comments/hide', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment_id: reply.id }) }); fetchComments() } catch(e){ console.error(e) } }}>Hide reply</DropdownMenuItem>
-                                            <DropdownMenuItem onClick={async () => { try { await fetch('/api/users/block', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: reply.user?.id }) }); fetchComments() } catch(e){ console.error(e) } }}>Block {reply.user?.name || 'user'}</DropdownMenuItem>
-                                            <DropdownMenuItem onClick={async () => { try { await fetch('/api/users/block', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: reply.user?.id }) }); fetchComments() } catch(e){ console.error(e) } }}>Unblock {reply.user?.name || 'user'}</DropdownMenuItem>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem onClick={async () => { try { await fetch('/api/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target_type: 'comment', target_id: reply.id }) }) } catch(e){ console.error(e) } }}>Report reply</DropdownMenuItem>
-                                          </DropdownMenuContent>
-                                        </DropdownMenu>
-                                      </div>
-                                      
-                                      {/* Nested Replies (replies to replies) */}
-                                      {reply.replies && reply.replies.length > 0 && (
-                                        <div className="ml-6 mt-2 space-y-2">
-                                          {reply.replies.map((nestedReply: any) => (
-                                            <div key={nestedReply.id} className="flex items-start gap-2">
-                                              <EntityAvatar type="user" id={nestedReply.user?.id} name={nestedReply.user?.name || 'User'} src={nestedReply.user?.avatar_url} size="xs" />
-                                              <div className="flex-1 min-w-0">
-                                                <div className="bg-gray-50 rounded-2xl px-3 py-2 inline-block max-w-full">
-                                                  <div className="flex items-center gap-2 mb-1">
-                                                    <EntityName type="user" id={nestedReply.user?.id} name={nestedReply.user?.name || 'Unknown User'} className="text-xs font-semibold text-gray-900" />
-                                                    <span className="text-xs text-gray-400">
-                                                      {new Date(nestedReply.created_at).toLocaleDateString('en-US', {
-                                                        month: 'short',
-                                                        day: 'numeric',
-                                                        hour: 'numeric',
-                                                        minute: 'numeric'
-                                                      })}
-                                                    </span>
-                                                  </div>
-                                                  <div className="text-xs text-gray-800 leading-relaxed">
-                                                    {nestedReply.comment_text}
-                                                  </div>
-                                                </div>
-                                                <div className="flex items-center justify-between mt-1 ml-2">
-                                                  <div className="flex items-center gap-3">
-                                                    <button className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline">
-                                                      Like
-                                                    </button>
-                                                    <button className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline">
-                                                      Reply
-                                                    </button>
-                                                  </div>
-                                                  <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                      <button className="p-1 rounded-full hover:bg-gray-100" aria-label="Nested reply actions">
-                                                        <MoreHorizontal className="h-3 w-3 text-gray-500" />
-                                                      </button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                      <DropdownMenuItem onClick={async () => { try { await fetch('/api/comments/hide', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment_id: nestedReply.id }) }); fetchComments() } catch(e){ console.error(e) } }}>Hide reply</DropdownMenuItem>
-                                                      <DropdownMenuItem onClick={async () => { try { await fetch('/api/users/block', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: nestedReply.user?.id }) }); fetchComments() } catch(e){ console.error(e) } }}>Block {nestedReply.user?.name || 'user'}</DropdownMenuItem>
-                                                      <DropdownMenuItem onClick={async () => { try { await fetch('/api/users/block', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user_id: nestedReply.user?.id }) }); fetchComments() } catch(e){ console.error(e) } }}>Unblock {nestedReply.user?.name || 'user'}</DropdownMenuItem>
-                                                      <DropdownMenuSeparator />
-                                                      <DropdownMenuItem onClick={async () => { try { await fetch('/api/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target_type: 'comment', target_id: nestedReply.id }) }) } catch(e){ console.error(e) } }}>Report reply</DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                  </DropdownMenu>
-                                                </div>
-                                              </div>
+                                  <button
+                                    className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline"
+                                    onClick={() =>
+                                      setExpandedReplies((prev) => ({
+                                        ...prev,
+                                        [comment.id]: true,
+                                      }))
+                                    }
+                                  >
+                                    Reply
+                                  </button>
+                                  <span className="text-xs text-gray-400">
+                                    {comment.reply_count > 0 && `${comment.reply_count} replies`}
+                                  </span>
+                                  {Array.isArray(comment.replies) && comment.replies.length > 0 && (
+                                    <button
+                                      className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline"
+                                      onClick={() =>
+                                        setExpandedReplies((prev) => ({
+                                          ...prev,
+                                          [comment.id]: !prev[comment.id],
+                                        }))
+                                      }
+                                    >
+                                      {expandedReplies[comment.id]
+                                        ? 'Hide replies'
+                                        : 'Show replies'}
+                                    </button>
+                                  )}
+                                </div>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <button
+                                      className="p-1 rounded-full hover:bg-gray-100"
+                                      aria-label="Comment actions"
+                                    >
+                                      <MoreHorizontal className="h-4 w-4 text-gray-500" />
+                                    </button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem
+                                      onClick={async () => {
+                                        try {
+                                          await fetch('/api/comments/hide', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ comment_id: comment.id }),
+                                          })
+                                          fetchComments()
+                                        } catch (e) {
+                                          console.error(e)
+                                        }
+                                      }}
+                                    >
+                                      Hide comment
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={async () => {
+                                        try {
+                                          await fetch('/api/users/block', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ user_id: comment.user?.id }),
+                                          })
+                                          fetchComments()
+                                        } catch (e) {
+                                          console.error(e)
+                                        }
+                                      }}
+                                    >
+                                      Block {comment.user?.name || 'user'}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={async () => {
+                                        try {
+                                          await fetch('/api/users/block', {
+                                            method: 'DELETE',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ user_id: comment.user?.id }),
+                                          })
+                                          fetchComments()
+                                        } catch (e) {
+                                          console.error(e)
+                                        }
+                                      }}
+                                    >
+                                      Unblock {comment.user?.name || 'user'}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                      onClick={async () => {
+                                        try {
+                                          await fetch('/api/report', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({
+                                              target_type: 'comment',
+                                              target_id: comment.id,
+                                            }),
+                                          })
+                                        } catch (e) {
+                                          console.error(e)
+                                        }
+                                      }}
+                                    >
+                                      Report comment
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
+
+                              {/* Nested Replies */}
+                              {comment.replies &&
+                                comment.replies.length > 0 &&
+                                expandedReplies[comment.id] && (
+                                  <div className="ml-8 mt-3 space-y-3">
+                                    {comment.replies.map((reply: any) => (
+                                      <div key={reply.id} className="flex items-start gap-3">
+                                        <EntityAvatar
+                                          type="user"
+                                          id={reply.user?.id}
+                                          name={reply.user?.name || 'User'}
+                                          src={reply.user?.avatar_url}
+                                          size="xs"
+                                        />
+                                        <div className="flex-1 min-w-0">
+                                          <div className="bg-gray-50 rounded-2xl px-3 py-2 inline-block max-w-full">
+                                            <div className="flex items-center gap-2 mb-1">
+                                              <EntityName
+                                                type="user"
+                                                id={reply.user?.id}
+                                                name={reply.user?.name || 'Unknown User'}
+                                                className="text-xs font-semibold text-gray-900"
+                                              />
+                                              <span className="text-xs text-gray-400">
+                                                {new Date(reply.created_at).toLocaleDateString(
+                                                  'en-US',
+                                                  {
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                    hour: 'numeric',
+                                                    minute: 'numeric',
+                                                  }
+                                                )}
+                                              </span>
                                             </div>
-                                          ))}
+                                            <div className="text-xs text-gray-800 leading-relaxed">
+                                              {reply.comment_text}
+                                            </div>
+                                          </div>
+                                          <div className="flex items-center justify-between mt-1 ml-2">
+                                            <div className="flex items-center gap-3">
+                                              <button className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline">
+                                                Like
+                                              </button>
+                                              <button className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline">
+                                                Reply
+                                              </button>
+                                            </div>
+                                            <DropdownMenu>
+                                              <DropdownMenuTrigger asChild>
+                                                <button
+                                                  className="p-1 rounded-full hover:bg-gray-100"
+                                                  aria-label="Reply actions"
+                                                >
+                                                  <MoreHorizontal className="h-3 w-3 text-gray-500" />
+                                                </button>
+                                              </DropdownMenuTrigger>
+                                              <DropdownMenuContent align="end">
+                                                <DropdownMenuItem
+                                                  onClick={async () => {
+                                                    try {
+                                                      await fetch('/api/comments/hide', {
+                                                        method: 'POST',
+                                                        headers: {
+                                                          'Content-Type': 'application/json',
+                                                        },
+                                                        body: JSON.stringify({
+                                                          comment_id: reply.id,
+                                                        }),
+                                                      })
+                                                      fetchComments()
+                                                    } catch (e) {
+                                                      console.error(e)
+                                                    }
+                                                  }}
+                                                >
+                                                  Hide reply
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                  onClick={async () => {
+                                                    try {
+                                                      await fetch('/api/users/block', {
+                                                        method: 'POST',
+                                                        headers: {
+                                                          'Content-Type': 'application/json',
+                                                        },
+                                                        body: JSON.stringify({
+                                                          user_id: reply.user?.id,
+                                                        }),
+                                                      })
+                                                      fetchComments()
+                                                    } catch (e) {
+                                                      console.error(e)
+                                                    }
+                                                  }}
+                                                >
+                                                  Block {reply.user?.name || 'user'}
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                  onClick={async () => {
+                                                    try {
+                                                      await fetch('/api/users/block', {
+                                                        method: 'DELETE',
+                                                        headers: {
+                                                          'Content-Type': 'application/json',
+                                                        },
+                                                        body: JSON.stringify({
+                                                          user_id: reply.user?.id,
+                                                        }),
+                                                      })
+                                                      fetchComments()
+                                                    } catch (e) {
+                                                      console.error(e)
+                                                    }
+                                                  }}
+                                                >
+                                                  Unblock {reply.user?.name || 'user'}
+                                                </DropdownMenuItem>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem
+                                                  onClick={async () => {
+                                                    try {
+                                                      await fetch('/api/report', {
+                                                        method: 'POST',
+                                                        headers: {
+                                                          'Content-Type': 'application/json',
+                                                        },
+                                                        body: JSON.stringify({
+                                                          target_type: 'comment',
+                                                          target_id: reply.id,
+                                                        }),
+                                                      })
+                                                    } catch (e) {
+                                                      console.error(e)
+                                                    }
+                                                  }}
+                                                >
+                                                  Report reply
+                                                </DropdownMenuItem>
+                                              </DropdownMenuContent>
+                                            </DropdownMenu>
+                                          </div>
+
+                                          {/* Nested Replies (replies to replies) */}
+                                          {reply.replies && reply.replies.length > 0 && (
+                                            <div className="ml-6 mt-2 space-y-2">
+                                              {reply.replies.map((nestedReply: any) => (
+                                                <div
+                                                  key={nestedReply.id}
+                                                  className="flex items-start gap-2"
+                                                >
+                                                  <EntityAvatar
+                                                    type="user"
+                                                    id={nestedReply.user?.id}
+                                                    name={nestedReply.user?.name || 'User'}
+                                                    src={nestedReply.user?.avatar_url}
+                                                    size="xs"
+                                                  />
+                                                  <div className="flex-1 min-w-0">
+                                                    <div className="bg-gray-50 rounded-2xl px-3 py-2 inline-block max-w-full">
+                                                      <div className="flex items-center gap-2 mb-1">
+                                                        <EntityName
+                                                          type="user"
+                                                          id={nestedReply.user?.id}
+                                                          name={
+                                                            nestedReply.user?.name || 'Unknown User'
+                                                          }
+                                                          className="text-xs font-semibold text-gray-900"
+                                                        />
+                                                        <span className="text-xs text-gray-400">
+                                                          {new Date(
+                                                            nestedReply.created_at
+                                                          ).toLocaleDateString('en-US', {
+                                                            month: 'short',
+                                                            day: 'numeric',
+                                                            hour: 'numeric',
+                                                            minute: 'numeric',
+                                                          })}
+                                                        </span>
+                                                      </div>
+                                                      <div className="text-xs text-gray-800 leading-relaxed">
+                                                        {nestedReply.comment_text}
+                                                      </div>
+                                                    </div>
+                                                    <div className="flex items-center justify-between mt-1 ml-2">
+                                                      <div className="flex items-center gap-3">
+                                                        <button className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline">
+                                                          Like
+                                                        </button>
+                                                        <button className="text-xs text-gray-500 hover:text-blue-600 transition-colors hover:underline">
+                                                          Reply
+                                                        </button>
+                                                      </div>
+                                                      <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                          <button
+                                                            className="p-1 rounded-full hover:bg-gray-100"
+                                                            aria-label="Nested reply actions"
+                                                          >
+                                                            <MoreHorizontal className="h-3 w-3 text-gray-500" />
+                                                          </button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                          <DropdownMenuItem
+                                                            onClick={async () => {
+                                                              try {
+                                                                await fetch('/api/comments/hide', {
+                                                                  method: 'POST',
+                                                                  headers: {
+                                                                    'Content-Type':
+                                                                      'application/json',
+                                                                  },
+                                                                  body: JSON.stringify({
+                                                                    comment_id: nestedReply.id,
+                                                                  }),
+                                                                })
+                                                                fetchComments()
+                                                              } catch (e) {
+                                                                console.error(e)
+                                                              }
+                                                            }}
+                                                          >
+                                                            Hide reply
+                                                          </DropdownMenuItem>
+                                                          <DropdownMenuItem
+                                                            onClick={async () => {
+                                                              try {
+                                                                await fetch('/api/users/block', {
+                                                                  method: 'POST',
+                                                                  headers: {
+                                                                    'Content-Type':
+                                                                      'application/json',
+                                                                  },
+                                                                  body: JSON.stringify({
+                                                                    user_id: nestedReply.user?.id,
+                                                                  }),
+                                                                })
+                                                                fetchComments()
+                                                              } catch (e) {
+                                                                console.error(e)
+                                                              }
+                                                            }}
+                                                          >
+                                                            Block {nestedReply.user?.name || 'user'}
+                                                          </DropdownMenuItem>
+                                                          <DropdownMenuItem
+                                                            onClick={async () => {
+                                                              try {
+                                                                await fetch('/api/users/block', {
+                                                                  method: 'DELETE',
+                                                                  headers: {
+                                                                    'Content-Type':
+                                                                      'application/json',
+                                                                  },
+                                                                  body: JSON.stringify({
+                                                                    user_id: nestedReply.user?.id,
+                                                                  }),
+                                                                })
+                                                                fetchComments()
+                                                              } catch (e) {
+                                                                console.error(e)
+                                                              }
+                                                            }}
+                                                          >
+                                                            Unblock{' '}
+                                                            {nestedReply.user?.name || 'user'}
+                                                          </DropdownMenuItem>
+                                                          <DropdownMenuSeparator />
+                                                          <DropdownMenuItem
+                                                            onClick={async () => {
+                                                              try {
+                                                                await fetch('/api/report', {
+                                                                  method: 'POST',
+                                                                  headers: {
+                                                                    'Content-Type':
+                                                                      'application/json',
+                                                                  },
+                                                                  body: JSON.stringify({
+                                                                    target_type: 'comment',
+                                                                    target_id: nestedReply.id,
+                                                                  }),
+                                                                })
+                                                              } catch (e) {
+                                                                console.error(e)
+                                                              }
+                                                            }}
+                                                          >
+                                                            Report reply
+                                                          </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                      </DropdownMenu>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          )}
                                         </div>
-                                      )}
-                                    </div>
+                                      </div>
+                                    ))}
                                   </div>
-                                ))}
-                              </div>
-                            )}
-                            {expandedReplies[comment.id] && (
-                              <div className="ml-8 mt-3">
-                                <EntityCommentComposer
-                                  entityId={post.id}
-                                  entityType={post.entity_type || 'activity'}
-                                  currentUserId={user?.id}
-                                  currentUserName={currentUserDisplayName}
-                                  currentUserAvatar={currentUserAvatar}
-                                  parentCommentId={comment.id}
-                                  placeholder={`Reply to ${comment.user?.name || 'comment'}`}
-                                  onSubmitted={() => {
-                                    fetchComments()
-                                  }}
-                                />
-                              </div>
-                            )}
+                                )}
+                              {expandedReplies[comment.id] && (
+                                <div className="ml-8 mt-3">
+                                  <EntityCommentComposer
+                                    entityId={post.id}
+                                    entityType={post.entity_type || 'activity'}
+                                    currentUserId={user?.id}
+                                    currentUserName={currentUserDisplayName}
+                                    currentUserAvatar={currentUserAvatar}
+                                    parentCommentId={comment.id}
+                                    placeholder={`Reply to ${comment.user?.name || 'comment'}`}
+                                    onSubmitted={() => {
+                                      fetchComments()
+                                    }}
+                                  />
+                                </div>
+                              )}
+                            </div>
                           </div>
-                      </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
                     <div className="text-center py-12">
                       <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <MessageCircle className="h-8 w-8 text-gray-400" />
-                    </div>
+                      </div>
                       <h3 className="text-lg font-medium text-gray-900 mb-2">No comments yet</h3>
                       <p className="text-gray-500">Be the first to share your thoughts!</p>
-                  </div>
-                )}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -2481,7 +2877,10 @@ export default function EntityFeedCard({
                     submitButtonClassName="h-8 px-4 text-xs"
                     onSubmitted={() => {
                       if (onPostUpdated) {
-                        const updatedPost = { ...post, comment_count: (post.comment_count || 0) + 1 }
+                        const updatedPost = {
+                          ...post,
+                          comment_count: (post.comment_count || 0) + 1,
+                        }
                         onPostUpdated(updatedPost)
                       }
                       fetchComments()

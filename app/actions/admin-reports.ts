@@ -1,13 +1,17 @@
-"use server"
+'use server'
 
-import { supabaseAdmin } from "@/lib/supabase/server"
+import { supabaseAdmin } from '@/lib/supabase/server'
 
 export type DateRange = {
   startDate: string
   endDate: string
 }
 
-export type ReportType = "user_activity" | "content_popularity" | "reading_trends" | "author_performance"
+export type ReportType =
+  | 'user_activity'
+  | 'content_popularity'
+  | 'reading_trends'
+  | 'author_performance'
 
 export async function getUserActivityData(dateRange: DateRange) {
   try {
@@ -15,11 +19,11 @@ export async function getUserActivityData(dateRange: DateRange) {
 
     // Get new user registrations over time
     const { data: newUsers, error: newUsersError } = await supabaseAdmin
-      .from("users")
-      .select("id, created_at")
-      .gte("created_at", startDate)
-      .lte("created_at", endDate)
-      .order("created_at")
+      .from('users')
+      .select('id, created_at')
+      .gte('created_at', startDate)
+      .lte('created_at', endDate)
+      .order('created_at')
 
     if (newUsersError) throw newUsersError
 
@@ -27,41 +31,47 @@ export async function getUserActivityData(dateRange: DateRange) {
     let loginData: Array<{ id: string; user_id: string; created_at: string }> = []
     try {
       const { data: logins, error: loginsError } = await supabaseAdmin
-        .from("login_history")
-        .select("id, user_id, created_at")
-        .gte("created_at", startDate)
-        .lte("created_at", endDate)
-        .order("created_at")
+        .from('login_history')
+        .select('id, user_id, created_at')
+        .gte('created_at', startDate)
+        .lte('created_at', endDate)
+        .order('created_at')
 
       if (!loginsError) {
         loginData = logins || []
       }
     } catch (error) {
-      console.log("Login history table might not exist:", error)
+      console.log('Login history table might not exist:', error)
     }
 
     // Get user reading activity (if you have a reading_activity or similar table)
-    let readingData: Array<{ id: string; user_id: string; book_id: string; status: string; created_at: string }> = []
+    let readingData: Array<{
+      id: string
+      user_id: string
+      book_id: string
+      status: string
+      created_at: string
+    }> = []
     try {
       const { data: readings, error: readingsError } = await supabaseAdmin
-        .from("reading_activity")
-        .select("id, user_id, book_id, status, created_at")
-        .gte("created_at", startDate)
-        .lte("created_at", endDate)
-        .order("created_at")
+        .from('reading_activity')
+        .select('id, user_id, book_id, status, created_at')
+        .gte('created_at', startDate)
+        .lte('created_at', endDate)
+        .order('created_at')
 
       if (!readingsError) {
         readingData = readings || []
       }
     } catch (error) {
-      console.log("Reading activity table might not exist:", error)
+      console.log('Reading activity table might not exist:', error)
     }
 
     // Process data for visualization
     // Group new users by day
-    const usersByDay = groupByDay(newUsers || [], "created_at")
-    const loginsByDay = groupByDay(loginData, "created_at")
-    const readingsByDay = groupByDay(readingData, "created_at")
+    const usersByDay = groupByDay(newUsers || [], 'created_at')
+    const loginsByDay = groupByDay(loginData, 'created_at')
+    const readingsByDay = groupByDay(readingData, 'created_at')
 
     return {
       userRegistrations: {
@@ -82,7 +92,7 @@ export async function getUserActivityData(dateRange: DateRange) {
       error: null,
     }
   } catch (error) {
-    console.error("Error fetching user activity data:", error)
+    console.error('Error fetching user activity data:', error)
     return {
       userRegistrations: { labels: [], data: [] },
       userLogins: { labels: [], data: [] },
@@ -100,13 +110,19 @@ export async function getContentPopularityData(dateRange: DateRange) {
     const { startDate, endDate } = dateRange
 
     // Get most viewed books
-    let viewData: Array<{ id: string; title: string | null; author_id: string | null; cover_image_id: string | null; views: number }> = []
+    let viewData: Array<{
+      id: string
+      title: string | null
+      author_id: string | null
+      cover_image_id: string | null
+      views: number
+    }> = []
     try {
       const { data: views, error: viewsError } = await supabaseAdmin
-        .from("book_views")
-        .select("id, book_id, created_at")
-        .gte("created_at", startDate)
-        .lte("created_at", endDate)
+        .from('book_views')
+        .select('id, book_id, created_at')
+        .gte('created_at', startDate)
+        .lte('created_at', endDate)
 
       if (!viewsError && views) {
         // Count views per book
@@ -125,29 +141,43 @@ export async function getContentPopularityData(dateRange: DateRange) {
 
         if (topBookIds.length > 0) {
           const { data: books } = await supabaseAdmin
-            .from("books")
-            .select("id, title, author_id, cover_image_id")
-            .in("id", topBookIds)
+            .from('books')
+            .select('id, title, author_id, cover_image_id')
+            .in('id', topBookIds)
 
           // Combine with view counts
-          viewData = (books || []).map((book: { id: string; title: string | null; author_id: string | null; cover_image_id: string | null }) => ({
-            ...book,
-            views: bookViewCounts[book.id] || 0,
-          }))
+          viewData = (books || []).map(
+            (book: {
+              id: string
+              title: string | null
+              author_id: string | null
+              cover_image_id: string | null
+            }) => ({
+              ...book,
+              views: bookViewCounts[book.id] || 0,
+            })
+          )
         }
       }
     } catch (error) {
-      console.log("Book views table might not exist:", error)
+      console.log('Book views table might not exist:', error)
     }
 
     // Get most rated books
-    let ratingData: Array<{ id: string; title: string | null; author_id: string | null; cover_image_id: string | null; averageRating: number; ratingCount: number }> = []
+    let ratingData: Array<{
+      id: string
+      title: string | null
+      author_id: string | null
+      cover_image_id: string | null
+      averageRating: number
+      ratingCount: number
+    }> = []
     try {
       const { data: ratings, error: ratingsError } = await supabaseAdmin
-        .from("book_ratings")
-        .select("id, book_id, rating, created_at")
-        .gte("created_at", startDate)
-        .lte("created_at", endDate)
+        .from('book_ratings')
+        .select('id, book_id, rating, created_at')
+        .gte('created_at', startDate)
+        .lte('created_at', endDate)
 
       if (!ratingsError && ratings) {
         // Calculate average rating per book
@@ -176,27 +206,36 @@ export async function getContentPopularityData(dateRange: DateRange) {
 
         if (topRatedBookIds.length > 0) {
           const { data: books } = await supabaseAdmin
-            .from("books")
-            .select("id, title, author_id, cover_image_id")
-            .in("id", topRatedBookIds)
+            .from('books')
+            .select('id, title, author_id, cover_image_id')
+            .in('id', topRatedBookIds)
 
           // Combine with rating data
-          ratingData = (books || []).map((book: { id: string; title: string | null; author_id: string | null; cover_image_id: string | null }) => ({
-            ...book,
-            averageRating: bookAverages[book.id] || 0,
-            ratingCount: bookRatings[book.id]?.count || 0,
-          }))
+          ratingData = (books || []).map(
+            (book: {
+              id: string
+              title: string | null
+              author_id: string | null
+              cover_image_id: string | null
+            }) => ({
+              ...book,
+              averageRating: bookAverages[book.id] || 0,
+              ratingCount: bookRatings[book.id]?.count || 0,
+            })
+          )
         }
       }
     } catch (error) {
-      console.log("Book ratings table might not exist:", error)
+      console.log('Book ratings table might not exist:', error)
     }
 
     // Get genre popularity
     let genreData: Array<{ id: string; name: string; bookCount: number }> = []
     try {
       // First get all books with their genres
-      const { data: books, error: booksError } = await supabaseAdmin.from("books").select("id, genre_id")
+      const { data: books, error: booksError } = await supabaseAdmin
+        .from('books')
+        .select('id, genre_id')
 
       if (!booksError && books) {
         // Count books per genre
@@ -208,7 +247,7 @@ export async function getContentPopularityData(dateRange: DateRange) {
         }
 
         // Get genre details
-        const { data: genres } = await supabaseAdmin.from("book_genres").select("id, name")
+        const { data: genres } = await supabaseAdmin.from('book_genres').select('id, name')
 
         // Combine with counts
         genreData = (genres || []).map((genre: { id: string; name: string }) => ({
@@ -218,10 +257,15 @@ export async function getContentPopularityData(dateRange: DateRange) {
         }))
 
         // Sort by book count
-        genreData.sort((a: { id: string; name: string; bookCount: number }, b: { id: string; name: string; bookCount: number }) => b.bookCount - a.bookCount)
+        genreData.sort(
+          (
+            a: { id: string; name: string; bookCount: number },
+            b: { id: string; name: string; bookCount: number }
+          ) => b.bookCount - a.bookCount
+        )
       }
     } catch (error) {
-      console.log("Error fetching genre data:", error)
+      console.log('Error fetching genre data:', error)
     }
 
     return {
@@ -231,7 +275,7 @@ export async function getContentPopularityData(dateRange: DateRange) {
       error: null,
     }
   } catch (error) {
-    console.error("Error fetching content popularity data:", error)
+    console.error('Error fetching content popularity data:', error)
     return {
       mostViewedBooks: [],
       mostRatedBooks: [],
@@ -249,10 +293,10 @@ export async function getReadingTrendsData(dateRange: DateRange) {
     let statusData: { status: string; count: number }[] = []
     try {
       const { data, error } = await supabaseAdmin
-        .from("reading_activity")
-        .select("status")
-        .gte("created_at", startDate)
-        .lte("created_at", endDate)
+        .from('reading_activity')
+        .select('status')
+        .gte('created_at', startDate)
+        .lte('created_at', endDate)
 
       if (!error && data) {
         // Count by status
@@ -270,7 +314,7 @@ export async function getReadingTrendsData(dateRange: DateRange) {
         }))
       }
     } catch (error) {
-      console.log("Reading activity table might not exist:", error)
+      console.log('Reading activity table might not exist:', error)
     }
 
     // Get reading completion rates
@@ -282,42 +326,42 @@ export async function getReadingTrendsData(dateRange: DateRange) {
 
     try {
       const { data, error } = await supabaseAdmin
-        .from("reading_activity")
-        .select("status")
-        .gte("created_at", startDate)
-        .lte("created_at", endDate)
+        .from('reading_activity')
+        .select('status')
+        .gte('created_at', startDate)
+        .lte('created_at', endDate)
 
       if (!error && data) {
         for (const item of data) {
-          if (item.status === "completed") {
+          if (item.status === 'completed') {
             completionData.completed++
-          } else if (item.status === "abandoned") {
+          } else if (item.status === 'abandoned') {
             completionData.abandoned++
-          } else if (item.status === "reading" || item.status === "in_progress") {
+          } else if (item.status === 'reading' || item.status === 'in_progress') {
             completionData.inProgress++
           }
         }
       }
     } catch (error) {
-      console.log("Reading activity table might not exist:", error)
+      console.log('Reading activity table might not exist:', error)
     }
 
     // Get reading time trends (if you have reading_sessions or similar)
     let readingTimeData: Record<string, number> = {}
     try {
       const { data, error } = await supabaseAdmin
-        .from("reading_sessions")
-        .select("id, user_id, book_id, duration_minutes, created_at")
-        .gte("created_at", startDate)
-        .lte("created_at", endDate)
-        .order("created_at")
+        .from('reading_sessions')
+        .select('id, user_id, book_id, duration_minutes, created_at')
+        .gte('created_at', startDate)
+        .lte('created_at', endDate)
+        .order('created_at')
 
       if (!error && data) {
         // Group by day
-        readingTimeData = groupByDay(data, "created_at", "duration_minutes")
+        readingTimeData = groupByDay(data, 'created_at', 'duration_minutes')
       }
     } catch (error) {
-      console.log("Reading sessions table might not exist:", error)
+      console.log('Reading sessions table might not exist:', error)
     }
 
     return {
@@ -330,7 +374,7 @@ export async function getReadingTrendsData(dateRange: DateRange) {
       error: null,
     }
   } catch (error) {
-    console.error("Error fetching reading trends data:", error)
+    console.error('Error fetching reading trends data:', error)
     return {
       statusDistribution: [],
       completionRates: { completed: 0, abandoned: 0, inProgress: 0 },
@@ -345,12 +389,16 @@ export async function getAuthorPerformanceData(dateRange: DateRange) {
     const { startDate, endDate } = dateRange
 
     // Get top authors by book count
-    const { data: authors, error: authorsError } = await supabaseAdmin.from("authors").select("id, name")
+    const { data: authors, error: authorsError } = await supabaseAdmin
+      .from('authors')
+      .select('id, name')
 
     if (authorsError) throw authorsError
 
     // Get book counts for each author
-    const { data: books, error: booksError } = await supabaseAdmin.from("books").select("id, author_id")
+    const { data: books, error: booksError } = await supabaseAdmin
+      .from('books')
+      .select('id, author_id')
 
     if (booksError) throw booksError
 
@@ -366,10 +414,10 @@ export async function getAuthorPerformanceData(dateRange: DateRange) {
     const authorRatings: Record<string, { sum: number; count: number }> = {}
     try {
       const { data: bookRatings, error: ratingsError } = await supabaseAdmin
-        .from("book_ratings")
-        .select("id, book_id, rating")
-        .gte("created_at", startDate)
-        .lte("created_at", endDate)
+        .from('book_ratings')
+        .select('id, book_id, rating')
+        .gte('created_at', startDate)
+        .lte('created_at', endDate)
 
       if (!ratingsError && bookRatings) {
         // Get book to author mapping
@@ -395,7 +443,7 @@ export async function getAuthorPerformanceData(dateRange: DateRange) {
         }
       }
     } catch (error) {
-      console.log("Book ratings table might not exist:", error)
+      console.log('Book ratings table might not exist:', error)
     }
 
     // Combine author data
@@ -415,18 +463,60 @@ export async function getAuthorPerformanceData(dateRange: DateRange) {
     })
 
     // Sort by book count
-    authorData.sort((a: { id: string; name: string; bookCount: number; averageRating: number; ratingCount: number }, b: { id: string; name: string; bookCount: number; averageRating: number; ratingCount: number }) => b.bookCount - a.bookCount)
+    authorData.sort(
+      (
+        a: {
+          id: string
+          name: string
+          bookCount: number
+          averageRating: number
+          ratingCount: number
+        },
+        b: {
+          id: string
+          name: string
+          bookCount: number
+          averageRating: number
+          ratingCount: number
+        }
+      ) => b.bookCount - a.bookCount
+    )
 
     return {
       topAuthors: authorData.slice(0, 10),
       authorRatings: authorData
-        .filter((author: { id: string; name: string; bookCount: number; averageRating: number; ratingCount: number }) => author.ratingCount > 0)
-        .sort((a: { id: string; name: string; bookCount: number; averageRating: number; ratingCount: number }, b: { id: string; name: string; bookCount: number; averageRating: number; ratingCount: number }) => b.averageRating - a.averageRating)
+        .filter(
+          (author: {
+            id: string
+            name: string
+            bookCount: number
+            averageRating: number
+            ratingCount: number
+          }) => author.ratingCount > 0
+        )
+        .sort(
+          (
+            a: {
+              id: string
+              name: string
+              bookCount: number
+              averageRating: number
+              ratingCount: number
+            },
+            b: {
+              id: string
+              name: string
+              bookCount: number
+              averageRating: number
+              ratingCount: number
+            }
+          ) => b.averageRating - a.averageRating
+        )
         .slice(0, 10),
       error: null,
     }
   } catch (error) {
-    console.error("Error fetching author performance data:", error)
+    console.error('Error fetching author performance data:', error)
     return {
       topAuthors: [],
       authorRatings: [],
@@ -441,7 +531,7 @@ function groupByDay(data: any[], dateField: string, valueField?: string) {
 
   for (const item of data) {
     if (item[dateField]) {
-      const date = new Date(item[dateField]).toISOString().split("T")[0]
+      const date = new Date(item[dateField]).toISOString().split('T')[0]
       if (valueField) {
         result[date] = (result[date] || 0) + (item[valueField] || 0)
       } else {
@@ -457,31 +547,31 @@ function groupByDay(data: any[], dateField: string, valueField?: string) {
 export async function exportReportToCSV(reportType: ReportType, dateRange: DateRange) {
   try {
     let data: any
-    let csvContent = ""
+    let csvContent = ''
 
     switch (reportType) {
-      case "user_activity":
+      case 'user_activity':
         data = await getUserActivityData(dateRange)
         if (data.error) throw new Error(data.error)
 
         // Create CSV for user registrations
-        csvContent += "User Activity Report\n"
+        csvContent += 'User Activity Report\n'
         csvContent += `Date Range: ${dateRange.startDate} to ${dateRange.endDate}\n\n`
 
-        csvContent += "User Registrations by Day\n"
-        csvContent += "Date,Count\n"
+        csvContent += 'User Registrations by Day\n'
+        csvContent += 'Date,Count\n'
         data.userRegistrations.labels.forEach((date: string, index: number) => {
           csvContent += `${date},${data.userRegistrations.data[index]}\n`
         })
 
-        csvContent += "\nUser Logins by Day\n"
-        csvContent += "Date,Count\n"
+        csvContent += '\nUser Logins by Day\n'
+        csvContent += 'Date,Count\n'
         data.userLogins.labels.forEach((date: string, index: number) => {
           csvContent += `${date},${data.userLogins.data[index]}\n`
         })
 
-        csvContent += "\nReading Activity by Day\n"
-        csvContent += "Date,Count\n"
+        csvContent += '\nReading Activity by Day\n'
+        csvContent += 'Date,Count\n'
         data.readingActivity.labels.forEach((date: string, index: number) => {
           csvContent += `${date},${data.readingActivity.data[index]}\n`
         })
@@ -492,80 +582,80 @@ export async function exportReportToCSV(reportType: ReportType, dateRange: DateR
         csvContent += `Total Reading Activities,${data.totalReadingActivities}\n`
         break
 
-      case "content_popularity":
+      case 'content_popularity':
         data = await getContentPopularityData(dateRange)
         if (data.error) throw new Error(data.error)
 
-        csvContent += "Content Popularity Report\n"
+        csvContent += 'Content Popularity Report\n'
         csvContent += `Date Range: ${dateRange.startDate} to ${dateRange.endDate}\n\n`
 
-        csvContent += "Most Viewed Books\n"
-        csvContent += "Title,Views\n"
+        csvContent += 'Most Viewed Books\n'
+        csvContent += 'Title,Views\n'
         data.mostViewedBooks.forEach((book: any) => {
           csvContent += `"${book.title}",${book.views}\n`
         })
 
-        csvContent += "\nMost Rated Books\n"
-        csvContent += "Title,Average Rating,Rating Count\n"
+        csvContent += '\nMost Rated Books\n'
+        csvContent += 'Title,Average Rating,Rating Count\n'
         data.mostRatedBooks.forEach((book: any) => {
           csvContent += `"${book.title}",${book.averageRating.toFixed(2)},${book.ratingCount}\n`
         })
 
-        csvContent += "\nGenre Popularity\n"
-        csvContent += "Genre,Book Count\n"
+        csvContent += '\nGenre Popularity\n'
+        csvContent += 'Genre,Book Count\n'
         data.genrePopularity.forEach((genre: any) => {
           csvContent += `"${genre.name}",${genre.bookCount}\n`
         })
         break
 
-      case "reading_trends":
+      case 'reading_trends':
         data = await getReadingTrendsData(dateRange)
         if (data.error) throw new Error(data.error)
 
-        csvContent += "Reading Trends Report\n"
+        csvContent += 'Reading Trends Report\n'
         csvContent += `Date Range: ${dateRange.startDate} to ${dateRange.endDate}\n\n`
 
-        csvContent += "Reading Status Distribution\n"
-        csvContent += "Status,Count\n"
+        csvContent += 'Reading Status Distribution\n'
+        csvContent += 'Status,Count\n'
         data.statusDistribution.forEach((item: any) => {
           csvContent += `"${item.status}",${item.count}\n`
         })
 
-        csvContent += "\nCompletion Rates\n"
-        csvContent += "Status,Count\n"
+        csvContent += '\nCompletion Rates\n'
+        csvContent += 'Status,Count\n'
         csvContent += `"Completed",${data.completionRates.completed}\n`
         csvContent += `"Abandoned",${data.completionRates.abandoned}\n`
         csvContent += `"In Progress",${data.completionRates.inProgress}\n`
 
-        csvContent += "\nReading Time by Day\n"
-        csvContent += "Date,Minutes\n"
+        csvContent += '\nReading Time by Day\n'
+        csvContent += 'Date,Minutes\n'
         data.readingTimeByDay.labels.forEach((date: string, index: number) => {
           csvContent += `${date},${data.readingTimeByDay.data[index]}\n`
         })
         break
 
-      case "author_performance":
+      case 'author_performance':
         data = await getAuthorPerformanceData(dateRange)
         if (data.error) throw new Error(data.error)
 
-        csvContent += "Author Performance Report\n"
+        csvContent += 'Author Performance Report\n'
         csvContent += `Date Range: ${dateRange.startDate} to ${dateRange.endDate}\n\n`
 
-        csvContent += "Top Authors by Book Count\n"
-        csvContent += "Author,Book Count\n"
+        csvContent += 'Top Authors by Book Count\n'
+        csvContent += 'Author,Book Count\n'
         data.topAuthors.forEach((author: any) => {
           csvContent += `"${author.name}",${author.bookCount}\n`
         })
 
-        csvContent += "\nTop Authors by Rating\n"
-        csvContent += "Author,Average Rating,Rating Count\n"
+        csvContent += '\nTop Authors by Rating\n'
+        csvContent += 'Author,Average Rating,Rating Count\n'
         data.authorRatings.forEach((author: any) => {
           csvContent += `"${author.name}",${author.averageRating.toFixed(2)},${author.ratingCount}\n`
         })
         break
 
       default:
-        throw new Error("Invalid report type")
+        throw new Error('Invalid report type')
     }
 
     return {
@@ -574,7 +664,7 @@ export async function exportReportToCSV(reportType: ReportType, dateRange: DateR
       error: null,
     }
   } catch (error) {
-    console.error("Error exporting report to CSV:", error)
+    console.error('Error exporting report to CSV:', error)
     return {
       success: false,
       csv: null,

@@ -1,11 +1,17 @@
-"use client"
+'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
@@ -13,24 +19,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useToast } from '@/hooks/use-toast'
 import { PrivacyService } from '@/lib/privacy-service'
-import type { PrivacySettingsForm, PrivacyStats, PrivacyAuditSummary, PrivacyLevel } from '@/types/privacy'
-import { 
-  Shield, 
-  Users, 
-  UserCheck,
-  Book, 
-  Eye, 
-  EyeOff, 
-  Lock, 
-  Globe, 
-  Settings, 
-  Activity,
-  BarChart3,
-  History,
-  Target,
-  Save,
-  RefreshCw
-} from 'lucide-react'
+import type {
+  PrivacySettingsForm,
+  PrivacyStats,
+  PrivacyAuditSummary,
+  PrivacyLevel,
+} from '@/types/privacy'
+import { Shield, Book, Activity, BarChart3, Save, RefreshCw } from "lucide-react";
 
 interface PrivacySettingsProps {
   className?: string
@@ -40,12 +35,12 @@ interface PrivacySettingsProps {
   onSettingsChange?: (settings: any) => void
 }
 
-export function PrivacySettings({ 
-  className, 
-  entityType = 'user', 
-  entityId, 
-  isOwner = true,
-  onSettingsChange 
+export function PrivacySettings({
+  className,
+  entityType = 'user',
+  entityId,
+  isOwner: _isOwner = true,
+  onSettingsChange,
 }: PrivacySettingsProps) {
   const { toast } = useToast()
   const [settings, setSettings] = useState<PrivacySettingsForm | null>(null)
@@ -54,15 +49,9 @@ export function PrivacySettings({
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    if (entityId && entityType) {
-      loadPrivacyData()
-    }
-  }, [entityId, entityType])
-
-  const loadPrivacyData = async () => {
+  const loadPrivacyData = useCallback(async () => {
     if (!entityId || !entityType) return
-    
+
     setLoading(true)
     try {
       // Use the new entity-agnostic API
@@ -70,7 +59,7 @@ export function PrivacySettings({
       if (response.ok) {
         const settingsData = await response.json()
         setSettings(settingsData)
-        
+
         // For now, use default stats and audit data
         // These could be enhanced with entity-specific APIs later
         setStats({
@@ -79,13 +68,13 @@ export function PrivacySettings({
           friends_only_entries: settingsData.default_privacy_level === 'friends' ? 1 : 0,
           followers_only_entries: settingsData.default_privacy_level === 'followers' ? 1 : 0,
           private_entries: settingsData.default_privacy_level === 'private' ? 1 : 0,
-          custom_entries: 0
+          custom_entries: 0,
         })
         setAuditSummary({
           total_views: 0,
           total_updates: 0,
           total_permission_changes: 0,
-          recent_activity: []
+          recent_activity: [],
         })
       } else {
         throw new Error('Failed to fetch privacy settings')
@@ -93,18 +82,24 @@ export function PrivacySettings({
     } catch (error) {
       console.error('Error loading privacy data:', error)
       toast({
-        title: "Error",
-        description: "Failed to load privacy settings",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to load privacy settings',
+        variant: 'destructive',
       })
     } finally {
       setLoading(false)
     }
-  }
+  }, [entityId, entityType, toast])
+
+  useEffect(() => {
+    if (entityId && entityType) {
+      loadPrivacyData()
+    }
+  }, [entityId, entityType, loadPrivacyData])
 
   const handleSettingChange = (key: keyof PrivacySettingsForm, value: any) => {
     if (!settings) return
-    setSettings(prev => prev ? { ...prev, [key]: value } : null)
+    setSettings((prev) => (prev ? { ...prev, [key]: value } : null))
   }
 
   const handleSaveSettings = async () => {
@@ -118,21 +113,21 @@ export function PrivacySettings({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(settings)
+        body: JSON.stringify(settings),
       })
-      
+
       if (response.ok) {
         const updatedSettings = await response.json()
         setSettings(updatedSettings)
-        
+
         // Notify parent component of changes
         if (onSettingsChange) {
           onSettingsChange(updatedSettings)
         }
-        
+
         toast({
-          title: "Success",
-          description: "Privacy settings updated successfully",
+          title: 'Success',
+          description: 'Privacy settings updated successfully',
         })
         await loadPrivacyData() // Reload data
       } else {
@@ -142,9 +137,10 @@ export function PrivacySettings({
     } catch (error) {
       console.error('Error saving privacy settings:', error)
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "An error occurred while saving settings",
-        variant: "destructive"
+        title: 'Error',
+        description:
+          error instanceof Error ? error.message : 'An error occurred while saving settings',
+        variant: 'destructive',
       })
     } finally {
       setSaving(false)
@@ -194,7 +190,11 @@ export function PrivacySettings({
           </p>
         </div>
         <Button onClick={handleSaveSettings} disabled={saving}>
-          {saving ? <RefreshCw className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+          {saving ? (
+            <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+          ) : (
+            <Save className="h-4 w-4 mr-2" />
+          )}
           Save Changes
         </Button>
       </div>
@@ -223,7 +223,9 @@ export function PrivacySettings({
                 <Label htmlFor="default-privacy">Default Privacy Level</Label>
                 <Select
                   value={settings.default_privacy_level}
-                  onValueChange={(value: PrivacyLevel) => handleSettingChange('default_privacy_level', value)}
+                  onValueChange={(value: PrivacyLevel) =>
+                    handleSettingChange('default_privacy_level', value)
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -272,7 +274,9 @@ export function PrivacySettings({
                   </div>
                   <Switch
                     checked={settings.allow_public_reading_profile}
-                    onCheckedChange={(checked) => handleSettingChange('allow_public_reading_profile', checked)}
+                    onCheckedChange={(checked) =>
+                      handleSettingChange('allow_public_reading_profile', checked)
+                    }
                   />
                 </div>
 
@@ -285,7 +289,9 @@ export function PrivacySettings({
                   </div>
                   <Switch
                     checked={settings.allow_friends_to_see_reading}
-                    onCheckedChange={(checked) => handleSettingChange('allow_friends_to_see_reading', checked)}
+                    onCheckedChange={(checked) =>
+                      handleSettingChange('allow_friends_to_see_reading', checked)
+                    }
                   />
                 </div>
 
@@ -298,7 +304,9 @@ export function PrivacySettings({
                   </div>
                   <Switch
                     checked={settings.allow_followers_to_see_reading}
-                    onCheckedChange={(checked) => handleSettingChange('allow_followers_to_see_reading', checked)}
+                    onCheckedChange={(checked) =>
+                      handleSettingChange('allow_followers_to_see_reading', checked)
+                    }
                   />
                 </div>
               </div>
@@ -327,7 +335,9 @@ export function PrivacySettings({
                 </div>
                 <Switch
                   checked={settings.show_currently_reading_publicly}
-                  onCheckedChange={(checked) => handleSettingChange('show_currently_reading_publicly', checked)}
+                  onCheckedChange={(checked) =>
+                    handleSettingChange('show_currently_reading_publicly', checked)
+                  }
                 />
               </div>
 
@@ -340,7 +350,9 @@ export function PrivacySettings({
                 </div>
                 <Switch
                   checked={settings.show_reading_history_publicly}
-                  onCheckedChange={(checked) => handleSettingChange('show_reading_history_publicly', checked)}
+                  onCheckedChange={(checked) =>
+                    handleSettingChange('show_reading_history_publicly', checked)
+                  }
                 />
               </div>
 
@@ -353,7 +365,9 @@ export function PrivacySettings({
                 </div>
                 <Switch
                   checked={settings.show_reading_stats_publicly}
-                  onCheckedChange={(checked) => handleSettingChange('show_reading_stats_publicly', checked)}
+                  onCheckedChange={(checked) =>
+                    handleSettingChange('show_reading_stats_publicly', checked)
+                  }
                 />
               </div>
 
@@ -366,7 +380,9 @@ export function PrivacySettings({
                 </div>
                 <Switch
                   checked={settings.show_reading_goals_publicly}
-                  onCheckedChange={(checked) => handleSettingChange('show_reading_goals_publicly', checked)}
+                  onCheckedChange={(checked) =>
+                    handleSettingChange('show_reading_goals_publicly', checked)
+                  }
                 />
               </div>
             </CardContent>
@@ -393,23 +409,33 @@ export function PrivacySettings({
                       <div className="text-sm text-muted-foreground">Total Entries</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">{stats.public_entries}</div>
+                      <div className="text-2xl font-bold text-green-600">
+                        {stats.public_entries}
+                      </div>
                       <div className="text-sm text-muted-foreground">Public</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">{stats.friends_only_entries}</div>
+                      <div className="text-2xl font-bold text-blue-600">
+                        {stats.friends_only_entries}
+                      </div>
                       <div className="text-sm text-muted-foreground">Friends Only</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-600">{stats.followers_only_entries}</div>
+                      <div className="text-2xl font-bold text-purple-600">
+                        {stats.followers_only_entries}
+                      </div>
                       <div className="text-sm text-muted-foreground">Followers Only</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-gray-600">{stats.private_entries}</div>
+                      <div className="text-2xl font-bold text-gray-600">
+                        {stats.private_entries}
+                      </div>
                       <div className="text-sm text-muted-foreground">Private</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-orange-600">{stats.custom_entries}</div>
+                      <div className="text-2xl font-bold text-orange-600">
+                        {stats.custom_entries}
+                      </div>
                       <div className="text-sm text-muted-foreground">Custom</div>
                     </div>
                   </div>
@@ -420,25 +446,64 @@ export function PrivacySettings({
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Public</span>
-                        <span>{stats.public_entries} ({stats.total_entries > 0 ? Math.round((stats.public_entries / stats.total_entries) * 100) : 0}%)</span>
+                        <span>
+                          {stats.public_entries} (
+                          {stats.total_entries > 0
+                            ? Math.round((stats.public_entries / stats.total_entries) * 100)
+                            : 0}
+                          %)
+                        </span>
                       </div>
-                      <Progress value={stats.total_entries > 0 ? (stats.public_entries / stats.total_entries) * 100 : 0} className="h-2" />
+                      <Progress
+                        value={
+                          stats.total_entries > 0
+                            ? (stats.public_entries / stats.total_entries) * 100
+                            : 0
+                        }
+                        className="h-2"
+                      />
                     </div>
 
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Friends Only</span>
-                        <span>{stats.friends_only_entries} ({stats.total_entries > 0 ? Math.round((stats.friends_only_entries / stats.total_entries) * 100) : 0}%)</span>
+                        <span>
+                          {stats.friends_only_entries} (
+                          {stats.total_entries > 0
+                            ? Math.round((stats.friends_only_entries / stats.total_entries) * 100)
+                            : 0}
+                          %)
+                        </span>
                       </div>
-                      <Progress value={stats.total_entries > 0 ? (stats.friends_only_entries / stats.total_entries) * 100 : 0} className="h-2" />
+                      <Progress
+                        value={
+                          stats.total_entries > 0
+                            ? (stats.friends_only_entries / stats.total_entries) * 100
+                            : 0
+                        }
+                        className="h-2"
+                      />
                     </div>
 
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Private</span>
-                        <span>{stats.private_entries} ({stats.total_entries > 0 ? Math.round((stats.private_entries / stats.total_entries) * 100) : 0}%)</span>
+                        <span>
+                          {stats.private_entries} (
+                          {stats.total_entries > 0
+                            ? Math.round((stats.private_entries / stats.total_entries) * 100)
+                            : 0}
+                          %)
+                        </span>
                       </div>
-                      <Progress value={stats.total_entries > 0 ? (stats.private_entries / stats.total_entries) * 100 : 0} className="h-2" />
+                      <Progress
+                        value={
+                          stats.total_entries > 0
+                            ? (stats.private_entries / stats.total_entries) * 100
+                            : 0
+                        }
+                        className="h-2"
+                      />
                     </div>
                   </div>
                 </>
@@ -454,24 +519,28 @@ export function PrivacySettings({
                 <Activity className="h-5 w-5" />
                 Privacy Audit Log
               </CardTitle>
-              <CardDescription>
-                Recent privacy-related activities and changes
-              </CardDescription>
+              <CardDescription>Recent privacy-related activities and changes</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {auditSummary && (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="text-center p-4 bg-muted rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">{auditSummary.total_views}</div>
+                      <div className="text-2xl font-bold text-blue-600">
+                        {auditSummary.total_views}
+                      </div>
                       <div className="text-sm text-muted-foreground">Total Views</div>
                     </div>
                     <div className="text-center p-4 bg-muted rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">{auditSummary.total_updates}</div>
+                      <div className="text-2xl font-bold text-green-600">
+                        {auditSummary.total_updates}
+                      </div>
                       <div className="text-sm text-muted-foreground">Privacy Updates</div>
                     </div>
                     <div className="text-center p-4 bg-muted rounded-lg">
-                      <div className="text-2xl font-bold text-purple-600">{auditSummary.total_permission_changes}</div>
+                      <div className="text-2xl font-bold text-purple-600">
+                        {auditSummary.total_permission_changes}
+                      </div>
                       <div className="text-sm text-muted-foreground">Permission Changes</div>
                     </div>
                   </div>
@@ -482,7 +551,10 @@ export function PrivacySettings({
                     <h4 className="font-medium">Recent Activity</h4>
                     <div className="space-y-2">
                       {auditSummary.recent_activity.map((activity) => (
-                        <div key={activity.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                        <div
+                          key={activity.id}
+                          className="flex items-center justify-between p-3 bg-muted rounded-lg"
+                        >
                           <div className="flex items-center gap-2">
                             <Badge variant="outline">{activity.action}</Badge>
                             <span className="text-sm">{activity.resource_type}</span>
@@ -502,4 +574,4 @@ export function PrivacySettings({
       </Tabs>
     </div>
   )
-} 
+}

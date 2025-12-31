@@ -1,12 +1,19 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-import { Check, ChevronsUpDown } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { supabaseClient } from "@/lib/supabase/client"
+import { useState, useEffect } from 'react'
+import { Check, ChevronsUpDown } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { supabaseClient } from '@/lib/supabase/client'
 
 interface BindingType {
   id: number
@@ -24,7 +31,7 @@ interface BindingTypeSelectProps {
 export function BindingTypeSelect({
   value,
   onChange,
-  placeholder = "Select binding type",
+  placeholder = 'Select binding type',
   disabled = false,
 }: BindingTypeSelectProps) {
   const [open, setOpen] = useState(false)
@@ -37,16 +44,16 @@ export function BindingTypeSelect({
     async function fetchBindingTypes() {
       try {
         setLoading(true)
-        const { data, error } = await supabaseClient.from("binding_types").select("*").order("name")
+        const { data, error } = await supabaseClient.from('binding_types').select('*').order('name')
 
         if (error) {
-          console.error("Error fetching binding types:", error)
+          console.error('Error fetching binding types:', error)
           return
         }
 
         setBindingTypes(data as BindingType[])
       } catch (error) {
-        console.error("Error in fetchBindingTypes:", error)
+        console.error('Error in fetchBindingTypes:', error)
       } finally {
         setLoading(false)
       }
@@ -64,16 +71,20 @@ export function BindingTypeSelect({
       }
 
       try {
-        const { data, error } = await supabaseClient.from("binding_types").select("*").eq("id", value).single()
+        const { data, error } = await supabaseClient
+          .from('binding_types')
+          .select('*')
+          .eq('id', value)
+          .single()
 
         if (error) {
-          console.error("Error fetching selected binding type:", error)
+          console.error('Error fetching selected binding type:', error)
           return
         }
 
         setSelectedBindingType(data as BindingType)
       } catch (error) {
-        console.error("Error in fetchSelectedBindingType:", error)
+        console.error('Error in fetchSelectedBindingType:', error)
       }
     }
 
@@ -109,7 +120,12 @@ export function BindingTypeSelect({
                     setOpen(false)
                   }}
                 >
-                  <Check className={cn("mr-2 h-4 w-4", value === bindingType.id ? "opacity-100" : "opacity-0")} />
+                  <Check
+                    className={cn(
+                      'mr-2 h-4 w-4',
+                      value === bindingType.id ? 'opacity-100' : 'opacity-0'
+                    )}
+                  />
                   {bindingType.name}
                 </CommandItem>
               ))}

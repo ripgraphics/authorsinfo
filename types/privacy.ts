@@ -1,10 +1,20 @@
 export type PrivacyLevel = 'private' | 'friends' | 'followers' | 'public' | 'custom'
 
-export type PermissionType = 'reading_progress' | 'reading_history' | 'reading_stats' | 'reading_goals' | 'all'
+export type PermissionType =
+  | 'reading_progress'
+  | 'reading_history'
+  | 'reading_stats'
+  | 'reading_goals'
+  | 'all'
 
 export type PermissionLevel = 'read' | 'write' | 'admin'
 
-export type PrivacyAction = 'view' | 'update' | 'delete' | 'permission_granted' | 'permission_revoked'
+export type PrivacyAction =
+  | 'view'
+  | 'update'
+  | 'delete'
+  | 'permission_granted'
+  | 'permission_revoked'
 
 export interface UserPrivacySettings {
   id: string
@@ -112,4 +122,4 @@ export interface PrivacyPermissionResponse {
   message?: string
   created_at: string
   updated_at: string
-} 
+}

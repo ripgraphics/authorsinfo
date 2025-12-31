@@ -1,7 +1,3 @@
 export default function NotificationsPage() {
-  return (
-    <div>
-      {/* Page content */}
-    </div>
-  )
-} 
+  return <div>{/* Page content */}</div>
+}

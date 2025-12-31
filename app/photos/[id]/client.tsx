@@ -1,14 +1,14 @@
-"use client"
+'use client'
 
-import { Input } from "@/components/ui/input"
+import { Input } from '@/components/ui/input'
 
-import { useState } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Textarea } from "@/components/ui/textarea"
-import { SophisticatedPhotoGrid } from "@/components/photo-gallery/sophisticated-photo-grid"
+import { useState } from 'react'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Textarea } from '@/components/ui/textarea'
+import { SophisticatedPhotoGrid } from '@/components/photo-gallery/sophisticated-photo-grid'
 import {
   BookOpen,
   Users,
@@ -28,7 +28,7 @@ import {
   Ellipsis,
   Filter,
   ChevronDown,
-} from "lucide-react"
+} from 'lucide-react'
 
 interface ClientProfilePageProps {
   user: any
@@ -39,247 +39,292 @@ interface ClientProfilePageProps {
   }
 }
 
-export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: ClientProfilePageProps) {
-  const [activeTab, setActiveTab] = useState("timeline")
+export function ClientProfilePage({
+  user,
+  avatarUrl,
+  coverImageUrl,
+  params,
+}: ClientProfilePageProps) {
+  const [activeTab, setActiveTab] = useState('timeline')
 
   // Mock data for the profile
-  const mockName = user?.name || "Jane Reader"
-  const mockUsername = user?.name ? user.name.split(" ").join("").toLowerCase() : "janereader"
+  const mockName = user?.name || 'Jane Reader'
+  const mockUsername = user?.name ? user.name.split(' ').join('').toLowerCase() : 'janereader'
   const mockBooksRead = 127
   const mockFriendsCount = 248
-  const mockLocation = "Portland, OR"
-  const mockWebsite = mockUsername + ".com"
+  const mockLocation = 'Portland, OR'
+  const mockWebsite = mockUsername + '.com'
   const mockAbout =
-    "Book lover, coffee addict, and aspiring writer. I read mostly fantasy, sci-fi, and literary fiction."
-  const mockJoinedDate = "March 2020"
+    'Book lover, coffee addict, and aspiring writer. I read mostly fantasy, sci-fi, and literary fiction.'
+  const mockJoinedDate = 'March 2020'
 
   // Mock currently reading books
   const mockCurrentlyReading = [
     {
-      title: "The Name of the Wind",
-      author: "Patrick Rothfuss",
+      title: 'The Name of the Wind',
+      author: 'Patrick Rothfuss',
       progress: 65,
-      coverUrl: "/placeholder.svg?height=240&width=160",
+      coverUrl: '/placeholder.svg?height=240&width=160',
     },
     {
-      title: "Project Hail Mary",
-      author: "Andy Weir",
+      title: 'Project Hail Mary',
+      author: 'Andy Weir',
       progress: 23,
-      coverUrl: "/placeholder.svg?height=240&width=160",
+      coverUrl: '/placeholder.svg?height=240&width=160',
     },
   ]
 
   // Mock photos
   const mockPhotos = [
-    "/placeholder.svg?height=300&width=300",
-    "/placeholder.svg?height=300&width=300",
-    "/placeholder.svg?height=300&width=300",
-    "/placeholder.svg?height=300&width=300",
-    "/placeholder.svg?height=300&width=300",
-    "/placeholder.svg?height=300&width=300",
-    "/placeholder.svg?height=300&width=300",
-    "/placeholder.svg?height=300&width=300",
-    "/placeholder.svg?height=300&width=300",
+    '/placeholder.svg?height=300&width=300',
+    '/placeholder.svg?height=300&width=300',
+    '/placeholder.svg?height=300&width=300',
+    '/placeholder.svg?height=300&width=300',
+    '/placeholder.svg?height=300&width=300',
+    '/placeholder.svg?height=300&width=300',
+    '/placeholder.svg?height=300&width=300',
+    '/placeholder.svg?height=300&width=300',
+    '/placeholder.svg?height=300&width=300',
   ]
 
   // Mock friends
   const mockFriends = [
-    { id: "1", name: "Alex Thompson", avatar: "/placeholder.svg?height=100&width=100" },
-    { id: "2", name: "Maria Garcia", avatar: "/placeholder.svg?height=100&width=100" },
-    { id: "3", name: "James Wilson", avatar: "/placeholder.svg?height=100&width=100" },
-    { id: "4", name: "Emma Davis", avatar: "/placeholder.svg?height=100&width=100" },
-    { id: "5", name: "Michael Brown", avatar: "/placeholder.svg?height=100&width=100" },
-    { id: "6", name: "Sophia Martinez", avatar: "/placeholder.svg?height=100&width=100" },
-    { id: "7", name: "Daniel Lee", avatar: "/placeholder.svg?height=100&width=100" },
-    { id: "8", name: "Olivia Johnson", avatar: "/placeholder.svg?height=100&width=100" },
-    { id: "9", name: "William Smith", avatar: "/placeholder.svg?height=100&width=100" },
+    { id: '1', name: 'Alex Thompson', avatar: '/placeholder.svg?height=100&width=100' },
+    { id: '2', name: 'Maria Garcia', avatar: '/placeholder.svg?height=100&width=100' },
+    { id: '3', name: 'James Wilson', avatar: '/placeholder.svg?height=100&width=100' },
+    { id: '4', name: 'Emma Davis', avatar: '/placeholder.svg?height=100&width=100' },
+    { id: '5', name: 'Michael Brown', avatar: '/placeholder.svg?height=100&width=100' },
+    { id: '6', name: 'Sophia Martinez', avatar: '/placeholder.svg?height=100&width=100' },
+    { id: '7', name: 'Daniel Lee', avatar: '/placeholder.svg?height=100&width=100' },
+    { id: '8', name: 'Olivia Johnson', avatar: '/placeholder.svg?height=100&width=100' },
+    { id: '9', name: 'William Smith', avatar: '/placeholder.svg?height=100&width=100' },
   ]
 
   // Mock activities
   const mockActivities = [
     {
-      id: "1",
-      type: "rating",
-      bookTitle: "Dune",
-      bookAuthor: "Frank Herbert",
+      id: '1',
+      type: 'rating',
+      bookTitle: 'Dune',
+      bookAuthor: 'Frank Herbert',
       rating: 5,
-      timeAgo: "2 days ago",
+      timeAgo: '2 days ago',
     },
     {
-      id: "2",
-      type: "finished",
-      bookTitle: "The Hobbit",
-      bookAuthor: "J.R.R. Tolkien",
-      timeAgo: "1 week ago",
+      id: '2',
+      type: 'finished',
+      bookTitle: 'The Hobbit',
+      bookAuthor: 'J.R.R. Tolkien',
+      timeAgo: '1 week ago',
     },
     {
-      id: "3",
-      type: "added",
-      bookTitle: "The Way of Kings",
-      bookAuthor: "Brandon Sanderson",
-      shelf: "Want to Read",
-      timeAgo: "2 weeks ago",
+      id: '3',
+      type: 'added',
+      bookTitle: 'The Way of Kings',
+      bookAuthor: 'Brandon Sanderson',
+      shelf: 'Want to Read',
+      timeAgo: '2 weeks ago',
     },
     {
-      id: "4",
-      type: "reviewed",
-      bookTitle: "Circe",
-      bookAuthor: "Madeline Miller",
-      timeAgo: "3 weeks ago",
+      id: '4',
+      type: 'reviewed',
+      bookTitle: 'Circe',
+      bookAuthor: 'Madeline Miller',
+      timeAgo: '3 weeks ago',
     },
   ]
 
   // Mock data for friends tab
   const mockFriendsTabData = [
     {
-      id: "1",
-      name: "Alex Thompson",
-      avatar: "/placeholder.svg?height=100&width=100",
-      location: "Seattle, WA",
+      id: '1',
+      name: 'Alex Thompson',
+      avatar: '/placeholder.svg?height=100&width=100',
+      location: 'Seattle, WA',
       mutualFriends: 15,
     },
     {
-      id: "2",
-      name: "Maria Garcia",
-      avatar: "/placeholder.svg?height=100&width=100",
-      location: "Portland, OR",
+      id: '2',
+      name: 'Maria Garcia',
+      avatar: '/placeholder.svg?height=100&width=100',
+      location: 'Portland, OR',
       mutualFriends: 8,
     },
     {
-      id: "3",
-      name: "James Wilson",
-      avatar: "/placeholder.svg?height=100&width=100",
-      location: "San Francisco, CA",
+      id: '3',
+      name: 'James Wilson',
+      avatar: '/placeholder.svg?height=100&width=100',
+      location: 'San Francisco, CA',
       mutualFriends: 12,
     },
     {
-      id: "4",
-      name: "Emma Davis",
-      avatar: "/placeholder.svg?height=100&width=100",
-      location: "Chicago, IL",
+      id: '4',
+      name: 'Emma Davis',
+      avatar: '/placeholder.svg?height=100&width=100',
+      location: 'Chicago, IL',
       mutualFriends: 5,
     },
     {
-      id: "5",
-      name: "Michael Brown",
-      avatar: "/placeholder.svg?height=100&width=100",
-      location: "New York, NY",
+      id: '5',
+      name: 'Michael Brown',
+      avatar: '/placeholder.svg?height=100&width=100',
+      location: 'New York, NY',
       mutualFriends: 10,
     },
     {
-      id: "6",
-      name: "Sophia Martinez",
-      avatar: "/placeholder.svg?height=100&width=100",
-      location: "Los Angeles, CA",
+      id: '6',
+      name: 'Sophia Martinez',
+      avatar: '/placeholder.svg?height=100&width=100',
+      location: 'Los Angeles, CA',
       mutualFriends: 7,
     },
     {
-      id: "7",
-      name: "Daniel Lee",
-      avatar: "/placeholder.svg?height=100&width=100",
-      location: "Boston, MA",
+      id: '7',
+      name: 'Daniel Lee',
+      avatar: '/placeholder.svg?height=100&width=100',
+      location: 'Boston, MA',
       mutualFriends: 9,
     },
     {
-      id: "8",
-      name: "Olivia Johnson",
-      avatar: "/placeholder.svg?height=100&width=100",
-      location: "Austin, TX",
+      id: '8',
+      name: 'Olivia Johnson',
+      avatar: '/placeholder.svg?height=100&width=100',
+      location: 'Austin, TX',
       mutualFriends: 6,
     },
     {
-      id: "9",
-      name: "William Smith",
-      avatar: "/placeholder.svg?height=100&width=100",
-      location: "Denver, CO",
+      id: '9',
+      name: 'William Smith',
+      avatar: '/placeholder.svg?height=100&width=100',
+      location: 'Denver, CO',
       mutualFriends: 11,
     },
   ]
 
   // Mock friend suggestions
   const mockFriendSuggestions = [
-    { id: "101", name: "Mark Johnson", avatar: "/placeholder.svg?height=100&width=100", mutualFriends: 12 },
-    { id: "102", name: "Sarah Williams", avatar: "/placeholder.svg?height=100&width=100", mutualFriends: 8 },
-    { id: "103", name: "David Chen", avatar: "/placeholder.svg?height=100&width=100", mutualFriends: 5 },
+    {
+      id: '101',
+      name: 'Mark Johnson',
+      avatar: '/placeholder.svg?height=100&width=100',
+      mutualFriends: 12,
+    },
+    {
+      id: '102',
+      name: 'Sarah Williams',
+      avatar: '/placeholder.svg?height=100&width=100',
+      mutualFriends: 8,
+    },
+    {
+      id: '103',
+      name: 'David Chen',
+      avatar: '/placeholder.svg?height=100&width=100',
+      mutualFriends: 5,
+    },
   ]
 
   // Mock photos tab data - enhanced for Facebook-style grid
   const mockPhotosTabData = [
-    { 
-      id: "1", 
-      title: "Reading at the park", 
-      date: "June 15, 2023", 
-      url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
-      thumbnail_url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop",
-      created_at: "2023-06-15T10:00:00Z",
-      likes: [{ id: "1", photo_id: "1", user_id: "user1", created_at: "2023-06-15T10:00:00Z", user: { name: "John Doe" } }],
-      comments: [{ id: "1", photo_id: "1", user_id: "user2", content: "Beautiful spot!", created_at: "2023-06-15T10:00:00Z", user: { name: "Jane Smith" } }],
+    {
+      id: '1',
+      title: 'Reading at the park',
+      date: 'June 15, 2023',
+      url: '/placeholder.svg?height=600&width=800',
+      thumbnail_url: '/placeholder.svg?height=300&width=400',
+      created_at: '2023-06-15T10:00:00Z',
+      likes: [
+        {
+          id: '1',
+          photo_id: '1',
+          user_id: 'user1',
+          created_at: '2023-06-15T10:00:00Z',
+          user: { name: 'John Doe' },
+        },
+      ],
+      comments: [
+        {
+          id: '1',
+          photo_id: '1',
+          user_id: 'user2',
+          content: 'Beautiful spot!',
+          created_at: '2023-06-15T10:00:00Z',
+          user: { name: 'Jane Smith' },
+        },
+      ],
       shares: [],
       tags: [],
       analytics: { views: 45, unique_views: 38, downloads: 2, shares: 1, engagement_rate: 6.7 },
       is_cover: false,
-      is_featured: true
+      is_featured: true,
     },
-    { 
-      id: "2", 
-      title: "My bookshelf", 
-      date: "May 22, 2023", 
-      url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=600&fit=crop",
-      thumbnail_url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop",
-      created_at: "2023-05-22T11:00:00Z",
+    {
+      id: '2',
+      title: 'My bookshelf',
+      date: 'May 22, 2023',
+      url: '/placeholder.svg?height=600&width=800',
+      thumbnail_url: '/placeholder.svg?height=300&width=400',
+      created_at: '2023-05-22T11:00:00Z',
       likes: [],
       comments: [],
       shares: [],
       tags: [],
       analytics: { views: 23, unique_views: 20, downloads: 1, shares: 0, engagement_rate: 4.3 },
       is_cover: false,
-      is_featured: false
+      is_featured: false,
     },
-    { 
-      id: "3", 
-      title: "Book haul!", 
-      date: "April 10, 2023", 
-      url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop",
-      thumbnail_url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop",
-      created_at: "2023-04-10T12:00:00Z",
-      likes: [{ id: "2", photo_id: "3", user_id: "user3", created_at: "2023-04-10T12:00:00Z", user: { name: "Bob Wilson" } }],
+    {
+      id: '3',
+      title: 'Book haul!',
+      date: 'April 10, 2023',
+      url: '/placeholder.svg?height=400&width=800',
+      thumbnail_url: '/placeholder.svg?height=200&width=400',
+      created_at: '2023-04-10T12:00:00Z',
+      likes: [
+        {
+          id: '2',
+          photo_id: '3',
+          user_id: 'user3',
+          created_at: '2023-04-10T12:00:00Z',
+          user: { name: 'Bob Wilson' },
+        },
+      ],
       comments: [],
       shares: [],
       tags: [],
       analytics: { views: 67, unique_views: 55, downloads: 3, shares: 2, engagement_rate: 7.5 },
       is_cover: true,
-      is_featured: false
+      is_featured: false,
     },
-    { 
-      id: "4", 
-      title: "Author signing event", 
-      date: "March 5, 2023", 
-      url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=600&fit=crop",
-      thumbnail_url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop",
-      created_at: "2023-03-05T13:00:00Z",
+    {
+      id: '4',
+      title: 'Author signing event',
+      date: 'March 5, 2023',
+      url: '/placeholder.svg?height=600&width=800',
+      thumbnail_url: '/placeholder.svg?height=300&width=400',
+      created_at: '2023-03-05T13:00:00Z',
       likes: [],
       comments: [],
       shares: [],
       tags: [],
       analytics: { views: 34, unique_views: 28, downloads: 1, shares: 0, engagement_rate: 2.9 },
       is_cover: false,
-      is_featured: false
+      is_featured: false,
     },
-    { 
-      id: "5", 
-      title: "Reading nook", 
-      date: "February 18, 2023", 
-      url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=400&fit=crop",
-      thumbnail_url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop",
-      created_at: "2023-02-18T14:00:00Z",
+    {
+      id: '5',
+      title: 'Reading nook',
+      date: 'February 18, 2023',
+      url: '/placeholder.svg?height=400&width=800',
+      thumbnail_url: '/placeholder.svg?height=200&width=400',
+      created_at: '2023-02-18T14:00:00Z',
       likes: [],
       comments: [],
       shares: [],
       tags: [],
       analytics: { views: 28, unique_views: 24, downloads: 1, shares: 0, engagement_rate: 3.6 },
       is_cover: false,
-      is_featured: false
-    }
+      is_featured: false,
+    },
   ]
 
   return (
@@ -288,11 +333,15 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
       <div className="publisher-page__header bg-white rounded-lg shadow-sm overflow-hidden mb-6">
         <div className="publisher-page__cover publisher-page__header-cover-image relative h-auto aspect-[1344/500]">
           <img
-            src={coverImageUrl || "/placeholder.svg?height=400&width=1200"}
+            src={coverImageUrl || '/placeholder.svg?height=400&width=1200'}
             alt="Cover"
             className="object-cover absolute inset-0 w-full h-full"
           />
-          <Button variant="outline" size="sm" className="absolute bottom-4 right-4 bg-white/80 hover:bg-white">
+          <Button
+            variant="outline"
+            size="sm"
+            className="absolute bottom-4 right-4 bg-white/80 hover:bg-white"
+          >
             <Camera className="h-4 w-4 mr-2" />
             Change Cover
           </Button>
@@ -303,7 +352,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
             <div className="relative">
               <span className="publisher-page__avatar relative flex shrink-0 overflow-hidden h-32 w-32 md:h-40 md:w-40 border-4 border-white rounded-full">
                 <img
-                  src={avatarUrl || "/placeholder.svg?height=200&width=200"}
+                  src={avatarUrl || '/placeholder.svg?height=200&width=200'}
                   alt={user.name}
                   className="aspect-square h-full w-full"
                 />
@@ -373,7 +422,12 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
       <div className="publisher-page__tabs-divider border-t">
         <div className="publisher-page__tabs-wrapper w-full">
           <div className="publisher-page__tabs-container">
-            <Tabs defaultValue="timeline" value={activeTab} onValueChange={setActiveTab} className="publisher-page__tabs w-full">
+            <Tabs
+              defaultValue="timeline"
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="publisher-page__tabs w-full"
+            >
               <TabsList className="publisher-page__tabs-list grid grid-cols-6 h-auto mt-0 bg-transparent">
                 <TabsTrigger
                   value="timeline"
@@ -421,7 +475,9 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                     {/* About Section */}
                     <Card>
                       <div className="flex flex-col space-y-1.5 p-6">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">About</div>
+                        <div className="text-2xl font-semibold leading-none tracking-tight">
+                          About
+                        </div>
                       </div>
                       <CardContent className="p-6 pt-0 space-y-4">
                         <p>{mockAbout}</p>
@@ -458,7 +514,9 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                     {/* Currently Reading Section */}
                     <Card>
                       <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">Currently Reading</div>
+                        <div className="text-2xl font-semibold leading-none tracking-tight">
+                          Currently Reading
+                        </div>
                         <Link href="/my-books" className="text-sm text-primary hover:underline">
                           See All
                         </Link>
@@ -468,7 +526,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                           <div key={index} className="flex gap-3">
                             <div className="relative h-20 w-14 flex-shrink-0">
                               <img
-                                src={book.coverUrl || "/placeholder.svg"}
+                                src={book.coverUrl || '/placeholder.svg'}
                                 alt={book.title}
                                 className="object-cover rounded-md absolute inset-0 w-full h-full"
                               />
@@ -497,8 +555,13 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                     {/* Photos Section */}
                     <Card>
                       <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">Photos</div>
-                        <Link href="/profile/janereader/photos" className="text-sm text-primary hover:underline">
+                        <div className="text-2xl font-semibold leading-none tracking-tight">
+                          Photos
+                        </div>
+                        <Link
+                          href="/profile/janereader/photos"
+                          className="text-sm text-primary hover:underline"
+                        >
                           See All
                         </Link>
                       </div>
@@ -520,8 +583,13 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                     {/* Friends Section */}
                     <Card>
                       <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">Friends</div>
-                        <Link href="/profile/janereader/friends" className="text-sm text-primary hover:underline">
+                        <div className="text-2xl font-semibold leading-none tracking-tight">
+                          Friends
+                        </div>
+                        <Link
+                          href="/profile/janereader/friends"
+                          className="text-sm text-primary hover:underline"
+                        >
                           See All
                         </Link>
                       </div>
@@ -535,7 +603,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                             >
                               <span className="relative flex shrink-0 overflow-hidden rounded-full h-16 w-16 mb-1">
                                 <img
-                                  src={friend.avatar || "/placeholder.svg"}
+                                  src={friend.avatar || '/placeholder.svg'}
                                   alt={friend.name}
                                   className="aspect-square h-full w-full"
                                 />
@@ -559,14 +627,16 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                               <div className="flex items-center gap-3">
                                 <span className="relative flex shrink-0 overflow-hidden rounded-full h-10 w-10">
                                   <img
-                                    src={avatarUrl || "/placeholder.svg?height=200&width=200"}
+                                    src={avatarUrl || '/placeholder.svg?height=200&width=200'}
                                     alt={user.name}
                                     className="aspect-square h-full w-full"
                                   />
                                 </span>
                                 <div>
                                   <div className="font-medium">{user.name}</div>
-                                  <div className="text-xs text-muted-foreground">{activity.timeAgo}</div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {activity.timeAgo}
+                                  </div>
                                 </div>
                               </div>
                               <Button variant="ghost" size="icon">
@@ -575,39 +645,39 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                             </div>
                           </div>
                           <div className="p-6 pt-0 pb-3">
-                            {activity.type === "rating" && (
+                            {activity.type === 'rating' && (
                               <p>
-                                Rated{" "}
+                                Rated{' '}
                                 <Link href="#" className="text-primary hover:underline font-medium">
                                   {activity.bookTitle}
-                                </Link>{" "}
+                                </Link>{' '}
                                 by {activity.bookAuthor} {activity.rating} stars
                               </p>
                             )}
-                            {activity.type === "finished" && (
+                            {activity.type === 'finished' && (
                               <p>
-                                Finished reading{" "}
+                                Finished reading{' '}
                                 <Link href="#" className="text-primary hover:underline font-medium">
                                   {activity.bookTitle}
-                                </Link>{" "}
+                                </Link>{' '}
                                 by {activity.bookAuthor}
                               </p>
                             )}
-                            {activity.type === "added" && (
+                            {activity.type === 'added' && (
                               <p>
-                                Added{" "}
+                                Added{' '}
                                 <Link href="#" className="text-primary hover:underline font-medium">
                                   {activity.bookTitle}
-                                </Link>{" "}
+                                </Link>{' '}
                                 by {activity.bookAuthor} to {activity.shelf}
                               </p>
                             )}
-                            {activity.type === "reviewed" && (
+                            {activity.type === 'reviewed' && (
                               <p>
-                                Reviewed{" "}
+                                Reviewed{' '}
                                 <Link href="#" className="text-primary hover:underline font-medium">
                                   {activity.bookTitle}
-                                </Link>{" "}
+                                </Link>{' '}
                                 by {activity.bookAuthor}
                               </p>
                             )}
@@ -650,30 +720,47 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                         >
                           Overview
                         </a>
-                        <a href="#work-education" className="flex items-center px-3 py-2 rounded-md hover:bg-muted">
+                        <a
+                          href="#work-education"
+                          className="flex items-center px-3 py-2 rounded-md hover:bg-muted"
+                        >
                           Work and Education
                         </a>
-                        <a href="#contact-info" className="flex items-center px-3 py-2 rounded-md hover:bg-muted">
+                        <a
+                          href="#contact-info"
+                          className="flex items-center px-3 py-2 rounded-md hover:bg-muted"
+                        >
                           Contact Information
                         </a>
-                        <a href="#interests" className="flex items-center px-3 py-2 rounded-md hover:bg-muted">
+                        <a
+                          href="#interests"
+                          className="flex items-center px-3 py-2 rounded-md hover:bg-muted"
+                        >
                           Interests
                         </a>
-                        <a href="#favorite-quotes" className="flex items-center px-3 py-2 rounded-md hover:bg-muted">
+                        <a
+                          href="#favorite-quotes"
+                          className="flex items-center px-3 py-2 rounded-md hover:bg-muted"
+                        >
                           Favorite Quotes
                         </a>
                       </nav>
                     </div>
                   </div>
                   <div className="lg:col-span-2 space-y-6">
-                    <div className="rounded-lg border bg-card text-card-foreground shadow-xs" id="overview">
+                    <div
+                      className="rounded-lg border bg-card text-card-foreground shadow-xs"
+                      id="overview"
+                    >
                       <div className="flex flex-col space-y-1.5 p-6">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">Overview</div>
+                        <div className="text-2xl font-semibold leading-none tracking-tight">
+                          Overview
+                        </div>
                       </div>
                       <div className="p-6 pt-0 space-y-4">
                         <p className="text-muted-foreground">
-                          Book lover, coffee addict, and aspiring writer. I read mostly fantasy, sci-fi, and literary
-                          fiction.
+                          Book lover, coffee addict, and aspiring writer. I read mostly fantasy,
+                          sci-fi, and literary fiction.
                         </p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="flex items-start gap-3">
@@ -700,9 +787,14 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                         </div>
                       </div>
                     </div>
-                    <div className="rounded-lg border bg-card text-card-foreground shadow-xs" id="work-education">
+                    <div
+                      className="rounded-lg border bg-card text-card-foreground shadow-xs"
+                      id="work-education"
+                    >
                       <div className="flex flex-col space-y-1.5 p-6">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">Work and Education</div>
+                        <div className="text-2xl font-semibold leading-none tracking-tight">
+                          Work and Education
+                        </div>
                       </div>
                       <div className="p-6 pt-0 space-y-6">
                         <div>
@@ -745,7 +837,9 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                               </div>
                               <div>
                                 <h4 className="font-medium">University of Oregon</h4>
-                                <p className="text-muted-foreground">Bachelor of Arts in English Literature</p>
+                                <p className="text-muted-foreground">
+                                  Bachelor of Arts in English Literature
+                                </p>
                                 <p className="text-sm text-muted-foreground">2012-2016</p>
                               </div>
                             </div>
@@ -755,7 +849,9 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                               </div>
                               <div>
                                 <h4 className="font-medium">Portland Community College</h4>
-                                <p className="text-muted-foreground">Associate&apos;s Degree in Creative Writing</p>
+                                <p className="text-muted-foreground">
+                                  Associate&apos;s Degree in Creative Writing
+                                </p>
                                 <p className="text-sm text-muted-foreground">2010-2012</p>
                               </div>
                             </div>
@@ -763,9 +859,14 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                         </div>
                       </div>
                     </div>
-                    <div className="rounded-lg border bg-card text-card-foreground shadow-xs" id="contact-info">
+                    <div
+                      className="rounded-lg border bg-card text-card-foreground shadow-xs"
+                      id="contact-info"
+                    >
                       <div className="flex flex-col space-y-1.5 p-6">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">Contact Information</div>
+                        <div className="text-2xl font-semibold leading-none tracking-tight">
+                          Contact Information
+                        </div>
                       </div>
                       <div className="p-6 pt-0">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -773,7 +874,10 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                             <Globe className="h-5 w-5 text-muted-foreground mt-0.5" />
                             <div>
                               <h3 className="font-medium">Email</h3>
-                              <a href="mailto:jane.reader@example.com" className="text-primary hover:underline">
+                              <a
+                                href="mailto:jane.reader@example.com"
+                                className="text-primary hover:underline"
+                              >
                                 jane.reader@example.com
                               </a>
                             </div>
@@ -802,9 +906,14 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                         </div>
                       </div>
                     </div>
-                    <div className="rounded-lg border bg-card text-card-foreground shadow-xs" id="interests">
+                    <div
+                      className="rounded-lg border bg-card text-card-foreground shadow-xs"
+                      id="interests"
+                    >
                       <div className="flex flex-col space-y-1.5 p-6">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">Interests</div>
+                        <div className="text-2xl font-semibold leading-none tracking-tight">
+                          Interests
+                        </div>
                       </div>
                       <div className="p-6 pt-0">
                         <div className="flex flex-wrap gap-2">
@@ -832,23 +941,32 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                         </div>
                       </div>
                     </div>
-                    <div className="rounded-lg border bg-card text-card-foreground shadow-xs" id="favorite-quotes">
+                    <div
+                      className="rounded-lg border bg-card text-card-foreground shadow-xs"
+                      id="favorite-quotes"
+                    >
                       <div className="flex flex-col space-y-1.5 p-6">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">Favorite Quotes</div>
+                        <div className="text-2xl font-semibold leading-none tracking-tight">
+                          Favorite Quotes
+                        </div>
                       </div>
                       <div className="p-6 pt-0">
                         <div className="space-y-4">
                           <div className="border-l-4 border-muted pl-4 italic">
                             <p className="text-muted-foreground">
-                              A reader lives a thousand lives before he dies. The man who never reads lives only one. -
-                              George R.R. Martin
+                              A reader lives a thousand lives before he dies. The man who never
+                              reads lives only one. - George R.R. Martin
                             </p>
                           </div>
                           <div className="border-l-4 border-muted pl-4 italic">
-                            <p className="text-muted-foreground">Books are a uniquely portable magic. - Stephen King</p>
+                            <p className="text-muted-foreground">
+                              Books are a uniquely portable magic. - Stephen King
+                            </p>
                           </div>
                           <div className="border-l-4 border-muted pl-4 italic">
-                            <p className="text-muted-foreground">I cannot live without books. - Thomas Jefferson</p>
+                            <p className="text-muted-foreground">
+                              I cannot live without books. - Thomas Jefferson
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -872,13 +990,22 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                         >
                           Currently Reading
                         </a>
-                        <a href="#favorite-books" className="flex items-center px-3 py-2 rounded-md hover:bg-muted">
+                        <a
+                          href="#favorite-books"
+                          className="flex items-center px-3 py-2 rounded-md hover:bg-muted"
+                        >
                           Favorite Books
                         </a>
-                        <a href="#recently-read" className="flex items-center px-3 py-2 rounded-md hover:bg-muted">
+                        <a
+                          href="#recently-read"
+                          className="flex items-center px-3 py-2 rounded-md hover:bg-muted"
+                        >
                           Recently Read
                         </a>
-                        <a href="#bookshelves" className="flex items-center px-3 py-2 rounded-md hover:bg-muted">
+                        <a
+                          href="#bookshelves"
+                          className="flex items-center px-3 py-2 rounded-md hover:bg-muted"
+                        >
                           Bookshelves
                         </a>
                       </nav>
@@ -904,7 +1031,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                                 data-state="indeterminate"
                                 data-max="100"
                                 className="h-full w-full flex-1 bg-primary transition-all"
-                                style={{ transform: "translateX(-36.5%)" }}
+                                style={{ transform: 'translateX(-36.5%)' }}
                               ></div>
                             </div>
                           </div>
@@ -925,7 +1052,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                                 data-state="indeterminate"
                                 data-max="100"
                                 className="h-full w-full flex-1 bg-primary transition-all"
-                                style={{ transform: "translateX(-31.6%)" }}
+                                style={{ transform: 'translateX(-31.6%)' }}
                               ></div>
                             </div>
                           </div>
@@ -946,7 +1073,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                                 data-state="indeterminate"
                                 data-max="100"
                                 className="h-full w-full flex-1 bg-primary transition-all"
-                                style={{ transform: "translateX(-52%)" }}
+                                style={{ transform: 'translateX(-52%)' }}
                               ></div>
                             </div>
                           </div>
@@ -955,9 +1082,14 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                     </div>
                   </div>
                   <div className="lg:col-span-2 space-y-6">
-                    <div className="rounded-lg border bg-card text-card-foreground shadow-xs" id="currently-reading">
+                    <div
+                      className="rounded-lg border bg-card text-card-foreground shadow-xs"
+                      id="currently-reading"
+                    >
                       <div className="flex flex-col space-y-1.5 p-6">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">Currently Reading</div>
+                        <div className="text-2xl font-semibold leading-none tracking-tight">
+                          Currently Reading
+                        </div>
                       </div>
                       <div className="p-6 pt-0 space-y-6">
                         <div className="flex gap-4 p-4 border rounded-lg">
@@ -990,7 +1122,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                                   data-state="indeterminate"
                                   data-max="100"
                                   className="h-full w-full flex-1 bg-primary transition-all"
-                                  style={{ transform: "translateX(-35%)" }}
+                                  style={{ transform: 'translateX(-35%)' }}
                                 ></div>
                               </div>
                             </div>
@@ -1034,7 +1166,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                                   data-state="indeterminate"
                                   data-max="100"
                                   className="h-full w-full flex-1 bg-primary transition-all"
-                                  style={{ transform: "translateX(-77%)" }}
+                                  style={{ transform: 'translateX(-77%)' }}
                                 ></div>
                               </div>
                             </div>
@@ -1050,9 +1182,14 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                         </div>
                       </div>
                     </div>
-                    <div className="rounded-lg border bg-card text-card-foreground shadow-xs" id="favorite-books">
+                    <div
+                      className="rounded-lg border bg-card text-card-foreground shadow-xs"
+                      id="favorite-books"
+                    >
                       <div className="flex flex-col space-y-1.5 p-6">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">Favorite Books</div>
+                        <div className="text-2xl font-semibold leading-none tracking-tight">
+                          Favorite Books
+                        </div>
                       </div>
                       <div className="p-6 pt-0">
                         <div className="space-y-6">
@@ -1075,8 +1212,8 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                                 <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
                               </div>
                               <p className="text-sm">
-                                Absolutely incredible world-building and character development. One of my all-time
-                                favorites.
+                                Absolutely incredible world-building and character development. One
+                                of my all-time favorites.
                               </p>
                             </div>
                           </div>
@@ -1098,7 +1235,9 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                                 <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
                                 <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
                               </div>
-                              <p className="text-sm">A timeless classic that I return to again and again.</p>
+                              <p className="text-sm">
+                                A timeless classic that I return to again and again.
+                              </p>
                             </div>
                           </div>
                           <div className="flex gap-4 p-4 border rounded-lg">
@@ -1110,7 +1249,9 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                               />
                             </div>
                             <div className="flex-1">
-                              <h3 className="font-medium text-lg">The Hitchhiker&apos;s Guide to the Galaxy</h3>
+                              <h3 className="font-medium text-lg">
+                                The Hitchhiker&apos;s Guide to the Galaxy
+                              </h3>
                               <p className="text-muted-foreground">by Douglas Adams</p>
                               <div className="flex items-center mt-2 mb-3">
                                 <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
@@ -1120,16 +1261,22 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                                 <Star className="h-5 w-5 fill-amber-500 text-amber-500" />
                               </div>
                               <p className="text-sm">
-                                Hilarious and thought-provoking. The perfect blend of sci-fi and comedy.
+                                Hilarious and thought-provoking. The perfect blend of sci-fi and
+                                comedy.
                               </p>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                    <div className="rounded-lg border bg-card text-card-foreground shadow-xs" id="recently-read">
+                    <div
+                      className="rounded-lg border bg-card text-card-foreground shadow-xs"
+                      id="recently-read"
+                    >
                       <div className="flex flex-col space-y-1.5 p-6">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">Recently Read</div>
+                        <div className="text-2xl font-semibold leading-none tracking-tight">
+                          Recently Read
+                        </div>
                       </div>
                       <div className="p-6 pt-0">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1151,7 +1298,9 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                                 <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
                                 <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
                               </div>
-                              <p className="text-xs text-muted-foreground mt-1">Read in June 2023</p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Read in June 2023
+                              </p>
                             </div>
                           </div>
                           <div className="flex gap-3 p-3 border rounded-lg">
@@ -1192,7 +1341,11 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                           Friends · {mockFriendsCount}
                         </div>
                         <div className="flex items-center gap-2">
-                          <Input className="w-[200px]" placeholder="Search friends..." type="search" />
+                          <Input
+                            className="w-[200px]"
+                            placeholder="Search friends..."
+                            type="search"
+                          />
                           <Button variant="outline" size="icon">
                             <Filter className="h-4 w-4" />
                           </Button>
@@ -1202,10 +1355,13 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                     <CardContent className="p-6 pt-0">
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {mockFriendsTabData.map((friend) => (
-                          <div key={friend.id} className="flex items-center gap-3 p-3 border rounded-lg">
+                          <div
+                            key={friend.id}
+                            className="flex items-center gap-3 p-3 border rounded-lg"
+                          >
                             <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
                               <img
-                                src={friend.avatar || "/placeholder.svg"}
+                                src={friend.avatar || '/placeholder.svg'}
                                 alt={friend.name}
                                 className="aspect-square h-full w-full"
                               />
@@ -1213,7 +1369,9 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                             <div className="flex-1 min-w-0">
                               <h3 className="font-medium truncate">{friend.name}</h3>
                               <p className="text-xs text-muted-foreground">{friend.location}</p>
-                              <p className="text-xs text-muted-foreground">{friend.mutualFriends} mutual friends</p>
+                              <p className="text-xs text-muted-foreground">
+                                {friend.mutualFriends} mutual friends
+                              </p>
                             </div>
                             <Button variant="ghost" size="icon">
                               <Ellipsis className="h-4 w-4" />
@@ -1226,22 +1384,29 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
 
                   <Card className="rounded-lg border bg-card text-card-foreground shadow-xs">
                     <div className="flex flex-col space-y-1.5 p-6">
-                      <div className="text-2xl font-semibold leading-none tracking-tight">Friend Suggestions</div>
+                      <div className="text-2xl font-semibold leading-none tracking-tight">
+                        Friend Suggestions
+                      </div>
                     </div>
                     <CardContent className="p-6 pt-0">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {mockFriendSuggestions.map((friend) => (
-                          <div key={friend.id} className="flex items-center gap-3 p-3 border rounded-lg">
+                          <div
+                            key={friend.id}
+                            className="flex items-center gap-3 p-3 border rounded-lg"
+                          >
                             <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
                               <img
-                                src={friend.avatar || "/placeholder.svg"}
+                                src={friend.avatar || '/placeholder.svg'}
                                 alt={friend.name}
                                 className="aspect-square h-full w-full"
                               />
                             </span>
                             <div className="flex-1 min-w-0">
                               <h3 className="font-medium truncate">{friend.name}</h3>
-                              <p className="text-xs text-muted-foreground">{friend.mutualFriends} mutual friends</p>
+                              <p className="text-xs text-muted-foreground">
+                                {friend.mutualFriends} mutual friends
+                              </p>
                               <Button className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring/25 focus-visible:ring-offset-0 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3 mt-2">
                                 Add Friend
                               </Button>
@@ -1260,7 +1425,9 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                   <Card className="rounded-lg border bg-card text-card-foreground shadow-xs">
                     <div className="flex flex-col space-y-1.5 p-6">
                       <div className="flex justify-between items-center">
-                        <div className="text-2xl font-semibold leading-none tracking-tight">Photos</div>
+                        <div className="text-2xl font-semibold leading-none tracking-tight">
+                          Photos
+                        </div>
                         <div className="flex items-center gap-2">
                           <Button
                             type="button"
@@ -1272,7 +1439,7 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                             data-state="closed"
                             className="flex h-10 items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 w-[180px]"
                           >
-                            <span style={{ pointerEvents: "none" }}>All Photos</span>
+                            <span style={{ pointerEvents: 'none' }}>All Photos</span>
                             <ChevronDown className="h-4 w-4 opacity-50" aria-hidden="true" />
                           </Button>
                           <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
@@ -1283,32 +1450,32 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                       </div>
                     </div>
                     <CardContent className="p-6 pt-0">
-                                    <SophisticatedPhotoGrid
-                photos={mockPhotosTabData}
-                onPhotoClick={(photo, index) => {
-                  console.log('Photo clicked:', photo, 'at index:', index)
-                  // Here you would typically open a photo viewer modal
-                }}
-                onPhotoLike={(photoId) => {
-                  console.log('Photo liked:', photoId)
-                  // Here you would typically update the like count in your database
-                }}
-                onPhotoComment={(photoId) => {
-                  console.log('Photo comment:', photoId)
-                  // Here you would typically open a comment dialog
-                }}
-                onPhotoShare={(photoId) => {
-                  console.log('Photo share:', photoId)
-                  // Here you would typically open a share dialog
-                }}
-                onPhotoDownload={(photoId) => {
-                  console.log('Photo download:', photoId)
-                  // Here you would typically trigger a download
-                }}
-                showActions={true}
-                showStats={true}
-                className="max-w-4xl"
-              />
+                      <SophisticatedPhotoGrid
+                        photos={mockPhotosTabData}
+                        onPhotoClick={(photo, index) => {
+                          console.log('Photo clicked:', photo, 'at index:', index)
+                          // Here you would typically open a photo viewer modal
+                        }}
+                        onPhotoLike={(photoId) => {
+                          console.log('Photo liked:', photoId)
+                          // Here you would typically update the like count in your database
+                        }}
+                        onPhotoComment={(photoId) => {
+                          console.log('Photo comment:', photoId)
+                          // Here you would typically open a comment dialog
+                        }}
+                        onPhotoShare={(photoId) => {
+                          console.log('Photo share:', photoId)
+                          // Here you would typically open a share dialog
+                        }}
+                        onPhotoDownload={(photoId) => {
+                          console.log('Photo download:', photoId)
+                          // Here you would typically trigger a download
+                        }}
+                        showActions={true}
+                        showStats={true}
+                        className="max-w-4xl"
+                      />
                     </CardContent>
                   </Card>
                 </div>
@@ -1319,7 +1486,9 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="rounded-lg border bg-card text-card-foreground shadow-xs">
                     <div className="flex flex-col space-y-1.5 p-6">
-                      <div className="text-2xl font-semibold leading-none tracking-tight">Groups</div>
+                      <div className="text-2xl font-semibold leading-none tracking-tight">
+                        Groups
+                      </div>
                     </div>
                     <div className="p-6 pt-0 space-y-4">
                       <div className="flex items-center gap-3 p-3 border rounded-lg">
@@ -1474,7 +1643,9 @@ export function ClientProfilePage({ user, avatarUrl, coverImageUrl, params }: Cl
                   </div>
                   <div className="rounded-lg border bg-card text-card-foreground shadow-xs">
                     <div className="flex flex-col space-y-1.5 p-6">
-                      <div className="text-2xl font-semibold leading-none tracking-tight">Pages</div>
+                      <div className="text-2xl font-semibold leading-none tracking-tight">
+                        Pages
+                      </div>
                     </div>
                     <div className="p-6 pt-0 space-y-4">
                       <div className="flex items-center gap-3 p-3 border rounded-lg">

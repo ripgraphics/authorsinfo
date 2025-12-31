@@ -1,10 +1,16 @@
 import { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { useToast } from "@/components/ui/use-toast"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { useToast } from '@/components/ui/use-toast'
 
 interface EditSectionModalProps {
   open: boolean
@@ -15,13 +21,13 @@ interface EditSectionModalProps {
   onSuccess: () => void
 }
 
-export function EditSectionModal({ 
-  open, 
-  onOpenChange, 
-  section, 
-  publisherId, 
+export function EditSectionModal({
+  open,
+  onOpenChange,
+  section,
+  publisherId,
   initialData,
-  onSuccess
+  onSuccess,
 }: EditSectionModalProps) {
   const [formData, setFormData] = useState(initialData)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -31,7 +37,7 @@ export function EditSectionModal({
     const { name, value } = e.target
     setFormData((prev: typeof initialData) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }))
   }
 
@@ -47,7 +53,7 @@ export function EditSectionModal({
         },
         body: JSON.stringify({
           section,
-          data: formData
+          data: formData,
         }),
       })
 
@@ -56,8 +62,8 @@ export function EditSectionModal({
       }
 
       toast({
-        title: "Success",
-        description: "Publisher information updated successfully",
+        title: 'Success',
+        description: 'Publisher information updated successfully',
       })
 
       onSuccess()
@@ -65,9 +71,9 @@ export function EditSectionModal({
     } catch (error) {
       console.error('Error updating publisher:', error)
       toast({
-        title: "Error",
-        description: "Failed to update publisher information",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to update publisher information',
+        variant: 'destructive',
       })
     } finally {
       setIsSubmitting(false)
@@ -88,7 +94,9 @@ export function EditSectionModal({
           {section === 'overview' && (
             <>
               <div className="edit-section-modal__field grid w-full gap-1.5">
-                <Label htmlFor="about" className="edit-section-modal__label">About</Label>
+                <Label htmlFor="about" className="edit-section-modal__label">
+                  About
+                </Label>
                 <Textarea
                   id="about"
                   name="about"
@@ -100,7 +108,9 @@ export function EditSectionModal({
                 />
               </div>
               <div className="edit-section-modal__field grid w-full gap-1.5">
-                <Label htmlFor="founded_year" className="edit-section-modal__label">Founded Year</Label>
+                <Label htmlFor="founded_year" className="edit-section-modal__label">
+                  Founded Year
+                </Label>
                 <Input
                   id="founded_year"
                   name="founded_year"
@@ -112,7 +122,9 @@ export function EditSectionModal({
                 />
               </div>
               <div className="edit-section-modal__field grid w-full gap-1.5">
-                <Label htmlFor="website" className="edit-section-modal__label">Website</Label>
+                <Label htmlFor="website" className="edit-section-modal__label">
+                  Website
+                </Label>
                 <Input
                   id="website"
                   name="website"
@@ -129,7 +141,9 @@ export function EditSectionModal({
           {section === 'contact' && (
             <>
               <div className="edit-section-modal__field grid w-full gap-1.5">
-                <Label htmlFor="email" className="edit-section-modal__label">Email</Label>
+                <Label htmlFor="email" className="edit-section-modal__label">
+                  Email
+                </Label>
                 <Input
                   id="email"
                   name="email"
@@ -141,7 +155,9 @@ export function EditSectionModal({
                 />
               </div>
               <div className="edit-section-modal__field grid w-full gap-1.5">
-                <Label htmlFor="phone" className="edit-section-modal__label">Phone</Label>
+                <Label htmlFor="phone" className="edit-section-modal__label">
+                  Phone
+                </Label>
                 <Input
                   id="phone"
                   name="phone"
@@ -158,7 +174,9 @@ export function EditSectionModal({
           {section === 'location' && (
             <>
               <div className="edit-section-modal__field grid w-full gap-1.5">
-                <Label htmlFor="address_line1" className="edit-section-modal__label">Address Line 1</Label>
+                <Label htmlFor="address_line1" className="edit-section-modal__label">
+                  Address Line 1
+                </Label>
                 <Input
                   id="address_line1"
                   name="address_line1"
@@ -169,7 +187,9 @@ export function EditSectionModal({
                 />
               </div>
               <div className="edit-section-modal__field grid w-full gap-1.5">
-                <Label htmlFor="address_line2" className="edit-section-modal__label">Address Line 2</Label>
+                <Label htmlFor="address_line2" className="edit-section-modal__label">
+                  Address Line 2
+                </Label>
                 <Input
                   id="address_line2"
                   name="address_line2"
@@ -181,7 +201,9 @@ export function EditSectionModal({
               </div>
               <div className="edit-section-modal__field-group grid grid-cols-2 gap-2">
                 <div className="edit-section-modal__field grid w-full gap-1.5">
-                  <Label htmlFor="city" className="edit-section-modal__label">City</Label>
+                  <Label htmlFor="city" className="edit-section-modal__label">
+                    City
+                  </Label>
                   <Input
                     id="city"
                     name="city"
@@ -192,7 +214,9 @@ export function EditSectionModal({
                   />
                 </div>
                 <div className="edit-section-modal__field grid w-full gap-1.5">
-                  <Label htmlFor="state" className="edit-section-modal__label">State/Province</Label>
+                  <Label htmlFor="state" className="edit-section-modal__label">
+                    State/Province
+                  </Label>
                   <Input
                     id="state"
                     name="state"
@@ -205,7 +229,9 @@ export function EditSectionModal({
               </div>
               <div className="edit-section-modal__field-group grid grid-cols-2 gap-2">
                 <div className="edit-section-modal__field grid w-full gap-1.5">
-                  <Label htmlFor="postal_code" className="edit-section-modal__label">Postal Code</Label>
+                  <Label htmlFor="postal_code" className="edit-section-modal__label">
+                    Postal Code
+                  </Label>
                   <Input
                     id="postal_code"
                     name="postal_code"
@@ -216,7 +242,9 @@ export function EditSectionModal({
                   />
                 </div>
                 <div className="edit-section-modal__field grid w-full gap-1.5">
-                  <Label htmlFor="country" className="edit-section-modal__label">Country</Label>
+                  <Label htmlFor="country" className="edit-section-modal__label">
+                    Country
+                  </Label>
                   <Input
                     id="country"
                     name="country"
@@ -231,18 +259,18 @@ export function EditSectionModal({
           )}
 
           <DialogFooter className="edit-section-modal__footer">
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
               className="edit-section-modal__cancel-button"
             >
               Cancel
             </Button>
-            <Button 
-              type="submit" 
-              disabled={isSubmitting} 
+            <Button
+              type="submit"
+              disabled={isSubmitting}
               className="edit-section-modal__submit-button"
             >
               {isSubmitting ? 'Saving...' : 'Save Changes'}
@@ -252,4 +280,4 @@ export function EditSectionModal({
       </DialogContent>
     </Dialog>
   )
-} 
+}

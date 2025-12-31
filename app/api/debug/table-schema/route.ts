@@ -7,9 +7,12 @@ export async function GET(request: NextRequest) {
     const tableName = searchParams.get('table')
 
     if (!tableName) {
-      return NextResponse.json({
-        error: 'table parameter is required'
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: 'table parameter is required',
+        },
+        { status: 400 }
+      )
     }
 
     const supabase = await createRouteHandlerClientAsync()
@@ -21,10 +24,7 @@ export async function GET(request: NextRequest) {
       .limit(1)
 
     // Get all rows to see actual data
-    const { data: allData, error: allError } = await supabase
-      .from(tableName)
-      .select('*')
-      .limit(100)
+    const { data: allData, error: allError } = await supabase.from(tableName).select('*').limit(100)
 
     return NextResponse.json({
       table: tableName,
@@ -35,14 +35,15 @@ export async function GET(request: NextRequest) {
       allData: allData,
       errors: {
         sampleError: sampleError?.message,
-        allError: allError?.message
-      }
+        allError: allError?.message,
+      },
     })
-
   } catch (error) {
-    return NextResponse.json({
-      error: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    )
   }
 }
-

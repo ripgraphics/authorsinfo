@@ -17,7 +17,7 @@ interface UserAvatarProps {
 /**
  * Reusable UserAvatar component that automatically fetches user avatar from images table
  * via profiles.avatar_image_id. Can be used anywhere in the application.
- * 
+ *
  * @param userId - Optional user ID. If not provided, uses current authenticated user
  * @param name - Optional user name. If not provided, fetches from API
  * @param size - Avatar size (xs, sm, md, lg)
@@ -31,7 +31,7 @@ export function UserAvatar({
   size = 'sm',
   className = '',
   showName = false,
-  nameClassName = ''
+  nameClassName = '',
 }: UserAvatarProps) {
   const { user: currentUser } = useAuth()
   const [userData, setUserData] = useState<{ name: string; avatar_url: string | null } | null>(null)
@@ -51,7 +51,7 @@ export function UserAvatar({
     if (isCurrentUser && currentUser) {
       setUserData({
         name: providedName || (currentUser as any)?.name || currentUser.email || 'User',
-        avatar_url: (currentUser as any)?.avatar_url || null
+        avatar_url: (currentUser as any)?.avatar_url || null,
       })
       setLoading(false)
       return
@@ -76,19 +76,19 @@ export function UserAvatar({
         if (data) {
           setUserData({
             name: providedName || data.name || 'User',
-            avatar_url: data.avatar_url || null
+            avatar_url: data.avatar_url || null,
           })
         } else {
           setUserData({
             name: providedName || 'User',
-            avatar_url: null
+            avatar_url: null,
           })
         }
       } catch (error) {
         console.error('Error fetching user data:', error)
         setUserData({
           name: providedName || 'User',
-          avatar_url: null
+          avatar_url: null,
         })
       } finally {
         setLoading(false)
@@ -101,7 +101,9 @@ export function UserAvatar({
   if (loading) {
     return (
       <div className={`flex items-center gap-2 ${className}`}>
-        <div className={`rounded-full bg-gray-200 animate-pulse ${size === 'xs' ? 'w-8 h-8' : size === 'sm' ? 'w-10 h-10' : size === 'md' ? 'w-24 h-24' : 'w-32 h-32'}`} />
+        <div
+          className={`rounded-full bg-gray-200 animate-pulse ${size === 'xs' ? 'w-8 h-8' : size === 'sm' ? 'w-10 h-10' : size === 'md' ? 'w-24 h-24' : 'w-32 h-32'}`}
+        />
         {showName && <div className="h-4 w-24 bg-gray-200 rounded-sm animate-pulse" />}
       </div>
     )
@@ -121,9 +123,7 @@ export function UserAvatar({
         className={className}
       />
       {showName && (
-        <span className={nameClassName || 'text-sm font-medium text-gray-900'}>
-          {displayName}
-        </span>
+        <span className={nameClassName || 'text-sm font-medium text-gray-900'}>{displayName}</span>
       )}
     </div>
   )
@@ -144,21 +144,24 @@ export function useCurrentUserAvatar(): string | null {
  */
 export function useCurrentUserName(): string {
   const { user, loading } = useAuth()
-  
+
   if (loading || !user) {
     return ''
   }
-  
+
   // The user object should have name property (either from API or fallback)
-  if ((user as any)?.name && typeof (user as any).name === 'string' && (user as any).name.length > 0) {
+  if (
+    (user as any)?.name &&
+    typeof (user as any).name === 'string' &&
+    (user as any).name.length > 0
+  ) {
     return (user as any).name
   }
-  
+
   // Fallback to email username if name is not available
   if (user?.email) {
     return user.email.split('@')[0]
   }
-  
+
   return ''
 }
-

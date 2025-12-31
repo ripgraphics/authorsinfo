@@ -1,40 +1,76 @@
-import { Metadata } from 'next';
-import Link from 'next/link';
-import { CalendarDaysIcon } from '@heroicons/react/24/outline';
-import { getPublicEvents, getEventCategories } from '@/lib/events';
-import EventCard from '@/components/event-card';
+import { Metadata } from 'next'
+import Link from 'next/link'
+import { CalendarDaysIcon } from '@heroicons/react/24/outline'
+import { getPublicEvents, getEventCategories } from '@/lib/events'
+import EventCard from '@/components/event-card'
+import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Video, MapPin } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Events | Book Platform',
-  description: 'Discover and join book-related events, author meetups, and reading groups.',
-};
+  description: 'Discover and join book-related events, author meetups, reading groups, and virtual sessions.',
+}
 
-export const revalidate = 3600; // Revalidate every hour
+export const revalidate = 3600 // Revalidate every hour
 
-export default async function EventsPage({ searchParams: searchParamsPromise }: { searchParams?: any }) {
-  const searchParams = await searchParamsPromise;
-  const page = Number(searchParams?.page) || 1;
-  const limit = 12;
-  const category = searchParams?.category || '';
-  const search = searchParams?.search || '';
-  
-  const eventsPromise = getPublicEvents(page, limit, search, category);
-  const categoriesPromise = getEventCategories();
-  
-  const [{ data: events, count }, categories] = await Promise.all([
+export default async function EventsPage({
+  searchParams: searchParamsPromise,
+}: {
+  searchParams?: any
+}) {
+  const searchParams = await searchParamsPromise
+  const page = Number(searchParams?.page) || 1
+  const limit = 12
+  const category = searchParams?.category || ''
+  const search = searchParams?.search || ''
+  const eventType = searchParams?.type || 'all' // 'all', 'virtual', 'in-person'
+
+  const eventsPromise = getPublicEvents(page, limit, search, category)
+  const categoriesPromise = getEventCategories()
+
+  const [{ data: allEvents, count }, categories] = await Promise.all([
     eventsPromise,
     categoriesPromise,
-  ]);
-  
-  const totalPages = Math.ceil((count || 0) / limit);
-  
+  ])
+
+  // Filter by event type (virtual/in-person)
+  const events = eventType === 'all' 
+    ? allEvents 
+    : eventType === 'virtual'
+    ? allEvents.filter((e: any) => e.is_virtual)
+    : allEvents.filter((e: any) => !e.is_virtual)
+
+  const totalPages = Math.ceil((count || 0) / limit)
+
+  // Count event types
+  const virtualCount = allEvents.filter((e: any) => e.is_virtual).length
+  const inPersonCount = allEvents.filter((e: any) => !e.is_virtual).length
+
   return (
     <div className="space-y-6">
       <div className="py-6">
         <h1 className="text-3xl font-bold tracking-tight">Events</h1>
-        <p className="text-muted-foreground mt-2">Discover and join book-related events, author meetups, and reading groups.</p>
+        <p className="text-muted-foreground mt-2">
+          Discover and join book-related events, author meetups, reading groups, and virtual sessions.
+        </p>
       </div>
-      
+
+      {/* Event Type Filter Tabs */}
+      <div className="flex items-center gap-4 pb-4 border-b">
+        <Link href="/events?type=all" className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${eventType === 'all' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}>
+          All Events ({allEvents.length})
+        </Link>
+        <Link href="/events?type=virtual" className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${eventType === 'virtual' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}>
+          <Video className="h-4 w-4" />
+          Virtual ({virtualCount})
+        </Link>
+        <Link href="/events?type=in-person" className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${eventType === 'in-person' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}>
+          <MapPin className="h-4 w-4" />
+          In-Person ({inPersonCount})
+        </Link>
+      </div>
+
       <div className="flex flex-col md:flex-row gap-8">
         {/* Filter sidebar */}
         <div className="w-full md:w-64 shrink-0">
@@ -42,8 +78,8 @@ export default async function EventsPage({ searchParams: searchParamsPromise }: 
             <h2 className="text-lg font-semibold mb-4">Categories</h2>
             <ul className="space-y-2">
               <li>
-                <Link 
-                  href="/events" 
+                <Link
+                  href="/events"
                   className={`text-sm ${!category ? 'text-blue-600 font-medium' : 'text-gray-700 hover:text-blue-600'}`}
                 >
                   All Events
@@ -51,7 +87,7 @@ export default async function EventsPage({ searchParams: searchParamsPromise }: 
               </li>
               {categories.map((cat) => (
                 <li key={cat.id}>
-                  <Link 
+                  <Link
                     href={`/events?category=${cat.id}`}
                     className={`text-sm ${category === cat.id ? 'text-blue-600 font-medium' : 'text-gray-700 hover:text-blue-600'}`}
                   >
@@ -60,7 +96,7 @@ export default async function EventsPage({ searchParams: searchParamsPromise }: 
                 </li>
               ))}
             </ul>
-            
+
             <div className="border-t border-gray-200 my-4 pt-4">
               <h2 className="text-lg font-semibold mb-4">Search Events</h2>
               <form action="/events" method="get">
@@ -84,20 +120,20 @@ export default async function EventsPage({ searchParams: searchParamsPromise }: 
             </div>
           </div>
         </div>
-        
+
         {/* Events grid */}
         <div className="flex-1">
           {events.length === 0 ? (
             <div className="bg-white rounded-lg shadow-md p-8 text-center">
               <h3 className="text-xl font-medium text-gray-900 mb-2">No events found</h3>
               <p className="text-gray-600 mb-4">
-                {search || category 
+                {search || category
                   ? 'Try adjusting your search or category filters.'
                   : 'There are no upcoming events at the moment.'}
               </p>
               {(search || category) && (
-                <Link 
-                  href="/events" 
+                <Link
+                  href="/events"
                   className="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   View All Events
@@ -111,7 +147,7 @@ export default async function EventsPage({ searchParams: searchParamsPromise }: 
                   <EventCard key={event.id} event={event} />
                 ))}
               </div>
-              
+
               {/* Pagination */}
               {totalPages > 1 && (
                 <div className="mt-8 flex justify-center">
@@ -141,5 +177,5 @@ export default async function EventsPage({ searchParams: searchParamsPromise }: 
         </div>
       </div>
     </div>
-  );
+  )
 }

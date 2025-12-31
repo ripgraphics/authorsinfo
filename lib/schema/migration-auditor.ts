@@ -1,6 +1,6 @@
-import { schemaService } from "./supabase-schema-service"
-import { readdir, readFile } from "fs/promises"
-import { join } from "path"
+import { schemaService } from './supabase-schema-service'
+import { readdir, readFile } from 'fs/promises'
+import { join } from 'path'
 
 export interface ColumnDiff {
   column_name: string
@@ -42,27 +42,36 @@ export interface MigrationAuditResult {
 /**
  * Extract expected schema from migration files
  */
-async function extractExpectedSchemaFromMigrations(): Promise<Map<string, {
-  columns: Set<string>
-  policies: Set<string>
-  rls_enabled: boolean
-}>> {
-  const expectedSchema = new Map<string, {
-    columns: Set<string>
-    policies: Set<string>
-    rls_enabled: boolean
-  }>()
+async function extractExpectedSchemaFromMigrations(): Promise<
+  Map<
+    string,
+    {
+      columns: Set<string>
+      policies: Set<string>
+      rls_enabled: boolean
+    }
+  >
+> {
+  const expectedSchema = new Map<
+    string,
+    {
+      columns: Set<string>
+      policies: Set<string>
+      rls_enabled: boolean
+    }
+  >()
 
   try {
     const migrationsDir = join(process.cwd(), 'supabase', 'migrations')
     const files = await readdir(migrationsDir)
-    const sqlFiles = files.filter(f => f.endsWith('.sql')).sort()
+    const sqlFiles = files.filter((f) => f.endsWith('.sql')).sort()
 
     for (const file of sqlFiles) {
       const content = await readFile(join(migrationsDir, file), 'utf-8')
-      
+
       // Extract CREATE TABLE statements
-      const createTableRegex = /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(?:public\.)?["']?(\w+)["']?/gi
+      const createTableRegex =
+        /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(?:public\.)?["']?(\w+)["']?/gi
       let match
       while ((match = createTableRegex.exec(content)) !== null) {
         const tableName = match[1]
@@ -70,13 +79,14 @@ async function extractExpectedSchemaFromMigrations(): Promise<Map<string, {
           expectedSchema.set(tableName, {
             columns: new Set(),
             policies: new Set(),
-            rls_enabled: false
+            rls_enabled: false,
           })
         }
       }
 
       // Extract ALTER TABLE ADD COLUMN statements
-      const addColumnRegex = /ALTER\s+TABLE\s+(?:public\.)?["']?(\w+)["']?\s+ADD\s+COLUMN\s+(?:IF\s+NOT\s+EXISTS\s+)?["']?(\w+)["']?/gi
+      const addColumnRegex =
+        /ALTER\s+TABLE\s+(?:public\.)?["']?(\w+)["']?\s+ADD\s+COLUMN\s+(?:IF\s+NOT\s+EXISTS\s+)?["']?(\w+)["']?/gi
       while ((match = addColumnRegex.exec(content)) !== null) {
         const tableName = match[1]
         const columnName = match[2]
@@ -84,14 +94,15 @@ async function extractExpectedSchemaFromMigrations(): Promise<Map<string, {
           expectedSchema.set(tableName, {
             columns: new Set(),
             policies: new Set(),
-            rls_enabled: false
+            rls_enabled: false,
           })
         }
         expectedSchema.get(tableName)!.columns.add(columnName)
       }
 
       // Extract CREATE POLICY statements
-      const createPolicyRegex = /CREATE\s+POLICY\s+["']?(\w+)["']?\s+ON\s+(?:public\.)?["']?(\w+)["']?/gi
+      const createPolicyRegex =
+        /CREATE\s+POLICY\s+["']?(\w+)["']?\s+ON\s+(?:public\.)?["']?(\w+)["']?/gi
       while ((match = createPolicyRegex.exec(content)) !== null) {
         const policyName = match[1]
         const tableName = match[2]
@@ -99,21 +110,22 @@ async function extractExpectedSchemaFromMigrations(): Promise<Map<string, {
           expectedSchema.set(tableName, {
             columns: new Set(),
             policies: new Set(),
-            rls_enabled: false
+            rls_enabled: false,
           })
         }
         expectedSchema.get(tableName)!.policies.add(policyName)
       }
 
       // Extract ENABLE ROW LEVEL SECURITY
-      const enableRLSRegex = /ALTER\s+TABLE\s+(?:public\.)?["']?(\w+)["']?\s+ENABLE\s+ROW\s+LEVEL\s+SECURITY/gi
+      const enableRLSRegex =
+        /ALTER\s+TABLE\s+(?:public\.)?["']?(\w+)["']?\s+ENABLE\s+ROW\s+LEVEL\s+SECURITY/gi
       while ((match = enableRLSRegex.exec(content)) !== null) {
         const tableName = match[1]
         if (!expectedSchema.has(tableName)) {
           expectedSchema.set(tableName, {
             columns: new Set(),
             policies: new Set(),
-            rls_enabled: true
+            rls_enabled: true,
           })
         } else {
           expectedSchema.get(tableName)!.rls_enabled = true
@@ -141,7 +153,7 @@ export async function auditSchemaAgainstMigrations(
     const expectedSchema = await extractExpectedSchemaFromMigrations()
 
     // Get actual tables from database
-    const actualTables = tableNames || await schemaService.getAllTables()
+    const actualTables = tableNames || (await schemaService.getAllTables())
 
     // Audit each table
     for (const tableName of actualTables) {
@@ -150,11 +162,11 @@ export async function auditSchemaAgainstMigrations(
         const expected = expectedSchema.get(tableName) || {
           columns: new Set(),
           policies: new Set(),
-          rls_enabled: false
+          rls_enabled: false,
         }
 
         // Compare columns
-        const actualColumns = new Set(actualSchema.columns.map(c => c.column_name))
+        const actualColumns = new Set(actualSchema.columns.map((c) => c.column_name))
         const columnDiffs: ColumnDiff[] = []
 
         // Find missing columns (in expected but not in actual)
@@ -164,7 +176,7 @@ export async function auditSchemaAgainstMigrations(
               column_name: expectedCol,
               expected: 'exists',
               actual: null,
-              status: 'missing'
+              status: 'missing',
             })
           }
         }
@@ -176,13 +188,13 @@ export async function auditSchemaAgainstMigrations(
               column_name: actualCol,
               expected: null,
               actual: 'exists',
-              status: 'extra'
+              status: 'extra',
             })
           }
         }
 
         // Compare policies
-        const actualPolicies = new Set(actualSchema.rls_policies.map(p => p.policyname))
+        const actualPolicies = new Set(actualSchema.rls_policies.map((p) => p.policyname))
         const policyDiffs: PolicyDiff[] = []
 
         // Find missing policies
@@ -192,7 +204,7 @@ export async function auditSchemaAgainstMigrations(
               policy_name: expectedPolicy,
               expected: 'exists',
               actual: null,
-              status: 'missing'
+              status: 'missing',
             })
           }
         }
@@ -204,7 +216,7 @@ export async function auditSchemaAgainstMigrations(
               policy_name: actualPolicy,
               expected: null,
               actual: 'exists',
-              status: 'extra'
+              status: 'extra',
             })
           }
         }
@@ -216,31 +228,35 @@ export async function auditSchemaAgainstMigrations(
           policy_diffs: policyDiffs,
           has_rls_enabled: actualSchema.has_rls_enabled,
           expected_rls_enabled: expected.rls_enabled,
-          rls_mismatch: actualSchema.has_rls_enabled !== expected.rls_enabled
+          rls_mismatch: actualSchema.has_rls_enabled !== expected.rls_enabled,
         })
       } catch (error) {
-        errors.push(`Error auditing table ${tableName}: ${error instanceof Error ? error.message : String(error)}`)
+        errors.push(
+          `Error auditing table ${tableName}: ${error instanceof Error ? error.message : String(error)}`
+        )
       }
     }
 
     // Calculate summary
-    const tablesWithIssues = tables.filter(t => 
-      t.column_diffs.length > 0 || 
-      t.policy_diffs.length > 0 || 
-      t.rls_mismatch
+    const tablesWithIssues = tables.filter(
+      (t) => t.column_diffs.length > 0 || t.policy_diffs.length > 0 || t.rls_mismatch
     ).length
 
-    const missingColumns = tables.reduce((sum, t) => 
-      sum + t.column_diffs.filter(d => d.status === 'missing').length, 0
+    const missingColumns = tables.reduce(
+      (sum, t) => sum + t.column_diffs.filter((d) => d.status === 'missing').length,
+      0
     )
-    const extraColumns = tables.reduce((sum, t) => 
-      sum + t.column_diffs.filter(d => d.status === 'extra').length, 0
+    const extraColumns = tables.reduce(
+      (sum, t) => sum + t.column_diffs.filter((d) => d.status === 'extra').length,
+      0
     )
-    const missingPolicies = tables.reduce((sum, t) => 
-      sum + t.policy_diffs.filter(d => d.status === 'missing').length, 0
+    const missingPolicies = tables.reduce(
+      (sum, t) => sum + t.policy_diffs.filter((d) => d.status === 'missing').length,
+      0
     )
-    const extraPolicies = tables.reduce((sum, t) => 
-      sum + t.policy_diffs.filter(d => d.status === 'extra').length, 0
+    const extraPolicies = tables.reduce(
+      (sum, t) => sum + t.policy_diffs.filter((d) => d.status === 'extra').length,
+      0
     )
 
     return {
@@ -251,12 +267,14 @@ export async function auditSchemaAgainstMigrations(
         missing_columns: missingColumns,
         extra_columns: extraColumns,
         missing_policies: missingPolicies,
-        extra_policies: extraPolicies
+        extra_policies: extraPolicies,
       },
-      errors
+      errors,
     }
   } catch (error) {
-    errors.push(`Fatal error during audit: ${error instanceof Error ? error.message : String(error)}`)
+    errors.push(
+      `Fatal error during audit: ${error instanceof Error ? error.message : String(error)}`
+    )
     return {
       tables: [],
       summary: {
@@ -265,9 +283,9 @@ export async function auditSchemaAgainstMigrations(
         missing_columns: 0,
         extra_columns: 0,
         missing_policies: 0,
-        extra_policies: 0
+        extra_policies: 0,
       },
-      errors
+      errors,
     }
   }
 }
@@ -280,26 +298,26 @@ export function generateMigrationSuggestions(auditResult: MigrationAuditResult):
 
   for (const table of auditResult.tables) {
     // Suggest adding missing columns
-    const missingColumns = table.column_diffs.filter(d => d.status === 'missing')
+    const missingColumns = table.column_diffs.filter((d) => d.status === 'missing')
     if (missingColumns.length > 0) {
       suggestions.push(
-        `Table ${table.table_name} is missing columns: ${missingColumns.map(c => c.column_name).join(', ')}`
+        `Table ${table.table_name} is missing columns: ${missingColumns.map((c) => c.column_name).join(', ')}`
       )
     }
 
     // Suggest removing extra columns (if they're not needed)
-    const extraColumns = table.column_diffs.filter(d => d.status === 'extra')
+    const extraColumns = table.column_diffs.filter((d) => d.status === 'extra')
     if (extraColumns.length > 0) {
       suggestions.push(
-        `Table ${table.table_name} has extra columns not in migrations: ${extraColumns.map(c => c.column_name).join(', ')}`
+        `Table ${table.table_name} has extra columns not in migrations: ${extraColumns.map((c) => c.column_name).join(', ')}`
       )
     }
 
     // Suggest adding missing policies
-    const missingPolicies = table.policy_diffs.filter(d => d.status === 'missing')
+    const missingPolicies = table.policy_diffs.filter((d) => d.status === 'missing')
     if (missingPolicies.length > 0) {
       suggestions.push(
-        `Table ${table.table_name} is missing RLS policies: ${missingPolicies.map(p => p.policy_name).join(', ')}`
+        `Table ${table.table_name} is missing RLS policies: ${missingPolicies.map((p) => p.policy_name).join(', ')}`
       )
     }
 
@@ -315,4 +333,3 @@ export function generateMigrationSuggestions(auditResult: MigrationAuditResult):
 
   return suggestions
 }
-

@@ -1,12 +1,12 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { PhotoGalleryHeaderProps } from './types';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Upload, Share2, Image as ImageIcon, Users, Eye, Heart } from 'lucide-react';
+import { useState } from 'react'
+import { PhotoGalleryHeaderProps } from './types'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Upload, Share2, Image as ImageIcon, Eye, Heart } from 'lucide-react'
 
 export function PhotoGalleryHeader({
   albumId,
@@ -17,60 +17,58 @@ export function PhotoGalleryHeader({
   showShare,
   onUpload,
 }: PhotoGalleryHeaderProps) {
-  const [isUploading, setIsUploading] = useState(false);
-  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
-  const [shareLink, setShareLink] = useState('');
+  const [isUploading, setIsUploading] = useState(false)
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false)
+  const [shareLink, setShareLink] = useState('')
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     console.log('File input changed')
-    const files = Array.from(e.target.files || []);
+    const files = Array.from(e.target.files || [])
     console.log('Selected files:', files.length)
-    
+
     if (files.length === 0) {
       console.log('No files selected')
-      return;
+      return
     }
 
     try {
       console.log('Starting upload...')
-      setIsUploading(true);
-      await onUpload(files);
+      setIsUploading(true)
+      await onUpload(files)
       console.log('Upload completed successfully')
     } catch (error) {
       console.error('Upload error in header:', error)
     } finally {
-      setIsUploading(false);
+      setIsUploading(false)
       // Reset the input
-      e.target.value = '';
+      e.target.value = ''
     }
-  };
+  }
 
   const handleUploadClick = () => {
     console.log('Upload button clicked')
-    const fileInput = document.getElementById('photo-upload') as HTMLInputElement;
+    const fileInput = document.getElementById('photo-upload') as HTMLInputElement
     if (fileInput) {
-      fileInput.click();
+      fileInput.click()
     } else {
-      console.error('File input not found');
+      console.error('File input not found')
     }
-  };
+  }
 
   const handleShare = async () => {
     try {
-      const url = `${window.location.origin}/gallery/${albumId || `${entityType}/${entityId}`}`;
-      setShareLink(url);
-      setIsShareDialogOpen(true);
+      const url = `${window.location.origin}/gallery/${albumId || `${entityType}/${entityId}`}`
+      setShareLink(url)
+      setIsShareDialogOpen(true)
     } catch (error) {
-      console.error('Failed to generate share link:', error);
+      console.error('Failed to generate share link:', error)
     }
-  };
+  }
 
   return (
     <div className="photo-gallery__header flex items-center justify-between gap-4 p-4">
       <div className="photo-gallery__header-left flex items-center gap-4">
-        <h2 className="photo-gallery__title text-2xl font-semibold">
-          Photo Gallery
-        </h2>
+        <h2 className="photo-gallery__title text-2xl font-semibold">Photo Gallery</h2>
 
         {showStats && (
           <div className="photo-gallery__stats flex items-center gap-4">
@@ -137,16 +135,12 @@ export function PhotoGalleryHeader({
             <div className="space-y-2">
               <Label>Share Link</Label>
               <div className="flex gap-2">
-                <Input
-                  value={shareLink}
-                  readOnly
-                  className="photo-gallery__share-input"
-                />
+                <Input value={shareLink} readOnly className="photo-gallery__share-input" />
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    navigator.clipboard.writeText(shareLink);
+                    navigator.clipboard.writeText(shareLink)
                   }}
                 >
                   Copy
@@ -154,10 +148,7 @@ export function PhotoGalleryHeader({
               </div>
             </div>
             <div className="flex justify-end">
-              <Button
-                variant="outline"
-                onClick={() => setIsShareDialogOpen(false)}
-              >
+              <Button variant="outline" onClick={() => setIsShareDialogOpen(false)}>
                 Close
               </Button>
             </div>
@@ -165,5 +156,5 @@ export function PhotoGalleryHeader({
         </DialogContent>
       </Dialog>
     </div>
-  );
-} 
+  )
+}

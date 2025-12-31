@@ -1,13 +1,19 @@
-"use client"
+'use client'
 
-import React from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
+import React from 'react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
   BookOpen,
   User,
   Building,
@@ -32,8 +38,8 @@ import {
   Bookmark,
   Heart,
   Share2,
-  MoreHorizontal
-} from "lucide-react"
+  MoreHorizontal,
+} from 'lucide-react'
 
 interface Book {
   id: string
@@ -100,7 +106,7 @@ export function AdminBookDetails({ book, open, onOpenChange }: AdminBookDetailsP
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     })
   }
 
@@ -108,7 +114,7 @@ export function AdminBookDetails({ book, open, onOpenChange }: AdminBookDetailsP
     if (!price) return 'Not set'
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'USD',
     }).format(price)
   }
 
@@ -125,9 +131,7 @@ export function AdminBookDetails({ book, open, onOpenChange }: AdminBookDetailsP
             <BookOpen className="h-5 w-5" />
             Book Details
           </DialogTitle>
-          <DialogDescription>
-            Complete information about {book.title}
-          </DialogDescription>
+          <DialogDescription>Complete information about {book.title}</DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="overview" className="w-full">
@@ -195,12 +199,8 @@ export function AdminBookDetails({ book, open, onOpenChange }: AdminBookDetailsP
                     <CardTitle className="flex items-center justify-between">
                       <span>Basic Information</span>
                       <div className="flex items-center gap-2">
-                        {book.featured && (
-                          <Badge variant="secondary">Featured</Badge>
-                        )}
-                        {book.status && (
-                          <Badge variant="outline">{book.status.name}</Badge>
-                        )}
+                        {book.featured && <Badge variant="secondary">Featured</Badge>}
+                        {book.status && <Badge variant="outline">{book.status.name}</Badge>}
                       </div>
                     </CardTitle>
                   </CardHeader>
@@ -222,7 +222,9 @@ export function AdminBookDetails({ book, open, onOpenChange }: AdminBookDetailsP
                       </div>
 
                       <div>
-                        <label className="text-sm font-medium text-muted-foreground">Publisher</label>
+                        <label className="text-sm font-medium text-muted-foreground">
+                          Publisher
+                        </label>
                         <p className="flex items-center gap-2">
                           <Building className="h-4 w-4" />
                           {book.publisher ? book.publisher.name : 'Unknown'}
@@ -230,7 +232,9 @@ export function AdminBookDetails({ book, open, onOpenChange }: AdminBookDetailsP
                       </div>
 
                       <div>
-                        <label className="text-sm font-medium text-muted-foreground">Publication Date</label>
+                        <label className="text-sm font-medium text-muted-foreground">
+                          Publication Date
+                        </label>
                         <p className="flex items-center gap-2">
                           <Calendar className="h-4 w-4" />
                           {book.publication_date ? formatDate(book.publication_date) : 'Unknown'}
@@ -238,7 +242,9 @@ export function AdminBookDetails({ book, open, onOpenChange }: AdminBookDetailsP
                       </div>
 
                       <div>
-                        <label className="text-sm font-medium text-muted-foreground">Language</label>
+                        <label className="text-sm font-medium text-muted-foreground">
+                          Language
+                        </label>
                         <p className="flex items-center gap-2">
                           <Globe className="h-4 w-4" />
                           {book.language || 'Unknown'}
@@ -282,7 +288,9 @@ export function AdminBookDetails({ book, open, onOpenChange }: AdminBookDetailsP
                       <div className="grid grid-cols-2 gap-4">
                         {book.isbn10 && (
                           <div>
-                            <label className="text-sm font-medium text-muted-foreground">ISBN-10</label>
+                            <label className="text-sm font-medium text-muted-foreground">
+                              ISBN-10
+                            </label>
                             <div className="flex items-center gap-2">
                               <p className="font-mono">{book.isbn10}</p>
                               <Button
@@ -297,7 +305,9 @@ export function AdminBookDetails({ book, open, onOpenChange }: AdminBookDetailsP
                         )}
                         {book.isbn13 && (
                           <div>
-                            <label className="text-sm font-medium text-muted-foreground">ISBN-13</label>
+                            <label className="text-sm font-medium text-muted-foreground">
+                              ISBN-13
+                            </label>
                             <div className="flex items-center gap-2">
                               <p className="font-mono">{book.isbn13}</p>
                               <Button
@@ -339,7 +349,9 @@ export function AdminBookDetails({ book, open, onOpenChange }: AdminBookDetailsP
                       <p>{book.binding_type?.name || 'Unknown'}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-muted-foreground">Dimensions</label>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Dimensions
+                      </label>
                       <p>{book.dimensions || 'Not specified'}</p>
                     </div>
                     <div>
@@ -498,11 +510,7 @@ export function AdminBookDetails({ book, open, onOpenChange }: AdminBookDetailsP
                       <label className="text-sm font-medium text-muted-foreground">Book ID</label>
                       <div className="flex items-center gap-2">
                         <p className="font-mono text-sm">{book.id}</p>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => copyToClipboard(book.id)}
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => copyToClipboard(book.id)}>
                           <Copy className="h-3 w-3" />
                         </Button>
                       </div>
@@ -513,7 +521,9 @@ export function AdminBookDetails({ book, open, onOpenChange }: AdminBookDetailsP
                     </div>
                     {book.updated_at && (
                       <div>
-                        <label className="text-sm font-medium text-muted-foreground">Last Updated</label>
+                        <label className="text-sm font-medium text-muted-foreground">
+                          Last Updated
+                        </label>
                         <p>{formatDate(book.updated_at)}</p>
                       </div>
                     )}
@@ -532,11 +542,15 @@ export function AdminBookDetails({ book, open, onOpenChange }: AdminBookDetailsP
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-muted-foreground">Average Rating</label>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Average Rating
+                      </label>
                       <p className="text-lg font-semibold">{formatRating(book.average_rating)}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-muted-foreground">Review Count</label>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Review Count
+                      </label>
                       <p className="text-lg font-semibold">{book.review_count || 0}</p>
                     </div>
                     <div>
@@ -580,7 +594,7 @@ export function AdminBookDetails({ book, open, onOpenChange }: AdminBookDetailsP
                         </div>
                       </div>
                     )}
-                    
+
                     {book.publisher && (
                       <div className="flex items-center gap-3 p-3 border rounded-lg">
                         {book.publisher.publisher_image?.url ? (
@@ -615,4 +629,4 @@ export function AdminBookDetails({ book, open, onOpenChange }: AdminBookDetailsP
       </DialogContent>
     </Dialog>
   )
-} 
+}

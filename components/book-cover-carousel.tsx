@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
@@ -6,7 +6,13 @@ import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { EntityPhotoAlbums } from '@/components/user-photo-albums'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 
 interface BookCoverCarouselProps {
   bookId: string
@@ -32,7 +38,7 @@ export function BookCoverCarousel({
   currentCoverImageId,
   onPreview,
   canEdit,
-  onOpenAlbum
+  onOpenAlbum,
 }: BookCoverCarouselProps) {
   const [images, setImages] = useState<AlbumImage[]>([])
   const [loading, setLoading] = useState(true)
@@ -44,7 +50,7 @@ export function BookCoverCarousel({
       try {
         setLoading(true)
         const { supabase } = await import('@/lib/supabase/client')
-        
+
         // Query images table directly using metadata filters - Supabase as source of truth
         // Use 'book_cover' for new uploads, but also check 'cover' for backward compatibility
         // Filter by entity_type = 'book' AND entity_id = bookId AND (image_type = 'book_cover' OR image_type = 'cover')
@@ -55,30 +61,37 @@ export function BookCoverCarousel({
           .eq('metadata->>entity_id', bookId)
           .or('metadata->>image_type.eq.book_cover,metadata->>image_type.eq.cover')
           .order('created_at', { ascending: false })
-        
+
         if (imagesError) {
           console.error('Error fetching book cover images:', imagesError)
           setImages([])
           setLoading(false)
           return
         }
-        
+
         if (!coverImages || coverImages.length === 0) {
           console.log('No book cover images found for book:', bookId)
           setImages([])
           setLoading(false)
           return
         }
-        
+
         console.log(`Found ${coverImages.length} book cover images for book ${bookId}`)
-        
+
         // Transform to match AlbumImage interface
         const transformedImages: AlbumImage[] = coverImages
           .filter((img: any) => {
             // Verify this image is actually for this book
             const imgEntityId = img.metadata?.entity_id
             if (imgEntityId && imgEntityId !== bookId) {
-              console.warn('Image entity_id mismatch:', img.id, 'expected', bookId, 'got', imgEntityId)
+              console.warn(
+                'Image entity_id mismatch:',
+                img.id,
+                'expected',
+                bookId,
+                'got',
+                imgEntityId
+              )
               return false
             }
             return !!img.url
@@ -89,21 +102,24 @@ export function BookCoverCarousel({
               id: img.id,
               url: img.url,
               alt_text: img.alt_text,
-              created_at: img.created_at
+              created_at: img.created_at,
             },
             is_cover: img.id === currentCoverImageId, // Mark current cover
-            display_order: 0 // No display_order from images table, use creation date
+            display_order: 0, // No display_order from images table, use creation date
           }))
-        
+
         // Sort: current cover first, then by creation date (most recent first)
         const sortedImages = transformedImages.sort((a: AlbumImage, b: AlbumImage) => {
           // Current cover first
           if (a.is_cover && !b.is_cover) return -1
           if (!a.is_cover && b.is_cover) return 1
           // Then by creation date (most recent first)
-          return new Date((b.image as any).created_at || 0).getTime() - new Date((a.image as any).created_at || 0).getTime()
+          return (
+            new Date((b.image as any).created_at || 0).getTime() -
+            new Date((a.image as any).created_at || 0).getTime()
+          )
         })
-        
+
         console.log('Transformed and sorted images count:', sortedImages.length)
         setImages(sortedImages)
       } catch (error) {
@@ -124,7 +140,7 @@ export function BookCoverCarousel({
       const fetchCoverImages = async () => {
         try {
           const { supabase } = await import('@/lib/supabase/client')
-          
+
           // Query images table directly using metadata filters - Supabase as source of truth
           const { data: coverImages, error: imagesError } = await supabase
             .from('images')
@@ -133,17 +149,17 @@ export function BookCoverCarousel({
             .eq('metadata->>entity_id', bookId)
             .or('metadata->>image_type.eq.book_cover,metadata->>image_type.eq.cover')
             .order('created_at', { ascending: false })
-          
+
           if (imagesError) {
             console.error('Error refetching book cover images:', imagesError)
             return
           }
-          
+
           if (!coverImages || coverImages.length === 0) {
             setImages([])
             return
           }
-          
+
           // Transform to match AlbumImage interface
           const transformedImages: AlbumImage[] = coverImages
             .filter((img: any) => {
@@ -159,19 +175,22 @@ export function BookCoverCarousel({
                 id: img.id,
                 url: img.url,
                 alt_text: img.alt_text,
-                created_at: img.created_at
+                created_at: img.created_at,
               },
               is_cover: img.id === currentCoverImageId,
-              display_order: 0
+              display_order: 0,
             }))
-          
+
           // Sort: current cover first, then by creation date
           const sortedImages = transformedImages.sort((a: AlbumImage, b: AlbumImage) => {
             if (a.is_cover && !b.is_cover) return -1
             if (!a.is_cover && b.is_cover) return 1
-            return new Date((b.image as any).created_at || 0).getTime() - new Date((a.image as any).created_at || 0).getTime()
+            return (
+              new Date((b.image as any).created_at || 0).getTime() -
+              new Date((a.image as any).created_at || 0).getTime()
+            )
           })
-          
+
           setImages(sortedImages)
         } catch (error) {
           console.error('Error refetching book cover images:', error)
@@ -227,7 +246,7 @@ export function BookCoverCarousel({
                   entityDisplayInfo={{
                     id: bookId,
                     name: 'Book Covers',
-                    type: 'book' as const
+                    type: 'book' as const,
                   }}
                 />
               </DialogContent>
@@ -270,7 +289,9 @@ export function BookCoverCarousel({
               <Card
                 key={albumImage.image_id}
                 className={`flex-shrink-0 w-16 h-24 cursor-pointer transition-all hover:shadow-md relative ${
-                  isCurrentCover ? 'ring-2 ring-primary shadow-lg' : 'hover:ring-1 hover:ring-muted-foreground/20'
+                  isCurrentCover
+                    ? 'ring-2 ring-primary shadow-lg'
+                    : 'hover:ring-1 hover:ring-muted-foreground/20'
                 }`}
                 onClick={() => {
                   // Preview the image in the main cover display (temporary preview only)

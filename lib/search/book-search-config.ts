@@ -49,7 +49,8 @@ export const bookSearchFields: SearchFieldConfig<SearchableBook>[] = [
   },
   {
     name: 'description',
-    getValue: (book) => [book.synopsis, book.overview, book.description].filter(Boolean).join(' ') || null,
+    getValue: (book) =>
+      [book.synopsis, book.overview, book.description].filter(Boolean).join(' ') || null,
     weight: 100,
   },
 ]
@@ -63,29 +64,29 @@ export function bookSearchScorer(
   baseScore: number
 ): number {
   let score = baseScore
-  const authorName = typeof book.author === 'string' 
-    ? book.author.toLowerCase() 
-    : (book.author?.name || '').toLowerCase()
+  const authorName =
+    typeof book.author === 'string'
+      ? book.author.toLowerCase()
+      : (book.author?.name || '').toLowerCase()
   const title = (book.title || '').toLowerCase()
 
   // Check if all words match in author (for grouping same author's books)
-  const allWordsInAuthor = searchWords.every(word => authorName.includes(word))
+  const allWordsInAuthor = searchWords.every((word) => authorName.includes(word))
   if (allWordsInAuthor) {
     score += 2000 // Bonus for grouping same author's books
   }
 
   // Check if author matches multiple words (extra boost)
-  const authorWordMatches = searchWords.filter(word => authorName.includes(word))
+  const authorWordMatches = searchWords.filter((word) => authorName.includes(word))
   if (authorWordMatches.length >= 2) {
     score += 1500
   }
 
   // All words in title gets extra boost
-  const allWordsInTitle = searchWords.every(word => title.includes(word))
+  const allWordsInTitle = searchWords.every((word) => title.includes(word))
   if (allWordsInTitle) {
     score += 1000
   }
 
   return score
 }
-

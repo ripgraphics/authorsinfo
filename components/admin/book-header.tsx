@@ -1,10 +1,10 @@
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Camera, BookOpen, Users, MapPin, Globe, User } from "lucide-react"
-import Link from "next/link"
-import { Database } from "@/types/database"
-import { EntityHoverCard } from "@/components/entity-hover-cards"
-import { formatDate } from "@/utils/dateUtils"
+import Image from 'next/image'
+import { Button } from '@/components/ui/button'
+import { Camera, BookOpen, Users, MapPin, Globe, User } from 'lucide-react'
+import Link from 'next/link'
+import { Database } from '@/types/database'
+import { EntityHoverCard } from '@/components/entity-hover-cards'
+import { formatDate } from '@/utils/dateUtils'
 
 type Book = Database['public']['Tables']['books']['Row']
 type Author = Database['public']['Tables']['authors']['Row']
@@ -27,22 +27,22 @@ interface BookHeaderProps {
 function getAuthorImageUrl(author?: Author): string {
   // First check if author has photo_url directly
   if (author?.photo_url) {
-    return author.photo_url;
+    return author.photo_url
   }
 
   // Then check for author_image from the joined table
   if (author?.author_image?.url) {
-    return author.author_image.url;
+    return author.author_image.url
   }
 
   // Default placeholder
-  return "/placeholder.svg";
+  return '/placeholder.svg'
 }
 
 export function BookHeader({ book, mainAuthor, bookCount = 0 }: BookHeaderProps) {
   // Use mainAuthor if provided, otherwise use book.author
   const author = mainAuthor || book.author
-  
+
   return (
     <div className="book-header-container bg-white rounded-lg shadow-sm overflow-hidden mb-6">
       <div className="book-header-cover-image relative h-auto aspect-[1344/500]">
@@ -68,7 +68,7 @@ export function BookHeader({ book, mainAuthor, bookCount = 0 }: BookHeaderProps)
           Change Cover
         </Button>
       </div>
-      
+
       <div className="book-header-content px-6 pb-6">
         <div className="book-header-profile flex flex-col md:flex-row md:items-end -mt-10 relative z-10">
           <div className="book-header-author-image-container relative">
@@ -95,21 +95,21 @@ export function BookHeader({ book, mainAuthor, bookCount = 0 }: BookHeaderProps)
               <Camera className="h-4 w-4" />
             </Button>
           </div>
-          
+
           <div className="book-header-info mt-4 md:mt-0 md:ml-6 flex-1">
             <div className="book-header-title-section flex flex-col md:flex-row md:items-center md:justify-between">
               <div>
                 <h1 className="book-header-title text-[1.1rem] font-bold truncate">{book.title}</h1>
                 {author ? (
                   <p className="book-header-author text-muted-foreground">
-                    by{" "}
+                    by{' '}
                     <EntityHoverCard
                       type="author"
                       entity={{
                         id: author.id,
                         name: author.name,
                         author_image: author.author_image,
-                        bookCount: bookCount
+                        bookCount: bookCount,
                       }}
                     >
                       <span className="hover:underline cursor-pointer">{author.name}</span>
@@ -132,7 +132,7 @@ export function BookHeader({ book, mainAuthor, bookCount = 0 }: BookHeaderProps)
                 </Button>
               </div>
             </div>
-            
+
             <div className="book-header-metadata flex flex-wrap gap-x-6 gap-y-2 mt-4">
               {book.publisher && (
                 <div className="book-header-publisher flex items-center text-muted-foreground">
@@ -164,7 +164,7 @@ export function BookHeader({ book, mainAuthor, bookCount = 0 }: BookHeaderProps)
           </div>
         </div>
       </div>
-      
+
       <div className="book-header-nav border-t">
         <div className="container">
           <div className="book-header-tabs grid grid-cols-4 h-auto mt-0 bg-transparent">
@@ -185,5 +185,4 @@ export function BookHeader({ book, mainAuthor, bookCount = 0 }: BookHeaderProps)
       </div>
     </div>
   )
-} 
-
+}

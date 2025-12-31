@@ -1,8 +1,8 @@
-import * as React from "react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-import { ExpandableSection } from "@/components/ui/expandable-section"
+import * as React from 'react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import { ExpandableSection } from '@/components/ui/expandable-section'
 
 interface SidebarSectionProps {
   title: string
@@ -29,7 +29,7 @@ export function SidebarSection({
   headerRight,
   footer,
   onViewMore,
-  viewMoreText = "View More",
+  viewMoreText = 'View More',
   viewMoreLink,
   isExpandable = false,
   defaultExpanded = false,
@@ -48,13 +48,20 @@ export function SidebarSection({
   }
 
   return (
-    <Card className={cn("sidebar-section__container rounded-lg border bg-card text-card-foreground shadow-xs", className)}>
+    <Card
+      className={cn(
+        'sidebar-section__container rounded-lg border bg-card text-card-foreground shadow-xs',
+        className
+      )}
+    >
       {/* Header Section */}
-      <div className={cn("sidebar-section__header-container p-6 pb-2 border-b", headerClassName)}>
+      <div className={cn('sidebar-section__header-container p-6 pb-2 border-b', headerClassName)}>
         <div className="sidebar-section__header-content flex items-center justify-between">
-          <h3 className="sidebar-section__title text-2xl font-semibold leading-none tracking-tight">{title}</h3>
-          {headerRight ?? (
-            (onViewMore || viewMoreLink) && (
+          <h3 className="sidebar-section__title text-2xl font-semibold leading-none tracking-tight">
+            {title}
+          </h3>
+          {headerRight ??
+            ((onViewMore || viewMoreLink) && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -62,19 +69,14 @@ export function SidebarSection({
                 onClick={onViewMore}
                 asChild={!!viewMoreLink}
               >
-                {viewMoreLink ? (
-                  <a href={viewMoreLink}>{viewMoreText}</a>
-                ) : (
-                  viewMoreText
-                )}
+                {viewMoreLink ? <a href={viewMoreLink}>{viewMoreText}</a> : viewMoreText}
               </Button>
-            )
-          )}
+            ))}
         </div>
       </div>
 
       {/* Main Content Section */}
-      <CardContent className={cn("sidebar-section__content-container p-6 pt-4", contentClassName)}>
+      <CardContent className={cn('sidebar-section__content-container p-6 pt-4', contentClassName)}>
         {isExpandable ? (
           <ExpandableSection
             expanded={expanded}
@@ -94,10 +96,10 @@ export function SidebarSection({
 
       {/* Footer Section */}
       {footer && (
-        <div className={cn("sidebar-section__footer-container p-6 pt-0", footerClassName)}>
+        <div className={cn('sidebar-section__footer-container p-6 pt-0', footerClassName)}>
           {footer}
         </div>
       )}
     </Card>
   )
-} 
+}

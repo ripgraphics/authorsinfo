@@ -1,21 +1,39 @@
-"use client"
+'use client'
 
-import React, { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
-import { useToast } from "@/hooks/use-toast"
-import { supabase } from "@/lib/supabase/client"
-import { useAuth } from "@/hooks/useAuth"
-import { EnterpriseImageUpload } from "./ui/enterprise-image-upload"
+import React, { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
+import { useToast } from '@/hooks/use-toast'
+import { supabase } from '@/lib/supabase/client'
+import { useAuth } from '@/hooks/useAuth'
+import { EnterpriseImageUpload } from './ui/enterprise-image-upload'
 import {
   Plus,
   Image as ImageIcon,
@@ -52,8 +70,8 @@ import {
   Target,
   BarChart3,
   PieChart,
-  Activity
-} from "lucide-react"
+  Activity,
+} from 'lucide-react'
 
 interface Album {
   id: string
@@ -95,15 +113,15 @@ interface EnterpriseAlbumManagerProps {
   entityId?: string
 }
 
-export function EnterpriseAlbumManager({ 
-  userId, 
+export function EnterpriseAlbumManager({
+  userId,
   isOwnProfile = false,
   entityType = 'user',
-  entityId
+  entityId,
 }: EnterpriseAlbumManagerProps) {
   const { user } = useAuth()
   const { toast } = useToast()
-  
+
   // State management
   const [albums, setAlbums] = useState<Album[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -122,16 +140,17 @@ export function EnterpriseAlbumManager({
     privacy_level: 'public' as 'public' | 'private',
     show_in_feed: true,
     category: '',
-    tags: [] as string[]
+    tags: [] as string[],
   })
 
   // Load albums
   const loadAlbums = async () => {
     setIsLoading(true)
     try {
-      let query = supabase
+      const query = supabase
         .from('photo_albums')
-        .select(`
+        .select(
+          `
           id,
           name,
           description,
@@ -143,7 +162,8 @@ export function EnterpriseAlbumManager({
           created_at,
           updated_at,
           metadata
-        `)
+        `
+        )
         .eq('owner_id', userId)
         .order('created_at', { ascending: false })
 
@@ -153,8 +173,8 @@ export function EnterpriseAlbumManager({
 
       // Get album image counts and cover images separately
       const albumIds = (data || []).map((album: any) => album.id)
-      let albumImageCounts: { [key: string]: number } = {}
-      let albumCoverImages: { [key: string]: string } = {}
+      const albumImageCounts: { [key: string]: number } = {}
+      const albumCoverImages: { [key: string]: string } = {}
 
       if (albumIds.length > 0) {
         const { data: imageCounts } = await supabase
@@ -166,7 +186,7 @@ export function EnterpriseAlbumManager({
           imageCounts.forEach((item: any) => {
             const albumId = item.album_id
             albumImageCounts[albumId] = (albumImageCounts[albumId] || 0) + 1
-            
+
             if (!albumCoverImages[albumId] && item.images) {
               albumCoverImages[albumId] = item.images.thumbnail_url || item.images.url
             }
@@ -186,16 +206,16 @@ export function EnterpriseAlbumManager({
         share_count: album.share_count || 0,
         created_at: album.created_at,
         updated_at: album.updated_at,
-        metadata: album.metadata
+        metadata: album.metadata,
       }))
 
       setAlbums(formattedAlbums)
     } catch (error) {
       console.error('Error loading albums:', error)
       toast({
-        title: "Error",
-        description: "Failed to load albums",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to load albums',
+        variant: 'destructive',
       })
     } finally {
       setIsLoading(false)
@@ -207,7 +227,8 @@ export function EnterpriseAlbumManager({
     try {
       const { data, error } = await supabase
         .from('album_images')
-        .select(`
+        .select(
+          `
           id,
           display_order,
           is_featured,
@@ -220,7 +241,8 @@ export function EnterpriseAlbumManager({
             alt_text,
             metadata
           )
-        `)
+        `
+        )
         .eq('album_id', albumId)
         .order('display_order', { ascending: true })
 
@@ -234,7 +256,7 @@ export function EnterpriseAlbumManager({
         metadata: item.images.metadata,
         is_featured: item.is_featured,
         display_order: item.display_order,
-        created_at: item.created_at
+        created_at: item.created_at,
       }))
 
       setAlbumPhotos(photos)
@@ -249,8 +271,7 @@ export function EnterpriseAlbumManager({
 
     setIsCreatingAlbum(true)
     try {
-      const { data: album, error } = await (supabase
-        .from('photo_albums') as any)
+      const { data: album, error } = await (supabase.from('photo_albums') as any)
         .insert({
           name: newAlbum.name.trim(),
           description: newAlbum.description.trim() || null,
@@ -266,8 +287,8 @@ export function EnterpriseAlbumManager({
             privacy_level: newAlbum.privacy_level,
             category: newAlbum.category,
             tags: newAlbum.tags,
-            featured: false
-          }
+            featured: false,
+          },
         })
         .select()
         .single()
@@ -281,7 +302,7 @@ export function EnterpriseAlbumManager({
         privacy_level: 'public',
         show_in_feed: true,
         category: '',
-        tags: []
+        tags: [],
       })
 
       // Reload albums
@@ -300,21 +321,20 @@ export function EnterpriseAlbumManager({
         share_count: album.share_count || 0,
         created_at: album.created_at,
         updated_at: album.updated_at,
-        metadata: album.metadata
+        metadata: album.metadata,
       })
       // setIsUploadOpen(true) // This state variable was removed
 
       toast({
-        title: "Album created successfully",
-        description: "Now add some photos to your new album!"
+        title: 'Album created successfully',
+        description: 'Now add some photos to your new album!',
       })
-
     } catch (error) {
       console.error('Error creating album:', error)
       toast({
-        title: "Error",
-        description: "Failed to create album",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to create album',
+        variant: 'destructive',
       })
     } finally {
       setIsCreatingAlbum(false)
@@ -332,10 +352,11 @@ export function EnterpriseAlbumManager({
 
   // Filter and sort albums
   const filteredAndSortedAlbums = albums
-    .filter(album => {
-      const matchesSearch = album.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           album.description?.toLowerCase().includes(searchTerm.toLowerCase())
-      
+    .filter((album) => {
+      const matchesSearch =
+        album.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        album.description?.toLowerCase().includes(searchTerm.toLowerCase())
+
       let matchesFilter = true
       switch (filterCategory) {
         case 'public':
@@ -348,7 +369,7 @@ export function EnterpriseAlbumManager({
           matchesFilter = album.metadata?.featured || false
           break
       }
-      
+
       return matchesSearch && matchesFilter
     })
     .sort((a, b) => {
@@ -371,7 +392,7 @@ export function EnterpriseAlbumManager({
   const totalPhotos = albums.reduce((sum, album) => sum + album.photo_count, 0)
   const totalViews = albums.reduce((sum, album) => sum + (album.view_count || 0), 0)
   const totalLikes = albums.reduce((sum, album) => sum + (album.like_count || 0), 0)
-  const publicAlbums = albums.filter(album => album.is_public).length
+  const publicAlbums = albums.filter((album) => album.is_public).length
 
   useEffect(() => {
     loadAlbums()
@@ -381,7 +402,7 @@ export function EnterpriseAlbumManager({
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
     })
   }
 
@@ -436,7 +457,7 @@ export function EnterpriseAlbumManager({
                     <Input
                       id="album-name"
                       value={newAlbum.name}
-                      onChange={(e) => setNewAlbum(prev => ({ ...prev, name: e.target.value }))}
+                      onChange={(e) => setNewAlbum((prev) => ({ ...prev, name: e.target.value }))}
                       placeholder="Enter album name"
                     />
                   </div>
@@ -445,7 +466,9 @@ export function EnterpriseAlbumManager({
                     <Textarea
                       id="album-description"
                       value={newAlbum.description}
-                      onChange={(e) => setNewAlbum(prev => ({ ...prev, description: e.target.value }))}
+                      onChange={(e) =>
+                        setNewAlbum((prev) => ({ ...prev, description: e.target.value }))
+                      }
                       placeholder="Describe your album (optional)"
                       rows={3}
                     />
@@ -454,7 +477,12 @@ export function EnterpriseAlbumManager({
                     <Label htmlFor="privacy-level">Privacy</Label>
                     <Select
                       value={newAlbum.privacy_level}
-                      onValueChange={(value) => setNewAlbum(prev => ({ ...prev, privacy_level: value as 'public' | 'private' }))}
+                      onValueChange={(value) =>
+                        setNewAlbum((prev) => ({
+                          ...prev,
+                          privacy_level: value as 'public' | 'private',
+                        }))
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -486,7 +514,9 @@ export function EnterpriseAlbumManager({
                     <Switch
                       id="show-in-feed"
                       checked={newAlbum.show_in_feed}
-                      onCheckedChange={(checked) => setNewAlbum(prev => ({ ...prev, show_in_feed: checked }))}
+                      onCheckedChange={(checked) =>
+                        setNewAlbum((prev) => ({ ...prev, show_in_feed: checked }))
+                      }
                     />
                   </div>
                   <Button
@@ -494,7 +524,7 @@ export function EnterpriseAlbumManager({
                     disabled={isCreatingAlbum || !newAlbum.name.trim()}
                     className="w-full"
                   >
-                    {isCreatingAlbum ? "Creating..." : "Create Album"}
+                    {isCreatingAlbum ? 'Creating...' : 'Create Album'}
                   </Button>
                 </div>
               </DialogContent>
@@ -575,7 +605,7 @@ export function EnterpriseAlbumManager({
             </SelectContent>
           </Select>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
             <SelectTrigger className="w-32">
@@ -592,7 +622,11 @@ export function EnterpriseAlbumManager({
             size="sm"
             onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
           >
-            {sortOrder === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />}
+            {sortOrder === 'asc' ? (
+              <SortAsc className="h-4 w-4" />
+            ) : (
+              <SortDesc className="h-4 w-4" />
+            )}
           </Button>
           <Button
             variant="outline"
@@ -615,10 +649,9 @@ export function EnterpriseAlbumManager({
               <div>
                 <h3 className="text-xl font-semibold">No albums yet</h3>
                 <p className="text-muted-foreground">
-                  {isOwnProfile 
-                    ? "Create your first photo album to get started"
-                    : "This user hasn't created any albums yet"
-                  }
+                  {isOwnProfile
+                    ? 'Create your first photo album to get started'
+                    : "This user hasn't created any albums yet"}
                 </p>
               </div>
               {isOwnProfile && (
@@ -639,7 +672,9 @@ export function EnterpriseAlbumManager({
                         <Input
                           id="first-album-name"
                           value={newAlbum.name}
-                          onChange={(e) => setNewAlbum(prev => ({ ...prev, name: e.target.value }))}
+                          onChange={(e) =>
+                            setNewAlbum((prev) => ({ ...prev, name: e.target.value }))
+                          }
                           placeholder="My First Album"
                         />
                       </div>
@@ -648,7 +683,7 @@ export function EnterpriseAlbumManager({
                         disabled={isCreatingAlbum || !newAlbum.name.trim()}
                         className="w-full"
                       >
-                        {isCreatingAlbum ? "Creating..." : "Create Album"}
+                        {isCreatingAlbum ? 'Creating...' : 'Create Album'}
                       </Button>
                     </div>
                   </DialogContent>
@@ -658,14 +693,20 @@ export function EnterpriseAlbumManager({
           </CardContent>
         </Card>
       ) : (
-        <div className={`
-          ${viewMode === 'grid' 
-            ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6' 
-            : 'space-y-4'
+        <div
+          className={`
+          ${
+            viewMode === 'grid'
+              ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
+              : 'space-y-4'
           }
-        `}>
+        `}
+        >
           {filteredAndSortedAlbums.map((album) => (
-            <Card key={album.id} className="overflow-hidden hover:shadow-lg transition-shadow group">
+            <Card
+              key={album.id}
+              className="overflow-hidden hover:shadow-lg transition-shadow group"
+            >
               {viewMode === 'grid' ? (
                 <>
                   <div className="aspect-square relative overflow-hidden">
@@ -680,7 +721,7 @@ export function EnterpriseAlbumManager({
                         <ImageIcon className="h-16 w-16 text-muted-foreground" />
                       </div>
                     )}
-                    
+
                     {/* Overlay with quick actions */}
                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <div className="flex gap-2">
@@ -737,13 +778,13 @@ export function EnterpriseAlbumManager({
                           {album.description}
                         </p>
                       )}
-                      
+
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
                           {formatDate(album.created_at)}
                         </div>
-                        
+
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-1">
                             <Eye className="h-3 w-3" />
@@ -771,7 +812,7 @@ export function EnterpriseAlbumManager({
                           <Plus className="h-4 w-4 mr-1" />
                           Add Photos
                         </Button>
-                        
+
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm">
@@ -818,7 +859,7 @@ export function EnterpriseAlbumManager({
                         </div>
                       )}
                     </div>
-                    
+
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between">
                         <div>
@@ -835,7 +876,7 @@ export function EnterpriseAlbumManager({
                             <span>{formatDate(album.created_at)}</span>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center gap-2">
                           <Badge variant="secondary" className="flex items-center gap-1">
                             {getPrivacyIcon(album)}
@@ -877,4 +918,4 @@ export function EnterpriseAlbumManager({
       )}
     </div>
   )
-} 
+}

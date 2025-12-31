@@ -1,27 +1,27 @@
-"use server"
+'use server'
 
-import { supabaseAdmin } from "@/lib/supabase/server"
+import { supabaseAdmin } from '@/lib/supabase/server'
 
 // Define a type for book authors
 interface BookAuthor {
-  author_id: string;
-  count: number;
+  author_id: string
+  count: number
 }
 
 // Define a type for reading challenges
 interface ReadingChallenge {
-  goal: number;
-  books_read: number;
+  goal: number
+  books_read: number
 }
 
 // Define a type for reading status
 interface ReadingStatus {
-  status: string;
+  status: string
 }
 
 // Define a type for review data
 interface ReviewData {
-  rating: number;
+  rating: number
 }
 
 // Get content statistics
@@ -34,11 +34,11 @@ export async function getContentStats() {
       { count: usersCount },
       { count: reviewsCount },
     ] = await Promise.all([
-      supabaseAdmin.from("books").select("*", { count: "exact", head: true }),
-      supabaseAdmin.from("authors").select("*", { count: "exact", head: true }),
-      supabaseAdmin.from("publishers").select("*", { count: "exact", head: true }),
-      supabaseAdmin.from("users").select("*", { count: "exact", head: true }),
-      supabaseAdmin.from("reviews").select("*", { count: "exact", head: true }),
+      supabaseAdmin.from('books').select('*', { count: 'exact', head: true }),
+      supabaseAdmin.from('authors').select('*', { count: 'exact', head: true }),
+      supabaseAdmin.from('publishers').select('*', { count: 'exact', head: true }),
+      supabaseAdmin.from('users').select('*', { count: 'exact', head: true }),
+      supabaseAdmin.from('reviews').select('*', { count: 'exact', head: true }),
     ])
 
     return {
@@ -49,7 +49,7 @@ export async function getContentStats() {
       reviewsCount: reviewsCount || 0,
     }
   } catch (error) {
-    console.error("Error fetching content stats:", error)
+    console.error('Error fetching content stats:', error)
     return {
       booksCount: 0,
       authorsCount: 0,
@@ -67,26 +67,27 @@ export async function getRecentContent(days = 30) {
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - days)
 
-    const [{ data: recentBooks }, { data: recentAuthors }, { data: recentPublishers }] = await Promise.all([
-      supabaseAdmin
-        .from("books")
-        .select("id, title, created_at")
-        .gte("created_at", startDate.toISOString())
-        .order("created_at", { ascending: false })
-        .limit(5),
-      supabaseAdmin
-        .from("authors")
-        .select("id, name, created_at")
-        .gte("created_at", startDate.toISOString())
-        .order("created_at", { ascending: false })
-        .limit(5),
-      supabaseAdmin
-        .from("publishers")
-        .select("id, name, created_at")
-        .gte("created_at", startDate.toISOString())
-        .order("created_at", { ascending: false })
-        .limit(5),
-    ])
+    const [{ data: recentBooks }, { data: recentAuthors }, { data: recentPublishers }] =
+      await Promise.all([
+        supabaseAdmin
+          .from('books')
+          .select('id, title, created_at')
+          .gte('created_at', startDate.toISOString())
+          .order('created_at', { ascending: false })
+          .limit(5),
+        supabaseAdmin
+          .from('authors')
+          .select('id, name, created_at')
+          .gte('created_at', startDate.toISOString())
+          .order('created_at', { ascending: false })
+          .limit(5),
+        supabaseAdmin
+          .from('publishers')
+          .select('id, name, created_at')
+          .gte('created_at', startDate.toISOString())
+          .order('created_at', { ascending: false })
+          .limit(5),
+      ])
 
     return {
       recentBooks: recentBooks || [],
@@ -94,7 +95,7 @@ export async function getRecentContent(days = 30) {
       recentPublishers: recentPublishers || [],
     }
   } catch (error) {
-    console.error("Error fetching recent content:", error)
+    console.error('Error fetching recent content:', error)
     return {
       recentBooks: [],
       recentAuthors: [],
@@ -126,13 +127,13 @@ export async function getContentGrowthTrends(months = 6) {
     const bookCounts = []
     for (let i = 0; i < formattedDates.length - 1; i++) {
       const { count } = await supabaseAdmin
-        .from("books")
-        .select("*", { count: "exact", head: true })
-        .gte("created_at", formattedDates[i])
-        .lt("created_at", formattedDates[i + 1])
+        .from('books')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', formattedDates[i])
+        .lt('created_at', formattedDates[i + 1])
 
       bookCounts.push({
-        month: new Date(formattedDates[i]).toLocaleString("default", { month: "short" }),
+        month: new Date(formattedDates[i]).toLocaleString('default', { month: 'short' }),
         count: count || 0,
       })
     }
@@ -141,13 +142,13 @@ export async function getContentGrowthTrends(months = 6) {
     const authorCounts = []
     for (let i = 0; i < formattedDates.length - 1; i++) {
       const { count } = await supabaseAdmin
-        .from("authors")
-        .select("*", { count: "exact", head: true })
-        .gte("created_at", formattedDates[i])
-        .lt("created_at", formattedDates[i + 1])
+        .from('authors')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', formattedDates[i])
+        .lt('created_at', formattedDates[i + 1])
 
       authorCounts.push({
-        month: new Date(formattedDates[i]).toLocaleString("default", { month: "short" }),
+        month: new Date(formattedDates[i]).toLocaleString('default', { month: 'short' }),
         count: count || 0,
       })
     }
@@ -157,7 +158,7 @@ export async function getContentGrowthTrends(months = 6) {
       authorGrowth: authorCounts,
     }
   } catch (error) {
-    console.error("Error fetching content growth trends:", error)
+    console.error('Error fetching content growth trends:', error)
     return {
       bookGrowth: [],
       authorGrowth: [],
@@ -170,22 +171,24 @@ export async function getPopularContent() {
   try {
     // Get top rated books
     const { data: topRatedBooks } = await supabaseAdmin
-      .from("books")
-      .select("id, title, average_rating")
-      .not("average_rating", "is", null)
-      .order("average_rating", { ascending: false })
+      .from('books')
+      .select('id, title, average_rating')
+      .not('average_rating', 'is', null)
+      .order('average_rating', { ascending: false })
       .limit(5)
 
     // Get most reviewed books
     const { data: mostReviewedBooks } = await supabaseAdmin
-      .from("books")
-      .select("id, title, review_count")
-      .not("review_count", "is", null)
-      .order("review_count", { ascending: false })
+      .from('books')
+      .select('id, title, review_count')
+      .not('review_count', 'is', null)
+      .order('review_count', { ascending: false })
       .limit(5)
 
     // Get most prolific authors (authors with most books)
-    const { data: bookAuthors } = await supabaseAdmin.from("book_authors").select("author_id, count")
+    const { data: bookAuthors } = await supabaseAdmin
+      .from('book_authors')
+      .select('author_id, count')
 
     // Count books per author
     const authorBookCounts: Record<string, number> = {}
@@ -203,7 +206,10 @@ export async function getPopularContent() {
 
     // Get author details
     const authorIds = sortedAuthors.map((item) => item.authorId)
-    const { data: prolificAuthors } = await supabaseAdmin.from("authors").select("id, name").in("id", authorIds)
+    const { data: prolificAuthors } = await supabaseAdmin
+      .from('authors')
+      .select('id, name')
+      .in('id', authorIds)
 
     // Combine with counts
     const authorsWithCounts =
@@ -221,7 +227,7 @@ export async function getPopularContent() {
       prolificAuthors: authorsWithCounts,
     }
   } catch (error) {
-    console.error("Error fetching popular content:", error)
+    console.error('Error fetching popular content:', error)
     return {
       topRatedBooks: [],
       mostReviewedBooks: [],
@@ -234,38 +240,48 @@ export async function getPopularContent() {
 export async function getUserEngagementMetrics() {
   try {
     // Get reading challenge stats
-    const { data: readingChallenges } = await supabaseAdmin.from("reading_challenges").select("goal, books_read")
+    const { data: readingChallenges } = await supabaseAdmin
+      .from('reading_challenges')
+      .select('goal, books_read')
 
     const totalChallenges = readingChallenges?.length || 0
-    const totalGoals = readingChallenges?.reduce((sum: number, challenge: ReadingChallenge) => sum + (challenge.goal || 0), 0) || 0
-    const totalBooksRead = readingChallenges?.reduce((sum: number, challenge: ReadingChallenge) => sum + (challenge.books_read || 0), 0) || 0
+    const totalGoals =
+      readingChallenges?.reduce(
+        (sum: number, challenge: ReadingChallenge) => sum + (challenge.goal || 0),
+        0
+      ) || 0
+    const totalBooksRead =
+      readingChallenges?.reduce(
+        (sum: number, challenge: ReadingChallenge) => sum + (challenge.books_read || 0),
+        0
+      ) || 0
 
     // Get reading status counts using a different approach
-    const { data: readingStatusData } = await supabaseAdmin.from("reading_status").select("status")
-    
+    const { data: readingStatusData } = await supabaseAdmin.from('reading_status').select('status')
+
     // Count statuses manually
     const statusCounts: Record<string, number> = {}
     readingStatusData?.forEach((item: ReadingStatus) => {
       statusCounts[item.status] = (statusCounts[item.status] || 0) + 1
     })
-    
+
     const readingStatusCounts = Object.entries(statusCounts).map(([status, count]) => ({
       status,
-      count
+      count,
     }))
 
     // Get review stats using a different approach
-    const { data: reviewData } = await supabaseAdmin.from("reviews").select("rating")
-    
+    const { data: reviewData } = await supabaseAdmin.from('reviews').select('rating')
+
     // Count ratings manually
     const ratingCounts: Record<number, number> = {}
     reviewData?.forEach((item: ReviewData) => {
       ratingCounts[item.rating] = (ratingCounts[item.rating] || 0) + 1
     })
-    
+
     const reviewStats = Object.entries(ratingCounts).map(([rating, count]) => ({
       rating: parseInt(rating),
-      count
+      count,
     }))
 
     return {
@@ -279,7 +295,7 @@ export async function getUserEngagementMetrics() {
       reviewStats: reviewStats || [],
     }
   } catch (error) {
-    console.error("Error fetching user engagement metrics:", error)
+    console.error('Error fetching user engagement metrics:', error)
     return {
       readingChallenges: {
         totalChallenges: 0,
@@ -297,20 +313,20 @@ export async function getUserEngagementMetrics() {
 export async function getSystemHealthMetrics() {
   try {
     // Get storage usage
-    const { data: images } = await supabaseAdmin.from("images").select("id")
+    const { data: images } = await supabaseAdmin.from('images').select('id')
     const imageCount = images?.length || 0
 
     // Get error logs (if you have an error_logs table)
     let errorLogs = null
     try {
       const { data } = await supabaseAdmin
-        .from("error_logs")
-        .select("id, error_message, created_at")
-        .order("created_at", { ascending: false })
+        .from('error_logs')
+        .select('id, error_message, created_at')
+        .order('created_at', { ascending: false })
         .limit(5)
       errorLogs = data
     } catch (error) {
-      console.log("Error fetching error logs (table may not exist):", error)
+      console.log('Error fetching error logs (table may not exist):', error)
       errorLogs = []
     }
 
@@ -322,7 +338,7 @@ export async function getSystemHealthMetrics() {
       errorLogs: errorLogs || [],
     }
   } catch (error) {
-    console.error("Error fetching system health metrics:", error)
+    console.error('Error fetching system health metrics:', error)
     return {
       storage: {
         imageCount: 0,

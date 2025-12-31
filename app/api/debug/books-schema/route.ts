@@ -11,47 +11,48 @@ export async function GET() {
       .maybeSingle()
 
     if (sampleError) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: sampleError.message,
-        columns: []
+        columns: [],
       })
     }
 
     if (!sampleBook) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: 'No books found',
-        columns: []
+        columns: [],
       })
     }
 
     // Get all column names from the sample
     const columns = Object.keys(sampleBook)
-    
+
     // Filter for image-related columns
-    const imageColumns = columns.filter(col => 
-      col.toLowerCase().includes('image') || 
-      col.toLowerCase().includes('cover') ||
-      col.toLowerCase().includes('avatar')
+    const imageColumns = columns.filter(
+      (col) =>
+        col.toLowerCase().includes('image') ||
+        col.toLowerCase().includes('cover') ||
+        col.toLowerCase().includes('avatar')
     )
 
     // Get column types by checking the values
-    const columnInfo = columns.map(col => ({
+    const columnInfo = columns.map((col) => ({
       name: col,
       type: typeof sampleBook[col],
       value: sampleBook[col],
-      isImageRelated: imageColumns.includes(col)
+      isImageRelated: imageColumns.includes(col),
     }))
 
     return NextResponse.json({
       columns,
       imageColumns,
       columnInfo,
-      sampleBook: sampleBook
+      sampleBook: sampleBook,
     })
   } catch (error) {
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: error instanceof Error ? error.message : 'Unknown error',
-      columns: []
+      columns: [],
     })
   }
 }

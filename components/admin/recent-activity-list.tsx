@@ -1,7 +1,7 @@
-import type React from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { cn } from "@/lib/utils"
-import { formatDistanceToNow } from "date-fns"
+import type React from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
+import { formatDistanceToNow } from 'date-fns'
 
 interface RecentActivityListProps {
   title: string
@@ -22,10 +22,10 @@ export function RecentActivityList({
   description,
   items,
   className,
-  emptyMessage = "No recent activity",
+  emptyMessage = 'No recent activity',
 }: RecentActivityListProps) {
   return (
-    <Card className={cn("overflow-hidden", className)}>
+    <Card className={cn('overflow-hidden', className)}>
       <CardHeader className="pb-2">
         <CardTitle>{title}</CardTitle>
         {description && <CardDescription>{description}</CardDescription>}
@@ -37,12 +37,16 @@ export function RecentActivityList({
               <div key={item.id} className="flex items-start space-x-4">
                 {item.icon && (
                   <div className="mt-0.5">
-                    <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-full">{item.icon}</div>
+                    <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-full">
+                      {item.icon}
+                    </div>
                   </div>
                 )}
                 <div className="space-y-1">
                   <p className="text-sm font-medium leading-none">{item.title}</p>
-                  {item.subtitle && <p className="text-sm text-muted-foreground">{item.subtitle}</p>}
+                  {item.subtitle && (
+                    <p className="text-sm text-muted-foreground">{item.subtitle}</p>
+                  )}
                   <p className="text-xs text-muted-foreground">
                     {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}
                   </p>

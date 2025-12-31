@@ -1,11 +1,11 @@
-"use client"
+'use client'
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Search, User, BookOpen } from "lucide-react"
-import { Navigation } from "@/components/navigation"
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Search, User, BookOpen } from 'lucide-react'
+import { Navigation } from '@/components/navigation'
 
 export function Header() {
   const pathname = usePathname()

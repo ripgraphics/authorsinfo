@@ -1,11 +1,24 @@
-"use client"
+'use client'
 
-import { useEffect, useState, use } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useEffect, useState, use } from 'react'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import {
   Pagination,
   PaginationContent,
@@ -13,10 +26,10 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination"
-import { Plus, Search, Edit } from "lucide-react"
-import { ReusableSearch } from "@/components/ui/reusable-search"
-import { Skeleton } from "@/components/ui/skeleton"
+} from '@/components/ui/pagination'
+import { Plus, Search, Edit } from 'lucide-react'
+import { ReusableSearch } from '@/components/ui/reusable-search'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface AdminAuthorsPageProps {
   searchParams: Promise<{
@@ -52,7 +65,11 @@ function AuthorsTable({
   nationality?: string
   sort?: string
 }) {
-  const [data, setData] = useState<{ authors: Author[]; totalAuthors: number; totalPages: number } | null>(null)
+  const [data, setData] = useState<{
+    authors: Author[]
+    totalAuthors: number
+    totalPages: number
+  } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [nationalities, setNationalities] = useState<string[]>([])
@@ -67,7 +84,7 @@ function AuthorsTable({
           page: page.toString(),
           ...(search && { search }),
           ...(nationality && { nationality }),
-          sort: sort || 'name_asc'
+          sort: sort || 'name_asc',
         })
 
         // Fetch authors data
@@ -85,7 +102,7 @@ function AuthorsTable({
           setNationalities(nationalitiesData.nationalities || [])
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred while fetching data")
+        setError(err instanceof Error ? err.message : 'An error occurred while fetching data')
       } finally {
         setLoading(false)
       }
@@ -101,32 +118,44 @@ function AuthorsTable({
           <CardTitle>Authors</CardTitle>
         </CardHeader>
         <CardContent>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Nationality</TableHead>
-                <TableHead>Birth Date</TableHead>
-                <TableHead>Books</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Array.from({ length: 5 }).map((_, i) => (
-                <TableRow key={i}>
-                    <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-8" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Nationality</TableHead>
+                  <TableHead>Birth Date</TableHead>
+                  <TableHead>Books</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell>
+                      <Skeleton className="h-4 w-20" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-32" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-20" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-8" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-16" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     )
@@ -139,9 +168,7 @@ function AuthorsTable({
           <CardTitle>Authors</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-6 text-red-600">
-            Error: {error}
-          </div>
+          <div className="text-center py-6 text-red-600">Error: {error}</div>
         </CardContent>
       </Card>
     )
@@ -154,9 +181,7 @@ function AuthorsTable({
           <CardTitle>Authors</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-6 text-muted-foreground">
-            No data available
-          </div>
+          <div className="text-center py-6 text-muted-foreground">No data available</div>
         </CardContent>
       </Card>
     )
@@ -189,8 +214,8 @@ function AuthorsTable({
                     <TableRow key={author.id}>
                       <TableCell className="font-medium">{author.id}</TableCell>
                       <TableCell>{author.name}</TableCell>
-                      <TableCell>{author.nationality || "—"}</TableCell>
-                      <TableCell>{author.birth_date || "—"}</TableCell>
+                      <TableCell>{author.nationality || '—'}</TableCell>
+                      <TableCell>{author.birth_date || '—'}</TableCell>
                       <TableCell>{author.book_count || 0}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -228,20 +253,21 @@ function AuthorsTable({
                   {page > 1 && (
                     <PaginationItem>
                       <PaginationPrevious
-                        href={`/admin/authors?page=${page - 1}${search ? `&search=${search}` : ""}${nationality ? `&nationality=${nationality}` : ""}${sort ? `&sort=${sort}` : ""}`}
+                        href={`/admin/authors?page=${page - 1}${search ? `&search=${search}` : ''}${nationality ? `&nationality=${nationality}` : ''}${sort ? `&sort=${sort}` : ''}`}
                       />
                     </PaginationItem>
                   )}
 
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    const pageNumber = page <= 3 ? i + 1 : page >= totalPages - 2 ? totalPages - 4 + i : page - 2 + i
+                    const pageNumber =
+                      page <= 3 ? i + 1 : page >= totalPages - 2 ? totalPages - 4 + i : page - 2 + i
 
                     if (pageNumber <= 0 || pageNumber > totalPages) return null
 
                     return (
                       <PaginationItem key={pageNumber}>
                         <PaginationLink
-                          href={`/admin/authors?page=${pageNumber}${search ? `&search=${search}` : ""}${nationality ? `&nationality=${nationality}` : ""}${sort ? `&sort=${sort}` : ""}`}
+                          href={`/admin/authors?page=${pageNumber}${search ? `&search=${search}` : ''}${nationality ? `&nationality=${nationality}` : ''}${sort ? `&sort=${sort}` : ''}`}
                           isActive={pageNumber === page}
                         >
                           {pageNumber}
@@ -253,7 +279,7 @@ function AuthorsTable({
                   {page < totalPages && (
                     <PaginationItem>
                       <PaginationNext
-                        href={`/admin/authors?page=${page + 1}${search ? `&search=${search}` : ""}${nationality ? `&nationality=${nationality}` : ""}${sort ? `&sort=${sort}` : ""}`}
+                        href={`/admin/authors?page=${page + 1}${search ? `&search=${search}` : ''}${nationality ? `&nationality=${nationality}` : ''}${sort ? `&sort=${sort}` : ''}`}
                       />
                     </PaginationItem>
                   )}
@@ -270,11 +296,11 @@ function AuthorsTable({
 export default function AdminAuthorsPage({ searchParams }: AdminAuthorsPageProps) {
   // Use React.use() to unwrap the searchParams promise
   const params = use(searchParams)
-  
+
   const page = Number(params.page) || 1
-  const search = params.search || ""
-  const nationality = params.nationality || ""
-  const sort = params.sort || "name_asc"
+  const search = params.search || ''
+  const nationality = params.nationality || ''
+  const sort = params.sort || 'name_asc'
   const [availableNationalities, setAvailableNationalities] = useState<string[]>([])
 
   useEffect(() => {
@@ -287,7 +313,7 @@ export default function AdminAuthorsPage({ searchParams }: AdminAuthorsPageProps
           setAvailableNationalities(data.nationalities || [])
         }
       } catch (error) {
-        console.error("Error fetching nationalities:", error)
+        console.error('Error fetching nationalities:', error)
       }
     }
 
@@ -320,15 +346,15 @@ export default function AdminAuthorsPage({ searchParams }: AdminAuthorsPageProps
         <div className="flex gap-2">
           <Select
             name="nationality"
-            defaultValue={nationality || "all"}
+            defaultValue={nationality || 'all'}
             onValueChange={(value) => {
               const url = new URL(window.location.href)
-              if (value === "all") {
-                url.searchParams.delete("nationality")
+              if (value === 'all') {
+                url.searchParams.delete('nationality')
               } else {
-                url.searchParams.set("nationality", value)
+                url.searchParams.set('nationality', value)
               }
-              url.searchParams.set("page", "1")
+              url.searchParams.set('page', '1')
               window.location.href = url.toString()
             }}
           >
@@ -350,7 +376,7 @@ export default function AdminAuthorsPage({ searchParams }: AdminAuthorsPageProps
             defaultValue={sort}
             onValueChange={(value) => {
               const url = new URL(window.location.href)
-              url.searchParams.set("sort", value)
+              url.searchParams.set('sort', value)
               window.location.href = url.toString()
             }}
           >

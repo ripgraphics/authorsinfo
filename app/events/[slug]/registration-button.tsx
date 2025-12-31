@@ -1,141 +1,145 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { CalendarDaysIcon, TicketIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { createBrowserClient } from '@supabase/ssr';
-import type { Database } from '@/types/database';
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { CalendarDaysIcon, TicketIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { createBrowserClient } from '@supabase/ssr'
+import type { Database } from '@/types/database'
 
-type RegistrationStatus = 'open' | 'not-open' | 'closed';
+type RegistrationStatus = 'open' | 'not-open' | 'closed'
 
 type EventRegistrationButtonProps = {
-  eventId: string;
-  isActive: boolean;
-  status: RegistrationStatus;
-};
+  eventId: string
+  isActive: boolean
+  status: RegistrationStatus
+}
 
-export default function EventRegistrationButton({ 
-  eventId, 
-  isActive, 
-  status 
+export default function EventRegistrationButton({
+  eventId,
+  isActive,
+  status,
 }: EventRegistrationButtonProps) {
-  const [isRegistered, setIsRegistered] = useState<boolean | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isRegistered, setIsRegistered] = useState<boolean | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showModal, setShowModal] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const supabase = createBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-  const router = useRouter();
-  
+  )
+  const router = useRouter()
+
   // Check if the user is already registered for this event
   useEffect(() => {
     async function checkRegistrationStatus() {
       try {
-        setIsLoading(true);
+        setIsLoading(true)
         // First, check if user is authenticated
-        const { data: { user } } = await supabase.auth.getUser();
-        
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+
         if (!user) {
-          setIsRegistered(null);
-          return;
+          setIsRegistered(null)
+          return
         }
-        
+
         const { data, error } = await fetch(`/api/events/${eventId}/register`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
-        }).then(res => res.json());
-        
+        }).then((res) => res.json())
+
         if (error) {
-          console.error('Error checking registration status:', error);
-          return;
+          console.error('Error checking registration status:', error)
+          return
         }
-        
-        setIsRegistered(data?.isRegistered || false);
+
+        setIsRegistered(data?.isRegistered || false)
       } catch (err) {
-        console.error('Error checking registration status:', err);
+        console.error('Error checking registration status:', err)
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
     }
-    
-    checkRegistrationStatus();
-  }, [eventId, supabase]);
-  
+
+    checkRegistrationStatus()
+  }, [eventId, supabase])
+
   const handleRegister = async () => {
     try {
-      setIsSubmitting(true);
-      setError(null);
-      
+      setIsSubmitting(true)
+      setError(null)
+
       // First, check if user is authenticated
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
       if (!user) {
         // Redirect to login page
-        router.push(`/login?redirect=/events/${eventId}`);
-        return;
+        router.push(`/login?redirect=/events/${eventId}`)
+        return
       }
-      
+
       const response = await fetch(`/api/events/${eventId}/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({}),
-      });
-      
-      const result = await response.json();
-      
+      })
+
+      const result = await response.json()
+
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to register for event');
+        throw new Error(result.error || 'Failed to register for event')
       }
-      
-      setIsRegistered(true);
+
+      setIsRegistered(true)
       // Close modal if open
-      setShowModal(false);
+      setShowModal(false)
       // Refresh the page to show updated registration status
-      router.refresh();
+      router.refresh()
     } catch (err: any) {
-      setError(err.message || 'An error occurred during registration');
-      console.error('Registration error:', err);
+      setError(err.message || 'An error occurred during registration')
+      console.error('Registration error:', err)
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
-  
+  }
+
   const handleCancelRegistration = async () => {
     try {
-      setIsSubmitting(true);
-      setError(null);
-      
+      setIsSubmitting(true)
+      setError(null)
+
       const response = await fetch(`/api/events/${eventId}/register`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
         },
-      });
-      
-      const result = await response.json();
-      
+      })
+
+      const result = await response.json()
+
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to cancel registration');
+        throw new Error(result.error || 'Failed to cancel registration')
       }
-      
-      setIsRegistered(false);
+
+      setIsRegistered(false)
       // Refresh the page to show updated registration status
-      router.refresh();
+      router.refresh()
     } catch (err: any) {
-      setError(err.message || 'An error occurred while cancelling registration');
-      console.error('Cancel registration error:', err);
+      setError(err.message || 'An error occurred while cancelling registration')
+      console.error('Cancel registration error:', err)
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
-  
+  }
+
   // If we're still loading the registration status
   if (isLoading) {
     return (
@@ -145,9 +149,9 @@ export default function EventRegistrationButton({
       >
         <span className="animate-pulse">Checking registration...</span>
       </button>
-    );
+    )
   }
-  
+
   // If registration is not open yet or closed
   if (!isActive) {
     return (
@@ -167,9 +171,9 @@ export default function EventRegistrationButton({
           </>
         )}
       </button>
-    );
+    )
   }
-  
+
   // If the user is already registered
   if (isRegistered) {
     return (
@@ -186,9 +190,9 @@ export default function EventRegistrationButton({
           {isSubmitting ? 'Cancelling...' : 'Cancel registration'}
         </button>
       </div>
-    );
+    )
   }
-  
+
   // Default registration button
   return (
     <>
@@ -199,22 +203,21 @@ export default function EventRegistrationButton({
         <TicketIcon className="h-5 w-5 mr-2" />
         Register for Event
       </button>
-      
+
       {/* Registration confirmation modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full p-6">
             <h3 className="text-lg font-semibold mb-4">Confirm Registration</h3>
             <p className="text-gray-700 mb-6">
-              Are you sure you want to register for this event? You can cancel your registration later if needed.
+              Are you sure you want to register for this event? You can cancel your registration
+              later if needed.
             </p>
-            
+
             {error && (
-              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md text-sm">
-                {error}
-              </div>
+              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md text-sm">{error}</div>
             )}
-            
+
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => setShowModal(false)}
@@ -235,5 +238,5 @@ export default function EventRegistrationButton({
         </div>
       )}
     </>
-  );
-} 
+  )
+}

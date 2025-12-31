@@ -5,20 +5,12 @@ import ContentModerationSystem from '@/components/enterprise/content-moderation-
 import PostAnalyticsInsights from '@/components/enterprise/post-analytics-insights'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { 
-  BarChart3, 
-  Shield, 
-  TrendingUp, 
-  Settings,
-  Users,
-  Activity,
-  Target,
-  Zap
-} from 'lucide-react'
+import { BarChart3, Shield, TrendingUp, Settings, Users, Activity, Target, Zap } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Posts Dashboard | Post Management & Analytics',
-  description: 'Comprehensive dashboard for managing posts, content moderation, and analytics insights',
+  description:
+    'Comprehensive dashboard for managing posts, content moderation, and analytics insights',
 }
 
 export default function PostsDashboardPage() {
@@ -28,7 +20,8 @@ export default function PostsDashboardPage() {
       <div className="text-center space-y-4">
         <h1 className="text-4xl font-bold">Posts Dashboard</h1>
         <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-          Comprehensive post management, content moderation, and analytics platform for enterprise-grade content operations
+          Comprehensive post management, content moderation, and analytics platform for
+          enterprise-grade content operations
         </p>
       </div>
 

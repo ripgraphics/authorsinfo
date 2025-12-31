@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
@@ -7,20 +7,15 @@ import { Camera, Crop, ImageIcon } from 'lucide-react'
 import { createBrowserClient } from '@supabase/ssr'
 import { clearCache } from '@/lib/request-utils'
 import { isValidCloudinaryUrl, validateAndSanitizeImageUrl } from '@/lib/utils/image-url-validation'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 import { ImageCropper } from '@/components/ui/image-cropper'
 import { cn } from '@/lib/utils'
 
 declare global {
   interface Window {
-    cloudinary: any;
+    cloudinary: any
   }
 }
 
@@ -45,33 +40,33 @@ interface EntityImageUploadProps {
 const IMAGE_TYPE_IDS = {
   user: {
     avatar: 33, // user_avatar
-    entityHeaderCover: 32,  // user_cover (entity header)
+    entityHeaderCover: 32, // user_cover (entity header)
   },
   group: {
     avatar: 35, // group_avatar
-    entityHeaderCover: 34,  // group_cover (entity header)
+    entityHeaderCover: 34, // group_cover (entity header)
   },
   author: {
     avatar: 37, // author_avatar
-    entityHeaderCover: 36,  // author_cover (entity header)
+    entityHeaderCover: 36, // author_cover (entity header)
   },
   publisher: {
     avatar: 39, // publisher_avatar
-    entityHeaderCover: 38,  // publisher_cover (entity header)
+    entityHeaderCover: 38, // publisher_cover (entity header)
   },
   book: {
     avatar: 41, // book_avatar
-    entityHeaderCover: 40,  // book_cover (entity header)
-    bookCover: 40,  // book_cover (actual book cover - uses same ID but different purpose)
+    entityHeaderCover: 40, // book_cover (entity header)
+    bookCover: 40, // book_cover (actual book cover - uses same ID but different purpose)
   },
   event: {
     avatar: 43, // event_avatar
-    entityHeaderCover: 42,  // event_cover (entity header)
+    entityHeaderCover: 42, // event_cover (entity header)
   },
   photo: {
     avatar: 45, // photo_avatar
-    entityHeaderCover: 44,  // photo_cover (entity header)
-  }
+    entityHeaderCover: 44, // photo_cover (entity header)
+  },
 }
 
 export function EntityImageUpload({
@@ -88,7 +83,7 @@ export function EntityImageUpload({
   targetHeight: propTargetHeight,
   previewAspectRatio: propPreviewAspectRatio,
   dialogMaxWidth: propDialogMaxWidth,
-  circularCrop: propCircularCrop
+  circularCrop: propCircularCrop,
 }: EntityImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -97,7 +92,10 @@ export function EntityImageUpload({
   const [croppedImage, setCroppedImage] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
-  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   useEffect(() => {
     // Load Cloudinary Upload Widget script
@@ -121,7 +119,7 @@ export function EntityImageUpload({
       if (croppedImage && croppedImage.startsWith('blob:')) {
         URL.revokeObjectURL(croppedImage)
       }
-      
+
       // Reset all state to ensure fresh start
       setSelectedFile(null)
       setPreview(null)
@@ -171,13 +169,13 @@ export function EntityImageUpload({
 
       // Map component type to API imageType (both bookCover and entityHeaderCover use 'cover' for column mapping)
       const imageType = type === 'bookCover' || type === 'entityHeaderCover' ? 'cover' : type
-      
+
       let uploadResult: any = null
 
       // If we have a cropped image, upload ONLY the cropped image (not the original)
       if (croppedImage) {
         console.log(`📤 [UPLOAD] Cropped image detected - uploading cropped version only`)
-        
+
         // Convert blob URL to file
         const response = await fetch(croppedImage)
         const blob = await response.blob()
@@ -193,7 +191,7 @@ export function EntityImageUpload({
 
         const croppedResponse = await fetch('/api/upload/entity-image', {
           method: 'POST',
-          body: croppedFormData
+          body: croppedFormData,
         })
 
         if (!croppedResponse.ok) {
@@ -222,7 +220,7 @@ export function EntityImageUpload({
       } else {
         // No cropping - just upload the original image
         console.log(`📤 [UPLOAD] No cropping - uploading original image only`)
-        
+
         const formData = new FormData()
         formData.append('file', selectedFile)
         formData.append('entityType', entityType)
@@ -233,7 +231,7 @@ export function EntityImageUpload({
 
         const uploadResponse = await fetch('/api/upload/entity-image', {
           method: 'POST',
-          body: formData
+          body: formData,
         })
 
         if (!uploadResponse.ok) {
@@ -270,13 +268,14 @@ export function EntityImageUpload({
 
       // Add image to entity album (for the main display image - cropped if available, otherwise original)
       // Map component type to API albumPurpose
-      const albumPurpose = type === 'bookCover' ? 'cover' : type === 'entityHeaderCover' ? 'entity_header' : type
-      
+      const albumPurpose =
+        type === 'bookCover' ? 'cover' : type === 'entityHeaderCover' ? 'entity_header' : type
+
       console.log(`📁 [ALBUM] Starting album addition process`)
       console.log(`📁 [ALBUM] Image ID: ${uploadResult.image_id}`)
       console.log(`📁 [ALBUM] Entity: ${entityType} ${entityId}`)
       console.log(`📁 [ALBUM] Album Purpose: ${albumPurpose}`)
-      
+
       try {
         console.log(`📁 [ALBUM] Calling POST /api/entity-images...`)
         const albumResponse = await fetch('/api/entity-images', {
@@ -292,15 +291,17 @@ export function EntityImageUpload({
             isCover: true,
             isFeatured: true,
             metadata: {
-              aspect_ratio: (type === 'bookCover' || type === 'entityHeaderCover') ? 16/9 : 1,
+              aspect_ratio: type === 'bookCover' || type === 'entityHeaderCover' ? 16 / 9 : 1,
               uploaded_via: 'entity_image_upload',
               original_filename: selectedFile.name,
-              file_size: selectedFile.size
-            }
-          })
+              file_size: selectedFile.size,
+            },
+          }),
         })
 
-        console.log(`📁 [ALBUM] Response status: ${albumResponse.status} ${albumResponse.statusText}`)
+        console.log(
+          `📁 [ALBUM] Response status: ${albumResponse.status} ${albumResponse.statusText}`
+        )
 
         if (!albumResponse.ok) {
           let errorText: string
@@ -308,18 +309,23 @@ export function EntityImageUpload({
             const errorJson = await albumResponse.json()
             errorText = errorJson.error || errorJson.message || JSON.stringify(errorJson)
           } catch {
-            errorText = await albumResponse.text() || `HTTP ${albumResponse.status} ${albumResponse.statusText}`
+            errorText =
+              (await albumResponse.text()) ||
+              `HTTP ${albumResponse.status} ${albumResponse.statusText}`
           }
-          
+
           console.error('❌ [ALBUM] Failed to add image to album:', errorText)
           console.error('❌ [ALBUM] Image ID:', uploadResult.image_id)
           console.error('❌ [ALBUM] Entity:', { entityId, entityType, albumPurpose })
-          console.error('❌ [ALBUM] Full response:', { status: albumResponse.status, statusText: albumResponse.statusText })
-          
+          console.error('❌ [ALBUM] Full response:', {
+            status: albumResponse.status,
+            statusText: albumResponse.statusText,
+          })
+
           // CRITICAL: Throw ALL errors - album creation is required for the upload to be considered successful
           throw new Error(`Failed to add image to album: ${errorText}`)
         }
-        
+
         const albumResult = await albumResponse.json()
         console.log(`✅ [ALBUM] Image added to album successfully:`, albumResult)
         console.log(`✅ [ALBUM] Album ID: ${albumResult.albumId || 'N/A'}`)
@@ -330,13 +336,14 @@ export function EntityImageUpload({
         console.error('❌ [ALBUM] Error details:', albumErr)
         console.error('❌ [ALBUM] Image ID:', uploadResult.image_id)
         console.error('❌ [ALBUM] Entity:', { entityId, entityType, albumPurpose })
-        
+
         // Re-throw with a clear error message
-        const errorMessage = albumErr instanceof Error 
-          ? albumErr.message 
-          : `Unknown error: ${String(albumErr)}`
-        
-        throw new Error(`Album creation failed: ${errorMessage}. Image was uploaded but may not appear in albums.`)
+        const errorMessage =
+          albumErr instanceof Error ? albumErr.message : `Unknown error: ${String(albumErr)}`
+
+        throw new Error(
+          `Album creation failed: ${errorMessage}. Image was uploaded but may not appear in albums.`
+        )
       }
 
       // Optionally delete old image from Cloudinary (only if it's a Cloudinary URL)
@@ -344,26 +351,26 @@ export function EntityImageUpload({
         try {
           // Extract public ID from Cloudinary URL (including folder path)
           const urlParts = oldImageUrl.split('/')
-          const uploadIndex = urlParts.findIndex(part => part === 'upload')
+          const uploadIndex = urlParts.findIndex((part) => part === 'upload')
           if (uploadIndex > -1 && uploadIndex < urlParts.length - 1) {
             const pathParts = urlParts.slice(uploadIndex + 1)
             const filename = pathParts[pathParts.length - 1]
             const publicIdWithoutExt = filename.split('.')[0]
-            
+
             let publicId = publicIdWithoutExt
             if (pathParts.length > 1) {
               const folderPath = pathParts.slice(0, -1).join('/')
               publicId = `${folderPath}/${publicIdWithoutExt}`
             }
-            
+
             await fetch('/api/cloudinary/delete', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               },
-              body: JSON.stringify({ publicId })
+              body: JSON.stringify({ publicId }),
             })
-            
+
             console.log('Old image deleted from Cloudinary:', publicId)
           }
         } catch (deleteError) {
@@ -381,10 +388,14 @@ export function EntityImageUpload({
       // FINAL VERIFICATION: Ensure we have both URL and image_id before proceeding
       if (!uploadResult.image_id) {
         console.error('❌ CRITICAL: Upload completed but image_id is missing')
-        throw new Error('Image upload failed: Image was not properly saved to database. Please try again.')
+        throw new Error(
+          'Image upload failed: Image was not properly saved to database. Please try again.'
+        )
       }
 
-      console.log(`✅ Upload verification complete: Image ${uploadResult.image_id} is in Supabase database`)
+      console.log(
+        `✅ Upload verification complete: Image ${uploadResult.image_id} is in Supabase database`
+      )
 
       // Clear preview state immediately after successful upload
       if (preview && preview.startsWith('blob:')) {
@@ -398,40 +409,44 @@ export function EntityImageUpload({
       // Album addition has already succeeded at this point (or we would have thrown)
       console.log(`✅ [UPLOAD] All steps completed successfully - calling onImageChange`)
       onImageChange(validatedUrl, uploadResult.image_id)
-      
+
       // Clear cache for entity images to force fresh data on next load
       clearCache(`entity-avatar-${entityType}-${entityId}`)
       clearCache(`entity-header-${entityType}-${entityId}`)
       if (entityType === 'user') {
         clearCache(`user-avatar-${entityId}`)
       }
-      
+
       // Dispatch event to trigger EntityHeader to refetch images
-      window.dispatchEvent(new CustomEvent('entityImageChanged', {
-        detail: { entityType, entityId, imageType: type }
-      }))
-      
+      window.dispatchEvent(
+        new CustomEvent('entityImageChanged', {
+          detail: { entityType, entityId, imageType: type },
+        })
+      )
+
       // Dispatch entityPrimaryImageChanged event for user avatars to update page header and other components
       if (entityType === 'user' && type === 'avatar') {
-        window.dispatchEvent(new CustomEvent('entityPrimaryImageChanged', {
-          detail: {
-            entityType: 'user',
-            entityId: entityId,
-            primaryKind: 'avatar',
-            imageUrl: validatedUrl
-          }
-        }))
+        window.dispatchEvent(
+          new CustomEvent('entityPrimaryImageChanged', {
+            detail: {
+              entityType: 'user',
+              entityId: entityId,
+              primaryKind: 'avatar',
+              imageUrl: validatedUrl,
+            },
+          })
+        )
       }
-      
+
       // Dispatch event to refresh albums
       window.dispatchEvent(new CustomEvent('albumRefresh'))
-      
+
       console.log(`✅ [UPLOAD] Upload complete - showing success toast`)
       toast({
-        title: "Success",
-        description: `${entityType} ${type} has been updated successfully and added to album.`
+        title: 'Success',
+        description: `${entityType} ${type} has been updated successfully and added to album.`,
       })
-      
+
       // Close modal and reset state
       onOpenChange(false)
       setSelectedFile(null)
@@ -442,7 +457,7 @@ export function EntityImageUpload({
       console.error(`❌ [UPLOAD] Upload failed with error:`, error)
       console.error(`❌ [UPLOAD] Error message:`, error?.message || String(error))
       console.error(`❌ [UPLOAD] Error stack:`, error?.stack)
-      
+
       // Extract the actual error message
       let errorMessage = 'Unknown error occurred'
       if (error instanceof Error) {
@@ -454,12 +469,12 @@ export function EntityImageUpload({
       } else {
         errorMessage = String(error)
       }
-      
+
       console.error(`❌ [UPLOAD] Showing error toast with message: ${errorMessage}`)
       toast({
-        title: "Upload Failed",
+        title: 'Upload Failed',
         description: errorMessage || `Failed to upload ${type}. Please try again.`,
-        variant: "destructive"
+        variant: 'destructive',
       })
       setIsUploading(false)
     }
@@ -474,36 +489,38 @@ export function EntityImageUpload({
   }
 
   // Fully reusable: Use provided props or smart defaults based on type
-  const aspectRatio = propAspectRatio ?? (
-    type === 'avatar' 
-      ? 1 
+  const aspectRatio =
+    propAspectRatio ??
+    (type === 'avatar'
+      ? 1
       : type === 'bookCover'
-        ? 2 / 3  // Book cover aspect ratio (2:3)
-        : 1344 / 500  // Entity header cover aspect ratio (wide/landscape)
-  )
-  const targetWidth = propTargetWidth ?? (
-    type === 'avatar' 
-      ? 400 
+        ? 2 / 3 // Book cover aspect ratio (2:3)
+        : 1344 / 500) // Entity header cover aspect ratio (wide/landscape)
+  const targetWidth =
+    propTargetWidth ??
+    (type === 'avatar'
+      ? 400
       : type === 'bookCover'
-        ? 800  // Book cover width (2:3 ratio)
-        : 1344  // Entity header cover width (wide/landscape)
-  )
-  const targetHeight = propTargetHeight ?? (
-    type === 'avatar' 
-      ? 400 
+        ? 800 // Book cover width (2:3 ratio)
+        : 1344) // Entity header cover width (wide/landscape)
+  const targetHeight =
+    propTargetHeight ??
+    (type === 'avatar'
+      ? 400
       : type === 'bookCover'
-        ? 1200  // Book cover height (2:3 ratio: 800 * 1.5 = 1200)
-        : 500  // Entity header cover height (wide/landscape)
-  )
-  const circularCrop = propCircularCrop ?? (type === 'avatar')
-  const previewAspectRatio = propPreviewAspectRatio ?? (
-    type === 'avatar' 
-      ? undefined 
+        ? 1200 // Book cover height (2:3 ratio: 800 * 1.5 = 1200)
+        : 500) // Entity header cover height (wide/landscape)
+  const circularCrop = propCircularCrop ?? type === 'avatar'
+  const previewAspectRatio =
+    propPreviewAspectRatio ??
+    (type === 'avatar'
+      ? undefined
       : type === 'bookCover'
-        ? 'aspect-[2/3]'  // Book cover preview aspect ratio
-        : 'aspect-[1344/500]'  // Entity header cover preview (wide/landscape)
-  )
-  const dialogMaxWidth = propDialogMaxWidth ?? ((type === 'bookCover' || type === 'entityHeaderCover') ? 'max-w-4xl' : 'sm:max-w-[425px]')
+        ? 'aspect-[2/3]' // Book cover preview aspect ratio
+        : 'aspect-[1344/500]') // Entity header cover preview (wide/landscape)
+  const dialogMaxWidth =
+    propDialogMaxWidth ??
+    (type === 'bookCover' || type === 'entityHeaderCover' ? 'max-w-4xl' : 'sm:max-w-[425px]')
 
   // If showing cropper, ImageCropper creates its own modal - don't wrap in Dialog
   if (showCropper && preview) {
@@ -522,52 +539,64 @@ export function EntityImageUpload({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent 
+      <DialogContent
         className={`${dialogMaxWidth} flex flex-col`}
         style={{
           display: 'flex',
           flexDirection: 'column',
           minHeight: '400px',
           height: 'clamp(400px, 80vh, 80vh)',
-          maxHeight: '80vh'
+          maxHeight: '80vh',
         }}
       >
         <DialogHeader className="flex-shrink-0">
           <DialogTitle>
-            Change {entityType} {type === 'bookCover' ? 'book cover' : type === 'entityHeaderCover' ? 'header cover' : type}
+            Change {entityType}{' '}
+            {type === 'bookCover'
+              ? 'book cover'
+              : type === 'entityHeaderCover'
+                ? 'header cover'
+                : type}
           </DialogTitle>
         </DialogHeader>
-        
-            {/* Preview - Takes available space */}
-        <div 
-          className={`flex-1 min-h-0 flex items-center justify-center ${(type === 'bookCover' || type === 'entityHeaderCover') ? "py-6" : "py-4"}`}
+
+        {/* Preview - Takes available space */}
+        <div
+          className={`flex-1 min-h-0 flex items-center justify-center ${type === 'bookCover' || type === 'entityHeaderCover' ? 'py-6' : 'py-4'}`}
         >
-          <div 
+          <div
             className={cn(
-              (type === 'bookCover' || type === 'entityHeaderCover')
+              type === 'bookCover' || type === 'entityHeaderCover'
                 ? `w-full rounded-lg border-2 border-border bg-gray-50 flex items-center justify-center p-4`
                 : type === 'avatar' && (croppedImage || preview)
-                  ? "relative w-32 h-32 rounded-full overflow-hidden border-2 border-border"
-                  : "relative w-32 h-32 overflow-hidden",
+                  ? 'relative w-32 h-32 rounded-full overflow-hidden border-2 border-border'
+                  : 'relative w-32 h-32 overflow-hidden',
               // When no image is selected, style like the file input field
-              !(croppedImage || preview) && cn(
-                "w-full rounded-md border border-input bg-background",
-                "cursor-pointer hover:bg-accent/50 transition-colors",
-                "flex items-center justify-center",
-                type === 'bookCover' || type === 'entityHeaderCover' ? "h-full min-h-[200px]" : "h-10"
-              )
+              !(croppedImage || preview) &&
+                cn(
+                  'w-full rounded-md border border-input bg-background',
+                  'cursor-pointer hover:bg-accent/50 transition-colors',
+                  'flex items-center justify-center',
+                  type === 'bookCover' || type === 'entityHeaderCover'
+                    ? 'h-full min-h-[200px]'
+                    : 'h-10'
+                )
             )}
-            style={(type === 'bookCover' || type === 'entityHeaderCover') ? {
-              width: '100%',
-              maxWidth: '100%',
-              maxHeight: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              alignSelf: 'stretch',
-              flex: '1 1 auto',
-              minHeight: 0
-            } : undefined}
+            style={
+              type === 'bookCover' || type === 'entityHeaderCover'
+                ? {
+                    width: '100%',
+                    maxWidth: '100%',
+                    maxHeight: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    alignSelf: 'stretch',
+                    flex: '1 1 auto',
+                    minHeight: 0,
+                  }
+                : undefined
+            }
             onClick={() => {
               // If no image is selected, clicking the preview area should open file picker
               if (!(croppedImage || preview) && fileInputRef.current) {
@@ -575,19 +604,27 @@ export function EntityImageUpload({
               }
             }}
           >
-            {(croppedImage || preview) ? (
+            {croppedImage || preview ? (
               <img
                 src={(croppedImage || preview) as string}
                 alt={`${entityType} ${type} preview`}
-                className={(type === 'bookCover' || type === 'entityHeaderCover') ? "" : "w-full h-full object-cover"}
-                style={(type === 'bookCover' || type === 'entityHeaderCover') ? {
-                  maxWidth: '100%',
-                  maxHeight: '100%',
-                  width: 'auto',
-                  height: 'auto',
-                  objectFit: 'contain',
-                  display: 'block'
-                } : undefined}
+                className={
+                  type === 'bookCover' || type === 'entityHeaderCover'
+                    ? ''
+                    : 'w-full h-full object-cover'
+                }
+                style={
+                  type === 'bookCover' || type === 'entityHeaderCover'
+                    ? {
+                        maxWidth: '100%',
+                        maxHeight: '100%',
+                        width: 'auto',
+                        height: 'auto',
+                        objectFit: 'contain',
+                        display: 'block',
+                      }
+                    : undefined
+                }
               />
             ) : (
               <div className="flex items-center justify-center gap-2 text-muted-foreground">
@@ -597,63 +634,65 @@ export function EntityImageUpload({
               </div>
             )}
           </div>
-            </div>
+        </div>
 
         {/* Footer with File Input and Action Buttons */}
         <div className="flex-shrink-0 space-y-3 pt-4 border-t">
-            {/* File Input - Hidden, triggered by preview area click */}
+          {/* File Input - Hidden, triggered by preview area click */}
           <div className="w-full">
-              <Input
-                ref={fileInputRef}
-                id={type}
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                disabled={isUploading}
-                className="cursor-pointer"
-              />
-            </div>
+            <Input
+              ref={fileInputRef}
+              id={type}
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              disabled={isUploading}
+              className="cursor-pointer"
+            />
+          </div>
 
           {/* Action Buttons Row */}
           <div className="flex items-center justify-between gap-2">
             {/* Crop Button - Show for both cover and avatar images when a file is selected */}
             <div>
-              {(type === 'bookCover' || type === 'entityHeaderCover' || type === 'avatar') && preview && !showCropper && (
-                <Button
-                  size="sm"
-                  onClick={() => setShowCropper(true)}
-                  disabled={isUploading}
-                  className="flex items-center gap-2 h-8"
-                >
-                  <Crop className="h-4 w-4" />
-                  Crop & Adjust
-                </Button>
-            )}
-          </div>
+              {(type === 'bookCover' || type === 'entityHeaderCover' || type === 'avatar') &&
+                preview &&
+                !showCropper && (
+                  <Button
+                    size="sm"
+                    onClick={() => setShowCropper(true)}
+                    disabled={isUploading}
+                    className="flex items-center gap-2 h-8"
+                  >
+                    <Crop className="h-4 w-4" />
+                    Crop & Adjust
+                  </Button>
+                )}
+            </div>
 
             {/* Cancel and Upload buttons */}
             <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleClose}
-            disabled={isUploading}
-            className="h-8"
-          >
-            Cancel
-          </Button>
-          <Button
-            size="sm"
-            onClick={handleUpload}
-            disabled={!preview && !croppedImage || isUploading}
-            className="h-8"
-          >
-            {isUploading ? "Uploading..." : "Upload"}
-          </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleClose}
+                disabled={isUploading}
+                className="h-8"
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleUpload}
+                disabled={(!preview && !croppedImage) || isUploading}
+                className="h-8"
+              >
+                {isUploading ? 'Uploading...' : 'Upload'}
+              </Button>
             </div>
           </div>
         </div>
       </DialogContent>
     </Dialog>
   )
-} 
+}

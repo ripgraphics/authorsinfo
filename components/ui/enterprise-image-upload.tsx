@@ -1,11 +1,11 @@
-"use client"
+'use client'
 
 import React, { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { uploadImage } from '@/app/actions/upload'
 import { linkImagesToAlbum } from '@/app/actions/album-images'
-import { Upload, Plus, Loader2, Camera, Image as ImageIcon } from 'lucide-react'
+import { Plus, Loader2, Camera, Image as ImageIcon } from 'lucide-react'
 
 export type EntityType = 'user' | 'publisher' | 'author' | 'group' | 'book' | 'event' | 'content'
 export type UploadContext = 'avatar' | 'cover' | 'gallery' | 'album' | 'banner' | 'thumbnail'
@@ -49,7 +49,7 @@ const DEFAULT_CONFIG: EnterpriseImageUploadConfig = {
   enableAnalytics: true,
   enableModeration: true,
   targetWidth: 1200,
-  targetHeight: 1200
+  targetHeight: 1200,
 }
 
 export function EnterpriseImageUpload({
@@ -67,7 +67,7 @@ export function EnterpriseImageUpload({
   buttonText,
   disabled = false,
   isOwner = true,
-  config = {}
+  config = {},
 }: EnterpriseImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -115,15 +115,15 @@ export function EnterpriseImageUpload({
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || [])
-    
+
     if (files.length === 0) return
 
     // Validate number of files
     if (files.length > finalConfig.maxFiles!) {
       toast({
-        title: "Too many files",
+        title: 'Too many files',
         description: `Maximum ${finalConfig.maxFiles} files allowed`,
-        variant: "destructive"
+        variant: 'destructive',
       })
       return
     }
@@ -133,9 +133,9 @@ export function EnterpriseImageUpload({
       const error = validateFile(file)
       if (error) {
         toast({
-          title: "Invalid file",
+          title: 'Invalid file',
           description: error,
-          variant: "destructive"
+          variant: 'destructive',
         })
         return
       }
@@ -152,7 +152,7 @@ export function EnterpriseImageUpload({
     try {
       for (let i = 0; i < files.length; i++) {
         const file = files[i]
-        
+
         // Update progress
         const progress = ((i + 1) / totalFiles) * 100
         setUploadProgress(progress)
@@ -160,7 +160,7 @@ export function EnterpriseImageUpload({
         // Convert file to base64
         const reader = new FileReader()
         reader.readAsDataURL(file)
-        
+
         await new Promise<void>((resolve, reject) => {
           reader.onload = async () => {
             try {
@@ -178,7 +178,7 @@ export function EnterpriseImageUpload({
                 finalConfig.targetWidth,
                 finalConfig.targetHeight
               )
-              
+
               if (result && result.imageId) {
                 uploadedImageIds.push(result.imageId)
               }
@@ -187,28 +187,23 @@ export function EnterpriseImageUpload({
               reject(error)
             }
           }
-          
+
           reader.onerror = () => {
-            reject(new Error("Failed to read file"))
+            reject(new Error('Failed to read file'))
           }
         })
       }
 
       // If uploading to an album, link the images to the album
       if (albumId && uploadedImageIds.length > 0) {
-        const linkResult = await linkImagesToAlbum(
-          uploadedImageIds,
-          albumId,
-          entityId,
-          entityType
-        )
+        const linkResult = await linkImagesToAlbum(uploadedImageIds, albumId, entityId, entityType)
 
         if (!linkResult.success) {
           console.error('Failed to link images to album:', linkResult.error)
           toast({
-            title: "Partial success",
+            title: 'Partial success',
             description: `Images uploaded but failed to add to album: ${linkResult.error}`,
-            variant: "destructive"
+            variant: 'destructive',
           })
           return
         }
@@ -216,29 +211,28 @@ export function EnterpriseImageUpload({
 
       // Success notification
       toast({
-        title: "Upload successful",
-        description: `Successfully uploaded ${uploadedImageIds.length} image${uploadedImageIds.length !== 1 ? 's' : ''}${albumId ? ' to album' : ''}`
+        title: 'Upload successful',
+        description: `Successfully uploaded ${uploadedImageIds.length} image${uploadedImageIds.length !== 1 ? 's' : ''}${albumId ? ' to album' : ''}`,
       })
 
       // Call completion callback
       onUploadComplete?.(uploadedImageIds)
-
     } catch (error) {
       console.error('Error uploading images:', error)
-      
-      const errorMessage = error instanceof Error ? error.message : "Failed to upload images"
-      
+
+      const errorMessage = error instanceof Error ? error.message : 'Failed to upload images'
+
       toast({
-        title: "Upload failed",
+        title: 'Upload failed',
         description: errorMessage,
-        variant: "destructive"
+        variant: 'destructive',
       })
 
       onUploadError?.(error instanceof Error ? error : new Error(errorMessage))
     } finally {
       setIsUploading(false)
       setUploadProgress(0)
-      
+
       // Reset the input
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
@@ -248,17 +242,24 @@ export function EnterpriseImageUpload({
 
   const getButtonText = () => {
     if (buttonText) return buttonText
-    if (isUploading) return "Uploading..."
-    
+    if (isUploading) return 'Uploading...'
+
     // Context-aware button text
     switch (context) {
-      case 'avatar': return "Upload Avatar"
-      case 'cover': return "Upload Cover"
-      case 'gallery': return "Add Photos"
-      case 'album': return "Add to Album"
-      case 'banner': return "Upload Banner"
-      case 'thumbnail': return "Upload Thumbnail"
-      default: return "Upload Image"
+      case 'avatar':
+        return 'Upload Avatar'
+      case 'cover':
+        return 'Upload Cover'
+      case 'gallery':
+        return 'Add Photos'
+      case 'album':
+        return 'Add to Album'
+      case 'banner':
+        return 'Upload Banner'
+      case 'thumbnail':
+        return 'Upload Thumbnail'
+      default:
+        return 'Upload Image'
     }
   }
 
@@ -309,12 +310,12 @@ export function EnterpriseImageUpload({
         {getIcon()}
         {getButtonText()}
       </Button>
-      
+
       {/* Progress indicator */}
       {isUploading && uploadProgress > 0 && (
         <div className="enterprise-image-upload-progress mt-2">
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
+            <div
               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${uploadProgress}%` }}
             />
@@ -326,4 +327,4 @@ export function EnterpriseImageUpload({
       )}
     </div>
   )
-} 
+}

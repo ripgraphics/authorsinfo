@@ -1,17 +1,9 @@
 import React from 'react'
+import Image from 'next/image'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { 
-  Users, 
-  MessageCircle, 
-  Heart, 
-  Share2,
-  TrendingUp,
-  Award,
-  Star,
-  Zap
-} from 'lucide-react'
+import { Users, MessageCircle, Heart, Share2, TrendingUp, Award, Star, Zap } from 'lucide-react'
 
 interface PhotoGalleryCommunityProps {
   community: {
@@ -31,19 +23,61 @@ export function PhotoGalleryCommunity({ community, className = '' }: PhotoGaller
 
   // Mock community data
   const topContributors = [
-    { id: '1', name: 'Sarah Johnson', avatar: '/placeholder.svg', contributions: 156, badge: 'Gold' },
+    {
+      id: '1',
+      name: 'Sarah Johnson',
+      avatar: '/placeholder.svg',
+      contributions: 156,
+      badge: 'Gold',
+    },
     { id: '2', name: 'Mike Chen', avatar: '/placeholder.svg', contributions: 142, badge: 'Silver' },
     { id: '3', name: 'Emma Davis', avatar: '/placeholder.svg', contributions: 98, badge: 'Bronze' },
-    { id: '4', name: 'Alex Thompson', avatar: '/placeholder.svg', contributions: 87, badge: 'Bronze' },
-    { id: '5', name: 'Lisa Wang', avatar: '/placeholder.svg', contributions: 76, badge: 'Bronze' }
+    {
+      id: '4',
+      name: 'Alex Thompson',
+      avatar: '/placeholder.svg',
+      contributions: 87,
+      badge: 'Bronze',
+    },
+    { id: '5', name: 'Lisa Wang', avatar: '/placeholder.svg', contributions: 76, badge: 'Bronze' },
   ]
 
   const recentActivities = [
-    { id: '1', user: 'Sarah Johnson', action: 'liked your photo', time: '2 minutes ago', avatar: '/placeholder.svg' },
-    { id: '2', user: 'Mike Chen', action: 'commented on your album', time: '5 minutes ago', avatar: '/placeholder.svg' },
-    { id: '3', user: 'Emma Davis', action: 'shared your gallery', time: '12 minutes ago', avatar: '/placeholder.svg' },
-    { id: '4', user: 'Alex Thompson', action: 'followed you', time: '1 hour ago', avatar: '/placeholder.svg' },
-    { id: '5', user: 'Lisa Wang', action: 'added to favorites', time: '2 hours ago', avatar: '/placeholder.svg' }
+    {
+      id: '1',
+      user: 'Sarah Johnson',
+      action: 'liked your photo',
+      time: '2 minutes ago',
+      avatar: '/placeholder.svg',
+    },
+    {
+      id: '2',
+      user: 'Mike Chen',
+      action: 'commented on your album',
+      time: '5 minutes ago',
+      avatar: '/placeholder.svg',
+    },
+    {
+      id: '3',
+      user: 'Emma Davis',
+      action: 'shared your gallery',
+      time: '12 minutes ago',
+      avatar: '/placeholder.svg',
+    },
+    {
+      id: '4',
+      user: 'Alex Thompson',
+      action: 'followed you',
+      time: '1 hour ago',
+      avatar: '/placeholder.svg',
+    },
+    {
+      id: '5',
+      user: 'Lisa Wang',
+      action: 'added to favorites',
+      time: '2 hours ago',
+      avatar: '/placeholder.svg',
+    },
   ]
 
   return (
@@ -61,25 +95,31 @@ export function PhotoGalleryCommunity({ community, className = '' }: PhotoGaller
               <div className="flex items-center justify-center mb-2">
                 <Users className="h-8 w-8 text-blue-500" />
               </div>
-              <div className="text-3xl font-bold text-blue-600">{formatNumber(community.active_followers)}</div>
+              <div className="text-3xl font-bold text-blue-600">
+                {formatNumber(community.active_followers)}
+              </div>
               <div className="text-sm text-muted-foreground">Active Followers</div>
               <div className="text-xs text-blue-500 mt-1">+15.3% from last week</div>
             </div>
-            
+
             <div className="text-center">
               <div className="flex items-center justify-center mb-2">
                 <MessageCircle className="h-8 w-8 text-green-500" />
               </div>
-              <div className="text-3xl font-bold text-green-600">{formatNumber(community.total_interactions)}</div>
+              <div className="text-3xl font-bold text-green-600">
+                {formatNumber(community.total_interactions)}
+              </div>
               <div className="text-sm text-muted-foreground">Total Interactions</div>
               <div className="text-xs text-green-500 mt-1">+8.7% from last week</div>
             </div>
-            
+
             <div className="text-center">
               <div className="flex items-center justify-center mb-2">
                 <Award className="h-8 w-8 text-yellow-500" />
               </div>
-              <div className="text-3xl font-bold text-yellow-600">{community.community_score.toFixed(1)}</div>
+              <div className="text-3xl font-bold text-yellow-600">
+                {community.community_score.toFixed(1)}
+              </div>
               <div className="text-sm text-muted-foreground">Community Score</div>
               <div className="text-xs text-yellow-500 mt-1">+2.1 points this week</div>
             </div>
@@ -98,16 +138,28 @@ export function PhotoGalleryCommunity({ community, className = '' }: PhotoGaller
           <CardContent>
             <div className="space-y-4">
               {topContributors.map((contributor, index) => (
-                <div key={contributor.id} className="flex items-center justify-between p-3 border rounded-lg">
+                <div
+                  key={contributor.id}
+                  className="flex items-center justify-between p-3 border rounded-lg"
+                >
                   <div className="flex items-center gap-3">
                     <div className="relative">
-                      <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-white shadow-md">
+                      <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-white shadow-md relative">
                         {contributor.avatar ? (
-                          <img src={contributor.avatar} alt={contributor.name} className="w-full h-full object-cover" />
+                          <Image
+                            src={contributor.avatar}
+                            alt={`${contributor.name} avatar`}
+                            fill
+                            sizes="40px"
+                            className="object-cover"
+                          />
                         ) : (
                           <div className="w-full h-full bg-muted flex items-center justify-center">
                             <span className="text-sm font-semibold text-muted-foreground">
-                              {contributor.name.split(' ').map(n => n[0]).join('')}
+                              {contributor.name
+                                .split(' ')
+                                .map((n) => n[0])
+                                .join('')}
                             </span>
                           </div>
                         )}
@@ -122,10 +174,20 @@ export function PhotoGalleryCommunity({ community, className = '' }: PhotoGaller
                     </div>
                     <div>
                       <div className="font-medium">{contributor.name}</div>
-                      <div className="text-sm text-muted-foreground">{contributor.contributions} contributions</div>
+                      <div className="text-sm text-muted-foreground">
+                        {contributor.contributions} contributions
+                      </div>
                     </div>
                   </div>
-                  <Badge variant={contributor.badge === 'Gold' ? 'default' : contributor.badge === 'Silver' ? 'secondary' : 'outline'}>
+                  <Badge
+                    variant={
+                      contributor.badge === 'Gold'
+                        ? 'default'
+                        : contributor.badge === 'Silver'
+                          ? 'secondary'
+                          : 'outline'
+                    }
+                  >
                     {contributor.badge}
                   </Badge>
                 </div>
@@ -145,13 +207,22 @@ export function PhotoGalleryCommunity({ community, className = '' }: PhotoGaller
             <div className="space-y-4">
               {recentActivities.map((activity) => (
                 <div key={activity.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                  <div className="h-8 w-8 rounded-full overflow-hidden border-2 border-white shadow-md">
+                  <div className="h-8 w-8 rounded-full overflow-hidden border-2 border-white shadow-md relative">
                     {activity.avatar ? (
-                      <img src={activity.avatar} alt={activity.user} className="w-full h-full object-cover" />
+                      <Image
+                        src={activity.avatar}
+                        alt={`${activity.user} avatar`}
+                        fill
+                        sizes="32px"
+                        className="object-cover"
+                      />
                     ) : (
                       <div className="w-full h-full bg-muted flex items-center justify-center">
                         <span className="text-xs font-semibold text-muted-foreground">
-                          {activity.user.split(' ').map(n => n[0]).join('')}
+                          {activity.user
+                            .split(' ')
+                            .map((n) => n[0])
+                            .join('')}
                         </span>
                       </div>
                     )}
@@ -186,7 +257,7 @@ export function PhotoGalleryCommunity({ community, className = '' }: PhotoGaller
               <div className="text-2xl font-bold text-red-600">2.4K</div>
               <div className="text-sm text-muted-foreground">Likes This Week</div>
             </div>
-            
+
             <div className="text-center p-4 border rounded-lg">
               <div className="flex items-center justify-center mb-2">
                 <MessageCircle className="h-6 w-6 text-blue-500" />
@@ -194,7 +265,7 @@ export function PhotoGalleryCommunity({ community, className = '' }: PhotoGaller
               <div className="text-2xl font-bold text-blue-600">847</div>
               <div className="text-sm text-muted-foreground">Comments This Week</div>
             </div>
-            
+
             <div className="text-center p-4 border rounded-lg">
               <div className="flex items-center justify-center mb-2">
                 <Share2 className="h-6 w-6 text-green-500" />
@@ -202,7 +273,7 @@ export function PhotoGalleryCommunity({ community, className = '' }: PhotoGaller
               <div className="text-2xl font-bold text-green-600">156</div>
               <div className="text-sm text-muted-foreground">Shares This Week</div>
             </div>
-            
+
             <div className="text-center p-4 border rounded-lg">
               <div className="flex items-center justify-center mb-2">
                 <Users className="h-6 w-6 text-purple-500" />
@@ -227,17 +298,17 @@ export function PhotoGalleryCommunity({ community, className = '' }: PhotoGaller
               <Users className="h-4 w-4 mr-2" />
               Invite Friends
             </Button>
-            
+
             <Button className="w-full justify-start" variant="outline">
               <MessageCircle className="h-4 w-4 mr-2" />
               Start Discussion
             </Button>
-            
+
             <Button className="w-full justify-start" variant="outline">
               <Heart className="h-4 w-4 mr-2" />
               Create Challenge
             </Button>
-            
+
             <Button className="w-full justify-start" variant="outline">
               <Share2 className="h-4 w-4 mr-2" />
               Share Gallery
@@ -247,4 +318,4 @@ export function PhotoGalleryCommunity({ community, className = '' }: PhotoGaller
       </Card>
     </div>
   )
-} 
+}

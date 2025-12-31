@@ -1,119 +1,129 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { createBrowserClient } from '@supabase/ssr';
-import { useToast } from '@/hooks/use-toast';
-import type { Database } from '@/types/database';
+import { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { createBrowserClient } from '@supabase/ssr'
+import { useToast } from '@/hooks/use-toast'
+import type { Database } from '@/types/database'
 
 interface PermissionsManagerProps {
-  groupId: string;
+  groupId: string
 }
 
 interface Role {
-  id: string;
-  name: string;
-  description: string;
-  is_custom: boolean;
+  id: string
+  name: string
+  description: string
+  is_custom: boolean
   permissions: {
-    manageRoles: boolean;
-    manageMembers: boolean;
-    manageSettings: boolean;
-    manageContent: boolean;
-    viewAnalytics: boolean;
-    moderateContent: boolean;
-    createContent: boolean;
-    editContent: boolean;
-    deleteContent: boolean;
-    inviteMembers: boolean;
-    removeMembers: boolean;
-    [key: string]: boolean;
-  };
-  created_at: string;
-  updated_at: string;
+    manageRoles: boolean
+    manageMembers: boolean
+    manageSettings: boolean
+    manageContent: boolean
+    viewAnalytics: boolean
+    moderateContent: boolean
+    createContent: boolean
+    editContent: boolean
+    deleteContent: boolean
+    inviteMembers: boolean
+    removeMembers: boolean
+    [key: string]: boolean
+  }
+  created_at: string
+  updated_at: string
 }
 
 interface Member {
-  id: string;
-  user_id: string;
-  role_id: string;
-  joined_at: string;
+  id: string
+  user_id: string
+  role_id: string
+  joined_at: string
   user: {
-    id: string;
-    email: string;
-    full_name: string;
-  };
-  role: Role;
+    id: string
+    email: string
+    full_name: string
+  }
+  role: Role
 }
 
 export default function PermissionsManager({ groupId }: PermissionsManagerProps) {
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [members, setMembers] = useState<Member[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [roles, setRoles] = useState<Role[]>([])
+  const [members, setMembers] = useState<Member[]>([])
+  const [loading, setLoading] = useState(true)
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null)
   const [newRole, setNewRole] = useState({
     name: '',
     description: '',
     permissions: {} as Role['permissions'],
-  });
-  const [showNewRoleDialog, setShowNewRoleDialog] = useState(false);
+  })
+  const [showNewRoleDialog, setShowNewRoleDialog] = useState(false)
 
-  const supabase = createBrowserClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
-  const { toast } = useToast();
+  const supabase = createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+  const { toast } = useToast()
 
   useEffect(() => {
-    fetchRolesAndMembers();
-  }, []);
+    fetchRolesAndMembers()
+  }, [])
 
   async function fetchRolesAndMembers() {
     try {
-      setLoading(true);
+      setLoading(true)
 
       // Fetch roles
       const { data: rolesData, error: rolesError } = await supabase
         .from('group_roles')
         .select('*')
         .eq('group_id', groupId)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: true })
 
-      if (rolesError) throw rolesError;
-      setRoles(rolesData || []);
+      if (rolesError) throw rolesError
+      setRoles(rolesData || [])
 
       // Fetch members with their roles
       const { data: membersData, error: membersError } = await supabase
         .from('group_members')
-        .select(`
+        .select(
+          `
           *,
           user:user_id(id, email, full_name),
           role:role_id(*)
-        `)
-        .eq('group_id', groupId);
+        `
+        )
+        .eq('group_id', groupId)
 
-      if (membersError) throw membersError;
-      setMembers(membersData || []);
+      if (membersError) throw membersError
+      setMembers(membersData || [])
     } catch (err: any) {
       toast({
         title: 'Error',
         description: 'Failed to load roles and members',
         variant: 'destructive',
-      });
+      })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
   async function handleCreateRole() {
     try {
-      const { data, error } = await (supabase
-        .from('group_roles') as any)
+      const { data, error } = await (supabase.from('group_roles') as any)
         .insert({
           group_id: groupId,
           name: newRole.name,
@@ -122,104 +132,99 @@ export default function PermissionsManager({ groupId }: PermissionsManagerProps)
           is_custom: true,
         })
         .select()
-        .single();
+        .single()
 
-      if (error) throw error;
+      if (error) throw error
 
-      setRoles([...roles, data]);
-      setShowNewRoleDialog(false);
+      setRoles([...roles, data])
+      setShowNewRoleDialog(false)
       setNewRole({
         name: '',
         description: '',
         permissions: {} as Role['permissions'],
-      });
+      })
 
       toast({
         title: 'Success',
         description: 'Role created successfully',
-      });
+      })
     } catch (err: any) {
       toast({
         title: 'Error',
         description: 'Failed to create role',
         variant: 'destructive',
-      });
+      })
     }
   }
 
   async function handleUpdateRole(role: Role) {
     try {
-      const { error } = await (supabase
-        .from('group_roles') as any)
+      const { error } = await (supabase.from('group_roles') as any)
         .update({
           name: role.name,
           description: role.description,
           permissions: role.permissions,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', role.id);
+        .eq('id', role.id)
 
-      if (error) throw error;
+      if (error) throw error
 
-      setRoles(roles.map(r => (r.id === role.id ? role : r)));
+      setRoles(roles.map((r) => (r.id === role.id ? role : r)))
       toast({
         title: 'Success',
         description: 'Role updated successfully',
-      });
+      })
     } catch (err: any) {
       toast({
         title: 'Error',
         description: 'Failed to update role',
         variant: 'destructive',
-      });
+      })
     }
   }
 
   async function handleDeleteRole(roleId: string) {
     try {
-      const { error } = await supabase
-        .from('group_roles')
-        .delete()
-        .eq('id', roleId);
+      const { error } = await supabase.from('group_roles').delete().eq('id', roleId)
 
-      if (error) throw error;
+      if (error) throw error
 
-      setRoles(roles.filter(r => r.id !== roleId));
-      setSelectedRole(null);
+      setRoles(roles.filter((r) => r.id !== roleId))
+      setSelectedRole(null)
       toast({
         title: 'Success',
         description: 'Role deleted successfully',
-      });
+      })
     } catch (err: any) {
       toast({
         title: 'Error',
         description: 'Failed to delete role',
         variant: 'destructive',
-      });
+      })
     }
   }
 
   async function handleUpdateMemberRole(memberId: string, roleId: string) {
     try {
-      const { error } = await (supabase
-        .from('group_members') as any)
+      const { error } = await (supabase.from('group_members') as any)
         .update({ role_id: roleId })
-        .eq('id', memberId);
+        .eq('id', memberId)
 
-      if (error) throw error;
+      if (error) throw error
 
       // Refresh members list
-      await fetchRolesAndMembers();
+      await fetchRolesAndMembers()
       toast({
         title: 'Success',
         description: 'Member role updated successfully',
-      });
+      })
     } catch (err: any) {
       toast({
         title: 'Error',
         description: 'Failed to update member role',
         variant: 'destructive',
-      });
+      })
     }
   }
 
@@ -235,7 +240,7 @@ export default function PermissionsManager({ groupId }: PermissionsManagerProps)
     { key: 'deleteContent', label: 'Delete Content' },
     { key: 'inviteMembers', label: 'Invite Members' },
     { key: 'removeMembers', label: 'Remove Members' },
-  ];
+  ]
 
   return (
     <div className="space-y-6">
@@ -266,9 +271,7 @@ export default function PermissionsManager({ groupId }: PermissionsManagerProps)
                         <Input
                           id="name"
                           value={newRole.name}
-                          onChange={(e) =>
-                            setNewRole({ ...newRole, name: e.target.value })
-                          }
+                          onChange={(e) => setNewRole({ ...newRole, name: e.target.value })}
                         />
                       </div>
                       <div>
@@ -287,10 +290,7 @@ export default function PermissionsManager({ groupId }: PermissionsManagerProps)
                       <div className="space-y-2">
                         <Label>Permissions</Label>
                         {permissionsList.map(({ key, label }) => (
-                          <div
-                            key={key}
-                            className="flex items-center justify-between"
-                          >
+                          <div key={key} className="flex items-center justify-between">
                             <Label htmlFor={key}>{label}</Label>
                             <Switch
                               id={key}
@@ -323,16 +323,12 @@ export default function PermissionsManager({ groupId }: PermissionsManagerProps)
                           <div
                             key={role.id}
                             className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                              selectedRole?.id === role.id
-                                ? 'bg-primary/10'
-                                : 'hover:bg-muted'
+                              selectedRole?.id === role.id ? 'bg-primary/10' : 'hover:bg-muted'
                             }`}
                             onClick={() => setSelectedRole(role)}
                           >
                             <div className="font-medium">{role.name}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {role.description}
-                            </div>
+                            <div className="text-sm text-muted-foreground">{role.description}</div>
                           </div>
                         ))}
                       </div>
@@ -373,10 +369,7 @@ export default function PermissionsManager({ groupId }: PermissionsManagerProps)
                         <div className="space-y-2">
                           <Label>Permissions</Label>
                           {permissionsList.map(({ key, label }) => (
-                            <div
-                              key={key}
-                              className="flex items-center justify-between"
-                            >
+                            <div key={key} className="flex items-center justify-between">
                               <Label htmlFor={`edit-${key}`}>{label}</Label>
                               <Switch
                                 id={`edit-${key}`}
@@ -428,20 +421,14 @@ export default function PermissionsManager({ groupId }: PermissionsManagerProps)
                           className="flex items-center justify-between p-3 border rounded-lg"
                         >
                           <div>
-                            <div className="font-medium">
-                              {member.user.full_name}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              {member.user.email}
-                            </div>
+                            <div className="font-medium">{member.user.full_name}</div>
+                            <div className="text-sm text-muted-foreground">{member.user.email}</div>
                           </div>
                           <div className="flex items-center space-x-2">
                             <select
                               className="border rounded-sm p-1"
                               value={member.role_id}
-                              onChange={(e) =>
-                                handleUpdateMemberRole(member.id, e.target.value)
-                              }
+                              onChange={(e) => handleUpdateMemberRole(member.id, e.target.value)}
                             >
                               {roles.map((role) => (
                                 <option key={role.id} value={role.id}>
@@ -461,5 +448,5 @@ export default function PermissionsManager({ groupId }: PermissionsManagerProps)
         </CardContent>
       </Card>
     </div>
-  );
-} 
+  )
+}

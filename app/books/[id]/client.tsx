@@ -1,19 +1,25 @@
-"use client"
+'use client'
 
-import React, { useState, useEffect, useRef } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { PageHeader } from "@/components/page-header"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
-import { AuthorAvatar } from "@/components/author-avatar"
-import { AuthorHoverCard } from "@/components/author-hover-card"
-import { PublisherHoverCard } from "@/components/entity-hover-cards"
-import { EntityHeader, TabConfig } from "@/components/entity-header"
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import React, { useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { PageHeader } from '@/components/page-header'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Input } from '@/components/ui/input'
+import { Separator } from '@/components/ui/separator'
+import { AuthorAvatar } from '@/components/author-avatar'
+import { AuthorHoverCard } from '@/components/author-hover-card'
+import { PublisherHoverCard } from '@/components/entity-hover-cards'
+import { EntityHeader, TabConfig } from '@/components/entity-header'
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import type { Book as BookType, Author, Review, BindingType, FormatType } from '@/types/book'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
@@ -44,20 +50,21 @@ import {
   Book,
   MapPin,
   Camera,
-  UserPlus
-} from "lucide-react"
-import { Textarea } from "@/components/ui/textarea"
-import { FollowersList } from "@/components/followers-list"
-import { FollowersListTab } from "@/components/followers-list-tab"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { ViewFullDetailsButton } from "@/components/ui/ViewFullDetailsButton"
-import { TimelineAboutSection } from "@/components/author/TimelineAboutSection"
-import { EntityHoverCard } from "@/components/entity-hover-cards"
-import { ContentSection } from "@/components/ui/content-section"
-import { formatDate } from "@/utils/dateUtils"
+  UserPlus,
+} from 'lucide-react'
+import { Textarea } from '@/components/ui/textarea'
+import { FollowersList } from '@/components/followers-list'
+import { FollowersListTab } from '@/components/followers-list-tab'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { ViewFullDetailsButton } from '@/components/ui/ViewFullDetailsButton'
+import { TimelineAboutSection } from '@/components/author/TimelineAboutSection'
+import { EntityHoverCard } from '@/components/entity-hover-cards'
+import { ContentSection } from '@/components/ui/content-section'
+import { formatDate } from '@/utils/dateUtils'
 import { canUserEditEntity } from '@/lib/auth-utils'
-import { BookCard } from "@/components/book-card";
-import { supabase } from '@/lib/supabase/client';
+import { BookEventsSection } from '@/components/book/BookEventsSection'
+import { BookCard } from '@/components/book-card'
+import { supabase } from '@/lib/supabase/client'
 import { EntityTabs, EntityTab } from '@/components/ui/entity-tabs'
 import { EntityPhotoAlbums } from '@/components/user-photo-albums'
 import { useSearchParams, useRouter } from 'next/navigation'
@@ -102,13 +109,13 @@ export function ClientBookPage({
   readingProgress,
   followers = [],
   followersCount = 0,
-  params
+  params,
 }: ClientBookPageProps) {
   const { user } = useAuth()
   const { toast } = useToast()
   const router = useRouter()
   const searchParams = useSearchParams()
-  
+
   const validTabs: EntityTab[] = [
     { id: 'details', label: 'Details' },
     { id: 'timeline', label: 'Timeline' },
@@ -118,9 +125,9 @@ export function ClientBookPage({
     { id: 'photos', label: 'Photos' },
     { id: 'more', label: 'More' },
   ]
-  
+
   const tabParam = searchParams?.get('tab')
-  const validTabIds = validTabs.map(t => t.id)
+  const validTabIds = validTabs.map((t) => t.id)
   const initialTab = tabParam && validTabIds.includes(tabParam) ? tabParam : 'details'
   const [activeTab, setActiveTab] = useState(initialTab)
   const [showFullAbout, setShowFullAbout] = useState(false)
@@ -132,34 +139,67 @@ export function ClientBookPage({
   const [currentReadingStatus, setCurrentReadingStatus] = useState<string | null>(null)
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false)
   const [canEdit, setCanEdit] = useState(false)
-  const [moreBooks, setMoreBooks] = useState<any[]>([]);
+  const [moreBooks, setMoreBooks] = useState<any[]>([])
   const [bookData, setBookData] = useState(book)
   const [isCoverImageModalOpen, setIsCoverImageModalOpen] = useState(false)
   const [isHoveringCover, setIsHoveringCover] = useState(false)
   const [isCoverDropdownOpen, setIsCoverDropdownOpen] = useState(false)
   const [isCoverCropModalOpen, setIsCoverCropModalOpen] = useState(false)
   const [isProcessingCrop, setIsProcessingCrop] = useState(false)
-  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   // Sync bookData with book prop when it changes (e.g., after page refresh)
   // But don't reset if we just updated the cover image locally
   const [justUpdatedCoverImage, setJustUpdatedCoverImage] = useState(false)
   const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  
+
   useEffect(() => {
     // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client.tsx:143',message:'useEffect triggered',data:{justUpdatedCoverImage,bookCoverImageId:book?.cover_image_id,bookDataCoverImageId:bookData?.cover_image_id,bookCoverImageUrl:book?.cover_image?.url,bookDataCoverImageUrl:bookData?.cover_image?.url},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        location: 'client.tsx:143',
+        message: 'useEffect triggered',
+        data: {
+          justUpdatedCoverImage,
+          bookCoverImageId: book?.cover_image_id,
+          bookDataCoverImageId: bookData?.cover_image_id,
+          bookCoverImageUrl: book?.cover_image?.url,
+          bookDataCoverImageUrl: bookData?.cover_image?.url,
+        },
+        timestamp: Date.now(),
+        sessionId: 'debug-session',
+        runId: 'run1',
+        hypothesisId: 'A',
+      }),
+    }).catch(() => {})
     // #endregion
-    
+
     // SUPABASE IS THE SOURCE OF TRUTH: If bookData has a cover_image_id that differs from book prop,
     // preserve bookData because it came from Supabase (fresh API fetch)
     // This handles the case where book prop is stale from server-side rendering
     const bookDataCoverId = bookData?.cover_image_id
     const bookPropCoverId = book?.cover_image_id
-    
+
     if (bookDataCoverId && bookPropCoverId && bookDataCoverId !== bookPropCoverId) {
       // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client.tsx:151',message:'Preserving bookData - Supabase source of truth',data:{bookDataCoverImageId:bookDataCoverId,bookPropCoverImageId:bookPropCoverId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          location: 'client.tsx:151',
+          message: 'Preserving bookData - Supabase source of truth',
+          data: { bookDataCoverImageId: bookDataCoverId, bookPropCoverImageId: bookPropCoverId },
+          timestamp: Date.now(),
+          sessionId: 'debug-session',
+          runId: 'run1',
+          hypothesisId: 'E',
+        }),
+      }).catch(() => {})
       // #endregion
       // Keep bookData (Supabase value) and only sync other fields from book prop
       setBookData((prev) => ({
@@ -167,36 +207,75 @@ export function ClientBookPage({
         // Preserve cover_image_id and cover_image from Supabase (bookData)
         cover_image_id: prev.cover_image_id,
         cover_image: prev.cover_image,
-        cover_image_url: prev.cover_image_url
+        cover_image_url: prev.cover_image_url,
       }))
       return
     }
-    
+
     // If bookData has cover_image_id but book prop doesn't, preserve bookData (Supabase has it)
     if (bookDataCoverId && !bookPropCoverId) {
       // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client.tsx:165',message:'Preserving bookData - book prop missing cover_image_id',data:{bookDataCoverImageId:bookDataCoverId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          location: 'client.tsx:165',
+          message: 'Preserving bookData - book prop missing cover_image_id',
+          data: { bookDataCoverImageId: bookDataCoverId },
+          timestamp: Date.now(),
+          sessionId: 'debug-session',
+          runId: 'run1',
+          hypothesisId: 'E',
+        }),
+      }).catch(() => {})
       // #endregion
       setBookData((prev) => ({
         ...book,
         cover_image_id: prev.cover_image_id,
         cover_image: prev.cover_image,
-        cover_image_url: prev.cover_image_url
+        cover_image_url: prev.cover_image_url,
       }))
       return
     }
-    
+
     // If we just updated the cover image, skip the reset to preserve the new image
     if (justUpdatedCoverImage) {
       // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client.tsx:162',message:'Skipping reset - justUpdatedCoverImage is true',data:{justUpdatedCoverImage},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          location: 'client.tsx:162',
+          message: 'Skipping reset - justUpdatedCoverImage is true',
+          data: { justUpdatedCoverImage },
+          timestamp: Date.now(),
+          sessionId: 'debug-session',
+          runId: 'run1',
+          hypothesisId: 'A',
+        }),
+      }).catch(() => {})
       // #endregion
       setJustUpdatedCoverImage(false)
       return
     }
-    
+
     // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client.tsx:169',message:'Resetting bookData to book prop',data:{bookCoverImageId:book?.cover_image_id,bookDataCoverImageId:bookData?.cover_image_id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        location: 'client.tsx:169',
+        message: 'Resetting bookData to book prop',
+        data: {
+          bookCoverImageId: book?.cover_image_id,
+          bookDataCoverImageId: bookData?.cover_image_id,
+        },
+        timestamp: Date.now(),
+        sessionId: 'debug-session',
+        runId: 'run1',
+        hypothesisId: 'C',
+      }),
+    }).catch(() => {})
     // #endregion
     setBookData(book)
   }, [book, justUpdatedCoverImage, bookData?.cover_image_id])
@@ -217,16 +296,17 @@ export function ClientBookPage({
         setCanEdit(false)
         return
       }
-      
+
       // Check if user is admin or super_admin (from user object first, then database)
       const userRole = (user as any)?.role
-      const isAdmin = userRole === 'admin' || userRole === 'super_admin' || userRole === 'super-admin'
-      
+      const isAdmin =
+        userRole === 'admin' || userRole === 'super_admin' || userRole === 'super-admin'
+
       if (isAdmin) {
         setCanEdit(true)
         return
       }
-      
+
       // If not in user object, check database
       if (!userRole) {
         try {
@@ -235,10 +315,13 @@ export function ClientBookPage({
             .select('role')
             .eq('user_id', user.id)
             .single()
-          
+
           const profileRole = profile?.role
-          const isAdminFromDb = profileRole === 'admin' || profileRole === 'super_admin' || profileRole === 'super-admin'
-          
+          const isAdminFromDb =
+            profileRole === 'admin' ||
+            profileRole === 'super_admin' ||
+            profileRole === 'super-admin'
+
           if (isAdminFromDb) {
             setCanEdit(true)
             return
@@ -247,102 +330,147 @@ export function ClientBookPage({
           console.error('Error checking edit permissions:', error)
         }
       }
-      
+
       // Books don't have a created_by field, so editing is based on admin role only
       // (which is checked above)
-      
+
       setCanEdit(false)
     }
-    
+
     checkEditPermissions()
   }, [user, book.id])
 
   // Mock photos for the Photos tab
   const mockPhotosTabData = [
-    { id: "1", title: "Reading at the park", date: "June 15, 2023", url: "/placeholder.svg?height=300&width=300" },
-    { id: "2", title: "My bookshelf", date: "May 22, 2023", url: "/placeholder.svg?height=300&width=300" },
-    { id: "3", title: "Book haul!", date: "April 10, 2023", url: "/placeholder.svg?height=300&width=300" },
-    { id: "4", title: "Author signing event", date: "March 5, 2023", url: "/placeholder.svg?height=300&width=300" },
-    { id: "5", title: "Reading nook", date: "February 18, 2023", url: "/placeholder.svg?height=300&width=300" },
-    { id: "6", title: "Book club meeting", date: "January 30, 2023", url: "/placeholder.svg?height=300&width=300" },
-    { id: "7", title: "Visiting the library", date: "December 12, 2022", url: "/placeholder.svg?height=300&width=300" },
-    { id: "8", title: "New bookmarks", date: "November 5, 2022", url: "/placeholder.svg?height=300&width=300" },
-    { id: "9", title: "Reading by the fireplace", date: "October 22, 2022", url: "/placeholder.svg?height=300&width=300" }
+    {
+      id: '1',
+      title: 'Reading at the park',
+      date: 'June 15, 2023',
+      url: '/placeholder.svg?height=300&width=300',
+    },
+    {
+      id: '2',
+      title: 'My bookshelf',
+      date: 'May 22, 2023',
+      url: '/placeholder.svg?height=300&width=300',
+    },
+    {
+      id: '3',
+      title: 'Book haul!',
+      date: 'April 10, 2023',
+      url: '/placeholder.svg?height=300&width=300',
+    },
+    {
+      id: '4',
+      title: 'Author signing event',
+      date: 'March 5, 2023',
+      url: '/placeholder.svg?height=300&width=300',
+    },
+    {
+      id: '5',
+      title: 'Reading nook',
+      date: 'February 18, 2023',
+      url: '/placeholder.svg?height=300&width=300',
+    },
+    {
+      id: '6',
+      title: 'Book club meeting',
+      date: 'January 30, 2023',
+      url: '/placeholder.svg?height=300&width=300',
+    },
+    {
+      id: '7',
+      title: 'Visiting the library',
+      date: 'December 12, 2022',
+      url: '/placeholder.svg?height=300&width=300',
+    },
+    {
+      id: '8',
+      title: 'New bookmarks',
+      date: 'November 5, 2022',
+      url: '/placeholder.svg?height=300&width=300',
+    },
+    {
+      id: '9',
+      title: 'Reading by the fireplace',
+      date: 'October 22, 2022',
+      url: '/placeholder.svg?height=300&width=300',
+    },
   ]
-  
+
   // Mock currently reading books
   const mockCurrentlyReading = [
     {
-      title: "The Name of the Wind",
-      author: "Patrick Rothfuss",
+      title: 'The Name of the Wind',
+      author: 'Patrick Rothfuss',
       progress: 65,
-      coverUrl: "/placeholder.svg?height=240&width=160",
+      coverUrl: '/placeholder.svg?height=240&width=160',
     },
     {
-      title: "Project Hail Mary",
-      author: "Andy Weir",
+      title: 'Project Hail Mary',
+      author: 'Andy Weir',
       progress: 23,
-      coverUrl: "/placeholder.svg?height=240&width=160",
+      coverUrl: '/placeholder.svg?height=240&width=160',
     },
   ]
 
   // Mock photos for timeline
   const mockPhotos = [
-    "/placeholder.svg?height=300&width=300",
-    "/placeholder.svg?height=300&width=300",
-    "/placeholder.svg?height=300&width=300",
-    "/placeholder.svg?height=300&width=300",
-    "/placeholder.svg?height=300&width=300",
-    "/placeholder.svg?height=300&width=300",
-    "/placeholder.svg?height=300&width=300",
-    "/placeholder.svg?height=300&width=300",
-    "/placeholder.svg?height=300&width=300",
+    '/placeholder.svg?height=300&width=300',
+    '/placeholder.svg?height=300&width=300',
+    '/placeholder.svg?height=300&width=300',
+    '/placeholder.svg?height=300&width=300',
+    '/placeholder.svg?height=300&width=300',
+    '/placeholder.svg?height=300&width=300',
+    '/placeholder.svg?height=300&width=300',
+    '/placeholder.svg?height=300&width=300',
+    '/placeholder.svg?height=300&width=300',
   ]
 
   // Mock friends
   const mockFriends = [
-    { id: "1", name: "Alex Thompson", avatar: "/placeholder.svg?height=100&width=100" },
-    { id: "2", name: "Maria Garcia", avatar: "/placeholder.svg?height=100&width=100" },
-    { id: "3", name: "James Wilson", avatar: "/placeholder.svg?height=100&width=100" },
-    { id: "4", name: "Emma Davis", avatar: "/placeholder.svg?height=100&width=100" },
-    { id: "5", name: "Michael Brown", avatar: "/placeholder.svg?height=100&width=100" },
-    { id: "6", name: "Sophia Martinez", avatar: "/placeholder.svg?height=100&width=100" },
-    { id: "7", name: "Daniel Lee", avatar: "/placeholder.svg?height=100&width=100" },
-    { id: "8", name: "Olivia Johnson", avatar: "/placeholder.svg?height=100&width=100" },
-    { id: "9", name: "William Smith", avatar: "/placeholder.svg?height=100&width=100" },
+    { id: '1', name: 'Alex Thompson', avatar: '/placeholder.svg?height=100&width=100' },
+    { id: '2', name: 'Maria Garcia', avatar: '/placeholder.svg?height=100&width=100' },
+    { id: '3', name: 'James Wilson', avatar: '/placeholder.svg?height=100&width=100' },
+    { id: '4', name: 'Emma Davis', avatar: '/placeholder.svg?height=100&width=100' },
+    { id: '5', name: 'Michael Brown', avatar: '/placeholder.svg?height=100&width=100' },
+    { id: '6', name: 'Sophia Martinez', avatar: '/placeholder.svg?height=100&width=100' },
+    { id: '7', name: 'Daniel Lee', avatar: '/placeholder.svg?height=100&width=100' },
+    { id: '8', name: 'Olivia Johnson', avatar: '/placeholder.svg?height=100&width=100' },
+    { id: '9', name: 'William Smith', avatar: '/placeholder.svg?height=100&width=100' },
   ]
 
   // Mock activities
   const mockActivities = [
     {
-      id: "1",
-      type: "rating",
-      bookTitle: "Dune",
-      bookAuthor: "Frank Herbert",
+      id: '1',
+      type: 'rating',
+      bookTitle: 'Dune',
+      bookAuthor: 'Frank Herbert',
       rating: 5,
-      timeAgo: "2 days ago",
+      timeAgo: '2 days ago',
     },
     {
-      id: "2",
-      type: "finished",
-      bookTitle: "The Hobbit",
-      bookAuthor: "J.R.R. Tolkien",
-      timeAgo: "1 week ago",
+      id: '2',
+      type: 'finished',
+      bookTitle: 'The Hobbit',
+      bookAuthor: 'J.R.R. Tolkien',
+      timeAgo: '1 week ago',
     },
     {
-      id: "3",
-      type: "added",
-      bookTitle: "The Way of Kings",
-      bookAuthor: "Brandon Sanderson",
-      shelf: "Want to Read",
-      timeAgo: "2 weeks ago",
+      id: '3',
+      type: 'added',
+      bookTitle: 'The Way of Kings',
+      bookAuthor: 'Brandon Sanderson',
+      shelf: 'Want to Read',
+      timeAgo: '2 weeks ago',
     },
     {
-      id: "4",
-      type: "reviewed",
-      bookTitle: "Circe",
-      bookAuthor: "Madeline Miller",
-      timeAgo: "3 weeks ago",
+      id: '4',
+      type: 'reviewed',
+      bookTitle: 'Circe',
+      bookAuthor: 'Madeline Miller',
+      timeAgo: '3 weeks ago',
     },
   ]
 
@@ -353,17 +481,21 @@ export function ClientBookPage({
   }
 
   // Check if content needs truncation
-  const checkTruncation = (content: string, maxHeight: number, setTruncation: (needs: boolean) => void, isTimeline = false) => {
+  const checkTruncation = (
+    content: string,
+    maxHeight: number,
+    setTruncation: (needs: boolean) => void,
+    isTimeline = false
+  ) => {
     // Simple approach: count characters and estimate lines
     const charCount = content.length
     const avgCharsPerLine = isTimeline ? 50 : 60 // Timeline has smaller text
     const estimatedLines = Math.ceil(charCount / avgCharsPerLine)
     const lineHeight = isTimeline ? 20 : 24 // Approximate line height in pixels
     const estimatedHeight = estimatedLines * lineHeight
-    
+
     setTruncation(estimatedHeight > maxHeight)
   }
-
 
   // Check follow status on component mount
   useEffect(() => {
@@ -402,7 +534,7 @@ export function ClientBookPage({
   useEffect(() => {
     if (book.synopsis || book.overview) {
       // 160px = max-h-40 (10rem * 16px)
-      checkTruncation(book.synopsis || book.overview || "", 160, setNeedsTimelineTruncation, true)
+      checkTruncation(book.synopsis || book.overview || '', 160, setNeedsTimelineTruncation, true)
     }
   }, [book.synopsis, book.overview])
 
@@ -444,8 +576,8 @@ export function ClientBookPage({
         },
         body: JSON.stringify({
           bookId: params.id,
-          status: status
-        })
+          status: status,
+        }),
       })
 
       if (response.ok) {
@@ -454,7 +586,7 @@ export function ClientBookPage({
         // Show success message
         const statusText = status === 'remove' ? 'removed from shelf' : status.replace('_', ' ')
         toast({
-          title: "Success!",
+          title: 'Success!',
           description: `Book ${statusText}`,
         })
       } else {
@@ -472,11 +604,11 @@ export function ClientBookPage({
   // Helper function to get display name for status
   const getStatusDisplayName = (status: string) => {
     const statusMap: Record<string, string> = {
-      'not_started': 'Want to Read',
-      'in_progress': 'Currently Reading',
-      'completed': 'Read',
-      'on_hold': 'On Hold',
-      'abandoned': 'Abandoned'
+      not_started: 'Want to Read',
+      in_progress: 'Currently Reading',
+      completed: 'Read',
+      on_hold: 'On Hold',
+      abandoned: 'Abandoned',
     }
     return statusMap[status] || status
   }
@@ -496,15 +628,15 @@ export function ClientBookPage({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          bookId: params.id
-        })
+          bookId: params.id,
+        }),
       })
 
       if (response.ok) {
         setCurrentReadingStatus(null)
         toast({
-          title: "Success!",
-          description: "Book removed from shelf",
+          title: 'Success!',
+          description: 'Book removed from shelf',
         })
       } else {
         const error = await response.json()
@@ -523,14 +655,14 @@ export function ClientBookPage({
     try {
       if (!url || !url.includes('cloudinary.com')) return null
       const parts = url.split('/')
-      const uploadIndex = parts.findIndex(part => part === 'upload')
-      
+      const uploadIndex = parts.findIndex((part) => part === 'upload')
+
       if (uploadIndex > -1 && uploadIndex < parts.length - 1) {
         // Get everything after 'upload' including folder path and filename
         const pathParts = parts.slice(uploadIndex + 1)
         const filename = pathParts[pathParts.length - 1]
         const publicIdWithoutExt = filename.split('.')[0]
-        
+
         // Reconstruct public ID with folder path if it exists
         if (pathParts.length > 1) {
           // There's a folder path
@@ -539,7 +671,7 @@ export function ClientBookPage({
         }
         return publicIdWithoutExt
       }
-      
+
       // Fallback: just get filename if we can't find 'upload'
       const filename = parts[parts.length - 1]
       return filename.split('.')[0]
@@ -555,10 +687,10 @@ export function ClientBookPage({
     setIsProcessingCrop(true)
     try {
       console.log('handleCropBookCover called with blob:', croppedImageBlob)
-      
+
       // Convert blob to file
       const file = new File([croppedImageBlob], 'cropped-book-cover.jpg', { type: 'image/jpeg' })
-      
+
       // Find the original image ID from the current cover image URL
       let originalImageId: string | null = null
       const currentCoverUrl = bookData.cover_image?.url || bookData.cover_image_url
@@ -569,7 +701,7 @@ export function ClientBookPage({
             .select('id')
             .eq('url', currentCoverUrl)
             .single()
-          
+
           if (originalImage) {
             originalImageId = originalImage.id
             console.log('Found original book cover image ID:', originalImageId)
@@ -594,13 +726,15 @@ export function ClientBookPage({
       console.log('📤 Uploading cropped book cover via /api/upload/entity-image...')
       const uploadResponse = await fetch('/api/upload/entity-image', {
         method: 'POST',
-        body: formData
+        body: formData,
       })
 
       if (!uploadResponse.ok) {
         const errorData = await uploadResponse.json().catch(() => ({}))
         console.error('❌ Upload failed:', errorData)
-        throw new Error(errorData.error || `Failed to upload cropped book cover: ${uploadResponse.status}`)
+        throw new Error(
+          errorData.error || `Failed to upload cropped book cover: ${uploadResponse.status}`
+        )
       }
 
       const uploadResult = await uploadResponse.json()
@@ -612,7 +746,7 @@ export function ClientBookPage({
 
       // Mark that we're updating the cover image to prevent useEffect from resetting
       setJustUpdatedCoverImage(true)
-      
+
       // Update the book's cover_image_id to point to the new cropped image
       // WITHOUT deleting the original image (we keep both)
       try {
@@ -639,17 +773,17 @@ export function ClientBookPage({
           cover_image: {
             id: uploadResult.image_id,
             url: uploadResult.url,
-            alt_text: prev.cover_image?.alt_text || `Cover for ${prev.title}`
+            alt_text: prev.cover_image?.alt_text || `Cover for ${prev.title}`,
           },
           cover_image_id: uploadResult.image_id,
-          cover_image_url: uploadResult.url
+          cover_image_url: uploadResult.url,
         } as typeof prev
-        
-        console.log('✅ Book data updated with cropped cover:', { 
+
+        console.log('✅ Book data updated with cropped cover:', {
           cover_image_id: updated.cover_image_id,
-          cover_image_url: updated.cover_image_url
+          cover_image_url: updated.cover_image_url,
         })
-        
+
         return updated
       })
 
@@ -668,14 +802,14 @@ export function ClientBookPage({
             isCover: true,
             isFeatured: true,
             metadata: {
-              aspect_ratio: 2/3,
+              aspect_ratio: 2 / 3,
               uploaded_via: 'book_cover_crop',
               original_filename: file.name,
               file_size: file.size,
               is_cropped: true,
-              ...(originalImageId && { original_image_id: originalImageId })
-            }
-          })
+              ...(originalImageId && { original_image_id: originalImageId }),
+            },
+          }),
         })
 
         if (!albumResponse.ok) {
@@ -686,19 +820,19 @@ export function ClientBookPage({
       } catch (albumError) {
         console.warn('⚠️ Error adding cropped image to album (non-critical):', albumError)
       }
-      
+
       setIsCoverCropModalOpen(false)
-      
+
       toast({
-        title: "Success",
-        description: "Book cover cropped and saved as a new file"
+        title: 'Success',
+        description: 'Book cover cropped and saved as a new file',
       })
     } catch (error: any) {
       console.error('Error cropping book cover:', error)
       toast({
-        title: "Error",
-        description: error.message || "Failed to crop book cover. Please try again.",
-        variant: "destructive"
+        title: 'Error',
+        description: error.message || 'Failed to crop book cover. Please try again.',
+        variant: 'destructive',
       })
     } finally {
       setIsProcessingCrop(false)
@@ -718,7 +852,7 @@ export function ClientBookPage({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ publicId })
+        body: JSON.stringify({ publicId }),
       })
 
       if (!response.ok) {
@@ -735,74 +869,148 @@ export function ClientBookPage({
   // Handle cover image change
   const handleCoverImageChange = async (newImageUrl: string, newImageId?: string) => {
     console.log('🔄 handleCoverImageChange called:', { newImageUrl, newImageId })
-    
+
     // Mark that we're updating the cover image to prevent useEffect from resetting
     setJustUpdatedCoverImage(true)
-    
+
     // Delete old image from Cloudinary if it exists
     const oldImageUrl = bookData?.cover_image?.url || bookData?.cover_image_url
     if (oldImageUrl) {
       await deleteOldImageFromCloudinary(oldImageUrl)
     }
-    
+
     // Immediately update local state for instant UI feedback
     setBookData((prev) => {
-      console.log('📝 Updating bookData with new cover:', { 
-        oldUrl: prev.cover_image?.url, 
+      console.log('📝 Updating bookData with new cover:', {
+        oldUrl: prev.cover_image?.url,
         newUrl: newImageUrl,
         oldId: prev.cover_image_id,
-        newId: newImageId
+        newId: newImageId,
       })
       // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client.tsx:542',message:'Updating bookData with new cover image',data:{oldCoverImageId:prev.cover_image_id,newImageId,newImageUrl},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          location: 'client.tsx:542',
+          message: 'Updating bookData with new cover image',
+          data: { oldCoverImageId: prev.cover_image_id, newImageId, newImageUrl },
+          timestamp: Date.now(),
+          sessionId: 'debug-session',
+          runId: 'run1',
+          hypothesisId: 'E',
+        }),
+      }).catch(() => {})
       // #endregion
-      
-      const baseCoverImage = prev.cover_image || (prev.cover_image_id ? { id: prev.cover_image_id, url: prev.cover_image_url || '' } : null)
+
+      const baseCoverImage =
+        prev.cover_image ||
+        (prev.cover_image_id ? { id: prev.cover_image_id, url: prev.cover_image_url || '' } : null)
       const updated = {
         ...prev,
-        cover_image: baseCoverImage ? {
-          ...baseCoverImage,
-          id: newImageId || baseCoverImage.id,
-          url: newImageUrl
-        } : (newImageId ? { id: newImageId, url: newImageUrl } : null),
+        cover_image: baseCoverImage
+          ? {
+              ...baseCoverImage,
+              id: newImageId || baseCoverImage.id,
+              url: newImageUrl,
+            }
+          : newImageId
+            ? { id: newImageId, url: newImageUrl }
+            : null,
         cover_image_id: newImageId || prev.cover_image_id,
-        cover_image_url: newImageUrl
+        cover_image_url: newImageUrl,
       } as typeof prev
-      
-      console.log('✅ Book data updated:', { 
+
+      console.log('✅ Book data updated:', {
         cover_image_id: updated.cover_image_id,
         cover_image_url: updated.cover_image_url,
-        cover_image: updated.cover_image
+        cover_image: updated.cover_image,
       })
       // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client.tsx:568',message:'bookData updated with new cover_image_id',data:{updatedCoverImageId:updated.cover_image_id,updatedCoverImageUrl:updated.cover_image_url},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          location: 'client.tsx:568',
+          message: 'bookData updated with new cover_image_id',
+          data: {
+            updatedCoverImageId: updated.cover_image_id,
+            updatedCoverImageUrl: updated.cover_image_url,
+          },
+          timestamp: Date.now(),
+          sessionId: 'debug-session',
+          runId: 'run1',
+          hypothesisId: 'E',
+        }),
+      }).catch(() => {})
       // #endregion
-      
+
       return updated
     })
-    
+
     toast({
-      title: "Success!",
-      description: "Book cover image uploaded successfully",
+      title: 'Success!',
+      description: 'Book cover image uploaded successfully',
     })
-    
+
     // Fetch fresh book data from API to ensure we have the latest data
     try {
       console.log('🔄 Fetching fresh book data from API...')
       // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client.tsx:577',message:'Fetching fresh book data from API',data:{bookId:params.id,currentCoverImageId:bookData?.cover_image_id,newImageId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          location: 'client.tsx:577',
+          message: 'Fetching fresh book data from API',
+          data: { bookId: params.id, currentCoverImageId: bookData?.cover_image_id, newImageId },
+          timestamp: Date.now(),
+          sessionId: 'debug-session',
+          runId: 'run1',
+          hypothesisId: 'B',
+        }),
+      }).catch(() => {})
       // #endregion
       const response = await fetch(`/api/books/${params.id}`)
       if (response.ok) {
         const result = await response.json()
         if (result.success && result.data) {
           // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client.tsx:583',message:'Fresh book data received from API',data:{apiCoverImageId:result.data?.cover_image_id,expectedImageId:newImageId,apiCoverImageUrl:result.data?.cover_image?.url,matches:result.data?.cover_image_id===newImageId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+          fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              location: 'client.tsx:583',
+              message: 'Fresh book data received from API',
+              data: {
+                apiCoverImageId: result.data?.cover_image_id,
+                expectedImageId: newImageId,
+                apiCoverImageUrl: result.data?.cover_image?.url,
+                matches: result.data?.cover_image_id === newImageId,
+              },
+              timestamp: Date.now(),
+              sessionId: 'debug-session',
+              runId: 'run1',
+              hypothesisId: 'B',
+            }),
+          }).catch(() => {})
           // #endregion
           console.log('✅ Fresh book data received, updating state')
           setBookData(result.data)
           // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client.tsx:586',message:'Setting bookData and justUpdatedCoverImage flag',data:{coverImageId:result.data?.cover_image_id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+          fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              location: 'client.tsx:586',
+              message: 'Setting bookData and justUpdatedCoverImage flag',
+              data: { coverImageId: result.data?.cover_image_id },
+              timestamp: Date.now(),
+              sessionId: 'debug-session',
+              runId: 'run1',
+              hypothesisId: 'A',
+            }),
+          }).catch(() => {})
           // #endregion
           // Keep the flag set to prevent reset
           setJustUpdatedCoverImage(true)
@@ -811,25 +1019,37 @@ export function ClientBookPage({
     } catch (error) {
       console.error('❌ Error fetching fresh book data:', error)
       // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'client.tsx:590',message:'Error fetching fresh book data',data:{error:error instanceof Error?error.message:'unknown'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7242/ingest/6ad30084-e554-4118-90e3-f654a3d8dd51', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          location: 'client.tsx:590',
+          message: 'Error fetching fresh book data',
+          data: { error: error instanceof Error ? error.message : 'unknown' },
+          timestamp: Date.now(),
+          sessionId: 'debug-session',
+          runId: 'run1',
+          hypothesisId: 'B',
+        }),
+      }).catch(() => {})
       // #endregion
     }
-    
+
     // Clear any existing timeout
     if (refreshTimeoutRef.current) {
       clearTimeout(refreshTimeoutRef.current)
     }
-    
+
     // Revalidate the path in background (non-blocking)
     // Don't reset justUpdatedCoverImage flag - let the cover_image_id comparison handle it
     // The flag will be reset naturally when book prop updates with matching cover_image_id
     refreshTimeoutRef.current = setTimeout(async () => {
       try {
         await fetch(`/api/revalidate/book-cover/${params.id}`, {
-          method: "POST",
+          method: 'POST',
         })
       } catch (revalidateError) {
-        console.warn("Revalidate request failed:", revalidateError)
+        console.warn('Revalidate request failed:', revalidateError)
       }
       refreshTimeoutRef.current = null
     }, 1000)
@@ -837,24 +1057,24 @@ export function ClientBookPage({
 
   // Configure tabs for the EntityHeader
   const tabs: TabConfig[] = [
-    { id: "details", label: "Details" },
-    { id: "timeline", label: "Timeline" },
-    { id: "reviews", label: "Reviews" },
-    { id: "photos", label: "Photos" },
-    { id: "followers", label: "Followers" },
-    { id: "more", label: "More" }
+    { id: 'details', label: 'Details' },
+    { id: 'timeline', label: 'Timeline' },
+    { id: 'reviews', label: 'Reviews' },
+    { id: 'photos', label: 'Photos' },
+    { id: 'followers', label: 'Followers' },
+    { id: 'more', label: 'More' },
   ]
 
   // Set up stats for the EntityHeader
   const bookStats = [
-    { 
-      icon: <BookOpen className="h-4 w-4 mr-1" />, 
-      text: `${book.pages || book.page_count || 0} pages` 
+    {
+      icon: <BookOpen className="h-4 w-4 mr-1" />,
+      text: `${book.pages || book.page_count || 0} pages`,
     },
-    { 
-      icon: <Users className="h-4 w-4 mr-1" />, 
-      text: `${followers.length} followers` 
-    }
+    {
+      icon: <Users className="h-4 w-4 mr-1" />,
+      text: `${followers.length} followers`,
+    },
   ]
 
   // Get main author
@@ -866,81 +1086,95 @@ export function ClientBookPage({
 
   useEffect(() => {
     async function fetchMoreBooks() {
-      if (!authors || authors.length === 0) return;
+      if (!authors || authors.length === 0) return
       const { data, error } = await supabase
         .from('books')
         .select('id, title, cover_image:images!cover_image_id(id, url)')
         .eq('author_id', authors[0].id)
         .neq('id', book.id)
-        .limit(4);
-      if (!error && data) setMoreBooks(data);
+        .limit(4)
+      if (!error && data) setMoreBooks(data)
     }
-    fetchMoreBooks();
-  }, [authors, book.id]);
+    fetchMoreBooks()
+  }, [authors, book.id])
 
   return (
     <div className="book-page">
-        <EntityHeader
-          entityType="book"
-          name={bookData.title}
-          bookId={params.id}
-          entityId={params.id}
-          targetType="book"
-          username={authors && authors.length > 0 ? (
+      <EntityHeader
+        entityType="book"
+        name={bookData.title}
+        bookId={params.id}
+        entityId={params.id}
+        targetType="book"
+        username={
+          authors && authors.length > 0 ? (
             <EntityHoverCard
               type="author"
               entity={{
-              id: authors[0].id,
-              name: authors[0].name,
-              author_image: authors[0].author_image ? { url: authors[0].author_image.url } : undefined,
-              bookCount: authorBookCounts[authors[0].id] || 0
+                id: authors[0].id,
+                name: authors[0].name,
+                author_image: authors[0].author_image
+                  ? { url: authors[0].author_image.url }
+                  : undefined,
+                bookCount: authorBookCounts[authors[0].id] || 0,
               }}
             >
-            <span className="text-muted-foreground">{authors[0].name}</span>
+              <span className="text-muted-foreground">{authors[0].name}</span>
             </EntityHoverCard>
-          ) : undefined}
-          coverImageUrl={bookData.cover_image?.url || "/placeholder.svg?height=400&width=1200"}
-          profileImageUrl={bookData.cover_image?.url || "/placeholder.svg?height=200&width=200"}
-          stats={[
-            { 
-              icon: <BookOpen className="h-4 w-4 mr-1" />, 
-              text: `${bookData.pages || bookData.page_count || 0} pages` 
-            },
-            { 
-              icon: <Users className="h-4 w-4 mr-1" />, 
-              text: `${followersCount} followers` 
-            }
-          ]}
-          location={bookData.language || undefined}
-          website={bookData.website || undefined}
-          tabs={tabs}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          author={authors && authors.length > 0 ? {
-            id: authors[0].id,
-            name: authors[0].name,
-            author_image: authors[0].author_image ? { url: authors[0].author_image.url } : undefined
-            } : undefined}
-          authorBookCount={authors && authors.length > 0 ? authorBookCounts[authors[0].id] : 0}
-          publisher={publisher ? {
-            id: publisher.id,
-              name: publisher.name,
-              publisher_image: publisher.publisher_image,
-              logo_url: publisher.publisher_image?.url
-            } : undefined}
-          publisherBookCount={publisherBooksCount}
-          isMessageable={true}
-          isEditable={canEdit}
-          changeCoverLabel="Change Page Cover"
-          cropCoverLabel="Crop Page Cover"
-          cropCoverSuccessMessage="Page cover cropped and saved as a new file"
-          isFollowing={isFollowing}
-          onFollow={handleFollow}
-          onCoverImageChange={() => handleCoverImageChange('', '')}
-        />
+          ) : undefined
+        }
+        coverImageUrl={bookData.cover_image?.url || '/placeholder.svg?height=400&width=1200'}
+        profileImageUrl={bookData.cover_image?.url || '/placeholder.svg?height=200&width=200'}
+        stats={[
+          {
+            icon: <BookOpen className="h-4 w-4 mr-1" />,
+            text: `${bookData.pages || bookData.page_count || 0} pages`,
+          },
+          {
+            icon: <Users className="h-4 w-4 mr-1" />,
+            text: `${followersCount} followers`,
+          },
+        ]}
+        location={bookData.language || undefined}
+        website={bookData.website || undefined}
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        author={
+          authors && authors.length > 0
+            ? {
+                id: authors[0].id,
+                name: authors[0].name,
+                author_image: authors[0].author_image
+                  ? { url: authors[0].author_image.url }
+                  : undefined,
+              }
+            : undefined
+        }
+        authorBookCount={authors && authors.length > 0 ? authorBookCounts[authors[0].id] : 0}
+        publisher={
+          publisher
+            ? {
+                id: publisher.id,
+                name: publisher.name,
+                publisher_image: publisher.publisher_image,
+                logo_url: publisher.publisher_image?.url,
+              }
+            : undefined
+        }
+        publisherBookCount={publisherBooksCount}
+        isMessageable={true}
+        isEditable={canEdit}
+        changeCoverLabel="Change Page Cover"
+        cropCoverLabel="Crop Page Cover"
+        cropCoverSuccessMessage="Page cover cropped and saved as a new file"
+        isFollowing={isFollowing}
+        onFollow={handleFollow}
+        onCoverImageChange={() => handleCoverImageChange('', '')}
+      />
 
       <div className="book-page__content">
-        {activeTab === "timeline" && (
+        {activeTab === 'timeline' && (
           <div className="book-page__timeline-tab">
             <div className="book-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Left Sidebar */}
@@ -948,43 +1182,50 @@ export function ClientBookPage({
                 {/* About Section */}
                 <ContentSection
                   title="About"
-                  onViewMore={() => setActiveTab("details")}
+                  onViewMore={() => setActiveTab('details')}
                   className="book-page__about-section"
                 >
                   <div className="space-y-2">
-                    {(book.synopsis || book.overview) ? (
-                      <Collapsible open={showFullTimelineAbout} onOpenChange={setShowFullTimelineAbout}>
+                    {book.synopsis || book.overview ? (
+                      <Collapsible
+                        open={showFullTimelineAbout}
+                        onOpenChange={setShowFullTimelineAbout}
+                      >
                         {/* Show truncated content initially */}
-                        <div 
+                        <div
                           className={`text-sm text-muted-foreground max-w-none synopsis-content prose prose-sm max-h-40 overflow-hidden ${
                             showFullTimelineAbout ? 'hidden' : ''
                           }`}
-                          dangerouslySetInnerHTML={{ 
-                            __html: book.synopsis || book.overview || "" 
+                          dangerouslySetInnerHTML={{
+                            __html: book.synopsis || book.overview || '',
                           }}
                         />
-                        
+
                         {/* Show full content when expanded */}
                         <CollapsibleContent className="text-sm text-muted-foreground max-w-none synopsis-content prose prose-sm">
-                          <div dangerouslySetInnerHTML={{ 
-                            __html: book.synopsis || book.overview || "" 
-                          }} />
+                          <div
+                            dangerouslySetInnerHTML={{
+                              __html: book.synopsis || book.overview || '',
+                            }}
+                          />
                         </CollapsibleContent>
-                        
+
                         {needsTimelineTruncation && (
                           <div className="flex justify-end mt-2">
                             <CollapsibleTrigger asChild>
-                              <Button variant="ghost" size="sm" className="text-primary hover:bg-primary/10 hover:text-primary">
-                                {showFullTimelineAbout ? "View Less" : "View More"}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-primary hover:bg-primary/10 hover:text-primary"
+                              >
+                                {showFullTimelineAbout ? 'View Less' : 'View More'}
                               </Button>
                             </CollapsibleTrigger>
                           </div>
                         )}
                       </Collapsible>
                     ) : (
-                      <p className="text-sm text-muted-foreground">
-                        No description available.
-                      </p>
+                      <p className="text-sm text-muted-foreground">No description available.</p>
                     )}
                     {book.language && (
                       <div className="flex items-center">
@@ -996,7 +1237,11 @@ export function ClientBookPage({
                       <div className="flex items-center">
                         <Globe className="h-4 w-4 mr-2 text-muted-foreground" />
                         <a
-                          href={book.website.startsWith('http') ? book.website : `https://${book.website}`}
+                          href={
+                            book.website.startsWith('http')
+                              ? book.website
+                              : `https://${book.website}`
+                          }
                           className="hover:underline"
                           target="_blank"
                           rel="noopener noreferrer"
@@ -1014,7 +1259,7 @@ export function ClientBookPage({
                   followersCount={followersCount}
                   entityId={params.id}
                   entityType="book"
-                  onViewMore={() => setActiveTab("followers")}
+                  onViewMore={() => setActiveTab('followers')}
                   className="book-page__followers-section"
                 />
 
@@ -1030,7 +1275,7 @@ export function ClientBookPage({
                       <div key={index} className="flex gap-3">
                         <div className="relative h-20 w-14 flex-shrink-0">
                           <img
-                            src={book.coverUrl || "/placeholder.svg"}
+                            src={book.coverUrl || '/placeholder.svg'}
                             alt={book.title}
                             className="object-cover rounded-md absolute inset-0 w-full h-full"
                           />
@@ -1059,14 +1304,17 @@ export function ClientBookPage({
                 {/* Photos Section */}
                 <ContentSection
                   title="Photos"
-                  onViewMore={() => setActiveTab("photos")}
+                  onViewMore={() => setActiveTab('photos')}
                   className="book-page__photos-section"
                 >
                   <div className="grid grid-cols-3 gap-2">
                     {mockPhotos.map((photoUrl, index) => (
-                      <div key={index} className="aspect-square relative rounded-sm overflow-hidden">
+                      <div
+                        key={index}
+                        className="aspect-square relative rounded-sm overflow-hidden"
+                      >
                         <img
-                          src={photoUrl || "/placeholder.svg"}
+                          src={photoUrl || '/placeholder.svg'}
                           alt={`Photo ${index + 1}`}
                           className="object-cover hover:scale-105 transition-transform absolute inset-0 w-full h-full"
                         />
@@ -1074,6 +1322,9 @@ export function ClientBookPage({
                     ))}
                   </div>
                 </ContentSection>
+
+                {/* Book Events Section */}
+                <BookEventsSection bookId={params.id} className="book-page__events-section" />
               </div>
 
               {/* Main Content Area - Timeline */}
@@ -1082,32 +1333,36 @@ export function ClientBookPage({
                   entityId={params.id}
                   entityType="book"
                   isOwnEntity={canEdit}
-                  entityDisplayInfo={authors && authors.length > 0 ? {
-                    id: authors[0].id,
-                    name: authors[0].name,
-                    type: 'author' as const,
-                    author_image: authors[0].author_image?.url || undefined,
-                    bookCount: authorBookCounts[authors[0].id] || 0
-                  } : undefined}
+                  entityDisplayInfo={
+                    authors && authors.length > 0
+                      ? {
+                          id: authors[0].id,
+                          name: authors[0].name,
+                          type: 'author' as const,
+                          author_image: authors[0].author_image?.url || undefined,
+                          bookCount: authorBookCounts[authors[0].id] || 0,
+                        }
+                      : undefined
+                  }
                 />
               </div>
             </div>
           </div>
         )}
-        
-        {activeTab === "details" && (
+
+        {activeTab === 'details' && (
           <div className="book-page__details-tab">
             <div className="book-detail-layout grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Left Column - Book Cover (1/3 width) */}
               <div className="book-page__details-sidebar lg:col-span-1 lg:sticky lg:top-6 lg:self-start">
-              {/* Book Cover (full width) */}
-                <Card 
+                {/* Book Cover (full width) */}
+                <Card
                   className="book-page__cover-card overflow-hidden relative"
                   onMouseEnter={() => setIsHoveringCover(true)}
                   onMouseLeave={() => setIsHoveringCover(false)}
                 >
-                {bookData.cover_image?.url ? (
-                    <div 
+                  {bookData.cover_image?.url ? (
+                    <div
                       className="book-page__cover-image w-full h-full relative"
                       onMouseEnter={() => setIsHoveringCover(true)}
                       onMouseLeave={() => {
@@ -1116,49 +1371,49 @@ export function ClientBookPage({
                         }
                       }}
                     >
-                    <Image
-                      key={bookData.cover_image_id || 'no-cover'}
-                      src={bookData.cover_image.url}
-                      alt={bookData.cover_image?.alt_text ?? bookData.title}
-                      width={400}
-                      height={600}
-                      className="w-full aspect-[2/3] object-cover"
-                    />
-                    {/* Camera Icon Overlay - Only show on hover and if editable */}
-                    {canEdit && (isHoveringCover || isCoverDropdownOpen) && (
-                      <HoverOverlay
-                        isVisible={isHoveringCover || isCoverDropdownOpen}
-                        onMouseEnter={() => setIsHoveringCover(true)}
-                        onMouseLeave={() => {
-                          if (!isCoverDropdownOpen) {
-                            setIsHoveringCover(false)
-                          }
-                        }}
-                      >
-                        <CameraIconButton
-                          onChangeCover={() => {
-                            setIsCoverImageModalOpen(true)
-                            setIsCoverDropdownOpen(false)
-                          }}
-                          onCrop={() => {
-                            setIsCoverCropModalOpen(true)
-                            setIsCoverDropdownOpen(false)
-                          }}
-                          changeCoverLabel="Change Cover Image"
-                          cropLabel="Crop Book Cover"
-                          showCrop={!!bookData.cover_image?.url}
-                          onOpenChange={(open) => {
-                            setIsCoverDropdownOpen(open)
-                            if (!open) {
+                      <Image
+                        key={bookData.cover_image_id || 'no-cover'}
+                        src={bookData.cover_image.url}
+                        alt={bookData.cover_image?.alt_text ?? bookData.title}
+                        width={400}
+                        height={600}
+                        className="w-full aspect-[2/3] object-cover"
+                      />
+                      {/* Camera Icon Overlay - Only show on hover and if editable */}
+                      {canEdit && (isHoveringCover || isCoverDropdownOpen) && (
+                        <HoverOverlay
+                          isVisible={isHoveringCover || isCoverDropdownOpen}
+                          onMouseEnter={() => setIsHoveringCover(true)}
+                          onMouseLeave={() => {
+                            if (!isCoverDropdownOpen) {
                               setIsHoveringCover(false)
                             }
                           }}
-                        />
-                      </HoverOverlay>
-                    )}
-                  </div>
-                ) : (
-                    <div 
+                        >
+                          <CameraIconButton
+                            onChangeCover={() => {
+                              setIsCoverImageModalOpen(true)
+                              setIsCoverDropdownOpen(false)
+                            }}
+                            onCrop={() => {
+                              setIsCoverCropModalOpen(true)
+                              setIsCoverDropdownOpen(false)
+                            }}
+                            changeCoverLabel="Change Cover Image"
+                            cropLabel="Crop Book Cover"
+                            showCrop={!!bookData.cover_image?.url}
+                            onOpenChange={(open) => {
+                              setIsCoverDropdownOpen(open)
+                              if (!open) {
+                                setIsHoveringCover(false)
+                              }
+                            }}
+                          />
+                        </HoverOverlay>
+                      )}
+                    </div>
+                  ) : (
+                    <div
                       className="book-page__cover-placeholder w-full aspect-[2/3] bg-muted flex items-center justify-center relative"
                       onMouseEnter={() => setIsHoveringCover(true)}
                       onMouseLeave={() => {
@@ -1167,159 +1422,179 @@ export function ClientBookPage({
                         }
                       }}
                     >
-                    <BookOpen className="h-16 w-16 text-muted-foreground" />
-                    {/* Camera Icon Overlay - Only show on hover and if editable */}
-                    {canEdit && (isHoveringCover || isCoverDropdownOpen) && (
-                      <HoverOverlay
-                        isVisible={isHoveringCover || isCoverDropdownOpen}
-                        onMouseEnter={() => setIsHoveringCover(true)}
-                        onMouseLeave={() => {
-                          if (!isCoverDropdownOpen) {
-                            setIsHoveringCover(false)
-                          }
-                        }}
-                      >
-                        <CameraIconButton
-                          onChangeCover={() => {
-                            setIsCoverImageModalOpen(true)
-                            setIsCoverDropdownOpen(false)
-                          }}
-                          changeCoverLabel="Change Cover Image"
-                          showCrop={false}
-                          onOpenChange={(open) => {
-                            setIsCoverDropdownOpen(open)
-                            if (!open) {
+                      <BookOpen className="h-16 w-16 text-muted-foreground" />
+                      {/* Camera Icon Overlay - Only show on hover and if editable */}
+                      {canEdit && (isHoveringCover || isCoverDropdownOpen) && (
+                        <HoverOverlay
+                          isVisible={isHoveringCover || isCoverDropdownOpen}
+                          onMouseEnter={() => setIsHoveringCover(true)}
+                          onMouseLeave={() => {
+                            if (!isCoverDropdownOpen) {
                               setIsHoveringCover(false)
                             }
                           }}
-                        />
-                      </HoverOverlay>
-                    )}
-                  </div>
+                        >
+                          <CameraIconButton
+                            onChangeCover={() => {
+                              setIsCoverImageModalOpen(true)
+                              setIsCoverDropdownOpen(false)
+                            }}
+                            changeCoverLabel="Change Cover Image"
+                            showCrop={false}
+                            onOpenChange={(open) => {
+                              setIsCoverDropdownOpen(open)
+                              if (!open) {
+                                setIsHoveringCover(false)
+                              }
+                            }}
+                          />
+                        </HoverOverlay>
+                      )}
+                    </div>
+                  )}
+                </Card>
+
+                {/* Cover Image Upload Modal */}
+                {canEdit && (
+                  <EntityImageUpload
+                    entityId={book.id}
+                    entityType="book"
+                    currentImageUrl={
+                      bookData.cover_image?.url || bookData.cover_image_url || undefined
+                    }
+                    onImageChange={handleCoverImageChange}
+                    type="bookCover"
+                    isOpen={isCoverImageModalOpen}
+                    onOpenChange={setIsCoverImageModalOpen}
+                  />
                 )}
-              </Card>
-              
-              {/* Cover Image Upload Modal */}
-              {canEdit && (
-                <EntityImageUpload
-                  entityId={book.id}
-                  entityType="book"
-                  currentImageUrl={bookData.cover_image?.url || bookData.cover_image_url || undefined}
-                  onImageChange={handleCoverImageChange}
-                  type="bookCover"
-                  isOpen={isCoverImageModalOpen}
-                  onOpenChange={setIsCoverImageModalOpen}
-                />
-              )}
 
-              {/* Crop Cover Image Modal */}
-              {canEdit && bookData.cover_image?.url && isCoverCropModalOpen && (
-                <ImageCropper
-                  imageUrl={bookData.cover_image.url}
-                  aspectRatio={2 / 3} // Book cover aspect ratio
-                  targetWidth={400}
-                  targetHeight={600}
-                  onCropComplete={handleCropBookCover}
-                  onCancel={() => setIsCoverCropModalOpen(false)}
-                  isProcessing={isProcessingCrop}
-                  title="Crop Book Cover"
-                  helpText="Adjust the crop area to frame your book cover"
-                />
-              )}
+                {/* Crop Cover Image Modal */}
+                {canEdit && bookData.cover_image?.url && isCoverCropModalOpen && (
+                  <ImageCropper
+                    imageUrl={bookData.cover_image.url}
+                    aspectRatio={2 / 3} // Book cover aspect ratio
+                    targetWidth={400}
+                    targetHeight={600}
+                    onCropComplete={handleCropBookCover}
+                    onCancel={() => setIsCoverCropModalOpen(false)}
+                    isProcessing={isProcessingCrop}
+                    title="Crop Book Cover"
+                    helpText="Adjust the crop area to frame your book cover"
+                  />
+                )}
 
-              {/* Add to Shelf Section */}
+                {/* Book Events Section */}
+                <BookEventsSection bookId={params.id} className="book-page__events-section" />
+
+                {/* Add to Shelf Section */}
                 <div className="book-page__shelf-section space-y-4 w-full mt-6">
-                <Dialog>
-                  <DialogTrigger asChild>
-                      <button 
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <button
                         className={`book-page__shelf-button inline-flex items-center justify-center gap-2 w-full rounded-md text-sm font-medium border focus-visible:ring-1 focus-visible:ring-ring/25 focus-visible:ring-offset-0 h-10 px-4 py-2 ${
-                          currentReadingStatus 
-                            ? 'border-primary bg-primary text-primary-foreground hover:bg-primary/90' 
+                          currentReadingStatus
+                            ? 'border-primary bg-primary text-primary-foreground hover:bg-primary/90'
                             : 'border-input bg-background hover:bg-accent hover:text-accent-foreground'
                         }`}
                         disabled={isUpdatingStatus}
                       >
-                      <BookMarked className="mr-2 h-4 w-4" />
-                      {currentReadingStatus ? `On Shelf (${getStatusDisplayName(currentReadingStatus)})` : 'Add to Shelf'}
-                    </button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-lg p-6">
-                    <DialogHeader>
-                      <DialogTitle>
-                        {currentReadingStatus ? 'Update Reading Status' : 'Add Book to Shelf'}
-                      </DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-2">
-                      <button 
-                        onClick={() => handleReadingStatusUpdate('want_to_read')}
-                        disabled={isUpdatingStatus}
-                        className={`shelf-menu-item flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
-                          currentReadingStatus === 'not_started' ? 'bg-accent text-accent-foreground' : ''
-                        }`}
-                      >
-                        {currentReadingStatus === 'not_started' ? '✓ ' : ''}Want to Read
+                        <BookMarked className="mr-2 h-4 w-4" />
+                        {currentReadingStatus
+                          ? `On Shelf (${getStatusDisplayName(currentReadingStatus)})`
+                          : 'Add to Shelf'}
                       </button>
-                      <button 
-                        onClick={() => handleReadingStatusUpdate('currently_reading')}
-                        disabled={isUpdatingStatus}
-                        className={`shelf-menu-item flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
-                          currentReadingStatus === 'in_progress' ? 'bg-accent text-accent-foreground' : ''
-                        }`}
-                      >
-                        {currentReadingStatus === 'in_progress' ? '✓ ' : ''}Currently Reading
-                      </button>
-                      <button 
-                        onClick={() => handleReadingStatusUpdate('read')}
-                        disabled={isUpdatingStatus}
-                        className={`shelf-menu-item flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
-                          currentReadingStatus === 'completed' ? 'bg-accent text-accent-foreground' : ''
-                        }`}
-                      >
-                        {currentReadingStatus === 'completed' ? '✓ ' : ''}Read
-                      </button>
-                      <button 
-                        onClick={() => handleReadingStatusUpdate('on_hold')}
-                        disabled={isUpdatingStatus}
-                        className={`shelf-menu-item flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
-                          currentReadingStatus === 'on_hold' ? 'bg-accent text-accent-foreground' : ''
-                        }`}
-                      >
-                        {currentReadingStatus === 'on_hold' ? '✓ ' : ''}On Hold
-                      </button>
-                      <button 
-                        onClick={() => handleReadingStatusUpdate('abandoned')}
-                        disabled={isUpdatingStatus}
-                        className={`shelf-menu-item flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
-                          currentReadingStatus === 'abandoned' ? 'bg-accent text-accent-foreground' : ''
-                        }`}
-                      >
-                        {currentReadingStatus === 'abandoned' ? '✓ ' : ''}Abandoned
-                      </button>
-                    </div>
-                    {currentReadingStatus && (
-                      <>
-                        <div role="separator" className="shelf-separator my-2 h-px bg-muted" />
-                        <button 
-                          onClick={handleRemoveFromShelf}
+                    </DialogTrigger>
+                    <DialogContent className="max-w-lg p-6">
+                      <DialogHeader>
+                        <DialogTitle>
+                          {currentReadingStatus ? 'Update Reading Status' : 'Add Book to Shelf'}
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-2">
+                        <button
+                          onClick={() => handleReadingStatusUpdate('want_to_read')}
                           disabled={isUpdatingStatus}
-                          className="shelf-menu-item flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm hover:bg-destructive hover:text-destructive-foreground cursor-pointer w-full text-left"
+                          className={`shelf-menu-item flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
+                            currentReadingStatus === 'not_started'
+                              ? 'bg-accent text-accent-foreground'
+                              : ''
+                          }`}
                         >
-                          Remove from Shelf
+                          {currentReadingStatus === 'not_started' ? '✓ ' : ''}Want to Read
                         </button>
-                      </>
-                    )}
-                    <div role="separator" className="shelf-separator my-2 h-px bg-muted" />
-                    <button type="button" className="shelf-manage-button w-full text-left px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground">
-                      Manage shelves...
-                    </button>
-                  </DialogContent>
-                </Dialog>
+                        <button
+                          onClick={() => handleReadingStatusUpdate('currently_reading')}
+                          disabled={isUpdatingStatus}
+                          className={`shelf-menu-item flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
+                            currentReadingStatus === 'in_progress'
+                              ? 'bg-accent text-accent-foreground'
+                              : ''
+                          }`}
+                        >
+                          {currentReadingStatus === 'in_progress' ? '✓ ' : ''}Currently Reading
+                        </button>
+                        <button
+                          onClick={() => handleReadingStatusUpdate('read')}
+                          disabled={isUpdatingStatus}
+                          className={`shelf-menu-item flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
+                            currentReadingStatus === 'completed'
+                              ? 'bg-accent text-accent-foreground'
+                              : ''
+                          }`}
+                        >
+                          {currentReadingStatus === 'completed' ? '✓ ' : ''}Read
+                        </button>
+                        <button
+                          onClick={() => handleReadingStatusUpdate('on_hold')}
+                          disabled={isUpdatingStatus}
+                          className={`shelf-menu-item flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
+                            currentReadingStatus === 'on_hold'
+                              ? 'bg-accent text-accent-foreground'
+                              : ''
+                          }`}
+                        >
+                          {currentReadingStatus === 'on_hold' ? '✓ ' : ''}On Hold
+                        </button>
+                        <button
+                          onClick={() => handleReadingStatusUpdate('abandoned')}
+                          disabled={isUpdatingStatus}
+                          className={`shelf-menu-item flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left ${
+                            currentReadingStatus === 'abandoned'
+                              ? 'bg-accent text-accent-foreground'
+                              : ''
+                          }`}
+                        >
+                          {currentReadingStatus === 'abandoned' ? '✓ ' : ''}Abandoned
+                        </button>
+                      </div>
+                      {currentReadingStatus && (
+                        <>
+                          <div role="separator" className="shelf-separator my-2 h-px bg-muted" />
+                          <button
+                            onClick={handleRemoveFromShelf}
+                            disabled={isUpdatingStatus}
+                            className="shelf-menu-item flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm hover:bg-destructive hover:text-destructive-foreground cursor-pointer w-full text-left"
+                          >
+                            Remove from Shelf
+                          </button>
+                        </>
+                      )}
+                      <div role="separator" className="shelf-separator my-2 h-px bg-muted" />
+                      <button
+                        type="button"
+                        className="shelf-manage-button w-full text-left px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground"
+                      >
+                        Manage shelves...
+                      </button>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </div>
-            </div>
 
               {/* Right Column - Book Details (2/3 width) */}
               <div className="book-page__details-content lg:col-span-2 space-y-6">
-              {/* Book Details at the top */}
+                {/* Book Details at the top */}
                 <ContentSection
                   title="Book Details"
                   headerRight={
@@ -1348,19 +1623,21 @@ export function ClientBookPage({
                         <div className="text-muted-foreground">
                           {authors.map((author, index) => (
                             <span key={author.id}>
-                            <EntityHoverCard
-                              type="author"
-                              entity={{
+                              <EntityHoverCard
+                                type="author"
+                                entity={{
                                   id: author.id,
                                   name: author.name,
-                                  author_image: author.author_image ? { url: author.author_image.url } : undefined,
-                                  bookCount: authorBookCounts[author.id] || 0
-                              }}
-                            >
+                                  author_image: author.author_image
+                                    ? { url: author.author_image.url }
+                                    : undefined,
+                                  bookCount: authorBookCounts[author.id] || 0,
+                                }}
+                              >
                                 <span className="text-muted-foreground hover:text-primary transition-colors">
                                   {author.name}
                                 </span>
-                            </EntityHoverCard>
+                              </EntityHoverCard>
                               {index < authors.length - 1 && <span className="mx-2">•</span>}
                             </span>
                           ))}
@@ -1373,20 +1650,20 @@ export function ClientBookPage({
                       <div className="book-details__publishers-section">
                         <h3 className="font-medium text-lg">Publisher(s)</h3>
                         <div className="text-muted-foreground">
-                            <EntityHoverCard
-                              type="publisher"
-                              entity={{
-                                id: publisher.id,
-                                name: publisher.name,
-                                publisher_image: publisher.publisher_image,
-                                logo_url: publisher.publisher_image?.url,
-                                bookCount: publisherBooksCount
-                              }}
-                            >
+                          <EntityHoverCard
+                            type="publisher"
+                            entity={{
+                              id: publisher.id,
+                              name: publisher.name,
+                              publisher_image: publisher.publisher_image,
+                              logo_url: publisher.publisher_image?.url,
+                              bookCount: publisherBooksCount,
+                            }}
+                          >
                             <span className="text-muted-foreground hover:text-primary transition-colors">
                               {publisher.name}
                             </span>
-                            </EntityHoverCard>
+                          </EntityHoverCard>
                         </div>
                       </div>
                     )}
@@ -1400,7 +1677,7 @@ export function ClientBookPage({
                           <div className="book-detail-item">
                             <h4 className="font-medium">ISBN</h4>
                             <p className="text-muted-foreground">{book.isbn}</p>
-                        </div>
+                          </div>
                         )}
 
                         {book.isbn10 && (
@@ -1414,132 +1691,141 @@ export function ClientBookPage({
                           <div className="book-detail-item">
                             <h4 className="font-medium">ISBN-13</h4>
                             <p className="text-muted-foreground">{book.isbn13}</p>
-                      </div>
-                    )}
+                          </div>
+                        )}
 
-                    {book.publish_date && (
-                      <div className="book-detail-item">
+                        {book.publish_date && (
+                          <div className="book-detail-item">
                             <h4 className="font-medium">Publish Date</h4>
-                        <p className="text-muted-foreground flex items-center">
-                          <Calendar className="h-4 w-4 mr-2" />
-                          {formatDate(book.publish_date)}
-                        </p>
-                      </div>
-                    )}
+                            <p className="text-muted-foreground flex items-center">
+                              <Calendar className="h-4 w-4 mr-2" />
+                              {formatDate(book.publish_date)}
+                            </p>
+                          </div>
+                        )}
 
-                    {book.publication_date && (
-                      <div className="book-detail-item">
+                        {book.publication_date && (
+                          <div className="book-detail-item">
                             <h4 className="font-medium">Publication Date</h4>
-                        <p className="text-muted-foreground flex items-center">
-                          <Calendar className="h-4 w-4 mr-2" />
-                          {formatDate(book.publication_date)}
-                        </p>
-                      </div>
-                    )}
+                            <p className="text-muted-foreground flex items-center">
+                              <Calendar className="h-4 w-4 mr-2" />
+                              {formatDate(book.publication_date)}
+                            </p>
+                          </div>
+                        )}
 
-                    {(bindingType || book.binding) && (
-                      <div className="book-detail-item">
+                        {(bindingType || book.binding) && (
+                          <div className="book-detail-item">
                             <h4 className="font-medium">Binding</h4>
-                        <p className="text-muted-foreground flex items-center">
-                          <BookText className="h-4 w-4 mr-2" />
-                          {bindingType?.name || book.binding}
-                        </p>
-                      </div>
-                    )}
+                            <p className="text-muted-foreground flex items-center">
+                              <BookText className="h-4 w-4 mr-2" />
+                              {bindingType?.name || book.binding}
+                            </p>
+                          </div>
+                        )}
 
-                    {/* Only show page_count if it's a valid number */}
-                    {book.page_count !== undefined && book.page_count !== null && !isNaN(Number(book.page_count)) && (
-                      <div className="book-detail-item">
-                            <h4 className="font-medium">Page Count</h4>
-                        <p className="text-muted-foreground flex items-center">
-                          <FileText className="h-4 w-4 mr-2" />
-                          {book.page_count}
-                        </p>
-                      </div>
-                    )}
+                        {/* Only show page_count if it's a valid number */}
+                        {book.page_count !== undefined &&
+                          book.page_count !== null &&
+                          !isNaN(Number(book.page_count)) && (
+                            <div className="book-detail-item">
+                              <h4 className="font-medium">Page Count</h4>
+                              <p className="text-muted-foreground flex items-center">
+                                <FileText className="h-4 w-4 mr-2" />
+                                {book.page_count}
+                              </p>
+                            </div>
+                          )}
 
-                    {/* Only show pages if it's a valid number */}
-                    {book.pages !== undefined && book.pages !== null && !isNaN(Number(book.pages)) && (
-                      <div className="book-detail-item">
-                            <h4 className="font-medium">Pages</h4>
-                        <p className="text-muted-foreground flex items-center">
-                          <FileText className="h-4 w-4 mr-2" />
-                          {book.pages}
-                        </p>
-                      </div>
-                    )}
+                        {/* Only show pages if it's a valid number */}
+                        {book.pages !== undefined &&
+                          book.pages !== null &&
+                          !isNaN(Number(book.pages)) && (
+                            <div className="book-detail-item">
+                              <h4 className="font-medium">Pages</h4>
+                              <p className="text-muted-foreground flex items-center">
+                                <FileText className="h-4 w-4 mr-2" />
+                                {book.pages}
+                              </p>
+                            </div>
+                          )}
 
-                    {book.dimensions && (
-                      <div className="book-detail-item">
+                        {book.dimensions && (
+                          <div className="book-detail-item">
                             <h4 className="font-medium">Dimensions</h4>
-                        <p className="text-muted-foreground flex items-center">
-                          <Ruler className="h-4 w-4 mr-2" />
-                          {book.dimensions}
-                        </p>
-                      </div>
-                    )}
+                            <p className="text-muted-foreground flex items-center">
+                              <Ruler className="h-4 w-4 mr-2" />
+                              {book.dimensions}
+                            </p>
+                          </div>
+                        )}
 
-                    {book.weight !== null && book.weight !== undefined && (
+                        {book.weight !== null && book.weight !== undefined && (
                           <div className="book-detail-item">
                             <h4 className="font-medium">Weight</h4>
                             <p className="text-muted-foreground">
-                          {typeof book.weight === 'number' ? Number(book.weight).toFixed(2) : book.weight} kg
+                              {typeof book.weight === 'number'
+                                ? Number(book.weight).toFixed(2)
+                                : book.weight}{' '}
+                              kg
                             </p>
-                      </div>
-                    )}
+                          </div>
+                        )}
 
-                    {book.genre && (
-                      <div className="book-detail-item">
+                        {book.genre && (
+                          <div className="book-detail-item">
                             <h4 className="font-medium">Genre</h4>
-                        <p className="text-muted-foreground flex items-center">
-                          <Tag className="h-4 w-4 mr-2" />
-                          {book.genre}
-                        </p>
-                      </div>
-                    )}
+                            <p className="text-muted-foreground flex items-center">
+                              <Tag className="h-4 w-4 mr-2" />
+                              {book.genre}
+                            </p>
+                          </div>
+                        )}
 
-                    {book.language && (
-                      <div className="book-detail-item">
+                        {book.language && (
+                          <div className="book-detail-item">
                             <h4 className="font-medium">Language</h4>
-                        <p className="text-muted-foreground flex items-center">
-                          <Globe className="h-4 w-4 mr-2" />
-                          {book.language}
-                        </p>
-                      </div>
-                    )}
+                            <p className="text-muted-foreground flex items-center">
+                              <Globe className="h-4 w-4 mr-2" />
+                              {book.language}
+                            </p>
+                          </div>
+                        )}
 
-                    {book.average_rating !== undefined &&
-                      book.average_rating !== null &&
-                      !isNaN(Number(book.average_rating)) && (
-                        <div className="book-detail-item">
+                        {book.average_rating !== undefined &&
+                          book.average_rating !== null &&
+                          !isNaN(Number(book.average_rating)) && (
+                            <div className="book-detail-item">
                               <h4 className="font-medium">Average Rating</h4>
-                          <p className="text-muted-foreground flex items-center">
-                            <Star className="h-4 w-4 mr-2 fill-yellow-400 text-yellow-400" />
-                            {Number(book.average_rating).toFixed(1)} / 5
-                          </p>
-                        </div>
-                      )}
+                              <p className="text-muted-foreground flex items-center">
+                                <Star className="h-4 w-4 mr-2 fill-yellow-400 text-yellow-400" />
+                                {Number(book.average_rating).toFixed(1)} / 5
+                              </p>
+                            </div>
+                          )}
 
-                    {(formatType || book.format) && (
-                      <div className="book-detail-item">
+                        {(formatType || book.format) && (
+                          <div className="book-detail-item">
                             <h4 className="font-medium">Format</h4>
-                        <p className="text-muted-foreground">{formatType?.name || book.format}</p>
-                      </div>
-                    )}
+                            <p className="text-muted-foreground">
+                              {formatType?.name || book.format}
+                            </p>
+                          </div>
+                        )}
 
-                    {book.edition && (
-                      <div className="book-detail-item">
+                        {book.edition && (
+                          <div className="book-detail-item">
                             <h4 className="font-medium">Edition</h4>
-                        <p className="text-muted-foreground">{book.edition}</p>
-                      </div>
-                    )}
+                            <p className="text-muted-foreground">{book.edition}</p>
+                          </div>
+                        )}
 
-                    {book.series && (
-                      <div className="book-detail-item">
+                        {book.series && (
+                          <div className="book-detail-item">
                             <h4 className="font-medium">Series</h4>
-                        <p className="text-muted-foreground">{book.series}</p>
-                      </div>
-                    )}
+                            <p className="text-muted-foreground">{book.series}</p>
+                          </div>
+                        )}
 
                         {book.website && (
                           <div className="book-detail-item">
@@ -1547,7 +1833,11 @@ export function ClientBookPage({
                             <p className="text-muted-foreground flex items-center">
                               <Globe className="h-4 w-4 mr-2" />
                               <a
-                                href={book.website.startsWith('http') ? book.website : `https://${book.website}`}
+                                href={
+                                  book.website.startsWith('http')
+                                    ? book.website
+                                    : `https://${book.website}`
+                                }
                                 className="hover:underline text-primary"
                                 target="_blank"
                                 rel="noopener noreferrer"
@@ -1558,23 +1848,19 @@ export function ClientBookPage({
                           </div>
                         )}
 
-                    {book.created_at && (
-                      <div className="book-detail-item">
+                        {book.created_at && (
+                          <div className="book-detail-item">
                             <h4 className="font-medium">Created At</h4>
-                        <p className="text-muted-foreground">
-                          {formatDate(book.created_at)}
-                        </p>
-                      </div>
-                    )}
+                            <p className="text-muted-foreground">{formatDate(book.created_at)}</p>
+                          </div>
+                        )}
 
-                    {book.updated_at && (
-                      <div className="book-detail-item">
+                        {book.updated_at && (
+                          <div className="book-detail-item">
                             <h4 className="font-medium">Updated At</h4>
-                        <p className="text-muted-foreground">
-                          {formatDate(book.updated_at)}
-                        </p>
-                      </div>
-                    )}
+                            <p className="text-muted-foreground">{formatDate(book.updated_at)}</p>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -1584,23 +1870,27 @@ export function ClientBookPage({
                         <h3 className="font-medium text-lg">Synopsis</h3>
                         <Collapsible open={showFullAbout} onOpenChange={setShowFullAbout}>
                           {/* Show truncated content initially */}
-                          <div 
+                          <div
                             className={`text-muted-foreground max-w-none synopsis-content prose prose-sm ${
                               !showFullAbout ? 'max-h-60 overflow-hidden' : 'hidden'
                             }`}
                             dangerouslySetInnerHTML={{ __html: book.synopsis }}
                           />
-                          
+
                           {/* Show full content when expanded */}
                           <CollapsibleContent className="text-muted-foreground max-w-none synopsis-content prose prose-sm">
                             <div dangerouslySetInnerHTML={{ __html: book.synopsis }} />
                           </CollapsibleContent>
-                          
+
                           {needsTruncation && (
                             <div className="flex justify-end mt-2">
                               <CollapsibleTrigger asChild>
-                                <Button variant="ghost" size="sm" className="text-primary hover:bg-primary/10 hover:text-primary">
-                                  {showFullAbout ? "View Less" : "View More"}
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-primary hover:bg-primary/10 hover:text-primary"
+                                >
+                                  {showFullAbout ? 'View Less' : 'View More'}
                                 </Button>
                               </CollapsibleTrigger>
                             </div>
@@ -1612,7 +1902,7 @@ export function ClientBookPage({
                     {book.overview && (
                       <div className="book-details__overview-section">
                         <h3 className="font-medium text-lg">Overview</h3>
-                        <div 
+                        <div
                           className="text-muted-foreground max-w-none"
                           dangerouslySetInnerHTML={{ __html: book.overview }}
                         />
@@ -1621,8 +1911,8 @@ export function ClientBookPage({
                   </div>
                 </ContentSection>
 
-              {/* More Books By Author Section */}
-              {authors && authors.length > 0 && (
+                {/* More Books By Author Section */}
+                {authors && authors.length > 0 && (
                   <ContentSection
                     title={`More Books By ${authors[0].name}`}
                     footer={
@@ -1641,7 +1931,7 @@ export function ClientBookPage({
                             key={b.id}
                             id={b.id}
                             title={b.title}
-                            coverImageUrl={b.cover_image?.url || "/placeholder.svg"}
+                            coverImageUrl={b.cover_image?.url || '/placeholder.svg'}
                           />
                         ))}
                       </div>
@@ -1651,13 +1941,10 @@ export function ClientBookPage({
                       </div>
                     )}
                   </ContentSection>
-              )}
+                )}
 
-              {/* Similar Books */}
-                <ContentSection 
-                  title="Similar Books"
-                  className="book-page__similar-books-section"
-                >
+                {/* Similar Books */}
+                <ContentSection title="Similar Books" className="book-page__similar-books-section">
                   <div className="text-center py-4">
                     <p className="text-muted-foreground">Recommendations coming soon</p>
                   </div>
@@ -1666,198 +1953,206 @@ export function ClientBookPage({
             </div>
           </div>
         )}
-        
-        {activeTab === "reviews" && (
+
+        {activeTab === 'reviews' && (
           <div className="book-page__reviews-tab">
-            <ContentSection 
-              title="Reviews"
-              className="book-page__reviews-section"
-            >
+            <ContentSection title="Reviews" className="book-page__reviews-section">
               <div className="space-y-6">
-              {/* Add Review Form */}
-              <div className="review-form space-y-4">
-                <div className="flex items-center gap-2">
-                  <Avatar
-                    src="/placeholder.svg"
-                    alt="User"
-                    name="User"
-                    size="sm"
-                  />
-                  <div className="flex-1">
-                    <Input placeholder="Write a review..." />
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="rating-selector flex items-center">
-                    <span className="mr-2">Rate:</span>
-                    <div className="flex">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} className="h-5 w-5 text-gray-300 cursor-pointer hover:text-yellow-400" />
-                      ))}
+                {/* Add Review Form */}
+                <div className="review-form space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Avatar src="/placeholder.svg" alt="User" name="User" size="sm" />
+                    <div className="flex-1">
+                      <Input placeholder="Write a review..." />
                     </div>
                   </div>
-                  <Button>Post Review</Button>
+                  <div className="flex items-center justify-between">
+                    <div className="rating-selector flex items-center">
+                      <span className="mr-2">Rate:</span>
+                      <div className="flex">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            className="h-5 w-5 text-gray-300 cursor-pointer hover:text-yellow-400"
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <Button>Post Review</Button>
+                  </div>
                 </div>
-              </div>
 
-              <Separator />
+                <Separator />
 
-              {/* Reviews List */}
-              {reviews.length > 0 ? (
-                <div className="reviews-list space-y-6">
-                  {reviews.map((review) => (
-                    <div key={review.id} className="review-item space-y-2">
-                      <div className="flex items-start gap-3">
-                        <Avatar
-                          src="/placeholder.svg"
-                          alt="User"
-                          name="User"
-                          size="sm"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h4 className="font-medium">User</h4>
-                              <div className="flex items-center">
-                                {Array.from({ length: 5 }).map((_, i) => (
-                                  <Star
-                                    key={i}
-                                    className={`h-4 w-4 ${
-                                      i < review.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
-                                    }`}
-                                  />
-                                ))}
-                                {/* Only show date if created_at exists */}
-                                {review.created_at && (
-                                  <span className="ml-2 text-sm text-muted-foreground">
-                                    {formatDate(review.created_at)}
-                                  </span>
-                                )}
+                {/* Reviews List */}
+                {reviews.length > 0 ? (
+                  <div className="reviews-list space-y-6">
+                    {reviews.map((review) => (
+                      <div key={review.id} className="review-item space-y-2">
+                        <div className="flex items-start gap-3">
+                          <Avatar src="/placeholder.svg" alt="User" name="User" size="sm" />
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h4 className="font-medium">User</h4>
+                                <div className="flex items-center">
+                                  {Array.from({ length: 5 }).map((_, i) => (
+                                    <Star
+                                      key={i}
+                                      className={`h-4 w-4 ${
+                                        i < review.rating
+                                          ? 'text-yellow-400 fill-yellow-400'
+                                          : 'text-gray-300'
+                                      }`}
+                                    />
+                                  ))}
+                                  {/* Only show date if created_at exists */}
+                                  {review.created_at && (
+                                    <span className="ml-2 text-sm text-muted-foreground">
+                                      {formatDate(review.created_at)}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                          <p className="mt-2">{review.content}</p>
-                          <div className="review-actions flex items-center gap-4 mt-2">
-                            <Button variant="ghost" size="sm" className="flex items-center gap-1">
-                              <ThumbsUp className="h-3 w-3" />
-                              <span>Like</span>
-                            </Button>
-                            <Button variant="ghost" size="sm" className="flex items-center gap-1">
-                              <MessageSquare className="h-3 w-3" />
-                              <span>Reply</span>
-                            </Button>
+                            <p className="mt-2">{review.content}</p>
+                            <div className="review-actions flex items-center gap-4 mt-2">
+                              <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                                <ThumbsUp className="h-3 w-3" />
+                                <span>Like</span>
+                              </Button>
+                              <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                                <MessageSquare className="h-3 w-3" />
+                                <span>Reply</span>
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="no-reviews text-center py-6">
-                  <p className="text-muted-foreground">No reviews yet. Be the first to review this book!</p>
-                </div>
-              )}
+                    ))}
+                  </div>
+                ) : (
+                  <div className="no-reviews text-center py-6">
+                    <p className="text-muted-foreground">
+                      No reviews yet. Be the first to review this book!
+                    </p>
+                  </div>
+                )}
               </div>
             </ContentSection>
           </div>
         )}
-        
-        {activeTab === "photos" && (
+
+        {activeTab === 'photos' && (
           <div className="book-page__photos-tab">
             <div className="book-page__tab-content space-y-6">
               <EntityPhotoAlbums
                 entityId={params.id}
                 entityType="book"
                 isOwnEntity={canEdit}
-                entityDisplayInfo={authors && authors.length > 0 ? {
-                  id: authors[0].id,
-                  name: authors[0].name,
-                  type: 'author' as const,
-                  author_image: authors[0].author_image ? { url: authors[0].author_image.url } : undefined,
-                  bookCount: authorBookCounts[authors[0].id] || 0
-                } : undefined}
+                entityDisplayInfo={
+                  authors && authors.length > 0
+                    ? {
+                        id: authors[0].id,
+                        name: authors[0].name,
+                        type: 'author' as const,
+                        author_image: authors[0].author_image
+                          ? { url: authors[0].author_image.url }
+                          : undefined,
+                        bookCount: authorBookCounts[authors[0].id] || 0,
+                      }
+                    : undefined
+                }
               />
             </div>
           </div>
         )}
-        
-        {activeTab === "followers" && (
+
+        {activeTab === 'followers' && (
           <div className="book-page__followers-tab">
-          <div className="book-page__tab-content space-y-6">
-            <FollowersListTab
-              followers={followers}
-              followersCount={followers.length}
-              entityId={params.id}
-              entityType="book"
-            />
+            <div className="book-page__tab-content space-y-6">
+              <FollowersListTab
+                followers={followers}
+                followersCount={followers.length}
+                entityId={params.id}
+                entityType="book"
+              />
             </div>
           </div>
         )}
-        
-        {activeTab === "more" && (
+
+        {activeTab === 'more' && (
           <div className="book-page__more-tab">
-          <div className="book-page__tab-content grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="book-page__tab-content grid grid-cols-1 lg:grid-cols-2 gap-6">
               <ContentSection
                 title="Groups"
                 headerRight={
-                <Link href={`/groups/add?target_type=book&target_id=${params.id}`}>
-                  <Button className="book-groups__create-button">
-                    <Users className="h-4 w-4 mr-2" />
-                    Create Group
-                  </Button>
-                </Link>
+                  <Link href={`/groups/add?target_type=book&target_id=${params.id}`}>
+                    <Button className="book-groups__create-button">
+                      <Users className="h-4 w-4 mr-2" />
+                      Create Group
+                    </Button>
+                  </Link>
                 }
                 className="book-page__groups-section"
               >
                 <div className="book-groups__list space-y-4">
-                <div className="book-groups__item flex items-center gap-3 p-3 border rounded-lg">
-                  <span className="book-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img
-                      src="/placeholder.svg?height=100&width=100"
-                      alt="Fantasy Book Club"
-                      className="aspect-square h-full w-full"
-                    />
-                  </span>
-                  <div className="book-groups__content flex-1 min-w-0">
-                    <h3 className="book-groups__name font-medium truncate">Fantasy Book Club</h3>
-                    <div className="book-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className="book-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                        Moderator
+                  <div className="book-groups__item flex items-center gap-3 p-3 border rounded-lg">
+                    <span className="book-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                      <img
+                        src="/placeholder.svg?height=100&width=100"
+                        alt="Fantasy Book Club"
+                        className="aspect-square h-full w-full"
+                      />
+                    </span>
+                    <div className="book-groups__content flex-1 min-w-0">
+                      <h3 className="book-groups__name font-medium truncate">Fantasy Book Club</h3>
+                      <div className="book-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
+                        <div className="book-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                          Moderator
+                        </div>
+                        <span>·</span>
+                        <span>1243 members</span>
+                        <span>·</span>
+                        <span>Joined January 2021</span>
                       </div>
-                      <span>·</span>
-                      <span>1243 members</span>
-                      <span>·</span>
-                      <span>Joined January 2021</span>
                     </div>
+                    <Button
+                      variant="outline"
+                      className="book-groups__view-button h-9 rounded-md px-3"
+                    >
+                      View
+                    </Button>
                   </div>
-                  <Button variant="outline" className="book-groups__view-button h-9 rounded-md px-3">
-                    View
-                  </Button>
-                </div>
-                <div className="book-groups__item flex items-center gap-3 p-3 border rounded-lg">
-                  <span className="book-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img
-                      src="/placeholder.svg?height=100&width=100"
-                      alt="Science Fiction Readers"
-                      className="aspect-square h-full w-full"
-                    />
-                  </span>
-                  <div className="book-groups__content flex-1 min-w-0">
-                    <h3 className="book-groups__name font-medium truncate">Science Fiction Readers</h3>
-                    <div className="book-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className="book-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                        Member
+                  <div className="book-groups__item flex items-center gap-3 p-3 border rounded-lg">
+                    <span className="book-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                      <img
+                        src="/placeholder.svg?height=100&width=100"
+                        alt="Science Fiction Readers"
+                        className="aspect-square h-full w-full"
+                      />
+                    </span>
+                    <div className="book-groups__content flex-1 min-w-0">
+                      <h3 className="book-groups__name font-medium truncate">
+                        Science Fiction Readers
+                      </h3>
+                      <div className="book-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
+                        <div className="book-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                          Member
+                        </div>
+                        <span>·</span>
+                        <span>3567 members</span>
+                        <span>·</span>
+                        <span>Joined March 2021</span>
                       </div>
-                      <span>·</span>
-                      <span>3567 members</span>
-                      <span>·</span>
-                      <span>Joined March 2021</span>
                     </div>
+                    <Button
+                      variant="outline"
+                      className="book-groups__view-button h-9 rounded-md px-3"
+                    >
+                      View
+                    </Button>
                   </div>
-                  <Button variant="outline" className="book-groups__view-button h-9 rounded-md px-3">
-                    View
-                  </Button>
-                </div>
                   <div className="book-groups__item flex items-center gap-3 p-3 border rounded-lg">
                     <span className="book-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
                       <img
@@ -1867,7 +2162,9 @@ export function ClientBookPage({
                       />
                     </span>
                     <div className="book-groups__content flex-1 min-w-0">
-                      <h3 className="book-groups__name font-medium truncate">Portland Book Lovers</h3>
+                      <h3 className="book-groups__name font-medium truncate">
+                        Portland Book Lovers
+                      </h3>
                       <div className="book-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
                         <div className="book-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
                           Member
@@ -1878,64 +2175,64 @@ export function ClientBookPage({
                         <span>Joined May 2021</span>
                       </div>
                     </div>
-                    <Button variant="outline" className="book-groups__view-button h-9 rounded-md px-3">
+                    <Button
+                      variant="outline"
+                      className="book-groups__view-button h-9 rounded-md px-3"
+                    >
                       View
-                </Button>
-              </div>
-            </div>
+                    </Button>
+                  </div>
+                </div>
               </ContentSection>
-              
-              <ContentSection 
-                title="Pages"
-                className="book-page__pages-section"
-              >
+
+              <ContentSection title="Pages" className="book-page__pages-section">
                 <div className="space-y-4">
-                <div className="flex items-center gap-3 p-3 border rounded-lg">
-                  <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img
-                      src="/placeholder.svg?height=100&width=100"
-                      alt="Brandon Sanderson"
-                      className="aspect-square h-full w-full"
-                    />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium truncate">Brandon Sanderson</h3>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                        Author
+                  <div className="flex items-center gap-3 p-3 border rounded-lg">
+                    <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                      <img
+                        src="/placeholder.svg?height=100&width=100"
+                        alt="Brandon Sanderson"
+                        className="aspect-square h-full w-full"
+                      />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium truncate">Brandon Sanderson</h3>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                          Author
+                        </div>
+                        <span>·</span>
+                        <span>Following Since 2020</span>
                       </div>
-                      <span>·</span>
-                      <span>Following Since 2020</span>
                     </div>
+                    <Button variant="outline" className="h-9 rounded-md px-3">
+                      View
+                    </Button>
                   </div>
-                  <Button variant="outline" className="h-9 rounded-md px-3">
-                    View
-                  </Button>
-                </div>
-                
-                <div className="flex items-center gap-3 p-3 border rounded-lg">
-                  <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                    <img
-                      src="/placeholder.svg?height=100&width=100"
-                      alt="Tor Books"
-                      className="aspect-square h-full w-full"
-                    />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium truncate">Tor Books</h3>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                        Publisher
+
+                  <div className="flex items-center gap-3 p-3 border rounded-lg">
+                    <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                      <img
+                        src="/placeholder.svg?height=100&width=100"
+                        alt="Tor Books"
+                        className="aspect-square h-full w-full"
+                      />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium truncate">Tor Books</h3>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                          Publisher
+                        </div>
+                        <span>·</span>
+                        <span>Following Since 2022</span>
                       </div>
-                      <span>·</span>
-                      <span>Following Since 2022</span>
                     </div>
+                    <Button variant="outline" className="h-9 rounded-md px-3">
+                      View
+                    </Button>
                   </div>
-                  <Button variant="outline" className="h-9 rounded-md px-3">
-                    View
-                  </Button>
                 </div>
-              </div>
               </ContentSection>
             </div>
           </div>
@@ -1943,4 +2240,4 @@ export function ClientBookPage({
       </div>
     </div>
   )
-} 
+}

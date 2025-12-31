@@ -15,7 +15,14 @@ interface EntityAvatarProps {
   className?: string
 }
 
-export default function EntityAvatar({ type, id, name, src, size = 'sm', className }: EntityAvatarProps) {
+export default function EntityAvatar({
+  type,
+  id,
+  name,
+  src,
+  size = 'sm',
+  className,
+}: EntityAvatarProps) {
   const avatar = (
     <Avatar src={src || undefined} alt={name} name={name} size={size} className={className} />
   )
@@ -29,7 +36,11 @@ export default function EntityAvatar({ type, id, name, src, size = 'sm', classNa
   }
 
   return (
-    <EntityHoverCard type={type} entity={{ id, name, avatar_url: src || undefined } as any} showActions={false}>
+    <EntityHoverCard
+      type={type}
+      entity={{ id, name, avatar_url: src || undefined } as any}
+      showActions={false}
+    >
       {avatar}
     </EntityHoverCard>
   )

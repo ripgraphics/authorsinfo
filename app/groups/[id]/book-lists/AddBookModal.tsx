@@ -1,45 +1,45 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { createClient } from '@/lib/supabase-client';
-import { toast } from 'react-hot-toast';
+import { useState } from 'react'
+import { createClient } from '@/lib/supabase-client'
+import { toast } from 'react-hot-toast'
 
 interface Props {
-  listId: string;
-  groupId: string;
-  onClose: () => void;
-  onBookAdded: () => void;
+  listId: string
+  groupId: string
+  onClose: () => void
+  onBookAdded: () => void
 }
 
 export default function AddBookModal({ listId, groupId, onClose, onBookAdded }: Props) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const supabase = createClient();
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+  const supabase = createClient()
 
   const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
-    
-    setIsSearching(true);
+    if (!searchQuery.trim()) return
+
+    setIsSearching(true)
     const { data, error } = await supabase
       .from('books')
       .select('*')
       .ilike('title', `%${searchQuery}%`)
-      .limit(10);
+      .limit(10)
 
     if (error) {
-      toast.error('Failed to search books');
+      toast.error('Failed to search books')
     } else {
-      setSearchResults(data || []);
+      setSearchResults(data || [])
     }
-    setIsSearching(false);
-  };
+    setIsSearching(false)
+  }
 
   const handleAddBook = async (bookId: string) => {
-    const userId = (await supabase.auth.getUser()).data.user?.id;
+    const userId = (await supabase.auth.getUser()).data.user?.id
     if (!userId) {
-      toast.error('Please sign in to add books');
-      return;
+      toast.error('Please sign in to add books')
+      return
     }
 
     const { error } = await (supabase.from('group_book_list_items') as any).insert([
@@ -49,26 +49,23 @@ export default function AddBookModal({ listId, groupId, onClose, onBookAdded }: 
         group_id: groupId,
         added_by: userId,
       },
-    ]);
+    ])
 
     if (error) {
-      toast.error('Failed to add book to list');
+      toast.error('Failed to add book to list')
     } else {
-      toast.success('Book added to list!');
-      onBookAdded();
-      onClose();
+      toast.success('Book added to list!')
+      onBookAdded()
+      onClose()
     }
-  };
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Add Book to List</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
             ✕
           </button>
         </div>
@@ -123,5 +120,5 @@ export default function AddBookModal({ listId, groupId, onClose, onBookAdded }: 
         </div>
       </div>
     </div>
-  );
-} 
+  )
+}

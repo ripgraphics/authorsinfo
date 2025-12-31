@@ -28,19 +28,19 @@ const deriveImageColumnName = (entityType: string, normalizedImageType: string |
   const overrides: Record<string, Record<string, string>> = {
     user: {
       avatar: 'avatar_image_id',
-      cover: 'cover_image_id'
+      cover: 'cover_image_id',
     },
     author: {
       avatar: 'author_image_id',
-      cover: 'cover_image_id'
+      cover: 'cover_image_id',
     },
     publisher: {
       avatar: 'publisher_image_id',
-      cover: 'cover_image_id'
+      cover: 'cover_image_id',
     },
     book: {
-      cover: 'cover_image_id'
-    }
+      cover: 'cover_image_id',
+    },
   }
 
   const normalizedType = overrides[entityType]?.[normalizedImageType]
@@ -77,14 +77,17 @@ async function deleteFromCloudinary(publicId: string): Promise<void> {
 
     const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/destroy`, {
       method: 'POST',
-      body: formData
+      body: formData,
     })
 
     if (response.ok) {
       console.log(`✅ Rollback: Deleted orphaned image from Cloudinary: ${publicId}`)
     } else {
       const errorData = await response.json().catch(() => ({}))
-      console.error(`⚠️ Rollback failed: Could not delete image from Cloudinary: ${publicId}`, errorData)
+      console.error(
+        `⚠️ Rollback failed: Could not delete image from Cloudinary: ${publicId}`,
+        errorData
+      )
     }
   } catch (error) {
     console.error(`⚠️ Rollback error: Exception while deleting from Cloudinary: ${publicId}`, error)
@@ -95,22 +98,19 @@ export async function POST(request: NextRequest) {
   try {
     // Get authenticated user - use getUser() to authenticate with Supabase Auth server
     const supabase = await createRouteHandlerClientAsync()
-    
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
     if (userError) {
       console.error('User authentication error:', userError)
-      return NextResponse.json(
-        { error: 'Failed to authenticate user' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Failed to authenticate user' }, { status: 500 })
     }
-    
+
     if (!user) {
       console.error('No authenticated user')
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const adminClient = supabaseAdmin
@@ -125,10 +125,7 @@ export async function POST(request: NextRequest) {
     const originalImageId = formData.get('originalImageId') as string | null // ID of original image if this is cropped
 
     if (!file) {
-      return NextResponse.json(
-        { error: 'No file provided' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'No file provided' }, { status: 400 })
     }
 
     if (!entityType || !entityId || !imageType) {
@@ -140,18 +137,12 @@ export async function POST(request: NextRequest) {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      return NextResponse.json(
-        { error: 'File must be an image' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'File must be an image' }, { status: 400 })
     }
 
     // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      return NextResponse.json(
-        { error: 'File size must be less than 10MB' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'File size must be less than 10MB' }, { status: 400 })
     }
 
     // Get Cloudinary credentials from environment variables
@@ -161,17 +152,14 @@ export async function POST(request: NextRequest) {
 
     if (!cloudName || !apiKey || !apiSecret) {
       console.error('Cloudinary credentials are not properly configured')
-      return NextResponse.json(
-        { error: 'Image upload service not configured' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Image upload service not configured' }, { status: 500 })
     }
 
     // Create a timestamp for the signature
     const timestamp = Math.round(new Date().getTime() / 1000)
 
     // Prepare transformation parameters
-    const transformationString = "f_webp,q_95"
+    const transformationString = 'f_webp,q_95'
 
     // Create folder path - use originalType to distinguish between bookCover and entityHeaderCover
     // originalType can be: 'avatar', 'bookCover', 'entityHeaderCover'
@@ -202,10 +190,10 @@ export async function POST(request: NextRequest) {
     const signatureString =
       Object.entries(sortedParams)
         .map(([key, value]) => `${key}=${value}`)
-        .join("&") + apiSecret
+        .join('&') + apiSecret
 
     // Generate the signature
-    const signature = crypto.createHash("sha1").update(signatureString).digest("hex")
+    const signature = crypto.createHash('sha1').update(signatureString).digest('hex')
 
     // Convert file to base64
     const arrayBuffer = await file.arrayBuffer()
@@ -214,17 +202,19 @@ export async function POST(request: NextRequest) {
 
     // Prepare the form data
     const uploadFormData = new FormData()
-    uploadFormData.append("file", dataUrl)
-    uploadFormData.append("api_key", apiKey)
-    uploadFormData.append("timestamp", timestamp.toString())
-    uploadFormData.append("signature", signature)
-    uploadFormData.append("folder", folderPath)
-    uploadFormData.append("transformation", transformationString)
+    uploadFormData.append('file', dataUrl)
+    uploadFormData.append('api_key', apiKey)
+    uploadFormData.append('timestamp', timestamp.toString())
+    uploadFormData.append('signature', signature)
+    uploadFormData.append('folder', folderPath)
+    uploadFormData.append('transformation', transformationString)
 
     // Upload to Cloudinary
-    console.log(`📤 Starting Cloudinary upload for ${entityType} ${entityId}, imageType: ${imageType}`)
+    console.log(
+      `📤 Starting Cloudinary upload for ${entityType} ${entityId}, imageType: ${imageType}`
+    )
     const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-      method: "POST",
+      method: 'POST',
       body: uploadFormData,
     })
 
@@ -232,10 +222,7 @@ export async function POST(request: NextRequest) {
     if (!response.ok) {
       const errorText = await response.text()
       console.error('❌ Cloudinary upload failed:', errorText)
-      return NextResponse.json(
-        { error: `Failed to upload image: ${errorText}` },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: `Failed to upload image: ${errorText}` }, { status: 500 })
     }
 
     // Parse response
@@ -258,8 +245,7 @@ export async function POST(request: NextRequest) {
 
     // Get actual schema columns from Supabase by querying a sample row
     // (information_schema is not accessible via PostgREST)
-    const { data: sampleImageRow } = await (adminClient
-      .from("images") as any)
+    const { data: sampleImageRow } = await (adminClient.from('images') as any)
       .select('*')
       .limit(1)
       .maybeSingle()
@@ -287,10 +273,13 @@ export async function POST(request: NextRequest) {
     if (availableColumns.has('metadata')) {
       // Use descriptive naming: 'book_cover' instead of just 'cover' to avoid conflicts
       // originalType can be: 'avatar', 'bookCover', 'entityHeaderCover'
-      const descriptiveImageType = originalType === 'bookCover' ? 'book_cover' 
-        : originalType === 'entityHeaderCover' ? 'entity_header_cover'
-        : imageType
-      
+      const descriptiveImageType =
+        originalType === 'bookCover'
+          ? 'book_cover'
+          : originalType === 'entityHeaderCover'
+            ? 'entity_header_cover'
+            : imageType
+
       insertObject.metadata = {
         original_name: file.name,
         file_size: file.size,
@@ -301,7 +290,7 @@ export async function POST(request: NextRequest) {
         entity_id: entityId,
         image_type: descriptiveImageType,
         is_cropped: isCropped,
-        ...(originalImageId && { original_image_id: originalImageId })
+        ...(originalImageId && { original_image_id: originalImageId }),
       }
     }
     if (availableColumns.has('img_type_id')) {
@@ -311,8 +300,7 @@ export async function POST(request: NextRequest) {
 
     // Create image record in database using only existing columns
     console.log(`💾 Saving image to Supabase database: ${data.secure_url}`)
-    const { data: imageRecord, error: imageError } = await (adminClient
-      .from('images') as any)
+    const { data: imageRecord, error: imageError } = await (adminClient.from('images') as any)
       .insert(insertObject)
       .select()
       .single()
@@ -322,15 +310,16 @@ export async function POST(request: NextRequest) {
       console.error('   Entity:', { entityType, entityId, imageType })
       console.error('   Cloudinary URL:', data.secure_url)
       console.error('   Cloudinary public_id:', data.public_id)
-      
+
       // ROLLBACK: Delete from Cloudinary since database insert failed
       console.log('🔄 Rolling back: Deleting image from Cloudinary due to database failure')
       await deleteFromCloudinary(data.public_id)
-      
+
       return NextResponse.json(
-        { 
+        {
           error: `Failed to create image record: ${imageError.message}`,
-          details: 'Image was uploaded to Cloudinary but database save failed. Image has been removed from Cloudinary.'
+          details:
+            'Image was uploaded to Cloudinary but database save failed. Image has been removed from Cloudinary.',
         },
         { status: 500 }
       )
@@ -340,15 +329,16 @@ export async function POST(request: NextRequest) {
       console.error('❌ Database insert returned no record:', { imageRecord, imageError })
       console.error('   Entity:', { entityType, entityId, imageType })
       console.error('   Cloudinary URL:', data.secure_url)
-      
+
       // ROLLBACK: Delete from Cloudinary since we didn't get a valid record
       console.log('🔄 Rolling back: Deleting image from Cloudinary - no database record returned')
       await deleteFromCloudinary(data.public_id)
-      
+
       return NextResponse.json(
-        { 
+        {
           error: 'Database insert succeeded but no record was returned',
-          details: 'Image was uploaded to Cloudinary but database verification failed. Image has been removed from Cloudinary.'
+          details:
+            'Image was uploaded to Cloudinary but database verification failed. Image has been removed from Cloudinary.',
         },
         { status: 500 }
       )
@@ -356,8 +346,7 @@ export async function POST(request: NextRequest) {
 
     // VERIFY: Confirm the record actually exists in the database
     console.log(`🔍 Verifying database record exists: ${imageRecord.id}`)
-    const { data: verifyRecord, error: verifyError } = await (adminClient
-      .from('images') as any)
+    const { data: verifyRecord, error: verifyError } = await (adminClient.from('images') as any)
       .select('id, url')
       .eq('id', imageRecord.id)
       .single()
@@ -366,15 +355,16 @@ export async function POST(request: NextRequest) {
       console.error('❌ Database verification failed:', verifyError)
       console.error('   Image ID:', imageRecord.id)
       console.error('   Cloudinary URL:', data.secure_url)
-      
+
       // ROLLBACK: Delete from Cloudinary since verification failed
       console.log('🔄 Rolling back: Deleting image from Cloudinary - verification failed')
       await deleteFromCloudinary(data.public_id)
-      
+
       return NextResponse.json(
-        { 
+        {
           error: 'Database record could not be verified',
-          details: 'Image was uploaded to Cloudinary and database insert appeared successful, but verification failed. Image has been removed from Cloudinary.'
+          details:
+            'Image was uploaded to Cloudinary and database insert appeared successful, but verification failed. Image has been removed from Cloudinary.',
         },
         { status: 500 }
       )
@@ -403,8 +393,9 @@ export async function POST(request: NextRequest) {
     const upsertUserProfileImage = async () => {
       if (!columnName) return
       try {
-        const { data: existingProfile, error: profileError } = await (adminClient
-          .from('profiles') as any)
+        const { data: existingProfile, error: profileError } = await (
+          adminClient.from('profiles') as any
+        )
           .select('id, user_id')
           .eq('user_id', entityId)
           .maybeSingle()
@@ -417,17 +408,16 @@ export async function POST(request: NextRequest) {
         }
 
         const updatePayload: Record<string, any> = {
-          [columnName]: imageRecord.id
+          [columnName]: imageRecord.id,
         }
 
         if (!existingProfile) {
           const insertPayload: Record<string, any> = {
             user_id: entityId,
             role: 'user',
-            ...updatePayload
+            ...updatePayload,
           }
-          const { error: createError } = await (adminClient
-            .from('profiles') as any)
+          const { error: createError } = await (adminClient.from('profiles') as any)
             .insert(insertPayload)
             .select('id')
             .single()
@@ -436,10 +426,13 @@ export async function POST(request: NextRequest) {
             throw createError
           }
 
-          console.log(`✅ Profile created for user ${entityId}, linked ${columnName} = ${imageRecord.id}`)
+          console.log(
+            `✅ Profile created for user ${entityId}, linked ${columnName} = ${imageRecord.id}`
+          )
         } else {
-          const { error: updateError, data: updatedProfile } = await (adminClient
-            .from('profiles') as any)
+          const { error: updateError, data: updatedProfile } = await (
+            adminClient.from('profiles') as any
+          )
             .update(updatePayload)
             .eq('user_id', entityId)
             .select('id')
@@ -471,11 +464,12 @@ export async function POST(request: NextRequest) {
       if (!columnName) return
       try {
         const updatePayload: Record<string, any> = {
-          [columnName]: imageRecord.id
+          [columnName]: imageRecord.id,
         }
 
-        const { data: updatedEntity, error: updateError } = await (adminClient
-          .from(entityTableName) as any)
+        const { data: updatedEntity, error: updateError } = await (
+          adminClient.from(entityTableName) as any
+        )
           .update(updatePayload)
           .eq(entityIdColumn, entityId)
           .select('id')
@@ -492,7 +486,9 @@ export async function POST(request: NextRequest) {
           return
         }
 
-        console.log(`✅ Entity updated: ${entityType} ${entityId}, ${columnName} = ${imageRecord.id}`)
+        console.log(
+          `✅ Entity updated: ${entityType} ${entityId}, ${columnName} = ${imageRecord.id}`
+        )
       } catch (error: any) {
         const warning = isMissingColumnError(error)
           ? `Column '${columnName}' does not exist on table '${entityTableName}', cannot link image ${imageRecord.id}`
@@ -503,7 +499,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (!columnName) {
-      appendEntityWarning(`Unable to derive an image column for entity type '${entityType}' and image type '${imageType}'`)
+      appendEntityWarning(
+        `Unable to derive an image column for entity type '${entityType}' and image type '${imageType}'`
+      )
     } else if (entityType === 'user') {
       await upsertUserProfileImage()
     } else {
@@ -516,7 +514,7 @@ export async function POST(request: NextRequest) {
       url: data.secure_url,
       image_id: imageRecord.id,
       public_id: data.public_id,
-      message: 'Image uploaded successfully'
+      message: 'Image uploaded successfully',
     }
 
     if (entityWarnings.length > 0) {
@@ -527,18 +525,19 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('❌ Unexpected error in entity image upload:', error)
     console.error('   Stack:', error.stack)
-    
+
     // If we have Cloudinary data but hit an error, try to clean up
     // Note: This is a best-effort cleanup since we may not have the public_id
     if (error.cloudinaryPublicId) {
       console.log('🔄 Attempting cleanup of Cloudinary image due to unexpected error')
       await deleteFromCloudinary(error.cloudinaryPublicId)
     }
-    
+
     return NextResponse.json(
-      { 
+      {
         error: error.message || 'Internal server error',
-        details: 'An unexpected error occurred during image upload. If the image was uploaded to Cloudinary, it may need manual cleanup.'
+        details:
+          'An unexpected error occurred during image upload. If the image was uploaded to Cloudinary, it may need manual cleanup.',
       },
       { status: 500 }
     )

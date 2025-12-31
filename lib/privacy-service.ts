@@ -1,21 +1,21 @@
 import { createServerActionClientAsync } from '@/lib/supabase/client-helper'
 
-import type { 
-  PrivacyLevel, 
-  PermissionType, 
-  PermissionLevel, 
+import type {
+  PrivacyLevel,
+  PermissionType,
   PrivacySettingsForm,
   PrivacyAccessResult,
   PrivacyStats,
   PrivacyAuditSummary,
-  PrivacyPermissionRequest
+  PrivacyPermissionRequest,
 } from '@/types/privacy'
+import type { Database } from '@/types/database'
 
 import { cookies } from 'next/headers'
 
 export class PrivacyService {
   private static async getSupabase() {
-    const cookieStore = await cookies()
+    await cookies()
     return await createServerActionClientAsync()
   }
 
@@ -25,8 +25,10 @@ export class PrivacyService {
   static async checkReadingAccess(targetUserId: string): Promise<PrivacyAccessResult> {
     try {
       const supabase = await this.getSupabase()
-      
-      const { data: { user } } = await supabase.auth.getUser()
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
       if (!user) {
         return { hasAccess: false, reason: 'Not authenticated' }
       }
@@ -39,7 +41,7 @@ export class PrivacyService {
       // Check using the database function
       const { data, error } = await (supabase as any).rpc('check_reading_privacy_access', {
         target_user_id: targetUserId,
-        requesting_user_id: user.id
+        requesting_user_id: user.id,
       })
 
       if (error) {
@@ -60,15 +62,17 @@ export class PrivacyService {
   static async getUserPrivacySettings(userId?: string): Promise<PrivacySettingsForm | null> {
     try {
       const supabase = await this.getSupabase()
-      
-      const { data: { user } } = await supabase.auth.getUser()
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
       if (!user) return null
 
       const targetUserId = userId || user.id
 
       const { data, error } = await supabase
         .from('user_privacy_settings')
-        .select('*')
+        .select('id, user_id, profile_visibility, show_activity, allow_friend_requests, allow_messages, block_list, created_at, updated_at')
         .eq('user_id', targetUserId)
         .single()
 
@@ -82,15 +86,16 @@ export class PrivacyService {
         return this.createDefaultPrivacySettings(targetUserId)
       }
 
+      const privacyData = data as Database['public']['Tables']['user_privacy_settings']['Row']
       return {
-        default_privacy_level: (data as any).default_privacy_level,
-        allow_friends_to_see_reading: (data as any).allow_friends_to_see_reading,
-        allow_followers_to_see_reading: (data as any).allow_followers_to_see_reading,
-        allow_public_reading_profile: (data as any).allow_public_reading_profile,
-        show_reading_stats_publicly: (data as any).show_reading_stats_publicly,
-        show_currently_reading_publicly: (data as any).show_currently_reading_publicly,
-        show_reading_history_publicly: (data as any).show_reading_history_publicly,
-        show_reading_goals_publicly: (data as any).show_reading_goals_publicly
+        default_privacy_level: privacyData.default_privacy_level as any,
+        allow_friends_to_see_reading: privacyData.allow_friends_to_see_reading,
+        allow_followers_to_see_reading: privacyData.allow_followers_to_see_reading,
+        allow_public_reading_profile: privacyData.allow_public_reading_profile,
+        show_reading_stats_publicly: privacyData.show_reading_stats_publicly,
+        show_currently_reading_publicly: privacyData.show_currently_reading_publicly,
+        show_reading_history_publicly: privacyData.show_reading_history_publicly,
+        show_reading_goals_publicly: privacyData.show_reading_goals_publicly,
       }
     } catch (error) {
       console.error('Error in getUserPrivacySettings:', error)
@@ -104,24 +109,24 @@ export class PrivacyService {
   static async updatePrivacySettings(settings: PrivacySettingsForm): Promise<boolean> {
     try {
       const supabase = await this.getSupabase()
-      
-      const { data: { user } } = await supabase.auth.getUser()
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
       if (!user) return false
 
-      const { error } = await (supabase
-        .from('user_privacy_settings') as any)
-        .upsert({
-          user_id: user.id,
-          default_privacy_level: settings.default_privacy_level,
-          allow_friends_to_see_reading: settings.allow_friends_to_see_reading,
-          allow_followers_to_see_reading: settings.allow_followers_to_see_reading,
-          allow_public_reading_profile: settings.allow_public_reading_profile,
-          show_reading_stats_publicly: settings.show_reading_stats_publicly,
-          show_currently_reading_publicly: settings.show_currently_reading_publicly,
-          show_reading_history_publicly: settings.show_reading_history_publicly,
-          show_reading_goals_publicly: settings.show_reading_goals_publicly,
-          updated_at: new Date().toISOString()
-        })
+      const { error } = await (supabase as any).from('user_privacy_settings').upsert({
+        user_id: user.id,
+        default_privacy_level: settings.default_privacy_level,
+        allow_friends_to_see_reading: settings.allow_friends_to_see_reading,
+        allow_followers_to_see_reading: settings.allow_followers_to_see_reading,
+        allow_public_reading_profile: settings.allow_public_reading_profile,
+        show_reading_stats_publicly: settings.show_reading_stats_publicly,
+        show_currently_reading_publicly: settings.show_currently_reading_publicly,
+        show_reading_history_publicly: settings.show_reading_history_publicly,
+        show_reading_goals_publicly: settings.show_reading_goals_publicly,
+        updated_at: new Date().toISOString(),
+      })
 
       if (error) {
         console.error('Error updating privacy settings:', error)
@@ -141,19 +146,19 @@ export class PrivacyService {
   static async grantCustomPermission(request: PrivacyPermissionRequest): Promise<boolean> {
     try {
       const supabase = await this.getSupabase()
-      
-      const { data: { user } } = await supabase.auth.getUser()
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
       if (!user) return false
 
-      const { error } = await (supabase
-        .from('custom_permissions') as any)
-        .upsert({
-          user_id: user.id,
-          target_user_id: request.target_user_id,
-          permission_type: request.permission_type,
-          permission_level: request.permission_level,
-          updated_at: new Date().toISOString()
-        })
+      const { error } = await (supabase as any).from('custom_permissions').upsert({
+        user_id: user.id,
+        target_user_id: request.target_user_id,
+        permission_type: request.permission_type,
+        permission_level: request.permission_level,
+        updated_at: new Date().toISOString(),
+      })
 
       if (error) {
         console.error('Error granting custom permission:', error)
@@ -164,7 +169,7 @@ export class PrivacyService {
       await (supabase as any).rpc('log_privacy_event', {
         action: 'permission_granted',
         resource_type: 'custom_permission',
-        privacy_level_after: 'custom'
+        privacy_level_after: 'custom',
       })
 
       return true
@@ -177,11 +182,16 @@ export class PrivacyService {
   /**
    * Revoke custom permission from another user
    */
-  static async revokeCustomPermission(targetUserId: string, permissionType: PermissionType): Promise<boolean> {
+  static async revokeCustomPermission(
+    targetUserId: string,
+    permissionType: PermissionType
+  ): Promise<boolean> {
     try {
       const supabase = await this.getSupabase()
-      
-      const { data: { user } } = await supabase.auth.getUser()
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
       if (!user) return false
 
       const { error } = await supabase
@@ -199,7 +209,7 @@ export class PrivacyService {
       // Log the permission revocation
       await (supabase as any).rpc('log_privacy_event', {
         action: 'permission_revoked',
-        resource_type: 'custom_permission'
+        resource_type: 'custom_permission',
       })
 
       return true
@@ -215,13 +225,15 @@ export class PrivacyService {
   static async getPrivacyStats(userId?: string): Promise<PrivacyStats | null> {
     try {
       const supabase = await this.getSupabase()
-      
-      const { data: { user } } = await supabase.auth.getUser()
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
       if (!user) return null
 
       const targetUserId = userId || user.id
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('reading_progress')
         .select('privacy_level')
         .eq('user_id', targetUserId)
@@ -233,11 +245,15 @@ export class PrivacyService {
 
       const stats = {
         total_entries: data.length,
-        public_entries: data.filter((item: any) => (item as any).privacy_level === 'public').length,
-        friends_only_entries: data.filter((item: any) => (item as any).privacy_level === 'friends').length,
-        followers_only_entries: data.filter((item: any) => (item as any).privacy_level === 'followers').length,
-        private_entries: data.filter((item: any) => (item as any).privacy_level === 'private').length,
-        custom_entries: data.filter((item: any) => (item as any).privacy_level === 'custom').length
+        public_entries: data.filter((item: any) => item.privacy_level === 'public').length,
+        friends_only_entries: data.filter((item: any) => item.privacy_level === 'friends')
+          .length,
+        followers_only_entries: data.filter(
+          (item: any) => item.privacy_level === 'followers'
+        ).length,
+        private_entries: data.filter((item: any) => item.privacy_level === 'private')
+          .length,
+        custom_entries: data.filter((item: any) => item.privacy_level === 'custom').length,
       }
 
       return stats
@@ -253,15 +269,17 @@ export class PrivacyService {
   static async getPrivacyAuditSummary(userId?: string): Promise<PrivacyAuditSummary | null> {
     try {
       const supabase = await this.getSupabase()
-      
-      const { data: { user } } = await supabase.auth.getUser()
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
       if (!user) return null
 
       const targetUserId = userId || user.id
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('privacy_audit_log')
-        .select('*')
+        .select('id, user_id, action, resource_type, resource_id, timestamp, ip_address, user_agent')
         .eq('user_id', targetUserId)
         .order('created_at', { ascending: false })
         .limit(50)
@@ -272,12 +290,14 @@ export class PrivacyService {
       }
 
       const summary = {
-        total_views: data.filter((item: any) => (item as any).action === 'view').length,
-        total_updates: data.filter((item: any) => (item as any).action === 'update').length,
-        total_permission_changes: data.filter((item: any) => 
-          (item as any).action === 'permission_granted' || (item as any).action === 'permission_revoked'
+        total_views: data.filter((item: { action: string }) => item.action === 'view').length,
+        total_updates: data.filter((item: { action: string }) => item.action === 'update').length,
+        total_permission_changes: data.filter(
+          (item: { action: string }) =>
+            item.action === 'permission_granted' ||
+            item.action === 'permission_revoked'
         ).length,
-        recent_activity: data.slice(0, 10)
+        recent_activity: data.slice(0, 10),
       }
 
       return summary
@@ -291,24 +311,25 @@ export class PrivacyService {
    * Update reading progress privacy level
    */
   static async updateReadingProgressPrivacy(
-    bookId: string, 
+    bookId: string,
     privacyLevel: PrivacyLevel,
     allowFriends: boolean = false,
     allowFollowers: boolean = false
   ): Promise<boolean> {
     try {
       const supabase = await this.getSupabase()
-      
-      const { data: { user } } = await supabase.auth.getUser()
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
       if (!user) return false
 
-      const { error } = await (supabase
-        .from('reading_progress') as any)
+      const { error } = await (supabase as any).from('reading_progress')
         .update({
           privacy_level: privacyLevel,
           allow_friends: allowFriends,
           allow_followers: allowFollowers,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('book_id', bookId)
         .eq('user_id', user.id)
@@ -331,48 +352,56 @@ export class PrivacyService {
   static async getUsersWithAccess(): Promise<any[]> {
     try {
       const supabase = await this.getSupabase()
-      
-      const { data: { user } } = await supabase.auth.getUser()
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
       if (!user) return []
 
       // Get friends
       const { data: friends } = await supabase
         .from('user_friends')
-        .select(`
+        .select(
+          `
           friend_id,
           users!user_friends_friend_id_fkey(id, username, full_name, avatar_url)
-        `)
+        `
+        )
         .eq('user_id', user.id)
 
       // Get followers
       const { data: followers } = await supabase
         .from('follows')
-        .select(`
+        .select(
+          `
           follower_id,
           users!follows_follower_id_fkey(id, username, full_name, avatar_url)
-        `)
+        `
+        )
         .eq('following_id', user.id)
 
       // Get custom permissions
       const { data: customPermissions } = await supabase
         .from('custom_permissions')
-        .select(`
+        .select(
+          `
           target_user_id,
           permission_type,
           permission_level,
           users!custom_permissions_target_user_id_fkey(id, username, full_name, avatar_url)
-        `)
+        `
+        )
         .eq('user_id', user.id)
 
       return [
-        ...(friends?.map((f: any) => ({ ...(f as any).users, access_type: 'friend' })) || []),
-        ...(followers?.map((f: any) => ({ ...(f as any).users, access_type: 'follower' })) || []),
-        ...(customPermissions?.map((cp: any) => ({ 
-          ...(cp as any).users, 
+        ...(friends?.map((f: { users: any }) => ({ ...f.users, access_type: 'friend' })) || []),
+        ...(followers?.map((f: { users: any }) => ({ ...f.users, access_type: 'follower' })) || []),
+        ...(customPermissions?.map((cp: { users: any; permission_type: string; permission_level?: string }) => ({
+          ...cp.users,
           access_type: 'custom',
-          permission_type: (cp as any).permission_type,
-          permission_level: (cp as any).permission_level
-        })) || [])
+          permission_type: cp.permission_type,
+          permission_level: cp.permission_level,
+        })) || []),
       ]
     } catch (error) {
       console.error('Error in getUsersWithAccess:', error)
@@ -392,21 +421,19 @@ export class PrivacyService {
       show_reading_stats_publicly: false,
       show_currently_reading_publicly: false,
       show_reading_history_publicly: false,
-      show_reading_goals_publicly: false
+      show_reading_goals_publicly: false,
     }
 
     // Try to create the settings in the database
     try {
       const supabase = await this.getSupabase()
-      
-      await (supabase
-        .from('user_privacy_settings') as any)
-        .insert({
-          user_id: userId,
-          ...defaultSettings,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
+
+      await (supabase as any).from('user_privacy_settings').insert({
+        user_id: userId,
+        ...defaultSettings,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
     } catch (error) {
       console.error('Error creating default privacy settings:', error)
     }
@@ -423,7 +450,7 @@ export class PrivacyService {
       friends: 'Friends Only',
       followers: 'Followers Only',
       public: 'Public',
-      custom: 'Custom'
+      custom: 'Custom',
     }
     return displayNames[level] || level
   }
@@ -437,7 +464,7 @@ export class PrivacyService {
       friends: 'Only your friends can see this content',
       followers: 'Only your followers can see this content',
       public: 'Anyone can see this content',
-      custom: 'Custom permissions applied'
+      custom: 'Custom permissions applied',
     }
     return descriptions[level] || ''
   }
@@ -451,8 +478,8 @@ export class PrivacyService {
       friends: '👥',
       followers: '👤',
       public: '🌍',
-      custom: '⚙️'
+      custom: '⚙️',
     }
     return icons[level] || '🔒'
   }
-} 
+}

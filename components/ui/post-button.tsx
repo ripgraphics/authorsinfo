@@ -24,11 +24,7 @@ export function PostButton({
   const isDisabled = disabled || loading
 
   return (
-    <Button
-      {...props}
-      disabled={isDisabled}
-      className={cn(sizeClassName, className)}
-    >
+    <Button {...props} disabled={isDisabled} className={cn(sizeClassName, className)}>
       {loading ? (
         <>
           <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2" />
@@ -36,9 +32,7 @@ export function PostButton({
         </>
       ) : (
         <>
-          <span className="mr-2 flex items-center">
-            {icon ?? <Send className="h-3 w-3" />}
-          </span>
+          <span className="mr-2 flex items-center">{icon ?? <Send className="h-3 w-3" />}</span>
           {label}
         </>
       )}
@@ -47,5 +41,3 @@ export function PostButton({
 }
 
 export default PostButton
-
-

@@ -21,7 +21,8 @@ async function fixBookImage() {
   // Get book data
   const { data: book, error: bookError } = await supabase
     .from('books')
-    .select(`
+    .select(
+      `
       id,
       title,
       isbn13,
@@ -30,7 +31,8 @@ async function fixBookImage() {
       image,
       image_original,
       cover_image:images!cover_image_id(id, url, alt_text, metadata)
-    `)
+    `
+    )
     .eq('id', bookId)
     .single()
 
@@ -176,12 +178,17 @@ async function fixBookImage() {
     }
   } else {
     console.log('\n✅ Book already has cover image linked')
-    
+
     // Verify Cloudinary
     if (coverImage?.url && coverImage.url.includes('cloudinary.com')) {
-      const publicId = coverImage.metadata?.cloudinary_public_id || 
-        coverImage.url.split('/').slice(-2).join('/').replace(/\.[^/.]+$/, '')
-      
+      const publicId =
+        coverImage.metadata?.cloudinary_public_id ||
+        coverImage.url
+          .split('/')
+          .slice(-2)
+          .join('/')
+          .replace(/\.[^/.]+$/, '')
+
       try {
         const resource = await cloudinary.api.resource(publicId)
         console.log('✅ Cloudinary image verified:', resource.secure_url)
@@ -194,4 +201,3 @@ async function fixBookImage() {
 }
 
 fixBookImage().catch(console.error)
-

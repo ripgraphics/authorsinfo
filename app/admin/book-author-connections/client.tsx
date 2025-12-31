@@ -1,13 +1,27 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Progress } from "@/components/ui/progress"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Progress } from '@/components/ui/progress'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import {
   Dialog,
   DialogContent,
@@ -15,11 +29,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+} from '@/components/ui/dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
   AlertCircle,
   BookOpen,
@@ -33,7 +47,7 @@ import {
   UserX,
   BookCheck,
   Users,
-} from "lucide-react"
+} from 'lucide-react'
 import {
   connectAuthorToBook,
   createAuthor,
@@ -43,12 +57,12 @@ import {
   searchDatabaseAuthors,
   batchProcessBooksWithoutAuthors,
   cleanupAuthorData,
-} from "@/app/actions/admin-book-authors"
-import { importNewestBooks } from "@/app/actions/bulk-import-books"
+} from '@/app/actions/admin-book-authors'
+import { importNewestBooks } from '@/app/actions/bulk-import-books'
 
 // Helper function to safely truncate IDs
 function truncateId(id: string | number | null | undefined): string {
-  if (id === null || id === undefined) return "N/A"
+  if (id === null || id === undefined) return 'N/A'
   const strId = String(id)
   return strId.length > 8 ? `${strId.substring(0, 8)}...` : strId
 }
@@ -117,13 +131,13 @@ export function BookAuthorConnectionsClient({
   const [pageSize, setPageSize] = useState(initialPageSize)
   const [selectedBook, setSelectedBook] = useState<Book | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<Author[]>([])
   const [connections, setConnections] = useState<BookAuthorConnection[]>([])
-  const [activeTab, setActiveTab] = useState("search")
-  const [newAuthorName, setNewAuthorName] = useState("")
-  const [newAuthorBio, setNewAuthorBio] = useState("")
-  const [isbnLookup, setIsbnLookup] = useState("")
+  const [activeTab, setActiveTab] = useState('search')
+  const [newAuthorName, setNewAuthorName] = useState('')
+  const [newAuthorBio, setNewAuthorBio] = useState('')
+  const [isbnLookup, setIsbnLookup] = useState('')
   const [isbnResults, setIsbnResults] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -153,11 +167,11 @@ export function BookAuthorConnectionsClient({
     setIsDialogOpen(true)
     setError(null)
     setSuccess(null)
-    setSearchQuery("")
+    setSearchQuery('')
     setSearchResults([])
-    setIsbnLookup("")
+    setIsbnLookup('')
     setIsbnResults(null)
-    setActiveTab("search")
+    setActiveTab('search')
 
     try {
       setIsLoading(true)
@@ -168,7 +182,7 @@ export function BookAuthorConnectionsClient({
         setConnections(connections as BookAuthorConnection[])
       }
     } catch (err) {
-      setError("Failed to load connections")
+      setError('Failed to load connections')
       console.error(err)
     } finally {
       setIsLoading(false)
@@ -189,7 +203,7 @@ export function BookAuthorConnectionsClient({
         setSearchResults(authors)
       }
     } catch (err) {
-      setError("Search failed")
+      setError('Search failed')
       console.error(err)
     } finally {
       setIsLoading(false)
@@ -208,13 +222,13 @@ export function BookAuthorConnectionsClient({
       if (error) {
         setError(error)
       } else if (success) {
-        setSuccess("Author connected successfully")
+        setSuccess('Author connected successfully')
         // Refresh connections
         const { connections } = await getBookAuthorConnections(String(selectedBook.id))
         setConnections(connections as BookAuthorConnection[])
       }
     } catch (err) {
-      setError("Failed to connect author")
+      setError('Failed to connect author')
       console.error(err)
     } finally {
       setIsLoading(false)
@@ -233,13 +247,13 @@ export function BookAuthorConnectionsClient({
       if (error) {
         setError(error)
       } else if (success) {
-        setSuccess("Author disconnected successfully")
+        setSuccess('Author disconnected successfully')
         // Refresh connections
         const { connections } = await getBookAuthorConnections(String(selectedBook.id))
         setConnections(connections as BookAuthorConnection[])
       }
     } catch (err) {
-      setError("Failed to disconnect author")
+      setError('Failed to disconnect author')
       console.error(err)
     } finally {
       setIsLoading(false)
@@ -249,7 +263,7 @@ export function BookAuthorConnectionsClient({
   // Create new author
   const handleCreateAuthor = async () => {
     if (!newAuthorName.trim()) {
-      setError("Author name is required")
+      setError('Author name is required')
       return
     }
 
@@ -265,15 +279,15 @@ export function BookAuthorConnectionsClient({
         setError(error)
       } else if (author) {
         setSuccess(`Author "${author.name}" created successfully`)
-        setNewAuthorName("")
-        setNewAuthorBio("")
+        setNewAuthorName('')
+        setNewAuthorBio('')
         // Connect the new author to the book
         if (selectedBook) {
           await handleConnectAuthor(author.id)
         }
       }
     } catch (err) {
-      setError("Failed to create author")
+      setError('Failed to create author')
       console.error(err)
     } finally {
       setIsLoading(false)
@@ -283,7 +297,7 @@ export function BookAuthorConnectionsClient({
   // Look up book by ISBN
   const handleIsbnLookup = async () => {
     if (!isbnLookup.trim()) {
-      setError("ISBN is required")
+      setError('ISBN is required')
       return
     }
 
@@ -296,10 +310,10 @@ export function BookAuthorConnectionsClient({
         setError(error)
       } else if (book) {
         setIsbnResults(book)
-        setSuccess("Book found in ISBNDB")
+        setSuccess('Book found in ISBNDB')
       }
     } catch (err) {
-      setError("ISBN lookup failed")
+      setError('ISBN lookup failed')
       console.error(err)
     } finally {
       setIsLoading(false)
@@ -308,12 +322,12 @@ export function BookAuthorConnectionsClient({
 
   // Batch process books without authors
   const handleBatchProcess = async () => {
-    setError(null);
-    setSuccess(null);
+    setError(null)
+    setSuccess(null)
 
-    let totalProcessed = 0;
-    let totalFailed = 0;
-    let errors: string[] = [];
+    let totalProcessed = 0
+    let totalFailed = 0
+    let errors: string[] = []
 
     while (totalProcessed < stats.booksWithoutAuthors) {
       // Reset batch state for each batch
@@ -327,16 +341,16 @@ export function BookAuthorConnectionsClient({
         currentBook: null,
         errors: [],
         completed: false,
-      }));
+      }))
 
       try {
         // Start batch processing
-        const result = await batchProcessBooksWithoutAuthors(20);
+        const result = await batchProcessBooksWithoutAuthors(20)
 
         if (result.success) {
-          totalProcessed += result.processed;
-          totalFailed += result.errors ? result.errors.length : 0;
-          errors = [...errors, ...(result.errors || [])];
+          totalProcessed += result.processed
+          totalFailed += result.errors ? result.errors.length : 0
+          errors = [...errors, ...(result.errors || [])]
 
           setBatchState((prev) => ({
             ...prev,
@@ -345,27 +359,27 @@ export function BookAuthorConnectionsClient({
             errors,
             completed: totalProcessed >= stats.booksWithoutAuthors,
             progress: (totalProcessed / stats.booksWithoutAuthors) * 100,
-          }));
+          }))
 
-          setSuccess(`Processed ${totalProcessed} books successfully`);
+          setSuccess(`Processed ${totalProcessed} books successfully`)
 
           // If all books are processed, break the loop
           if (totalProcessed >= stats.booksWithoutAuthors) {
-            break;
+            break
           }
 
           // Delay before starting the next batch
-          await new Promise((resolve) => setTimeout(resolve, 5000));
+          await new Promise((resolve) => setTimeout(resolve, 5000))
         } else {
           setBatchState((prev) => ({
             ...prev,
             failed: 1,
-            errors: [result.error || "Unknown error"],
+            errors: [result.error || 'Unknown error'],
             completed: true,
-          }));
+          }))
 
-          setError(result.error || "Batch processing failed");
-          break;
+          setError(result.error || 'Batch processing failed')
+          break
         }
       } catch (err) {
         setBatchState((prev) => ({
@@ -373,11 +387,11 @@ export function BookAuthorConnectionsClient({
           failed: 1,
           errors: [String(err)],
           completed: true,
-        }));
+        }))
 
-        setError(`Batch processing failed: ${String(err)}`);
-        console.error(err);
-        break;
+        setError(`Batch processing failed: ${String(err)}`)
+        console.error(err)
+        break
       }
     }
 
@@ -386,12 +400,12 @@ export function BookAuthorConnectionsClient({
       ...prev,
       isProcessing: false,
       completed: true,
-    }));
+    }))
 
     // Refresh the page to show updated data after a short delay
     setTimeout(() => {
-      router.refresh();
-    }, 2000);
+      router.refresh()
+    }, 2000)
   }
 
   // Update progress during batch processing
@@ -411,7 +425,7 @@ export function BookAuthorConnectionsClient({
 
   // Clean up author data
   const handleCleanup = async () => {
-    if (!confirm("This will clear all author connections. Are you sure you want to proceed?")) {
+    if (!confirm('This will clear all author connections. Are you sure you want to proceed?')) {
       return
     }
 
@@ -423,12 +437,12 @@ export function BookAuthorConnectionsClient({
       if (error) {
         setError(error)
       } else if (success) {
-        setSuccess("Author data cleaned up successfully")
+        setSuccess('Author data cleaned up successfully')
         // Refresh the page to show updated state
         router.refresh()
       }
     } catch (err) {
-      setError("Failed to clean up author data")
+      setError('Failed to clean up author data')
       console.error(err)
     } finally {
       setIsLoading(false)
@@ -439,7 +453,9 @@ export function BookAuthorConnectionsClient({
 
   // Calculate percentages for stats
   const booksWithAuthorsPercent =
-    stats.totalBooks > 0 ? Math.round(((stats.totalBooks - stats.booksWithoutAuthors) / stats.totalBooks) * 100) : 0
+    stats.totalBooks > 0
+      ? Math.round(((stats.totalBooks - stats.booksWithoutAuthors) / stats.totalBooks) * 100)
+      : 0
 
   const authorsWithBooksPercent =
     stats.totalAuthors > 0
@@ -451,9 +467,9 @@ export function BookAuthorConnectionsClient({
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Book-Author Connections</h1>
         <div className="flex gap-2">
-          <Button 
-            onClick={handleCleanup} 
-            disabled={isLoading || batchState.isProcessing} 
+          <Button
+            onClick={handleCleanup}
+            disabled={isLoading || batchState.isProcessing}
             variant="destructive"
             className="flex items-center gap-2"
           >
@@ -469,7 +485,11 @@ export function BookAuthorConnectionsClient({
               </>
             )}
           </Button>
-          <Button onClick={handleBatchProcess} disabled={isLoading || batchState.isProcessing} className="flex items-center gap-2">
+          <Button
+            onClick={handleBatchProcess}
+            disabled={isLoading || batchState.isProcessing}
+            className="flex items-center gap-2"
+          >
             {batchState.isProcessing ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -499,11 +519,11 @@ export function BookAuthorConnectionsClient({
             <div className="text-xs text-muted-foreground mt-1">
               {stats.booksWithoutAuthors > 0
                 ? `${stats.booksWithoutAuthors} of ${stats.totalBooks} books need authors`
-                : "All books have authors"}
+                : 'All books have authors'}
             </div>
-            <Progress 
-              value={booksWithAuthorsPercent} 
-              className={`h-2 mt-2 ${booksWithAuthorsPercent < 80 ? "bg-amber-500" : "bg-green-500"}`} 
+            <Progress
+              value={booksWithAuthorsPercent}
+              className={`h-2 mt-2 ${booksWithAuthorsPercent < 80 ? 'bg-amber-500' : 'bg-green-500'}`}
             />
           </CardContent>
         </Card>
@@ -520,11 +540,11 @@ export function BookAuthorConnectionsClient({
             <div className="text-xs text-muted-foreground mt-1">
               {stats.authorsWithoutBooks > 0
                 ? `${stats.authorsWithoutBooks} of ${stats.totalAuthors} authors have no books`
-                : "All authors have books"}
+                : 'All authors have books'}
             </div>
-            <Progress 
-              value={authorsWithBooksPercent} 
-              className={`h-2 mt-2 ${authorsWithBooksPercent < 80 ? "bg-amber-500" : "bg-green-500"}`} 
+            <Progress
+              value={authorsWithBooksPercent}
+              className={`h-2 mt-2 ${authorsWithBooksPercent < 80 ? 'bg-amber-500' : 'bg-green-500'}`}
             />
           </CardContent>
         </Card>
@@ -541,11 +561,11 @@ export function BookAuthorConnectionsClient({
             <div className="text-xs text-muted-foreground mt-1">
               {stats.totalBooks > 0
                 ? `${stats.totalBooks - stats.booksWithoutAuthors} books have authors (${booksWithAuthorsPercent}%)`
-                : "No books in database"}
+                : 'No books in database'}
             </div>
-            <Progress 
-              value={booksWithAuthorsPercent} 
-              className={`h-2 mt-2 ${booksWithAuthorsPercent < 80 ? "bg-amber-500" : "bg-green-500"}`} 
+            <Progress
+              value={booksWithAuthorsPercent}
+              className={`h-2 mt-2 ${booksWithAuthorsPercent < 80 ? 'bg-amber-500' : 'bg-green-500'}`}
             />
           </CardContent>
         </Card>
@@ -562,13 +582,13 @@ export function BookAuthorConnectionsClient({
             <div className="text-xs text-muted-foreground mt-1">
               {stats.booksWithMultipleAuthors > 0
                 ? `${stats.booksWithMultipleAuthors} books have more than one author`
-                : "No books with multiple authors"}
+                : 'No books with multiple authors'}
             </div>
             {stats.booksWithMultipleAuthors > 0 && (
               <Button
                 variant="link"
                 className="absolute bottom-2 right-2 p-0 h-auto text-xs"
-                onClick={() => router.push("/admin/books-with-multiple-authors")}
+                onClick={() => router.push('/admin/books-with-multiple-authors')}
               >
                 View all →
               </Button>
@@ -597,11 +617,13 @@ export function BookAuthorConnectionsClient({
       {(batchState.isProcessing || batchState.completed) && (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle>{batchState.completed ? "Processing Complete" : "Processing Books Without Authors"}</CardTitle>
+            <CardTitle>
+              {batchState.completed ? 'Processing Complete' : 'Processing Books Without Authors'}
+            </CardTitle>
             <CardDescription>
               {batchState.completed
                 ? `Processed ${batchState.processed} books, ${batchState.failed} failed`
-                : "This may take several minutes due to API rate limits"}
+                : 'This may take several minutes due to API rate limits'}
             </CardDescription>
           </CardHeader>
           <CardContent className="pb-2">
@@ -623,7 +645,9 @@ export function BookAuthorConnectionsClient({
                         {err}
                       </li>
                     ))}
-                    {batchState.errors.length > 5 && <li>...and {batchState.errors.length - 5} more</li>}
+                    {batchState.errors.length > 5 && (
+                      <li>...and {batchState.errors.length - 5} more</li>
+                    )}
                   </ul>
                 </div>
               </div>
@@ -635,7 +659,9 @@ export function BookAuthorConnectionsClient({
                 variant="outline"
                 size="sm"
                 className="ml-auto"
-                onClick={() => setBatchState((prev) => ({ ...prev, completed: false, isProcessing: false }))}
+                onClick={() =>
+                  setBatchState((prev) => ({ ...prev, completed: false, isProcessing: false }))
+                }
               >
                 Dismiss
               </Button>
@@ -648,7 +674,9 @@ export function BookAuthorConnectionsClient({
       <Card>
         <CardHeader>
           <CardTitle>Books Without Authors</CardTitle>
-          <CardDescription>Connect authors to books that currently don't have any author information</CardDescription>
+          <CardDescription>
+            Connect authors to books that currently don't have any author information
+          </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
@@ -672,11 +700,15 @@ export function BookAuthorConnectionsClient({
                 books.map((book) => (
                   <TableRow key={String(book.id)}>
                     <TableCell className="font-mono">{truncateId(book.id)}</TableCell>
-                    <TableCell>{book.title || "Untitled"}</TableCell>
-                    <TableCell>{book.isbn10 || "—"}</TableCell>
-                    <TableCell>{book.isbn13 || "—"}</TableCell>
+                    <TableCell>{book.title || 'Untitled'}</TableCell>
+                    <TableCell>{book.isbn10 || '—'}</TableCell>
+                    <TableCell>{book.isbn13 || '—'}</TableCell>
                     <TableCell className="text-right">
-                      <Button variant="outline" size="sm" onClick={() => handleManageConnections(book)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleManageConnections(book)}
+                      >
                         Manage Authors
                       </Button>
                     </TableCell>
@@ -689,7 +721,12 @@ export function BookAuthorConnectionsClient({
         {totalPages > 1 && (
           <CardFooter className="flex justify-center py-4 border-t">
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => handlePageChange(page - 1)} disabled={page <= 1}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(page - 1)}
+                disabled={page <= 1}
+              >
                 Previous
               </Button>
               <span className="text-sm">
@@ -714,7 +751,7 @@ export function BookAuthorConnectionsClient({
           <DialogHeader>
             <DialogTitle>Manage Authors for Book</DialogTitle>
             <DialogDescription>
-              {selectedBook?.title || "Untitled"} (ID: {selectedBook?.id})
+              {selectedBook?.title || 'Untitled'} (ID: {selectedBook?.id})
             </DialogDescription>
           </DialogHeader>
 
@@ -722,8 +759,8 @@ export function BookAuthorConnectionsClient({
           <div className="flex items-start gap-4 mb-4">
             {selectedBook?.cover_image?.url && (
               <img
-                src={selectedBook.cover_image.url || "/placeholder.svg"}
-                alt={selectedBook.title || "Book cover"}
+                src={selectedBook.cover_image.url || '/placeholder.svg'}
+                alt={selectedBook.title || 'Book cover'}
                 className="w-20 h-auto object-cover rounded-md"
               />
             )}
@@ -731,9 +768,9 @@ export function BookAuthorConnectionsClient({
               <h3 className="font-medium">{selectedBook?.title}</h3>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-2 text-sm">
                 <div className="text-muted-foreground">ISBN-10:</div>
-                <div>{selectedBook?.isbn10 || "—"}</div>
+                <div>{selectedBook?.isbn10 || '—'}</div>
                 <div className="text-muted-foreground">ISBN-13:</div>
-                <div>{selectedBook?.isbn13 || "—"}</div>
+                <div>{selectedBook?.isbn13 || '—'}</div>
               </div>
             </div>
           </div>
@@ -753,7 +790,9 @@ export function BookAuthorConnectionsClient({
                       variant="ghost"
                       size="icon"
                       className="h-4 w-4 ml-1 p-0"
-                      onClick={() => conn.authorId && handleDisconnectAuthor(conn.authorId.toString())}
+                      onClick={() =>
+                        conn.authorId && handleDisconnectAuthor(conn.authorId.toString())
+                      }
                       disabled={isLoading}
                     >
                       <X className="h-3 w-3" />
@@ -800,10 +839,14 @@ export function BookAuthorConnectionsClient({
                     placeholder="Search authors by name..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   />
                 </div>
-                <Button onClick={handleSearch} disabled={isLoading} className="flex items-center gap-2">
+                <Button
+                  onClick={handleSearch}
+                  disabled={isLoading}
+                  className="flex items-center gap-2"
+                >
                   <Search className="h-4 w-4" />
                   Search
                 </Button>
@@ -838,7 +881,9 @@ export function BookAuthorConnectionsClient({
                   </Table>
                 </div>
               ) : searchQuery && !isLoading ? (
-                <p className="text-sm text-muted-foreground">No authors found matching "{searchQuery}"</p>
+                <p className="text-sm text-muted-foreground">
+                  No authors found matching "{searchQuery}"
+                </p>
               ) : null}
             </TabsContent>
 
@@ -877,10 +922,14 @@ export function BookAuthorConnectionsClient({
                     placeholder="Enter ISBN-10 or ISBN-13..."
                     value={isbnLookup}
                     onChange={(e) => setIsbnLookup(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleIsbnLookup()}
+                    onKeyDown={(e) => e.key === 'Enter' && handleIsbnLookup()}
                   />
                 </div>
-                <Button onClick={handleIsbnLookup} disabled={isLoading} className="flex items-center gap-2">
+                <Button
+                  onClick={handleIsbnLookup}
+                  disabled={isLoading}
+                  className="flex items-center gap-2"
+                >
                   <BookOpen className="h-4 w-4" />
                   Lookup
                 </Button>
@@ -890,7 +939,9 @@ export function BookAuthorConnectionsClient({
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base">{isbnResults.title}</CardTitle>
-                    {isbnResults.publisher && <CardDescription>{isbnResults.publisher}</CardDescription>}
+                    {isbnResults.publisher && (
+                      <CardDescription>{isbnResults.publisher}</CardDescription>
+                    )}
                   </CardHeader>
                   <CardContent>
                     {isbnResults.authors && isbnResults.authors.length > 0 ? (
@@ -906,7 +957,9 @@ export function BookAuthorConnectionsClient({
                         </div>
                       </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground">No author information available</p>
+                      <p className="text-sm text-muted-foreground">
+                        No author information available
+                      </p>
                     )}
                   </CardContent>
                 </Card>
@@ -928,17 +981,17 @@ export function BookAuthorConnectionsClient({
 export function ImportBooksButton() {
   const handleImport = async () => {
     try {
-      await importNewestBooks();
-      alert("Books imported successfully!");
+      await importNewestBooks()
+      alert('Books imported successfully!')
     } catch (error) {
-      console.error("Error importing books:", error);
-      alert("Failed to import books.");
+      console.error('Error importing books:', error)
+      alert('Failed to import books.')
     }
-  };
+  }
 
   return (
     <button onClick={handleImport} className="mb-4 px-4 py-2 bg-blue-500 text-white rounded-sm">
       Import Latest Books
     </button>
-  );
+  )
 }

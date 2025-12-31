@@ -1,16 +1,22 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { AlertCircle, CheckCircle, Loader2, Settings, Zap, Shield, BarChart3 } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Progress } from "@/components/ui/progress"
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { AlertCircle, CheckCircle, Loader2, Settings, Zap, Shield, BarChart3 } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Progress } from '@/components/ui/progress'
 
 interface GenerationResult {
   success: boolean
@@ -31,13 +37,13 @@ interface GenerationResult {
 }
 
 export function EnterpriseActivityForm() {
-  const [type, setType] = useState<string>("all")
-  const [entityIds, setEntityIds] = useState<string>("")
+  const [type, setType] = useState<string>('all')
+  const [entityIds, setEntityIds] = useState<string>('')
   const [options, setOptions] = useState({
     skipDuplicates: true,
     includeMetadata: true,
     batchSize: 100,
-    entityTypes: ['authors', 'books', 'publishers', 'users', 'groups']
+    entityTypes: ['authors', 'books', 'publishers', 'users', 'groups'],
   })
   const [isGenerating, setIsGenerating] = useState(false)
   const [result, setResult] = useState<GenerationResult | null>(null)
@@ -52,30 +58,32 @@ export function EnterpriseActivityForm() {
       setProgress(0)
 
       // Parse entity IDs if provided
-      const parsedEntityIds = entityIds.trim() ? entityIds.split(',').map(id => id.trim()) : undefined
+      const parsedEntityIds = entityIds.trim()
+        ? entityIds.split(',').map((id) => id.trim())
+        : undefined
 
-      const response = await fetch("/api/admin/enterprise-activities", {
-        method: "POST",
+      const response = await fetch('/api/admin/enterprise-activities', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          type, 
+        body: JSON.stringify({
+          type,
           entityIds: parsedEntityIds,
-          options 
+          options,
         }),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to generate activities")
+        throw new Error(data.error || 'Failed to generate activities')
       }
 
       setResult(data)
       setProgress(100)
     } catch (err: any) {
-      setError(err.message || "An unexpected error occurred")
+      setError(err.message || 'An unexpected error occurred')
       setProgress(0)
     } finally {
       setIsGenerating(false)
@@ -83,11 +91,11 @@ export function EnterpriseActivityForm() {
   }
 
   const handleEntityTypeChange = (entityType: string, checked: boolean) => {
-    setOptions(prev => ({
+    setOptions((prev) => ({
       ...prev,
-      entityTypes: checked 
+      entityTypes: checked
         ? [...prev.entityTypes, entityType]
-        : prev.entityTypes.filter(type => type !== entityType)
+        : prev.entityTypes.filter((type) => type !== entityType),
     }))
   }
 
@@ -139,9 +147,7 @@ export function EnterpriseActivityForm() {
                   <Label htmlFor="books" className="font-medium">
                     Books Only
                   </Label>
-                  <p className="text-sm text-muted-foreground">
-                    Generate activities for all books
-                  </p>
+                  <p className="text-sm text-muted-foreground">Generate activities for all books</p>
                 </div>
               </div>
             </RadioGroup>
@@ -170,15 +176,15 @@ export function EnterpriseActivityForm() {
               <Settings className="h-4 w-4 text-gray-600" />
               <Label className="text-base font-medium">Enterprise Options</Label>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-3">
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="skipDuplicates"
                     checked={options.skipDuplicates}
-                    onCheckedChange={(checked) => 
-                      setOptions(prev => ({ ...prev, skipDuplicates: checked as boolean }))
+                    onCheckedChange={(checked) =>
+                      setOptions((prev) => ({ ...prev, skipDuplicates: checked as boolean }))
                     }
                   />
                   <Label htmlFor="skipDuplicates" className="flex items-center gap-1">
@@ -196,8 +202,8 @@ export function EnterpriseActivityForm() {
                   <Checkbox
                     id="includeMetadata"
                     checked={options.includeMetadata}
-                    onCheckedChange={(checked) => 
-                      setOptions(prev => ({ ...prev, includeMetadata: checked as boolean }))
+                    onCheckedChange={(checked) =>
+                      setOptions((prev) => ({ ...prev, includeMetadata: checked as boolean }))
                     }
                   />
                   <Label htmlFor="includeMetadata" className="flex items-center gap-1">
@@ -217,8 +223,8 @@ export function EnterpriseActivityForm() {
               </Label>
               <Select
                 value={options.batchSize.toString()}
-                onValueChange={(value) => 
-                  setOptions(prev => ({ ...prev, batchSize: parseInt(value) }))
+                onValueChange={(value) =>
+                  setOptions((prev) => ({ ...prev, batchSize: parseInt(value) }))
                 }
               >
                 <SelectTrigger>
@@ -246,7 +252,7 @@ export function EnterpriseActivityForm() {
                       <Checkbox
                         id={entityType}
                         checked={options.entityTypes.includes(entityType)}
-                        onCheckedChange={(checked) => 
+                        onCheckedChange={(checked) =>
                           handleEntityTypeChange(entityType, checked as boolean)
                         }
                       />
@@ -308,8 +314,12 @@ export function EnterpriseActivityForm() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <Alert className={result.success ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}>
-                <AlertDescription className={result.success ? "text-green-800" : "text-red-800"}>
+              <Alert
+                className={
+                  result.success ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'
+                }
+              >
+                <AlertDescription className={result.success ? 'text-green-800' : 'text-red-800'}>
                   {result.message}
                 </AlertDescription>
               </Alert>
@@ -325,7 +335,9 @@ export function EnterpriseActivityForm() {
                     <div className="text-sm text-green-600">Inserted</div>
                   </div>
                   <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                    <div className="text-2xl font-bold text-yellow-600">{result.stats.duplicates}</div>
+                    <div className="text-2xl font-bold text-yellow-600">
+                      {result.stats.duplicates}
+                    </div>
                     <div className="text-sm text-yellow-600">Duplicates Skipped</div>
                   </div>
                 </div>
@@ -339,7 +351,8 @@ export function EnterpriseActivityForm() {
                       <div key={entityType} className="p-3 bg-gray-50 rounded-lg">
                         <div className="font-medium capitalize text-sm">{entityType}</div>
                         <div className="text-xs text-muted-foreground mt-1">
-                          Processed: {stats.processed} | Inserted: {stats.inserted} | Skipped: {stats.duplicates}
+                          Processed: {stats.processed} | Inserted: {stats.inserted} | Skipped:{' '}
+                          {stats.duplicates}
                         </div>
                       </div>
                     ))}
@@ -373,4 +386,4 @@ export function EnterpriseActivityForm() {
       )}
     </div>
   )
-} 
+}

@@ -1,10 +1,16 @@
-"use client"
+'use client'
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -85,8 +91,7 @@ export function GroupSettings({ groupId }: GroupSettingsProps) {
 
     try {
       setSaving(true)
-      const { error } = await (supabaseClient
-        .from('groups') as any)
+      const { error } = await (supabaseClient.from('groups') as any)
         .update({
           name: settings.name,
           description: settings.description,
@@ -96,7 +101,7 @@ export function GroupSettings({ groupId }: GroupSettingsProps) {
           max_members: settings.max_members,
           tags: settings.tags,
           category: settings.category,
-          settings: settings.settings
+          settings: settings.settings,
         })
         .eq('id', groupId)
 
@@ -182,36 +187,42 @@ export function GroupSettings({ groupId }: GroupSettingsProps) {
                 <Input
                   type="number"
                   value={settings.max_members || ''}
-                  onChange={(e) => setSettings({
-                    ...settings,
-                    max_members: e.target.value ? parseInt(e.target.value) : null
-                  })}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      max_members: e.target.value ? parseInt(e.target.value) : null,
+                    })
+                  }
                 />
               </div>
               <div>
                 <label className="text-sm font-medium">Allow Member Invites</label>
                 <Switch
                   checked={settings.settings.allow_member_invites}
-                  onCheckedChange={(checked) => setSettings({
-                    ...settings,
-                    settings: {
-                      ...settings.settings,
-                      allow_member_invites: checked
-                    }
-                  })}
+                  onCheckedChange={(checked) =>
+                    setSettings({
+                      ...settings,
+                      settings: {
+                        ...settings.settings,
+                        allow_member_invites: checked,
+                      },
+                    })
+                  }
                 />
               </div>
               <div>
                 <label className="text-sm font-medium">Require Approval</label>
                 <Switch
                   checked={settings.settings.require_approval}
-                  onCheckedChange={(checked) => setSettings({
-                    ...settings,
-                    settings: {
-                      ...settings.settings,
-                      require_approval: checked
-                    }
-                  })}
+                  onCheckedChange={(checked) =>
+                    setSettings({
+                      ...settings,
+                      settings: {
+                        ...settings.settings,
+                        require_approval: checked,
+                      },
+                    })
+                  }
                 />
               </div>
             </CardContent>
@@ -228,32 +239,36 @@ export function GroupSettings({ groupId }: GroupSettingsProps) {
                 <label className="text-sm font-medium">Enable Content Moderation</label>
                 <Switch
                   checked={settings.settings.content_moderation.enabled}
-                  onCheckedChange={(checked) => setSettings({
-                    ...settings,
-                    settings: {
-                      ...settings.settings,
-                      content_moderation: {
-                        ...settings.settings.content_moderation,
-                        enabled: checked
-                      }
-                    }
-                  })}
+                  onCheckedChange={(checked) =>
+                    setSettings({
+                      ...settings,
+                      settings: {
+                        ...settings.settings,
+                        content_moderation: {
+                          ...settings.settings.content_moderation,
+                          enabled: checked,
+                        },
+                      },
+                    })
+                  }
                 />
               </div>
               <div>
                 <label className="text-sm font-medium">Auto-Moderate Content</label>
                 <Switch
                   checked={settings.settings.content_moderation.auto_moderate}
-                  onCheckedChange={(checked) => setSettings({
-                    ...settings,
-                    settings: {
-                      ...settings.settings,
-                      content_moderation: {
-                        ...settings.settings.content_moderation,
-                        auto_moderate: checked
-                      }
-                    }
-                  })}
+                  onCheckedChange={(checked) =>
+                    setSettings({
+                      ...settings,
+                      settings: {
+                        ...settings.settings,
+                        content_moderation: {
+                          ...settings.settings.content_moderation,
+                          auto_moderate: checked,
+                        },
+                      },
+                    })
+                  }
                 />
               </div>
               <div>
@@ -263,32 +278,36 @@ export function GroupSettings({ groupId }: GroupSettingsProps) {
                   min="0"
                   max="100"
                   value={settings.settings.content_moderation.toxicity_threshold * 100}
-                  onChange={(e) => setSettings({
-                    ...settings,
-                    settings: {
-                      ...settings.settings,
-                      content_moderation: {
-                        ...settings.settings.content_moderation,
-                        toxicity_threshold: parseInt(e.target.value) / 100
-                      }
-                    }
-                  })}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      settings: {
+                        ...settings.settings,
+                        content_moderation: {
+                          ...settings.settings.content_moderation,
+                          toxicity_threshold: parseInt(e.target.value) / 100,
+                        },
+                      },
+                    })
+                  }
                 />
               </div>
               <div>
                 <label className="text-sm font-medium">Banned Keywords</label>
                 <Textarea
                   value={settings.settings.content_moderation.banned_keywords.join('\n')}
-                  onChange={(e) => setSettings({
-                    ...settings,
-                    settings: {
-                      ...settings.settings,
-                      content_moderation: {
-                        ...settings.settings.content_moderation,
-                        banned_keywords: e.target.value.split('\n').filter(Boolean)
-                      }
-                    }
-                  })}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      settings: {
+                        ...settings.settings,
+                        content_moderation: {
+                          ...settings.settings.content_moderation,
+                          banned_keywords: e.target.value.split('\n').filter(Boolean),
+                        },
+                      },
+                    })
+                  }
                   placeholder="One keyword per line"
                   rows={4}
                 />
@@ -307,64 +326,72 @@ export function GroupSettings({ groupId }: GroupSettingsProps) {
                 <label className="text-sm font-medium">New Members</label>
                 <Switch
                   checked={settings.settings.notifications.new_members}
-                  onCheckedChange={(checked) => setSettings({
-                    ...settings,
-                    settings: {
-                      ...settings.settings,
-                      notifications: {
-                        ...settings.settings.notifications,
-                        new_members: checked
-                      }
-                    }
-                  })}
+                  onCheckedChange={(checked) =>
+                    setSettings({
+                      ...settings,
+                      settings: {
+                        ...settings.settings,
+                        notifications: {
+                          ...settings.settings.notifications,
+                          new_members: checked,
+                        },
+                      },
+                    })
+                  }
                 />
               </div>
               <div>
                 <label className="text-sm font-medium">New Content</label>
                 <Switch
                   checked={settings.settings.notifications.new_content}
-                  onCheckedChange={(checked) => setSettings({
-                    ...settings,
-                    settings: {
-                      ...settings.settings,
-                      notifications: {
-                        ...settings.settings.notifications,
-                        new_content: checked
-                      }
-                    }
-                  })}
+                  onCheckedChange={(checked) =>
+                    setSettings({
+                      ...settings,
+                      settings: {
+                        ...settings.settings,
+                        notifications: {
+                          ...settings.settings.notifications,
+                          new_content: checked,
+                        },
+                      },
+                    })
+                  }
                 />
               </div>
               <div>
                 <label className="text-sm font-medium">Reports</label>
                 <Switch
                   checked={settings.settings.notifications.reports}
-                  onCheckedChange={(checked) => setSettings({
-                    ...settings,
-                    settings: {
-                      ...settings.settings,
-                      notifications: {
-                        ...settings.settings.notifications,
-                        reports: checked
-                      }
-                    }
-                  })}
+                  onCheckedChange={(checked) =>
+                    setSettings({
+                      ...settings,
+                      settings: {
+                        ...settings.settings,
+                        notifications: {
+                          ...settings.settings.notifications,
+                          reports: checked,
+                        },
+                      },
+                    })
+                  }
                 />
               </div>
               <div>
                 <label className="text-sm font-medium">Analytics</label>
                 <Switch
                   checked={settings.settings.notifications.analytics}
-                  onCheckedChange={(checked) => setSettings({
-                    ...settings,
-                    settings: {
-                      ...settings.settings,
-                      notifications: {
-                        ...settings.settings.notifications,
-                        analytics: checked
-                      }
-                    }
-                  })}
+                  onCheckedChange={(checked) =>
+                    setSettings({
+                      ...settings,
+                      settings: {
+                        ...settings.settings,
+                        notifications: {
+                          ...settings.settings.notifications,
+                          analytics: checked,
+                        },
+                      },
+                    })
+                  }
                 />
               </div>
             </CardContent>
@@ -382,48 +409,54 @@ export function GroupSettings({ groupId }: GroupSettingsProps) {
                 <Input
                   type="color"
                   value={settings.settings.branding.primary_color}
-                  onChange={(e) => setSettings({
-                    ...settings,
-                    settings: {
-                      ...settings.settings,
-                      branding: {
-                        ...settings.settings.branding,
-                        primary_color: e.target.value
-                      }
-                    }
-                  })}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      settings: {
+                        ...settings.settings,
+                        branding: {
+                          ...settings.settings.branding,
+                          primary_color: e.target.value,
+                        },
+                      },
+                    })
+                  }
                 />
               </div>
               <div>
                 <label className="text-sm font-medium">Logo URL</label>
                 <Input
                   value={settings.settings.branding.logo_url}
-                  onChange={(e) => setSettings({
-                    ...settings,
-                    settings: {
-                      ...settings.settings,
-                      branding: {
-                        ...settings.settings.branding,
-                        logo_url: e.target.value
-                      }
-                    }
-                  })}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      settings: {
+                        ...settings.settings,
+                        branding: {
+                          ...settings.settings.branding,
+                          logo_url: e.target.value,
+                        },
+                      },
+                    })
+                  }
                 />
               </div>
               <div>
                 <label className="text-sm font-medium">Banner URL</label>
                 <Input
                   value={settings.settings.branding.banner_url}
-                  onChange={(e) => setSettings({
-                    ...settings,
-                    settings: {
-                      ...settings.settings,
-                      branding: {
-                        ...settings.settings.branding,
-                        banner_url: e.target.value
-                      }
-                    }
-                  })}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      settings: {
+                        ...settings.settings,
+                        branding: {
+                          ...settings.settings.branding,
+                          banner_url: e.target.value,
+                        },
+                      },
+                    })
+                  }
                 />
               </div>
             </CardContent>
@@ -441,16 +474,18 @@ export function GroupSettings({ groupId }: GroupSettingsProps) {
                 <Input
                   type="password"
                   value={settings.settings.integrations.slack_webhook || ''}
-                  onChange={(e) => setSettings({
-                    ...settings,
-                    settings: {
-                      ...settings.settings,
-                      integrations: {
-                        ...settings.settings.integrations,
-                        slack_webhook: e.target.value
-                      }
-                    }
-                  })}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      settings: {
+                        ...settings.settings,
+                        integrations: {
+                          ...settings.settings.integrations,
+                          slack_webhook: e.target.value,
+                        },
+                      },
+                    })
+                  }
                 />
               </div>
               <div>
@@ -458,32 +493,36 @@ export function GroupSettings({ groupId }: GroupSettingsProps) {
                 <Input
                   type="password"
                   value={settings.settings.integrations.discord_webhook || ''}
-                  onChange={(e) => setSettings({
-                    ...settings,
-                    settings: {
-                      ...settings.settings,
-                      integrations: {
-                        ...settings.settings.integrations,
-                        discord_webhook: e.target.value
-                      }
-                    }
-                  })}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      settings: {
+                        ...settings.settings,
+                        integrations: {
+                          ...settings.settings.integrations,
+                          discord_webhook: e.target.value,
+                        },
+                      },
+                    })
+                  }
                 />
               </div>
               <div>
                 <label className="text-sm font-medium">Email Notifications</label>
                 <Switch
                   checked={settings.settings.integrations.email_notifications}
-                  onCheckedChange={(checked) => setSettings({
-                    ...settings,
-                    settings: {
-                      ...settings.settings,
-                      integrations: {
-                        ...settings.settings.integrations,
-                        email_notifications: checked
-                      }
-                    }
-                  })}
+                  onCheckedChange={(checked) =>
+                    setSettings({
+                      ...settings,
+                      settings: {
+                        ...settings.settings,
+                        integrations: {
+                          ...settings.settings.integrations,
+                          email_notifications: checked,
+                        },
+                      },
+                    })
+                  }
                 />
               </div>
             </CardContent>
@@ -492,4 +531,4 @@ export function GroupSettings({ groupId }: GroupSettingsProps) {
       </Tabs>
     </div>
   )
-} 
+}

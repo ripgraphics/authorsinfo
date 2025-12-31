@@ -17,11 +17,11 @@ export function EntityPhotoGalleryDemo({ className = '' }: EntityPhotoGalleryDem
   const entityIds = {
     user: user?.id || 'demo-user-id',
     publisher: 'demo-publisher-id',
-    author: 'demo-author-id', 
+    author: 'demo-author-id',
     group: 'demo-group-id',
     book: 'demo-book-id',
     event: 'demo-event-id',
-    content: 'demo-content-id'
+    content: 'demo-content-id',
   }
 
   const entityNames = {
@@ -31,7 +31,7 @@ export function EntityPhotoGalleryDemo({ className = '' }: EntityPhotoGalleryDem
     group: 'Group',
     book: 'Book',
     event: 'Event',
-    content: 'Content'
+    content: 'Content',
   }
 
   const entityDescriptions = {
@@ -41,7 +41,7 @@ export function EntityPhotoGalleryDemo({ className = '' }: EntityPhotoGalleryDem
     group: 'Group photos and community content',
     book: 'Book covers and related imagery',
     event: 'Event promotional materials and photos',
-    content: 'General content and media files'
+    content: 'General content and media files',
   }
 
   return (
@@ -50,7 +50,8 @@ export function EntityPhotoGalleryDemo({ className = '' }: EntityPhotoGalleryDem
         <CardHeader>
           <CardTitle>Universal Photo Upload System</CardTitle>
           <p className="text-muted-foreground">
-            This demo shows how the photo upload system works for all entity types in the application.
+            This demo shows how the photo upload system works for all entity types in the
+            application.
           </p>
         </CardHeader>
         <CardContent>
@@ -70,7 +71,9 @@ export function EntityPhotoGalleryDemo({ className = '' }: EntityPhotoGalleryDem
                 <div className="space-y-6">
                   <div className="entity-info">
                     <h3 className="text-lg font-semibold">{name}</h3>
-                    <p className="text-muted-foreground">{entityDescriptions[entityType as EntityType]}</p>
+                    <p className="text-muted-foreground">
+                      {entityDescriptions[entityType as EntityType]}
+                    </p>
                   </div>
 
                   <div className="entity-photo-section">
@@ -196,4 +199,4 @@ export function EntityPhotoGalleryDemo({ className = '' }: EntityPhotoGalleryDem
       </Card>
     </div>
   )
-} 
+}

@@ -1,13 +1,32 @@
-"use client"
+'use client'
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { supabaseClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
@@ -41,7 +60,7 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
   const [filter, setFilter] = useState({
     status: '',
     role: '',
-    search: ''
+    search: '',
   })
   const [selectedMember, setSelectedMember] = useState<Member | null>(null)
   const [inviteEmail, setInviteEmail] = useState('')
@@ -58,7 +77,8 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
       setLoading(true)
       let query = supabaseClient
         .from('group_members')
-        .select(`
+        .select(
+          `
           *,
           user:user_id(
             name,
@@ -68,7 +88,8 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
           inviter:invited_by(
             name
           )
-        `)
+        `
+        )
         .eq('group_id', groupId)
 
       if (filter.status && filter.status !== 'all') {
@@ -86,9 +107,10 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
       let filtered = data
       if (filter.search) {
         const searchLower = filter.search.toLowerCase()
-        filtered = data.filter((member: any) =>
-          member.user.name.toLowerCase().includes(searchLower) ||
-          member.user.email.toLowerCase().includes(searchLower)
+        filtered = data.filter(
+          (member: any) =>
+            member.user.name.toLowerCase().includes(searchLower) ||
+            member.user.email.toLowerCase().includes(searchLower)
         )
       }
 
@@ -102,18 +124,18 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
 
   const handleInviteMember = async () => {
     try {
-      const { data: { user } } = await supabaseClient.auth.getUser()
+      const {
+        data: { user },
+      } = await supabaseClient.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      const { error } = await (supabaseClient
-        .from('group_invitations') as any)
-        .insert({
-          group_id: groupId,
-          email: inviteEmail,
-          invited_by: user.id,
-          role: inviteRole,
-          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-        })
+      const { error } = await (supabaseClient.from('group_invitations') as any).insert({
+        group_id: groupId,
+        email: inviteEmail,
+        invited_by: user.id,
+        role: inviteRole,
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      })
 
       if (error) throw error
 
@@ -126,8 +148,7 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
 
   const handleUpdateRole = async (userId: string, newRoles: string[]) => {
     try {
-      const { error } = await (supabaseClient
-        .from('group_members') as any)
+      const { error } = await (supabaseClient.from('group_members') as any)
         .update({ roles: newRoles })
         .eq('group_id', groupId)
         .eq('user_id', userId)
@@ -158,12 +179,11 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
           break
       }
 
-      const { error } = await (supabaseClient
-        .from('group_members') as any)
+      const { error } = await (supabaseClient.from('group_members') as any)
         .update({
           status: 'suspended',
           suspension_reason: suspensionReason,
-          suspension_ends_at: suspensionEndsAt?.toISOString()
+          suspension_ends_at: suspensionEndsAt?.toISOString(),
         })
         .eq('group_id', groupId)
         .eq('user_id', userId)
@@ -212,7 +232,7 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
             <div className="text-sm text-muted-foreground">{row.original.user.email}</div>
           </div>
         </div>
-      )
+      ),
     },
     {
       header: 'Roles',
@@ -224,30 +244,35 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
             </Badge>
           ))}
         </div>
-      )
+      ),
     },
     {
       header: 'Status',
       accessorKey: 'status',
       cell: ({ row }: { row: any }) => (
-        <Badge variant={
-          row.original.status === 'active' ? 'secondary' :
-          row.original.status === 'suspended' ? 'destructive' :
-          'outline'
-        }>
+        <Badge
+          variant={
+            row.original.status === 'active'
+              ? 'secondary'
+              : row.original.status === 'suspended'
+                ? 'destructive'
+                : 'outline'
+          }
+        >
           {row.original.status}
         </Badge>
-      )
+      ),
     },
     {
       header: 'Joined',
       accessorKey: 'joined_at',
-      cell: ({ row }: { row: any }) => format(new Date(row.original.joined_at), 'MMM d, yyyy')
+      cell: ({ row }: { row: any }) => format(new Date(row.original.joined_at), 'MMM d, yyyy'),
     },
     {
       header: 'Last Active',
       accessorKey: 'last_active_at',
-      cell: ({ row }: { row: any }) => format(new Date(row.original.last_active_at), 'MMM d, yyyy HH:mm')
+      cell: ({ row }: { row: any }) =>
+        format(new Date(row.original.last_active_at), 'MMM d, yyyy HH:mm'),
     },
     {
       header: 'Actions',
@@ -255,11 +280,7 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
         <div className="flex gap-2">
           <Dialog>
             <DialogTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSelectedMember(row.original)}
-              >
+              <Button variant="outline" size="sm" onClick={() => setSelectedMember(row.original)}>
                 Manage
               </Button>
             </DialogTrigger>
@@ -287,10 +308,7 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
                 <div>
                   <label className="text-sm font-medium">Suspension</label>
                   <div className="space-y-2">
-                    <Select
-                      value={suspensionDuration}
-                      onValueChange={setSuspensionDuration}
-                    >
+                    <Select value={suspensionDuration} onValueChange={setSuspensionDuration}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -326,8 +344,8 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
             </DialogContent>
           </Dialog>
         </div>
-      )
-    }
+      ),
+    },
   ]
 
   return (
@@ -401,9 +419,7 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
                   </Select>
                 </div>
                 <div className="flex justify-end">
-                  <Button onClick={handleInviteMember}>
-                    Send Invitation
-                  </Button>
+                  <Button onClick={handleInviteMember}>Send Invitation</Button>
                 </div>
               </div>
             </DialogContent>
@@ -443,7 +459,9 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
                     <TableRow key={member.user_id || index}>
                       {columns.map((column, colIndex) => (
                         <TableCell key={colIndex}>
-                          {column.cell ? column.cell({ row: { original: member } }) : (member as any)[column.accessorKey || '']}
+                          {column.cell
+                            ? column.cell({ row: { original: member } })
+                            : (member as any)[column.accessorKey || '']}
                         </TableCell>
                       ))}
                     </TableRow>
@@ -456,4 +474,4 @@ export function MemberManagement({ groupId }: MemberManagementProps) {
       </Card>
     </div>
   )
-} 
+}

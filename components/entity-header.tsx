@@ -1,24 +1,42 @@
-"use client"
+'use client'
 
-import Image from "next/image"
-import { useState, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Camera, BookOpen, Users, MapPin, Globe, User, MoreHorizontal, MessageSquare, UserPlus, Settings, Crop, Loader2 } from "lucide-react"
-import Link from "next/link"
-import { Avatar } from "@/components/ui/avatar"
-import { cn } from "@/lib/utils"
-import { AuthorHoverCard, PublisherHoverCard, GroupHoverCard, EventCreatorHoverCard } from "@/components/entity-hover-cards"
-import { UserHoverCard } from "@/components/entity-hover-cards"
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
+import Image from 'next/image'
+import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Camera,
+  BookOpen,
+  Users,
+  MapPin,
+  Globe,
+  User,
+  MoreHorizontal,
+  MessageSquare,
+  UserPlus,
+  Settings,
+  Crop,
+  Loader2,
+} from 'lucide-react'
+import Link from 'next/link'
+import { Avatar } from '@/components/ui/avatar'
+import { cn } from '@/lib/utils'
+import {
+  AuthorHoverCard,
+  PublisherHoverCard,
+  GroupHoverCard,
+  EventCreatorHoverCard,
+} from '@/components/entity-hover-cards'
+import { UserHoverCard } from '@/components/entity-hover-cards'
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { EntityHoverCard } from "@/components/entity-hover-cards"
+} from '@/components/ui/dropdown-menu'
+import { EntityHoverCard } from '@/components/entity-hover-cards'
 import { GroupActions } from '@/components/group/GroupActions'
 import { useGroupPermissions } from '@/hooks/useGroupPermissions'
 import { useAuth } from '@/hooks/useAuth'
@@ -28,14 +46,9 @@ import { AddFriendButton } from '@/components/add-friend-button'
 import { ImageCropper } from '@/components/ui/image-cropper'
 import { CameraIconButton } from '@/components/ui/camera-icon-button'
 import { HoverOverlay } from '@/components/ui/hover-overlay'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { useToast } from "@/hooks/use-toast"
-import { EntityTabs } from "@/components/ui/entity-tabs"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { useToast } from '@/hooks/use-toast'
+import { EntityTabs } from '@/components/ui/entity-tabs'
 import { deduplicatedRequest, clearCache } from '@/lib/request-utils'
 import { createBrowserClient } from '@supabase/ssr'
 
@@ -194,8 +207,8 @@ export function EntityHeader({
   className,
   onCoverImageChange,
   onProfileImageChange,
-  changeCoverLabel = "Change Cover",
-  cropCoverLabel = "Crop Cover",
+  changeCoverLabel = 'Change Cover',
+  cropCoverLabel = 'Crop Cover',
   cropCoverSuccessMessage,
   onMessage,
   onFollow,
@@ -218,19 +231,18 @@ export function EntityHeader({
   enhancedProfile,
   userStats,
 }: EntityHeaderProps) {
-  
   console.log('🏗️ EntityHeader component mounted with props:', {
     entityType,
     entityId,
     name,
-    coverImageUrl
-  });
-  
+    coverImageUrl,
+  })
+
   const { user } = useAuth()
   const router = useRouter()
   const groupPermissions = useGroupPermissions(group?.id || null, user?.id)
   const { isMember: isGroupMember, isAdmin } = groupPermissions
-  const [groupMemberData, setGroupMemberData] = useState<any>(null);
+  const [groupMemberData, setGroupMemberData] = useState<any>(null)
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false)
   const [isCoverModalOpen, setIsCoverModalOpen] = useState(false)
   const [isCropModalOpen, setIsCropModalOpen] = useState(false)
@@ -250,256 +262,287 @@ export function EntityHeader({
   const [isHoveringCover, setIsHoveringCover] = useState(false)
   const [isCoverDropdownOpen, setIsCoverDropdownOpen] = useState(false)
   const { toast } = useToast()
-  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   useEffect(() => {
     const fetchGroupMemberData = async () => {
-      if (!creator || !group?.id) return;
-      
-      try {
-        const response = await fetch(`/api/group-members?group_id=${group.id}&user_id=${creator.id}`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        console.log('Group member data:', data);
-        setGroupMemberData(data[0] || null); // Get first record if exists
-      } catch (error) {
-        console.error('Error fetching group member data:', error);
-        setGroupMemberData(null);
-      }
-    };
+      if (!creator || !group?.id) return
 
-    fetchGroupMemberData();
-  }, [creator, group?.id]);
+      try {
+        const response = await fetch(
+          `/api/group-members?group_id=${group.id}&user_id=${creator.id}`
+        )
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        const data = await response.json()
+        console.log('Group member data:', data)
+        setGroupMemberData(data[0] || null) // Get first record if exists
+      } catch (error) {
+        console.error('Error fetching group member data:', error)
+        setGroupMemberData(null)
+      }
+    }
+
+    fetchGroupMemberData()
+  }, [creator, group?.id])
 
   // Fetch entity images with optimization
   const fetchEntityImages = useCallback(async () => {
     if (!entityId || !entityType) {
-      console.log('❌ Missing entityId or entityType, skipping fetch');
-      return;
+      console.log('❌ Missing entityId or entityType, skipping fetch')
+      return
     }
 
     // ✅ User avatar/cover must NOT depend on albums for rendering.
     // Canonical source is `profiles.avatar_image_id` / `profiles.cover_image_id` -> `images.url`.
     if (entityType === 'user') {
-      return;
+      return
     }
-    
+
     try {
-      console.log('📡 Fetching entity images with optimization...');
-      
+      console.log('📡 Fetching entity images with optimization...')
+
       // Use deduplicated requests with shorter cache for entity images
       // Shorter cache ensures fresh data after image uploads
       const [headerData, avatarData] = await Promise.all([
         deduplicatedRequest(
           `entity-header-${entityType}-${entityId}`,
-          () => fetch(`/api/entity-images?entityId=${entityId}&entityType=${entityType}&albumPurpose=entity_header`).then(r => r.json()),
+          () =>
+            fetch(
+              `/api/entity-images?entityId=${entityId}&entityType=${entityType}&albumPurpose=entity_header`
+            ).then((r) => r.json()),
           30 * 1000 // 30 seconds cache - shorter for entity header images
         ),
         deduplicatedRequest(
           `entity-avatar-${entityType}-${entityId}`,
-          () => fetch(`/api/entity-images?entityId=${entityId}&entityType=${entityType}&albumPurpose=avatar`).then(r => r.json()),
+          () =>
+            fetch(
+              `/api/entity-images?entityId=${entityId}&entityType=${entityType}&albumPurpose=avatar`
+            ).then((r) => r.json()),
           30 * 1000 // 30 seconds cache - shorter for entity avatar images
-        )
-      ]);
+        ),
+      ])
 
       // Process header images - FIRST PRIORITY: entity header image
-      let foundEntityHeaderImage = false;
-      
-      console.log('🔍 Header data response:', { 
-        success: headerData.success, 
+      let foundEntityHeaderImage = false
+
+      console.log('🔍 Header data response:', {
+        success: headerData.success,
         albumsCount: headerData.albums?.length || 0,
-        albums: headerData.albums?.map((a: any) => ({ id: a.id, name: a.name, imagesCount: a.images?.length || 0 }))
-      });
-      
+        albums: headerData.albums?.map((a: any) => ({
+          id: a.id,
+          name: a.name,
+          imagesCount: a.images?.length || 0,
+        })),
+      })
+
       if (headerData.success && headerData.albums && headerData.albums.length > 0) {
-        const headerAlbum = headerData.albums[0];
-        console.log('🔍 Header album details:', { 
-          id: headerAlbum.id, 
-          name: headerAlbum.name, 
+        const headerAlbum = headerData.albums[0]
+        console.log('🔍 Header album details:', {
+          id: headerAlbum.id,
+          name: headerAlbum.name,
           imagesCount: headerAlbum.images?.length || 0,
-          images: headerAlbum.images?.map((img: any) => ({ 
-            id: img.id, 
-            is_cover: img.is_cover, 
+          images: headerAlbum.images?.map((img: any) => ({
+            id: img.id,
+            is_cover: img.is_cover,
             hasImage: !!img.image,
             imageUrl: img.image?.url || 'NO URL',
-            imageId: img.image?.id || 'NO ID'
-          }))
-        });
-        
+            imageId: img.image?.id || 'NO ID',
+          })),
+        })
+
         if (headerAlbum.images && headerAlbum.images.length > 0) {
           // Filter out images with null image objects
-          const validImages = headerAlbum.images.filter((img: any) => img.image && img.image.url);
-          console.log(`🔍 Filtered ${validImages.length} valid images from ${headerAlbum.images.length} total`);
-          
+          const validImages = headerAlbum.images.filter((img: any) => img.image && img.image.url)
+          console.log(
+            `🔍 Filtered ${validImages.length} valid images from ${headerAlbum.images.length} total`
+          )
+
           if (validImages.length > 0) {
-            let headerImage = validImages.find((img: any) => img.is_cover);
-            
+            let headerImage = validImages.find((img: any) => img.is_cover)
+
             if (!headerImage) {
               headerImage = validImages.reduce((latest: any, current: any) => {
-                if (!latest) return current;
-                const latestDate = new Date(latest.image?.created_at || 0);
-                const currentDate = new Date(current.image?.created_at || 0);
-                return currentDate > latestDate ? current : latest;
-              });
+                if (!latest) return current
+                const latestDate = new Date(latest.image?.created_at || 0)
+                const currentDate = new Date(current.image?.created_at || 0)
+                return currentDate > latestDate ? current : latest
+              })
             }
-            
+
             if (headerImage && headerImage.image) {
-              console.log('✅ Found entity header image, setting:', headerImage.image.url);
-              setEntityImages(prev => ({ ...prev, header: headerImage.image.url }));
-              setCoverImage(headerImage.image.url);
-              setImageVersion(prev => prev + 1); // Force image reload
-              foundEntityHeaderImage = true;
+              console.log('✅ Found entity header image, setting:', headerImage.image.url)
+              setEntityImages((prev) => ({ ...prev, header: headerImage.image.url }))
+              setCoverImage(headerImage.image.url)
+              setImageVersion((prev) => prev + 1) // Force image reload
+              foundEntityHeaderImage = true
             } else {
-              console.warn('⚠️ Header image found but missing image object:', headerImage);
+              console.warn('⚠️ Header image found but missing image object:', headerImage)
             }
           } else {
-            console.warn('⚠️ No valid images found in header album (all images have null image objects)');
+            console.warn(
+              '⚠️ No valid images found in header album (all images have null image objects)'
+            )
           }
         } else {
-          console.warn('⚠️ Header album has no images array or empty images array');
+          console.warn('⚠️ Header album has no images array or empty images array')
         }
       } else {
-        console.warn('⚠️ No header albums found or request failed:', { 
-          success: headerData.success, 
+        console.warn('⚠️ No header albums found or request failed:', {
+          success: headerData.success,
           error: headerData.error,
-          albumsCount: headerData.albums?.length || 0
-        });
+          albumsCount: headerData.albums?.length || 0,
+        })
       }
-      
+
       // FALLBACK: Only use book cover if no entity header image was found
       if (!foundEntityHeaderImage) {
-        console.log('⚠️ No entity header image found, falling back to book cover');
-        setEntityImages(prev => ({ ...prev, header: undefined }));
-        setCoverImage(coverImageUrl);
+        console.log('⚠️ No entity header image found, falling back to book cover')
+        setEntityImages((prev) => ({ ...prev, header: undefined }))
+        setCoverImage(coverImageUrl)
       }
-      
+
       // Process avatar images
-      console.log('🔍 Avatar data response:', { 
-        success: avatarData.success, 
+      console.log('🔍 Avatar data response:', {
+        success: avatarData.success,
         albumsCount: avatarData.albums?.length || 0,
-        albums: avatarData.albums?.map((a: any) => ({ id: a.id, name: a.name, imagesCount: a.images?.length || 0 }))
-      });
-      
+        albums: avatarData.albums?.map((a: any) => ({
+          id: a.id,
+          name: a.name,
+          imagesCount: a.images?.length || 0,
+        })),
+      })
+
       if (avatarData.success && avatarData.albums && avatarData.albums.length > 0) {
-        const avatarAlbum = avatarData.albums[0];
-        console.log('🔍 Avatar album details:', { 
-          id: avatarAlbum.id, 
-          name: avatarAlbum.name, 
+        const avatarAlbum = avatarData.albums[0]
+        console.log('🔍 Avatar album details:', {
+          id: avatarAlbum.id,
+          name: avatarAlbum.name,
           imagesCount: avatarAlbum.images?.length || 0,
-          images: avatarAlbum.images?.map((img: any) => ({ 
-            id: img.id, 
-            is_cover: img.is_cover, 
+          images: avatarAlbum.images?.map((img: any) => ({
+            id: img.id,
+            is_cover: img.is_cover,
             hasImage: !!img.image,
             imageUrl: img.image?.url || 'NO URL',
-            imageId: img.image?.id || 'NO ID'
-          }))
-        });
-        
+            imageId: img.image?.id || 'NO ID',
+          })),
+        })
+
         if (avatarAlbum.images && avatarAlbum.images.length > 0) {
           // Filter out images with null image objects
-          const validImages = avatarAlbum.images.filter((img: any) => img.image && img.image.url);
-          console.log(`🔍 Filtered ${validImages.length} valid images from ${avatarAlbum.images.length} total`);
-          
+          const validImages = avatarAlbum.images.filter((img: any) => img.image && img.image.url)
+          console.log(
+            `🔍 Filtered ${validImages.length} valid images from ${avatarAlbum.images.length} total`
+          )
+
           if (validImages.length > 0) {
-            let avatarImage = validImages.find((img: any) => img.is_cover);
-            
+            let avatarImage = validImages.find((img: any) => img.is_cover)
+
             if (!avatarImage) {
               avatarImage = validImages.reduce((latest: any, current: any) => {
-                if (!latest) return current;
-                const latestDate = new Date(latest.image?.created_at || 0);
-                const currentDate = new Date(current.image?.created_at || 0);
-                return currentDate > latestDate ? current : latest;
-              });
+                if (!latest) return current
+                const latestDate = new Date(latest.image?.created_at || 0)
+                const currentDate = new Date(current.image?.created_at || 0)
+                return currentDate > latestDate ? current : latest
+              })
             }
-            
+
             if (avatarImage && avatarImage.image) {
-              console.log('✅ Setting avatar image:', avatarImage.image.url);
-              setEntityImages(prev => ({ ...prev, avatar: avatarImage.image.url }));
-              setAvatarImage(avatarImage.image.url);
+              console.log('✅ Setting avatar image:', avatarImage.image.url)
+              setEntityImages((prev) => ({ ...prev, avatar: avatarImage.image.url }))
+              setAvatarImage(avatarImage.image.url)
             } else {
-              console.warn('⚠️ Avatar image found but missing image object:', avatarImage);
+              console.warn('⚠️ Avatar image found but missing image object:', avatarImage)
             }
           } else {
-            console.warn('⚠️ No valid images found in avatar album (all images have null image objects)');
+            console.warn(
+              '⚠️ No valid images found in avatar album (all images have null image objects)'
+            )
           }
         } else {
-          console.warn('⚠️ Avatar album has no images array or empty images array');
+          console.warn('⚠️ Avatar album has no images array or empty images array')
         }
       } else {
-        console.warn('⚠️ No avatar albums found or request failed:', { 
-          success: avatarData.success, 
+        console.warn('⚠️ No avatar albums found or request failed:', {
+          success: avatarData.success,
           error: avatarData.error,
-          albumsCount: avatarData.albums?.length || 0
-        });
+          albumsCount: avatarData.albums?.length || 0,
+        })
       }
-      
     } catch (error) {
-      console.error('❌ Error fetching entity images:', error);
+      console.error('❌ Error fetching entity images:', error)
       // On error, fall back to book cover
-      setCoverImage(coverImageUrl);
+      setCoverImage(coverImageUrl)
     }
-  }, [entityId, entityType]);
+  }, [entityId, entityType])
 
   // Fetch entity images from photo albums when component mounts
   useEffect(() => {
     // For users, we render canonical avatar/cover from props/state and do not fetch from albums.
-    if (entityType === 'user') return;
-    console.log('🚀 useEffect triggered, calling fetchEntityImages');
-    fetchEntityImages();
-  }, [fetchEntityImages]);
+    if (entityType === 'user') return
+    console.log('🚀 useEffect triggered, calling fetchEntityImages')
+    fetchEntityImages()
+  }, [fetchEntityImages])
 
   // Listen for entity image changes (when user sets new cover in photos tab)
   useEffect(() => {
     const handleEntityImageChanged = () => {
-      console.log('🔄 Entity image changed event received, refreshing images...');
-      
+      console.log('🔄 Entity image changed event received, refreshing images...')
+
       // Clear cache to ensure fresh data is fetched
-      clearCache(`entity-avatar-${entityType}-${entityId}`);
-      clearCache(`entity-header-${entityType}-${entityId}`);
-      
+      clearCache(`entity-avatar-${entityType}-${entityId}`)
+      clearCache(`entity-header-${entityType}-${entityId}`)
+
       // Add a small delay to ensure database transaction is fully committed
       // This prevents race conditions where the query might execute before the transaction completes
       setTimeout(() => {
-        console.log('🔄 Fetching fresh entity images after cache clear...');
-        fetchEntityImages();
-      }, 100);
-    };
+        console.log('🔄 Fetching fresh entity images after cache clear...')
+        fetchEntityImages()
+      }, 100)
+    }
 
-    window.addEventListener('entityImageChanged', handleEntityImageChanged);
-    
+    window.addEventListener('entityImageChanged', handleEntityImageChanged)
+
     return () => {
-      window.removeEventListener('entityImageChanged', handleEntityImageChanged);
-    };
-  }, [fetchEntityImages, entityType, entityId]);
+      window.removeEventListener('entityImageChanged', handleEntityImageChanged)
+    }
+  }, [fetchEntityImages, entityType, entityId])
 
   // Listen for canonical primary image changes (avatar/cover) so the header updates instantly
   // when a user reverts to an older album image.
   useEffect(() => {
     const handler = (event: Event) => {
       const detail = (event as CustomEvent).detail as
-        | { entityType?: string; entityId?: string; primaryKind?: 'avatar' | 'cover'; imageUrl?: string }
-        | undefined;
+        | {
+            entityType?: string
+            entityId?: string
+            primaryKind?: 'avatar' | 'cover'
+            imageUrl?: string
+          }
+        | undefined
 
-      if (!detail) return;
-      if (detail.entityType !== entityType) return;
-      if (!detail.entityId || detail.entityId !== entityId) return;
+      if (!detail) return
+      if (detail.entityType !== entityType) return
+      if (!detail.entityId || detail.entityId !== entityId) return
 
       if (detail.primaryKind === 'avatar' && detail.imageUrl) {
-        setAvatarImage(detail.imageUrl);
+        setAvatarImage(detail.imageUrl)
       }
       if (detail.primaryKind === 'cover' && detail.imageUrl) {
-        setCoverImage(detail.imageUrl);
-        setImageVersion(prev => prev + 1);
+        setCoverImage(detail.imageUrl)
+        setImageVersion((prev) => prev + 1)
       }
-    };
+    }
 
-    window.addEventListener('entityPrimaryImageChanged', handler as EventListener);
-    return () => window.removeEventListener('entityPrimaryImageChanged', handler as EventListener);
-  }, [entityId, entityType]);
+    window.addEventListener('entityPrimaryImageChanged', handler as EventListener)
+    return () => window.removeEventListener('entityPrimaryImageChanged', handler as EventListener)
+  }, [entityId, entityType])
 
-  console.log('🔍 EntityHeader useEffect dependencies changed:', { entityId, entityType });
+  console.log('🔍 EntityHeader useEffect dependencies changed:', { entityId, entityType })
 
   const handleCropCover = async (croppedImageBlob: Blob) => {
     setIsProcessing(true)
@@ -507,13 +550,13 @@ export function EntityHeader({
       console.log('handleCropCover called with blob:', croppedImageBlob)
       console.log('Blob size:', croppedImageBlob.size)
       console.log('Blob type:', croppedImageBlob.type)
-      
+
       // Convert blob to file
       const file = new File([croppedImageBlob], 'cropped-cover.jpg', { type: 'image/jpeg' })
       console.log('Created file:', file)
       console.log('File size:', file.size)
       console.log('File type:', file.type)
-      
+
       // Find the original image ID from the current cover image URL
       let originalImageId: string | null = null
       if (coverImage) {
@@ -523,7 +566,7 @@ export function EntityHeader({
             .select('id')
             .eq('url', coverImage)
             .single()
-          
+
           if (originalImage) {
             originalImageId = originalImage.id
             console.log('Found original image ID:', originalImageId)
@@ -548,13 +591,15 @@ export function EntityHeader({
       console.log('📤 Uploading cropped image via /api/upload/entity-image...')
       const uploadResponse = await fetch('/api/upload/entity-image', {
         method: 'POST',
-        body: formData
+        body: formData,
       })
 
       if (!uploadResponse.ok) {
         const errorData = await uploadResponse.json().catch(() => ({}))
         console.error('❌ Upload failed:', errorData)
-        throw new Error(errorData.error || `Failed to upload cropped image: ${uploadResponse.status}`)
+        throw new Error(
+          errorData.error || `Failed to upload cropped image: ${uploadResponse.status}`
+        )
       }
 
       const uploadResult = await uploadResponse.json()
@@ -568,11 +613,11 @@ export function EntityHeader({
 
       // Add image to entity album
       const albumPurpose = 'entity_header'
-      
+
       console.log('DEBUG - entityId value:', entityId)
       console.log('DEBUG - entityId type:', typeof entityId)
       console.log('DEBUG - entityId truthy check:', !!entityId)
-      
+
       console.log('📤 Calling entity-images API with:', {
         entityId: entityId || '',
         entityType: entityType,
@@ -580,7 +625,7 @@ export function EntityHeader({
         imageId: imageData.id,
         imageUrl: uploadResult.url,
         isCover: true,
-        isFeatured: true
+        isFeatured: true,
       })
 
       const albumResponse = await fetch('/api/entity-images', {
@@ -596,17 +641,20 @@ export function EntityHeader({
           isCover: true,
           isFeatured: true,
           metadata: {
-            aspect_ratio: 16/9,
+            aspect_ratio: 16 / 9,
             uploaded_via: 'entity_header',
             original_filename: file.name,
-            file_size: file.size
-          }
-        })
+            file_size: file.size,
+          },
+        }),
       })
 
       console.log('📥 Album API response status:', albumResponse.status)
       console.log('📥 Album API response ok:', albumResponse.ok)
-      console.log('📥 Album API response headers:', Object.fromEntries(albumResponse.headers.entries()))
+      console.log(
+        '📥 Album API response headers:',
+        Object.fromEntries(albumResponse.headers.entries())
+      )
 
       if (!albumResponse.ok) {
         const errorText = await albumResponse.text()
@@ -619,25 +667,28 @@ export function EntityHeader({
         }
         console.error('Failed to add image to album:', errorText)
         console.error('Album response status:', albumResponse.status)
-        console.error('Album response headers:', Object.fromEntries(albumResponse.headers.entries()))
-        
+        console.error(
+          'Album response headers:',
+          Object.fromEntries(albumResponse.headers.entries())
+        )
+
         // Throw error so user sees it
         throw new Error(errorMessage)
       }
-      
+
       const albumResult = await albumResponse.json()
       console.log('Successfully added image to album:', albumResult)
-      
+
       if (!albumResult.success) {
         throw new Error(albumResult.error || 'Failed to create album or add image')
       }
 
       // Clear cache to force fresh fetch on next load
       clearCache(`entity-header-${entityType}-${entityId}`)
-      
+
       // Update local state with the new image URL
       setCoverImage(uploadResult.url)
-      setImageVersion(prev => prev + 1)
+      setImageVersion((prev) => prev + 1)
       setIsCropModalOpen(false)
 
       // Trigger a fresh fetch of entity images to ensure consistency
@@ -652,22 +703,25 @@ export function EntityHeader({
       }
 
       // Dispatch event to notify other components
-      window.dispatchEvent(new CustomEvent('entityImageChanged', {
-        detail: { entityType, entityId, imageType: 'header' }
-      }))
+      window.dispatchEvent(
+        new CustomEvent('entityImageChanged', {
+          detail: { entityType, entityId, imageType: 'header' },
+        })
+      )
 
       // Show success message only after everything succeeded
       toast({
-        title: "Success",
-        description: cropCoverSuccessMessage || `${entityType} entity header cover has been updated successfully and added to album.`
+        title: 'Success',
+        description:
+          cropCoverSuccessMessage ||
+          `${entityType} entity header cover has been updated successfully and added to album.`,
       })
-
     } catch (error: any) {
       console.error('Error uploading cropped image:', error)
       toast({
-        title: "Error",
-        description: error.message || "Failed to upload cropped image. Please try again.",
-        variant: "destructive"
+        title: 'Error',
+        description: error.message || 'Failed to upload cropped image. Please try again.',
+        variant: 'destructive',
       })
     } finally {
       setIsProcessing(false)
@@ -685,13 +739,13 @@ export function EntityHeader({
       console.log('handleCropAvatar called with blob:', croppedImageBlob)
       console.log('Blob size:', croppedImageBlob.size)
       console.log('Blob type:', croppedImageBlob.type)
-      
+
       // Convert blob to file
       const file = new File([croppedImageBlob], 'cropped-avatar.jpg', { type: 'image/jpeg' })
       console.log('Created file:', file)
       console.log('File size:', file.size)
       console.log('File type:', file.type)
-      
+
       // Find the original image ID from the current avatar image URL
       let originalImageId: string | null = null
       if (avatarImage) {
@@ -701,7 +755,7 @@ export function EntityHeader({
             .select('id')
             .eq('url', avatarImage)
             .single()
-          
+
           if (originalImage) {
             originalImageId = originalImage.id
             console.log('Found original avatar image ID:', originalImageId)
@@ -726,13 +780,15 @@ export function EntityHeader({
       console.log('📤 Uploading cropped avatar via /api/upload/entity-image...')
       const uploadResponse = await fetch('/api/upload/entity-image', {
         method: 'POST',
-        body: formData
+        body: formData,
       })
 
       if (!uploadResponse.ok) {
         const errorData = await uploadResponse.json().catch(() => ({}))
         console.error('❌ Avatar upload failed:', errorData)
-        throw new Error(errorData.error || `Failed to upload cropped avatar: ${uploadResponse.status}`)
+        throw new Error(
+          errorData.error || `Failed to upload cropped avatar: ${uploadResponse.status}`
+        )
       }
 
       const uploadResult = await uploadResponse.json()
@@ -746,11 +802,11 @@ export function EntityHeader({
 
       // Add image to entity album
       const albumPurpose = 'avatar'
-      
+
       console.log('DEBUG - entityId value for avatar:', entityId)
       console.log('DEBUG - entityId type for avatar:', typeof entityId)
       console.log('DEBUG - entityId truthy check for avatar:', !!entityId)
-      
+
       console.log('Calling entity-images API for avatar with:', {
         entityId: entityId || '',
         entityType: entityType,
@@ -758,7 +814,7 @@ export function EntityHeader({
         imageId: imageData.id,
         imageUrl: uploadResult.url,
         isCover: true,
-        isFeatured: true
+        isFeatured: true,
       })
 
       const albumResponse = await fetch('/api/entity-images', {
@@ -777,9 +833,9 @@ export function EntityHeader({
             aspect_ratio: 1,
             uploaded_via: 'entity_header',
             original_filename: file.name,
-            file_size: file.size
-          }
-        })
+            file_size: file.size,
+          },
+        }),
       })
 
       console.log('Avatar album response status:', albumResponse.status)
@@ -789,7 +845,10 @@ export function EntityHeader({
         const errorText = await albumResponse.text()
         console.error('Failed to add avatar to album:', errorText)
         console.error('Avatar album response status:', albumResponse.status)
-        console.error('Avatar album response headers:', Object.fromEntries(albumResponse.headers.entries()))
+        console.error(
+          'Avatar album response headers:',
+          Object.fromEntries(albumResponse.headers.entries())
+        )
         // Don't throw error here, just log it
       } else {
         const albumResult = await albumResponse.json()
@@ -798,19 +857,21 @@ export function EntityHeader({
 
       // Update local state with the new image URL
       setAvatarImage(uploadResult.url)
-      setImageVersion(prev => prev + 1)
+      setImageVersion((prev) => prev + 1)
       setIsAvatarCropModalOpen(false)
 
       // Dispatch event for real-time updates across the application
       if (entityType === 'user' && entityId) {
-        window.dispatchEvent(new CustomEvent('entityPrimaryImageChanged', {
-          detail: {
-            entityType: 'user',
-            entityId: entityId,
-            primaryKind: 'avatar',
-            imageUrl: uploadResult.url
-          }
-        }))
+        window.dispatchEvent(
+          new CustomEvent('entityPrimaryImageChanged', {
+            detail: {
+              entityType: 'user',
+              entityId: entityId,
+              primaryKind: 'avatar',
+              imageUrl: uploadResult.url,
+            },
+          })
+        )
       }
 
       // Clear caches related to user avatar
@@ -828,16 +889,15 @@ export function EntityHeader({
 
       // Show success message
       toast({
-        title: "Success",
-        description: `${entityType} entity header avatar has been updated successfully and added to album.`
+        title: 'Success',
+        description: `${entityType} entity header avatar has been updated successfully and added to album.`,
       })
-
     } catch (error: any) {
       console.error('Error uploading cropped avatar:', error)
       toast({
-        title: "Error",
-        description: error.message || "Failed to upload cropped avatar. Please try again.",
-        variant: "destructive"
+        title: 'Error',
+        description: error.message || 'Failed to upload cropped avatar. Please try again.',
+        variant: 'destructive',
       })
     } finally {
       setIsProcessing(false)
@@ -851,7 +911,9 @@ export function EntityHeader({
 
   const renderEntityName = () => {
     const nameElement = (
-      <h1 className="entity-header__title text-base sm:text-[1.1rem] font-bold truncate w-full min-w-0 block">{name}</h1>
+      <h1 className="entity-header__title text-base sm:text-[1.1rem] font-bold truncate w-full min-w-0 block">
+        {name}
+      </h1>
     )
 
     switch (entityType) {
@@ -861,9 +923,9 @@ export function EntityHeader({
           entityId: entityId,
           name: name,
           userStats: userStats,
-          hasUserStats: !!userStats
+          hasUserStats: !!userStats,
         })
-        
+
         return (
           <EntityHoverCard
             type="user"
@@ -873,14 +935,20 @@ export function EntityHeader({
               avatar_url: profileImageUrl,
               created_at: creatorJoinedAt,
               location: location, // Pass the location prop
-              website: website,   // Pass the website prop
+              website: website, // Pass the website prop
               // Add any other user data that might be available
-              friend_count: parseInt(stats?.find(s => s.text.includes('friends'))?.text.match(/\d+/)?.[0] || '0'),
-              books_read_count: parseInt(stats?.find(s => s.text.includes('books'))?.text.match(/\d+/)?.[0] || '0')
+              friend_count: parseInt(
+                stats?.find((s) => s.text.includes('friends'))?.text.match(/\d+/)?.[0] || '0'
+              ),
+              books_read_count: parseInt(
+                stats?.find((s) => s.text.includes('books'))?.text.match(/\d+/)?.[0] || '0'
+              ),
             }}
             userStats={userStats}
           >
-            <h1 className="entity-header__title text-base sm:text-[1.1rem] font-bold truncate w-full min-w-0 block cursor-pointer hover:text-primary transition-colors">{name}</h1>
+            <h1 className="entity-header__title text-base sm:text-[1.1rem] font-bold truncate w-full min-w-0 block cursor-pointer hover:text-primary transition-colors">
+              {name}
+            </h1>
           </EntityHoverCard>
         )
       case 'author':
@@ -891,12 +959,14 @@ export function EntityHeader({
               id: author.id,
               name: author.name,
               author_image: author.author_image,
-              bookCount: authorBookCount
+              bookCount: authorBookCount,
             }}
           >
             <span className="entity-header__author-name text-muted-foreground">{author.name}</span>
           </EntityHoverCard>
-        ) : nameElement
+        ) : (
+          nameElement
+        )
       case 'publisher':
         return publisher ? (
           <EntityHoverCard
@@ -906,12 +976,16 @@ export function EntityHeader({
               name: publisher.name,
               publisher_image: publisher.publisher_image,
               logo_url: publisher.publisher_image?.url,
-              bookCount: publisherBookCount
+              bookCount: publisherBookCount,
             }}
           >
-            <span className="entity-header__publisher-name text-muted-foreground">{publisher.name}</span>
+            <span className="entity-header__publisher-name text-muted-foreground">
+              {publisher.name}
+            </span>
           </EntityHoverCard>
-        ) : nameElement
+        ) : (
+          nameElement
+        )
       case 'group':
         return nameElement
       case 'event':
@@ -922,20 +996,24 @@ export function EntityHeader({
               id: eventCreator.id,
               name: eventCreator.name,
               avatar_url: eventCreator.avatar_url,
-              event_count: eventCreator.event_count
+              event_count: eventCreator.event_count,
             }}
           >
-            <span className="entity-header__event-creator-name text-muted-foreground">{eventCreator.name}</span>
+            <span className="entity-header__event-creator-name text-muted-foreground">
+              {eventCreator.name}
+            </span>
           </EntityHoverCard>
-        ) : nameElement
+        ) : (
+          nameElement
+        )
       default:
         return nameElement
     }
   }
 
   const renderCreatorInfo = () => {
-    if (!creator) return creatorName;
-    
+    if (!creator) return creatorName
+
     return (
       <EntityHoverCard
         type="group"
@@ -943,15 +1021,15 @@ export function EntityHeader({
           id: creator.id,
           name: creator.name,
           group_image: {
-            url: `/api/avatar/${creator.id}`
+            url: `/api/avatar/${creator.id}`,
           },
-          joined_at: groupMemberData?.joined_at || creatorJoinedAt
+          joined_at: groupMemberData?.joined_at || creatorJoinedAt,
         }}
       >
         <span className="entity-header__creator-link cursor-pointer">{creatorName}</span>
       </EntityHoverCard>
-    );
-  };
+    )
+  }
 
   const renderActions = () => {
     if (entityType === 'group' && group) {
@@ -976,7 +1054,10 @@ export function EntityHeader({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
-                  <Link href={`/groups/${group.id}/edit`} className="entity-header__edit-group-link flex items-center">
+                  <Link
+                    href={`/groups/${group.id}/edit`}
+                    className="entity-header__edit-group-link flex items-center"
+                  >
                     <Settings className="h-4 w-4 mr-2" />
                     Edit Group
                   </Link>
@@ -1006,7 +1087,7 @@ export function EntityHeader({
             entityId={entityId}
             targetType={targetType}
             entityName={name}
-            variant={isFollowing ? "outline" : "default"} 
+            variant={isFollowing ? 'outline' : 'default'}
             className="entity-header__follow-button flex items-center"
             onFollowChange={onFollow}
           />
@@ -1045,7 +1126,7 @@ export function EntityHeader({
     const imageUrl = coverImage ? `${coverImage}?t=${imageVersion}` : ''
 
     return (
-      <div 
+      <div
         className="entity-header__cover-container relative w-full aspect-[1344/500] bg-muted"
         onMouseEnter={() => setIsHoveringCover(true)}
         onMouseLeave={() => {
@@ -1080,10 +1161,14 @@ export function EntityHeader({
                 setIsCoverModalOpen(true)
                 setIsCoverDropdownOpen(false)
               }}
-              onCrop={coverImage ? () => {
-                setIsCropModalOpen(true)
-                setIsCoverDropdownOpen(false)
-              } : undefined}
+              onCrop={
+                coverImage
+                  ? () => {
+                      setIsCropModalOpen(true)
+                      setIsCoverDropdownOpen(false)
+                    }
+                  : undefined
+              }
               showCrop={!!coverImage}
               changeCoverLabel={changeCoverLabel}
               cropLabel={cropCoverLabel}
@@ -1127,9 +1212,7 @@ export function EntityHeader({
         {isEditable && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button
-                className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input hover:text-accent-foreground entity-header__avatar-button absolute bottom-2 right-2 rounded-full h-8 w-8 bg-white/80 hover:bg-white"
-              >
+              <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input hover:text-accent-foreground entity-header__avatar-button absolute bottom-2 right-2 rounded-full h-8 w-8 bg-white/80 hover:bg-white">
                 <Camera className="h-4 w-4" />
               </button>
             </DropdownMenuTrigger>
@@ -1152,7 +1235,9 @@ export function EntityHeader({
   }
 
   return (
-    <div className={cn("entity-header bg-white rounded-lg shadow-sm overflow-hidden mb-6", className)}>
+    <div
+      className={cn('entity-header bg-white rounded-lg shadow-sm overflow-hidden mb-6', className)}
+    >
       {/* Cover Image */}
       {renderCoverImage()}
 
@@ -1171,20 +1256,22 @@ export function EntityHeader({
                 {renderEntityName()}
                 {entityType === 'group' && creatorName && (
                   <div className="entity-header__creator-info text-muted-foreground truncate text-sm">
-                    Created by{" "}
-                    {renderCreatorInfo()}
+                    Created by {renderCreatorInfo()}
                   </div>
                 )}
                 {username && (
                   <div className="entity-header__username text-muted-foreground truncate text-sm">
-                    {typeof username === 'string' 
-                      ? (username.startsWith('@') || username.startsWith('by ') ? username : `@${username}`)
-                      : username
-                    }
+                    {typeof username === 'string'
+                      ? username.startsWith('@') || username.startsWith('by ')
+                        ? username
+                        : `@${username}`
+                      : username}
                   </div>
                 )}
                 {description && (
-                  <p className="entity-header__description text-muted-foreground mt-1 line-clamp-2">{description}</p>
+                  <p className="entity-header__description text-muted-foreground mt-1 line-clamp-2">
+                    {description}
+                  </p>
                 )}
               </div>
             </div>
@@ -1193,9 +1280,15 @@ export function EntityHeader({
             <div className="entity-header__stats-container flex flex-wrap justify-between items-baseline gap-x-6 gap-y-2 mt-4">
               <div className="entity-header__stats-group flex flex-wrap gap-x-6 gap-y-2">
                 {stats.map((stat, index) => (
-                  <div key={index} className="entity-header__stat-item flex items-center text-muted-foreground">
+                  <div
+                    key={index}
+                    className="entity-header__stat-item flex items-center text-muted-foreground"
+                  >
                     {stat.href ? (
-                      <Link href={stat.href} className="entity-header__stat-link flex items-center hover:text-primary">
+                      <Link
+                        href={stat.href}
+                        className="entity-header__stat-link flex items-center hover:text-primary"
+                      >
                         {stat.icon}
                         <span>{stat.text}</span>
                       </Link>
@@ -1207,14 +1300,14 @@ export function EntityHeader({
                     )}
                   </div>
                 ))}
-                
+
                 {location && (
                   <div className="entity-header__location-item flex items-center text-muted-foreground">
                     <MapPin className="h-4 w-4 mr-1" />
                     <span>{location}</span>
                   </div>
                 )}
-                
+
                 {website && (
                   <div className="entity-header__website-item flex items-center text-muted-foreground">
                     <a
@@ -1241,11 +1334,7 @@ export function EntityHeader({
       {/* Tabs Navigation */}
       <div className="entity-header__nav border-t">
         <div className="entity-header__nav-container">
-          <EntityTabs
-            tabs={tabs}
-            activeTab={activeTab}
-            onTabChange={onTabChange}
-          />
+          <EntityTabs tabs={tabs} activeTab={activeTab} onTabChange={onTabChange} />
         </div>
       </div>
 
@@ -1253,7 +1342,7 @@ export function EntityHeader({
       {isEditable && (
         <>
           <EntityImageUpload
-            entityId={entityType === 'group' ? group?.id || '' : (entityId || '')}
+            entityId={entityType === 'group' ? group?.id || '' : entityId || ''}
             entityType={entityType}
             currentImageUrl={coverImage}
             onImageChange={(url) => setCoverImage(url)}
@@ -1262,7 +1351,7 @@ export function EntityHeader({
             onOpenChange={setIsCoverModalOpen}
           />
           <EntityImageUpload
-            entityId={entityType === 'group' ? group?.id || '' : (entityId || '')}
+            entityId={entityType === 'group' ? group?.id || '' : entityId || ''}
             entityType={entityType}
             currentImageUrl={avatarImage}
             onImageChange={(url) => setAvatarImage(url)}
@@ -1275,17 +1364,17 @@ export function EntityHeader({
 
       {/* Crop Cover Image Modal - ImageCropper creates its own modal */}
       {isEditable && coverImage && isCropModalOpen && (
-            <ImageCropper
-              imageUrl={coverImage}
-              aspectRatio={1344 / 500}
-              targetWidth={1344}
-              targetHeight={500}
-              onCropComplete={handleCropCover}
-              onCancel={handleCropCancel}
-              isProcessing={isProcessing}
-          title={entityType === 'book' ? "Crop Page Cover" : "Crop Entity Header Cover"}
+        <ImageCropper
+          imageUrl={coverImage}
+          aspectRatio={1344 / 500}
+          targetWidth={1344}
+          targetHeight={500}
+          onCropComplete={handleCropCover}
+          onCancel={handleCropCancel}
+          isProcessing={isProcessing}
+          title={entityType === 'book' ? 'Crop Page Cover' : 'Crop Entity Header Cover'}
           helpText="Adjust the crop area to frame your cover image"
-            />
+        />
       )}
 
       {/* Crop Avatar Image Modal */}

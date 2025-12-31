@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { 
-  generateAllAuthorActivities, 
+import {
+  generateAllAuthorActivities,
   generateAllBookActivities,
   generateAuthorActivities,
   generateBookActivities,
@@ -11,7 +11,7 @@ import {
   generateAllUserProfileActivities,
   generateGroupActivities,
   generateAllGroupActivities,
-  generateAllActivities
+  generateAllActivities,
 } from '@/lib/activity-generator'
 
 export async function POST(request: Request) {
@@ -21,44 +21,49 @@ export async function POST(request: Request) {
       .from('users')
       .select('id')
       .limit(1)
-    
+
     if (usersError || !users || users.length === 0) {
       return NextResponse.json(
-        { error: 'No users found in database. Please ensure users exist before generating activities.' },
+        {
+          error:
+            'No users found in database. Please ensure users exist before generating activities.',
+        },
         { status: 400 }
       )
     }
-    
+
     const adminUserId = users[0].id
     console.log(`Using user ID for activity generation: ${adminUserId}`)
-    
+
     // Get request body to determine what to generate
     const body = await request.json()
     const { type, id } = body
-    
+
     let result = { success: false, message: 'No action taken', stats: {} }
-    
+
     // Generate activities based on type
     switch (type) {
       case 'all':
         // Generate all activities for all entity types
         const allResult = await generateAllActivities(adminUserId)
-        
+
         result = {
           success: allResult.success,
           message: 'Generated activities for all entity types',
-          stats: allResult.counts
+          stats: allResult.counts,
         }
         break
-        
+
       case 'author':
         if (id) {
           // Generate activities for a specific author
           const success = await generateAuthorActivities(id, adminUserId)
           result = {
             success,
-            message: success ? `Generated activities for author ${id}` : `Failed to generate activities for author ${id}`,
-            stats: { processed: success ? 1 : 0 }
+            message: success
+              ? `Generated activities for author ${id}`
+              : `Failed to generate activities for author ${id}`,
+            stats: { processed: success ? 1 : 0 },
           }
         } else {
           // Generate activities for all authors
@@ -66,19 +71,21 @@ export async function POST(request: Request) {
           result = {
             success: authorResult.success,
             message: 'Generated activities for all authors',
-            stats: { authors: authorResult.count }
+            stats: { authors: authorResult.count },
           }
         }
         break
-        
+
       case 'book':
         if (id) {
           // Generate activities for a specific book
           const success = await generateBookActivities(id, adminUserId)
           result = {
             success,
-            message: success ? `Generated activities for book ${id}` : `Failed to generate activities for book ${id}`,
-            stats: { processed: success ? 1 : 0 }
+            message: success
+              ? `Generated activities for book ${id}`
+              : `Failed to generate activities for book ${id}`,
+            stats: { processed: success ? 1 : 0 },
           }
         } else {
           // Generate activities for all books
@@ -86,19 +93,21 @@ export async function POST(request: Request) {
           result = {
             success: bookResult.success,
             message: 'Generated activities for all books',
-            stats: { books: bookResult.count }
+            stats: { books: bookResult.count },
           }
         }
         break
-        
+
       case 'publisher':
         if (id) {
           // Generate activities for a specific publisher
           const success = await generatePublisherActivities(id, adminUserId)
           result = {
             success,
-            message: success ? `Generated activities for publisher ${id}` : `Failed to generate activities for publisher ${id}`,
-            stats: { processed: success ? 1 : 0 }
+            message: success
+              ? `Generated activities for publisher ${id}`
+              : `Failed to generate activities for publisher ${id}`,
+            stats: { processed: success ? 1 : 0 },
           }
         } else {
           // Generate activities for all publishers
@@ -106,19 +115,21 @@ export async function POST(request: Request) {
           result = {
             success: publisherResult.success,
             message: 'Generated activities for all publishers',
-            stats: { publishers: publisherResult.count }
+            stats: { publishers: publisherResult.count },
           }
         }
         break
-        
+
       case 'user':
         if (id) {
           // Generate activities for a specific user profile
           const success = await generateUserProfileActivities(id, adminUserId)
           result = {
             success,
-            message: success ? `Generated activities for user profile ${id}` : `Failed to generate activities for user profile ${id}`,
-            stats: { processed: success ? 1 : 0 }
+            message: success
+              ? `Generated activities for user profile ${id}`
+              : `Failed to generate activities for user profile ${id}`,
+            stats: { processed: success ? 1 : 0 },
           }
         } else {
           // Generate activities for all user profiles
@@ -126,19 +137,21 @@ export async function POST(request: Request) {
           result = {
             success: userResult.success,
             message: 'Generated activities for all user profiles',
-            stats: { users: userResult.count }
+            stats: { users: userResult.count },
           }
         }
         break
-        
+
       case 'group':
         if (id) {
           // Generate activities for a specific group
           const success = await generateGroupActivities(id, adminUserId)
           result = {
             success,
-            message: success ? `Generated activities for group ${id}` : `Failed to generate activities for group ${id}`,
-            stats: { processed: success ? 1 : 0 }
+            message: success
+              ? `Generated activities for group ${id}`
+              : `Failed to generate activities for group ${id}`,
+            stats: { processed: success ? 1 : 0 },
           }
         } else {
           // Generate activities for all groups
@@ -146,18 +159,21 @@ export async function POST(request: Request) {
           result = {
             success: groupResult.success,
             message: 'Generated activities for all groups',
-            stats: { groups: groupResult.count }
+            stats: { groups: groupResult.count },
           }
         }
         break
-        
+
       default:
         return NextResponse.json(
-          { error: 'Invalid type parameter. Use "all", "author", "book", "publisher", "user", or "group"' },
+          {
+            error:
+              'Invalid type parameter. Use "all", "author", "book", "publisher", "user", or "group"',
+          },
           { status: 400 }
         )
     }
-    
+
     return NextResponse.json(result)
   } catch (error) {
     console.error('Error generating activities:', error)
@@ -166,4 +182,4 @@ export async function POST(request: Request) {
       { status: 500 }
     )
   }
-} 
+}

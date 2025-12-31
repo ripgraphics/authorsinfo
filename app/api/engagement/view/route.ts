@@ -6,14 +6,17 @@ import { supabaseAdmin } from '@/lib/supabase/server'
 export async function POST(request: Request) {
   try {
     const supabase = await createRouteHandlerClientAsync()
-    
+
     // Get the current user (optional for view tracking)
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
     const userId = user?.id || null
 
     // Parse request body
     let { entity_type, entity_id, view_duration, view_source } = await request.json()
-    
+
     if (!entity_type || !entity_id) {
       return NextResponse.json(
         { error: 'Missing required fields: entity_type, entity_id' },
@@ -29,7 +32,7 @@ export async function POST(request: Request) {
       publisher: 'publishers',
       group: 'groups',
       event: 'events',
-      activity: 'activities'
+      activity: 'activities',
     }
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     const targetTable = tableMap[entity_type]
@@ -58,7 +61,7 @@ export async function POST(request: Request) {
             action: 'skipped',
             message: 'Entity not found; view not recorded',
             entity_type,
-            entity_id
+            entity_id,
           })
         }
       } catch (_) {
@@ -86,7 +89,7 @@ export async function POST(request: Request) {
               .insert({
                 user_id: userId,
                 book_id: entity_id,
-                viewed_at: new Date().toISOString()
+                viewed_at: new Date().toISOString(),
               })
               .select('id')
               .single()
@@ -119,7 +122,7 @@ export async function POST(request: Request) {
                 viewed_at: new Date().toISOString(),
                 ip_address: null,
                 user_agent: null,
-                referrer: null
+                referrer: null,
               })
               .select('id')
               .single()
@@ -147,7 +150,7 @@ export async function POST(request: Request) {
             .from('activities')
             .update({
               view_count: newViewCount,
-              updated_at: new Date().toISOString()
+              updated_at: new Date().toISOString(),
             })
             .eq('id', entity_id)
 
@@ -166,8 +169,6 @@ export async function POST(request: Request) {
       action = 'skipped'
     }
 
-    
-
     return NextResponse.json({
       success: true,
       action,
@@ -175,14 +176,10 @@ export async function POST(request: Request) {
       entity_type,
       entity_id,
       user_id: userId,
-      message: 'View tracked successfully'
+      message: 'View tracked successfully',
     })
-
   } catch (error) {
     console.error('❌ Unexpected error in view API:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

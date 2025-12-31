@@ -8,14 +8,17 @@ export async function GET(
   try {
     const { type, id } = await params
     const supabase = await createRouteHandlerClientAsync()
-    
+
     // Get the current user
-    const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser()
-    
+    const {
+      data: { user: currentUser },
+      error: authError,
+    } = await supabase.auth.getUser()
+
     if (authError || !currentUser) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
-    
+
     // Validate entity type
     const validEntityTypes = ['users', 'authors', 'publishers', 'groups', 'events']
     if (!validEntityTypes.includes(type)) {
@@ -23,8 +26,12 @@ export async function GET(
     }
 
     // Check if the entity exists and get ownership info
-    const { entity, isOwner, error: entityError } = await checkEntityOwnership(type, id, currentUser.id, supabase)
-    
+    const {
+      entity,
+      isOwner,
+      error: entityError,
+    } = await checkEntityOwnership(type, id, currentUser.id, supabase)
+
     if (entityError || !entity) {
       return NextResponse.json({ error: 'Entity not found' }, { status: 404 })
     }
@@ -37,7 +44,7 @@ export async function GET(
     // Fetch privacy settings based on entity type
     let privacySettings
     let privacyError
-    
+
     switch (type) {
       case 'users':
         const { data: userPrivacy, error: userPrivacyError } = await supabase
@@ -48,7 +55,7 @@ export async function GET(
         privacySettings = userPrivacy
         privacyError = userPrivacyError
         break
-        
+
       case 'groups':
         const { data: groupPrivacy, error: groupPrivacyError } = await supabase
           .from('group_privacy_settings')
@@ -58,7 +65,7 @@ export async function GET(
         privacySettings = groupPrivacy
         privacyError = groupPrivacyError
         break
-        
+
       case 'events':
         const { data: eventPrivacy, error: eventPrivacyError } = await supabase
           .from('event_privacy_settings')
@@ -68,13 +75,13 @@ export async function GET(
         privacySettings = eventPrivacy
         privacyError = eventPrivacyError
         break
-        
+
       default:
         // For authors and publishers, return default public settings
         privacySettings = {
           default_privacy_level: 'public',
           allow_public_profile: true,
-          show_stats_publicly: true
+          show_stats_publicly: true,
         }
         privacyError = null
     }
@@ -90,7 +97,6 @@ export async function GET(
     }
 
     return NextResponse.json(privacySettings)
-
   } catch (error) {
     console.error('Error in privacy settings GET:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -104,14 +110,17 @@ export async function PUT(
   const { type, id } = await params
   try {
     const supabase = await createRouteHandlerClientAsync()
-    
+
     // Get the current user
-    const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser()
-    
+    const {
+      data: { user: currentUser },
+      error: authError,
+    } = await supabase.auth.getUser()
+
     if (authError || !currentUser) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
-    
+
     // Validate entity type
     const validEntityTypes = ['users', 'authors', 'publishers', 'groups', 'events']
     if (!validEntityTypes.includes(type)) {
@@ -119,8 +128,12 @@ export async function PUT(
     }
 
     // Check if the entity exists and get ownership info
-    const { entity, isOwner, error: entityError } = await checkEntityOwnership(type, id, currentUser.id, supabase)
-    
+    const {
+      entity,
+      isOwner,
+      error: entityError,
+    } = await checkEntityOwnership(type, id, currentUser.id, supabase)
+
     if (entityError || !entity) {
       return NextResponse.json({ error: 'Entity not found' }, { status: 404 })
     }
@@ -131,7 +144,7 @@ export async function PUT(
     }
 
     const body = await request.json()
-    
+
     // Validate privacy settings based on entity type
     const validationError = validatePrivacySettings(type, body)
     if (validationError) {
@@ -141,22 +154,25 @@ export async function PUT(
     // Update privacy settings based on entity type
     let result
     let updateError
-    
+
     switch (type) {
       case 'users':
         result = await updateUserPrivacySettings(id, body, supabase)
         break
-        
+
       case 'groups':
         result = await updateGroupPrivacySettings(id, body, supabase)
         break
-        
+
       case 'events':
         result = await updateEventPrivacySettings(id, body, supabase)
         break
-        
+
       default:
-        return NextResponse.json({ error: 'Privacy settings not supported for this entity type' }, { status: 400 })
+        return NextResponse.json(
+          { error: 'Privacy settings not supported for this entity type' },
+          { status: 400 }
+        )
     }
 
     if (updateError) {
@@ -168,7 +184,6 @@ export async function PUT(
     await logPrivacyChange(type, id, currentUser.id, body, supabase)
 
     return NextResponse.json(result)
-
   } catch (error) {
     console.error('Error in privacy settings PUT:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -182,14 +197,17 @@ export async function POST(
   const { type, id } = await params
   try {
     const supabase = await createRouteHandlerClientAsync()
-    
+
     // Get the current user
-    const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser()
-    
+    const {
+      data: { user: currentUser },
+      error: authError,
+    } = await supabase.auth.getUser()
+
     if (authError || !currentUser) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
-    
+
     // Validate entity type
     const validEntityTypes = ['users', 'authors', 'publishers', 'groups', 'events']
     if (!validEntityTypes.includes(type)) {
@@ -197,8 +215,12 @@ export async function POST(
     }
 
     // Check if the entity exists and get ownership info
-    const { entity, isOwner, error: entityError } = await checkEntityOwnership(type, id, currentUser.id, supabase)
-    
+    const {
+      entity,
+      isOwner,
+      error: entityError,
+    } = await checkEntityOwnership(type, id, currentUser.id, supabase)
+
     if (entityError || !entity) {
       return NextResponse.json({ error: 'Entity not found' }, { status: 404 })
     }
@@ -226,7 +248,7 @@ export async function POST(
             target_user_id,
             permission_type: 'profile_view',
             permission_level,
-            expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days
+            expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
           } as any)
           .select()
           .single()
@@ -262,7 +284,6 @@ export async function POST(
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
     }
-
   } catch (error) {
     console.error('Error in privacy settings POST:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -270,7 +291,12 @@ export async function POST(
 }
 
 // Helper functions
-async function checkEntityOwnership(entityType: string, entityId: string, currentUserId: string, supabase: any) {
+async function checkEntityOwnership(
+  entityType: string,
+  entityId: string,
+  currentUserId: string,
+  supabase: any
+) {
   let entity
   let isOwner = false
   let error = null
@@ -286,7 +312,7 @@ async function checkEntityOwnership(entityType: string, entityId: string, curren
       isOwner = currentUserId === entityId
       error = userError
       break
-      
+
     case 'groups':
       const { data: group, error: groupError } = await supabase
         .from('groups')
@@ -297,7 +323,7 @@ async function checkEntityOwnership(entityType: string, entityId: string, curren
       isOwner = group?.created_by === currentUserId
       error = groupError
       break
-      
+
     case 'events':
       const { data: event, error: eventError } = await supabase
         .from('events')
@@ -308,7 +334,7 @@ async function checkEntityOwnership(entityType: string, entityId: string, curren
       isOwner = event?.created_by === currentUserId
       error = eventError
       break
-      
+
     case 'authors':
       const { data: author, error: authorError } = await supabase
         .from('authors')
@@ -320,7 +346,7 @@ async function checkEntityOwnership(entityType: string, entityId: string, curren
       isOwner = false
       error = authorError
       break
-      
+
     case 'publishers':
       const { data: publisher, error: publisherError } = await supabase
         .from('publishers')
@@ -332,7 +358,7 @@ async function checkEntityOwnership(entityType: string, entityId: string, curren
       isOwner = false
       error = publisherError
       break
-      
+
     default:
       error = new Error('Unsupported entity type')
   }
@@ -351,41 +377,44 @@ function getDefaultPrivacySettings(entityType: string) {
         show_reading_stats_publicly: false,
         show_currently_reading_publicly: false,
         show_reading_history_publicly: false,
-        show_reading_goals_publicly: false
+        show_reading_goals_publicly: false,
       }
-      
+
     case 'groups':
       return {
         default_privacy_level: 'members',
         allow_public_profile: false,
         allow_members_to_see_details: true,
-        allow_public_reading_stats: false
+        allow_public_reading_stats: false,
       }
-      
+
     case 'events':
       return {
         default_privacy_level: 'public',
         allow_public_profile: true,
         allow_registrants_to_see_details: true,
-        show_attendee_list_publicly: false
+        show_attendee_list_publicly: false,
       }
-      
+
     default:
       return {
         default_privacy_level: 'public',
         allow_public_profile: true,
-        show_stats_publicly: true
+        show_stats_publicly: true,
       }
   }
 }
 
 function validatePrivacySettings(entityType: string, settings: any) {
   const validPrivacyLevels = ['private', 'friends', 'members', 'followers', 'public']
-  
-  if (settings.default_privacy_level && !validPrivacyLevels.includes(settings.default_privacy_level)) {
+
+  if (
+    settings.default_privacy_level &&
+    !validPrivacyLevels.includes(settings.default_privacy_level)
+  ) {
     return 'Invalid privacy level'
   }
-  
+
   // Add entity-specific validation here if needed
   return null
 }
@@ -409,7 +438,7 @@ async function updateUserPrivacySettings(userId: string, settings: any, supabase
         show_currently_reading_publicly: settings.show_currently_reading_publicly,
         show_reading_history_publicly: settings.show_reading_history_publicly,
         show_reading_goals_publicly: settings.show_reading_goals_publicly,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .eq('user_id', userId)
       .select()
@@ -422,7 +451,7 @@ async function updateUserPrivacySettings(userId: string, settings: any, supabase
       .from('user_privacy_settings')
       .insert({
         user_id: userId,
-        ...settings
+        ...settings,
       })
       .select()
       .single()
@@ -444,20 +473,24 @@ async function updateEventPrivacySettings(eventId: string, settings: any, supaba
   return { message: 'Event privacy settings updated' }
 }
 
-async function logPrivacyChange(entityType: string, entityId: string, userId: string, settings: any, supabase: any) {
+async function logPrivacyChange(
+  entityType: string,
+  entityId: string,
+  userId: string,
+  settings: any,
+  supabase: any
+) {
   try {
-    await supabase
-      .from('privacy_audit_log')
-      .insert({
-        entity_id: entityId,
-        entity_type: entityType,
-        user_id: userId,
-        action_type: 'privacy_settings_updated',
-        details: {
-          changed_settings: settings,
-          timestamp: new Date().toISOString()
-        }
-      })
+    await supabase.from('privacy_audit_log').insert({
+      entity_id: entityId,
+      entity_type: entityType,
+      user_id: userId,
+      action_type: 'privacy_settings_updated',
+      details: {
+        changed_settings: settings,
+        timestamp: new Date().toISOString(),
+      },
+    })
   } catch (error) {
     console.error('Failed to log privacy change:', error)
     // Don't fail the main operation if logging fails

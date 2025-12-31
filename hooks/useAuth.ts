@@ -13,20 +13,20 @@ interface UserWithRole extends User {
 export function useAuth() {
   const [user, setUser] = useState<UserWithRole | null>(null)
   const [loading, setLoading] = useState(true)
-  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
   const isInitialized = useRef(false)
 
   // Debounced setUser to reduce state updates
-  const debouncedSetUser = useMemo(
-    () => debounce(setUser, 100),
-    []
-  )
+  const debouncedSetUser = useMemo(() => debounce(setUser, 100), [])
 
   // Centralized user data fetching with deduplication, caching, and retry logic
   const fetchUserData = async (): Promise<UserWithRole | null> => {
     const MAX_RETRIES = 3
     const RETRY_DELAY = 1000 // 1 second
-    
+
     // Single request function with retry logic inside
     const makeRequest = async (attempt: number): Promise<UserWithRole | null> => {
       console.log(`🚀 Fetching user data (attempt ${attempt + 1}/${MAX_RETRIES + 1})`)
@@ -41,11 +41,11 @@ export function useAuth() {
           timestamp: Date.now(),
           sessionId: 'debug-session',
           runId: 'run1',
-          hypothesisId: 'E'
-        })
-      }).catch(() => {});
+          hypothesisId: 'E',
+        }),
+      }).catch(() => {})
       // #endregion
-      
+
       const response = await fetch('/api/auth-users', {
         method: 'POST',
         headers: {
@@ -63,11 +63,11 @@ export function useAuth() {
           timestamp: Date.now(),
           sessionId: 'debug-session',
           runId: 'run1',
-          hypothesisId: 'E'
-        })
-      }).catch(() => {});
+          hypothesisId: 'E',
+        }),
+      }).catch(() => {})
       // #endregion
-      
+
       // Handle 401 (Unauthorized) gracefully - this just means user is not logged in
       if (response.status === 401) {
         console.log('ℹ️ No authenticated user (401) - user is not logged in')
@@ -82,13 +82,13 @@ export function useAuth() {
             timestamp: Date.now(),
             sessionId: 'debug-session',
             runId: 'run1',
-            hypothesisId: 'E'
-          })
-        }).catch(() => {});
+            hypothesisId: 'E',
+          }),
+        }).catch(() => {})
         // #endregion
         return null // Return null instead of throwing error
       }
-      
+
       if (!response.ok) {
         const errorText = await response.text()
         // #region agent log
@@ -102,37 +102,37 @@ export function useAuth() {
             timestamp: Date.now(),
             sessionId: 'debug-session',
             runId: 'run1',
-            hypothesisId: 'E'
-          })
-        }).catch(() => {});
+            hypothesisId: 'E',
+          }),
+        }).catch(() => {})
         // #endregion
         console.error(`❌ API returned ${response.status}: ${errorText}`)
         throw new Error(`API returned ${response.status}: ${errorText}`)
       }
-      
+
       const data = await response.json()
       if (!data.user) {
         console.error('❌ API response missing user data:', data)
         throw new Error('API response missing user data')
       }
-      
+
       if (!data.user.name) {
         console.error('❌ User data missing name property:', data.user)
         throw new Error('User data missing name property')
       }
-      
+
       console.log('✅ User data fetched successfully:', { id: data.user.id, name: data.user.name })
       return data.user
     }
-    
+
     // Use deduplication for the first attempt (concurrent requests)
     // But retry logic happens outside to ensure retries actually execute
     let lastError: Error | null = null
-    
+
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       try {
         let result: UserWithRole | null
-        
+
         if (attempt === 0) {
           // First attempt: use deduplication for concurrent requests
           result = await deduplicatedRequest(
@@ -144,24 +144,24 @@ export function useAuth() {
           // Retry attempts: no deduplication, just retry
           result = await makeRequest(attempt)
         }
-        
+
         // If result is null (no authenticated user), return null gracefully
         if (result === null) {
           return null
         }
-        
+
         return result
       } catch (apiError) {
         lastError = apiError instanceof Error ? apiError : new Error(String(apiError))
         console.error(`❌ Error fetching user data (attempt ${attempt + 1}):`, lastError)
-        
+
         if (attempt < MAX_RETRIES) {
           console.log(`🔄 Retrying in ${RETRY_DELAY}ms...`)
-          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY))
+          await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY))
         }
       }
     }
-    
+
     // After all retries failed, throw the error - don't silently fail
     console.error('❌ All retry attempts failed. User data fetch failed completely.')
     throw lastError || new Error('User data fetch failed after all retries')
@@ -173,17 +173,21 @@ export function useAuth() {
     isInitialized.current = true
 
     try {
-      const { data: { user }, error } = await supabase.auth.getUser()
-      
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser()
+
       // Handle AuthSessionMissingError gracefully - this is normal for public users
       if (error) {
         // Check if it's a session missing error (expected for public users)
         const errorName = (error as any)?.name || error?.constructor?.name || ''
         const errorMessage = error?.message || String(error) || ''
-        const isSessionError = errorName === 'AuthSessionMissingError' || 
-                              errorMessage.includes('session') || 
-                              errorMessage.includes('Auth session missing')
-        
+        const isSessionError =
+          errorName === 'AuthSessionMissingError' ||
+          errorMessage.includes('session') ||
+          errorMessage.includes('Auth session missing')
+
         if (isSessionError) {
           // This is normal for public users - don't log as error, just set user to null
           debouncedSetUser(null)
@@ -193,7 +197,7 @@ export function useAuth() {
         // For other errors, throw them
         throw error
       }
-      
+
       if (user) {
         try {
           const userData = await fetchUserData()
@@ -217,10 +221,11 @@ export function useAuth() {
       // Check if this is a session missing error (normal for public users)
       const errorName = err?.name || err?.constructor?.name || ''
       const errorMessage = err?.message || String(err) || ''
-      const isSessionError = errorName === 'AuthSessionMissingError' || 
-                            errorMessage.includes('session') || 
-                            errorMessage.includes('Auth session missing')
-      
+      const isSessionError =
+        errorName === 'AuthSessionMissingError' ||
+        errorMessage.includes('session') ||
+        errorMessage.includes('Auth session missing')
+
       // Only log non-session errors
       if (!isSessionError) {
         console.error('Error initializing user:', err)
@@ -235,12 +240,14 @@ export function useAuth() {
   useEffect(() => {
     initializeUser()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       // Clear cache on sign in/out to ensure fresh data
       if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
         clearCache('current-user-data')
       }
-      
+
       if (session?.user) {
         try {
           const userData = await fetchUserData()
@@ -265,20 +272,22 @@ export function useAuth() {
     const handleEntityPrimaryImageChanged = async (event: Event) => {
       const customEvent = event as CustomEvent
       const { entityType, entityId, primaryKind } = customEvent.detail || {}
-      
+
       // Only handle avatar changes for users
       if (entityType === 'user' && primaryKind === 'avatar') {
         // Get current user ID from auth session to avoid dependency issues
-        const { data: { user: authUser } } = await supabase.auth.getUser()
-        
+        const {
+          data: { user: authUser },
+        } = await supabase.auth.getUser()
+
         // Only refresh if this is the current user's avatar
         if (authUser && entityId === authUser.id) {
           console.log('🔄 Avatar changed for current user, refreshing user data...')
-          
+
           // Clear caches related to user avatar
           clearCache('current-user-data')
           clearCache(`user-avatar-${entityId}`)
-          
+
           // Refresh user data to get updated avatar_url
           try {
             const userData = await fetchUserData()
@@ -302,4 +311,4 @@ export function useAuth() {
   }, [])
 
   return { user, loading }
-} 
+}

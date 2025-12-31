@@ -90,9 +90,7 @@ function FriendsDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">Loading...</div>
-                <p className="text-xs text-muted-foreground">
-                  Your current friend count
-                </p>
+                <p className="text-xs text-muted-foreground">Your current friend count</p>
               </CardContent>
             </Card>
 
@@ -103,9 +101,7 @@ function FriendsDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">Loading...</div>
-                <p className="text-xs text-muted-foreground">
-                  Pending friend requests
-                </p>
+                <p className="text-xs text-muted-foreground">Pending friend requests</p>
               </CardContent>
             </Card>
 
@@ -116,9 +112,7 @@ function FriendsDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">Loading...</div>
-                <p className="text-xs text-muted-foreground">
-                  Incoming friend requests
-                </p>
+                <p className="text-xs text-muted-foreground">Incoming friend requests</p>
               </CardContent>
             </Card>
 
@@ -129,9 +123,7 @@ function FriendsDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">Loading...</div>
-                <p className="text-xs text-muted-foreground">
-                  Friend request success rate
-                </p>
+                <p className="text-xs text-muted-foreground">Friend request success rate</p>
               </CardContent>
             </Card>
           </div>
@@ -143,9 +135,7 @@ function FriendsDashboard() {
             <CardContent>
               <div className="text-center py-8">
                 <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">
-                  Friend activity analytics coming soon...
-                </p>
+                <p className="text-muted-foreground">Friend activity analytics coming soon...</p>
               </div>
             </CardContent>
           </Card>
@@ -157,17 +147,19 @@ function FriendsDashboard() {
 
 export default function FriendsPage() {
   return (
-    <Suspense fallback={
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading friends dashboard...</p>
+    <Suspense
+      fallback={
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading friends dashboard...</p>
+            </div>
           </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <FriendsDashboard />
     </Suspense>
   )
-} 
+}

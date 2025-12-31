@@ -1,12 +1,12 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import { Textarea } from "@/components/ui/textarea"
+import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { Progress } from '@/components/ui/progress'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Dialog,
   DialogContent,
@@ -15,21 +15,35 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { format } from "date-fns"
-import { CalendarIcon, ChevronDown, BookOpen, BookMarked, Clock, CheckCircle, PauseCircle, XCircle } from "lucide-react"
-import { cn } from "@/lib/utils"
+} from '@/components/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { format } from 'date-fns'
+import {
+  CalendarIcon,
+  ChevronDown,
+  BookOpen,
+  BookMarked,
+  Clock,
+  CheckCircle,
+  PauseCircle,
+  XCircle,
+} from 'lucide-react'
+import { cn } from '@/lib/utils'
 import {
   getUserReadingProgress,
   updateReadingProgress,
   deleteReadingProgress,
   type ReadingProgress,
   type ReadingProgressStatus,
-} from "@/app/actions/reading-progress"
-import { toast } from "@/hooks/use-toast"
+} from '@/app/actions/reading-progress'
+import { toast } from '@/hooks/use-toast'
 
 interface ProgressTrackerProps {
   bookId: string
@@ -42,7 +56,7 @@ export function ProgressTracker({ bookId, totalPages = 0, className }: ProgressT
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState(false)
   const [currentPage, setCurrentPage] = useState<number | undefined>(undefined)
-  const [notes, setNotes] = useState<string>("")
+  const [notes, setNotes] = useState<string>('')
   const [isPublic, setIsPublic] = useState(true)
   const [startDate, setStartDate] = useState<Date | undefined>(undefined)
   const [finishDate, setFinishDate] = useState<Date | undefined>(undefined)
@@ -55,11 +69,11 @@ export function ProgressTracker({ bookId, totalPages = 0, className }: ProgressT
       const { progress, error } = await getUserReadingProgress(bookId)
 
       if (error) {
-        console.error("Error fetching reading progress:", error)
+        console.error('Error fetching reading progress:', error)
         toast({
-          title: "Error",
-          description: "Could not load your reading progress. Please try again.",
-          variant: "destructive",
+          title: 'Error',
+          description: 'Could not load your reading progress. Please try again.',
+          variant: 'destructive',
         })
       } else {
         setProgress(progress)
@@ -67,10 +81,14 @@ export function ProgressTracker({ bookId, totalPages = 0, className }: ProgressT
         // Initialize form values
         if (progress) {
           setCurrentPage((progress as any).current_page)
-          setNotes((progress as any).notes || "")
+          setNotes((progress as any).notes || '')
           setIsPublic((progress as any).is_public !== false) // Default to true if undefined
-          setStartDate((progress as any).start_date ? new Date((progress as any).start_date) : undefined)
-          setFinishDate((progress as any).finish_date ? new Date((progress as any).finish_date) : undefined)
+          setStartDate(
+            (progress as any).start_date ? new Date((progress as any).start_date) : undefined
+          )
+          setFinishDate(
+            (progress as any).finish_date ? new Date((progress as any).finish_date) : undefined
+          )
         }
       }
 
@@ -97,22 +115,22 @@ export function ProgressTracker({ bookId, totalPages = 0, className }: ProgressT
         setProgress(updatedProgress)
 
         toast({
-          title: "Success",
+          title: 'Success',
           description: `Reading status updated to ${formatStatus(status)}.`,
         })
       } else {
         toast({
-          title: "Error",
-          description: error || "Failed to update reading status.",
-          variant: "destructive",
+          title: 'Error',
+          description: error || 'Failed to update reading status.',
+          variant: 'destructive',
         })
       }
     } catch (error) {
-      console.error("Error updating reading status:", error)
+      console.error('Error updating reading status:', error)
       toast({
-        title: "Error",
-        description: "An unexpected error occurred.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'An unexpected error occurred.',
+        variant: 'destructive',
       })
     } finally {
       setUpdating(false)
@@ -126,7 +144,7 @@ export function ProgressTracker({ bookId, totalPages = 0, className }: ProgressT
     try {
       const { success, error } = await updateReadingProgress({
         book_id: bookId,
-        status: progress?.status || "in_progress",
+        status: progress?.status || 'in_progress',
         current_page: currentPage,
         total_pages: totalPages > 0 ? totalPages : undefined,
         notes,
@@ -140,24 +158,24 @@ export function ProgressTracker({ bookId, totalPages = 0, className }: ProgressT
         setProgress(updatedProgress)
 
         toast({
-          title: "Success",
-          description: "Reading progress updated successfully.",
+          title: 'Success',
+          description: 'Reading progress updated successfully.',
         })
 
         setShowUpdateDialog(false)
       } else {
         toast({
-          title: "Error",
-          description: error || "Failed to update reading progress.",
-          variant: "destructive",
+          title: 'Error',
+          description: error || 'Failed to update reading progress.',
+          variant: 'destructive',
         })
       }
     } catch (error) {
-      console.error("Error updating reading progress:", error)
+      console.error('Error updating reading progress:', error)
       toast({
-        title: "Error",
-        description: "An unexpected error occurred.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'An unexpected error occurred.',
+        variant: 'destructive',
       })
     } finally {
       setUpdating(false)
@@ -166,7 +184,7 @@ export function ProgressTracker({ bookId, totalPages = 0, className }: ProgressT
 
   // Handle progress deletion
   const handleDeleteProgress = async () => {
-    if (!confirm("Are you sure you want to delete your reading progress for this book?")) {
+    if (!confirm('Are you sure you want to delete your reading progress for this book?')) {
       return
     }
 
@@ -178,30 +196,30 @@ export function ProgressTracker({ bookId, totalPages = 0, className }: ProgressT
       if (success) {
         setProgress(null)
         setCurrentPage(undefined)
-        setNotes("")
+        setNotes('')
         setIsPublic(true)
         setStartDate(undefined)
         setFinishDate(undefined)
 
         toast({
-          title: "Success",
-          description: "Reading progress deleted successfully.",
+          title: 'Success',
+          description: 'Reading progress deleted successfully.',
         })
 
         setShowUpdateDialog(false)
       } else {
         toast({
-          title: "Error",
-          description: error || "Failed to delete reading progress.",
-          variant: "destructive",
+          title: 'Error',
+          description: error || 'Failed to delete reading progress.',
+          variant: 'destructive',
         })
       }
     } catch (error) {
-      console.error("Error deleting reading progress:", error)
+      console.error('Error deleting reading progress:', error)
       toast({
-        title: "Error",
-        description: "An unexpected error occurred.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'An unexpected error occurred.',
+        variant: 'destructive',
       })
     } finally {
       setUpdating(false)
@@ -211,16 +229,16 @@ export function ProgressTracker({ bookId, totalPages = 0, className }: ProgressT
   // Helper function to format status
   const formatStatus = (status: ReadingProgressStatus): string => {
     switch (status) {
-      case "not_started":
-        return "Want to Read"
-      case "in_progress":
-        return "Currently Reading"
-      case "completed":
-        return "Completed"
-      case "on_hold":
-        return "On Hold"
-      case "abandoned":
-        return "Abandoned"
+      case 'not_started':
+        return 'Want to Read'
+      case 'in_progress':
+        return 'Currently Reading'
+      case 'completed':
+        return 'Completed'
+      case 'on_hold':
+        return 'On Hold'
+      case 'abandoned':
+        return 'Abandoned'
       default:
         return status
     }
@@ -229,15 +247,15 @@ export function ProgressTracker({ bookId, totalPages = 0, className }: ProgressT
   // Helper function to get status icon
   const getStatusIcon = (status: ReadingProgressStatus) => {
     switch (status) {
-      case "not_started":
+      case 'not_started':
         return <BookMarked className="h-4 w-4" />
-      case "in_progress":
+      case 'in_progress':
         return <Clock className="h-4 w-4" />
-      case "completed":
+      case 'completed':
         return <CheckCircle className="h-4 w-4" />
-      case "on_hold":
+      case 'on_hold':
         return <PauseCircle className="h-4 w-4" />
-      case "abandoned":
+      case 'abandoned':
         return <XCircle className="h-4 w-4" />
       default:
         return <BookOpen className="h-4 w-4" />
@@ -246,14 +264,14 @@ export function ProgressTracker({ bookId, totalPages = 0, className }: ProgressT
 
   if (loading) {
     return (
-      <div className={cn("flex justify-center p-4", className)}>
+      <div className={cn('flex justify-center p-4', className)}>
         <div className="animate-pulse h-10 w-full bg-muted rounded-md"></div>
       </div>
     )
   }
 
   return (
-    <div className={cn("space-y-4", className)}>
+    <div className={cn('space-y-4', className)}>
       {/* Status and Progress Display */}
       <div className="flex flex-col space-y-2">
         {progress ? (
@@ -271,19 +289,19 @@ export function ProgressTracker({ bookId, totalPages = 0, className }: ProgressT
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => handleStatusChange("not_started")}>
+                  <DropdownMenuItem onClick={() => handleStatusChange('not_started')}>
                     <BookMarked className="mr-2 h-4 w-4" /> Want to Read
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleStatusChange("in_progress")}>
+                  <DropdownMenuItem onClick={() => handleStatusChange('in_progress')}>
                     <Clock className="mr-2 h-4 w-4" /> Currently Reading
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleStatusChange("completed")}>
+                  <DropdownMenuItem onClick={() => handleStatusChange('completed')}>
                     <CheckCircle className="mr-2 h-4 w-4" /> Completed
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleStatusChange("on_hold")}>
+                  <DropdownMenuItem onClick={() => handleStatusChange('on_hold')}>
                     <PauseCircle className="mr-2 h-4 w-4" /> On Hold
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleStatusChange("abandoned")}>
+                  <DropdownMenuItem onClick={() => handleStatusChange('abandoned')}>
                     <XCircle className="mr-2 h-4 w-4" /> Abandoned
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -307,8 +325,12 @@ export function ProgressTracker({ bookId, totalPages = 0, className }: ProgressT
 
             {/* Dates */}
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mt-1">
-              {progress.start_date && <div>Started: {format(new Date(progress.start_date), "MMM d, yyyy")}</div>}
-              {progress.finish_date && <div>Finished: {format(new Date(progress.finish_date), "MMM d, yyyy")}</div>}
+              {progress.start_date && (
+                <div>Started: {format(new Date(progress.start_date), 'MMM d, yyyy')}</div>
+              )}
+              {progress.finish_date && (
+                <div>Finished: {format(new Date(progress.finish_date), 'MMM d, yyyy')}</div>
+              )}
             </div>
 
             {/* Update Progress Button */}
@@ -335,8 +357,10 @@ export function ProgressTracker({ bookId, totalPages = 0, className }: ProgressT
                             type="number"
                             min="0"
                             max={totalPages}
-                            value={currentPage || ""}
-                            onChange={(e) => setCurrentPage(e.target.value ? Number(e.target.value) : undefined)}
+                            value={currentPage || ''}
+                            onChange={(e) =>
+                              setCurrentPage(e.target.value ? Number(e.target.value) : undefined)
+                            }
                           />
                         </div>
                         <div className="space-y-2">
@@ -354,16 +378,21 @@ export function ProgressTracker({ bookId, totalPages = 0, className }: ProgressT
                             <Button
                               variant="outline"
                               className={cn(
-                                "w-full justify-start text-left font-normal",
-                                !startDate && "text-muted-foreground",
+                                'w-full justify-start text-left font-normal',
+                                !startDate && 'text-muted-foreground'
                               )}
                             >
                               <CalendarIcon className="mr-2 h-4 w-4" />
-                              {startDate ? format(startDate, "PPP") : "Pick a date"}
+                              {startDate ? format(startDate, 'PPP') : 'Pick a date'}
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0">
-                            <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus />
+                            <Calendar
+                              mode="single"
+                              selected={startDate}
+                              onSelect={setStartDate}
+                              initialFocus
+                            />
                           </PopoverContent>
                         </Popover>
                       </div>
@@ -375,16 +404,21 @@ export function ProgressTracker({ bookId, totalPages = 0, className }: ProgressT
                             <Button
                               variant="outline"
                               className={cn(
-                                "w-full justify-start text-left font-normal",
-                                !finishDate && "text-muted-foreground",
+                                'w-full justify-start text-left font-normal',
+                                !finishDate && 'text-muted-foreground'
                               )}
                             >
                               <CalendarIcon className="mr-2 h-4 w-4" />
-                              {finishDate ? format(finishDate, "PPP") : "Pick a date"}
+                              {finishDate ? format(finishDate, 'PPP') : 'Pick a date'}
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0">
-                            <Calendar mode="single" selected={finishDate} onSelect={setFinishDate} initialFocus />
+                            <Calendar
+                              mode="single"
+                              selected={finishDate}
+                              onSelect={setFinishDate}
+                              initialFocus
+                            />
                           </PopoverContent>
                         </Popover>
                       </div>
@@ -412,7 +446,7 @@ export function ProgressTracker({ bookId, totalPages = 0, className }: ProgressT
                       Delete Progress
                     </Button>
                     <Button onClick={handleProgressUpdate} disabled={updating}>
-                      {updating ? "Saving..." : "Save Progress"}
+                      {updating ? 'Saving...' : 'Save Progress'}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -430,19 +464,19 @@ export function ProgressTracker({ bookId, totalPages = 0, className }: ProgressT
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleStatusChange("not_started")}>
+                <DropdownMenuItem onClick={() => handleStatusChange('not_started')}>
                   <BookMarked className="mr-2 h-4 w-4" /> Want to Read
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleStatusChange("in_progress")}>
+                <DropdownMenuItem onClick={() => handleStatusChange('in_progress')}>
                   <Clock className="mr-2 h-4 w-4" /> Currently Reading
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleStatusChange("completed")}>
+                <DropdownMenuItem onClick={() => handleStatusChange('completed')}>
                   <CheckCircle className="mr-2 h-4 w-4" /> Completed
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleStatusChange("on_hold")}>
+                <DropdownMenuItem onClick={() => handleStatusChange('on_hold')}>
                   <PauseCircle className="mr-2 h-4 w-4" /> On Hold
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleStatusChange("abandoned")}>
+                <DropdownMenuItem onClick={() => handleStatusChange('abandoned')}>
                   <XCircle className="mr-2 h-4 w-4" /> Abandoned
                 </DropdownMenuItem>
               </DropdownMenuContent>

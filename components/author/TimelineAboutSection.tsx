@@ -1,8 +1,8 @@
-import * as React from "react"
-import { ExpandableSection } from "@/components/ui/expandable-section"
-import { ViewFullDetailsButton } from "@/components/ui/ViewFullDetailsButton"
-import { MapPin, Globe } from "lucide-react"
-import { SectionHeader } from "@/components/ui/SectionHeader"
+import * as React from 'react'
+import { ExpandableSection } from '@/components/ui/expandable-section'
+import { ViewFullDetailsButton } from '@/components/ui/ViewFullDetailsButton'
+import { MapPin, Globe } from 'lucide-react'
+import { SectionHeader } from '@/components/ui/SectionHeader'
 
 interface TimelineAboutSectionProps {
   title?: string
@@ -15,7 +15,7 @@ interface TimelineAboutSectionProps {
 }
 
 export function TimelineAboutSection({
-  title = "About",
+  title = 'About',
   bio,
   nationality,
   website,
@@ -29,21 +29,23 @@ export function TimelineAboutSection({
       <div className="timeline-about-section__header-section p-6 pb-2 border-b">
         <SectionHeader
           title={title}
-          right={headerRight ?? (
-            <button
-              type="button"
-              onClick={onViewMore}
-              className="timeline-about-section__view-more-button followers-list__see-all-button inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-9 rounded-md px-3 text-sm text-primary hover:bg-primary/10 hover:text-primary"
-            >
-              View More
-            </button>
-          )}
+          right={
+            headerRight ?? (
+              <button
+                type="button"
+                onClick={onViewMore}
+                className="timeline-about-section__view-more-button followers-list__see-all-button inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-9 rounded-md px-3 text-sm text-primary hover:bg-primary/10 hover:text-primary"
+              >
+                View More
+              </button>
+            )
+          }
         />
       </div>
       {/* Main Section */}
       <div className="timeline-about-section__main-section p-6 pb-0 space-y-4">
         <ExpandableSection hideToggle sidePanelStyle>
-          {bio || "No biography available for this author."}
+          {bio || 'No biography available for this author.'}
         </ExpandableSection>
         {nationality && (
           <div className="timeline-about-section__location flex items-center">
@@ -71,4 +73,4 @@ export function TimelineAboutSection({
       </div>
     </div>
   )
-} 
+}

@@ -1,9 +1,10 @@
-"use client"
+'use client'
 
-import React, { useState, useEffect } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { ContentSection } from "@/components/ui/content-section"
+import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
+import { Button } from '@/components/ui/button'
+import { ContentSection } from '@/components/ui/content-section'
 import {
   BookOpen,
   User,
@@ -15,8 +16,8 @@ import {
   Share2,
   Ellipsis,
   Calendar,
-  Loader2
-} from "lucide-react"
+  Loader2,
+} from 'lucide-react'
 
 interface Activity {
   id: string
@@ -92,157 +93,163 @@ export function TimelineActivities({ userId, userAvatarUrl, userName }: Timeline
       case 'book_added':
         return (
           <>
-            added a new book{" "}
-            <Link 
-              href={`/books/${activity.entity_id}`} 
+            added a new book{' '}
+            <Link
+              href={`/books/${activity.entity_id}`}
               className="text-primary hover:underline font-medium"
             >
               {entity_details?.title || data?.book_title || 'Unknown Book'}
             </Link>
-            {entity_details?.author && (
-              <> by {entity_details.author}</>
-            )}
+            {entity_details?.author && <> by {entity_details.author}</>}
           </>
         )
-        
+
       case 'book_updated':
         return (
           <>
-            updated the book{" "}
-            <Link 
-              href={`/books/${activity.entity_id}`} 
+            updated the book{' '}
+            <Link
+              href={`/books/${activity.entity_id}`}
               className="text-primary hover:underline font-medium"
             >
               {entity_details?.title || data?.book_title || 'Unknown Book'}
             </Link>
           </>
         )
-        
+
       case 'author_created':
         return (
           <>
-            added a new author{" "}
-            <Link 
-              href={`/authors/${activity.entity_id}`} 
+            added a new author{' '}
+            <Link
+              href={`/authors/${activity.entity_id}`}
               className="text-primary hover:underline font-medium"
             >
               {entity_details?.name || data?.author_name || 'Unknown Author'}
             </Link>
             {data?.books_count && (
-              <> with {data.books_count} book{data.books_count !== 1 ? 's' : ''}</>
+              <>
+                {' '}
+                with {data.books_count} book{data.books_count !== 1 ? 's' : ''}
+              </>
             )}
           </>
         )
-        
+
       case 'author_updated':
         return (
           <>
-            updated the author{" "}
-            <Link 
-              href={`/authors/${activity.entity_id}`} 
+            updated the author{' '}
+            <Link
+              href={`/authors/${activity.entity_id}`}
               className="text-primary hover:underline font-medium"
             >
               {entity_details?.name || data?.author_name || 'Unknown Author'}
             </Link>
           </>
         )
-        
+
       case 'publisher_created':
         return (
           <>
-            added a new publisher{" "}
-            <Link 
-              href={`/publishers/${activity.entity_id}`} 
+            added a new publisher{' '}
+            <Link
+              href={`/publishers/${activity.entity_id}`}
               className="text-primary hover:underline font-medium"
             >
               {entity_details?.name || data?.publisher_name || 'Unknown Publisher'}
             </Link>
           </>
         )
-        
+
       case 'publisher_updated':
         return (
           <>
-            updated the publisher{" "}
-            <Link 
-              href={`/publishers/${activity.entity_id}`} 
+            updated the publisher{' '}
+            <Link
+              href={`/publishers/${activity.entity_id}`}
               className="text-primary hover:underline font-medium"
             >
               {entity_details?.name || data?.publisher_name || 'Unknown Publisher'}
             </Link>
           </>
         )
-        
+
       case 'group_created':
         return (
           <>
-            created a new group{" "}
-            <Link 
-              href={`/groups/${activity.entity_id}`} 
+            created a new group{' '}
+            <Link
+              href={`/groups/${activity.entity_id}`}
               className="text-primary hover:underline font-medium"
             >
               {entity_details?.name || data?.group_name || 'Unknown Group'}
             </Link>
           </>
         )
-        
+
       case 'group_joined':
         return (
           <>
-            joined the group{" "}
-            <Link 
-              href={`/groups/${activity.entity_id}`} 
+            joined the group{' '}
+            <Link
+              href={`/groups/${activity.entity_id}`}
               className="text-primary hover:underline font-medium"
             >
               {entity_details?.name || data?.group_name || 'Unknown Group'}
             </Link>
           </>
         )
-        
+
       case 'book_reviewed':
         return (
           <>
-            reviewed{" "}
-            <Link 
-              href={`/books/${activity.entity_id}`} 
+            reviewed{' '}
+            <Link
+              href={`/books/${activity.entity_id}`}
               className="text-primary hover:underline font-medium"
             >
               {entity_details?.title || data?.book_title || 'Unknown Book'}
             </Link>
             {data?.rating && (
-              <> and gave it {data.rating} star{data.rating !== 1 ? 's' : ''}</>
+              <>
+                {' '}
+                and gave it {data.rating} star{data.rating !== 1 ? 's' : ''}
+              </>
             )}
           </>
         )
-        
+
       case 'book_rated':
         return (
           <>
-            rated{" "}
-            <Link 
-              href={`/books/${activity.entity_id}`} 
+            rated{' '}
+            <Link
+              href={`/books/${activity.entity_id}`}
               className="text-primary hover:underline font-medium"
             >
               {entity_details?.title || data?.book_title || 'Unknown Book'}
             </Link>
             {data?.rating && (
-              <> {data.rating} star{data.rating !== 1 ? 's' : ''}</>
+              <>
+                {' '}
+                {data.rating} star{data.rating !== 1 ? 's' : ''}
+              </>
             )}
           </>
         )
-        
+
       default:
         return (
           <>
             performed action "{activity_type}" on {entity_type}
-            {entity_details?.name || entity_details?.title && (
-              <>
-                {" "}
-                <span className="font-medium">
-                  {entity_details.name || entity_details.title}
-                </span>
-              </>
-            )}
+            {entity_details?.name ||
+              (entity_details?.title && (
+                <>
+                  {' '}
+                  <span className="font-medium">{entity_details.name || entity_details.title}</span>
+                </>
+              ))}
           </>
         )
     }
@@ -252,7 +259,7 @@ export function TimelineActivities({ userId, userAvatarUrl, userName }: Timeline
     const date = new Date(dateString)
     const now = new Date()
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
-    
+
     if (diffInSeconds < 60) {
       return 'just now'
     } else if (diffInSeconds < 3600) {
@@ -312,10 +319,11 @@ export function TimelineActivities({ userId, userAvatarUrl, userName }: Timeline
           <div key={activity.id} className="flex items-start space-x-4">
             <div className="flex-shrink-0">
               <span className="relative flex shrink-0 overflow-hidden rounded-full h-10 w-10">
-                <img
-                  src={userAvatarUrl || "/placeholder.svg?height=200&width=200"}
+                <Image
+                  src={userAvatarUrl || '/placeholder.svg?height=200&width=200'}
                   alt={userName}
-                  className="aspect-square h-full w-full"
+                  fill
+                  className="aspect-square h-full w-full object-cover"
                 />
               </span>
             </div>
@@ -334,14 +342,12 @@ export function TimelineActivities({ userId, userAvatarUrl, userName }: Timeline
                   <Ellipsis className="h-4 w-4" />
                 </Button>
               </div>
-              
+
               {/* Show additional content for certain activity types */}
               {activity.data?.description && (
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {activity.data.description}
-                </p>
+                <p className="mt-2 text-sm text-muted-foreground">{activity.data.description}</p>
               )}
-              
+
               <div className="flex items-center gap-6 mt-4">
                 <Button variant="ghost" size="sm" className="gap-1">
                   <Heart className="h-4 w-4" />
@@ -359,7 +365,7 @@ export function TimelineActivities({ userId, userAvatarUrl, userName }: Timeline
             </div>
           </div>
         ))}
-        
+
         {activities.length >= 20 && (
           <div className="text-center pt-4">
             <Button variant="outline">Load More Activities</Button>

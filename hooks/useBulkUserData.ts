@@ -39,14 +39,14 @@ export function useBulkUserData(userIds: string[]) {
       }
 
       const result = await response.json()
-      
+
       // Convert array to map for easy lookup
       const userDataMap: BulkUserData = {}
       result.users.forEach((user: any) => {
         userDataMap[user.id] = user.stats
       })
 
-      setUserData(prev => ({ ...prev, ...userDataMap }))
+      setUserData((prev) => ({ ...prev, ...userDataMap }))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')
       console.error('Error fetching bulk user data:', err)
@@ -57,19 +57,25 @@ export function useBulkUserData(userIds: string[]) {
 
   // Fetch data for new user IDs that we don't have yet
   useEffect(() => {
-    const missingUserIds = userIds.filter(id => !userData[id])
+    const missingUserIds = userIds.filter((id) => !userData[id])
     if (missingUserIds.length > 0) {
       fetchBulkUserData(missingUserIds)
     }
   }, [userIds, userData, fetchBulkUserData])
 
-  const getUserStats = useCallback((userId: string): UserStats | null => {
-    return userData[userId] || null
-  }, [userData])
+  const getUserStats = useCallback(
+    (userId: string): UserStats | null => {
+      return userData[userId] || null
+    },
+    [userData]
+  )
 
-  const isUserDataLoaded = useCallback((userId: string): boolean => {
-    return !!userData[userId]
-  }, [userData])
+  const isUserDataLoaded = useCallback(
+    (userId: string): boolean => {
+      return !!userData[userId]
+    },
+    [userData]
+  )
 
   return {
     userData,
@@ -77,6 +83,6 @@ export function useBulkUserData(userIds: string[]) {
     error,
     getUserStats,
     isUserDataLoaded,
-    refetch: () => fetchBulkUserData(userIds)
+    refetch: () => fetchBulkUserData(userIds),
   }
 }

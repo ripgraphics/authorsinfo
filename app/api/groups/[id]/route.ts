@@ -1,27 +1,26 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase-server';
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase-server'
 
-export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await context.params;
-    const supabase = createClient();
+    const { id } = await context.params
+    const supabase = createClient()
 
     // Fetch the group
     const { data: group, error: groupError } = await supabase
       .from('groups')
-      .select(`
+      .select(
+        `
         *,
         group_image:images!group_image_id(url),
         cover_image:images!cover_image_id(url)
-      `)
+      `
+      )
       .eq('id', id)
-      .single();
+      .single()
 
     if (groupError || !group) {
-      return NextResponse.json({ error: groupError?.message || 'Group not found' }, { status: 404 });
+      return NextResponse.json({ error: groupError?.message || 'Group not found' }, { status: 404 })
     }
 
     // Fetch the creator user
@@ -29,7 +28,7 @@ export async function GET(
       .from('users')
       .select('id, name, email, role_id, created_at, updated_at')
       .eq('id', group.created_by)
-      .single();
+      .single()
 
     // Fetch creator's membership information
     const { data: creatorMembership, error: membershipError } = await supabase
@@ -37,7 +36,7 @@ export async function GET(
       .select('joined_at')
       .eq('group_id', id)
       .eq('user_id', group.created_by)
-      .single();
+      .single()
 
     // Merge and return
     return NextResponse.json({
@@ -49,33 +48,42 @@ export async function GET(
       creatorRoleId: creator?.role_id || '',
       creatorCreatedAt: creator?.created_at || '',
       creatorUpdatedAt: creator?.updated_at || '',
-      creatorJoinedAt: creatorMembership?.joined_at || ''
-    });
+      creatorJoinedAt: creatorMembership?.joined_at || '',
+    })
   } catch (error) {
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await context.params;
-    const supabase = createClient();
-    const body = await request.json();
-    const { data, error } = await supabase
-      .from('groups')
-      .update(body)
-      .eq('id', id)
-      .select()
-      .single();
+    const { id } = await context.params
+    const { updateGroupWithValidation } =
+      await import('@/app/actions/groups/update-group-with-validation')
+    const body = await request.json()
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+    const result = await updateGroupWithValidation({
+      groupId: id,
+      name: body.name,
+      description: body.description,
+      is_private: body.is_private,
+      is_discoverable: body.is_discoverable,
+      join_method: body.join_method,
+      tags: body.tags,
+      category: body.category,
+      location: body.location,
+      cover_image_url: body.cover_image_url,
+      avatar_url: body.avatar_url,
+      status: body.status,
+      settings: body.settings,
+    })
+
+    if (!result.success) {
+      return NextResponse.json({ error: result.error, warnings: result.warnings }, { status: 400 })
     }
-    return NextResponse.json(data);
+
+    return NextResponse.json({ group: result.group })
   } catch (error) {
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
-} 
+}

@@ -1,10 +1,11 @@
-"use client"
+'use client'
 
-import React, { useState, useCallback, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+import React, { useState, useCallback, useEffect } from 'react'
+import Image from 'next/image'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Heart,
   MessageSquare,
@@ -17,13 +18,13 @@ import {
   ThumbsUp,
   Smile,
   Image as ImageIcon,
-  Share2
-} from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
-import { useAuth } from "@/hooks/useAuth"
-import { useCurrentUserAvatar, useCurrentUserName } from "@/components/user-avatar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
+  Share2,
+} from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
+import { useAuth } from '@/hooks/useAuth'
+import { useCurrentUserAvatar, useCurrentUserName } from '@/components/user-avatar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { cn } from '@/lib/utils'
 
 interface EngagementActionsProps {
   entityId: string
@@ -38,7 +39,11 @@ interface EngagementActionsProps {
     price?: number
     currency?: string
   }
-  onEngagement?: (action: 'like' | 'comment' | 'share', entityId: string, entityType: string) => Promise<void>
+  onEngagement?: (
+    action: 'like' | 'comment' | 'share',
+    entityId: string,
+    entityType: string
+  ) => Promise<void>
   onCommentAdded?: (comment: any) => void
   className?: string
 }
@@ -54,13 +59,13 @@ export function EngagementActions({
   monetization,
   onEngagement,
   onCommentAdded,
-  className = ""
+  className = '',
 }: EngagementActionsProps) {
   const { user } = useAuth()
   const { toast } = useToast()
   const currentUserAvatar = useCurrentUserAvatar()
   const currentUserName = useCurrentUserName()
-  
+
   // State for engagement data
   const [engagementCount, setEngagementCount] = useState(initialEngagementCount)
   const [commentCountState, setCommentCountState] = useState(commentCount)
@@ -68,21 +73,15 @@ export function EngagementActions({
   const [isCommentedState, setCommentedState] = useState(isCommented)
   const [loading, setLoading] = useState<'like' | 'comment' | null>(null)
   const [showCommentInput, setShowCommentInput] = useState(false)
-  const [commentText, setCommentText] = useState("")
+  const [commentText, setCommentText] = useState('')
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
-  
-  // State for dropdown data
-  const [likers, setLikers] = useState<any[]>([])
-  const [commenters, setCommenters] = useState<any[]>([])
-  const [isLoadingLikers, setIsLoadingLikers] = useState(false)
-  const [isLoadingCommenters, setIsLoadingCommenters] = useState(false)
-  
+
   // Fetch engagement data function - REMOVED - using built-in counts from activities table
   const fetchEngagementData = useCallback(async () => {
     // Since engagement counts are now built into the activities table,
     // we don't need to make a separate API call
     console.log('✅ Using built-in engagement counts from activities table')
-    
+
     // The engagement counts should come from the parent component
     // This function is now a no-op since we're using direct data
   }, [entityId, entityType])
@@ -94,7 +93,7 @@ export function EngagementActions({
       console.log('✅ Using engagement counts from props:', { engagementCount, commentCount })
       return
     }
-    
+
     // Otherwise, try to get them from the parent component's data
     // This is a fallback for when the component is used standalone
     console.log('ℹ️ No engagement counts provided, component will show 0 counts')
@@ -105,9 +104,9 @@ export function EngagementActions({
     console.log('🔄 Props updated - updating component state:', {
       initialEngagementCount,
       commentCount,
-      isLiked
+      isLiked,
     })
-    
+
     setEngagementCount(initialEngagementCount || 0)
     setCommentCountState(commentCount || 0)
     setLikedState(isLiked || false)
@@ -116,29 +115,29 @@ export function EngagementActions({
 
   // Handle like/unlike action
   const handleEngagement = useCallback(async () => {
-      if (!user) {
-        toast({
-        title: "Authentication required",
-        description: "Please log in to like posts",
-        variant: "destructive"
-        })
-        return
-      }
+    if (!user) {
+      toast({
+        title: 'Authentication required',
+        description: 'Please log in to like posts',
+        variant: 'destructive',
+      })
+      return
+    }
 
-        setLoading('like')
+    setLoading('like')
 
     try {
       console.log('🔍 Attempting to like/unlike:', { entityId, entityType })
-      
+
       const response = await fetch('/api/engagement/like', {
-          method: 'POST',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-          body: JSON.stringify({
+        body: JSON.stringify({
           entity_type: entityType,
-          entity_id: entityId
-        })
+          entity_id: entityId,
+        }),
       })
 
       if (!response.ok) {
@@ -151,57 +150,56 @@ export function EngagementActions({
       // Toggle the like state
       const newLikeState = !isLikedState
       setLikedState(newLikeState)
-      
+
       // Update the count
       if (newLikeState) {
-        setEngagementCount(prev => prev + 1)
+        setEngagementCount((prev) => prev + 1)
       } else {
-          setEngagementCount(prev => Math.max(0, prev - 1))
+        setEngagementCount((prev) => Math.max(0, prev - 1))
       }
 
       toast({
-        title: newLikeState ? "Post liked!" : "Post unliked",
-        description: newLikeState ? "You liked this post" : "You unliked this post",
-        variant: "default"
+        title: newLikeState ? 'Post liked!' : 'Post unliked',
+        description: newLikeState ? 'You liked this post' : 'You unliked this post',
+        variant: 'default',
       })
-
     } catch (error) {
       console.error('❌ Error toggling like:', error)
       toast({
-        title: "Error",
-        description: "Failed to like post. Please try again.",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to like post. Please try again.',
+        variant: 'destructive',
       })
-      } finally {
-        setLoading(null)
-      }
+    } finally {
+      setLoading(null)
+    }
   }, [user, entityId, entityType, isLikedState, toast])
 
   // Handle comment submission
   const handleSubmitComment = useCallback(async () => {
     if (!user) {
       toast({
-        title: "Authentication required",
-        description: "Please log in to comment",
-        variant: "destructive"
+        title: 'Authentication required',
+        description: 'Please log in to comment',
+        variant: 'destructive',
       })
       return
     }
 
     if (!commentText.trim()) {
       toast({
-        title: "Comment required",
-        description: "Please enter a comment",
-        variant: "destructive"
+        title: 'Comment required',
+        description: 'Please enter a comment',
+        variant: 'destructive',
       })
       return
     }
 
     setIsSubmittingComment(true)
-    
+
     try {
       console.log('🔍 Submitting comment:', { entityId, entityType, commentText })
-      
+
       const response = await fetch('/api/engagement/comment', {
         method: 'POST',
         headers: {
@@ -210,8 +208,8 @@ export function EngagementActions({
         body: JSON.stringify({
           entity_type: entityType,
           entity_id: entityId,
-          comment_text: commentText.trim()
-        })
+          comment_text: commentText.trim(),
+        }),
       })
 
       if (!response.ok) {
@@ -222,11 +220,11 @@ export function EngagementActions({
       console.log('✅ Comment response:', result)
 
       // Update comment count
-      setCommentCountState(prev => prev + 1)
+      setCommentCountState((prev) => prev + 1)
       setCommentedState(true)
-      
+
       // Clear comment input
-      setCommentText("")
+      setCommentText('')
       setShowCommentInput(false)
 
       // Notify parent component
@@ -238,23 +236,22 @@ export function EngagementActions({
           user: {
             id: user.id,
             name: currentUserName,
-            avatar_url: currentUserAvatar
-          }
+            avatar_url: currentUserAvatar,
+          },
         })
       }
 
       toast({
-        title: "Comment posted!",
-        description: "Your comment has been added",
-        variant: "default"
+        title: 'Comment posted!',
+        description: 'Your comment has been added',
+        variant: 'default',
       })
-
     } catch (error) {
       console.error('❌ Error posting comment:', error)
       toast({
-        title: "Error",
-        description: "Failed to post comment. Please try again.",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to post comment. Please try again.',
+        variant: 'destructive',
       })
     } finally {
       setIsSubmittingComment(false)
@@ -265,25 +262,25 @@ export function EngagementActions({
   const handleShare = useCallback(() => {
     if (!user) {
       toast({
-        title: "Authentication required",
-        description: "Please log in to share posts",
-        variant: "destructive"
+        title: 'Authentication required',
+        description: 'Please log in to share posts',
+        variant: 'destructive',
       })
-                    return
-                  }
+      return
+    }
 
     // For now, just show a toast - implement actual sharing logic later
     toast({
-      title: "Share feature",
-      description: "Sharing functionality coming soon!",
-      variant: "default"
+      title: 'Share feature',
+      description: 'Sharing functionality coming soon!',
+      variant: 'default',
     })
   }, [user, toast])
 
   // Format engagement count for display
   const formatEngagementCount = (count: number) => {
-    if (count === 0) return ""
-    if (count === 1) return "1 like"
+    if (count === 0) return ''
+    if (count === 1) return '1 like'
     if (count < 1000) return `${count} likes`
     if (count < 1000000) return `${(count / 1000).toFixed(1)}K likes`
     return `${(count / 1000000).toFixed(1)}M likes`
@@ -291,13 +288,13 @@ export function EngagementActions({
 
   // Format comment count for display
   const formatCommentCount = (count: number) => {
-    if (count === 0) return ""
-    if (count === 1) return "1 comment"
+    if (count === 0) return ''
+    if (count === 1) return '1 comment'
     return `${count} comments`
   }
 
   return (
-    <div className={cn("enterprise-engagement-actions", className)}>
+    <div className={cn('enterprise-engagement-actions', className)}>
       {/* Reactions Display Row */}
       {(engagementCount > 0 || commentCountState > 0) && (
         <div className="engagement-reactions-display flex items-center justify-between px-4 py-2 border-b border-gray-100">
@@ -313,7 +310,7 @@ export function EngagementActions({
                 </span>
               </div>
             )}
-            
+
             {/* Comment count */}
             {commentCountState > 0 && (
               <div className="engagement-comment-count text-sm text-gray-600 hover:underline cursor-pointer">
@@ -321,7 +318,7 @@ export function EngagementActions({
               </div>
             )}
           </div>
-          
+
           {/* Right side - could add share count here */}
           <div className="engagement-reactions-right">
             {/* Future: Add share count if needed */}
@@ -331,42 +328,42 @@ export function EngagementActions({
 
       {/* Action Buttons Row */}
       <div className="engagement-action-buttons flex items-center justify-between px-4 py-2 border-b border-gray-100">
-          <Button 
-            variant="ghost" 
-            size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={handleEngagement}
           disabled={loading === 'like'}
           className={cn(
-            "engagement-action-button flex-1 h-10 rounded-lg transition-colors",
-            isLikedState 
-              ? "text-blue-600 hover:text-blue-700 hover:bg-blue-50" 
-              : "text-gray-600 hover:text-gray-700 hover:bg-gray-50"
+            'engagement-action-button flex-1 h-10 rounded-lg transition-colors',
+            isLikedState
+              ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
+              : 'text-gray-600 hover:text-gray-700 hover:bg-gray-50'
           )}
         >
-          <ThumbsUp className={cn("h-5 w-5 mr-2", isLikedState && "fill-current")} />
+          <ThumbsUp className={cn('h-5 w-5 mr-2', isLikedState && 'fill-current')} />
           <span className="engagement-action-label">Like</span>
-          </Button>
+        </Button>
 
-          <Button
-            variant="ghost"
-            size="sm"
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setShowCommentInput(!showCommentInput)}
           disabled={loading === 'comment'}
           className="engagement-action-button flex-1 h-10 rounded-lg text-gray-600 hover:text-gray-700 hover:bg-gray-50 transition-colors"
         >
           <MessageSquare className="h-5 w-5 mr-2" />
           <span className="engagement-action-label">Comment</span>
-          </Button>
+        </Button>
 
-          <Button
-            variant="ghost"
-            size="sm"
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={handleShare}
           className="engagement-action-button flex-1 h-10 rounded-lg text-gray-600 hover:text-gray-700 hover:bg-gray-50 transition-colors"
         >
           <Share2 className="h-5 w-5 mr-2" />
           <span className="engagement-action-label">Share</span>
-          </Button>
+        </Button>
       </div>
 
       {/* Comment Input Section */}
@@ -377,18 +374,22 @@ export function EngagementActions({
             <div className="engagement-comment-avatar flex-shrink-0">
               <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
                 {currentUserAvatar ? (
-                  <img 
-                    src={currentUserAvatar} 
-                    alt="User avatar" 
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
+                  <div className="relative h-full w-full overflow-hidden rounded-full">
+                    <Image
+                      src={currentUserAvatar}
+                      alt="User avatar"
+                      fill
+                      sizes="32px"
+                      className="object-cover"
+                    />
+                  </div>
                 ) : (
                   <span className="text-sm font-medium text-gray-600">
                     {currentUserName?.[0] || 'U'}
-                    </span>
+                  </span>
                 )}
               </div>
-          </div>
+            </div>
 
             {/* Comment Input Area */}
             <div className="engagement-comment-input-area flex-1">
@@ -406,7 +407,7 @@ export function EngagementActions({
                     }
                   }}
                 />
-                
+
                 {/* Comment Action Icons */}
                 <div className="engagement-comment-actions absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
                   <Button
@@ -417,15 +418,15 @@ export function EngagementActions({
                   >
                     <Smile className="h-4 w-4" />
                   </Button>
-                  
-                <Button
-                  variant="ghost"
-                  size="sm"
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className="engagement-comment-action-icon p-1 h-6 w-6 text-gray-400 hover:text-gray-600"
                     title="Add photo"
                   >
                     <ImageIcon className="h-4 w-4" />
-                </Button>
+                  </Button>
                 </div>
               </div>
 
@@ -443,7 +444,7 @@ export function EngagementActions({
                       Posting...
                     </div>
                   ) : (
-                    "Post"
+                    'Post'
                   )}
                 </Button>
               </div>
@@ -453,4 +454,4 @@ export function EngagementActions({
       )}
     </div>
   )
-} 
+}

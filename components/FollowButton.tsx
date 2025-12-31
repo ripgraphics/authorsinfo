@@ -36,7 +36,7 @@ export default function FollowButton({
   size = 'default',
   showIcon = true,
   showText = true,
-  disabled = false
+  disabled = false,
 }: FollowButtonProps) {
   const [isFollowingState, setIsFollowingState] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(true)
@@ -77,10 +77,13 @@ export default function FollowButton({
         // Use deduplicated request for better performance
         const data = await deduplicatedRequest(
           `follow-status-${targetType}-${entityId}`,
-          () => fetch(`/api/follow?entityId=${entityId}&targetType=${targetType}`).then(r => r.json()),
+          () =>
+            fetch(`/api/follow?entityId=${entityId}&targetType=${targetType}`).then((r) =>
+              r.json()
+            ),
           1 * 60 * 1000 // 1 minute cache for follow status
         )
-        
+
         if (data.isFollowing !== undefined) {
           setIsFollowingState(data.isFollowing || false)
         } else {
@@ -102,10 +105,10 @@ export default function FollowButton({
     if (isActionLoading || disabled || !targetType || !isValidEntityId) return
 
     setIsActionLoading(true)
-    
+
     try {
       let response
-      
+
       if (isFollowingState) {
         response = await unfollowEntity(entityId, targetType)
       } else {
@@ -116,27 +119,34 @@ export default function FollowButton({
         // Capture the old state before updating for the toast message
         const wasFollowing = isFollowingState
         setIsFollowingState(!isFollowingState)
-        
+
         // Create personalized toast message based on the action we just took
         let description: string
         if (entityName) {
           // Personalized message with entity name
-          const entityTypeLabel = targetType === 'book' ? 'book' : 
-                                 targetType === 'author' ? 'author' :
-                                 targetType === 'publisher' ? 'publisher' :
-                                 targetType === 'group' ? 'group' :
-                                 targetType === 'user' ? 'user' : targetType
-          
-          description = wasFollowing 
+          const entityTypeLabel =
+            targetType === 'book'
+              ? 'book'
+              : targetType === 'author'
+                ? 'author'
+                : targetType === 'publisher'
+                  ? 'publisher'
+                  : targetType === 'group'
+                    ? 'group'
+                    : targetType === 'user'
+                      ? 'user'
+                      : targetType
+
+          description = wasFollowing
             ? `You are no longer following the ${entityTypeLabel}: ${entityName}`
             : `You are now following the ${entityTypeLabel}: ${entityName}`
         } else {
           // Generic message when entity name is not provided
-          description = wasFollowing 
+          description = wasFollowing
             ? `You are no longer following this ${targetType}`
             : `You are now following this ${targetType}`
         }
-        
+
         toast({
           title: wasFollowing ? 'Unfollowed' : 'Followed',
           description,
@@ -171,13 +181,25 @@ export default function FollowButton({
     } finally {
       setIsActionLoading(false)
     }
-  }, [entityId, targetType, isFollowingState, isActionLoading, disabled, isValidEntityId, toast, router])
+  }, [
+    entityId,
+    targetType,
+    isFollowingState,
+    isActionLoading,
+    disabled,
+    isValidEntityId,
+    toast,
+    router,
+  ])
 
   // Memoize button text and icon to prevent unnecessary re-renders
-  const { buttonText, ButtonIcon } = useMemo(() => ({
-    buttonText: isFollowingState ? 'Unfollow' : 'Follow',
-    ButtonIcon: isFollowingState ? UserMinus : UserPlus
-  }), [isFollowingState])
+  const { buttonText, ButtonIcon } = useMemo(
+    () => ({
+      buttonText: isFollowingState ? 'Unfollow' : 'Follow',
+      ButtonIcon: isFollowingState ? UserMinus : UserPlus,
+    }),
+    [isFollowingState]
+  )
 
   // Don't render the button if targetType is undefined, entityId is invalid, or user is trying to follow themselves
   if (!targetType || !isValidEntityId || isSelfFollow) {
@@ -194,9 +216,7 @@ export default function FollowButton({
         disabled={true}
       >
         {showIcon && <div className="h-4 w-4 mr-2 bg-gray-300 rounded-sm animate-pulse" />}
-        {showText && (
-          <div className="bg-gray-300 h-4 w-12 rounded-sm animate-pulse" />
-        )}
+        {showText && <div className="bg-gray-300 h-4 w-12 rounded-sm animate-pulse" />}
       </Button>
     )
   }
@@ -217,4 +237,4 @@ export default function FollowButton({
       {showText && buttonText}
     </Button>
   )
-} 
+}

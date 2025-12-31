@@ -1,18 +1,18 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import type { DateRange } from "react-day-picker"
-import { format, parse, subMonths } from "date-fns"
-import { Download } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { DateRangePicker } from "@/components/admin/date-range-picker"
-import { LineChart } from "@/components/admin/line-chart"
-import { BarChartHorizontal } from "@/components/admin/bar-chart-horizontal"
-import { PieChart } from "@/components/admin/pie-chart"
-import { DataTable } from "@/components/admin/data-table"
-import { toast } from "@/hooks/use-toast"
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import type { DateRange } from 'react-day-picker'
+import { format, parse, subMonths } from 'date-fns'
+import { Download } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { DateRangePicker } from '@/components/admin/date-range-picker'
+import { LineChart } from '@/components/admin/line-chart'
+import { BarChartHorizontal } from '@/components/admin/bar-chart-horizontal'
+import { PieChart } from '@/components/admin/pie-chart'
+import { DataTable } from '@/components/admin/data-table'
+import { toast } from '@/hooks/use-toast'
 import {
   getUserActivityData,
   getContentPopularityData,
@@ -20,21 +20,22 @@ import {
   getAuthorPerformanceData,
   exportReportToCSV,
   type ReportType,
-} from "@/app/actions/admin-reports"
+} from '@/app/actions/admin-reports'
 
 export function ReportsClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
   // Get initial tab and date range from URL
-  const initialTab = searchParams.get("tab") || "user_activity"
-  const initialStartDate = searchParams.get("startDate") || format(subMonths(new Date(), 1), "yyyy-MM-dd")
-  const initialEndDate = searchParams.get("endDate") || format(new Date(), "yyyy-MM-dd")
+  const initialTab = searchParams.get('tab') || 'user_activity'
+  const initialStartDate =
+    searchParams.get('startDate') || format(subMonths(new Date(), 1), 'yyyy-MM-dd')
+  const initialEndDate = searchParams.get('endDate') || format(new Date(), 'yyyy-MM-dd')
 
   const [activeTab, setActiveTab] = useState<ReportType>(initialTab as ReportType)
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: parse(initialStartDate, "yyyy-MM-dd", new Date()),
-    to: parse(initialEndDate, "yyyy-MM-dd", new Date()),
+    from: parse(initialStartDate, 'yyyy-MM-dd', new Date()),
+    to: parse(initialEndDate, 'yyyy-MM-dd', new Date()),
   })
 
   const [isLoading, setIsLoading] = useState(true)
@@ -49,14 +50,14 @@ export function ReportsClient() {
   // Update URL when tab or date range changes
   useEffect(() => {
     const params = new URLSearchParams()
-    params.set("tab", activeTab)
+    params.set('tab', activeTab)
 
     if (dateRange?.from) {
-      params.set("startDate", format(dateRange.from, "yyyy-MM-dd"))
+      params.set('startDate', format(dateRange.from, 'yyyy-MM-dd'))
     }
 
     if (dateRange?.to) {
-      params.set("endDate", format(dateRange.to, "yyyy-MM-dd"))
+      params.set('endDate', format(dateRange.to, 'yyyy-MM-dd'))
     }
 
     router.push(`/admin/reports?${params.toString()}`)
@@ -70,28 +71,32 @@ export function ReportsClient() {
       setIsLoading(true)
 
       const dateRangeParam = {
-        startDate: dateRange.from ? format(dateRange.from, "yyyy-MM-dd") : format(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), "yyyy-MM-dd"),
-        endDate: dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
+        startDate: dateRange.from
+          ? format(dateRange.from, 'yyyy-MM-dd')
+          : format(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+        endDate: dateRange.to
+          ? format(dateRange.to, 'yyyy-MM-dd')
+          : format(new Date(), 'yyyy-MM-dd'),
       }
 
       try {
         switch (activeTab) {
-          case "user_activity":
+          case 'user_activity':
             const userData = await getUserActivityData(dateRangeParam)
             setUserActivityData(userData)
             break
 
-          case "content_popularity":
+          case 'content_popularity':
             const contentData = await getContentPopularityData(dateRangeParam)
             setContentPopularityData(contentData)
             break
 
-          case "reading_trends":
+          case 'reading_trends':
             const trendsData = await getReadingTrendsData(dateRangeParam)
             setReadingTrendsData(trendsData)
             break
 
-          case "author_performance":
+          case 'author_performance':
             const authorData = await getAuthorPerformanceData(dateRangeParam)
             setAuthorPerformanceData(authorData)
             break
@@ -99,9 +104,9 @@ export function ReportsClient() {
       } catch (error) {
         console.error(`Error loading ${activeTab} data:`, error)
         toast({
-          title: "Error loading data",
-          description: "Failed to load report data. Please try again.",
-          variant: "destructive",
+          title: 'Error loading data',
+          description: 'Failed to load report data. Please try again.',
+          variant: 'destructive',
         })
       } finally {
         setIsLoading(false)
@@ -114,9 +119,9 @@ export function ReportsClient() {
   const handleExport = async () => {
     if (!dateRange?.from || !dateRange?.to) {
       toast({
-        title: "Date range required",
-        description: "Please select a date range before exporting.",
-        variant: "destructive",
+        title: 'Date range required',
+        description: 'Please select a date range before exporting.',
+        variant: 'destructive',
       })
       return
     }
@@ -125,41 +130,45 @@ export function ReportsClient() {
 
     try {
       const dateRangeParam = {
-        startDate: dateRange.from ? format(dateRange.from, "yyyy-MM-dd") : format(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), "yyyy-MM-dd"),
-        endDate: dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
+        startDate: dateRange.from
+          ? format(dateRange.from, 'yyyy-MM-dd')
+          : format(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+        endDate: dateRange.to
+          ? format(dateRange.to, 'yyyy-MM-dd')
+          : format(new Date(), 'yyyy-MM-dd'),
       }
 
       const result = await exportReportToCSV(activeTab, dateRangeParam)
 
       if (result.success && result.csv) {
         // Create a blob and download it
-        const blob = new Blob([result.csv], { type: "text/csv" })
+        const blob = new Blob([result.csv], { type: 'text/csv' })
         const url = URL.createObjectURL(blob)
-        const a = document.createElement("a")
+        const a = document.createElement('a')
         a.href = url
-        a.download = `${activeTab}-report-${format(new Date(), "yyyy-MM-dd")}.csv`
+        a.download = `${activeTab}-report-${format(new Date(), 'yyyy-MM-dd')}.csv`
         document.body.appendChild(a)
         a.click()
         document.body.removeChild(a)
         URL.revokeObjectURL(url)
 
         toast({
-          title: "Export successful",
-          description: "Report has been exported to CSV",
+          title: 'Export successful',
+          description: 'Report has been exported to CSV',
         })
       } else {
         toast({
-          title: "Export failed",
-          description: result.error || "Failed to export report",
-          variant: "destructive",
+          title: 'Export failed',
+          description: result.error || 'Failed to export report',
+          variant: 'destructive',
         })
       }
     } catch (error) {
-      console.error("Error exporting report:", error)
+      console.error('Error exporting report:', error)
       toast({
-        title: "Export error",
-        description: "An unexpected error occurred",
-        variant: "destructive",
+        title: 'Export error',
+        description: 'An unexpected error occurred',
+        variant: 'destructive',
       })
     } finally {
       setIsExporting(false)
@@ -181,7 +190,9 @@ export function ReportsClient() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">Analytics & Reports</h1>
-          <p className="text-muted-foreground">View and export detailed reports about your platform</p>
+          <p className="text-muted-foreground">
+            View and export detailed reports about your platform
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={() => setQuickDateRange(1)}>
@@ -198,12 +209,16 @@ export function ReportsClient() {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="md:col-span-3">
-          <DateRangePicker dateRange={dateRange} onDateRangeChange={handleDateRangeChange} className="w-full" />
+          <DateRangePicker
+            dateRange={dateRange}
+            onDateRangeChange={handleDateRangeChange}
+            className="w-full"
+          />
         </div>
         <div>
           <Button className="w-full" onClick={handleExport} disabled={isExporting}>
             <Download className="h-4 w-4 mr-2" />
-            {isExporting ? "Exporting..." : "Export Report"}
+            {isExporting ? 'Exporting...' : 'Export Report'}
           </Button>
         </div>
       </div>
@@ -229,7 +244,9 @@ export function ReportsClient() {
             </div>
             <div className="bg-white p-6 rounded-lg shadow-xs border">
               <h3 className="text-lg font-medium">Reading Activities</h3>
-              <p className="text-3xl font-bold mt-2">{userActivityData?.totalReadingActivities || 0}</p>
+              <p className="text-3xl font-bold mt-2">
+                {userActivityData?.totalReadingActivities || 0}
+              </p>
             </div>
           </div>
 
@@ -269,8 +286,8 @@ export function ReportsClient() {
               title="Most Viewed Books"
               description="Books with the highest number of views"
               columns={[
-                { key: "title", label: "Title" },
-                { key: "views", label: "Views" },
+                { key: 'title', label: 'Title' },
+                { key: 'views', label: 'Views' },
               ]}
               data={contentPopularityData?.mostViewedBooks || []}
               loading={isLoading}
@@ -282,9 +299,9 @@ export function ReportsClient() {
               title="Most Rated Books"
               description="Books with the most ratings"
               columns={[
-                { key: "title", label: "Title" },
-                { key: "averageRating", label: "Avg. Rating" },
-                { key: "ratingCount", label: "# Ratings" },
+                { key: 'title', label: 'Title' },
+                { key: 'averageRating', label: 'Avg. Rating' },
+                { key: 'ratingCount', label: '# Ratings' },
               ]}
               data={contentPopularityData?.mostRatedBooks || []}
               loading={isLoading}
@@ -318,13 +335,13 @@ export function ReportsClient() {
             <PieChart
               title="Completion Rates"
               description="Book completion statistics"
-              labels={["Completed", "Abandoned", "In Progress"]}
+              labels={['Completed', 'Abandoned', 'In Progress']}
               data={[
                 readingTrendsData?.completionRates.completed || 0,
                 readingTrendsData?.completionRates.abandoned || 0,
                 readingTrendsData?.completionRates.inProgress || 0,
               ]}
-              colors={["#10b981", "#ef4444", "#f59e0b"]}
+              colors={['#10b981', '#ef4444', '#f59e0b']}
               loading={isLoading}
             />
           </div>
@@ -346,8 +363,8 @@ export function ReportsClient() {
               title="Top Authors by Book Count"
               description="Authors with the most books"
               columns={[
-                { key: "name", label: "Author" },
-                { key: "bookCount", label: "Books" },
+                { key: 'name', label: 'Author' },
+                { key: 'bookCount', label: 'Books' },
               ]}
               data={authorPerformanceData?.topAuthors || []}
               loading={isLoading}
@@ -358,9 +375,9 @@ export function ReportsClient() {
               title="Top Rated Authors"
               description="Authors with the highest average ratings"
               columns={[
-                { key: "name", label: "Author" },
-                { key: "averageRating", label: "Avg. Rating" },
-                { key: "ratingCount", label: "# Ratings" },
+                { key: 'name', label: 'Author' },
+                { key: 'averageRating', label: 'Avg. Rating' },
+                { key: 'ratingCount', label: '# Ratings' },
               ]}
               data={authorPerformanceData?.authorRatings || []}
               loading={isLoading}

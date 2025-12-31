@@ -20,8 +20,7 @@ export async function GET(request: NextRequest) {
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     if (!uuidRegex.test(entityId)) {
       const table = entityType === 'user' ? 'users' : `${entityType}s`
-      const { data: entityRow } = await (supabase
-        .from(table) as any)
+      const { data: entityRow } = await (supabase.from(table) as any)
         .select('id, permalink')
         .or(`id.eq.${entityId},permalink.eq.${entityId}`)
         .maybeSingle()
@@ -34,17 +33,16 @@ export async function GET(request: NextRequest) {
     const hasPublishStatus = await checkColumnExists('activities', 'publish_status')
 
     // Build query - conditionally apply publish_status filter
-    let query = (supabase
-      .from('activities') as any)
+    let query = (supabase.from('activities') as any)
       .select('*')
       .eq('entity_type', entityType)
       .eq('entity_id', entityId)
-    
+
     // Only filter by publish_status if the column exists
     if (hasPublishStatus) {
       query = query.or('publish_status.eq.published,publish_status.is.null')
     }
-    
+
     const { data, error } = await query
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
@@ -61,8 +59,7 @@ export async function GET(request: NextRequest) {
       if (currentUserId && Array.isArray(data) && data.length > 0) {
         const activityIds = data.map((row: any) => row.id)
         // Use likes table for all entity types (activity_likes doesn't exist)
-        const { data: reactions } = await (supabase
-          .from('likes') as any)
+        const { data: reactions } = await (supabase.from('likes') as any)
           .select('entity_id')
           .eq('entity_type', 'activity')
           .eq('user_id', currentUserId)
@@ -80,13 +77,14 @@ export async function GET(request: NextRequest) {
 
     // Resolve author names from users table and avatars from images table via profiles.avatar_image_id
     let userIdToName: Record<string, string> = {}
-    let userIdToAvatar: Record<string, string | null> = {}
+    const userIdToAvatar: Record<string, string | null> = {}
     try {
-      const allUserIds = Array.from(new Set((data || []).map((row: any) => row.user_id).filter(Boolean)))
+      const allUserIds = Array.from(
+        new Set((data || []).map((row: any) => row.user_id).filter(Boolean))
+      )
       if (allUserIds.length > 0) {
         // Fetch user names
-        const { data: users } = await (supabase
-          .from('users') as any)
+        const { data: users } = await (supabase.from('users') as any)
           .select('id, name')
           .in('id', allUserIds)
         if (Array.isArray(users)) {
@@ -95,34 +93,34 @@ export async function GET(request: NextRequest) {
             return acc
           }, {})
         }
-        
+
         // Fetch user avatars from images table via profiles.avatar_image_id
-        const { data: profiles } = await (supabase
-          .from('profiles') as any)
+        const { data: profiles } = await (supabase.from('profiles') as any)
           .select('user_id, avatar_image_id')
           .in('user_id', allUserIds)
           .not('avatar_image_id', 'is', null)
-        
+
         if (profiles && profiles.length > 0) {
           // Get unique image IDs
-          const imageIds = Array.from(new Set(profiles.map((p: any) => p.avatar_image_id).filter(Boolean)))
-          
+          const imageIds = Array.from(
+            new Set(profiles.map((p: any) => p.avatar_image_id).filter(Boolean))
+          )
+
           if (imageIds.length > 0) {
             // Fetch image URLs from images table
-            const { data: images } = await (supabase
-              .from('images') as any)
+            const { data: images } = await (supabase.from('images') as any)
               .select('id, url')
               .in('id', imageIds)
-            
+
             if (images && images.length > 0) {
               // Create map of image_id to url
               const imageIdToUrl = new Map(images.map((img: any) => [img.id, img.url]))
-              
+
               // Map user_id to avatar_url
               profiles.forEach((profile: any) => {
                 if (profile.avatar_image_id && imageIdToUrl.has(profile.avatar_image_id)) {
                   const avatarUrl = imageIdToUrl.get(profile.avatar_image_id)
-                  userIdToAvatar[profile.user_id] = (typeof avatarUrl === 'string' ? avatarUrl : null)
+                  userIdToAvatar[profile.user_id] = typeof avatarUrl === 'string' ? avatarUrl : null
                 }
               })
             }
@@ -159,13 +157,14 @@ export async function GET(request: NextRequest) {
       engagement_score: row.engagement_score ?? 0,
       metadata: row.metadata ?? {},
       user_reaction_type: userReactionByActivity[row.id] || null,
-      is_liked: !!userReactionByActivity[row.id]
+      is_liked: !!userReactionByActivity[row.id],
     }))
 
-    return NextResponse.json({ activities, pagination: { limit, offset, count: activities.length } })
+    return NextResponse.json({
+      activities,
+      pagination: { limit, offset, count: activities.length },
+    })
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
-
-

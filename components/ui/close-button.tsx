@@ -13,18 +13,18 @@ export function CloseButton({
   onClick,
   className = '',
   size = 'md',
-  variant = 'primary'
+  variant = 'primary',
 }: CloseButtonProps) {
   const sizeClasses = {
     sm: 'w-4 h-4',
     md: 'w-5 h-5',
-    lg: 'w-6 h-6'
+    lg: 'w-6 h-6',
   }
 
   const variantClasses = {
     default: 'bg-gray-100 hover:bg-gray-200 text-gray-600',
     primary: 'bg-primary hover:bg-[#40A3D8] text-primary-foreground',
-    ghost: 'bg-transparent hover:bg-gray-100 text-gray-500'
+    ghost: 'bg-transparent hover:bg-gray-100 text-gray-500',
   }
 
   return (
@@ -43,4 +43,4 @@ export function CloseButton({
       <X className={cn(sizeClasses[size], 'transition-transform')} />
     </button>
   )
-} 
+}

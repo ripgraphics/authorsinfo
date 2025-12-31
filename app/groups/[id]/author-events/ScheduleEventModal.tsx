@@ -1,99 +1,102 @@
-import { useState } from 'react';
-import { createClient } from '@/lib/supabase-client';
-import { toast } from 'react-hot-toast';
+import { useState } from 'react'
+import { createClient } from '@/lib/supabase-client'
+import { toast } from 'react-hot-toast'
 
 interface Props {
-  isOpen: boolean;
-  onClose: () => void;
-  groupId: string;
+  isOpen: boolean
+  onClose: () => void
+  groupId: string
 }
 
 export default function ScheduleEventModal({ isOpen, onClose, groupId }: Props) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [selectedAuthor, setSelectedAuthor] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+  const [selectedAuthor, setSelectedAuthor] = useState<any>(null)
   const [eventDetails, setEventDetails] = useState({
     title: '',
     description: '',
     start_date: '',
     end_date: '',
     format: 'virtual',
-    virtual_meeting_url: ''
-  });
-  const supabase = createClient();
+    virtual_meeting_url: '',
+  })
+  const supabase = createClient()
 
   const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
+    if (!searchQuery.trim()) return
 
-    setIsSearching(true);
+    setIsSearching(true)
     const { data, error } = await supabase
       .from('authors')
       .select('id, name, bio, author_image_id')
       .ilike('name', `%${searchQuery}%`)
-      .limit(10);
+      .limit(10)
 
     if (error) {
-      toast.error('Failed to search authors');
-      return;
+      toast.error('Failed to search authors')
+      return
     }
 
-    setSearchResults(data || []);
-    setIsSearching(false);
-  };
+    setSearchResults(data || [])
+    setIsSearching(false)
+  }
 
   const handleScheduleEvent = async () => {
-    if (!selectedAuthor || !eventDetails.title || !eventDetails.start_date || !eventDetails.end_date) {
-      toast.error('Please fill in all required fields');
-      return;
+    if (
+      !selectedAuthor ||
+      !eventDetails.title ||
+      !eventDetails.start_date ||
+      !eventDetails.end_date
+    ) {
+      toast.error('Please fill in all required fields')
+      return
     }
 
     // First create the event
-    const { data: event, error: eventError } = await (supabase
-      .from('events') as any)
-      .insert([{
-        ...eventDetails,
-        status: 'upcoming',
-        group_id: groupId
-      }])
+    const { data: event, error: eventError } = await (supabase.from('events') as any)
+      .insert([
+        {
+          ...eventDetails,
+          status: 'upcoming',
+          group_id: groupId,
+        },
+      ])
       .select()
-      .single();
+      .single()
 
     if (eventError) {
-      toast.error('Failed to create event');
-      return;
+      toast.error('Failed to create event')
+      return
     }
 
     // Then create the author event association
-    const { error: authorEventError } = await (supabase
-      .from('group_author_events') as any)
-      .insert([{
+    const { error: authorEventError } = await (supabase.from('group_author_events') as any).insert([
+      {
         group_id: groupId,
         author_id: selectedAuthor.id,
         event_id: event.id,
-        scheduled_at: eventDetails.start_date
-      }]);
+        scheduled_at: eventDetails.start_date,
+      },
+    ])
 
     if (authorEventError) {
-      toast.error('Failed to schedule author event');
-      return;
+      toast.error('Failed to schedule author event')
+      return
     }
 
-    toast.success('Author event scheduled successfully');
-    onClose();
-  };
+    toast.success('Author event scheduled successfully')
+    onClose()
+  }
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Schedule Author Event</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
             ✕
           </button>
         </div>
@@ -144,13 +147,15 @@ export default function ScheduleEventModal({ isOpen, onClose, groupId }: Props) 
               <input
                 type="text"
                 value={eventDetails.title}
-                onChange={(e) => setEventDetails(prev => ({ ...prev, title: e.target.value }))}
+                onChange={(e) => setEventDetails((prev) => ({ ...prev, title: e.target.value }))}
                 placeholder="Event Title"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <textarea
                 value={eventDetails.description}
-                onChange={(e) => setEventDetails(prev => ({ ...prev, description: e.target.value }))}
+                onChange={(e) =>
+                  setEventDetails((prev) => ({ ...prev, description: e.target.value }))
+                }
                 placeholder="Event Description"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 rows={3}
@@ -161,7 +166,9 @@ export default function ScheduleEventModal({ isOpen, onClose, groupId }: Props) 
                   <input
                     type="datetime-local"
                     value={eventDetails.start_date}
-                    onChange={(e) => setEventDetails(prev => ({ ...prev, start_date: e.target.value }))}
+                    onChange={(e) =>
+                      setEventDetails((prev) => ({ ...prev, start_date: e.target.value }))
+                    }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -170,14 +177,16 @@ export default function ScheduleEventModal({ isOpen, onClose, groupId }: Props) 
                   <input
                     type="datetime-local"
                     value={eventDetails.end_date}
-                    onChange={(e) => setEventDetails(prev => ({ ...prev, end_date: e.target.value }))}
+                    onChange={(e) =>
+                      setEventDetails((prev) => ({ ...prev, end_date: e.target.value }))
+                    }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
               <select
                 value={eventDetails.format}
-                onChange={(e) => setEventDetails(prev => ({ ...prev, format: e.target.value }))}
+                onChange={(e) => setEventDetails((prev) => ({ ...prev, format: e.target.value }))}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="virtual">Virtual</option>
@@ -188,7 +197,9 @@ export default function ScheduleEventModal({ isOpen, onClose, groupId }: Props) 
                 <input
                   type="url"
                   value={eventDetails.virtual_meeting_url}
-                  onChange={(e) => setEventDetails(prev => ({ ...prev, virtual_meeting_url: e.target.value }))}
+                  onChange={(e) =>
+                    setEventDetails((prev) => ({ ...prev, virtual_meeting_url: e.target.value }))
+                  }
                   placeholder="Virtual Meeting URL"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
@@ -213,5 +224,5 @@ export default function ScheduleEventModal({ isOpen, onClose, groupId }: Props) 
         </div>
       </div>
     </div>
-  );
-} 
+  )
+}

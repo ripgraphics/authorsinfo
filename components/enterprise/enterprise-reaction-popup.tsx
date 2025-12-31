@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { 
+import {
   ThumbsUp,
   Heart,
   Smile,
@@ -13,7 +13,7 @@ import {
   MessageSquare,
   X,
   ChevronDown,
-  TrendingUp
+  TrendingUp,
 } from 'lucide-react'
 import { useEngagement, ReactionType, EntityType } from '@/contexts/engagement-context'
 import { useToast } from '@/hooks/use-toast'
@@ -72,7 +72,7 @@ const REACTION_OPTIONS: ReactionOption[] = [
     hoverBgColor: 'hover:bg-blue-100',
     description: 'Show appreciation',
     emoji: '👍',
-    popularity: 85
+    popularity: 85,
   },
   {
     type: 'love',
@@ -84,7 +84,7 @@ const REACTION_OPTIONS: ReactionOption[] = [
     hoverBgColor: 'hover:bg-red-100',
     description: 'Express love and affection',
     emoji: '❤️',
-    popularity: 78
+    popularity: 78,
   },
   {
     type: 'care',
@@ -96,7 +96,7 @@ const REACTION_OPTIONS: ReactionOption[] = [
     hoverBgColor: 'hover:bg-yellow-100',
     description: 'Show care and support',
     emoji: '🤗',
-    popularity: 65
+    popularity: 65,
   },
   {
     type: 'haha',
@@ -108,7 +108,7 @@ const REACTION_OPTIONS: ReactionOption[] = [
     hoverBgColor: 'hover:bg-yellow-100',
     description: 'Find it funny',
     emoji: '😂',
-    popularity: 72
+    popularity: 72,
   },
   {
     type: 'wow',
@@ -120,7 +120,7 @@ const REACTION_OPTIONS: ReactionOption[] = [
     hoverBgColor: 'hover:bg-purple-100',
     description: 'Be amazed',
     emoji: '😮',
-    popularity: 58
+    popularity: 58,
   },
   {
     type: 'sad',
@@ -132,7 +132,7 @@ const REACTION_OPTIONS: ReactionOption[] = [
     hoverBgColor: 'hover:bg-blue-100',
     description: 'Feel sad about it',
     emoji: '😢',
-    popularity: 45
+    popularity: 45,
   },
   {
     type: 'angry',
@@ -144,8 +144,8 @@ const REACTION_OPTIONS: ReactionOption[] = [
     hoverBgColor: 'hover:bg-red-100',
     description: 'Feel angry about it',
     emoji: '😠',
-    popularity: 32
-  }
+    popularity: 32,
+  },
 ]
 
 // ============================================================================
@@ -168,51 +168,55 @@ export function EnterpriseReactionPopup({
   autoPosition = true,
   theme = 'auto',
   size = 'md',
-  animation = 'fade'
+  animation = 'fade',
 }: ReactionPopupProps) {
   const { user } = useAuth()
   const { toast } = useToast()
   const { setReaction, getEngagement } = useEngagement()
-  
+
   // State management
   const [hoveredReaction, setHoveredReaction] = useState<ReactionType | null>(null)
   const [selectedReaction, setSelectedReaction] = useState<ReactionType | null>(currentReaction)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [popupPosition, setPopupPosition] = useState(position)
-  const [reactionCounts, setReactionCounts] = useState<Record<ReactionType, number>>({} as Record<ReactionType, number>)
+  const [reactionCounts, setReactionCounts] = useState<Record<ReactionType, number>>(
+    {} as Record<ReactionType, number>
+  )
   const [showAdvanced, setShowAdvanced] = useState(false)
-  
+
   // Refs
   const popupRef = useRef<HTMLDivElement>(null)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
-  
+
   // ============================================================================
   // EFFECTS AND INITIALIZATION
   // ============================================================================
-  
+
   useEffect(() => {
     if (isVisible && showReactionCounts) {
       fetchReactionCounts()
     }
   }, [isVisible, showReactionCounts, entityId, entityType])
-  
+
   useEffect(() => {
     setSelectedReaction(currentReaction)
   }, [currentReaction])
-  
+
   useEffect(() => {
     if (autoPosition && triggerRef?.current && isVisible) {
       calculateOptimalPosition()
     }
   }, [isVisible, autoPosition, triggerRef])
-  
+
   // ============================================================================
   // UTILITY FUNCTIONS
   // ============================================================================
-  
+
   const fetchReactionCounts = useCallback(async () => {
     try {
-      const response = await fetch(`/api/engagement/reactions/counts?entity_id=${entityId}&entity_type=${entityType}`)
+      const response = await fetch(
+        `/api/engagement/reactions/counts?entity_id=${entityId}&entity_type=${entityType}`
+      )
       if (response.ok) {
         const data = await response.json()
         setReactionCounts(data.counts || {})
@@ -221,23 +225,23 @@ export function EnterpriseReactionPopup({
       console.error('Error fetching reaction counts:', error)
     }
   }, [entityId, entityType])
-  
+
   const calculateOptimalPosition = useCallback(() => {
     if (!triggerRef?.current || !popupRef.current) return
-    
+
     const triggerRect = triggerRef.current.getBoundingClientRect()
     const viewportWidth = window.innerWidth
     const viewportHeight = window.innerHeight
-    
+
     // Calculate available space in each direction
     const spaceBelow = viewportHeight - triggerRect.bottom
     const spaceAbove = triggerRect.top
     const spaceRight = viewportWidth - triggerRect.right
     const spaceLeft = triggerRect.left
-    
+
     // Determine optimal position
     let optimalPosition = position
-    
+
     if (spaceBelow < 120 && spaceAbove > 120) {
       optimalPosition = 'top'
     } else if (spaceRight < 400 && spaceLeft > 400) {
@@ -247,13 +251,13 @@ export function EnterpriseReactionPopup({
     } else {
       optimalPosition = 'bottom'
     }
-    
+
     setPopupPosition(optimalPosition)
   }, [position, triggerRef])
-  
+
   const getPositionClasses = useCallback(() => {
-    const baseClasses = "absolute z-50"
-    
+    const baseClasses = 'absolute z-50'
+
     switch (popupPosition) {
       case 'top':
         return `${baseClasses} bottom-full mb-2 left-1/2 transform -translate-x-1/2`
@@ -267,7 +271,7 @@ export function EnterpriseReactionPopup({
         return `${baseClasses} top-full mt-2 left-1/2 transform -translate-x-1/2`
     }
   }, [popupPosition])
-  
+
   const getSizeClasses = useCallback(() => {
     switch (size) {
       case 'sm':
@@ -278,10 +282,10 @@ export function EnterpriseReactionPopup({
         return 'p-3 gap-1.5'
     }
   }, [size])
-  
+
   const getAnimationClasses = useCallback(() => {
-    const baseClasses = "transition-all duration-200 ease-out"
-    
+    const baseClasses = 'transition-all duration-200 ease-out'
+
     switch (animation) {
       case 'slide':
         return `${baseClasses} transform`
@@ -293,181 +297,196 @@ export function EnterpriseReactionPopup({
         return `${baseClasses} opacity-0 hover:opacity-100`
     }
   }, [animation])
-  
+
   // ============================================================================
   // EVENT HANDLERS
   // ============================================================================
-  
-  const handleReactionClick = useCallback(async (reactionType: ReactionType) => {
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please log in to react to content",
-        variant: "destructive"
-      })
-      return
-    }
-    
-    if (isSubmitting) return
-    
-    setIsSubmitting(true)
-    
-    try {
-      const success = await setReaction(entityId, entityType, reactionType)
-      
-      if (success) {
-        const newReaction = selectedReaction === reactionType ? null : reactionType
-        setSelectedReaction(newReaction)
-        
-        if (onReactionChange) {
-          onReactionChange(newReaction)
-        }
-        
-        // Update local counts
-        if (newReaction) {
-          setReactionCounts(prev => ({
-            ...prev,
-            [reactionType]: (prev[reactionType] || 0) + 1
-          }))
-        } else {
-          setReactionCounts(prev => ({
-            ...prev,
-            [reactionType]: Math.max(0, (prev[reactionType] || 0) - 1)
-          }))
-        }
-        
-        // Auto-close after successful reaction
-        if (newReaction) {
-          timeoutRef.current = setTimeout(() => {
-            onClose()
-          }, 1000)
-        }
+
+  const handleReactionClick = useCallback(
+    async (reactionType: ReactionType) => {
+      if (!user) {
+        toast({
+          title: 'Authentication required',
+          description: 'Please log in to react to content',
+          variant: 'destructive',
+        })
+        return
       }
-    } catch (error) {
-      console.error('Error setting reaction:', error)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }, [user, entityId, entityType, selectedReaction, isSubmitting, setReaction, onReactionChange, onClose, toast])
-  
+
+      if (isSubmitting) return
+
+      setIsSubmitting(true)
+
+      try {
+        const success = await setReaction(entityId, entityType, reactionType)
+
+        if (success) {
+          const newReaction = selectedReaction === reactionType ? null : reactionType
+          setSelectedReaction(newReaction)
+
+          if (onReactionChange) {
+            onReactionChange(newReaction)
+          }
+
+          // Update local counts
+          if (newReaction) {
+            setReactionCounts((prev) => ({
+              ...prev,
+              [reactionType]: (prev[reactionType] || 0) + 1,
+            }))
+          } else {
+            setReactionCounts((prev) => ({
+              ...prev,
+              [reactionType]: Math.max(0, (prev[reactionType] || 0) - 1),
+            }))
+          }
+
+          // Auto-close after successful reaction
+          if (newReaction) {
+            timeoutRef.current = setTimeout(() => {
+              onClose()
+            }, 1000)
+          }
+        }
+      } catch (error) {
+        console.error('Error setting reaction:', error)
+      } finally {
+        setIsSubmitting(false)
+      }
+    },
+    [
+      user,
+      entityId,
+      entityType,
+      selectedReaction,
+      isSubmitting,
+      setReaction,
+      onReactionChange,
+      onClose,
+      toast,
+    ]
+  )
+
   const handleMouseEnter = useCallback((reactionType: ReactionType) => {
     setHoveredReaction(reactionType)
-    
+
     // Clear auto-close timeout
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current)
     }
   }, [])
-  
+
   const handleMouseLeave = useCallback(() => {
     setHoveredReaction(null)
   }, [])
-  
+
   const handleClose = useCallback(() => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current)
     }
     onClose()
   }, [onClose])
-  
+
   // ============================================================================
   // RENDER FUNCTIONS
   // ============================================================================
-  
-  const renderReactionButton = useCallback((reaction: ReactionOption) => {
-    const isCurrentReaction = selectedReaction === reaction.type
-    const isHovered = hoveredReaction === reaction.type
-    const count = reactionCounts[reaction.type] || 0
-    
-    return (
-      <Tooltip key={reaction.type}>
-        <TooltipTrigger asChild>
-          <div
-            className="relative group"
-            onMouseEnter={() => handleMouseEnter(reaction.type)}
-            onMouseLeave={handleMouseLeave}
-          >
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleReactionClick(reaction.type)}
-              disabled={isSubmitting}
-              className={cn(
-                "relative w-12 h-12 p-0 rounded-full transition-all duration-200 ease-out",
-                "flex flex-col items-center justify-center gap-1",
-                "transform hover:scale-110 active:scale-95",
-                isCurrentReaction 
-                  ? `${reaction.color} ${reaction.bgColor} shadow-md` 
-                  : "text-gray-600 hover:text-gray-800",
-                isHovered && !isCurrentReaction && `${reaction.hoverColor} ${reaction.hoverBgColor}`,
-                getAnimationClasses()
-              )}
+
+  const renderReactionButton = useCallback(
+    (reaction: ReactionOption) => {
+      const isCurrentReaction = selectedReaction === reaction.type
+      const isHovered = hoveredReaction === reaction.type
+      const count = reactionCounts[reaction.type] || 0
+
+      return (
+        <Tooltip key={reaction.type}>
+          <TooltipTrigger asChild>
+            <div
+              className="relative group"
+              onMouseEnter={() => handleMouseEnter(reaction.type)}
+              onMouseLeave={handleMouseLeave}
             >
-              {/* Reaction Icon */}
-              <div className="text-lg">
-                {reaction.emoji}
-              </div>
-              
-              {/* Reaction Count (if enabled) */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleReactionClick(reaction.type)}
+                disabled={isSubmitting}
+                className={cn(
+                  'relative w-12 h-12 p-0 rounded-full transition-all duration-200 ease-out',
+                  'flex flex-col items-center justify-center gap-1',
+                  'transform hover:scale-110 active:scale-95',
+                  isCurrentReaction
+                    ? `${reaction.color} ${reaction.bgColor} shadow-md`
+                    : 'text-gray-600 hover:text-gray-800',
+                  isHovered &&
+                    !isCurrentReaction &&
+                    `${reaction.hoverColor} ${reaction.hoverBgColor}`,
+                  getAnimationClasses()
+                )}
+              >
+                {/* Reaction Icon */}
+                <div className="text-lg">{reaction.emoji}</div>
+
+                {/* Reaction Count (if enabled) */}
+                {showReactionCounts && count > 0 && (
+                  <Badge
+                    variant="secondary"
+                    className={cn(
+                      'absolute -top-1 -right-1 h-5 min-w-[20px] px-1 text-xs',
+                      'bg-white border border-gray-200 text-gray-700'
+                    )}
+                  >
+                    {count > 99 ? '99+' : count}
+                  </Badge>
+                )}
+
+                {/* Selection Indicator */}
+                {isCurrentReaction && (
+                  <div
+                    className={cn(
+                      'absolute inset-0 rounded-full border-2',
+                      'border-current opacity-20'
+                    )}
+                  />
+                )}
+              </Button>
+            </div>
+          </TooltipTrigger>
+
+          <TooltipContent side={popupPosition === 'top' ? 'bottom' : 'top'} className="max-w-xs">
+            <div className="text-center">
+              <div className="font-semibold text-sm">{reaction.label}</div>
+              <div className="text-xs text-gray-500">{reaction.description}</div>
               {showReactionCounts && count > 0 && (
-                <Badge 
-                  variant="secondary" 
-                  className={cn(
-                    "absolute -top-1 -right-1 h-5 min-w-[20px] px-1 text-xs",
-                    "bg-white border border-gray-200 text-gray-700"
-                  )}
-                >
-                  {count > 99 ? '99+' : count}
-                </Badge>
+                <div className="text-xs text-gray-400 mt-1">
+                  {count} {count === 1 ? 'person' : 'people'} reacted
+                </div>
               )}
-              
-              {/* Selection Indicator */}
-              {isCurrentReaction && (
-                <div className={cn(
-                  "absolute inset-0 rounded-full border-2",
-                  "border-current opacity-20"
-                )} />
-              )}
-            </Button>
-          </div>
-        </TooltipTrigger>
-        
-        <TooltipContent 
-          side={popupPosition === 'top' ? 'bottom' : 'top'}
-          className="max-w-xs"
-        >
-          <div className="text-center">
-            <div className="font-semibold text-sm">{reaction.label}</div>
-            <div className="text-xs text-gray-500">{reaction.description}</div>
-            {showReactionCounts && count > 0 && (
-              <div className="text-xs text-gray-400 mt-1">
-                {count} {count === 1 ? 'person' : 'people'} reacted
-              </div>
-            )}
-          </div>
-        </TooltipContent>
-      </Tooltip>
-    )
-  }, [
-    selectedReaction, 
-    hoveredReaction, 
-    reactionCounts, 
-    isSubmitting, 
-    showReactionCounts, 
-    popupPosition,
-    handleReactionClick, 
-    handleMouseEnter, 
-    handleMouseLeave, 
-    getAnimationClasses
-  ])
-  
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      )
+    },
+    [
+      selectedReaction,
+      hoveredReaction,
+      reactionCounts,
+      isSubmitting,
+      showReactionCounts,
+      popupPosition,
+      handleReactionClick,
+      handleMouseEnter,
+      handleMouseLeave,
+      getAnimationClasses,
+    ]
+  )
+
   const renderQuickReactions = useCallback(() => {
     if (!showQuickReactions) return null
-    
-    const quickReactions = REACTION_OPTIONS
-      .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
-      .slice(0, maxQuickReactions)
-    
+
+    const quickReactions = REACTION_OPTIONS.sort(
+      (a, b) => (b.popularity || 0) - (a.popularity || 0)
+    ).slice(0, maxQuickReactions)
+
     return (
       <div className="flex items-center gap-1 mb-2">
         {quickReactions.map((reaction) => (
@@ -478,53 +497,55 @@ export function EnterpriseReactionPopup({
             onClick={() => handleReactionClick(reaction.type)}
             disabled={isSubmitting}
             className={cn(
-              "w-8 h-8 p-0 rounded-full text-sm transition-all duration-200",
-              "hover:scale-110 active:scale-95",
-              selectedReaction === reaction.type 
-                ? `${reaction.color} ${reaction.bgColor}` 
-                : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+              'w-8 h-8 p-0 rounded-full text-sm transition-all duration-200',
+              'hover:scale-110 active:scale-95',
+              selectedReaction === reaction.type
+                ? `${reaction.color} ${reaction.bgColor}`
+                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
             )}
           >
             {reaction.emoji}
           </Button>
         ))}
-        
+
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setShowAdvanced(!showAdvanced)}
           className="w-8 h-8 p-0 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100"
         >
-          <ChevronDown className={cn(
-            "h-4 w-4 transition-transform duration-200",
-            showAdvanced && "rotate-180"
-          )} />
+          <ChevronDown
+            className={cn(
+              'h-4 w-4 transition-transform duration-200',
+              showAdvanced && 'rotate-180'
+            )}
+          />
         </Button>
       </div>
     )
   }, [
-    showQuickReactions, 
-    maxQuickReactions, 
-    selectedReaction, 
-    isSubmitting, 
-    showAdvanced, 
-    handleReactionClick
+    showQuickReactions,
+    maxQuickReactions,
+    selectedReaction,
+    isSubmitting,
+    showAdvanced,
+    handleReactionClick,
   ])
-  
+
   // ============================================================================
   // MAIN RENDER
   // ============================================================================
-  
+
   if (!isVisible) return null
-  
+
   return (
     <TooltipProvider>
       <div className="fixed inset-0 z-50" onClick={handleClose}>
-        <div 
+        <div
           ref={popupRef}
           className={cn(
-            "bg-white rounded-2xl shadow-2xl border border-gray-200",
-            "backdrop-blur-xs bg-white/95",
+            'bg-white rounded-2xl shadow-2xl border border-gray-200',
+            'backdrop-blur-xs bg-white/95',
             getPositionClasses(),
             getSizeClasses(),
             getAnimationClasses(),
@@ -535,9 +556,7 @@ export function EnterpriseReactionPopup({
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-gray-700">
-              React to this {entityType}
-            </h3>
+            <h3 className="text-sm font-semibold text-gray-700">React to this {entityType}</h3>
             <Button
               variant="ghost"
               size="sm"
@@ -547,17 +566,17 @@ export function EnterpriseReactionPopup({
               <X className="h-4 w-4" />
             </Button>
           </div>
-          
+
           {/* Quick Reactions */}
           {renderQuickReactions()}
-          
+
           {/* Full Reaction Grid */}
           {showAdvanced && (
             <div className="grid grid-cols-4 gap-2">
               {REACTION_OPTIONS.map(renderReactionButton)}
             </div>
           )}
-          
+
           {/* Footer */}
           <div className="mt-3 pt-2 border-t border-gray-100">
             <div className="text-xs text-gray-500 text-center">
@@ -580,7 +599,7 @@ export function QuickReactionButton({
   reactionType,
   className,
   showCount = true,
-  size = 'sm'
+  size = 'sm',
 }: {
   entityId: string
   entityType: EntityType
@@ -592,53 +611,53 @@ export function QuickReactionButton({
   const { setReaction, getEngagement } = useEngagement()
   const { user } = useAuth()
   const { toast } = useToast()
-  
+
   const engagement = getEngagement(entityId, entityType)
   const isSelected = engagement?.userReaction === reactionType
   const count = engagement?.reactionCount || 0
-  
+
   const handleClick = async () => {
     if (!user) {
       toast({
-        title: "Authentication required",
-        description: "Please log in to react to content",
-        variant: "destructive"
+        title: 'Authentication required',
+        description: 'Please log in to react to content',
+        variant: 'destructive',
       })
       return
     }
-    
+
     await setReaction(entityId, entityType, reactionType)
   }
-  
-  const reaction = REACTION_OPTIONS.find(r => r.type === reactionType)
+
+  const reaction = REACTION_OPTIONS.find((r) => r.type === reactionType)
   if (!reaction) return null
-  
+
   const sizeClasses = {
     sm: 'w-8 h-8 text-sm',
     md: 'w-10 h-10 text-base',
-    lg: 'w-12 h-12 text-lg'
+    lg: 'w-12 h-12 text-lg',
   }
-  
+
   return (
     <Button
       variant="ghost"
       size="sm"
       onClick={handleClick}
       className={cn(
-        "relative rounded-full transition-all duration-200",
-        "hover:scale-110 active:scale-95",
+        'relative rounded-full transition-all duration-200',
+        'hover:scale-110 active:scale-95',
         sizeClasses[size],
-        isSelected 
-          ? `${reaction.color} ${reaction.bgColor} shadow-md` 
-          : "text-gray-500 hover:text-gray-700 hover:bg-gray-100",
+        isSelected
+          ? `${reaction.color} ${reaction.bgColor} shadow-md`
+          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
         className
       )}
     >
       {reaction.emoji}
-      
+
       {showCount && count > 0 && (
-        <Badge 
-          variant="secondary" 
+        <Badge
+          variant="secondary"
           className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1 text-xs bg-white border border-gray-200 text-gray-700"
         >
           {count > 99 ? '99+' : count}
@@ -652,7 +671,7 @@ export function ReactionSummary({
   entityId,
   entityType,
   className,
-  maxReactions = 5
+  maxReactions = 5,
 }: {
   entityId: string
   entityType: EntityType
@@ -661,12 +680,16 @@ export function ReactionSummary({
 }) {
   const { getEngagement } = useEngagement()
   const engagement = getEngagement(entityId, entityType)
-  const [reactionCounts, setReactionCounts] = useState<Record<ReactionType, number>>({} as Record<ReactionType, number>)
-  
+  const [reactionCounts, setReactionCounts] = useState<Record<ReactionType, number>>(
+    {} as Record<ReactionType, number>
+  )
+
   useEffect(() => {
     const fetchCounts = async () => {
       try {
-        const response = await fetch(`/api/engagement/reactions/counts?entity_id=${entityId}&entity_type=${entityType}`)
+        const response = await fetch(
+          `/api/engagement/reactions/counts?entity_id=${entityId}&entity_type=${entityType}`
+        )
         if (response.ok) {
           const data = await response.json()
           setReactionCounts(data.counts || {})
@@ -677,22 +700,22 @@ export function ReactionSummary({
     }
     fetchCounts()
   }, [entityId, entityType])
-  
+
   if (!engagement || engagement.reactionCount === 0) return null
-  
+
   const topReactions = Object.entries(reactionCounts || {})
     .filter(([_, count]) => count > 0)
     .sort(([_, a], [__, b]) => (b as number) - (a as number))
     .slice(0, maxReactions)
-  
+
   if (topReactions.length === 0) return null
-  
+
   return (
-    <div className={cn("flex items-center gap-1", className)}>
+    <div className={cn('flex items-center gap-1', className)}>
       {topReactions.map(([reactionType, count]) => {
-        const reaction = REACTION_OPTIONS.find(r => r.type === reactionType as ReactionType)
+        const reaction = REACTION_OPTIONS.find((r) => r.type === (reactionType as ReactionType))
         if (!reaction) return null
-        
+
         return (
           <div key={reactionType} className="flex items-center gap-1">
             <span className="text-sm">{reaction.emoji}</span>
@@ -700,7 +723,7 @@ export function ReactionSummary({
           </div>
         )
       })}
-      
+
       {engagement.reactionCount > maxReactions && (
         <span className="text-xs text-gray-500">
           +{engagement.reactionCount - maxReactions} more

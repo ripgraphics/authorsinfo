@@ -182,16 +182,16 @@ export interface BookDetails {
 // Enums
 export type PostVisibility = 'public' | 'friends' | 'private' | 'group' | 'custom'
 
-export type PostContentType = 
-  | 'text' 
-  | 'image' 
-  | 'video' 
-  | 'audio' 
-  | 'link' 
-  | 'poll' 
-  | 'event' 
-  | 'book' 
-  | 'author' 
+export type PostContentType =
+  | 'text'
+  | 'image'
+  | 'video'
+  | 'audio'
+  | 'link'
+  | 'poll'
+  | 'event'
+  | 'book'
+  | 'author'
   | 'mixed'
 
 export type PostPublishStatus = 'draft' | 'scheduled' | 'published' | 'archived' | 'deleted'
@@ -315,33 +315,30 @@ export type EntityId = string
 
 // Type Guards
 export function isPost(obj: any): obj is Post {
-  return obj && 
-         typeof obj.id === 'string' && 
-         typeof obj.user_id === 'string' && 
-         obj.content && 
-         typeof obj.content.text === 'string'
+  return (
+    obj &&
+    typeof obj.id === 'string' &&
+    typeof obj.user_id === 'string' &&
+    obj.content &&
+    typeof obj.content.text === 'string'
+  )
 }
 
 export function isActivityPost(obj: any): obj is ActivityPost {
-  return obj && 
-         obj.activity_type === 'post_created' && 
-         typeof obj.text === 'string'
+  return obj && obj.activity_type === 'post_created' && typeof obj.text === 'string'
 }
 
 export function canEditPost(post: Post, currentUserId: string): boolean {
-  return post.user_id === currentUserId && 
-         post.publish_status !== 'deleted' && 
-         !post.is_hidden
+  return post.user_id === currentUserId && post.publish_status !== 'deleted' && !post.is_hidden
 }
 
 export function canDeletePost(post: Post, currentUserId: string): boolean {
-  return post.user_id === currentUserId && 
-         post.publish_status !== 'deleted'
+  return post.user_id === currentUserId && post.publish_status !== 'deleted'
 }
 
 export function isPostVisible(post: Post, currentUserId: string, isFriend: boolean): boolean {
   if (post.is_hidden || post.is_deleted) return false
-  
+
   switch (post.visibility) {
     case 'public':
       return true

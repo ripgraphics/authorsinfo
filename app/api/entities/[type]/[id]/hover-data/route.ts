@@ -10,7 +10,10 @@ export async function GET(
     const supabase = createClient()
 
     // Get the current user for authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -22,7 +25,8 @@ export async function GET(
         // Fetch user data with friends, followers, and books read
         const { data: userData, error: userError } = await supabase
           .from('profiles')
-          .select(`
+          .select(
+            `
             id,
             username,
             full_name,
@@ -31,7 +35,8 @@ export async function GET(
             bio,
             location,
             website
-          `)
+          `
+          )
           .eq('id', id)
           .single()
 
@@ -65,7 +70,7 @@ export async function GET(
           ...userData,
           friend_count: friendsCount || 0,
           followers_count: followersCount || 0,
-          books_read_count: booksReadCount || 0
+          books_read_count: booksReadCount || 0,
         }
         break
 
@@ -73,13 +78,15 @@ export async function GET(
         // Fetch author data
         const { data: authorData, error: authorError } = await supabase
           .from('authors')
-          .select(`
+          .select(
+            `
             id,
             name,
             author_image,
             bio,
             created_at
-          `)
+          `
+          )
           .eq('id', id)
           .single()
 
@@ -96,7 +103,7 @@ export async function GET(
 
         entityData = {
           ...authorData,
-          bookCount: bookCount || 0
+          bookCount: bookCount || 0,
         }
         break
 
@@ -104,14 +111,16 @@ export async function GET(
         // Fetch publisher data
         const { data: publisherData, error: publisherError } = await supabase
           .from('publishers')
-          .select(`
+          .select(
+            `
             id,
             name,
             publisher_image,
             logo_url,
             location,
             created_at
-          `)
+          `
+          )
           .eq('id', id)
           .single()
 
@@ -128,7 +137,7 @@ export async function GET(
 
         entityData = {
           ...publisherData,
-          bookCount: pubBookCount || 0
+          bookCount: pubBookCount || 0,
         }
         break
 
@@ -136,13 +145,15 @@ export async function GET(
         // Fetch group data
         const { data: groupData, error: groupError } = await supabase
           .from('groups')
-          .select(`
+          .select(
+            `
             id,
             name,
             group_image,
             description,
             created_at
-          `)
+          `
+          )
           .eq('id', id)
           .single()
 
@@ -160,7 +171,7 @@ export async function GET(
 
         entityData = {
           ...groupData,
-          member_count: memberCount || 0
+          member_count: memberCount || 0,
         }
         break
 
@@ -169,7 +180,6 @@ export async function GET(
     }
 
     return NextResponse.json({ data: entityData })
-
   } catch (error) {
     console.error('Error fetching entity hover data:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

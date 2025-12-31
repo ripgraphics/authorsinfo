@@ -9,16 +9,19 @@ export async function GET(request: NextRequest) {
     // Check environment variables
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
       console.error('❌ Missing NEXT_PUBLIC_SUPABASE_URL environment variable')
-      return NextResponse.json({ 
-        error: 'Missing Supabase configuration',
-        details: 'NEXT_PUBLIC_SUPABASE_URL not set'
-      }, { status: 500 })
+      return NextResponse.json(
+        {
+          error: 'Missing Supabase configuration',
+          details: 'NEXT_PUBLIC_SUPABASE_URL not set',
+        },
+        { status: 500 }
+      )
     }
 
     // Get the current user - use getUser() to authenticate with Supabase Auth server
     let user = null
     let userError = null
-    
+
     try {
       const result = await supabase.auth.getUser()
       user = result.data?.user || null
@@ -28,26 +31,34 @@ export async function GET(request: NextRequest) {
       console.warn('Unexpected error calling getUser():', error)
       userError = error as any
     }
-    
+
     // If there's an error OR no user, return 401 (not logged in)
     // Network errors and auth errors should both return 401, not 500
     if (userError || !user) {
       // Don't log as error unless it's a clear server/database issue
-      if (userError && !userError.message?.includes('session') && !userError.message?.includes('JWT') && !userError.message?.includes('token') && !userError.message?.includes('fetch failed')) {
+      if (
+        userError &&
+        !userError.message?.includes('session') &&
+        !userError.message?.includes('JWT') &&
+        !userError.message?.includes('token') &&
+        !userError.message?.includes('fetch failed')
+      ) {
         console.warn('Auth check issue (returning 401):', userError)
       }
-      return NextResponse.json({ 
-        error: 'Unauthorized - No authenticated user',
-        requests: []
-      }, { status: 401 })
+      return NextResponse.json(
+        {
+          error: 'Unauthorized - No authenticated user',
+          requests: [],
+        },
+        { status: 401 }
+      )
     }
-
-    
 
     // Get pending friend requests where the current user is the recipient
     const { data: pendingRequests, error } = await supabase
       .from('user_friends')
-      .select(`
+      .select(
+        `
         id,
         user_id,
         friend_id,
@@ -55,17 +66,21 @@ export async function GET(request: NextRequest) {
         status,
         requested_at,
         responded_at
-      `)
+      `
+      )
       .eq('friend_id', user.id)
       .eq('status', 'pending')
       .order('requested_at', { ascending: false })
 
     if (error) {
       console.error('❌ Error fetching pending requests:', error)
-      return NextResponse.json({ 
-        error: 'Failed to fetch pending requests',
-        details: error.message
-      }, { status: 500 })
+      return NextResponse.json(
+        {
+          error: 'Failed to fetch pending requests',
+          details: error.message,
+        },
+        { status: 500 }
+      )
     }
 
     // Get user details for each request
@@ -79,15 +94,14 @@ export async function GET(request: NextRequest) {
             .single()
 
           if (userError) {
-            
             return {
               ...request,
               user: {
                 id: request.user_id,
                 name: 'Unknown User',
                 email: '',
-                permalink: null
-              }
+                permalink: null,
+              },
             }
           }
 
@@ -98,19 +112,18 @@ export async function GET(request: NextRequest) {
               id: user?.id || request.user_id,
               name: user?.name || user?.email || 'Unknown User',
               email: user?.email || '',
-              permalink: user?.permalink || null
-            }
+              permalink: user?.permalink || null,
+            },
           }
         } catch (userError) {
-          
           return {
             ...request,
             user: {
               id: request.user_id,
               name: 'Unknown User',
               email: '',
-              permalink: null
-            }
+              permalink: null,
+            },
           }
         }
       })
@@ -119,7 +132,7 @@ export async function GET(request: NextRequest) {
     const response = NextResponse.json({
       success: true,
       requests: requestsWithUserDetails || [],
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     })
 
     // Add CORS headers if needed
@@ -128,18 +141,20 @@ export async function GET(request: NextRequest) {
     response.headers.set('Access-Control-Allow-Headers', 'Content-Type')
 
     return response
-
   } catch (error) {
     console.error('❌ Unexpected error in pending requests API:', error)
-    
+
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
     const errorStack = error instanceof Error ? error.stack : undefined
-    
-    return NextResponse.json({ 
-      error: 'Internal server error',
-      details: errorMessage,
-      stack: process.env.NODE_ENV === 'development' ? errorStack : undefined
-    }, { status: 500 })
+
+    return NextResponse.json(
+      {
+        error: 'Internal server error',
+        details: errorMessage,
+        stack: process.env.NODE_ENV === 'development' ? errorStack : undefined,
+      },
+      { status: 500 }
+    )
   }
 }
 
@@ -153,4 +168,4 @@ export async function OPTIONS(request: NextRequest) {
       'Access-Control-Allow-Headers': 'Content-Type',
     },
   })
-} 
+}

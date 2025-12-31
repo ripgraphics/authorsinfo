@@ -1,6 +1,6 @@
-import { searchBooks } from "@/lib/isbndb"
-import { getRecentBooks, getRecentAuthors, getRecentPublishers } from "../actions/data"
-import { SearchResults } from "./components/SearchResults"
+import { searchBooks } from '@/lib/isbndb'
+import { getRecentBooks, getRecentAuthors, getRecentPublishers } from '../actions/data'
+import { SearchResults } from './components/SearchResults'
 
 interface SearchPageProps {
   searchParams: Promise<{
@@ -11,8 +11,8 @@ interface SearchPageProps {
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const params = await searchParams
-  const query = params.q || ""
-  const type = params.type || "books"
+  const query = params.q || ''
+  const type = params.type || 'books'
 
   // Fetch data for search
   let books: any[] = []
@@ -22,7 +22,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
   if (query) {
     // Search in ISBNDB
-    if (type === "books" || type === "all") {
+    if (type === 'books' || type === 'all') {
       isbndbBooks = await searchBooks(query)
     }
 

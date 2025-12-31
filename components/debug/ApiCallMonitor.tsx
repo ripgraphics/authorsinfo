@@ -38,7 +38,7 @@ export function ApiCallMonitor() {
           ✕
         </button>
       </div>
-      
+
       <div className="space-y-2 text-xs">
         <div className="flex justify-between">
           <span>Cache Size:</span>
@@ -48,7 +48,7 @@ export function ApiCallMonitor() {
           <span>Active Requests:</span>
           <span className="font-mono">{stats.activeRequests}</span>
         </div>
-        
+
         {stats.cacheKeys.length > 0 && (
           <div>
             <span className="font-semibold">Cached Keys:</span>
@@ -66,7 +66,7 @@ export function ApiCallMonitor() {
             </div>
           </div>
         )}
-        
+
         {stats.activeRequestKeys.length > 0 && (
           <div>
             <span className="font-semibold">Active Requests:</span>

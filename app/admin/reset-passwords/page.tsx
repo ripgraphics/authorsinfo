@@ -1,16 +1,16 @@
-"use client"
+'use client'
 
-import { useEffect, useState } from "react"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle, CheckCircle2 } from "lucide-react"
+import { useEffect, useState } from 'react'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
+import { AlertCircle, CheckCircle2 } from 'lucide-react'
 
 export default function ResetPasswordsAdminPage() {
   const [users, setUsers] = useState<any[]>([])
   const [fetchError, setFetchError] = useState<string | null>(null)
-  const [allPassword, setAllPassword] = useState("")
+  const [allPassword, setAllPassword] = useState('')
   const [allStatus, setAllStatus] = useState<string | null>(null)
   const [userPasswords, setUserPasswords] = useState<{ [id: string]: string }>({})
   const [userStatus, setUserStatus] = useState<{ [id: string]: string }>({})
@@ -20,15 +20,15 @@ export default function ResetPasswordsAdminPage() {
   useEffect(() => {
     async function fetchUsers() {
       try {
-        const res = await fetch("/api/auth-users")
+        const res = await fetch('/api/auth-users')
         if (!res.ok) {
-          setFetchError("Failed to fetch users from Auth.")
+          setFetchError('Failed to fetch users from Auth.')
           return
         }
         const data = await res.json()
         setUsers(data)
       } catch (error) {
-        setFetchError("An unexpected error occurred while fetching users.")
+        setFetchError('An unexpected error occurred while fetching users.')
       }
     }
     fetchUsers()
@@ -40,19 +40,19 @@ export default function ResetPasswordsAdminPage() {
     setAllStatus(null)
     setLoadingAll(true)
     try {
-      const res = await fetch("/api/admin/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ all: true, password: allPassword })
+      const res = await fetch('/api/admin/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ all: true, password: allPassword }),
       })
       const data = await res.json()
       if (res.ok) {
         setAllStatus("All users' passwords have been reset successfully.")
       } else {
-        setAllStatus(data.error || "Failed to reset all passwords.")
+        setAllStatus(data.error || 'Failed to reset all passwords.')
       }
     } catch (err) {
-      setAllStatus("Unexpected error resetting all passwords.")
+      setAllStatus('Unexpected error resetting all passwords.')
     } finally {
       setLoadingAll(false)
     }
@@ -61,22 +61,22 @@ export default function ResetPasswordsAdminPage() {
   // Reset a single user's password
   async function handleResetUser(userId: string, e: React.FormEvent) {
     e.preventDefault()
-    setUserStatus((s) => ({ ...s, [userId]: "" }))
+    setUserStatus((s) => ({ ...s, [userId]: '' }))
     setLoadingUser((l) => ({ ...l, [userId]: true }))
     try {
-      const res = await fetch("/api/admin/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, password: userPasswords[userId] })
+      const res = await fetch('/api/admin/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, password: userPasswords[userId] }),
       })
       const data = await res.json()
       if (res.ok) {
-        setUserStatus((s) => ({ ...s, [userId]: "Password reset successfully." }))
+        setUserStatus((s) => ({ ...s, [userId]: 'Password reset successfully.' }))
       } else {
-        setUserStatus((s) => ({ ...s, [userId]: data.error || "Failed to reset password." }))
+        setUserStatus((s) => ({ ...s, [userId]: data.error || 'Failed to reset password.' }))
       }
     } catch (err) {
-      setUserStatus((s) => ({ ...s, [userId]: "Unexpected error." }))
+      setUserStatus((s) => ({ ...s, [userId]: 'Unexpected error.' }))
     } finally {
       setLoadingUser((l) => ({ ...l, [userId]: false }))
     }
@@ -99,13 +99,20 @@ export default function ResetPasswordsAdminPage() {
               className="md:w-80"
             />
             <Button type="submit" disabled={loadingAll || !allPassword} className="md:ml-4">
-              {loadingAll ? "Resetting..." : "Reset All Passwords"}
+              {loadingAll ? 'Resetting...' : 'Reset All Passwords'}
             </Button>
           </form>
           {allStatus && (
-            <Alert className="mt-4" variant={allStatus.includes("success") ? "default" : "destructive"}>
-              {allStatus.includes("success") ? <CheckCircle2 className="h-4 w-4 text-green-600" /> : <AlertCircle className="h-4 w-4" />}
-              <AlertTitle>{allStatus.includes("success") ? "Success" : "Error"}</AlertTitle>
+            <Alert
+              className="mt-4"
+              variant={allStatus.includes('success') ? 'default' : 'destructive'}
+            >
+              {allStatus.includes('success') ? (
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+              ) : (
+                <AlertCircle className="h-4 w-4" />
+              )}
+              <AlertTitle>{allStatus.includes('success') ? 'Success' : 'Error'}</AlertTitle>
               <AlertDescription>{allStatus}</AlertDescription>
             </Alert>
           )}
@@ -140,16 +147,26 @@ export default function ResetPasswordsAdminPage() {
                   <Input
                     type="password"
                     placeholder="New password"
-                    value={userPasswords[user.id] || ""}
+                    value={userPasswords[user.id] || ''}
                     onChange={(e) => setUserPasswords((p) => ({ ...p, [user.id]: e.target.value }))}
                     required
                     className="md:w-64"
                   />
-                  <Button type="submit" size="sm" disabled={loadingUser[user.id] || !userPasswords[user.id]}>
-                    {loadingUser[user.id] ? "Resetting..." : "Reset Password"}
+                  <Button
+                    type="submit"
+                    size="sm"
+                    disabled={loadingUser[user.id] || !userPasswords[user.id]}
+                  >
+                    {loadingUser[user.id] ? 'Resetting...' : 'Reset Password'}
                   </Button>
                   {userStatus[user.id] && (
-                    <span className={userStatus[user.id].includes("success") ? "text-green-600 ml-2" : "text-red-600 ml-2"}>
+                    <span
+                      className={
+                        userStatus[user.id].includes('success')
+                          ? 'text-green-600 ml-2'
+                          : 'text-red-600 ml-2'
+                      }
+                    >
                       {userStatus[user.id]}
                     </span>
                   )}
@@ -161,4 +178,4 @@ export default function ResetPasswordsAdminPage() {
       </Card>
     </div>
   )
-} 
+}

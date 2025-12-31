@@ -1,14 +1,15 @@
-import { createClient } from '@/lib/supabase-server';
-import AuthorEventsClient from './AuthorEventsClient';
+import { createClient } from '@/lib/supabase-server'
+import AuthorEventsClient from './AuthorEventsClient'
 
 export default async function AuthorEventsPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const supabase = createClient();
-  
+  const { id } = await params
+  const supabase = createClient()
+
   // Fetch initial author events
   const { data: authorEvents } = await supabase
     .from('group_author_events')
-    .select(`
+    .select(
+      `
       *,
       events (
         id,
@@ -27,9 +28,10 @@ export default async function AuthorEventsPage({ params }: { params: Promise<{ i
         bio,
         author_image_id
       )
-    `)
+    `
+    )
     .eq('group_id', id)
-    .order('scheduled_at', { ascending: true });
+    .order('scheduled_at', { ascending: true })
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -37,16 +39,15 @@ export default async function AuthorEventsPage({ params }: { params: Promise<{ i
         <h1 className="text-3xl font-bold">Author Events</h1>
         <button
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          onClick={() => {/* Will be handled by client component */}}
+          onClick={() => {
+            /* Will be handled by client component */
+          }}
         >
           Schedule Event
         </button>
       </div>
-      
-      <AuthorEventsClient 
-        initialAuthorEvents={authorEvents || []} 
-        groupId={id}
-      />
+
+      <AuthorEventsClient initialAuthorEvents={authorEvents || []} groupId={id} />
     </div>
-  );
-} 
+  )
+}

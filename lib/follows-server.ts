@@ -1,20 +1,64 @@
 import { supabaseAdmin } from '@/lib/supabase-admin'
-import { Database } from '@/types/database'
+import type { Database } from '@/types/database'
 
 export type FollowTargetType = 'user' | 'book' | 'author' | 'publisher' | 'group'
 
 interface FollowTargetTypeData {
-  id: number
+  id: string
   name: string
-  description: string
+  description: string | null
+}
+
+interface Follow {
+  follower_id: string
+  created_at: string | null
+}
+
+interface User {
+  id: string
+  name: string | null
+  email: string | null
+  permalink: string | null
+}
+
+interface Profile {
+  user_id: string
+  avatar_image_id: string | null
+}
+
+interface Image {
+  id: string
+  url: string
+}
+
+interface UserFollowData {
+  id: string
+  name: string
+  email: string
+  permalink: string | null
+  avatar_url: string | null
+  followers_count: number
+  friends_count: number
+  books_read_count: number
+  followSince: string | null
+}
+
+interface Friendship {
+  user_id: string
+  friend_id: string
+}
+
+interface ReadingProgress {
+  user_id: string
+}
+
+interface UserFollow {
+  following_id: string
 }
 
 // Get all available target types
 export async function getFollowTargetTypes(): Promise<FollowTargetTypeData[]> {
-  const { data, error } = await supabaseAdmin
-    .from('follow_target_types')
-    .select('*')
-    .order('id')
+  const { data, error } = await supabaseAdmin.from('follow_target_types').select('id, name, description').order('id')
 
   if (error) {
     console.error('Error fetching follow target types:', error)
@@ -25,10 +69,12 @@ export async function getFollowTargetTypes(): Promise<FollowTargetTypeData[]> {
 }
 
 // Get a specific target type by name
-export async function getFollowTargetType(name: FollowTargetType): Promise<FollowTargetTypeData | null> {
+export async function getFollowTargetType(
+  name: FollowTargetType
+): Promise<FollowTargetTypeData | null> {
   const { data, error } = await supabaseAdmin
     .from('follow_target_types')
-    .select('*')
+    .select('id, name, description')
     .eq('name', name)
     .single()
 
@@ -41,7 +87,10 @@ export async function getFollowTargetType(name: FollowTargetType): Promise<Follo
 }
 
 // Get followers count for an entity
-export async function getFollowersCount(followingId: string | number, targetType: FollowTargetType) {
+export async function getFollowersCount(
+  followingId: string | number,
+  targetType: FollowTargetType
+) {
   const targetTypeData = await getFollowTargetType(targetType)
   if (!targetTypeData) {
     throw new Error(`Invalid target type: ${targetType}`)
@@ -62,16 +111,25 @@ export async function getFollowersCount(followingId: string | number, targetType
 }
 
 // Get followers for an entity with pagination
-export async function getFollowers(followingId: string | number, targetType: FollowTargetType, page = 1, limit = 10) {
+export async function getFollowers(
+  followingId: string | number,
+  targetType: FollowTargetType,
+  page = 1,
+  limit = 10
+) {
   const targetTypeData = await getFollowTargetType(targetType)
   if (!targetTypeData) {
     throw new Error(`Invalid target type: ${targetType}`)
   }
-  
+
   const start = (page - 1) * limit
 
   // First get the follows data
-  const { data: followsData, error: followsError, count } = await supabaseAdmin
+  const {
+    data: followsData,
+    error: followsError,
+    count,
+  } = await supabaseAdmin
     .from('follows')
     .select('follower_id, created_at', { count: 'exact' })
     .eq('following_id', followingId)
@@ -87,37 +145,29 @@ export async function getFollowers(followingId: string | number, targetType: Fol
   if (!followsData || followsData.length === 0) {
     return {
       followers: [],
-      count: count || 0
+      count: count || 0,
     }
   }
 
   // Get user IDs from follows
-  const followerIds = followsData.map((follow: any) => (follow as any).follower_id)
+  const followerIds = followsData.map((follow: Follow) => follow.follower_id)
 
   // Fetch user details from users table and profiles
   const [usersResult, profilesResult] = await Promise.all([
-    supabaseAdmin
-      .from('users')
-      .select('id, name, email, permalink')
-      .in('id', followerIds),
-    supabaseAdmin
-      .from('profiles')
-      .select('user_id, avatar_image_id')
-      .in('user_id', followerIds)
+    supabaseAdmin.from('users').select('id, name, email, permalink').in('id', followerIds),
+    supabaseAdmin.from('profiles').select('user_id, avatar_image_id').in('user_id', followerIds),
   ])
 
   const users = usersResult.data || []
   const profiles = profilesResult.data || []
 
   // Create profile map by user_id
-  const profileMap = new Map(profiles.map((p: any) => [p.user_id, p]))
+  const profileMap = new Map(profiles.map((p: Profile) => [p.user_id, p]))
 
   // Get unique avatar_image_ids
-  const avatarImageIds = Array.from(new Set(
-    profiles
-      .map((p: any) => p.avatar_image_id)
-      .filter(Boolean)
-  ))
+  const avatarImageIds = Array.from(
+    new Set(profiles.map((p: Profile) => p.avatar_image_id).filter(Boolean))
+  )
 
   // Fetch avatar URLs from images table
   let avatarImageMap = new Map()
@@ -128,14 +178,14 @@ export async function getFollowers(followingId: string | number, targetType: Fol
       .in('id', avatarImageIds)
 
     if (images) {
-      avatarImageMap = new Map(images.map((img: any) => [img.id, img.url]))
+      avatarImageMap = new Map(images.map((img: Image) => [img.id, img.url]))
     }
   }
 
   // Get followers count for each user (users who follow this user)
   const userTargetType = await getFollowTargetType('user')
   const followersCountMap = new Map<string, number>()
-  
+
   if (userTargetType && followerIds.length > 0) {
     // For each user, get their followers count
     // We'll batch this by querying all follows where following_id is in our list
@@ -147,14 +197,14 @@ export async function getFollowers(followingId: string | number, targetType: Fol
 
     if (userFollowsData) {
       // Count followers for each user
-      userFollowsData.forEach((follow: any) => {
+      userFollowsData.forEach((follow: UserFollow) => {
         const currentCount = followersCountMap.get(follow.following_id) || 0
         followersCountMap.set(follow.following_id, currentCount + 1)
       })
     }
-    
+
     // Initialize all users with 0 followers if they don't have any
-    followerIds.forEach(id => {
+    followerIds.forEach((id) => {
       if (!followersCountMap.has(id)) {
         followersCountMap.set(id, 0)
       }
@@ -179,20 +229,20 @@ export async function getFollowers(followingId: string | number, targetType: Fol
 
     // Count friends for each user
     if (userFriendsData) {
-      userFriendsData.forEach((friendship: any) => {
+      userFriendsData.forEach((friendship: Friendship) => {
         const currentCount = friendsCountMap.get(friendship.user_id) || 0
         friendsCountMap.set(friendship.user_id, currentCount + 1)
       })
     }
     if (reverseFriendsData) {
-      reverseFriendsData.forEach((friendship: any) => {
+      reverseFriendsData.forEach((friendship: Friendship) => {
         const currentCount = friendsCountMap.get(friendship.friend_id) || 0
         friendsCountMap.set(friendship.friend_id, currentCount + 1)
       })
     }
 
     // Initialize all users with 0 friends if they don't have any
-    followerIds.forEach(id => {
+    followerIds.forEach((id) => {
       if (!friendsCountMap.has(id)) {
         friendsCountMap.set(id, 0)
       }
@@ -209,14 +259,14 @@ export async function getFollowers(followingId: string | number, targetType: Fol
       .in('user_id', followerIds)
 
     if (booksReadData) {
-      booksReadData.forEach((progress: any) => {
+      booksReadData.forEach((progress: ReadingProgress) => {
         const currentCount = booksReadCountMap.get(progress.user_id) || 0
         booksReadCountMap.set(progress.user_id, currentCount + 1)
       })
     }
 
     // Initialize all users with 0 books read if they don't have any
-    followerIds.forEach(id => {
+    followerIds.forEach((id) => {
       if (!booksReadCountMap.has(id)) {
         booksReadCountMap.set(id, 0)
       }
@@ -225,43 +275,43 @@ export async function getFollowers(followingId: string | number, targetType: Fol
 
   // Create a map of user data for quick lookup
   const userMap = new Map()
-  users.forEach((user: any) => {
-    const profile = profileMap.get((user as any).id)
-    const avatarImageId = (profile as any)?.avatar_image_id
+  users.forEach((user: User) => {
+    const profile = profileMap.get(user.id)
+    const avatarImageId = profile?.avatar_image_id
     const avatarUrl = avatarImageId ? avatarImageMap.get(avatarImageId) : null
-    const followersCount = followersCountMap.get((user as any).id) || 0
-    const friendsCount = friendsCountMap.get((user as any).id) || 0
-    const booksReadCount = booksReadCountMap.get((user as any).id) || 0
+    const followersCount = followersCountMap.get(user.id) || 0
+    const friendsCount = friendsCountMap.get(user.id) || 0
+    const booksReadCount = booksReadCountMap.get(user.id) || 0
 
-    userMap.set((user as any).id, {
-      id: (user as any).id,
-      name: (user as any).name || 'Unknown User',
-      email: (user as any).email || 'unknown@email.com',
-      permalink: (user as any).permalink,
+    userMap.set(user.id, {
+      id: user.id,
+      name: user.name || 'Unknown User',
+      email: user.email || 'unknown@email.com',
+      permalink: user.permalink,
       avatar_url: avatarUrl,
       followers_count: followersCount,
       friends_count: friendsCount,
-      books_read_count: booksReadCount
+      books_read_count: booksReadCount,
     })
   })
 
   return {
-    followers: followsData.map((follow: any) => {
-      const userData = userMap.get((follow as any).follower_id) || {
-        id: (follow as any).follower_id,
+    followers: followsData.map((follow: Follow) => {
+      const userData = userMap.get(follow.follower_id) || {
+        id: follow.follower_id,
         name: 'Unknown User',
         email: 'unknown@email.com',
         permalink: null,
         avatar_url: null,
         followers_count: 0,
         friends_count: 0,
-        books_read_count: 0
+        books_read_count: 0,
       }
       return {
         ...userData,
-        followSince: (follow as any).created_at
+        followSince: follow.created_at,
       }
     }),
-    count: count || 0
+    count: count || 0,
   }
-} 
+}

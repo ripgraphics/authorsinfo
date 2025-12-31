@@ -6,26 +6,25 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { 
-  ImageIcon, 
-  Plus, 
-  Settings, 
-  Eye, 
-  Heart, 
+import {
+  ImageIcon,
+  Plus,
+  Settings,
+  Eye,
+  Heart,
   Share2,
   Camera,
   Images,
   Album,
-  Upload
+  Upload,
 } from 'lucide-react'
 import { EnterprisePhotoGallery } from './photo-gallery/enterprise-photo-gallery'
 import { PhotoAlbumCreator } from './photo-album-creator'
 
-
 // Entity album types
-type EntityAlbumType = 
+type EntityAlbumType =
   | 'book_cover_album'
-  | 'book_avatar_album' 
+  | 'book_avatar_album'
   | 'book_entity_header_album'
   | 'book_gallery_album'
   | 'author_avatar_album'
@@ -104,19 +103,23 @@ export function EntityPhotoGallery({
   showAlbumManagement = true,
   maxImagesPerAlbum = 100,
   enhancedProfile,
-  onProfileUpdate
+  onProfileUpdate,
 }: EntityPhotoGalleryProps) {
   const { user } = useAuth()
   const { toast } = useToast()
-  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   // State management
   const [albums, setAlbums] = useState<EntityAlbum[]>([])
   const [selectedAlbum, setSelectedAlbum] = useState<EntityAlbum | null>(null)
   const [images, setImages] = useState<EntityImage[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'overview' | 'covers' | 'avatars' | 'headers' | 'gallery'>('overview')
-
+  const [activeTab, setActiveTab] = useState<
+    'overview' | 'covers' | 'avatars' | 'headers' | 'gallery'
+  >('overview')
 
   // Load entity albums
   const loadEntityAlbums = useCallback(async () => {
@@ -132,7 +135,7 @@ export function EntityPhotoGallery({
       if (error) throw error
 
       // Transform data to match EntityAlbum interface
-      const transformedAlbums = (data || []).map(album => ({
+      const transformedAlbums = (data || []).map((album) => ({
         id: album.id,
         name: album.name,
         description: album.description,
@@ -145,16 +148,16 @@ export function EntityPhotoGallery({
         like_count: album.like_count || 0,
         share_count: album.share_count || 0,
         created_at: album.created_at,
-        updated_at: album.updated_at
+        updated_at: album.updated_at,
       }))
 
       setAlbums(transformedAlbums)
     } catch (error) {
       console.error('Error loading entity albums:', error)
       toast({
-        title: "Error",
-        description: "Failed to load entity albums",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to load entity albums',
+        variant: 'destructive',
       })
     } finally {
       setIsLoading(false)
@@ -162,182 +165,188 @@ export function EntityPhotoGallery({
   }, [entityId, entityType, supabase, toast])
 
   // Load images for selected album
-  const loadAlbumImages = useCallback(async (albumId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('album_images')
-        .select(`
+  const loadAlbumImages = useCallback(
+    async (albumId: string) => {
+      try {
+        const { data, error } = await supabase
+          .from('album_images')
+          .select(
+            `
           *,
           images (*)
-        `)
-        .eq('album_id', albumId)
-        .order('display_order', { ascending: true })
+        `
+          )
+          .eq('album_id', albumId)
+          .order('display_order', { ascending: true })
 
-      if (error) throw error
+        if (error) throw error
 
-      // Transform data to match EntityImage interface
-      const transformedImages = (data || []).map(item => ({
-        image_id: item.image_id,
-        image_url: item.images?.url || '',
-        thumbnail_url: item.images?.thumbnail_url,
-        alt_text: item.images?.alt_text,
-        caption: item.images?.caption,
-        display_order: item.display_order,
-        is_cover: item.is_cover,
-        is_featured: item.is_featured,
-        album_id: item.album_id,
-        album_name: '', // Will be filled by parent component
-        album_type: '', // Will be filled by parent component
-        metadata: item.metadata
-      }))
+        // Transform data to match EntityImage interface
+        const transformedImages = (data || []).map((item) => ({
+          image_id: item.image_id,
+          image_url: item.images?.url || '',
+          thumbnail_url: item.images?.thumbnail_url,
+          alt_text: item.images?.alt_text,
+          caption: item.images?.caption,
+          display_order: item.display_order,
+          is_cover: item.is_cover,
+          is_featured: item.is_featured,
+          album_id: item.album_id,
+          album_name: '', // Will be filled by parent component
+          album_type: '', // Will be filled by parent component
+          metadata: item.metadata,
+        }))
 
-      setImages(transformedImages)
-    } catch (error) {
-      console.error('Error loading album images:', error)
-    }
-  }, [supabase])
-
-
+        setImages(transformedImages)
+      } catch (error) {
+        console.error('Error loading album images:', error)
+      }
+    },
+    [supabase]
+  )
 
   // Handle image upload
-  const handleImageUpload = useCallback(async (
-    albumType: EntityAlbumType,
-    aspectRatio: number = 1,
-    isCover: boolean = false
-  ) => {
-    // Create a file input for image upload
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = 'image/*'
-    input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0]
-      if (!file) return
+  const handleImageUpload = useCallback(
+    async (albumType: EntityAlbumType, aspectRatio: number = 1, isCover: boolean = false) => {
+      // Create a file input for image upload
+      const input = document.createElement('input')
+      input.type = 'file'
+      input.accept = 'image/*'
+      input.onchange = async (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0]
+        if (!file) return
 
-      try {
-        // Get Cloudinary signature for signed upload
-        const signatureResponse = await fetch('/api/cloudinary/signature', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            folder: `${entityType}_${albumType.replace('_album', '')}`
+        try {
+          // Get Cloudinary signature for signed upload
+          const signatureResponse = await fetch('/api/cloudinary/signature', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              folder: `${entityType}_${albumType.replace('_album', '')}`,
+            }),
           })
-        })
 
-        if (!signatureResponse.ok) {
-          throw new Error('Failed to get Cloudinary signature')
-        }
+          if (!signatureResponse.ok) {
+            throw new Error('Failed to get Cloudinary signature')
+          }
 
-        const signatureData = await signatureResponse.json()
+          const signatureData = await signatureResponse.json()
 
-        // Create FormData for signed upload to Cloudinary
-        const formData = new FormData()
-        formData.append('file', file)
-        formData.append('api_key', signatureData.apiKey)
-        formData.append('timestamp', signatureData.timestamp.toString())
-        formData.append('signature', signatureData.signature)
-        formData.append('folder', signatureData.folder)
-        formData.append('cloud_name', signatureData.cloudName)
-        formData.append('quality', '95')
-        formData.append('fetch_format', 'auto')
+          // Create FormData for signed upload to Cloudinary
+          const formData = new FormData()
+          formData.append('file', file)
+          formData.append('api_key', signatureData.apiKey)
+          formData.append('timestamp', signatureData.timestamp.toString())
+          formData.append('signature', signatureData.signature)
+          formData.append('folder', signatureData.folder)
+          formData.append('cloud_name', signatureData.cloudName)
+          formData.append('quality', '95')
+          formData.append('fetch_format', 'auto')
 
-        const uploadUrl = `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/image/upload`
-        const uploadResponse = await fetch(uploadUrl, {
-          method: 'POST',
-          body: formData
-        })
-
-        if (!uploadResponse.ok) {
-          const errorText = await uploadResponse.text()
-          throw new Error(`Failed to upload to Cloudinary: ${uploadResponse.status} ${uploadResponse.statusText} - ${errorText}`)
-        }
-
-        const uploadResult = await uploadResponse.json()
-
-        if (!uploadResult.secure_url) {
-          throw new Error('No secure URL returned from Cloudinary')
-        }
-
-        // Insert into images table using server action
-        const imageInsertResponse = await fetch('/api/insert-image', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            url: uploadResult.secure_url,
-            alt_text: `Entity image for ${entityType} ${entityName || entityId}`,
-            storage_provider: 'cloudinary',
-            storage_path: `authorsinfo/${entityType}_${albumType.replace('_album', '')}`,
-            original_filename: file.name,
-            file_size: file.size,
-            mime_type: file.type
+          const uploadUrl = `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/image/upload`
+          const uploadResponse = await fetch(uploadUrl, {
+            method: 'POST',
+            body: formData,
           })
-        })
 
-        if (!imageInsertResponse.ok) {
-          const errorText = await imageInsertResponse.text()
-          throw new Error(`Failed to insert image record: ${errorText}`)
-        }
+          if (!uploadResponse.ok) {
+            const errorText = await uploadResponse.text()
+            throw new Error(
+              `Failed to upload to Cloudinary: ${uploadResponse.status} ${uploadResponse.statusText} - ${errorText}`
+            )
+          }
 
-        const imageInsertResult = await imageInsertResponse.json()
-        const imageData = imageInsertResult.data
+          const uploadResult = await uploadResponse.json()
 
-        // Add image to entity album
-        const albumResponse = await fetch('/api/entity-images', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            entityId,
-            entityType,
-            albumType,
-            imageId: imageData.id,
-            isCover,
-            isFeatured: false,
-            metadata: {
-              aspect_ratio: aspectRatio,
-              uploaded_via: 'entity_photo_gallery',
+          if (!uploadResult.secure_url) {
+            throw new Error('No secure URL returned from Cloudinary')
+          }
+
+          // Insert into images table using server action
+          const imageInsertResponse = await fetch('/api/insert-image', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              url: uploadResult.secure_url,
+              alt_text: `Entity image for ${entityType} ${entityName || entityId}`,
+              storage_provider: 'cloudinary',
+              storage_path: `authorsinfo/${entityType}_${albumType.replace('_album', '')}`,
               original_filename: file.name,
-              file_size: file.size
-            }
+              file_size: file.size,
+              mime_type: file.type,
+            }),
           })
-        })
 
-        if (!albumResponse.ok) {
-          const errorText = await albumResponse.text()
-          throw new Error(`Failed to add image to album: ${errorText}`)
+          if (!imageInsertResponse.ok) {
+            const errorText = await imageInsertResponse.text()
+            throw new Error(`Failed to insert image record: ${errorText}`)
+          }
+
+          const imageInsertResult = await imageInsertResponse.json()
+          const imageData = imageInsertResult.data
+
+          // Add image to entity album
+          const albumResponse = await fetch('/api/entity-images', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              entityId,
+              entityType,
+              albumType,
+              imageId: imageData.id,
+              isCover,
+              isFeatured: false,
+              metadata: {
+                aspect_ratio: aspectRatio,
+                uploaded_via: 'entity_photo_gallery',
+                original_filename: file.name,
+                file_size: file.size,
+              },
+            }),
+          })
+
+          if (!albumResponse.ok) {
+            const errorText = await albumResponse.text()
+            throw new Error(`Failed to add image to album: ${errorText}`)
+          }
+
+          toast({
+            title: 'Success',
+            description: 'Image uploaded and added to album successfully',
+          })
+
+          // Reload albums and images
+          await loadEntityAlbums()
+          if (selectedAlbum) {
+            await loadAlbumImages(selectedAlbum.id)
+          }
+        } catch (error) {
+          console.error('Error uploading image:', error)
+          toast({
+            title: 'Error',
+            description: error instanceof Error ? error.message : 'Failed to upload image',
+            variant: 'destructive',
+          })
         }
-
-        toast({
-          title: "Success",
-          description: "Image uploaded and added to album successfully"
-        })
-        
-        // Reload albums and images
-        await loadEntityAlbums()
-        if (selectedAlbum) {
-          await loadAlbumImages(selectedAlbum.id)
-        }
-
-      } catch (error) {
-        console.error('Error uploading image:', error)
-        toast({
-          title: "Error",
-          description: error instanceof Error ? error.message : "Failed to upload image",
-          variant: "destructive"
-        })
       }
-    }
-    input.click()
-  }, [entityId, entityType, entityName, selectedAlbum, loadEntityAlbums, loadAlbumImages, toast])
+      input.click()
+    },
+    [entityId, entityType, entityName, selectedAlbum, loadEntityAlbums, loadAlbumImages, toast]
+  )
 
   // Get album by type
-  const getAlbumByType = useCallback((albumType: EntityAlbumType) => {
-    return albums.find(album => album.album_type === albumType)
-  }, [albums])
+  const getAlbumByType = useCallback(
+    (albumType: EntityAlbumType) => {
+      return albums.find((album) => album.album_type === albumType)
+    },
+    [albums]
+  )
 
   // Get album purpose display name
   const getAlbumPurposeName = useCallback((albumType: EntityAlbumType) => {
@@ -388,18 +397,18 @@ export function EntityPhotoGallery({
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Entity Images</h2>
-          {entityName && (
-            <p className="text-muted-foreground">
-              Image management for {entityName}
-            </p>
-          )}
+          {entityName && <p className="text-muted-foreground">Image management for {entityName}</p>}
         </div>
-        
+
         {isOwner && showAlbumManagement && (
           <div className="flex items-center gap-2">
             <PhotoAlbumCreator
               onAlbumCreated={loadEntityAlbums}
-              entityType={entityType === 'book' ? undefined : (entityType as 'user' | 'publisher' | 'author' | 'group')}
+              entityType={
+                entityType === 'book'
+                  ? undefined
+                  : (entityType as 'user' | 'publisher' | 'author' | 'group')
+              }
               entityId={entityId}
               trigger={
                 <Button size="sm" variant="default">
@@ -428,10 +437,12 @@ export function EntityPhotoGallery({
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-semibold text-sm">{album.name}</h3>
                     {album.is_system_album && (
-                      <Badge variant="secondary" className="text-xs">System</Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        System
+                      </Badge>
                     )}
                   </div>
-                  
+
                   <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
                     <span className="flex items-center gap-1">
                       <ImageIcon className="h-3 w-3" />
@@ -442,25 +453,24 @@ export function EntityPhotoGallery({
                       {album.view_count} views
                     </span>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
-                    <Button
-                      size="sm"
-                      variant="default"
-                      onClick={() => setSelectedAlbum(album)}
-                    >
+                    <Button size="sm" variant="default" onClick={() => setSelectedAlbum(album)}>
                       View Album
                     </Button>
-                    
+
                     {isOwner && showUploadButtons && (
                       <Button
                         size="sm"
                         variant="default"
-                        onClick={() => handleImageUpload(
-                          album.album_type as EntityAlbumType,
-                          album.album_type.includes('avatar') ? 1 : 16/9,
-                          album.album_type.includes('cover') || album.album_type.includes('header')
-                        )}
+                        onClick={() =>
+                          handleImageUpload(
+                            album.album_type as EntityAlbumType,
+                            album.album_type.includes('avatar') ? 1 : 16 / 9,
+                            album.album_type.includes('cover') ||
+                              album.album_type.includes('header')
+                          )
+                        }
                       >
                         <Upload className="h-3 w-3 mr-1" />
                         Add Image
@@ -489,11 +499,13 @@ export function EntityPhotoGallery({
               <Button
                 variant="default"
                 className="h-20 flex-col gap-2"
-                onClick={() => handleImageUpload(
-                  entityType === 'book' ? 'book_cover_album' : 'author_entity_header_album',
-                  16/9,
-                  true
-                )}
+                onClick={() =>
+                  handleImageUpload(
+                    entityType === 'book' ? 'book_cover_album' : 'author_entity_header_album',
+                    16 / 9,
+                    true
+                  )
+                }
               >
                 <ImageIcon className="h-6 w-6" />
                 <span className="text-xs">Cover Image</span>
@@ -503,11 +515,13 @@ export function EntityPhotoGallery({
               <Button
                 variant="default"
                 className="h-20 flex-col gap-2"
-                onClick={() => handleImageUpload(
-                  entityType === 'book' ? 'book_avatar_album' : 'author_avatar_album',
-                  1,
-                  true
-                )}
+                onClick={() =>
+                  handleImageUpload(
+                    entityType === 'book' ? 'book_avatar_album' : 'author_avatar_album',
+                    1,
+                    true
+                  )
+                }
               >
                 <ImageIcon className="h-6 w-6" />
                 <span className="text-xs">Avatar</span>
@@ -518,7 +532,7 @@ export function EntityPhotoGallery({
                 <Button
                   variant="default"
                   className="h-20 flex-col gap-2"
-                  onClick={() => handleImageUpload('book_entity_header_album', 16/9, true)}
+                  onClick={() => handleImageUpload('book_entity_header_album', 16 / 9, true)}
                 >
                   <ImageIcon className="h-6 w-6" />
                   <span className="text-xs">Header Image</span>
@@ -529,11 +543,13 @@ export function EntityPhotoGallery({
               <Button
                 variant="default"
                 className="h-20 flex-col gap-2"
-                onClick={() => handleImageUpload(
-                  entityType === 'book' ? 'book_gallery_album' : 'author_gallery_album',
-                  4/3,
-                  false
-                )}
+                onClick={() =>
+                  handleImageUpload(
+                    entityType === 'book' ? 'book_gallery_album' : 'author_gallery_album',
+                    4 / 3,
+                    false
+                  )
+                }
               >
                 <Images className="h-6 w-6" />
                 <span className="text-xs">Gallery</span>
@@ -554,11 +570,7 @@ export function EntityPhotoGallery({
                   {getAlbumPurposeName(selectedAlbum.album_type as EntityAlbumType)}
                 </p>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSelectedAlbum(null)}
-              >
+              <Button variant="ghost" size="sm" onClick={() => setSelectedAlbum(null)}>
                 Close
               </Button>
             </div>
@@ -566,7 +578,11 @@ export function EntityPhotoGallery({
           <CardContent>
             <EnterprisePhotoGallery
               entityId={entityId}
-              entityType={entityType === 'book' ? 'user' : (entityType as 'user' | 'publisher' | 'author' | 'group')}
+              entityType={
+                entityType === 'book'
+                  ? 'user'
+                  : (entityType as 'user' | 'publisher' | 'author' | 'group')
+              }
               initialAlbumId={selectedAlbum.id}
               isEditable={isOwner}
               showStats={true}
@@ -577,8 +593,6 @@ export function EntityPhotoGallery({
           </CardContent>
         </Card>
       )}
-
-
     </div>
   )
-} 
+}

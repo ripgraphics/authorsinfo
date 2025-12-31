@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 
-
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClientAsync()
-    
+
     // Get the current user from session
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
     if (userError) {
       console.error('User authentication error:', userError)
       return NextResponse.json({ error: 'Failed to authenticate user' }, { status: 500 })
@@ -22,13 +24,15 @@ export async function GET(request: NextRequest) {
     // Get friend suggestions
     const { data: suggestions, error } = await supabase
       .from('friend_suggestions')
-      .select(`
+      .select(
+        `
         id,
         suggested_user_id,
         mutual_friends_count,
         suggestion_score,
         is_dismissed
-      `)
+      `
+      )
       .eq('user_id', user.id)
       .eq('is_dismissed', false)
       .order('suggestion_score', { ascending: false })
@@ -54,8 +58,8 @@ export async function GET(request: NextRequest) {
           suggested_user: {
             id: user?.id || suggestion.suggested_user_id,
             name: user?.name || user?.email || 'Unknown User',
-            email: user?.email || ''
-          }
+            email: user?.email || '',
+          },
         }
       })
     )
@@ -67,9 +71,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      suggestions: suggestionsWithUserDetails || []
+      suggestions: suggestionsWithUserDetails || [],
     })
-
   } catch (error) {
     console.error('Error in friend suggestions:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -79,9 +82,12 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClientAsync()
-    
+
     // Get the current user from session
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
     if (userError) {
       console.error('User authentication error:', userError)
       return NextResponse.json({ error: 'Failed to authenticate user' }, { status: 500 })
@@ -92,7 +98,7 @@ export async function POST(request: NextRequest) {
 
     // Generate new suggestions
     const { error } = await (supabase.rpc as any)('generate_friend_suggestions', {
-      target_user_id: user.id
+      target_user_id: user.id,
     })
 
     if (error) {
@@ -102,9 +108,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Friend suggestions generated successfully'
+      message: 'Friend suggestions generated successfully',
     })
-
   } catch (error) {
     console.error('Error generating suggestions:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -114,9 +119,12 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClientAsync()
-    
+
     // Get the current user from session
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
     if (userError) {
       console.error('User authentication error:', userError)
       return NextResponse.json({ error: 'Failed to authenticate user' }, { status: 500 })
@@ -126,7 +134,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const { suggestionId, action } = await request.json()
-    
+
     if (!suggestionId || !action) {
       return NextResponse.json({ error: 'Suggestion ID and action are required' }, { status: 400 })
     }
@@ -137,8 +145,7 @@ export async function PUT(request: NextRequest) {
 
     if (action === 'dismiss') {
       // Mark suggestion as dismissed
-      const { error: updateError } = await (supabase
-        .from('friend_suggestions') as any)
+      const { error: updateError } = await (supabase.from('friend_suggestions') as any)
         .update({ is_dismissed: true })
         .eq('id', suggestionId)
         .eq('user_id', user.id)
@@ -150,7 +157,7 @@ export async function PUT(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: 'Suggestion dismissed'
+        message: 'Suggestion dismissed',
       })
     } else {
       // Accept suggestion by sending friend request
@@ -167,15 +174,13 @@ export async function PUT(request: NextRequest) {
 
       const sugg = suggestion as any
       // Send friend request
-      const { error: requestError } = await (supabase
-        .from('user_friends') as any)
-        .insert({
-          user_id: user.id,
-          friend_id: sugg.suggested_user_id,
-          requested_by: user.id,
-          status: 'pending',
-          requested_at: new Date().toISOString()
-        })
+      const { error: requestError } = await (supabase.from('user_friends') as any).insert({
+        user_id: user.id,
+        friend_id: sugg.suggested_user_id,
+        requested_by: user.id,
+        status: 'pending',
+        requested_at: new Date().toISOString(),
+      })
 
       if (requestError) {
         console.error('Error sending friend request:', requestError)
@@ -183,19 +188,17 @@ export async function PUT(request: NextRequest) {
       }
 
       // Mark suggestion as dismissed
-      await (supabase
-        .from('friend_suggestions') as any)
+      await (supabase.from('friend_suggestions') as any)
         .update({ is_dismissed: true })
         .eq('id', suggestionId)
 
       return NextResponse.json({
         success: true,
-        message: 'Friend request sent'
+        message: 'Friend request sent',
       })
     }
-
   } catch (error) {
     console.error('Error handling suggestion:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-} 
+}

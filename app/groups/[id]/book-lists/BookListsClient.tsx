@@ -1,46 +1,46 @@
-'use client';
+'use client'
 
-import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase-client';
-import { Reorder } from 'framer-motion';
-import { toast } from 'react-hot-toast';
-import AddBookModal from './AddBookModal';
-import BookListAnalytics from './BookListAnalytics';
+import { useEffect, useState } from 'react'
+import { createClient } from '@/lib/supabase-client'
+import { Reorder } from 'framer-motion'
+import { toast } from 'react-hot-toast'
+import AddBookModal from './AddBookModal'
+import BookListAnalytics from './BookListAnalytics'
 
 interface Book {
-  id: string;
-  title: string;
-  author: string;
-  cover_image_id: string;
+  id: string
+  title: string
+  author: string
+  cover_image_id: string
 }
 
 interface BookListItem {
-  id: string;
-  book_id: string;
-  books: Book;
-  votes: number;
+  id: string
+  book_id: string
+  books: Book
+  votes: number
 }
 
 interface BookList {
-  id: string;
-  title: string;
-  description: string;
-  created_by: string;
-  group_book_list_items: BookListItem[];
+  id: string
+  title: string
+  description: string
+  created_by: string
+  group_book_list_items: BookListItem[]
 }
 
 interface Props {
-  initialBookLists: BookList[];
-  groupId: string;
+  initialBookLists: BookList[]
+  groupId: string
 }
 
 export default function BookListsClient({ initialBookLists, groupId }: Props) {
-  const [bookLists, setBookLists] = useState<BookList[]>(initialBookLists);
-  const [isCreating, setIsCreating] = useState(false);
-  const [newListTitle, setNewListTitle] = useState('');
-  const [selectedListId, setSelectedListId] = useState<string | null>(null);
-  const [isAddBookModalOpen, setIsAddBookModalOpen] = useState(false);
-  const supabase = createClient();
+  const [bookLists, setBookLists] = useState<BookList[]>(initialBookLists)
+  const [isCreating, setIsCreating] = useState(false)
+  const [newListTitle, setNewListTitle] = useState('')
+  const [selectedListId, setSelectedListId] = useState<string | null>(null)
+  const [isAddBookModalOpen, setIsAddBookModalOpen] = useState(false)
+  const supabase = createClient()
 
   // Subscribe to real-time updates
   useEffect(() => {
@@ -56,28 +56,28 @@ export default function BookListsClient({ initialBookLists, groupId }: Props) {
         },
         (payload) => {
           if (payload.eventType === 'INSERT') {
-            setBookLists((prev) => [payload.new as BookList, ...prev]);
-            toast.success('New book list created!');
+            setBookLists((prev) => [payload.new as BookList, ...prev])
+            toast.success('New book list created!')
           } else if (payload.eventType === 'DELETE') {
-            setBookLists((prev) => prev.filter((list) => list.id !== payload.old.id));
-            toast.success('Book list deleted');
+            setBookLists((prev) => prev.filter((list) => list.id !== payload.old.id))
+            toast.success('Book list deleted')
           } else if (payload.eventType === 'UPDATE') {
             setBookLists((prev) =>
-              prev.map((list) => (list.id === payload.new.id ? payload.new as BookList : list))
-            );
-            toast.success('Book list updated');
+              prev.map((list) => (list.id === payload.new.id ? (payload.new as BookList) : list))
+            )
+            toast.success('Book list updated')
           }
         }
       )
-      .subscribe();
+      .subscribe()
 
     return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [groupId]);
+      supabase.removeChannel(channel)
+    }
+  }, [groupId])
 
   const handleCreateList = async () => {
-    if (!newListTitle.trim()) return;
+    if (!newListTitle.trim()) return
 
     const { error } = await (supabase.from('group_book_lists') as any).insert([
       {
@@ -85,32 +85,29 @@ export default function BookListsClient({ initialBookLists, groupId }: Props) {
         group_id: groupId,
         created_by: (await supabase.auth.getUser()).data.user?.id,
       },
-    ]);
+    ])
 
     if (error) {
-      toast.error('Failed to create list');
+      toast.error('Failed to create list')
     } else {
-      setNewListTitle('');
-      setIsCreating(false);
+      setNewListTitle('')
+      setIsCreating(false)
     }
-  };
+  }
 
   const handleDeleteList = async (listId: string) => {
-    const { error } = await supabase
-      .from('group_book_lists')
-      .delete()
-      .eq('id', listId);
+    const { error } = await supabase.from('group_book_lists').delete().eq('id', listId)
 
     if (error) {
-      toast.error('Failed to delete list');
+      toast.error('Failed to delete list')
     }
-  };
+  }
 
   const handleVote = async (listId: string, bookId: string) => {
-    const userId = (await supabase.auth.getUser()).data.user?.id;
+    const userId = (await supabase.auth.getUser()).data.user?.id
     if (!userId) {
-      toast.error('Please sign in to vote');
-      return;
+      toast.error('Please sign in to vote')
+      return
     }
 
     const { error } = await (supabase.from('group_book_list_votes') as any).upsert({
@@ -118,19 +115,19 @@ export default function BookListsClient({ initialBookLists, groupId }: Props) {
       book_id: bookId,
       user_id: userId,
       group_id: groupId,
-    });
+    })
 
     if (error) {
-      toast.error('Failed to vote');
+      toast.error('Failed to vote')
     } else {
-      toast.success('Vote recorded!');
+      toast.success('Vote recorded!')
     }
-  };
+  }
 
   const handleReorder = async (reorderedLists: BookList[]) => {
-    setBookLists(reorderedLists);
+    setBookLists(reorderedLists)
     // Here you could implement server-side reordering if needed
-  };
+  }
 
   return (
     <div className="space-y-8">
@@ -182,8 +179,8 @@ export default function BookListsClient({ initialBookLists, groupId }: Props) {
               <div className="flex gap-2">
                 <button
                   onClick={() => {
-                    setSelectedListId(list.id);
-                    setIsAddBookModalOpen(true);
+                    setSelectedListId(list.id)
+                    setIsAddBookModalOpen(true)
                   }}
                   className="bg-green-600 text-white px-3 py-1 rounded-sm hover:bg-green-700"
                 >
@@ -228,7 +225,7 @@ export default function BookListsClient({ initialBookLists, groupId }: Props) {
                   </div>
                 ))}
               </div>
-              
+
               <BookListAnalytics listId={list.id} groupId={groupId} />
             </div>
           </Reorder.Item>
@@ -240,15 +237,16 @@ export default function BookListsClient({ initialBookLists, groupId }: Props) {
           listId={selectedListId}
           groupId={groupId}
           onClose={() => {
-            setIsAddBookModalOpen(false);
-            setSelectedListId(null);
+            setIsAddBookModalOpen(false)
+            setSelectedListId(null)
           }}
           onBookAdded={() => {
             // Refresh the list data
             const fetchList = async () => {
               const { data } = await supabase
                 .from('group_book_lists')
-                .select(`
+                .select(
+                  `
                   *,
                   group_book_list_items (
                     *,
@@ -259,20 +257,21 @@ export default function BookListsClient({ initialBookLists, groupId }: Props) {
                       cover_image_id
                     )
                   )
-                `)
+                `
+                )
                 .eq('id', selectedListId)
-                .single();
+                .single()
 
               if (data) {
                 setBookLists((prev) =>
                   prev.map((list) => (list.id === selectedListId ? data : list))
-                );
+                )
               }
-            };
-            fetchList();
+            }
+            fetchList()
           }}
         />
       )}
     </div>
-  );
-} 
+  )
+}

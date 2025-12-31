@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server"
-import { supabaseAdmin } from "@/lib/supabase/server"
+import { NextRequest, NextResponse } from 'next/server'
+import { supabaseAdmin } from '@/lib/supabase/server'
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,11 +9,13 @@ export async function GET(request: NextRequest) {
 
     let query = supabaseAdmin
       .from('publishers')
-      .select(`
+      .select(
+        `
         id,
         name,
         publisher_image:publisher_image_id(id, url, alt_text)
-      `)
+      `
+      )
       .order('name', { ascending: true })
 
     if (search) {
@@ -35,14 +37,10 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
-      publishers: publishers || []
+      publishers: publishers || [],
     })
-
   } catch (error) {
     console.error('Error in GET /api/admin/publishers:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-} 
+}

@@ -5,16 +5,7 @@ import { Avatar } from '@/components/ui/avatar'
 import EntityName from '@/components/entity-name'
 import EntityAvatar from '@/components/entity-avatar'
 import { Button } from '@/components/ui/button'
-import { 
-  Heart, 
-  X, 
-  User,
-  ThumbsUp,
-  Smile,
-  Star,
-  AlertTriangle,
-  Zap
-} from 'lucide-react'
+import { Heart, X, User, ThumbsUp, Smile, Star, AlertTriangle, Zap } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface ReactionUser {
@@ -53,15 +44,15 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
   entityId,
   entityType,
   reactionCount,
-  title = "Reactions",
-  description = "People who reacted to this content",
+  title = 'Reactions',
+  description = 'People who reacted to this content',
   className,
   onUserClick,
   onAddFriend,
   customReactionIcon,
-  customReactionColor = "from-red-500 to-pink-500",
+  customReactionColor = 'from-red-500 to-pink-500',
   showReactionTypes = false,
-  maxReactions = 50
+  maxReactions = 50,
 }) => {
   const [reactions, setReactions] = useState<ReactionUser[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -74,12 +65,14 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
     try {
       setIsLoading(true)
       setError(null)
-      
-      const response = await fetch(`/api/engagement?entity_id=${entityId}&entity_type=${entityType}`)
-      
+
+      const response = await fetch(
+        `/api/engagement?entity_id=${entityId}&entity_type=${entityType}`
+      )
+
       if (response.ok) {
         const data = await response.json()
-        
+
         if (data.recent_likes && Array.isArray(data.recent_likes)) {
           setReactions(data.recent_likes.slice(0, maxReactions))
         } else {
@@ -128,7 +121,7 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
   // Get reaction icon based on type
   const getReactionIcon = (reactionType?: string) => {
     if (customReactionIcon) return customReactionIcon
-    
+
     switch (reactionType?.toLowerCase()) {
       case 'love':
         return <Heart className="h-4 w-4 text-red-500" />
@@ -152,7 +145,7 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
   // Get reaction color based on type
   const getReactionColor = (reactionType?: string) => {
     if (customReactionColor) return customReactionColor
-    
+
     switch (reactionType?.toLowerCase()) {
       case 'love':
         return 'from-red-500 to-pink-500'
@@ -177,27 +170,29 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className={cn(
-        "bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden shadow-2xl",
-        className
-      )}>
+      <div
+        className={cn(
+          'bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden shadow-2xl',
+          className
+        )}
+      >
         {/* Modal Header */}
         <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className={cn(
-                "w-10 h-10 rounded-full flex items-center justify-center shadow-xs",
-                `bg-gradient-to-r ${getReactionColor()}`
-              )}>
+              <div
+                className={cn(
+                  'w-10 h-10 rounded-full flex items-center justify-center shadow-xs',
+                  `bg-gradient-to-r ${getReactionColor()}`
+                )}
+              >
                 {customReactionIcon || <Heart className="h-5 w-5 text-white" />}
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">
                   {title} ({reactionCount})
                 </h3>
-                <p className="text-sm text-gray-500">
-                  {description}
-                </p>
+                <p className="text-sm text-gray-500">{description}</p>
               </div>
             </div>
             <button
@@ -216,24 +211,35 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
             {!isLoading && !error && reactions.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {reactions.map((reaction) => (
-                  <div 
-                    key={reaction.id} 
+                  <div
+                    key={reaction.id}
                     className="flex items-center gap-3 p-4 hover:bg-gray-50 rounded-xl transition-all duration-200 border border-gray-100 hover:border-gray-200"
                   >
                     {/* User Avatar */}
                     <div className="relative">
-                      <EntityAvatar type="user" id={reaction.user.id} name={reaction.user.name} src={reaction.user.avatar_url} size="md" />
+                      <EntityAvatar
+                        type="user"
+                        id={reaction.user.id}
+                        name={reaction.user.name}
+                        src={reaction.user.avatar_url}
+                        size="md"
+                      />
                       {/* Online Status Indicator */}
                       {reaction.user.is_online && (
                         <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
                       )}
                     </div>
-                    
+
                     {/* User Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <div>
-                          <EntityName type="user" id={reaction.user.id} name={reaction.user.name} className="text-sm font-semibold text-gray-900 block truncate" />
+                          <EntityName
+                            type="user"
+                            id={reaction.user.id}
+                            name={reaction.user.name}
+                            className="text-sm font-semibold text-gray-900 block truncate"
+                          />
                           <p className="text-xs text-gray-500 mt-1">
                             {reaction.user.location || 'Location not set'}
                           </p>
@@ -246,7 +252,7 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
                             </div>
                           )}
                         </div>
-                        
+
                         {/* Add Friend Button */}
                         <Button
                           variant="outline"
@@ -280,11 +286,7 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
                 </div>
                 <h3 className="text-lg font-medium text-red-900 mb-2">Error loading reactions</h3>
                 <p className="text-red-500">{error}</p>
-                <Button
-                  variant="outline"
-                  onClick={fetchReactions}
-                  className="mt-4"
-                >
+                <Button variant="outline" onClick={fetchReactions} className="mt-4">
                   Try again
                 </Button>
               </div>

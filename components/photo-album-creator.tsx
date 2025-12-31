@@ -1,11 +1,23 @@
 import { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { createBrowserClient } from '@supabase/ssr'
 import { useToast } from '@/components/ui/use-toast'
@@ -22,7 +34,13 @@ interface PhotoAlbumCreatorProps {
 
 type PrivacyLevel = 'public' | 'friends' | 'private' | 'custom'
 
-export function PhotoAlbumCreator({ onAlbumCreated, trigger, entityType, entityId, redirectToUpload = false }: PhotoAlbumCreatorProps) {
+export function PhotoAlbumCreator({
+  onAlbumCreated,
+  trigger,
+  entityType,
+  entityId,
+  redirectToUpload = false,
+}: PhotoAlbumCreatorProps) {
   const { user } = useAuth()
   const { toast } = useToast()
   const [isOpen, setIsOpen] = useState(false)
@@ -32,59 +50,62 @@ export function PhotoAlbumCreator({ onAlbumCreated, trigger, entityType, entityI
   const [showInFeed, setShowInFeed] = useState(true)
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const [isCreating, setIsCreating] = useState(false)
-  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   const privacyOptions = [
     {
       value: 'public',
       label: 'Public',
       description: 'Anyone can view this album',
-      icon: <Globe className="h-4 w-4" />
+      icon: <Globe className="h-4 w-4" />,
     },
     {
       value: 'friends',
       label: 'Friends Only',
       description: 'Only your friends can view this album',
-      icon: <Users className="h-4 w-4" />
+      icon: <Users className="h-4 w-4" />,
     },
     {
       value: 'private',
       label: 'Private',
       description: 'Only you can view this album',
-      icon: <Lock className="h-4 w-4" />
+      icon: <Lock className="h-4 w-4" />,
     },
     {
       value: 'custom',
       label: 'Custom',
       description: 'Choose specific users who can view',
-      icon: <UserCheck className="h-4 w-4" />
-    }
+      icon: <UserCheck className="h-4 w-4" />,
+    },
   ]
 
   const handleCreateAlbum = async () => {
     if (!user) {
       toast({
-        title: "Error",
-        description: "You must be logged in to create an album",
-        variant: "destructive"
+        title: 'Error',
+        description: 'You must be logged in to create an album',
+        variant: 'destructive',
       })
       return
     }
 
     if (!name.trim()) {
       toast({
-        title: "Error",
-        description: "Album name is required",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Album name is required',
+        variant: 'destructive',
       })
       return
     }
 
     setIsCreating(true)
-    
+
     try {
       const isPublic = privacyLevel === 'public'
-      
+
       // Create the album
       const { data: album, error: albumError } = await supabase
         .from('photo_albums')
@@ -98,8 +119,8 @@ export function PhotoAlbumCreator({ onAlbumCreated, trigger, entityType, entityI
           metadata: {
             privacy_level: privacyLevel,
             show_in_feed: showInFeed,
-            created_from: 'photo_album_creator'
-          }
+            created_from: 'photo_album_creator',
+          },
         })
         .select()
         .single()
@@ -111,16 +132,14 @@ export function PhotoAlbumCreator({ onAlbumCreated, trigger, entityType, entityI
 
       // Create album shares for custom privacy
       if (privacyLevel === 'custom' && selectedUsers.length > 0) {
-        const shareRecords = selectedUsers.map(userId => ({
+        const shareRecords = selectedUsers.map((userId) => ({
           album_id: album.id,
           shared_by: user.id,
           shared_with: userId,
-          permission_level: 'view'
+          permission_level: 'view',
         }))
 
-        const { error: shareError } = await supabase
-          .from('album_shares')
-          .insert(shareRecords)
+        const { error: shareError } = await supabase.from('album_shares').insert(shareRecords)
 
         if (shareError) {
           console.error('Error creating album shares:', shareError)
@@ -130,20 +149,18 @@ export function PhotoAlbumCreator({ onAlbumCreated, trigger, entityType, entityI
       // If public and show in feed, create a feed activity
       if (isPublic && showInFeed) {
         try {
-          const { error: feedError } = await supabase
-            .from('activities')
-            .insert({
-              user_id: user.id,
-              activity_type: 'album_created',
-              entity_type: 'photo_album',
-              entity_id: album.id,
-              data: {
-                album_name: name.trim(),
-                album_description: description.trim(),
-                privacy_level: privacyLevel,
-                is_public: true
-              }
-            })
+          const { error: feedError } = await supabase.from('activities').insert({
+            user_id: user.id,
+            activity_type: 'album_created',
+            entity_type: 'photo_album',
+            entity_id: album.id,
+            data: {
+              album_name: name.trim(),
+              album_description: description.trim(),
+              privacy_level: privacyLevel,
+              is_public: true,
+            },
+          })
 
           if (feedError) {
             console.error('Error creating feed activity:', feedError)
@@ -156,8 +173,8 @@ export function PhotoAlbumCreator({ onAlbumCreated, trigger, entityType, entityI
       }
 
       toast({
-        title: "Success",
-        description: "Album created successfully"
+        title: 'Success',
+        description: 'Album created successfully',
       })
 
       setName('')
@@ -170,9 +187,9 @@ export function PhotoAlbumCreator({ onAlbumCreated, trigger, entityType, entityI
     } catch (error) {
       console.error('Error creating album:', error)
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create album",
-        variant: "destructive"
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to create album',
+        variant: 'destructive',
       })
     } finally {
       setIsCreating(false)
@@ -203,7 +220,7 @@ export function PhotoAlbumCreator({ onAlbumCreated, trigger, entityType, entityI
         <DialogHeader>
           <DialogTitle>Create New Photo Album</DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-6 py-4">
           {/* Album Name */}
           <div className="space-y-2">
@@ -244,9 +261,7 @@ export function PhotoAlbumCreator({ onAlbumCreated, trigger, entityType, entityI
                   }`}
                   onClick={() => handlePrivacyChange(option.value as PrivacyLevel)}
                 >
-                  <div className="flex-shrink-0">
-                    {option.icon}
-                  </div>
+                  <div className="flex-shrink-0">{option.icon}</div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{option.label}</span>
@@ -256,9 +271,7 @@ export function PhotoAlbumCreator({ onAlbumCreated, trigger, entityType, entityI
                         </Badge>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {option.description}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{option.description}</p>
                   </div>
                 </div>
               ))}
@@ -292,31 +305,22 @@ export function PhotoAlbumCreator({ onAlbumCreated, trigger, entityType, entityI
               </div>
               {/* TODO: Add user selector component */}
               <div className="p-3 border rounded-lg bg-muted/50">
-                <p className="text-sm text-muted-foreground">
-                  User selector coming soon...
-                </p>
+                <p className="text-sm text-muted-foreground">User selector coming soon...</p>
               </div>
             </div>
           )}
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-2 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => setIsOpen(false)}
-              disabled={isCreating}
-            >
+            <Button variant="outline" onClick={() => setIsOpen(false)} disabled={isCreating}>
               Cancel
             </Button>
-            <Button
-              onClick={handleCreateAlbum}
-              disabled={isCreating || !name.trim()}
-            >
-              {isCreating ? "Creating..." : "Create Album"}
+            <Button onClick={handleCreateAlbum} disabled={isCreating || !name.trim()}>
+              {isCreating ? 'Creating...' : 'Create Album'}
             </Button>
           </div>
         </div>
       </DialogContent>
     </Dialog>
   )
-} 
+}

@@ -8,9 +8,12 @@ export async function GET(request: NextRequest) {
     const entityType = searchParams.get('entityType')
 
     if (!entityId || !entityType) {
-      return NextResponse.json({
-        error: 'entityId and entityType are required'
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: 'entityId and entityType are required',
+        },
+        { status: 400 }
+      )
     }
 
     const supabase = await createRouteHandlerClientAsync()
@@ -43,7 +46,7 @@ export async function GET(request: NextRequest) {
         .from('album_images' as any)
         .select('*')
         .in('album_id', albumIds)
-      
+
       if (!albumImagesError && albumImagesData) {
         allAlbumImages = albumImagesData
       }
@@ -53,7 +56,9 @@ export async function GET(request: NextRequest) {
     const { data: imagesByMetadata, error: imagesError } = await supabase
       .from('images')
       .select('*')
-      .or(`metadata->>entity_id.eq.${entityId},metadata->>entityId.eq.${entityId},metadata->>entity_id.eq.${entityId}`)
+      .or(
+        `metadata->>entity_id.eq.${entityId},metadata->>entityId.eq.${entityId},metadata->>entity_id.eq.${entityId}`
+      )
 
     // Also check images table for ANY images with book-related metadata
     let allImagesWithMetadata: any[] = []
@@ -71,16 +76,18 @@ export async function GET(request: NextRequest) {
 
       if (!allImagesErr && allImagesData) {
         allImagesWithMetadata = allImagesData
-        
+
         // Filter images that might belong to this book
         potentialBookImages = allImagesData.filter((img: any) => {
           try {
             const meta = img.metadata || {}
             if (typeof meta === 'object' && meta !== null) {
-              return meta.entity_id === entityId || 
-                     meta.entityId === entityId ||
-                     meta.entity_type === entityType ||
-                     (meta.album_purpose === 'entity_header' && meta.entity_id === entityId)
+              return (
+                meta.entity_id === entityId ||
+                meta.entityId === entityId ||
+                meta.entity_type === entityType ||
+                (meta.album_purpose === 'entity_header' && meta.entity_id === entityId)
+              )
             }
             return false
           } catch {
@@ -93,22 +100,25 @@ export async function GET(request: NextRequest) {
     }
 
     // 4. Query images by album_images image_ids
-    const imageIds = allAlbumImages.map(ai => ai.image_id).filter(Boolean)
+    const imageIds = allAlbumImages.map((ai) => ai.image_id).filter(Boolean)
     let imagesByAlbumImages: any[] = []
     if (imageIds.length > 0) {
       const { data: imagesData, error: imagesDataError } = await supabase
         .from('images')
         .select('*')
         .in('id', imageIds)
-      
+
       if (!imagesDataError && imagesData) {
         imagesByAlbumImages = imagesData
       }
     }
 
     // 5. Check for "Header Cover Images" album specifically
-    const headerAlbum = (allAlbums as any[])?.find((a: any) => a.name === 'Header Cover Images' || a.name?.includes('Header')) || (headerAlbums as any[])?.[0]
-    
+    const headerAlbum =
+      (allAlbums as any[])?.find(
+        (a: any) => a.name === 'Header Cover Images' || a.name?.includes('Header')
+      ) || (headerAlbums as any[])?.[0]
+
     let headerAlbumImages: any[] = []
     let headerAlbumImageRecords: any[] = []
     if (headerAlbum) {
@@ -116,17 +126,19 @@ export async function GET(request: NextRequest) {
         .from('album_images')
         .select('*')
         .eq('album_id', headerAlbum.id)
-      
+
       if (!headerError && headerAlbumImagesData) {
         headerAlbumImageRecords = headerAlbumImagesData
-        
-        const headerImageIds = (headerAlbumImagesData as any[]).map((ai: any) => ai.image_id).filter(Boolean)
+
+        const headerImageIds = (headerAlbumImagesData as any[])
+          .map((ai: any) => ai.image_id)
+          .filter(Boolean)
         if (headerImageIds.length > 0) {
           const { data: headerImagesData, error: headerImagesError } = await supabase
             .from('images')
             .select('*')
             .in('id', headerImageIds)
-          
+
           if (!headerImagesError && headerImagesData) {
             headerAlbumImages = headerImagesData
           }
@@ -143,7 +155,7 @@ export async function GET(request: NextRequest) {
           .select('id, title, header_image_id, cover_image_id')
           .eq('id', entityId)
           .maybeSingle()
-        
+
         if (!bookError && bookData) {
           bookHeaderImage = bookData
         }
@@ -160,7 +172,7 @@ export async function GET(request: NextRequest) {
         .select('*')
         .eq('entity_id', entityId)
         .eq('entity_type', entityType)
-      
+
       if (!entityImagesError && entityImagesData) {
         entityImages = entityImagesData
       }
@@ -183,7 +195,7 @@ export async function GET(request: NextRequest) {
         headerAlbumId: headerAlbum?.id,
         headerAlbumName: headerAlbum?.name,
         headerAlbumImagesCount: headerAlbumImages.length,
-        totalImagesInTable: allImagesWithMetadata?.length || 0
+        totalImagesInTable: allImagesWithMetadata?.length || 0,
       },
       albums: allAlbums || [],
       albumsByEntityId: albumsByEntityId || [],
@@ -202,14 +214,15 @@ export async function GET(request: NextRequest) {
         albumsByIdError: albumsByIdError?.message,
         headerAlbumsError: headerAlbumsError?.message,
         imagesError: imagesError?.message,
-        allImagesError: allImagesError?.message
-      }
+        allImagesError: allImagesError?.message,
+      },
     })
-
   } catch (error) {
-    return NextResponse.json({
-      error: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    )
   }
 }
-

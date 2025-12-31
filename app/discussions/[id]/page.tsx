@@ -1,8 +1,8 @@
-import { supabaseAdmin } from "@/lib/supabase"
-import { notFound } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { supabaseAdmin } from '@/lib/supabase'
+import { notFound } from 'next/navigation'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-export const dynamic = "force-dynamic"
+export const dynamic = 'force-dynamic'
 
 interface DiscussionPageProps {
   params: Promise<{ id: string }>

@@ -7,9 +7,12 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 export default async function FeedPage() {
   const supabase = await createServerComponentClientAsync()
-  
-  const { data: { user }, error } = await supabase.auth.getUser()
-  
+
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
+
   if (error || !user) {
     redirect('/login')
   }
@@ -54,4 +57,4 @@ function FeedSkeleton() {
       ))}
     </div>
   )
-} 
+}

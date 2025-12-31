@@ -1,13 +1,20 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-import { Check, ChevronsUpDown } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { supabaseClient } from "@/lib/supabase/client"
-import type { Country } from "@/types/database"
+import { useState, useEffect } from 'react'
+import { Check, ChevronsUpDown } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { supabaseClient } from '@/lib/supabase/client'
+import type { Country } from '@/types/database'
 
 interface CountrySelectProps {
   value: number | null
@@ -19,7 +26,7 @@ interface CountrySelectProps {
 export function CountrySelect({
   value,
   onChange,
-  placeholder = "Select country",
+  placeholder = 'Select country',
   disabled = false,
 }: CountrySelectProps) {
   const [open, setOpen] = useState(false)
@@ -32,16 +39,16 @@ export function CountrySelect({
     async function fetchCountries() {
       try {
         setLoading(true)
-        const { data, error } = await supabaseClient.from("countries").select("*").order("name")
+        const { data, error } = await supabaseClient.from('countries').select('*').order('name')
 
         if (error) {
-          console.error("Error fetching countries:", error)
+          console.error('Error fetching countries:', error)
           return
         }
 
         setCountries(data as Country[])
       } catch (error) {
-        console.error("Error in fetchCountries:", error)
+        console.error('Error in fetchCountries:', error)
       } finally {
         setLoading(false)
       }
@@ -59,16 +66,20 @@ export function CountrySelect({
       }
 
       try {
-        const { data, error } = await supabaseClient.from("countries").select("*").eq("id", value).single()
+        const { data, error } = await supabaseClient
+          .from('countries')
+          .select('*')
+          .eq('id', value)
+          .single()
 
         if (error) {
-          console.error("Error fetching selected country:", error)
+          console.error('Error fetching selected country:', error)
           return
         }
 
         setSelectedCountry(data as Country)
       } catch (error) {
-        console.error("Error in fetchSelectedCountry:", error)
+        console.error('Error in fetchSelectedCountry:', error)
       }
     }
 
@@ -104,7 +115,12 @@ export function CountrySelect({
                     setOpen(false)
                   }}
                 >
-                  <Check className={cn("mr-2 h-4 w-4", value === country.id ? "opacity-100" : "opacity-0")} />
+                  <Check
+                    className={cn(
+                      'mr-2 h-4 w-4',
+                      value === country.id ? 'opacity-100' : 'opacity-0'
+                    )}
+                  />
                   {country.name}
                 </CommandItem>
               ))}

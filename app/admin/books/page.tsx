@@ -1,9 +1,9 @@
-import type { Metadata } from "next"
-import { AdminBooksManager } from "@/components/admin/admin-books-manager"
+import type { Metadata } from 'next'
+import { AdminBooksManager } from '@/components/admin/admin-books-manager'
 
 export const metadata: Metadata = {
   title: "Admin - Books Management | Author's Info",
-  description: "Admin interface for managing all books and related data",
+  description: 'Admin interface for managing all books and related data',
 }
 
 export default async function AdminBooksPage() {

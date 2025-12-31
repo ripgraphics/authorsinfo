@@ -1,6 +1,6 @@
-import type React from "react"
-import { Card, CardContent } from "@/components/ui/card"
-import { cn } from "@/lib/utils"
+import type React from 'react'
+import { Card, CardContent } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 
 interface StatCardProps {
   title: string
@@ -16,7 +16,7 @@ interface StatCardProps {
 
 export function StatCard({ title, value, description, icon, trend, className }: StatCardProps) {
   return (
-    <Card className={cn("overflow-hidden", className)}>
+    <Card className={cn('overflow-hidden', className)}>
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
@@ -28,7 +28,12 @@ export function StatCard({ title, value, description, icon, trend, className }: 
             {description && <div className="text-xs text-muted-foreground mt-1">{description}</div>}
           </div>
           {trend && (
-            <div className={cn("flex items-center text-sm", trend.isPositive ? "text-green-500" : "text-red-500")}>
+            <div
+              className={cn(
+                'flex items-center text-sm',
+                trend.isPositive ? 'text-green-500' : 'text-red-500'
+              )}
+            >
               {trend.isPositive ? (
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

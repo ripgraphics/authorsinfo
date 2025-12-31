@@ -6,14 +6,17 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const folder = searchParams.get('folder') || ''
     const maxResults = searchParams.get('max_results') || '50'
-    
+
     // Get Cloudinary credentials from environment variables
     const cloudName = process.env.CLOUDINARY_CLOUD_NAME
     const apiKey = process.env.CLOUDINARY_API_KEY
     const apiSecret = process.env.CLOUDINARY_API_SECRET
 
     if (!cloudName || !apiKey || !apiSecret) {
-      return NextResponse.json({ error: 'Cloudinary credentials are not properly configured' }, { status: 500 })
+      return NextResponse.json(
+        { error: 'Cloudinary credentials are not properly configured' },
+        { status: 500 }
+      )
     }
 
     // Create a timestamp for the signature
@@ -42,10 +45,10 @@ export async function GET(request: NextRequest) {
     const signatureString =
       Object.entries(sortedParams)
         .map(([key, value]) => `${key}=${value}`)
-        .join("&") + apiSecret
+        .join('&') + apiSecret
 
     // Generate the signature
-    const signature = crypto.createHash("sha1").update(signatureString).digest("hex")
+    const signature = crypto.createHash('sha1').update(signatureString).digest('hex')
 
     // Build the URL with parameters
     const urlParams = new URLSearchParams({
@@ -60,12 +63,17 @@ export async function GET(request: NextRequest) {
     }
 
     // Call Cloudinary API to list resources
-    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/resources/image?${urlParams}`)
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/resources/image?${urlParams}`
+    )
 
     if (!response.ok) {
       const errorText = await response.text()
       console.error('Cloudinary API error:', errorText)
-      return NextResponse.json({ error: `Failed to fetch images: ${errorText}` }, { status: response.status })
+      return NextResponse.json(
+        { error: `Failed to fetch images: ${errorText}` },
+        { status: response.status }
+      )
     }
 
     const data = await response.json()
@@ -75,12 +83,11 @@ export async function GET(request: NextRequest) {
       data: {
         resources: data.resources || [],
         next_cursor: data.next_cursor,
-        total_count: data.resources?.length || 0
-      }
+        total_count: data.resources?.length || 0,
+      },
     })
-
   } catch (error) {
     console.error('Error listing Cloudinary images:', error)
     return NextResponse.json({ error: 'Failed to list images' }, { status: 500 })
   }
-} 
+}

@@ -1,18 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 
-
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClientAsync()
 
     // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
     const body = await request.json()
@@ -28,14 +27,12 @@ export async function POST(request: NextRequest) {
     // Validate entity type
     const validEntityTypes = ['user', 'group', 'event', 'book', 'author', 'publisher']
     if (!validEntityTypes.includes(entityType)) {
-      return NextResponse.json(
-        { error: 'Invalid entity type' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid entity type' }, { status: 400 })
     }
 
     // Generate base permalink
-    let permalink = inputText.toLowerCase()
+    let permalink = inputText
+      .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '') // Remove special characters except spaces and hyphens
       .replace(/\s+/g, '-') // Replace spaces with hyphens
       .replace(/-+/g, '-') // Remove consecutive hyphens
@@ -48,10 +45,37 @@ export async function POST(request: NextRequest) {
 
     // Check for reserved words
     const reservedWords = [
-      'admin', 'api', 'auth', 'login', 'logout', 'register', 'signup', 'signin',
-      'profile', 'settings', 'dashboard', 'help', 'support', 'about', 'contact',
-      'privacy', 'terms', 'legal', 'blog', 'news', 'feed', 'search', 'explore',
-      'discover', 'trending', 'popular', 'new', 'hot', 'top', 'best', 'featured'
+      'admin',
+      'api',
+      'auth',
+      'login',
+      'logout',
+      'register',
+      'signup',
+      'signin',
+      'profile',
+      'settings',
+      'dashboard',
+      'help',
+      'support',
+      'about',
+      'contact',
+      'privacy',
+      'terms',
+      'legal',
+      'blog',
+      'news',
+      'feed',
+      'search',
+      'explore',
+      'discover',
+      'trending',
+      'popular',
+      'new',
+      'hot',
+      'top',
+      'best',
+      'featured',
     ]
 
     if (reservedWords.includes(permalink.toLowerCase())) {
@@ -65,7 +89,7 @@ export async function POST(request: NextRequest) {
       event: 'events',
       book: 'books',
       author: 'authors',
-      publisher: 'publishers'
+      publisher: 'publishers',
     }
 
     const tableName = tableMap[entityType]
@@ -115,14 +139,10 @@ export async function POST(request: NextRequest) {
       success: true,
       permalink: finalPermalink,
       originalInput: inputText,
-      entityType: entityType
+      entityType: entityType,
     })
-
   } catch (error) {
     console.error('Error generating permalink:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-} 
+}

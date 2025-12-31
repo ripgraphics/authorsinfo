@@ -1,19 +1,19 @@
-"use client"
+'use client'
 
-import type React from "react"
+import type React from 'react'
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { PageHeader } from "@/components/page-header"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { supabaseClient } from "@/lib/supabase/client"
-import { uploadImage } from "@/app/actions/upload"
-import { User, Camera } from "lucide-react"
-import { Combobox } from "@/components/ui/combobox"
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { PageHeader } from '@/components/page-header'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { supabaseClient } from '@/lib/supabase/client'
+import { uploadImage } from '@/app/actions/upload'
+import { User, Camera } from 'lucide-react'
+import { Combobox } from '@/components/ui/combobox'
 
 export default function AddAuthorPage() {
   const router = useRouter()
@@ -22,15 +22,15 @@ export default function AddAuthorPage() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [nationalities, setNationalities] = useState<string[]>([])
   const [formData, setFormData] = useState({
-    name: "",
-    nationality: "",
-    birth_date: "",
-    bio: "",
-    website: "",
-    twitter_handle: "",
-    facebook_handle: "",
-    instagram_handle: "",
-    goodreads_url: "",
+    name: '',
+    nationality: '',
+    birth_date: '',
+    bio: '',
+    website: '',
+    twitter_handle: '',
+    facebook_handle: '',
+    instagram_handle: '',
+    goodreads_url: '',
   })
 
   // Fetch nationalities on component mount
@@ -38,21 +38,27 @@ export default function AddAuthorPage() {
     async function fetchNationalities() {
       try {
         const { data, error } = await supabaseClient
-          .from("authors")
-          .select("nationality")
-          .not("nationality", "is", null)
-          .order("nationality")
+          .from('authors')
+          .select('nationality')
+          .not('nationality', 'is', null)
+          .order('nationality')
 
         if (error) {
-          console.error("Error fetching nationalities:", error)
+          console.error('Error fetching nationalities:', error)
           return
         }
 
         // Extract unique nationalities
-        const uniqueNationalities = Array.from(new Set(data.map((item: { nationality: string | null }) => item.nationality).filter(Boolean) as string[]))
+        const uniqueNationalities = Array.from(
+          new Set(
+            data
+              .map((item: { nationality: string | null }) => item.nationality)
+              .filter(Boolean) as string[]
+          )
+        )
         setNationalities(uniqueNationalities)
       } catch (error) {
-        console.error("Error fetching nationalities:", error)
+        console.error('Error fetching nationalities:', error)
       }
     }
 
@@ -93,13 +99,12 @@ export default function AddAuthorPage() {
         reader.readAsDataURL(photoFile)
         reader.onload = async () => {
           const base64Image = reader.result as string
-          photoUrl = await uploadImage(base64Image, "authors/photos", formData.name)
+          photoUrl = await uploadImage(base64Image, 'authors/photos', formData.name)
         }
       }
 
       // Create author in database
-      const { data, error } = await (supabaseClient
-        .from("authors") as any)
+      const { data, error } = await (supabaseClient.from('authors') as any)
         .insert({
           ...formData,
           photo_url: photoUrl,
@@ -107,7 +112,7 @@ export default function AddAuthorPage() {
         .select()
 
       if (error) {
-        console.error("Error creating author:", error)
+        console.error('Error creating author:', error)
         return
       }
 
@@ -116,7 +121,7 @@ export default function AddAuthorPage() {
         router.push(`/authors/${data[0].id}`)
       }
     } catch (error) {
-      console.error("Error saving author:", error)
+      console.error('Error saving author:', error)
     } finally {
       setLoading(false)
     }
@@ -141,7 +146,7 @@ export default function AddAuthorPage() {
                     <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-xl relative">
                       {photoPreview ? (
                         <img
-                          src={photoPreview || "/placeholder.svg"}
+                          src={photoPreview || '/placeholder.svg'}
                           alt="Author preview"
                           className="w-full h-full object-cover"
                         />
@@ -285,7 +290,7 @@ export default function AddAuthorPage() {
                     Cancel
                   </Button>
                   <Button type="submit" disabled={loading}>
-                    {loading ? "Saving..." : "Save Author"}
+                    {loading ? 'Saving...' : 'Save Author'}
                   </Button>
                 </div>
               </form>

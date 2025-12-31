@@ -1,13 +1,26 @@
-"use client"
+'use client'
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { supabaseClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
 
@@ -36,7 +49,7 @@ const DEFAULT_PERMISSIONS = [
   'manage_settings',
   'view_analytics',
   'moderate_content',
-  'manage_integrations'
+  'manage_integrations',
 ]
 
 export function PermissionsManager({ groupId }: PermissionsManagerProps) {
@@ -46,7 +59,7 @@ export function PermissionsManager({ groupId }: PermissionsManagerProps) {
   const [newRole, setNewRole] = useState({
     name: '',
     description: '',
-    permissions: [] as string[]
+    permissions: [] as string[],
   })
   const [showNewRoleDialog, setShowNewRoleDialog] = useState(false)
 
@@ -75,14 +88,13 @@ export function PermissionsManager({ groupId }: PermissionsManagerProps) {
 
   const handleCreateRole = async () => {
     try {
-      const { data, error } = await (supabaseClient
-        .from('group_roles') as any)
+      const { data, error } = await (supabaseClient.from('group_roles') as any)
         .insert({
           group_id: groupId,
           name: newRole.name,
           description: newRole.description,
           permissions: newRole.permissions,
-          is_custom: true
+          is_custom: true,
         })
         .select()
         .single()
@@ -101,21 +113,18 @@ export function PermissionsManager({ groupId }: PermissionsManagerProps) {
     if (!editingRole) return
 
     try {
-      const { error } = await (supabaseClient
-        .from('group_roles') as any)
+      const { error } = await (supabaseClient.from('group_roles') as any)
         .update({
           name: editingRole.name,
           description: editingRole.description,
           permissions: editingRole.permissions,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', editingRole.id)
 
       if (error) throw error
 
-      setRoles(roles.map(role =>
-        role.id === editingRole.id ? editingRole : role
-      ))
+      setRoles(roles.map((role) => (role.id === editingRole.id ? editingRole : role)))
       setEditingRole(null)
     } catch (error) {
       console.error('Error updating role:', error)
@@ -124,14 +133,11 @@ export function PermissionsManager({ groupId }: PermissionsManagerProps) {
 
   const handleDeleteRole = async (roleId: string) => {
     try {
-      const { error } = await supabaseClient
-        .from('group_roles')
-        .delete()
-        .eq('id', roleId)
+      const { error } = await supabaseClient.from('group_roles').delete().eq('id', roleId)
 
       if (error) throw error
 
-      setRoles(roles.filter(role => role.id !== roleId))
+      setRoles(roles.filter((role) => role.id !== roleId))
     } catch (error) {
       console.error('Error deleting role:', error)
     }
@@ -146,7 +152,7 @@ export function PermissionsManager({ groupId }: PermissionsManagerProps) {
           <div className="font-semibold">{row.original.name}</div>
           <div className="text-sm text-muted-foreground">{row.original.description}</div>
         </div>
-      )
+      ),
     },
     {
       header: 'Permissions',
@@ -158,7 +164,7 @@ export function PermissionsManager({ groupId }: PermissionsManagerProps) {
             </Badge>
           ))}
         </div>
-      )
+      ),
     },
     {
       header: 'Type',
@@ -166,12 +172,13 @@ export function PermissionsManager({ groupId }: PermissionsManagerProps) {
         <Badge variant={row.original.is_custom ? 'outline' : 'default'}>
           {row.original.is_custom ? 'Custom' : 'Default'}
         </Badge>
-      )
+      ),
     },
     {
       header: 'Last Updated',
       accessorKey: 'updated_at',
-      cell: ({ row }: { row: any }) => format(new Date(row.original.updated_at), 'MMM d, yyyy HH:mm')
+      cell: ({ row }: { row: any }) =>
+        format(new Date(row.original.updated_at), 'MMM d, yyyy HH:mm'),
     },
     {
       header: 'Actions',
@@ -179,11 +186,7 @@ export function PermissionsManager({ groupId }: PermissionsManagerProps) {
         <div className="flex gap-2">
           <Dialog>
             <DialogTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setEditingRole(row.original)}
-              >
+              <Button variant="outline" size="sm" onClick={() => setEditingRole(row.original)}>
                 Edit
               </Button>
             </DialogTrigger>
@@ -196,26 +199,38 @@ export function PermissionsManager({ groupId }: PermissionsManagerProps) {
                   <label className="text-sm font-medium">Name</label>
                   <Input
                     value={editingRole?.name || ''}
-                    onChange={(e) => setEditingRole(prev => prev ? {
-                      ...prev,
-                      name: e.target.value
-                    } : null)}
+                    onChange={(e) =>
+                      setEditingRole((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              name: e.target.value,
+                            }
+                          : null
+                      )
+                    }
                   />
                 </div>
                 <div>
                   <label className="text-sm font-medium">Description</label>
                   <Input
                     value={editingRole?.description || ''}
-                    onChange={(e) => setEditingRole(prev => prev ? {
-                      ...prev,
-                      description: e.target.value
-                    } : null)}
+                    onChange={(e) =>
+                      setEditingRole((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              description: e.target.value,
+                            }
+                          : null
+                      )
+                    }
                   />
                 </div>
                 <div>
                   <label className="text-sm font-medium">Permissions</label>
                   <div className="grid grid-cols-2 gap-2 mt-2">
-                    {DEFAULT_PERMISSIONS.map(permission => (
+                    {DEFAULT_PERMISSIONS.map((permission) => (
                       <div key={permission} className="flex items-center space-x-2">
                         <Checkbox
                           checked={editingRole?.permissions.includes(permission)}
@@ -225,7 +240,7 @@ export function PermissionsManager({ groupId }: PermissionsManagerProps) {
                               ...editingRole,
                               permissions: checked
                                 ? [...editingRole.permissions, permission]
-                                : editingRole.permissions.filter(p => p !== permission)
+                                : editingRole.permissions.filter((p) => p !== permission),
                             })
                           }}
                         />
@@ -238,9 +253,7 @@ export function PermissionsManager({ groupId }: PermissionsManagerProps) {
                   <Button variant="outline" onClick={() => setEditingRole(null)}>
                     Cancel
                   </Button>
-                  <Button onClick={handleUpdateRole}>
-                    Save Changes
-                  </Button>
+                  <Button onClick={handleUpdateRole}>Save Changes</Button>
                 </div>
               </div>
             </DialogContent>
@@ -255,8 +268,8 @@ export function PermissionsManager({ groupId }: PermissionsManagerProps) {
             </Button>
           )}
         </div>
-      )
-    }
+      ),
+    },
   ]
 
   return (
@@ -291,7 +304,7 @@ export function PermissionsManager({ groupId }: PermissionsManagerProps) {
               <div>
                 <label className="text-sm font-medium">Permissions</label>
                 <div className="grid grid-cols-2 gap-2 mt-2">
-                  {DEFAULT_PERMISSIONS.map(permission => (
+                  {DEFAULT_PERMISSIONS.map((permission) => (
                     <div key={permission} className="flex items-center space-x-2">
                       <Checkbox
                         checked={newRole.permissions.includes(permission)}
@@ -300,7 +313,7 @@ export function PermissionsManager({ groupId }: PermissionsManagerProps) {
                             ...newRole,
                             permissions: checked
                               ? [...newRole.permissions, permission]
-                              : newRole.permissions.filter(p => p !== permission)
+                              : newRole.permissions.filter((p) => p !== permission),
                           })
                         }}
                       />
@@ -313,9 +326,7 @@ export function PermissionsManager({ groupId }: PermissionsManagerProps) {
                 <Button variant="outline" onClick={() => setShowNewRoleDialog(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleCreateRole}>
-                  Create Role
-                </Button>
+                <Button onClick={handleCreateRole}>Create Role</Button>
               </div>
             </div>
           </DialogContent>
@@ -354,7 +365,9 @@ export function PermissionsManager({ groupId }: PermissionsManagerProps) {
                     <TableRow key={role.id || index}>
                       {columns.map((column, colIndex) => (
                         <TableCell key={colIndex}>
-                          {column.cell ? column.cell({ row: { original: role } }) : (role as any)[column.accessorKey || '']}
+                          {column.cell
+                            ? column.cell({ row: { original: role } })
+                            : (role as any)[column.accessorKey || '']}
                         </TableCell>
                       ))}
                     </TableRow>
@@ -367,4 +380,4 @@ export function PermissionsManager({ groupId }: PermissionsManagerProps) {
       </Card>
     </div>
   )
-} 
+}

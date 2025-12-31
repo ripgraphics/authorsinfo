@@ -1,10 +1,10 @@
 'use client'
 
-import { useMemo } from "react"
-import { UserListLayout } from "@/components/ui/user-list-layout"
-import { UserActionButtons } from "@/components/user-action-buttons"
-import { UserPlus, Users, BookOpen } from "lucide-react"
-import Link from "next/link"
+import { useMemo } from 'react'
+import { UserListLayout } from '@/components/ui/user-list-layout'
+import { UserActionButtons } from '@/components/user-action-buttons'
+import { UserPlus, Users, BookOpen } from 'lucide-react'
+import Link from 'next/link'
 
 interface FollowersListTabProps {
   followers: any[]
@@ -23,7 +23,7 @@ export function FollowersListTab({
   entityType,
   profileOwnerId,
   profileOwnerName,
-  profileOwnerPermalink
+  profileOwnerPermalink,
 }: FollowersListTabProps) {
   const sortOptions = [
     { value: 'recent', label: 'Recently Followed' },
@@ -51,7 +51,10 @@ export function FollowersListTab({
           >
             <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14 bg-muted">
               <img
-                src={follower.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(follower.name || 'User')}`}
+                src={
+                  follower.avatar_url ||
+                  `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(follower.name || 'User')}`
+                }
                 alt={follower.name || 'User'}
                 className="aspect-square h-full w-full object-cover rounded-full"
               />
@@ -60,18 +63,30 @@ export function FollowersListTab({
               <h3 className="font-medium truncate">{follower.name || 'Unknown User'}</h3>
               <div className="flex items-center text-xs text-muted-foreground mt-1">
                 <BookOpen className="h-3 w-3 mr-1" />
-                <span>{follower.books_read_count || 0} {follower.books_read_count === 1 ? 'book read' : 'books read'}</span>
+                <span>
+                  {follower.books_read_count || 0}{' '}
+                  {follower.books_read_count === 1 ? 'book read' : 'books read'}
+                </span>
               </div>
               <div className="flex items-center text-xs text-muted-foreground mt-1">
                 <Users className="h-3 w-3 mr-1" />
-                <span>{follower.friends_count || 0} {follower.friends_count === 1 ? 'friend' : 'friends'}</span>
+                <span>
+                  {follower.friends_count || 0}{' '}
+                  {follower.friends_count === 1 ? 'friend' : 'friends'}
+                </span>
               </div>
               <div className="flex items-center text-xs text-muted-foreground mt-1">
                 <UserPlus className="h-3 w-3 mr-1" />
-                <span>{follower.followers_count || 0} {follower.followers_count === 1 ? 'follower' : 'followers'}</span>
+                <span>
+                  {follower.followers_count || 0}{' '}
+                  {follower.followers_count === 1 ? 'follower' : 'followers'}
+                </span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Following since {follower.followSince ? new Date(follower.followSince).toLocaleDateString() : 'unknown date'}
+                Following since{' '}
+                {follower.followSince
+                  ? new Date(follower.followSince).toLocaleDateString()
+                  : 'unknown date'}
               </p>
             </div>
           </Link>
@@ -91,4 +106,4 @@ export function FollowersListTab({
       )}
     />
   )
-} 
+}

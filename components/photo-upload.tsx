@@ -1,8 +1,8 @@
-import { Button } from "@/components/ui/button"
-import { Camera } from "lucide-react"
-import { useState } from "react"
-import { useToast } from "@/components/ui/use-toast"
-import { uploadImage } from "@/app/actions/upload"
+import { Button } from '@/components/ui/button'
+import { Camera } from 'lucide-react'
+import { useState } from 'react'
+import { useToast } from '@/components/ui/use-toast'
+import { uploadImage } from '@/app/actions/upload'
 
 interface PhotoUploadProps {
   entityId: string
@@ -10,11 +10,7 @@ interface PhotoUploadProps {
   onUploadComplete?: () => void
 }
 
-export function PhotoUpload({
-  entityId,
-  entityType,
-  onUploadComplete
-}: PhotoUploadProps) {
+export function PhotoUpload({ entityId, entityType, onUploadComplete }: PhotoUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
   const { toast } = useToast()
 
@@ -25,9 +21,9 @@ export function PhotoUpload({
     // Validate file type
     if (!file.type.startsWith('image/')) {
       toast({
-        title: "Error",
-        description: "Please select an image file",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Please select an image file',
+        variant: 'destructive',
       })
       return
     }
@@ -35,9 +31,9 @@ export function PhotoUpload({
     // Validate file size (5MB limit)
     if (file.size > 5 * 1024 * 1024) {
       toast({
-        title: "Error",
-        description: "File size must be less than 5MB",
-        variant: "destructive"
+        title: 'Error',
+        description: 'File size must be less than 5MB',
+        variant: 'destructive',
       })
       return
     }
@@ -48,7 +44,7 @@ export function PhotoUpload({
       // Convert file to base64
       const reader = new FileReader()
       reader.readAsDataURL(file)
-      
+
       reader.onload = async () => {
         const base64Image = reader.result as string
         // Remove the data URL prefix (e.g., "data:image/jpeg;base64,")
@@ -60,28 +56,28 @@ export function PhotoUpload({
           `${entityType}gallery`,
           `Photo for ${entityType} ${entityId}`,
           1200, // maxWidth
-          1200  // maxHeight
+          1200 // maxHeight
         )
 
         if (result) {
           toast({
-            title: "Success",
-            description: "Photo uploaded successfully"
+            title: 'Success',
+            description: 'Photo uploaded successfully',
           })
           onUploadComplete?.()
         } else {
-          throw new Error("Failed to upload image")
+          throw new Error('Failed to upload image')
         }
       }
 
       reader.onerror = () => {
-        throw new Error("Failed to read file")
+        throw new Error('Failed to read file')
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to upload photo",
-        variant: "destructive"
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to upload photo',
+        variant: 'destructive',
       })
     } finally {
       setIsUploading(false)
@@ -99,15 +95,11 @@ export function PhotoUpload({
         disabled={isUploading}
       />
       <label htmlFor="photo-upload">
-        <Button 
-          variant="default" 
-          className="cursor-pointer"
-          disabled={isUploading}
-        >
+        <Button variant="default" className="cursor-pointer" disabled={isUploading}>
           <Camera className="h-4 w-4 mr-2" />
-          {isUploading ? "Uploading..." : "Add Photos"}
+          {isUploading ? 'Uploading...' : 'Add Photos'}
         </Button>
       </label>
     </div>
   )
-} 
+}

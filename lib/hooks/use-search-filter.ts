@@ -68,7 +68,7 @@ export interface SearchFilterResult<T> {
  * - Ranks results by relevance
  * - Supports multi-word searches
  * - Works with any data type
- * 
+ *
  * @example
  * ```tsx
  * const { filteredItems } = useSearchFilter({
@@ -101,7 +101,7 @@ export function useSearchFilter<T>({
       .toLowerCase()
       .trim()
       .split(/\s+/)
-      .filter(word => word.length > 0)
+      .filter((word) => word.length > 0)
 
     if (searchWords.length === 0) {
       return {
@@ -127,8 +127,8 @@ export function useSearchFilter<T>({
 
         // Check if item matches search criteria
         const hasMatch = requireAllWords
-          ? searchWords.every(word => searchableText.includes(word))
-          : searchWords.some(word => searchableText.includes(word))
+          ? searchWords.every((word) => searchableText.includes(word))
+          : searchWords.some((word) => searchableText.includes(word))
 
         if (!hasMatch) {
           return { item, score: 0 }
@@ -153,8 +153,8 @@ export function useSearchFilter<T>({
           }
 
           // Count word matches in this field
-          const wordMatches = searchWords.filter(word => fieldValue.includes(word))
-          
+          const wordMatches = searchWords.filter((word) => fieldValue.includes(word))
+
           if (requireAllWords) {
             // If all words match in this field, high score
             if (wordMatches.length === searchWords.length) {
@@ -166,7 +166,7 @@ export function useSearchFilter<T>({
           }
 
           // Field starts with any search word
-          searchWords.forEach(word => {
+          searchWords.forEach((word) => {
             if (fieldValue.startsWith(word)) {
               score += weight * 0.5
             }
@@ -180,7 +180,7 @@ export function useSearchFilter<T>({
 
         return { item, score }
       })
-      .filter(item => item.score > 0) // Only include matching items
+      .filter((item) => item.score > 0) // Only include matching items
       .sort((a, b) => {
         // Sort by score (highest first)
         if (b.score !== a.score) {
@@ -189,7 +189,7 @@ export function useSearchFilter<T>({
         // If scores are equal, maintain original order
         return 0
       })
-      .map(item => item.item) // Extract just the items
+      .map((item) => item.item) // Extract just the items
 
     return {
       filteredItems: itemsWithScores,
@@ -199,4 +199,3 @@ export function useSearchFilter<T>({
 
   return result
 }
-

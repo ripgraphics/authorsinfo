@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server"
-import { supabaseAdmin } from "@/lib/supabase/server"
+import { NextRequest, NextResponse } from 'next/server'
+import { supabaseAdmin } from '@/lib/supabase/server'
 
 interface BookFilter {
   title?: string
@@ -19,16 +19,16 @@ interface BookFilter {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    
+
     // Pagination
     const page = parseInt(searchParams.get('page') || '1')
     const pageSize = parseInt(searchParams.get('pageSize') || '20')
     const offset = (page - 1) * pageSize
-    
+
     // Sorting
     const sortField = searchParams.get('sort') || 'created_at'
     const sortDirection = searchParams.get('direction') || 'desc'
-    
+
     // Filters
     const filters: BookFilter = {
       title: searchParams.get('title') || undefined,
@@ -42,13 +42,17 @@ export async function GET(request: NextRequest) {
       minRating: searchParams.get('minRating') ? Number(searchParams.get('minRating')) : undefined,
       maxRating: searchParams.get('maxRating') ? Number(searchParams.get('maxRating')) : undefined,
       status: searchParams.get('status') || undefined,
-      featured: searchParams.get('featured') === 'true' ? true : searchParams.get('featured') === 'false' ? false : undefined
+      featured:
+        searchParams.get('featured') === 'true'
+          ? true
+          : searchParams.get('featured') === 'false'
+            ? false
+            : undefined,
     }
 
     // Build query
-    let query = supabaseAdmin
-      .from('books')
-      .select(`
+    let query = supabaseAdmin.from('books').select(
+      `
         *,
         author:authors!books_author_id_fkey(id, name, author_image:images!authors_author_image_id_fkey(url, alt_text)),
         publisher:publishers!books_publisher_id_fkey(id, name, publisher_image:images!publishers_publisher_image_id_fkey(url, alt_text)),
@@ -56,53 +60,55 @@ export async function GET(request: NextRequest) {
         format_type:format_types!books_format_type_id_fkey(id, name),
         status:statuses!books_status_id_fkey(id, name),
         cover_image:images!books_cover_image_id_fkey(url, alt_text)
-      `, { count: 'exact' })
+      `,
+      { count: 'exact' }
+    )
 
     // Apply filters
     if (filters.title) {
       query = query.ilike('title', `%${filters.title}%`)
     }
-    
+
     if (filters.author) {
       query = query.ilike('author.name', `%${filters.author}%`)
     }
-    
+
     if (filters.publisher) {
       query = query.ilike('publisher.name', `%${filters.publisher}%`)
     }
-    
+
     if (filters.isbn) {
       query = query.or(`isbn10.ilike.%${filters.isbn}%,isbn13.ilike.%${filters.isbn}%`)
     }
-    
+
     if (filters.language) {
       query = query.eq('language', filters.language)
     }
-    
+
     if (filters.publishedYear) {
       query = query.eq('publication_date', `${filters.publishedYear}-01-01`)
     }
-    
+
     if (filters.format) {
       query = query.eq('format_type.name', filters.format)
     }
-    
+
     if (filters.binding) {
       query = query.eq('binding_type.name', filters.binding)
     }
-    
+
     if (filters.minRating !== undefined) {
       query = query.gte('average_rating', filters.minRating)
     }
-    
+
     if (filters.maxRating !== undefined) {
       query = query.lte('average_rating', filters.maxRating)
     }
-    
+
     if (filters.status) {
       query = query.eq('status.name', filters.status)
     }
-    
+
     if (filters.featured !== undefined) {
       query = query.eq('featured', filters.featured)
     }
@@ -123,9 +129,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Process books to include cover image URL
-    const processedBooks = (books || []).map(book => ({
+    const processedBooks = (books || []).map((book) => ({
       ...book,
-      cover_image_url: book.cover_image?.url || null
+      cover_image_url: book.cover_image?.url || null,
     }))
 
     return NextResponse.json({
@@ -133,28 +139,21 @@ export async function GET(request: NextRequest) {
       total: count || 0,
       page,
       pageSize,
-      totalPages: Math.ceil((count || 0) / pageSize)
+      totalPages: Math.ceil((count || 0) / pageSize),
     })
-
   } catch (error) {
     console.error('Error in GET /api/admin/books:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    
+
     // Validate required fields
     if (!body.title) {
-      return NextResponse.json(
-        { error: 'Title is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Title is required' }, { status: 400 })
     }
 
     // Prepare book data
@@ -180,11 +179,11 @@ export async function POST(request: NextRequest) {
       publisher_id: body.publisher_id,
       binding_type_id: body.binding_type_id,
       format_type_id: body.format_type_id,
-      status_id: body.status_id
+      status_id: body.status_id,
     }
 
     // Remove undefined values
-    Object.keys(bookData).forEach(key => {
+    Object.keys(bookData).forEach((key) => {
       if (bookData[key as keyof typeof bookData] === undefined) {
         delete bookData[key as keyof typeof bookData]
       }
@@ -194,7 +193,8 @@ export async function POST(request: NextRequest) {
     const { data: book, error } = await supabaseAdmin
       .from('books')
       .insert(bookData)
-      .select(`
+      .select(
+        `
         *,
         author:authors!books_author_id_fkey(id, name, author_image:images!authors_author_image_id_fkey(url, alt_text)),
         publisher:publishers!books_publisher_id_fkey(id, name),
@@ -202,7 +202,8 @@ export async function POST(request: NextRequest) {
         format_type:format_types!books_format_type_id_fkey(id, name),
         status:statuses!books_status_id_fkey(id, name),
         cover_image:images!books_cover_image_id_fkey(url, alt_text)
-      `)
+      `
+      )
       .single()
 
     if (error) {
@@ -216,19 +217,18 @@ export async function POST(request: NextRequest) {
     // Process book to include cover image URL
     const processedBook = {
       ...book,
-      cover_image_url: book.cover_image?.url || null
+      cover_image_url: book.cover_image?.url || null,
     }
 
-    return NextResponse.json({
-      book: processedBook,
-      message: 'Book created successfully'
-    }, { status: 201 })
-
+    return NextResponse.json(
+      {
+        book: processedBook,
+        message: 'Book created successfully',
+      },
+      { status: 201 }
+    )
   } catch (error) {
     console.error('Error in POST /api/admin/books:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-} 
+}

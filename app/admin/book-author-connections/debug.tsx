@@ -1,9 +1,9 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { getAuthorBookStats } from "@/app/actions/admin-book-authors"
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { getAuthorBookStats } from '@/app/actions/admin-book-authors'
 
 export function DebugStats() {
   const [stats, setStats] = useState<any>(null)
@@ -30,7 +30,7 @@ export function DebugStats() {
       </CardHeader>
       <CardContent>
         <Button onClick={fetchStats} disabled={loading}>
-          {loading ? "Loading..." : "Fetch Stats Directly"}
+          {loading ? 'Loading...' : 'Fetch Stats Directly'}
         </Button>
 
         {error && (

@@ -1,50 +1,53 @@
-import { useCallback, useState } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
-import { AlbumImage } from '../types';
+import { useCallback, useState } from 'react'
+import { createBrowserClient } from '@supabase/ssr'
+import { AlbumImage } from '../types'
 
 interface BatchOperation {
-  type: 'delete' | 'tag' | 'feature' | 'reorder';
-  status: 'pending' | 'processing' | 'completed' | 'failed';
-  error?: string;
+  type: 'delete' | 'tag' | 'feature' | 'reorder'
+  status: 'pending' | 'processing' | 'completed' | 'failed'
+  error?: string
 }
 
 export function usePhotoGalleryBatch(albumId: string) {
-  const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
-  const [isSelecting, setIsSelecting] = useState(false);
-  const [currentOperation, setCurrentOperation] = useState<BatchOperation | null>(null);
-  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+  const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set())
+  const [isSelecting, setIsSelecting] = useState(false)
+  const [currentOperation, setCurrentOperation] = useState<BatchOperation | null>(null)
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   const toggleImageSelection = useCallback((imageId: string) => {
     setSelectedImages((prev) => {
-      const next = new Set(prev);
+      const next = new Set(prev)
       if (next.has(imageId)) {
-        next.delete(imageId);
+        next.delete(imageId)
       } else {
-        next.add(imageId);
+        next.add(imageId)
       }
-      return next;
-    });
-  }, []);
+      return next
+    })
+  }, [])
 
   const selectAll = useCallback((images: AlbumImage[]) => {
-    setSelectedImages(new Set(images.map((img) => img.id)));
-  }, []);
+    setSelectedImages(new Set(images.map((img) => img.id)))
+  }, [])
 
   const clearSelection = useCallback(() => {
-    setSelectedImages(new Set());
-  }, []);
+    setSelectedImages(new Set())
+  }, [])
 
   const toggleSelectionMode = useCallback(() => {
-    setIsSelecting((prev) => !prev);
+    setIsSelecting((prev) => !prev)
     if (isSelecting) {
-      clearSelection();
+      clearSelection()
     }
-  }, [isSelecting, clearSelection]);
+  }, [isSelecting, clearSelection])
 
   const batchDelete = useCallback(async () => {
-    if (selectedImages.size === 0) return;
+    if (selectedImages.size === 0) return
 
-    setCurrentOperation({ type: 'delete', status: 'processing' });
+    setCurrentOperation({ type: 'delete', status: 'processing' })
 
     try {
       // Delete album_images entries
@@ -52,9 +55,9 @@ export function usePhotoGalleryBatch(albumId: string) {
         .from('album_images')
         .delete()
         .in('image_id', Array.from(selectedImages))
-        .eq('album_id', albumId);
+        .eq('album_id', albumId)
 
-      if (deleteAlbumImagesError) throw deleteAlbumImagesError;
+      if (deleteAlbumImagesError) throw deleteAlbumImagesError
 
       // Check if images are used in other albums
       for (const imageId of selectedImages) {
@@ -62,123 +65,128 @@ export function usePhotoGalleryBatch(albumId: string) {
           .from('album_images')
           .select('id')
           .eq('image_id', imageId)
-          .neq('album_id', albumId);
+          .neq('album_id', albumId)
 
-        if (usageError) throw usageError;
+        if (usageError) throw usageError
 
         // If the image is not used in any other album, delete it
         if (!imageUsage || imageUsage.length === 0) {
           const { error: deleteImageError } = await supabase
             .from('images')
             .delete()
-            .eq('id', imageId);
+            .eq('id', imageId)
 
-          if (deleteImageError) throw deleteImageError;
+          if (deleteImageError) throw deleteImageError
         }
       }
 
-      setCurrentOperation({ type: 'delete', status: 'completed' });
-      clearSelection();
+      setCurrentOperation({ type: 'delete', status: 'completed' })
+      clearSelection()
     } catch (error) {
       setCurrentOperation({
         type: 'delete',
         status: 'failed',
         error: error instanceof Error ? error.message : 'Failed to delete images',
-      });
+      })
     }
-  }, [selectedImages, albumId, supabase, clearSelection]);
+  }, [selectedImages, albumId, supabase, clearSelection])
 
-  const batchTag = useCallback(async (tags: string[]) => {
-    if (selectedImages.size === 0 || tags.length === 0) return;
+  const batchTag = useCallback(
+    async (tags: string[]) => {
+      if (selectedImages.size === 0 || tags.length === 0) return
 
-    setCurrentOperation({ type: 'tag', status: 'processing' });
+      setCurrentOperation({ type: 'tag', status: 'processing' })
 
-    try {
-      // First, remove existing tags for selected images
-      const { error: deleteTagsError } = await supabase
-        .from('image_tags')
-        .delete()
-        .in('image_id', Array.from(selectedImages));
+      try {
+        // First, remove existing tags for selected images
+        const { error: deleteTagsError } = await supabase
+          .from('image_tags')
+          .delete()
+          .in('image_id', Array.from(selectedImages))
 
-      if (deleteTagsError) throw deleteTagsError;
+        if (deleteTagsError) throw deleteTagsError
 
-      // Then, add new tags
-      const tagEntries = Array.from(selectedImages).flatMap((imageId) =>
-        tags.map((tagId) => ({
-          image_id: imageId,
-          tag_id: tagId,
-        }))
-      );
+        // Then, add new tags
+        const tagEntries = Array.from(selectedImages).flatMap((imageId) =>
+          tags.map((tagId) => ({
+            image_id: imageId,
+            tag_id: tagId,
+          }))
+        )
 
-      const { error: insertTagsError } = await supabase
-        .from('image_tags')
-        .insert(tagEntries);
+        const { error: insertTagsError } = await supabase.from('image_tags').insert(tagEntries)
 
-      if (insertTagsError) throw insertTagsError;
+        if (insertTagsError) throw insertTagsError
 
-      setCurrentOperation({ type: 'tag', status: 'completed' });
-      clearSelection();
-    } catch (error) {
-      setCurrentOperation({
-        type: 'tag',
-        status: 'failed',
-        error: error instanceof Error ? error.message : 'Failed to tag images',
-      });
-    }
-  }, [selectedImages, supabase, clearSelection]);
+        setCurrentOperation({ type: 'tag', status: 'completed' })
+        clearSelection()
+      } catch (error) {
+        setCurrentOperation({
+          type: 'tag',
+          status: 'failed',
+          error: error instanceof Error ? error.message : 'Failed to tag images',
+        })
+      }
+    },
+    [selectedImages, supabase, clearSelection]
+  )
 
-  const batchFeature = useCallback(async (featured: boolean) => {
-    if (selectedImages.size === 0) return;
+  const batchFeature = useCallback(
+    async (featured: boolean) => {
+      if (selectedImages.size === 0) return
 
-    setCurrentOperation({ type: 'feature', status: 'processing' });
+      setCurrentOperation({ type: 'feature', status: 'processing' })
 
-    try {
-      const { error: updateError } = await supabase
-        .from('album_images')
-        .update({ is_featured: featured })
-        .in('image_id', Array.from(selectedImages))
-        .eq('album_id', albumId);
+      try {
+        const { error: updateError } = await supabase
+          .from('album_images')
+          .update({ is_featured: featured })
+          .in('image_id', Array.from(selectedImages))
+          .eq('album_id', albumId)
 
-      if (updateError) throw updateError;
+        if (updateError) throw updateError
 
-      setCurrentOperation({ type: 'feature', status: 'completed' });
-      clearSelection();
-    } catch (error) {
-      setCurrentOperation({
-        type: 'feature',
-        status: 'failed',
-        error: error instanceof Error ? error.message : 'Failed to update featured status',
-      });
-    }
-  }, [selectedImages, albumId, supabase, clearSelection]);
+        setCurrentOperation({ type: 'feature', status: 'completed' })
+        clearSelection()
+      } catch (error) {
+        setCurrentOperation({
+          type: 'feature',
+          status: 'failed',
+          error: error instanceof Error ? error.message : 'Failed to update featured status',
+        })
+      }
+    },
+    [selectedImages, albumId, supabase, clearSelection]
+  )
 
-  const batchReorder = useCallback(async (newOrder: { id: string; displayOrder: number }[]) => {
-    if (newOrder.length === 0) return;
+  const batchReorder = useCallback(
+    async (newOrder: { id: string; displayOrder: number }[]) => {
+      if (newOrder.length === 0) return
 
-    setCurrentOperation({ type: 'reorder', status: 'processing' });
+      setCurrentOperation({ type: 'reorder', status: 'processing' })
 
-    try {
-      const { error: updateError } = await supabase
-        .from('album_images')
-        .upsert(
+      try {
+        const { error: updateError } = await supabase.from('album_images').upsert(
           newOrder.map(({ id, displayOrder }) => ({
             image_id: id,
             album_id: albumId,
             display_order: displayOrder,
           }))
-        );
+        )
 
-      if (updateError) throw updateError;
+        if (updateError) throw updateError
 
-      setCurrentOperation({ type: 'reorder', status: 'completed' });
-    } catch (error) {
-      setCurrentOperation({
-        type: 'reorder',
-        status: 'failed',
-        error: error instanceof Error ? error.message : 'Failed to reorder images',
-      });
-    }
-  }, [albumId, supabase]);
+        setCurrentOperation({ type: 'reorder', status: 'completed' })
+      } catch (error) {
+        setCurrentOperation({
+          type: 'reorder',
+          status: 'failed',
+          error: error instanceof Error ? error.message : 'Failed to reorder images',
+        })
+      }
+    },
+    [albumId, supabase]
+  )
 
   return {
     selectedImages,
@@ -192,5 +200,5 @@ export function usePhotoGalleryBatch(albumId: string) {
     batchTag,
     batchFeature,
     batchReorder,
-  };
-} 
+  }
+}

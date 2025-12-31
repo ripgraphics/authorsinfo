@@ -1,81 +1,78 @@
-import { useState } from 'react';
-import { createClient } from '@/lib/supabase-client';
-import { toast } from 'react-hot-toast';
+import { useState } from 'react'
+import { createClient } from '@/lib/supabase-client'
+import { toast } from 'react-hot-toast'
 
 interface Props {
-  isOpen: boolean;
-  onClose: () => void;
-  groupId: string;
+  isOpen: boolean
+  onClose: () => void
+  groupId: string
 }
 
 export default function WriteReviewModal({ isOpen, onClose, groupId }: Props) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [selectedBook, setSelectedBook] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+  const [selectedBook, setSelectedBook] = useState<any>(null)
   const [reviewDetails, setReviewDetails] = useState({
     rating: 0,
     review: '',
-    contains_spoilers: false
-  });
-  const supabase = createClient();
+    contains_spoilers: false,
+  })
+  const supabase = createClient()
 
   const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
+    if (!searchQuery.trim()) return
 
-    setIsSearching(true);
+    setIsSearching(true)
     const { data, error } = await supabase
       .from('books')
       .select('id, title, author, cover_image_id, average_rating, review_count')
       .ilike('title', `%${searchQuery}%`)
-      .limit(10);
+      .limit(10)
 
     if (error) {
-      toast.error('Failed to search books');
-      return;
+      toast.error('Failed to search books')
+      return
     }
 
-    setSearchResults(data || []);
-    setIsSearching(false);
-  };
+    setSearchResults(data || [])
+    setIsSearching(false)
+  }
 
   const handleSubmitReview = async () => {
     if (!selectedBook || !reviewDetails.rating || !reviewDetails.review) {
-      toast.error('Please fill in all required fields');
-      return;
+      toast.error('Please fill in all required fields')
+      return
     }
 
-    const { error } = await (supabase
-      .from('book_reviews') as any)
-      .insert([{
+    const { error } = await (supabase.from('book_reviews') as any).insert([
+      {
         group_id: groupId,
         book_id: selectedBook.id,
         rating: reviewDetails.rating,
         content: reviewDetails.review,
         contains_spoilers: reviewDetails.contains_spoilers,
-        visibility: 'public'
-      }]);
+        visibility: 'public',
+      },
+    ])
 
     if (error) {
-      toast.error('Failed to submit review');
-      return;
+      toast.error('Failed to submit review')
+      return
     }
 
-    toast.success('Review submitted successfully');
-    onClose();
-  };
+    toast.success('Review submitted successfully')
+    onClose()
+  }
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Write a Book Review</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
             ✕
           </button>
         </div>
@@ -140,7 +137,7 @@ export default function WriteReviewModal({ isOpen, onClose, groupId }: Props) {
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
                       key={star}
-                      onClick={() => setReviewDetails(prev => ({ ...prev, rating: star }))}
+                      onClick={() => setReviewDetails((prev) => ({ ...prev, rating: star }))}
                       className="focus:outline-none"
                     >
                       <svg
@@ -160,7 +157,9 @@ export default function WriteReviewModal({ isOpen, onClose, groupId }: Props) {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Review</label>
                 <textarea
                   value={reviewDetails.review}
-                  onChange={(e) => setReviewDetails(prev => ({ ...prev, review: e.target.value }))}
+                  onChange={(e) =>
+                    setReviewDetails((prev) => ({ ...prev, review: e.target.value }))
+                  }
                   placeholder="Write your review..."
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   rows={6}
@@ -171,7 +170,9 @@ export default function WriteReviewModal({ isOpen, onClose, groupId }: Props) {
                   type="checkbox"
                   id="contains_spoilers"
                   checked={reviewDetails.contains_spoilers}
-                  onChange={(e) => setReviewDetails(prev => ({ ...prev, contains_spoilers: e.target.checked }))}
+                  onChange={(e) =>
+                    setReviewDetails((prev) => ({ ...prev, contains_spoilers: e.target.checked }))
+                  }
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded-sm"
                 />
                 <label htmlFor="contains_spoilers" className="ml-2 block text-sm text-gray-700">
@@ -198,5 +199,5 @@ export default function WriteReviewModal({ isOpen, onClose, groupId }: Props) {
         </div>
       </div>
     </div>
-  );
-} 
+  )
+}

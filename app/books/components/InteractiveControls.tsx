@@ -1,19 +1,28 @@
 'use client'
 
-import { useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet"
-import { Button } from "@/components/ui/button"
+import { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetClose,
+} from '@/components/ui/sheet'
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
-import { Filter } from "lucide-react"
-import { ReusableSearch } from "@/components/ui/reusable-search"
+} from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
+import { Filter } from 'lucide-react'
+import { ReusableSearch } from '@/components/ui/reusable-search'
 
 interface InteractiveControlsProps {
   languages: string[]
@@ -25,7 +34,15 @@ interface InteractiveControlsProps {
   onSearchChange?: (value: string) => void
 }
 
-export function InteractiveControls({ languages, years, search, language, sort, year, onSearchChange }: InteractiveControlsProps) {
+export function InteractiveControls({
+  languages,
+  years,
+  search,
+  language,
+  sort,
+  year,
+  onSearchChange,
+}: InteractiveControlsProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -68,9 +85,7 @@ export function InteractiveControls({ languages, years, search, language, sort, 
         <SheetContent>
           <SheetHeader>
             <SheetTitle>Filters</SheetTitle>
-            <SheetDescription>
-              Filter books by language, year, and sort order.
-            </SheetDescription>
+            <SheetDescription>Filter books by language, year, and sort order.</SheetDescription>
           </SheetHeader>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
@@ -145,4 +160,4 @@ export function InteractiveControls({ languages, years, search, language, sort, 
       </Sheet>
     </div>
   )
-} 
+}

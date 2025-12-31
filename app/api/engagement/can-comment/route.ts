@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 
-
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClientAsync()
@@ -68,23 +67,23 @@ export async function GET(request: NextRequest) {
         .select('id')
         .eq('follower_id', ownerUserId)
         .eq('following_id', userId)
-        .limit(1)
+        .limit(1),
     ])
 
     const isFollower = (youFollow?.length || 0) > 0
     const isFriend = isFollower && (theyFollow?.length || 0) > 0
 
-    const allowed = (
-      postingPolicy === 'public' ? true :
-      postingPolicy === 'followers' ? (isFollower || isFriend) :
-      postingPolicy === 'friends' ? isFriend :
-      false
-    )
+    const allowed =
+      postingPolicy === 'public'
+        ? true
+        : postingPolicy === 'followers'
+          ? isFollower || isFriend
+          : postingPolicy === 'friends'
+            ? isFriend
+            : false
 
     return NextResponse.json({ allowed })
   } catch (error) {
     return NextResponse.json({ allowed: false })
   }
 }
-
-

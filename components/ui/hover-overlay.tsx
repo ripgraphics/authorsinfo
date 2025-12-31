@@ -1,7 +1,7 @@
-"use client"
+'use client'
 
-import { useState, ReactNode } from "react"
-import { cn } from "@/lib/utils"
+import { useState, ReactNode } from 'react'
+import { cn } from '@/lib/utils'
 
 interface HoverOverlayProps {
   children: ReactNode
@@ -48,17 +48,14 @@ export function HoverOverlay({
   return (
     <div
       className={cn(
-        "absolute inset-0 bg-black/40 transition-opacity flex items-center justify-center",
+        'absolute inset-0 bg-black/40 transition-opacity flex items-center justify-center',
         overlayClassName,
         className
       )}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <div className={cn("flex items-center justify-center", contentClassName)}>
-        {children}
-      </div>
+      <div className={cn('flex items-center justify-center', contentClassName)}>{children}</div>
     </div>
   )
 }
-

@@ -1,24 +1,44 @@
-"use client"
+'use client'
 
-import React, { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
-import { useToast } from "@/hooks/use-toast"
-import { 
-  Search, 
-  Filter, 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Eye, 
+import React, { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination'
+import { useToast } from '@/hooks/use-toast'
+import {
+  Search,
+  Filter,
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
   MoreHorizontal,
   BookOpen,
   User,
@@ -35,11 +55,11 @@ import {
   Calendar,
   Globe,
   Hash,
-  Tag
-} from "lucide-react"
-import { AdminBookEditor } from "./admin-book-editor"
-import { AdminBookDetails } from "./admin-book-details"
-import { AdminBookActions } from "./admin-book-actions"
+  Tag,
+} from 'lucide-react'
+import { AdminBookEditor } from './admin-book-editor'
+import { AdminBookDetails } from './admin-book-details'
+import { AdminBookActions } from './admin-book-actions'
 
 interface Book {
   id: string
@@ -106,7 +126,7 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
-  
+
   // State
   const [books, setBooks] = useState<Book[]>([])
   const [loading, setLoading] = useState(true)
@@ -115,11 +135,11 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
   const [isEditorOpen, setIsEditorOpen] = useState(false)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
   const [isActionsOpen, setIsActionsOpen] = useState(false)
-  
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
-  
+
   // Filters
   const [filters, setFilters] = useState<BookFilter>({
     title: searchParams?.get('title') || '',
@@ -133,12 +153,14 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
     minRating: searchParams?.get('minRating') ? Number(searchParams.get('minRating')) : undefined,
     maxRating: searchParams?.get('maxRating') ? Number(searchParams.get('maxRating')) : undefined,
     status: searchParams?.get('status') || '',
-    featured: searchParams?.get('featured') === 'true'
+    featured: searchParams?.get('featured') === 'true',
   })
-  
+
   // Sort
   const [sortField, setSortField] = useState(searchParams?.get('sort') || 'created_at')
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(searchParams?.get('direction') as 'asc' | 'desc' || 'desc')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(
+    (searchParams?.get('direction') as 'asc' | 'desc') || 'desc'
+  )
 
   // Fetch books
   const fetchBooks = async () => {
@@ -149,32 +171,32 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
       params.append('pageSize', pageSize.toString())
       params.append('sort', sortField)
       params.append('direction', sortDirection)
-      
+
       // Add filters
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== '') {
           params.append(key, value.toString())
         }
       })
-      
+
       const response = await fetch(`/api/admin/books?${params.toString()}`)
       const data = await response.json()
-      
+
       if (response.ok) {
         setBooks(data.books)
         setTotalBooks(data.total)
       } else {
         toast({
-          title: "Error",
-          description: data.error || "Failed to fetch books",
-          variant: "destructive"
+          title: 'Error',
+          description: data.error || 'Failed to fetch books',
+          variant: 'destructive',
         })
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to fetch books",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to fetch books',
+        variant: 'destructive',
       })
     } finally {
       setLoading(false)
@@ -193,19 +215,19 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
     params.append('pageSize', pageSize.toString())
     params.append('sort', sortField)
     params.append('direction', sortDirection)
-    
+
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== undefined && value !== '') {
         params.append(key, value.toString())
       }
     })
-    
+
     router.push(`/admin/books?${params.toString()}`)
   }, [currentPage, pageSize, sortField, sortDirection, filters, router])
 
   // Handle filter changes
   const handleFilterChange = (key: keyof BookFilter, value: any) => {
-    setFilters(prev => ({ ...prev, [key]: value }))
+    setFilters((prev) => ({ ...prev, [key]: value }))
     setCurrentPage(1) // Reset to first page when filters change
   }
 
@@ -232,28 +254,28 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
 
     try {
       const response = await fetch(`/api/admin/books/${bookId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
       })
 
       if (response.ok) {
         toast({
-          title: "Success",
-          description: "Book deleted successfully"
+          title: 'Success',
+          description: 'Book deleted successfully',
         })
         fetchBooks() // Refresh the list
       } else {
         const data = await response.json()
         toast({
-          title: "Error",
-          description: data.error || "Failed to delete book",
-          variant: "destructive"
+          title: 'Error',
+          description: data.error || 'Failed to delete book',
+          variant: 'destructive',
         })
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to delete book",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to delete book',
+        variant: 'destructive',
       })
     }
   }
@@ -270,7 +292,7 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
             {totalBooks} total books • Page {currentPage} of {totalPages}
           </p>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Button onClick={() => setIsEditorOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
@@ -305,7 +327,7 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
                 onChange={(e) => handleFilterChange('title', e.target.value)}
               />
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Author</label>
               <Input
@@ -314,7 +336,7 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
                 onChange={(e) => handleFilterChange('author', e.target.value)}
               />
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Publisher</label>
               <Input
@@ -323,7 +345,7 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
                 onChange={(e) => handleFilterChange('publisher', e.target.value)}
               />
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium">ISBN</label>
               <Input
@@ -332,10 +354,15 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
                 onChange={(e) => handleFilterChange('isbn', e.target.value)}
               />
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Language</label>
-              <Select value={filters.language || 'all'} onValueChange={(value) => handleFilterChange('language', value === 'all' ? undefined : value)}>
+              <Select
+                value={filters.language || 'all'}
+                onValueChange={(value) =>
+                  handleFilterChange('language', value === 'all' ? undefined : value)
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="All languages" />
                 </SelectTrigger>
@@ -348,10 +375,15 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Format</label>
-              <Select value={filters.format || 'all'} onValueChange={(value) => handleFilterChange('format', value === 'all' ? undefined : value)}>
+              <Select
+                value={filters.format || 'all'}
+                onValueChange={(value) =>
+                  handleFilterChange('format', value === 'all' ? undefined : value)
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="All formats" />
                 </SelectTrigger>
@@ -364,7 +396,7 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Rating Range</label>
               <div className="flex gap-2">
@@ -375,7 +407,12 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
                   max="5"
                   step="0.1"
                   value={filters.minRating || ''}
-                  onChange={(e) => handleFilterChange('minRating', e.target.value ? Number(e.target.value) : undefined)}
+                  onChange={(e) =>
+                    handleFilterChange(
+                      'minRating',
+                      e.target.value ? Number(e.target.value) : undefined
+                    )
+                  }
                 />
                 <Input
                   type="number"
@@ -384,14 +421,27 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
                   max="5"
                   step="0.1"
                   value={filters.maxRating || ''}
-                  onChange={(e) => handleFilterChange('maxRating', e.target.value ? Number(e.target.value) : undefined)}
+                  onChange={(e) =>
+                    handleFilterChange(
+                      'maxRating',
+                      e.target.value ? Number(e.target.value) : undefined
+                    )
+                  }
                 />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Featured</label>
-              <Select value={filters.featured?.toString() || 'all'} onValueChange={(value) => handleFilterChange('featured', value === 'true' ? true : value === 'false' ? false : undefined)}>
+              <Select
+                value={filters.featured?.toString() || 'all'}
+                onValueChange={(value) =>
+                  handleFilterChange(
+                    'featured',
+                    value === 'true' ? true : value === 'false' ? false : undefined
+                  )
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="All books" />
                 </SelectTrigger>
@@ -426,7 +476,7 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}
+                onClick={() => setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))}
               >
                 {sortDirection === 'asc' ? '↑' : '↓'}
               </Button>
@@ -437,7 +487,10 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
           {loading ? (
             <div className="space-y-4">
               {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="flex items-center space-x-4 p-4 border rounded-lg animate-pulse">
+                <div
+                  key={i}
+                  className="flex items-center space-x-4 p-4 border rounded-lg animate-pulse"
+                >
                   <div className="w-16 h-24 bg-gray-200 rounded-sm"></div>
                   <div className="flex-1 space-y-2">
                     <div className="h-4 bg-gray-200 rounded-sm w-3/4"></div>
@@ -450,7 +503,9 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
             <div className="text-center py-12">
               <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-medium mb-2">No books found</h3>
-              <p className="text-muted-foreground mb-4">Try adjusting your filters or add a new book.</p>
+              <p className="text-muted-foreground mb-4">
+                Try adjusting your filters or add a new book.
+              </p>
               <Button onClick={() => setIsEditorOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Book
@@ -459,7 +514,10 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
           ) : (
             <div className="space-y-4">
               {books.map((book) => (
-                <div key={book.id} className="flex items-center space-x-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div
+                  key={book.id}
+                  className="flex items-center space-x-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                >
                   {/* Cover Image */}
                   <div className="relative w-16 h-24 flex-shrink-0">
                     {book.cover_image_url ? (
@@ -512,18 +570,18 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
                             </div>
                           )}
                         </div>
-                        
+
                         {/* Tags */}
                         <div className="flex items-center gap-2 mt-2">
-                          {book.featured && (
-                            <Badge variant="secondary">Featured</Badge>
-                          )}
+                          {book.featured && <Badge variant="secondary">Featured</Badge>}
                           {book.average_rating && (
                             <div className="flex items-center gap-1">
                               <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                               <span className="text-sm">{book.average_rating.toFixed(1)}</span>
                               {book.review_count && (
-                                <span className="text-xs text-muted-foreground">({book.review_count})</span>
+                                <span className="text-xs text-muted-foreground">
+                                  ({book.review_count})
+                                </span>
                               )}
                             </div>
                           )}
@@ -538,25 +596,13 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
 
                       {/* Actions */}
                       <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleViewDetails(book)}
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => handleViewDetails(book)}>
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditBook(book)}
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => handleEditBook(book)}>
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleBookActions(book)}
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => handleBookActions(book)}>
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </div>
@@ -574,7 +620,7 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
         <Pagination>
           <PaginationContent>
             <PaginationItem>
-              <PaginationPrevious 
+              <PaginationPrevious
                 href="#"
                 onClick={(e) => {
                   e.preventDefault()
@@ -583,7 +629,7 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
                 className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
               />
             </PaginationItem>
-            
+
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
               const page = i + 1
               return (
@@ -601,9 +647,9 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
                 </PaginationItem>
               )
             })}
-            
+
             <PaginationItem>
-              <PaginationNext 
+              <PaginationNext
                 href="#"
                 onClick={(e) => {
                   e.preventDefault()
@@ -628,13 +674,13 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
               fetchBooks()
             }}
           />
-          
+
           <AdminBookDetails
             book={selectedBook}
             open={isDetailsOpen}
             onOpenChange={setIsDetailsOpen}
           />
-          
+
           <AdminBookActions
             book={selectedBook}
             open={isActionsOpen}
@@ -652,4 +698,4 @@ export function AdminBooksManager({}: AdminBooksManagerProps) {
       )}
     </div>
   )
-} 
+}

@@ -8,22 +8,19 @@ export async function POST(request: NextRequest) {
   try {
     // Get authenticated user from session
     const supabase = await createRouteHandlerClientAsync()
-    
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
     if (userError) {
       console.error('User authentication error:', userError)
-      return NextResponse.json(
-        { error: 'Failed to authenticate user' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Failed to authenticate user' }, { status: 500 })
     }
-    
+
     if (!user) {
       console.error('No authenticated user')
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const formData = await request.formData()
@@ -32,26 +29,17 @@ export async function POST(request: NextRequest) {
     const entityId = formData.get('entityId') as string
 
     if (!file) {
-      return NextResponse.json(
-        { error: 'No file provided' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'No file provided' }, { status: 400 })
     }
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      return NextResponse.json(
-        { error: 'File must be an image' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'File must be an image' }, { status: 400 })
     }
 
     // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      return NextResponse.json(
-        { error: 'File size must be less than 10MB' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'File size must be less than 10MB' }, { status: 400 })
     }
 
     // Get Cloudinary credentials from environment variables
@@ -61,17 +49,14 @@ export async function POST(request: NextRequest) {
 
     if (!cloudName || !apiKey || !apiSecret) {
       console.error('Cloudinary credentials are not properly configured')
-      return NextResponse.json(
-        { error: 'Image upload service not configured' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Image upload service not configured' }, { status: 500 })
     }
 
     // Create a timestamp for the signature
     const timestamp = Math.round(new Date().getTime() / 1000)
 
     // Prepare transformation parameters
-    const transformationString = "f_webp,q_95" // Convert to WebP with 95% quality
+    const transformationString = 'f_webp,q_95' // Convert to WebP with 95% quality
 
     // Create the parameters object for signature
     const params: Record<string, string> = {
@@ -92,10 +77,10 @@ export async function POST(request: NextRequest) {
     const signatureString =
       Object.entries(sortedParams)
         .map(([key, value]) => `${key}=${value}`)
-        .join("&") + apiSecret
+        .join('&') + apiSecret
 
     // Generate the signature
-    const signature = crypto.createHash("sha1").update(signatureString).digest("hex")
+    const signature = crypto.createHash('sha1').update(signatureString).digest('hex')
 
     // Convert file to base64
     const arrayBuffer = await file.arrayBuffer()
@@ -104,16 +89,16 @@ export async function POST(request: NextRequest) {
 
     // Prepare the form data
     const uploadFormData = new FormData()
-    uploadFormData.append("file", dataUrl)
-    uploadFormData.append("api_key", apiKey)
-    uploadFormData.append("timestamp", timestamp.toString())
-    uploadFormData.append("signature", signature)
-    uploadFormData.append("folder", `authorsinfo/post_photos`)
-    uploadFormData.append("transformation", transformationString)
+    uploadFormData.append('file', dataUrl)
+    uploadFormData.append('api_key', apiKey)
+    uploadFormData.append('timestamp', timestamp.toString())
+    uploadFormData.append('signature', signature)
+    uploadFormData.append('folder', `authorsinfo/post_photos`)
+    uploadFormData.append('transformation', transformationString)
 
     // Upload to Cloudinary
     const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-      method: "POST",
+      method: 'POST',
       body: uploadFormData,
     })
 
@@ -121,18 +106,14 @@ export async function POST(request: NextRequest) {
     if (!response.ok) {
       const errorText = await response.text()
       console.error('Cloudinary upload failed:', errorText)
-      return NextResponse.json(
-        { error: 'Failed to upload image' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Failed to upload image' }, { status: 500 })
     }
 
     // Parse response
     const data = await response.json()
 
     // Create image record in database
-    const { data: imageRecord, error: imageError } = await (supabase
-      .from('images') as any)
+    const { data: imageRecord, error: imageError } = await (supabase.from('images') as any)
       .insert({
         url: data.secure_url,
         alt_text: `Post photo by ${user.email || 'User'}`,
@@ -150,8 +131,8 @@ export async function POST(request: NextRequest) {
           upload_timestamp: new Date().toISOString(),
           cloudinary_public_id: data.public_id,
           entity_type: entityType,
-          entity_id: entityId
-        }
+          entity_id: entityId,
+        },
       })
       .select()
       .single()
@@ -165,13 +146,10 @@ export async function POST(request: NextRequest) {
       success: true,
       url: data.secure_url,
       image_id: imageRecord?.id,
-      message: 'Photo uploaded successfully'
+      message: 'Photo uploaded successfully',
     })
   } catch (error) {
     console.error('Error in post photo upload:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-} 
+}

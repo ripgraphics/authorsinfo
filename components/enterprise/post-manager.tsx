@@ -8,17 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { 
-  Edit, 
-  Trash2, 
-  Save, 
-  X, 
-  Eye, 
-  EyeOff, 
-  Users, 
-  Lock,
-  RotateCcw
-} from 'lucide-react'
+import { Edit, Trash2, Save, X, Eye, EyeOff, Users, Lock, RotateCcw } from 'lucide-react'
 import { PostVisibility } from '@/types/post'
 
 interface PostManagerProps {
@@ -32,7 +22,7 @@ export default function PostManager({
   post,
   onPostUpdated,
   onPostDeleted,
-  onPostRestored
+  onPostRestored,
 }: PostManagerProps) {
   const { user } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
@@ -40,13 +30,13 @@ export default function PostManager({
   const [isRestoring, setIsRestoring] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<string[]>([])
-  
+
   // Edit form state
   const [editForm, setEditForm] = useState({
     content: post.content?.text || (post as any).text || (post as any).data?.text || '',
     hashtags: (post as any).hashtags || [],
     visibility: post.visibility || 'public',
-    tags: post.tags || []
+    tags: post.tags || [],
   })
 
   // Check if user can edit this post
@@ -62,7 +52,7 @@ export default function PostManager({
         content: post.content?.text || (post as any).text || (post as any).data?.text || '',
         hashtags: (post as any).hashtags || post.content?.hashtags || [],
         visibility: post.visibility || 'public',
-        tags: post.tags || []
+        tags: post.tags || [],
       })
       setErrors([])
     }
@@ -71,24 +61,27 @@ export default function PostManager({
 
   // Handle form input changes
   const handleInputChange = useCallback((field: string, value: any) => {
-    setEditForm(prev => ({ ...prev, [field]: value }))
+    setEditForm((prev) => ({ ...prev, [field]: value }))
   }, [])
 
   // Add hashtag
-  const addHashtag = useCallback((tag: string) => {
-    if (tag && !editForm.hashtags.includes(tag)) {
-      setEditForm(prev => ({
-        ...prev,
-        hashtags: [...prev.hashtags, tag]
-      }))
-    }
-  }, [editForm.hashtags])
+  const addHashtag = useCallback(
+    (tag: string) => {
+      if (tag && !editForm.hashtags.includes(tag)) {
+        setEditForm((prev) => ({
+          ...prev,
+          hashtags: [...prev.hashtags, tag],
+        }))
+      }
+    },
+    [editForm.hashtags]
+  )
 
   // Remove hashtag
   const removeHashtag = useCallback((tagToRemove: string) => {
-    setEditForm(prev => ({
+    setEditForm((prev) => ({
       ...prev,
-      hashtags: prev.hashtags.filter((tag: string) => tag !== tagToRemove)
+      hashtags: prev.hashtags.filter((tag: string) => tag !== tagToRemove),
     }))
   }, [])
 
@@ -106,18 +99,18 @@ export default function PostManager({
       const updateData: UpdatePostData = {
         content: {
           text: editForm.content.trim(),
-          hashtags: editForm.hashtags
+          hashtags: editForm.hashtags,
         },
         tags: editForm.hashtags,
-        visibility: editForm.visibility
+        visibility: editForm.visibility,
       }
 
       const response = await fetch(`/api/posts/${post.id}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(updateData)
+        body: JSON.stringify(updateData),
       })
 
       if (!response.ok) {
@@ -126,13 +119,12 @@ export default function PostManager({
       }
 
       const { post: updatedPost } = await response.json()
-      
+
       if (onPostUpdated) {
         onPostUpdated(updatedPost)
       }
-      
+
       setIsEditing(false)
-      
     } catch (error) {
       console.error('Error updating post:', error)
       setErrors([error instanceof Error ? error.message : 'Failed to update post'])
@@ -152,7 +144,7 @@ export default function PostManager({
 
     try {
       const response = await fetch(`/api/posts/${post.id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
       })
 
       if (!response.ok) {
@@ -163,7 +155,6 @@ export default function PostManager({
       if (onPostDeleted) {
         onPostDeleted(post.id)
       }
-      
     } catch (error) {
       console.error('Error deleting post:', error)
       setErrors([error instanceof Error ? error.message : 'Failed to delete post'])
@@ -179,7 +170,7 @@ export default function PostManager({
 
     try {
       const response = await fetch(`/api/posts/${post.id}/restore`, {
-        method: 'POST'
+        method: 'POST',
       })
 
       if (!response.ok) {
@@ -188,11 +179,10 @@ export default function PostManager({
       }
 
       const { post: restoredPost } = await response.json()
-      
+
       if (onPostRestored) {
         onPostRestored(restoredPost)
       }
-      
     } catch (error) {
       console.error('Error restoring post:', error)
       setErrors([error instanceof Error ? error.message : 'Failed to restore post'])
@@ -225,42 +215,26 @@ export default function PostManager({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-semibold">Post Management</h3>
-            {post.is_deleted && (
-              <Badge variant="destructive">Deleted</Badge>
-            )}
+            {post.is_deleted && <Badge variant="destructive">Deleted</Badge>}
           </div>
-          
+
           <div className="flex items-center gap-2">
             {canEdit && !isEditing && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleEditToggle}
-              >
+              <Button variant="outline" size="sm" onClick={handleEditToggle}>
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
               </Button>
             )}
-            
+
             {canDelete && !post.is_deleted && (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleDelete}
-                disabled={isDeleting}
-              >
+              <Button variant="destructive" size="sm" onClick={handleDelete} disabled={isDeleting}>
                 <Trash2 className="h-4 w-4 mr-2" />
                 {isDeleting ? 'Deleting...' : 'Delete'}
               </Button>
             )}
-            
+
             {canRestore && post.is_deleted && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRestore}
-                disabled={isRestoring}
-              >
+              <Button variant="outline" size="sm" onClick={handleRestore} disabled={isRestoring}>
                 <RotateCcw className="h-4 w-4 mr-2" />
                 {isRestoring ? 'Restoring...' : 'Restore'}
               </Button>
@@ -274,7 +248,9 @@ export default function PostManager({
         {errors.length > 0 && (
           <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
             {errors.map((error, index) => (
-              <p key={index} className="text-sm text-destructive">{error}</p>
+              <p key={index} className="text-sm text-destructive">
+                {error}
+              </p>
             ))}
           </div>
         )}
@@ -335,27 +311,18 @@ export default function PostManager({
                     onClick={() => handleInputChange('visibility', vis)}
                   >
                     {getVisibilityIcon(vis)}
-                    <span className="ml-2">
-                      {vis.charAt(0).toUpperCase() + vis.slice(1)}
-                    </span>
+                    <span className="ml-2">{vis.charAt(0).toUpperCase() + vis.slice(1)}</span>
                   </Button>
                 ))}
               </div>
             </div>
 
             <div className="flex items-center justify-between pt-4 border-t">
-              <Button
-                variant="outline"
-                onClick={handleEditToggle}
-                disabled={isSubmitting}
-              >
+              <Button variant="outline" onClick={handleEditToggle} disabled={isSubmitting}>
                 Cancel
               </Button>
-              
-              <Button
-                onClick={handleUpdate}
-                disabled={isSubmitting || !editForm.content.trim()}
-              >
+
+              <Button onClick={handleUpdate} disabled={isSubmitting || !editForm.content.trim()}>
                 <Save className="h-4 w-4 mr-2" />
                 {isSubmitting ? 'Updating...' : 'Update Post'}
               </Button>
@@ -365,18 +332,26 @@ export default function PostManager({
           /* View Mode */
           <div className="space-y-4">
             <div className="p-4 bg-muted/30 rounded-md">
-              <p className="whitespace-pre-wrap">{post.content?.text || (post as any).text || (post as any).data?.text || 'Shared an update'}</p>
-              
-              {((post as any).hashtags || post.content?.hashtags) && ((post as any).hashtags || post.content?.hashtags || []).length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-3">
-                  {((post as any).hashtags || post.content?.hashtags || []).map((tag: string, index: number) => (
-                    <Badge key={index} variant="secondary">
-                      #{tag}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-              
+              <p className="whitespace-pre-wrap">
+                {post.content?.text ||
+                  (post as any).text ||
+                  (post as any).data?.text ||
+                  'Shared an update'}
+              </p>
+
+              {((post as any).hashtags || post.content?.hashtags) &&
+                ((post as any).hashtags || post.content?.hashtags || []).length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-3">
+                    {((post as any).hashtags || post.content?.hashtags || []).map(
+                      (tag: string, index: number) => (
+                        <Badge key={index} variant="secondary">
+                          #{tag}
+                        </Badge>
+                      )
+                    )}
+                  </div>
+                )}
+
               <div className="mt-3 text-sm text-muted-foreground flex items-center gap-2">
                 {getVisibilityIcon(post.visibility)}
                 Visibility: {post.visibility.charAt(0).toUpperCase() + post.visibility.slice(1)}

@@ -1,9 +1,15 @@
 'use client'
 
-import { useRouter, useSearchParams } from "next/navigation"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Filter } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useRouter, useSearchParams } from 'next/navigation'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Filter } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import {
   Sheet,
   SheetContent,
@@ -13,9 +19,9 @@ import {
   SheetTrigger,
   SheetFooter,
   SheetClose,
-} from "@/components/ui/sheet"
-import { Label } from "@/components/ui/label"
-import { ReusableSearch } from "@/components/ui/reusable-search"
+} from '@/components/ui/sheet'
+import { Label } from '@/components/ui/label'
+import { ReusableSearch } from '@/components/ui/reusable-search'
 
 interface InteractiveControlsProps {
   locations: string[]
@@ -25,7 +31,13 @@ interface InteractiveControlsProps {
   onSearchChange?: (value: string) => void
 }
 
-export function InteractiveControls({ locations, search, location, sort, onSearchChange }: InteractiveControlsProps) {
+export function InteractiveControls({
+  locations,
+  search,
+  location,
+  sort,
+  onSearchChange,
+}: InteractiveControlsProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -78,17 +90,12 @@ export function InteractiveControls({ locations, search, location, sort, onSearc
           <SheetContent>
             <SheetHeader>
               <SheetTitle>Filters</SheetTitle>
-              <SheetDescription>
-                Filter publishers by location and sort order.
-              </SheetDescription>
+              <SheetDescription>Filter publishers by location and sort order.</SheetDescription>
             </SheetHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
                 <Label htmlFor="location">Location</Label>
-                <Select
-                  value={location}
-                  onValueChange={handleLocationChange}
-                >
+                <Select value={location} onValueChange={handleLocationChange}>
                   <SelectTrigger id="location">
                     <SelectValue placeholder="Select location" />
                   </SelectTrigger>
@@ -104,10 +111,7 @@ export function InteractiveControls({ locations, search, location, sort, onSearc
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="sort">Sort By</Label>
-                <Select
-                  value={sort}
-                  onValueChange={handleSortChange}
-                >
+                <Select value={sort} onValueChange={handleSortChange}>
                   <SelectTrigger id="sort">
                     <SelectValue placeholder="Select sort order" />
                   </SelectTrigger>
@@ -128,4 +132,4 @@ export function InteractiveControls({ locations, search, location, sort, onSearc
       </div>
     </div>
   )
-} 
+}

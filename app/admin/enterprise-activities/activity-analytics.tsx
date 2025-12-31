@@ -1,8 +1,8 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2, BarChart3, TrendingUp, Clock, Zap } from "lucide-react"
+import { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Loader2, BarChart3, TrendingUp, Clock, Zap } from 'lucide-react'
 
 interface ActivityStats {
   total_activities: number
@@ -21,16 +21,16 @@ export function ActivityAnalytics() {
     async function fetchStats() {
       try {
         setLoading(true)
-        const response = await fetch("/api/admin/enterprise-activities")
+        const response = await fetch('/api/admin/enterprise-activities')
         const data = await response.json()
 
         if (!response.ok) {
-          throw new Error(data.error || "Failed to fetch activity statistics")
+          throw new Error(data.error || 'Failed to fetch activity statistics')
         }
 
         setStats(data.stats)
       } catch (err: any) {
-        console.error("Failed to load analytics:", err)
+        console.error('Failed to load analytics:', err)
       } finally {
         setLoading(false)
       }
@@ -67,26 +67,26 @@ export function ActivityAnalytics() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-4 text-muted-foreground">
-            No analytics data available
-          </div>
+          <div className="text-center py-4 text-muted-foreground">No analytics data available</div>
         </CardContent>
       </Card>
     )
   }
 
   // Calculate trends and metrics
-  const weeklyGrowth = stats.activities_this_week > 0 ? 
-    ((stats.activities_today * 7) / stats.activities_this_week * 100 - 100).toFixed(1) : 0
-  
-  const monthlyGrowth = stats.activities_this_month > 0 ? 
-    ((stats.activities_this_week * 4) / stats.activities_this_month * 100 - 100).toFixed(1) : 0
+  const weeklyGrowth =
+    stats.activities_this_week > 0
+      ? (((stats.activities_today * 7) / stats.activities_this_week) * 100 - 100).toFixed(1)
+      : 0
 
-  const topActivityType = Object.entries(stats.by_type)
-    .sort(([,a], [,b]) => b - a)[0]
-  
-  const topEntityType = Object.entries(stats.by_entity)
-    .sort(([,a], [,b]) => b - a)[0]
+  const monthlyGrowth =
+    stats.activities_this_month > 0
+      ? (((stats.activities_this_week * 4) / stats.activities_this_month) * 100 - 100).toFixed(1)
+      : 0
+
+  const topActivityType = Object.entries(stats.by_type).sort(([, a], [, b]) => b - a)[0]
+
+  const topEntityType = Object.entries(stats.by_entity).sort(([, a], [, b]) => b - a)[0]
 
   return (
     <Card>
@@ -104,12 +104,8 @@ export function ActivityAnalytics() {
               <TrendingUp className="h-4 w-4 text-blue-600" />
               <span className="text-sm font-medium text-blue-800">Weekly Growth</span>
             </div>
-            <div className="text-2xl font-bold text-blue-600">
-              {weeklyGrowth}%
-            </div>
-            <div className="text-xs text-blue-600">
-              vs last week
-            </div>
+            <div className="text-2xl font-bold text-blue-600">{weeklyGrowth}%</div>
+            <div className="text-xs text-blue-600">vs last week</div>
           </div>
 
           <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
@@ -117,12 +113,8 @@ export function ActivityAnalytics() {
               <Clock className="h-4 w-4 text-green-600" />
               <span className="text-sm font-medium text-green-800">Activity Rate</span>
             </div>
-            <div className="text-2xl font-bold text-green-600">
-              {stats.activities_today}
-            </div>
-            <div className="text-xs text-green-600">
-              today
-            </div>
+            <div className="text-2xl font-bold text-green-600">{stats.activities_today}</div>
+            <div className="text-xs text-green-600">today</div>
           </div>
 
           <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
@@ -133,9 +125,7 @@ export function ActivityAnalytics() {
             <div className="text-2xl font-bold text-purple-600">
               {stats.total_activities.toLocaleString()}
             </div>
-            <div className="text-xs text-purple-600">
-              all time
-            </div>
+            <div className="text-xs text-purple-600">all time</div>
           </div>
         </div>
 
@@ -145,7 +135,7 @@ export function ActivityAnalytics() {
             <h4 className="text-sm font-medium">Activity Type Distribution</h4>
             <div className="space-y-2">
               {Object.entries(stats.by_type)
-                .sort(([,a], [,b]) => b - a)
+                .sort(([, a], [, b]) => b - a)
                 .slice(0, 6)
                 .map(([type, count]) => {
                   const percentage = ((count / stats.total_activities) * 100).toFixed(1)
@@ -153,10 +143,12 @@ export function ActivityAnalytics() {
                     <div key={type} className="space-y-1">
                       <div className="flex items-center justify-between text-sm">
                         <span className="capitalize">{type.replace(/_/g, ' ')}</span>
-                        <span className="font-medium">{count} ({percentage}%)</span>
+                        <span className="font-medium">
+                          {count} ({percentage}%)
+                        </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
+                        <div
                           className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                           style={{ width: `${percentage}%` }}
                         />
@@ -174,7 +166,7 @@ export function ActivityAnalytics() {
             <h4 className="text-sm font-medium">Entity Type Distribution</h4>
             <div className="space-y-2">
               {Object.entries(stats.by_entity)
-                .sort(([,a], [,b]) => b - a)
+                .sort(([, a], [, b]) => b - a)
                 .slice(0, 6)
                 .map(([entity, count]) => {
                   const percentage = ((count / stats.total_activities) * 100).toFixed(1)
@@ -182,10 +174,12 @@ export function ActivityAnalytics() {
                     <div key={entity} className="space-y-1">
                       <div className="flex items-center justify-between text-sm">
                         <span className="capitalize">{entity}</span>
-                        <span className="font-medium">{count} ({percentage}%)</span>
+                        <span className="font-medium">
+                          {count} ({percentage}%)
+                        </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
+                        <div
                           className="bg-green-600 h-2 rounded-full transition-all duration-300"
                           style={{ width: `${percentage}%` }}
                         />
@@ -207,42 +201,38 @@ export function ActivityAnalytics() {
                 <div className="font-medium text-blue-800 capitalize">
                   {topActivityType[0].replace(/_/g, ' ')}
                 </div>
-                <div className="text-xs text-blue-600">
-                  {topActivityType[1]} occurrences
-                </div>
+                <div className="text-xs text-blue-600">{topActivityType[1]} occurrences</div>
               </div>
             )}
-            
+
             {topEntityType && (
               <div className="p-3 bg-green-50 rounded-lg">
                 <div className="text-xs text-green-600 mb-1">Most Active Entity</div>
-                <div className="font-medium text-green-800 capitalize">
-                  {topEntityType[0]}
-                </div>
-                <div className="text-xs text-green-600">
-                  {topEntityType[1]} activities
-                </div>
+                <div className="font-medium text-green-800 capitalize">{topEntityType[0]}</div>
+                <div className="text-xs text-green-600">{topEntityType[1]} activities</div>
               </div>
             )}
 
             <div className="p-3 bg-yellow-50 rounded-lg">
               <div className="text-xs text-yellow-600 mb-1">Activity Velocity</div>
               <div className="font-medium text-yellow-800">
-                {stats.activities_today > stats.activities_this_week / 7 ? 'Increasing' : 'Decreasing'}
+                {stats.activities_today > stats.activities_this_week / 7
+                  ? 'Increasing'
+                  : 'Decreasing'}
               </div>
-              <div className="text-xs text-yellow-600">
-                vs 7-day average
-              </div>
+              <div className="text-xs text-yellow-600">vs 7-day average</div>
             </div>
 
             <div className="p-3 bg-purple-50 rounded-lg">
               <div className="text-xs text-purple-600 mb-1">Engagement Level</div>
               <div className="font-medium text-purple-800">
-                {stats.activities_today > 10 ? 'High' : stats.activities_today > 5 ? 'Medium' : 'Low'}
+                {stats.activities_today > 10
+                  ? 'High'
+                  : stats.activities_today > 5
+                    ? 'Medium'
+                    : 'Low'}
               </div>
-              <div className="text-xs text-purple-600">
-                based on today's activity
-              </div>
+              <div className="text-xs text-purple-600">based on today's activity</div>
             </div>
           </div>
         </div>
@@ -258,10 +248,15 @@ export function ActivityAnalytics() {
               <p>• Activity levels are low - consider bulk generation for better user engagement</p>
             )}
             {topActivityType && topActivityType[1] > stats.total_activities * 0.5 && (
-              <p>• Activity type "{topActivityType[0]}" dominates - consider diversifying activity types</p>
+              <p>
+                • Activity type "{topActivityType[0]}" dominates - consider diversifying activity
+                types
+              </p>
             )}
             {Object.keys(stats.by_entity).length < 3 && (
-              <p>• Limited entity type diversity - expand activity generation to more entity types</p>
+              <p>
+                • Limited entity type diversity - expand activity generation to more entity types
+              </p>
             )}
             <p>• Use enterprise features for optimal performance and data integrity</p>
           </div>
@@ -269,4 +264,4 @@ export function ActivityAnalytics() {
       </CardContent>
     </Card>
   )
-} 
+}

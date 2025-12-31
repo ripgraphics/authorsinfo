@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import React, { useState, useCallback } from 'react'
 import Cropper from 'react-easy-crop'
@@ -46,23 +46,23 @@ export function ImageCropper({
   isProcessing = false,
   circularCrop = false,
   // Fully customizable text content with defaults
-  title = "Crop Image",
-  cancelButtonText = "Cancel",
-  cropButtonText = "Crop Image",
-  processingText = "Processing...",
-  helpText = "Click and drag to adjust crop area",
-  imageAltText = "Crop me",
+  title = 'Crop Image',
+  cancelButtonText = 'Cancel',
+  cropButtonText = 'Crop Image',
+  processingText = 'Processing...',
+  helpText = 'Click and drag to adjust crop area',
+  imageAltText: _imageAltText = 'Crop me',
   // Fully customizable styling with defaults
-  modalWrapperClassName = "fixed inset-0 z-50 flex items-center justify-center bg-black/80",
-  modalClassName = "relative h-[95vh] max-h-[95vh] w-[95vw] max-w-[95vw] flex flex-col rounded-lg bg-white overflow-hidden",
-  headerClassName = "flex-shrink-0 flex items-center justify-between px-3 py-2 border-b",
-  containerClassName = "flex-1 min-h-0 overflow-hidden flex items-center justify-center bg-gray-50 p-4",
-  footerClassName = "flex-shrink-0 flex items-center justify-between px-3 py-2 border-t bg-white",
-  cancelButtonClassName = "h-7 px-3 text-xs",
-  cropButtonClassName = "h-7 px-3 text-xs",
+  modalWrapperClassName = 'fixed inset-0 z-50 flex items-center justify-center bg-black/80',
+  modalClassName = 'relative h-[95vh] max-h-[95vh] w-[95vw] max-w-[95vw] flex flex-col rounded-lg bg-white overflow-hidden',
+  headerClassName = 'flex-shrink-0 flex items-center justify-between px-3 py-2 border-b',
+  containerClassName = 'flex-1 min-h-0 overflow-hidden flex items-center justify-center bg-gray-50 p-4',
+  footerClassName = 'flex-shrink-0 flex items-center justify-between px-3 py-2 border-t bg-white',
+  cancelButtonClassName = 'h-7 px-3 text-xs',
+  cropButtonClassName = 'h-7 px-3 text-xs',
   minZoom = 1,
   maxZoom = 3,
-  zoomStep = 0.1
+  zoomStep = 0.1,
 }: ImageCropperProps) {
   const [crop, setCrop] = useState<Point>({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
@@ -77,28 +77,28 @@ export function ImageCropper({
     setCrop(crop)
   }, [])
 
-  const onZoomChange = useCallback((zoom: number) => {
-    setZoom(Math.min(Math.max(zoom, minZoom), maxZoom))
-  }, [minZoom, maxZoom])
+  const onZoomChange = useCallback(
+    (zoom: number) => {
+      setZoom(Math.min(Math.max(zoom, minZoom), maxZoom))
+    },
+    [minZoom, maxZoom]
+  )
 
   const handleZoomIn = useCallback(() => {
-    setZoom(prev => Math.min(prev + zoomStep, maxZoom))
+    setZoom((prev) => Math.min(prev + zoomStep, maxZoom))
   }, [zoomStep, maxZoom])
 
   const handleZoomOut = useCallback(() => {
-    setZoom(prev => Math.max(prev - zoomStep, minZoom))
+    setZoom((prev) => Math.max(prev - zoomStep, minZoom))
   }, [zoomStep, minZoom])
 
   const handleZoomSliderChange = useCallback((value: number[]) => {
     setZoom(value[0])
   }, [])
 
-  const onCropCompleteCallback = useCallback(
-    (croppedArea: Area, croppedAreaPixels: Area) => {
-      setCroppedAreaPixels(croppedAreaPixels)
-    },
-    []
-  )
+  const onCropCompleteCallback = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
+    setCroppedAreaPixels(croppedAreaPixels)
+  }, [])
 
   // Generate cropped image from croppedAreaPixels
   const generateCroppedImage = useCallback(async () => {
@@ -109,20 +109,20 @@ export function ImageCropper({
     try {
       const image = new Image()
       image.crossOrigin = 'anonymous'
-      
+
       await new Promise((resolve, reject) => {
         image.onload = resolve
         image.onerror = reject
         image.src = imageUrl
       })
 
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d')
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
 
-    if (!ctx) {
-      setInternalProcessing(false)
-      return
-    }
+      if (!ctx) {
+        setInternalProcessing(false)
+        return
+      }
 
       // Use target dimensions if provided, otherwise use cropped area dimensions
       const outputWidth = targetWidth || croppedAreaPixels.width
@@ -179,9 +179,9 @@ export function ImageCropper({
         </div>
 
         {/* Fully Customizable Image Cropper Container */}
-        <div 
+        <div
           className={containerClassName}
-          style={{ 
+          style={{
             minHeight: 0,
             height: '100%',
             maxHeight: '100%',
@@ -191,7 +191,7 @@ export function ImageCropper({
             overflow: 'hidden',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
           }}
         >
           <Cropper
@@ -209,11 +209,11 @@ export function ImageCropper({
               containerStyle: {
                 width: '100%',
                 height: '100%',
-                position: 'relative'
+                position: 'relative',
               },
               cropAreaStyle: {
-                border: '2px solid #fff'
-              }
+                border: '2px solid #fff',
+              },
             }}
           />
         </div>
@@ -258,39 +258,35 @@ export function ImageCropper({
                 <ZoomIn className="h-4 w-4" />
               </Button>
             </div>
-            
+
             {/* Help Text and Action Buttons */}
             <div className="flex items-center justify-between">
-              {helpText && (
-          <div className="text-xs text-gray-500">
-                  {helpText}
-          </div>
-              )}
+              {helpText && <div className="text-xs text-gray-500">{helpText}</div>}
               <div className="flex gap-2 ml-auto">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={onCancel} 
-              disabled={processing}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onCancel}
+                  disabled={processing}
                   className={cancelButtonClassName}
-            >
+                >
                   {cancelButtonText}
-            </Button>
-            <Button
-              size="sm"
-              onClick={generateCroppedImage}
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={generateCroppedImage}
                   disabled={!croppedAreaPixels || processing}
                   className={cropButtonClassName}
-            >
-              {processing ? (
-                <>
-                  <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
+                >
+                  {processing ? (
+                    <>
+                      <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
                       {processingText}
-                </>
-              ) : (
+                    </>
+                  ) : (
                     cropButtonText
-              )}
-            </Button>
+                  )}
+                </Button>
               </div>
             </div>
           </div>
@@ -298,4 +294,4 @@ export function ImageCropper({
       </div>
     </div>
   )
-} 
+}

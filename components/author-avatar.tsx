@@ -1,13 +1,13 @@
-"use client"
+'use client'
 
-import { Avatar } from "@/components/ui/avatar"
-import Link from "next/link"
+import { Avatar } from '@/components/ui/avatar'
+import Link from 'next/link'
 
 interface AuthorAvatarProps {
   id?: string
   name: string
   imageUrl?: string
-  size?: "sm" | "md" | "lg" | "xl"
+  size?: 'sm' | 'md' | 'lg' | 'xl'
   className?: string
 }
 
@@ -15,17 +15,11 @@ export function AuthorAvatar({
   id,
   name,
   imageUrl,
-  size = "md",
-  className = "",
+  size = 'md',
+  className = '',
 }: AuthorAvatarProps) {
   const avatarContent = (
-    <Avatar
-      src={imageUrl}
-      alt={name}
-      name={name}
-      size={size}
-      className={className}
-    />
+    <Avatar src={imageUrl} alt={name} name={name} size={size} className={className} />
   )
 
   if (id) {
@@ -37,4 +31,4 @@ export function AuthorAvatar({
   }
 
   return avatarContent
-} 
+}

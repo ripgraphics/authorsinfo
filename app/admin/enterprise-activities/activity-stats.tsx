@@ -1,8 +1,16 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2, TrendingUp, TrendingDown, Activity, Users, BookOpen, Calendar } from "lucide-react"
+import { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Loader2,
+  TrendingUp,
+  TrendingDown,
+  Activity,
+  Users,
+  BookOpen,
+  Calendar,
+} from 'lucide-react'
 
 interface ActivityStats {
   total_activities: number
@@ -22,23 +30,23 @@ export function ActivityStats() {
     async function fetchStats() {
       try {
         setLoading(true)
-        const response = await fetch("/api/admin/enterprise-activities")
+        const response = await fetch('/api/admin/enterprise-activities')
         const data = await response.json()
 
         if (!response.ok) {
-          throw new Error(data.error || "Failed to fetch activity statistics")
+          throw new Error(data.error || 'Failed to fetch activity statistics')
         }
 
         setStats(data.stats)
       } catch (err: any) {
-        setError(err.message || "Failed to load statistics")
+        setError(err.message || 'Failed to load statistics')
       } finally {
         setLoading(false)
       }
     }
 
     fetchStats()
-    
+
     // Refresh stats every 30 seconds
     const interval = setInterval(fetchStats, 30000)
     return () => clearInterval(interval)
@@ -91,9 +99,7 @@ export function ActivityStats() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-4 text-muted-foreground">
-            No statistics available
-          </div>
+          <div className="text-center py-4 text-muted-foreground">No statistics available</div>
         </CardContent>
       </Card>
     )
@@ -111,11 +117,15 @@ export function ActivityStats() {
         {/* Key Metrics */}
         <div className="grid grid-cols-2 gap-4">
           <div className="text-center p-3 bg-blue-50 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600">{stats.total_activities.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-blue-600">
+              {stats.total_activities.toLocaleString()}
+            </div>
             <div className="text-xs text-blue-600">Total Activities</div>
           </div>
           <div className="text-center p-3 bg-green-50 rounded-lg">
-            <div className="text-2xl font-bold text-green-600">{stats.activities_today.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-green-600">
+              {stats.activities_today.toLocaleString()}
+            </div>
             <div className="text-xs text-green-600">Today</div>
           </div>
         </div>
@@ -144,7 +154,7 @@ export function ActivityStats() {
             <h4 className="text-sm font-medium">By Activity Type</h4>
             <div className="space-y-1">
               {Object.entries(stats.by_type)
-                .sort(([,a], [,b]) => b - a)
+                .sort(([, a], [, b]) => b - a)
                 .slice(0, 5)
                 .map(([type, count]) => (
                   <div key={type} className="flex items-center justify-between text-xs">
@@ -162,7 +172,7 @@ export function ActivityStats() {
             <h4 className="text-sm font-medium">By Entity Type</h4>
             <div className="space-y-1">
               {Object.entries(stats.by_entity)
-                .sort(([,a], [,b]) => b - a)
+                .sort(([, a], [, b]) => b - a)
                 .slice(0, 5)
                 .map(([entity, count]) => (
                   <div key={entity} className="flex items-center justify-between text-xs">
@@ -186,4 +196,4 @@ export function ActivityStats() {
       </CardContent>
     </Card>
   )
-} 
+}

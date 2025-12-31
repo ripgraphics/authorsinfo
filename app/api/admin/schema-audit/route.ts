@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auditSchemaAgainstMigrations, generateMigrationSuggestions } from '@/lib/schema/migration-auditor'
+import {
+  auditSchemaAgainstMigrations,
+  generateMigrationSuggestions,
+} from '@/lib/schema/migration-auditor'
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,14 +19,16 @@ export async function GET(request: NextRequest) {
       success: true,
       audit: auditResult,
       suggestions,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     })
   } catch (error) {
     console.error('Error running schema audit:', error)
-    return NextResponse.json({
-      success: false,
-      error: error instanceof Error ? error.message : 'Internal server error'
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Internal server error',
+      },
+      { status: 500 }
+    )
   }
 }
-

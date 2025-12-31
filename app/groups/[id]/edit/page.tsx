@@ -1,19 +1,23 @@
-"use client"
+'use client'
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { useRouter, useParams } from "next/navigation"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2 } from "lucide-react"
-import { supabaseClient } from "@/lib/supabase/client"
-import { uploadImage } from "@/app/actions/upload"
-import { useGroup } from "@/contexts/GroupContext"
+import type React from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
+import Image from 'next/image'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Loader2 } from 'lucide-react'
+import { supabaseClient as supabaseClientUnsafe } from '@/lib/supabase/client'
+import { uploadImage } from '@/app/actions/upload'
+import { useGroup } from '@/contexts/GroupContext'
+import type { Database } from '@/types/database'
+import type { Group } from '@/types/group'
+
+const supabaseClient = supabaseClientUnsafe as any
 
 export default function GroupEditPage() {
   const params = useParams()
@@ -36,10 +40,10 @@ export default function GroupEditPage() {
         // Fetch the image URL from the images table
         const fetchImageUrl = async () => {
           const { data: imageData } = await supabaseClient
-            .from("images")
-            .select("url")
-            .eq("id", (group as any).group_image_id)
-          .single()
+            .from('images')
+            .select('url')
+            .eq('id', (group as any).group_image_id)
+            .single()
 
           if ((imageData as any)?.url) {
             setAvatarPreview((imageData as any).url)
@@ -47,24 +51,24 @@ export default function GroupEditPage() {
         }
         fetchImageUrl()
       }
-      
+
       if ((group as any).cover_image_id) {
         // Fetch the cover image URL from the images table
         const fetchCoverUrl = async () => {
           const { data: imageData } = await supabaseClient
-            .from("images")
-            .select("url")
-            .eq("id", (group as any).cover_image_id)
+            .from('images')
+            .select('url')
+            .eq('id', (group as any).cover_image_id)
             .single()
-          
+
           if ((imageData as any)?.url) {
             setCoverPreview((imageData as any).url)
-        }
+          }
         }
         fetchCoverUrl()
       }
-        setLoading(false)
-      }
+      setLoading(false)
+    }
   }, [group])
 
   // Handle avatar image change
@@ -99,52 +103,60 @@ export default function GroupEditPage() {
 
       // Create update data object
       const updateData: any = {
-        name: formData.get("name") as string,
-        description: formData.get("description") as string,
-        is_public: formData.get("is_public") === "true",
-        is_discoverable: formData.get("is_discoverable") === "true",
-        tags: (formData.get("tags") as string)?.split(",").map(tag => tag.trim()).filter(Boolean) || []
+        name: formData.get('name') as string,
+        description: formData.get('description') as string,
+        is_private: formData.get('is_public') === 'false',
+        is_discoverable: formData.get('is_discoverable') === 'true',
+        tags:
+          (formData.get('tags') as string)
+            ?.split(',')
+            .map((tag) => tag.trim())
+            .filter(Boolean) || [],
       }
 
       // Handle avatar upload if changed
       if (avatarFile) {
         try {
           // Convert the file to base64
-            const reader = new FileReader()
+          const reader = new FileReader()
           const base64Promise = new Promise<string>((resolve, reject) => {
             reader.onloadend = () => {
               const base64 = reader.result as string
               resolve(base64)
             }
             reader.onerror = () => {
-              reject(new Error("Failed to read file"))
+              reject(new Error('Failed to read file'))
             }
             reader.readAsDataURL(avatarFile)
           })
 
           const base64Image = await base64Promise
-          console.log("Base64 image prepared, uploading to Cloudinary...")
+          console.log('Base64 image prepared, uploading to Cloudinary...')
 
           // Upload the new image to Cloudinary with alt text
-          const groupName = formData.get("name") as string
-          const uploadResult = await uploadImage(base64Image, "authorsinfo/group_avatar", `Avatar for ${groupName}`)
+          const groupName = formData.get('name') as string
+          const uploadResult = await uploadImage(
+            base64Image,
+            'authorsinfo/group_avatar',
+            `Avatar for ${groupName}`
+          )
 
           if (uploadResult) {
-            console.log("Image uploaded successfully:", uploadResult.url)
+            console.log('Image uploaded successfully:', uploadResult.url)
             // Insert into images table first
-            const { data: imageData, error: imageError } = await (supabaseClient
-              .from('images') as any)
-              .insert({
-                url: uploadResult.url,
-                alt_text: `Avatar for ${groupName}`,
-                img_type_id: 29, // group_avatar
-                storage_provider: 'cloudinary',
+            const { data: imageData, error: imageError } = await supabaseClient
+            .from('images')
+            .insert({
+              url: uploadResult.url,
+              alt_text: `Avatar for ${groupName}`,
+              img_type_id: 29, // group_avatar
+              storage_provider: 'cloudinary',
                 storage_path: 'authorsinfo/group_avatar',
                 original_filename: avatarFile.name,
                 file_size: avatarFile.size,
                 mime_type: avatarFile.type,
                 is_processed: true,
-                processing_status: 'completed'
+                processing_status: 'completed',
               })
               .select()
               .single()
@@ -158,12 +170,12 @@ export default function GroupEditPage() {
               updateData.group_image_id = imageData.id
             }
           } else {
-            throw new Error("Failed to upload image - no URL returned")
+            throw new Error('Failed to upload image - no URL returned')
           }
         } catch (uploadError) {
-          console.error("Upload error details:", uploadError)
+          console.error('Upload error details:', uploadError)
           setError(
-            `Failed to upload group avatar: ${uploadError instanceof Error ? uploadError.message : "Unknown error"}`,
+            `Failed to upload group avatar: ${uploadError instanceof Error ? uploadError.message : 'Unknown error'}`
           )
           setSaving(false)
           return
@@ -174,30 +186,34 @@ export default function GroupEditPage() {
       if (coverFile) {
         try {
           // Convert the file to base64
-            const reader = new FileReader()
+          const reader = new FileReader()
           const base64Promise = new Promise<string>((resolve, reject) => {
             reader.onloadend = () => {
               const base64 = reader.result as string
               resolve(base64)
             }
             reader.onerror = () => {
-              reject(new Error("Failed to read file"))
+              reject(new Error('Failed to read file'))
             }
             reader.readAsDataURL(coverFile)
           })
 
           const base64Image = await base64Promise
-          console.log("Base64 image prepared, uploading cover to Cloudinary...")
+          console.log('Base64 image prepared, uploading cover to Cloudinary...')
 
           // Upload the new image to Cloudinary with alt text
-          const groupName = formData.get("name") as string
-          const uploadResult = await uploadImage(base64Image, "authorsinfo/group_cover", `Cover for ${groupName}`)
+          const groupName = formData.get('name') as string
+          const uploadResult = await uploadImage(
+            base64Image,
+            'authorsinfo/group_cover',
+            `Cover for ${groupName}`
+          )
 
           if (uploadResult) {
-            console.log("Cover uploaded successfully:", uploadResult.url)
+            console.log('Cover uploaded successfully:', uploadResult.url)
             // Insert into images table first
-            const { data: imageData, error: imageError } = await (supabaseClient
-              .from('images') as any)
+            const { data: imageData, error: imageError } = await supabaseClient
+              .from('images')
               .insert({
                 url: uploadResult.url,
                 alt_text: `Cover for ${groupName}`,
@@ -208,7 +224,7 @@ export default function GroupEditPage() {
                 file_size: coverFile.size,
                 mime_type: coverFile.type,
                 is_processed: true,
-                processing_status: 'completed'
+                processing_status: 'completed',
               })
               .select()
               .single()
@@ -222,12 +238,12 @@ export default function GroupEditPage() {
               updateData.cover_image_id = imageData.id
             }
           } else {
-            throw new Error("Failed to upload cover image - no URL returned")
+            throw new Error('Failed to upload cover image - no URL returned')
           }
         } catch (uploadError) {
-          console.error("Upload error details:", uploadError)
+          console.error('Upload error details:', uploadError)
           setError(
-            `Failed to upload group cover: ${uploadError instanceof Error ? uploadError.message : "Unknown error"}`,
+            `Failed to upload group cover: ${uploadError instanceof Error ? uploadError.message : 'Unknown error'}`
           )
           setSaving(false)
           return
@@ -235,36 +251,36 @@ export default function GroupEditPage() {
       }
 
       // Update group in database
-      console.log("Attempting to update group with data:", updateData)
-      const { data: updateResult, error: updateError } = await (supabaseClient
-        .from("groups") as any)
+      console.log('Attempting to update group with data:', updateData)
+      const { data: updateResult, error: updateError } = await supabaseClient
+        .from('groups')
         .update(updateData)
-        .eq("id", groupId)
+        .eq('id', groupId)
         .select()
 
       if (updateError) {
-        console.error("Detailed update error:", {
+        console.error('Detailed update error:', {
           error: updateError,
           code: updateError.code,
           message: updateError.message,
           details: updateError.details,
-          hint: updateError.hint
+          hint: updateError.hint,
         })
         setError(`Error updating group: ${updateError.message || 'Unknown error occurred'}`)
         setSaving(false)
         return
       }
 
-      console.log("Group update result:", updateResult)
-      setSuccessMessage("Group updated successfully!")
+      console.log('Group update result:', updateResult)
+      setSuccessMessage('Group updated successfully!')
 
       // Redirect back to the group page after a short delay
       setTimeout(() => {
         router.push(`/groups/${groupId}`)
       }, 1500)
     } catch (error: any) {
-      console.error("Error in handleSubmit:", error)
-      setError("An unexpected error occurred while saving. Please try again.")
+      console.error('Error in handleSubmit:', error)
+      setError('An unexpected error occurred while saving. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -272,12 +288,12 @@ export default function GroupEditPage() {
 
   if (loading) {
     return (
-          <div className="flex items-center justify-center h-full">
-            <div className="flex flex-col items-center gap-2">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex items-center justify-center h-full">
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <p>Loading group information...</p>
-            </div>
-          </div>
+        </div>
+      </div>
     )
   }
 
@@ -291,27 +307,27 @@ export default function GroupEditPage() {
 
   if (!permissions.isOwner() && !permissions.isAdmin()) {
     return (
-          <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center h-full">
         <p>You don't have permission to edit this group</p>
       </div>
     )
   }
 
   return (
-        <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Edit Group</h1>
 
-          {error && (
-            <Alert variant="destructive" className="mb-6">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
-          {successMessage && (
+      {successMessage && (
         <Alert className="mb-6">
           <AlertDescription>{successMessage}</AlertDescription>
-            </Alert>
-          )}
+        </Alert>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
@@ -319,12 +335,7 @@ export default function GroupEditPage() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Group Name</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  defaultValue={group.name}
-                  required
-                />
+                <Input id="name" name="name" defaultValue={group.name} required />
               </div>
 
               <div className="space-y-2">
@@ -332,18 +343,14 @@ export default function GroupEditPage() {
                 <Textarea
                   id="description"
                   name="description"
-                  defaultValue={group.description}
+                  defaultValue={group.description ?? ''}
                   rows={4}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="tags">Tags (comma-separated)</Label>
-                <Input
-                  id="tags"
-                  name="tags"
-                  defaultValue={(group as any).tags?.join(", ")}
-                />
+                <Input id="tags" name="tags" defaultValue={(group?.tags as string[] | undefined)?.join(', ')} />
               </div>
 
               <div className="space-y-2">
@@ -351,7 +358,7 @@ export default function GroupEditPage() {
                 <select
                   id="is_public"
                   name="is_public"
-                  defaultValue={(group as any).is_public ? "true" : "false"}
+                  defaultValue={group?.is_private ? 'false' : 'true'}
                   className="w-full p-2 border rounded-sm"
                 >
                   <option value="true">Public</option>
@@ -364,38 +371,38 @@ export default function GroupEditPage() {
                 <select
                   id="is_discoverable"
                   name="is_discoverable"
-                  defaultValue={(group as any).is_discoverable ? "true" : "false"}
+                  defaultValue={group?.is_discoverable ? 'true' : 'false'}
                   className="w-full p-2 border rounded-sm"
                 >
                   <option value="true">Discoverable</option>
                   <option value="false">Hidden</option>
                 </select>
-                        </div>
-                    </div>
-                  </CardContent>
-                </Card>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-                <Card>
+        <Card>
           <CardContent className="pt-6">
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Group Avatar</Label>
                 <div className="flex items-center gap-4">
                   <div className="relative h-24 w-24 rounded-full overflow-hidden">
-                        <Image
-                      src={avatarPreview || "/placeholder.svg"}
+                    <Image
+                      src={avatarPreview || '/placeholder.svg'}
                       alt="Group avatar"
-                          fill
-                          className="object-cover"
-                        />
+                      fill
+                      className="object-cover"
+                    />
                   </div>
                   <Input
                     type="file"
                     accept="image/*"
                     onChange={handleAvatarChange}
                     className="max-w-xs"
-                        />
-                    </div>
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -403,44 +410,40 @@ export default function GroupEditPage() {
                 <div className="flex items-center gap-4">
                   <div className="relative h-32 w-full max-w-xs rounded-lg overflow-hidden">
                     <Image
-                      src={coverPreview || "/placeholder.svg"}
+                      src={coverPreview || '/placeholder.svg'}
                       alt="Group cover"
                       fill
                       className="object-cover"
                     />
-                    </div>
-                      <Input
+                  </div>
+                  <Input
                     type="file"
                     accept="image/*"
                     onChange={handleCoverChange}
                     className="max-w-xs"
-                      />
-                    </div>
-                      </div>
-                    </div>
+                  />
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
         <div className="flex justify-end gap-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.push(`/groups/${groupId}`)}
-          >
-                        Cancel
-                      </Button>
-                      <Button type="submit" disabled={saving}>
-                        {saving ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Saving...
-                          </>
-                        ) : (
-                          "Save Changes"
-                        )}
-                      </Button>
-            </div>
-          </form>
+          <Button type="button" variant="outline" onClick={() => router.push(`/groups/${groupId}`)}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={saving}>
+            {saving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              'Save Changes'
+            )}
+          </Button>
+        </div>
+      </form>
     </div>
   )
 }

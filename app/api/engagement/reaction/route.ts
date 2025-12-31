@@ -6,20 +6,20 @@ import { supabaseAdmin } from '@/lib/supabase/server'
 export async function POST(request: Request) {
   try {
     const supabase = await createRouteHandlerClientAsync()
-    
+
     // Get the current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
     // Parse request body
     const { entity_type, entity_id, reaction_type } = await request.json()
-    
+
     if (!entity_type || !entity_id || !reaction_type) {
       return NextResponse.json(
         { error: 'Missing required fields: entity_type, entity_id, reaction_type' },
@@ -30,17 +30,14 @@ export async function POST(request: Request) {
     // Validate reaction type
     const validReactionTypes = ['like', 'love', 'care', 'haha', 'wow', 'sad', 'angry']
     if (!validReactionTypes.includes(reaction_type)) {
-      return NextResponse.json(
-        { error: 'Invalid reaction type' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid reaction type' }, { status: 400 })
     }
 
     console.log('🔍 Processing reaction:', {
       user_id: user.id,
       entity_type,
       entity_id,
-      reaction_type
+      reaction_type,
     })
 
     // Use likes table for all entity types (activity_likes doesn't exist)
@@ -52,12 +49,10 @@ export async function POST(request: Request) {
       .eq('entity_id', entity_id)
       .single()
 
-    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
+    if (checkError && checkError.code !== 'PGRST116') {
+      // PGRST116 = no rows returned
       console.error('❌ Error checking existing like:', checkError)
-      return NextResponse.json(
-        { error: 'Failed to check existing like' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Failed to check existing like' }, { status: 500 })
     }
 
     let action: 'added' | 'removed' = 'added'
@@ -72,10 +67,7 @@ export async function POST(request: Request) {
 
       if (deleteError) {
         console.error('❌ Error removing like:', deleteError)
-        return NextResponse.json(
-          { error: 'Failed to remove like' },
-          { status: 500 }
-        )
+        return NextResponse.json({ error: 'Failed to remove like' }, { status: 500 })
       }
 
       action = 'removed'
@@ -87,17 +79,14 @@ export async function POST(request: Request) {
         .insert({
           user_id: user.id,
           entity_type: entity_type,
-          entity_id: entity_id
+          entity_id: entity_id,
         })
         .select('id')
         .single()
 
       if (insertError) {
         console.error('❌ Error adding like:', insertError)
-        return NextResponse.json(
-          { error: 'Failed to add like' },
-          { status: 500 }
-        )
+        return NextResponse.json({ error: 'Failed to add like' }, { status: 500 })
       }
 
       action = 'added'
@@ -120,7 +109,7 @@ export async function POST(request: Request) {
             .from('activities')
             .update({
               like_count: count,
-              updated_at: new Date().toISOString()
+              updated_at: new Date().toISOString(),
             })
             .eq('id', entity_id)
 
@@ -138,7 +127,7 @@ export async function POST(request: Request) {
     console.log('✅ Like processed successfully:', {
       action,
       reaction_type,
-      like_id
+      like_id,
     })
 
     return NextResponse.json({
@@ -146,16 +135,10 @@ export async function POST(request: Request) {
       action,
       reaction_type: 'like', // Always 'like' since table doesn't support reaction types
       like_id,
-      message: action === 'removed' 
-        ? 'Like removed successfully' 
-        : 'Like added successfully'
+      message: action === 'removed' ? 'Like removed successfully' : 'Like added successfully',
     })
-
   } catch (error) {
     console.error('❌ Unexpected error in reaction API:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

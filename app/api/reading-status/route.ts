@@ -4,10 +4,12 @@ import { createServerActionClientAsync } from '@/lib/supabase/client-helper'
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerActionClientAsync()
-    
+
     // Get the current user
-    const { data: { user } } = await supabase.auth.getUser()
-    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
     if (!user) {
       return NextResponse.json({ error: 'User not authenticated' }, { status: 401 })
     }
@@ -20,18 +22,17 @@ export async function POST(request: NextRequest) {
 
     // Map status to reading progress status
     const statusMapping: Record<string, string> = {
-      'want_to_read': 'not_started',
-      'currently_reading': 'in_progress', 
-      'read': 'completed',
-      'on_hold': 'on_hold',
-      'abandoned': 'abandoned'
+      want_to_read: 'not_started',
+      currently_reading: 'in_progress',
+      read: 'completed',
+      on_hold: 'on_hold',
+      abandoned: 'abandoned',
     }
 
     const readingProgressStatus = statusMapping[status] || 'not_started'
 
     // Get user's default privacy settings
-    const { data: privacySettings } = await (supabase
-      .from('user_privacy_settings') as any)
+    const { data: privacySettings } = await (supabase.from('user_privacy_settings') as any)
       .select('default_privacy_level')
       .eq('user_id', user.id)
       .single()
@@ -39,8 +40,7 @@ export async function POST(request: NextRequest) {
     const defaultPrivacyLevel = privacySettings?.default_privacy_level || 'private'
 
     // Check if a record already exists
-    const { data: existingProgress } = await (supabase
-      .from('reading_progress') as any)
+    const { data: existingProgress } = await (supabase.from('reading_progress') as any)
       .select('id')
       .eq('book_id', bookId)
       .eq('user_id', user.id)
@@ -50,15 +50,14 @@ export async function POST(request: NextRequest) {
 
     if (existingProgress) {
       // Update existing record
-      const { data, error } = await (supabase
-        .from('reading_progress') as any)
+      const { data, error } = await (supabase.from('reading_progress') as any)
         .update({
           status: readingProgressStatus,
           updated_at: new Date().toISOString(),
           // Set finish_date if completed
           ...(readingProgressStatus === 'completed' && { finish_date: new Date().toISOString() }),
           // Set start_date if in_progress and no start_date
-          ...(readingProgressStatus === 'in_progress' && { start_date: new Date().toISOString() })
+          ...(readingProgressStatus === 'in_progress' && { start_date: new Date().toISOString() }),
         })
         .eq('id', existingProgress.id)
         .select()
@@ -66,19 +65,19 @@ export async function POST(request: NextRequest) {
       result = { data, error }
     } else {
       // Insert new record
-      const { data, error } = await (supabase
-        .from('reading_progress') as any)
+      const { data, error } = await (supabase.from('reading_progress') as any)
         .insert({
           book_id: bookId,
           user_id: user.id,
           status: readingProgressStatus,
-          start_date: readingProgressStatus === 'in_progress' ? new Date().toISOString() : undefined,
+          start_date:
+            readingProgressStatus === 'in_progress' ? new Date().toISOString() : undefined,
           finish_date: readingProgressStatus === 'completed' ? new Date().toISOString() : undefined,
           privacy_level: defaultPrivacyLevel,
           allow_friends: defaultPrivacyLevel === 'friends',
           allow_followers: defaultPrivacyLevel === 'followers',
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .select()
 
@@ -93,53 +92,55 @@ export async function POST(request: NextRequest) {
     // Create activity for timeline
     try {
       // Get book details for the activity
-      const { data: book } = await (supabase
-        .from('books') as any)
+      const { data: book } = await (supabase.from('books') as any)
         .select('id, title, author_id')
         .eq('id', bookId)
         .single()
 
       if (book) {
         // Get author details if available
-        let authorName = "Unknown Author"
+        let authorName = 'Unknown Author'
         if (book.author_id) {
-          const { data: author } = await (supabase
-            .from('authors') as any)
+          const { data: author } = await (supabase.from('authors') as any)
             .select('id, name')
             .eq('id', book.author_id)
             .single()
-          
+
           if (author) {
             authorName = author.name
           }
         }
 
         // Determine activity type and data based on status
-        let activityType = "book_added"
-        let activityData: any = {
+        const activityType = 'book_added'
+        const activityData: any = {
           book_title: book.title,
           book_author: authorName,
-          shelf: status === "want_to_read" ? "Want to Read" : 
-                 status === "currently_reading" ? "Currently Reading" :
-                 status === "read" ? "Read" :
-                 status === "on_hold" ? "On Hold" : "Abandoned"
+          shelf:
+            status === 'want_to_read'
+              ? 'Want to Read'
+              : status === 'currently_reading'
+                ? 'Currently Reading'
+                : status === 'read'
+                  ? 'Read'
+                  : status === 'on_hold'
+                    ? 'On Hold'
+                    : 'Abandoned',
         }
 
         // Create the activity
-        const { error: activityError } = await (supabase
-          .from('activities') as any)
-          .insert({
-            user_id: user.id,
-            activity_type: activityType,
-            entity_type: "book",
-            entity_id: book.id,
-            data: activityData,
-            metadata: {
-              privacy_level: defaultPrivacyLevel,
-              engagement_count: 0,
-              is_premium: false
-            }
-          })
+        const { error: activityError } = await (supabase.from('activities') as any).insert({
+          user_id: user.id,
+          activity_type: activityType,
+          entity_type: 'book',
+          entity_id: book.id,
+          data: activityData,
+          metadata: {
+            privacy_level: defaultPrivacyLevel,
+            engagement_count: 0,
+            is_premium: false,
+          },
+        })
 
         if (activityError) {
           console.error('Error creating activity:', activityError)
@@ -151,12 +152,11 @@ export async function POST(request: NextRequest) {
       // Don't fail the whole operation if activity creation fails
     }
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       status: readingProgressStatus,
-      progress: result.data?.[0]
+      progress: result.data?.[0],
     })
-
   } catch (error) {
     console.error('Error in reading status API:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -166,10 +166,12 @@ export async function POST(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const supabase = await createServerActionClientAsync()
-    
+
     // Get the current user
-    const { data: { user } } = await supabase.auth.getUser()
-    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
     if (!user) {
       return NextResponse.json({ error: 'User not authenticated' }, { status: 401 })
     }
@@ -181,8 +183,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete from reading_progress
-    const { error: progressError } = await (supabase
-      .from('reading_progress') as any)
+    const { error: progressError } = await (supabase.from('reading_progress') as any)
       .delete()
       .eq('book_id', bookId)
       .eq('user_id', user.id)
@@ -193,8 +194,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete from reading_status
-    const { error: statusError } = await (supabase
-      .from('reading_status') as any)
+    const { error: statusError } = await (supabase.from('reading_status') as any)
       .delete()
       .eq('book_id', bookId)
       .eq('user_id', user.id)
@@ -205,7 +205,6 @@ export async function DELETE(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true })
-
   } catch (error) {
     console.error('Error in reading status DELETE:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -215,10 +214,12 @@ export async function DELETE(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createServerActionClientAsync()
-    
+
     // Get the current user
-    const { data: { user } } = await supabase.auth.getUser()
-    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
     if (!user) {
       return NextResponse.json({ error: 'User not authenticated' }, { status: 401 })
     }
@@ -231,8 +232,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get the current reading status for this book
-    const { data, error } = await (supabase
-      .from('reading_progress') as any)
+    const { data, error } = await (supabase.from('reading_progress') as any)
       .select('*')
       .eq('book_id', bookId)
       .eq('user_id', user.id)
@@ -243,13 +243,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       status: data?.status || null,
-      progress: data
+      progress: data,
     })
-
   } catch (error) {
     console.error('Error in reading status API:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-} 
+}

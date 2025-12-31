@@ -1,12 +1,22 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { BookOpen, ChevronDown, Edit, Eye, MoreHorizontal, Trash, Download, LayoutGrid, Table as TableIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
+import { useState } from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import {
+  BookOpen,
+  ChevronDown,
+  Edit,
+  Eye,
+  MoreHorizontal,
+  Trash,
+  Download,
+  LayoutGrid,
+  Table as TableIcon,
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,8 +24,15 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+} from '@/components/ui/dropdown-menu'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,9 +42,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { bulkDeleteBooks, exportBooksToCSV } from "@/app/actions/admin-books"
-import { toast } from "@/hooks/use-toast"
+} from '@/components/ui/alert-dialog'
+import { bulkDeleteBooks, exportBooksToCSV } from '@/app/actions/admin-books'
+import { toast } from '@/hooks/use-toast'
 
 interface Book {
   id: string
@@ -48,9 +65,9 @@ interface BookDataTableProps {
   page: number
   pageSize: number
   sortField: string
-  sortDirection: "asc" | "desc"
+  sortDirection: 'asc' | 'desc'
   onPageChange: (page: number) => void
-  onSortChange: (field: string, direction: "asc" | "desc") => void
+  onSortChange: (field: string, direction: 'asc' | 'desc') => void
   filterButton?: React.ReactNode
 }
 
@@ -70,7 +87,7 @@ export function BookDataTable({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
-  const [viewMode, setViewMode] = useState<"table" | "grid">("table")
+  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table')
 
   const totalPages = Math.ceil(totalBooks / pageSize)
 
@@ -93,7 +110,7 @@ export function BookDataTable({
   }
 
   const handleSort = (field: string) => {
-    const newDirection = field === sortField && sortDirection === "asc" ? "desc" : "asc"
+    const newDirection = field === sortField && sortDirection === 'asc' ? 'desc' : 'asc'
     onSortChange(field, newDirection)
   }
 
@@ -106,22 +123,22 @@ export function BookDataTable({
 
       if (result.success) {
         toast({
-          title: "Books deleted",
+          title: 'Books deleted',
           description: `Successfully deleted ${result.count} books`,
         })
         setSelectedBooks(new Set())
       } else {
         toast({
-          title: "Error",
-          description: result.error || "Failed to delete books",
-          variant: "destructive",
+          title: 'Error',
+          description: result.error || 'Failed to delete books',
+          variant: 'destructive',
         })
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
-        variant: "destructive",
+        title: 'Error',
+        description: 'An unexpected error occurred',
+        variant: 'destructive',
       })
     } finally {
       setIsDeleting(false)
@@ -139,32 +156,32 @@ export function BookDataTable({
 
       if (result.success && result.csv) {
         // Create a blob and download it
-        const blob = new Blob([result.csv], { type: "text/csv" })
+        const blob = new Blob([result.csv], { type: 'text/csv' })
         const url = URL.createObjectURL(blob)
-        const a = document.createElement("a")
+        const a = document.createElement('a')
         a.href = url
-        a.download = `books-export-${new Date().toISOString().split("T")[0]}.csv`
+        a.download = `books-export-${new Date().toISOString().split('T')[0]}.csv`
         document.body.appendChild(a)
         a.click()
         document.body.removeChild(a)
         URL.revokeObjectURL(url)
 
         toast({
-          title: "Export successful",
+          title: 'Export successful',
           description: `Exported ${result.count} books to CSV`,
         })
       } else {
         toast({
-          title: "Export failed",
-          description: result.error || "Failed to export books",
-          variant: "destructive",
+          title: 'Export failed',
+          description: result.error || 'Failed to export books',
+          variant: 'destructive',
         })
       }
     } catch (error) {
       toast({
-        title: "Export error",
-        description: "An unexpected error occurred",
-        variant: "destructive",
+        title: 'Export error',
+        description: 'An unexpected error occurred',
+        variant: 'destructive',
       })
     } finally {
       setIsExporting(false)
@@ -191,7 +208,11 @@ export function BookDataTable({
             onClick={handleExportSelected}
           >
             <Download className="h-4 w-4 mr-2" />
-            {isExporting ? "Exporting..." : selectedBooks.size > 0 ? "Export Selected" : "Export All"}
+            {isExporting
+              ? 'Exporting...'
+              : selectedBooks.size > 0
+                ? 'Export Selected'
+                : 'Export All'}
           </Button>
         </div>
         <div className="text-sm text-muted-foreground">
@@ -201,16 +222,16 @@ export function BookDataTable({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setViewMode("table")}
-            className={viewMode === "table" ? "bg-muted" : ""}
+            onClick={() => setViewMode('table')}
+            className={viewMode === 'table' ? 'bg-muted' : ''}
           >
             <TableIcon className="h-4 w-4" />
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setViewMode("grid")}
-            className={viewMode === "grid" ? "bg-muted" : ""}
+            onClick={() => setViewMode('grid')}
+            className={viewMode === 'grid' ? 'bg-muted' : ''}
           >
             <LayoutGrid className="h-4 w-4" />
           </Button>
@@ -218,7 +239,7 @@ export function BookDataTable({
         </div>
       </div>
 
-      {viewMode === "table" ? (
+      {viewMode === 'table' ? (
         <div className="rounded-md border">
           <Table>
             <TableHeader>
@@ -231,12 +252,12 @@ export function BookDataTable({
                   />
                 </TableHead>
                 <TableHead className="w-[80px]">Cover</TableHead>
-                <TableHead className="cursor-pointer" onClick={() => handleSort("title")}>
+                <TableHead className="cursor-pointer" onClick={() => handleSort('title')}>
                   <div className="flex items-center">
                     Title
-                    {sortField === "title" && (
+                    {sortField === 'title' && (
                       <ChevronDown
-                        className={`ml-1 h-4 w-4 ${sortDirection === "desc" ? "rotate-180" : ""} transition-transform`}
+                        className={`ml-1 h-4 w-4 ${sortDirection === 'desc' ? 'rotate-180' : ''} transition-transform`}
                       />
                     )}
                   </div>
@@ -261,7 +282,7 @@ export function BookDataTable({
                       <div className="relative h-12 w-8 overflow-hidden rounded-sm">
                         {book.cover_image?.url ? (
                           <Image
-                            src={book.cover_image.url || "/placeholder.svg"}
+                            src={book.cover_image.url || '/placeholder.svg'}
                             alt={book.cover_image.alt_text || book.title}
                             fill
                             className="object-cover"
@@ -281,10 +302,10 @@ export function BookDataTable({
                           {book.author.name}
                         </Link>
                       ) : (
-                        "Unknown"
+                        'Unknown'
                       )}
                     </TableCell>
-                    <TableCell>{book.isbn13 || book.isbn10 || "N/A"}</TableCell>
+                    <TableCell>{book.isbn13 || book.isbn10 || 'N/A'}</TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -361,7 +382,11 @@ export function BookDataTable({
                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 bg-white/90 hover:bg-white">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 bg-white/90 hover:bg-white"
+                      >
                         <MoreHorizontal className="h-4 w-4" />
                         <span className="sr-only">Open menu</span>
                       </Button>
@@ -403,16 +428,27 @@ export function BookDataTable({
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
-            Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, totalBooks)} of {totalBooks} books
+            Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, totalBooks)} of{' '}
+            {totalBooks} books
           </div>
           <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" onClick={() => onPageChange(page - 1)} disabled={page === 1}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange(page - 1)}
+              disabled={page === 1}
+            >
               Previous
             </Button>
             <div className="text-sm">
               Page {page} of {totalPages}
             </div>
-            <Button variant="outline" size="sm" onClick={() => onPageChange(page + 1)} disabled={page === totalPages}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange(page + 1)}
+              disabled={page === totalPages}
+            >
               Next
             </Button>
           </div>
@@ -424,9 +460,11 @@ export function BookDataTable({
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete{" "}
-              {selectedBooks.size === 1 ? "the selected book" : `${selectedBooks.size} selected books`} from the
-              database.
+              This action cannot be undone. This will permanently delete{' '}
+              {selectedBooks.size === 1
+                ? 'the selected book'
+                : `${selectedBooks.size} selected books`}{' '}
+              from the database.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -436,7 +474,7 @@ export function BookDataTable({
               className="bg-red-600 hover:bg-red-700"
               disabled={isDeleting}
             >
-              {isDeleting ? "Deleting..." : "Delete"}
+              {isDeleting ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

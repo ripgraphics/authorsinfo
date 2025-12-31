@@ -1,15 +1,15 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { getRecentReadingActivity, getFriendsReadingActivity } from "@/app/actions/reading-progress"
-import { formatDistanceToNow } from "date-fns"
-import { BookOpen, User } from "lucide-react"
-import Link from "next/link"
-import Image from "next/image"
+import { useState, useEffect } from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { getRecentReadingActivity, getFriendsReadingActivity } from '@/app/actions/reading-progress'
+import { formatDistanceToNow } from 'date-fns'
+import { BookOpen, User } from 'lucide-react'
+import Link from 'next/link'
+import Image from 'next/image'
 
 interface ActivityFeedProps {
-  type: "user" | "friends"
+  type: 'user' | 'friends'
   limit?: number
   className?: string
 }
@@ -27,7 +27,7 @@ export function ActivityFeed({ type, limit = 5, className }: ActivityFeedProps) 
       try {
         let result
 
-        if (type === "user") {
+        if (type === 'user') {
           result = await getRecentReadingActivity(limit)
         } else {
           result = await getFriendsReadingActivity(limit)
@@ -39,8 +39,8 @@ export function ActivityFeed({ type, limit = 5, className }: ActivityFeedProps) 
           setActivity(result.activity)
         }
       } catch (err) {
-        console.error("Error fetching activity:", err)
-        setError("Failed to load reading activity")
+        console.error('Error fetching activity:', err)
+        setError('Failed to load reading activity')
       } finally {
         setLoading(false)
       }
@@ -52,16 +52,16 @@ export function ActivityFeed({ type, limit = 5, className }: ActivityFeedProps) 
   // Helper function to format status
   const formatStatus = (status: string): string => {
     switch (status) {
-      case "not_started":
-        return "wants to read"
-      case "in_progress":
-        return "is currently reading"
-      case "completed":
-        return "finished reading"
-      case "on_hold":
-        return "put on hold"
-      case "abandoned":
-        return "abandoned"
+      case 'not_started':
+        return 'wants to read'
+      case 'in_progress':
+        return 'is currently reading'
+      case 'completed':
+        return 'finished reading'
+      case 'on_hold':
+        return 'put on hold'
+      case 'abandoned':
+        return 'abandoned'
       default:
         return status
     }
@@ -69,7 +69,7 @@ export function ActivityFeed({ type, limit = 5, className }: ActivityFeedProps) 
 
   // Helper function to format activity message
   const formatActivity = (item: any): string => {
-    if (type === "user") {
+    if (type === 'user') {
       return `You ${formatStatus(item.status)} "${item.book_title}"`
     } else {
       return `${item.user_name} ${formatStatus(item.status)} "${item.book_title}"`
@@ -80,9 +80,11 @@ export function ActivityFeed({ type, limit = 5, className }: ActivityFeedProps) 
     return (
       <Card className={className}>
         <CardHeader>
-          <CardTitle>{type === "user" ? "Your Reading Activity" : "Friends' Reading Activity"}</CardTitle>
+          <CardTitle>
+            {type === 'user' ? 'Your Reading Activity' : "Friends' Reading Activity"}
+          </CardTitle>
           <CardDescription>
-            {type === "user" ? "Your recent reading updates" : "See what your friends are reading"}
+            {type === 'user' ? 'Your recent reading updates' : 'See what your friends are reading'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -106,15 +108,17 @@ export function ActivityFeed({ type, limit = 5, className }: ActivityFeedProps) 
     return (
       <Card className={className}>
         <CardHeader>
-          <CardTitle>{type === "user" ? "Your Reading Activity" : "Friends' Reading Activity"}</CardTitle>
+          <CardTitle>
+            {type === 'user' ? 'Your Reading Activity' : "Friends' Reading Activity"}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-center text-muted-foreground py-6">
-            {error === "User not authenticated"
-              ? "Please sign in to view reading activity"
-              : error === "No friends found" && type === "friends"
+            {error === 'User not authenticated'
+              ? 'Please sign in to view reading activity'
+              : error === 'No friends found' && type === 'friends'
                 ? "You don't have any friends yet. Add friends to see their activity."
-                : "Failed to load reading activity. Please try again."}
+                : 'Failed to load reading activity. Please try again.'}
           </p>
         </CardContent>
       </Card>
@@ -125,16 +129,18 @@ export function ActivityFeed({ type, limit = 5, className }: ActivityFeedProps) 
     return (
       <Card className={className}>
         <CardHeader>
-          <CardTitle>{type === "user" ? "Your Reading Activity" : "Friends' Reading Activity"}</CardTitle>
+          <CardTitle>
+            {type === 'user' ? 'Your Reading Activity' : "Friends' Reading Activity"}
+          </CardTitle>
           <CardDescription>
-            {type === "user" ? "Your recent reading updates" : "See what your friends are reading"}
+            {type === 'user' ? 'Your recent reading updates' : 'See what your friends are reading'}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-center text-muted-foreground py-6">
-            {type === "user"
+            {type === 'user'
               ? "You haven't tracked any books yet. Start tracking your reading progress!"
-              : "No activity from your friends yet."}
+              : 'No activity from your friends yet.'}
           </p>
         </CardContent>
       </Card>
@@ -144,19 +150,27 @@ export function ActivityFeed({ type, limit = 5, className }: ActivityFeedProps) 
   return (
     <Card className={className}>
       <CardHeader>
-        <CardTitle>{type === "user" ? "Your Reading Activity" : "Friends' Reading Activity"}</CardTitle>
+        <CardTitle>
+          {type === 'user' ? 'Your Reading Activity' : "Friends' Reading Activity"}
+        </CardTitle>
         <CardDescription>
-          {type === "user" ? "Your recent reading updates" : "See what your friends are reading"}
+          {type === 'user' ? 'Your recent reading updates' : 'See what your friends are reading'}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {activity.map((item) => (
             <div key={item.id} className="flex items-start space-x-4">
-              {type === "friends" ? (
-                <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-white shadow-md">
+              {type === 'friends' ? (
+                <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-white shadow-md relative">
                   {item.user_avatar ? (
-                    <img src={item.user_avatar} alt={item.user_name} className="w-full h-full object-cover" />
+                    <Image
+                      src={item.user_avatar}
+                      alt={`${item.user_name} avatar`}
+                      fill
+                      sizes="40px"
+                      className="object-cover"
+                    />
                   ) : (
                     <div className="w-full h-full bg-muted flex items-center justify-center">
                       <User className="h-4 w-4 text-muted-foreground" />
@@ -167,7 +181,7 @@ export function ActivityFeed({ type, limit = 5, className }: ActivityFeedProps) 
                 <div className="relative h-10 w-10 overflow-hidden rounded-md">
                   {item.cover_image_url ? (
                     <Image
-                      src={item.cover_image_url || "/placeholder.svg"}
+                      src={item.cover_image_url || '/placeholder.svg'}
                       alt={item.book_title}
                       fill
                       className="object-cover"
@@ -183,9 +197,11 @@ export function ActivityFeed({ type, limit = 5, className }: ActivityFeedProps) 
               <div className="space-y-1 flex-1">
                 <p className="text-sm">
                   {formatActivity(item)}
-                  {item.percentage !== undefined && item.percentage > 0 && item.status === "in_progress" && (
-                    <span className="text-muted-foreground"> ({item.percentage}% complete)</span>
-                  )}
+                  {item.percentage !== undefined &&
+                    item.percentage > 0 &&
+                    item.status === 'in_progress' && (
+                      <span className="text-muted-foreground"> ({item.percentage}% complete)</span>
+                    )}
                 </p>
 
                 <div className="flex items-center text-xs text-muted-foreground">
@@ -194,7 +210,8 @@ export function ActivityFeed({ type, limit = 5, className }: ActivityFeedProps) 
                   </Link>
                   <span>•</span>
                   <span className="ml-2">
-                    {item.updated_at && formatDistanceToNow(new Date(item.updated_at), { addSuffix: true })}
+                    {item.updated_at &&
+                      formatDistanceToNow(new Date(item.updated_at), { addSuffix: true })}
                   </span>
                 </div>
               </div>

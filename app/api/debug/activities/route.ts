@@ -12,10 +12,7 @@ export async function GET() {
 
     if (error) {
       console.error('Error fetching activities:', error)
-      return NextResponse.json(
-        { error: 'Failed to fetch activities' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Failed to fetch activities' }, { status: 500 })
     }
 
     // Get users to see what user IDs exist
@@ -38,14 +35,10 @@ export async function GET() {
       total_activities: totalActivities || 0,
       activities: activities || [],
       users: users || [],
-      message: 'Debug information retrieved successfully'
+      message: 'Debug information retrieved successfully',
     })
-
   } catch (error) {
     console.error('Error in debug activities API:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

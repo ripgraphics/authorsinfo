@@ -3,8 +3,16 @@
 import { useState } from 'react'
 import { useSearchFilter } from '@/lib/hooks/use-search-filter'
 import { bookSearchFields, bookSearchScorer, SearchableBook } from '@/lib/search/book-search-config'
-import { authorSearchFields, authorSearchScorer, SearchableAuthor } from '@/lib/search/author-search-config'
-import { publisherSearchFields, publisherSearchScorer, SearchablePublisher } from '@/lib/search/publisher-search-config'
+import {
+  authorSearchFields,
+  authorSearchScorer,
+  SearchableAuthor,
+} from '@/lib/search/author-search-config'
+import {
+  publisherSearchFields,
+  publisherSearchScorer,
+  SearchablePublisher,
+} from '@/lib/search/publisher-search-config'
 import { ReusableSearch } from '@/components/ui/reusable-search'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card } from '@/components/ui/card'
@@ -75,7 +83,9 @@ export function SearchResults({
       <div className="py-6">
         <h1 className="text-3xl font-bold tracking-tight">Search Results</h1>
         <p className="text-muted-foreground mt-2">
-          {searchQuery ? `Showing results for "${searchQuery}"` : 'Enter a search term to find books, authors, and publishers'}
+          {searchQuery
+            ? `Showing results for "${searchQuery}"`
+            : 'Enter a search term to find books, authors, and publishers'}
         </p>
       </div>
 
@@ -259,11 +269,14 @@ export function SearchResults({
               </div>
             )}
 
-            {isbndbBooks.length === 0 && filteredBooks.length === 0 && filteredAuthors.length === 0 && filteredPublishers.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">No results found for "{searchQuery}"</p>
-              </div>
-            )}
+            {isbndbBooks.length === 0 &&
+              filteredBooks.length === 0 &&
+              filteredAuthors.length === 0 &&
+              filteredPublishers.length === 0 && (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">No results found for "{searchQuery}"</p>
+                </div>
+              )}
           </TabsContent>
 
           <TabsContent value="books" className="mt-6">
@@ -285,49 +298,49 @@ export function SearchResults({
                   </span>
                 </div>
                 <Button
-                    onClick={async () => {
-                      if (selectedBooks.size === 0) {
+                  onClick={async () => {
+                    if (selectedBooks.size === 0) {
+                      toast({
+                        title: 'No books selected',
+                        description: 'Please select at least one book to add',
+                        variant: 'destructive',
+                      })
+                      return
+                    }
+                    setIsAdding(true)
+                    try {
+                      const selectedBookData = Array.from(selectedBooks).map(
+                        (index) => isbndbBooks[index]
+                      )
+                      const result = await bulkAddBooksFromSearch(selectedBookData)
+
+                      if (result.success) {
                         toast({
-                          title: "No books selected",
-                          description: "Please select at least one book to add",
-                          variant: "destructive",
+                          title: 'Books added successfully',
+                          description: `Successfully added ${result.added} book${result.added !== 1 ? 's' : ''}${result.duplicates > 0 ? ` (${result.duplicates} duplicate${result.duplicates !== 1 ? 's' : ''} skipped)` : ''}`,
                         })
-                        return
-                      }
-                      setIsAdding(true)
-                      try {
-                        const selectedBookData = Array.from(selectedBooks).map(
-                          (index) => isbndbBooks[index]
-                        )
-                        const result = await bulkAddBooksFromSearch(selectedBookData)
-                        
-                        if (result.success) {
-                          toast({
-                            title: "Books added successfully",
-                            description: `Successfully added ${result.added} book${result.added !== 1 ? "s" : ""}${result.duplicates > 0 ? ` (${result.duplicates} duplicate${result.duplicates !== 1 ? "s" : ""} skipped)` : ""}`,
-                          })
-                          // Clear selection
-                          setSelectedBooks(new Set())
-                          // Refresh the page to show updated results
-                          window.location.reload()
-                        } else {
-                          toast({
-                            title: "Failed to add books",
-                            description: result.errorDetails.join(", "),
-                            variant: "destructive",
-                          })
-                        }
-                      } catch (error) {
+                        // Clear selection
+                        setSelectedBooks(new Set())
+                        // Refresh the page to show updated results
+                        window.location.reload()
+                      } else {
                         toast({
-                          title: "Error",
-                          description: "An error occurred while adding books",
-                          variant: "destructive",
+                          title: 'Failed to add books',
+                          description: result.errorDetails.join(', '),
+                          variant: 'destructive',
                         })
-                        console.error("Error adding books:", error)
-                      } finally {
-                        setIsAdding(false)
                       }
-                    }}
+                    } catch (error) {
+                      toast({
+                        title: 'Error',
+                        description: 'An error occurred while adding books',
+                        variant: 'destructive',
+                      })
+                      console.error('Error adding books:', error)
+                    } finally {
+                      setIsAdding(false)
+                    }
+                  }}
                   disabled={isAdding || selectedBooks.size === 0}
                   className="bg-blue-600 hover:bg-blue-700"
                 >
@@ -348,13 +361,12 @@ export function SearchResults({
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
               {isbndbBooks.map((book, index) => {
                 const isSelected = selectedBooks.has(index)
-                
+
                 return (
-                  <div
-                    key={`isbndb-${index}`}
-                    className="block relative group"
-                  >
-                    <Card className={`overflow-hidden h-full transition-all ${isSelected ? 'ring-2 ring-blue-500' : ''}`}>
+                  <div key={`isbndb-${index}`} className="block relative group">
+                    <Card
+                      className={`overflow-hidden h-full transition-all ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
+                    >
                       <div className="absolute top-2 left-2 z-10">
                         <Checkbox
                           checked={isSelected}
@@ -372,7 +384,12 @@ export function SearchResults({
                       </div>
                       <div className="relative w-full" style={{ aspectRatio: '2/3' }}>
                         {book.image ? (
-                          <Image src={book.image || '/placeholder.svg'} alt={book.title} fill className="object-cover" />
+                          <Image
+                            src={book.image || '/placeholder.svg'}
+                            alt={book.title}
+                            fill
+                            className="object-cover"
+                          />
                         ) : (
                           <div className="w-full h-full bg-muted flex items-center justify-center">
                             <BookOpen className="h-12 w-12 text-muted-foreground" />
@@ -489,10 +506,11 @@ export function SearchResults({
         </Tabs>
       ) : (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">Enter a search term to find books, authors, and publishers</p>
+          <p className="text-muted-foreground">
+            Enter a search term to find books, authors, and publishers
+          </p>
         </div>
       )}
     </div>
   )
 }
-

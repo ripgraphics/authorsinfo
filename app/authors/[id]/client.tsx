@@ -1,11 +1,12 @@
-"use client"
+'use client'
 
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { useState, useEffect, useCallback } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { useState, useEffect, useCallback } from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   BookOpen,
   Users,
@@ -27,26 +28,32 @@ import {
   Building,
   Info,
   User,
-  Settings
-} from "lucide-react"
-import { BookCard } from "@/components/book-card"
-import { useToast } from "@/components/ui/use-toast"
-import type { Author } from "@/types/book"
-import { Timeline, TimelineItem } from "@/components/timeline"
-import { FollowersList } from "@/components/followers-list"
-import { FollowersListTab } from "@/components/followers-list-tab"
-import { PhotosList } from "@/components/photos-list"
-import { PhotoAlbumManager } from "@/components/photo-album-manager"
-import { PhotoAlbumsList } from "@/components/photo-albums-list"
+  Settings,
+} from 'lucide-react'
+import { BookCard } from '@/components/book-card'
+import { useToast } from '@/components/ui/use-toast'
+import type { Author } from '@/types/book'
+import { Timeline, TimelineItem } from '@/components/timeline'
+import { FollowersList } from '@/components/followers-list'
+import { FollowersListTab } from '@/components/followers-list-tab'
+import { PhotosList } from '@/components/photos-list'
+import { PhotoAlbumManager } from '@/components/photo-album-manager'
+import { PhotoAlbumsList } from '@/components/photo-albums-list'
 import { CreateAlbumDialog } from '@/components/create-album-dialog'
 import { EntityPhotoAlbums } from '@/components/user-photo-albums'
-import { useRouter, useSearchParams } from "next/navigation"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { ExpandableSection } from "@/components/ui/expandable-section"
-import { ViewFullDetailsButton } from "@/components/ui/ViewFullDetailsButton"
-import { TimelineAboutSection } from "@/components/author/TimelineAboutSection"
-import { EntityHoverCard } from "@/components/entity-hover-cards"
+import { useRouter, useSearchParams } from 'next/navigation'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { ExpandableSection } from '@/components/ui/expandable-section'
+import { ViewFullDetailsButton } from '@/components/ui/ViewFullDetailsButton'
+import { TimelineAboutSection } from '@/components/author/TimelineAboutSection'
+import { EntityHoverCard } from '@/components/entity-hover-cards'
 import { ContactInfo, ContactInfoInput } from '@/types/contact'
 import { getContactInfo, upsertContactInfo } from '@/utils/contactInfo'
 import { useAuth } from '@/hooks/useAuth'
@@ -54,7 +61,7 @@ import { FollowButton } from '@/components/follow-button'
 import { canUserEditEntity } from '@/lib/auth-utils'
 import { EntityTab } from '@/components/ui/entity-tabs'
 import EnterpriseTimelineActivities from '@/components/enterprise/enterprise-timeline-activities-optimized'
-import { CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { EntityHeader, TabConfig } from '@/components/entity-header'
 import { deduplicatedRequest } from '@/lib/request-utils'
 
@@ -98,52 +105,52 @@ interface BookCardProps {
 // Add mockActivities array for the timeline
 const mockActivities = [
   {
-    id: "1",
-    type: "rating",
-    bookTitle: "Dune",
-    bookAuthor: "Frank Herbert",
+    id: '1',
+    type: 'rating',
+    bookTitle: 'Dune',
+    bookAuthor: 'Frank Herbert',
     rating: 5,
-    timeAgo: "2 days ago",
+    timeAgo: '2 days ago',
   },
   {
-    id: "2",
-    type: "finished",
-    bookTitle: "The Hobbit",
-    bookAuthor: "J.R.R. Tolkien",
-    timeAgo: "1 week ago",
+    id: '2',
+    type: 'finished',
+    bookTitle: 'The Hobbit',
+    bookAuthor: 'J.R.R. Tolkien',
+    timeAgo: '1 week ago',
   },
   {
-    id: "3",
-    type: "added",
-    bookTitle: "The Way of Kings",
-    bookAuthor: "Brandon Sanderson",
-    shelf: "Want to Read",
-    timeAgo: "2 weeks ago",
+    id: '3',
+    type: 'added',
+    bookTitle: 'The Way of Kings',
+    bookAuthor: 'Brandon Sanderson',
+    shelf: 'Want to Read',
+    timeAgo: '2 weeks ago',
   },
   {
-    id: "4",
-    type: "reviewed",
-    bookTitle: "Circe",
-    bookAuthor: "Madeline Miller",
-    timeAgo: "3 weeks ago",
+    id: '4',
+    type: 'reviewed',
+    bookTitle: 'Circe',
+    bookAuthor: 'Madeline Miller',
+    timeAgo: '3 weeks ago',
   },
-];
+]
 
-export function ClientAuthorPage({ 
-  author: initialAuthor, 
-  authorImageUrl, 
-  coverImageUrl, 
-  params, 
-  followers = [], 
-  followersCount = 0, 
-  books = [], 
+export function ClientAuthorPage({
+  author: initialAuthor,
+  authorImageUrl,
+  coverImageUrl,
+  params,
+  followers = [],
+  followersCount = 0,
+  books = [],
   booksCount = 0,
   photos = [],
   photosCount = 0,
-  albums = []
+  albums = [],
 }: ClientAuthorPageProps) {
   const { user } = useAuth()
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()
   const validTabs: EntityTab[] = [
     { id: 'timeline', label: 'Timeline' },
     { id: 'about', label: 'About' },
@@ -151,21 +158,21 @@ export function ClientAuthorPage({
     { id: 'followers', label: `Followers (${followersCount})` },
     { id: 'photos', label: 'Photos' },
     { id: 'more', label: 'More' },
-  ];
-  const tabParam = searchParams?.get('tab');
-  const validTabIds = validTabs.map(t => t.id);
-  const initialTab = tabParam && validTabIds.includes(tabParam) ? tabParam : 'timeline';
-  const [activeTab, setActiveTab] = useState(initialTab);
+  ]
+  const tabParam = searchParams?.get('tab')
+  const validTabIds = validTabs.map((t) => t.id)
+  const initialTab = tabParam && validTabIds.includes(tabParam) ? tabParam : 'timeline'
+  const [activeTab, setActiveTab] = useState(initialTab)
   const [author, setAuthor] = useState(initialAuthor)
   const [refreshing, setRefreshing] = useState(false)
   const [bioDialogOpen, setBioDialogOpen] = useState(false)
   const [contactDialogOpen, setContactDialogOpen] = useState(false)
-  const [editedBio, setEditedBio] = useState(initialAuthor?.bio || "")
+  const [editedBio, setEditedBio] = useState(initialAuthor?.bio || '')
   const [showFullBio, setShowFullBio] = useState(false)
   const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null)
   const [editedContact, setEditedContact] = useState<ContactInfoInput>({
     entity_type: 'author',
-    entity_id: params.id
+    entity_id: params.id,
   })
   const [saving, setSaving] = useState(false)
   const { toast } = useToast()
@@ -178,22 +185,22 @@ export function ClientAuthorPage({
   const [authorImageUrlState, setAuthorImageUrlState] = useState(authorImageUrl)
 
   // Convert tabs to TabConfig format for EntityHeader
-  const tabs: TabConfig[] = validTabs.map(tab => ({
+  const tabs: TabConfig[] = validTabs.map((tab) => ({
     id: tab.id,
     label: tab.label,
-    disabled: tab.disabled
+    disabled: tab.disabled,
   }))
 
   // Create stats array for EntityHeader
   const stats = [
-    { 
-      icon: <BookOpen className="h-4 w-4 mr-1" />, 
-      text: `${booksCount} books written` 
+    {
+      icon: <BookOpen className="h-4 w-4 mr-1" />,
+      text: `${booksCount} books written`,
     },
-    { 
-      icon: <Users className="h-4 w-4 mr-1" />, 
-      text: `${followersCount} followers` 
-    }
+    {
+      icon: <Users className="h-4 w-4 mr-1" />,
+      text: `${followersCount} followers`,
+    },
   ]
 
   // Follow handler
@@ -211,7 +218,8 @@ export function ClientAuthorPage({
       }
 
       // For authors (catalog entities), only admins can edit
-      const isAdmin = user.role === 'admin' || user.role === 'super_admin' || user.role === 'super-admin'
+      const isAdmin =
+        user.role === 'admin' || user.role === 'super_admin' || user.role === 'super-admin'
       setCanEdit(isAdmin)
     }
 
@@ -220,41 +228,41 @@ export function ClientAuthorPage({
 
   // Check initial data on mount
   useEffect(() => {
-    console.log("Component mounted with initial author:", {
+    console.log('Component mounted with initial author:', {
       id: initialAuthor?.id,
       name: initialAuthor?.name,
       hasBio: !!initialAuthor?.bio,
-      bioLength: initialAuthor?.bio?.length || 0
-    });
-    
+      bioLength: initialAuthor?.bio?.length || 0,
+    })
+
     // If we don't have author data or bio data, fetch it
     if (!initialAuthor?.bio && initialAuthor?.id) {
-      refreshAuthorData();
+      refreshAuthorData()
     }
-  }, []);
+  }, [])
 
   // Debug: Log state changes
   useEffect(() => {
-    console.log("Author state updated:", {
+    console.log('Author state updated:', {
       authorId: author?.id,
       authorName: author?.name,
       hasBio: !!author?.bio,
       bioLength: author?.bio?.length || 0,
-      bioPreview: author?.bio?.substring(0, 50)
-    });
-  }, [author]);
+      bioPreview: author?.bio?.substring(0, 50),
+    })
+  }, [author])
 
   useEffect(() => {
-    console.log("EditedBio state updated:", {
+    console.log('EditedBio state updated:', {
       length: editedBio?.length || 0,
-      preview: editedBio?.substring(0, 50)
-    });
-  }, [editedBio]);
+      preview: editedBio?.substring(0, 50),
+    })
+  }, [editedBio])
 
   // Update edited states when author data changes
   useEffect(() => {
     if (author) {
-      setEditedBio(author.bio || "")
+      setEditedBio(author.bio || '')
     }
   }, [author])
 
@@ -264,20 +272,20 @@ export function ClientAuthorPage({
       try {
         console.log('Fetching contact info for author:', {
           authorId: params.id,
-          authorName: author?.name
-        });
-        
-        const info = await getContactInfo('author', params.id);
-        
+          authorName: author?.name,
+        })
+
+        const info = await getContactInfo('author', params.id)
+
         console.log('Contact info fetch result:', {
           success: !!info,
           hasEmail: !!info?.email,
           hasPhone: !!info?.phone,
-          hasWebsite: !!info?.website
-        });
+          hasWebsite: !!info?.website,
+        })
 
         if (info) {
-          setContactInfo(info);
+          setContactInfo(info)
           setEditedContact({
             entity_type: 'author',
             entity_id: params.id,
@@ -289,222 +297,243 @@ export function ClientAuthorPage({
             city: info.city,
             state: info.state,
             postal_code: info.postal_code,
-            country: info.country
-          });
+            country: info.country,
+          })
         } else {
           // Initialize with empty values if no contact info exists
-          setContactInfo(null);
+          setContactInfo(null)
           setEditedContact({
             entity_type: 'author',
-            entity_id: params.id
-          });
+            entity_id: params.id,
+          })
         }
       } catch (error) {
         console.error('Error in fetchContactInfo:', {
           error,
           authorId: params.id,
           authorName: author?.name,
-          stack: error instanceof Error ? error.stack : undefined
-        });
-        
+          stack: error instanceof Error ? error.stack : undefined,
+        })
+
         // Show error toast to user
         toast({
-          title: "Error",
-          description: "Failed to load contact information. Please try again later.",
-          variant: "destructive",
-        });
+          title: 'Error',
+          description: 'Failed to load contact information. Please try again later.',
+          variant: 'destructive',
+        })
       }
-    };
-    fetchContactInfo();
-  }, [params.id, author?.name, toast]);
+    }
+    fetchContactInfo()
+  }, [params.id, author?.name, toast])
 
   // Fetch entity images from photo albums
   const fetchEntityImages = useCallback(async () => {
     if (!params.id) {
-      console.log('❌ Missing author ID, skipping entity image fetch');
-      return;
+      console.log('❌ Missing author ID, skipping entity image fetch')
+      return
     }
-    
+
     try {
-      console.log('📡 Fetching entity images for author...');
-      
+      console.log('📡 Fetching entity images for author...')
+
       // Use deduplicated requests with shorter cache for entity images
       // Shorter cache ensures fresh data after image uploads
       const [headerData, avatarData] = await Promise.all([
         deduplicatedRequest(
           `entity-header-author-${params.id}`,
-          () => fetch(`/api/entity-images?entityId=${params.id}&entityType=author&albumPurpose=entity_header`).then(r => r.json()),
+          () =>
+            fetch(
+              `/api/entity-images?entityId=${params.id}&entityType=author&albumPurpose=entity_header`
+            ).then((r) => r.json()),
           30 * 1000 // 30 seconds cache - shorter for entity header images
         ),
         deduplicatedRequest(
           `entity-avatar-author-${params.id}`,
-          () => fetch(`/api/entity-images?entityId=${params.id}&entityType=author&albumPurpose=avatar`).then(r => r.json()),
+          () =>
+            fetch(
+              `/api/entity-images?entityId=${params.id}&entityType=author&albumPurpose=avatar`
+            ).then((r) => r.json()),
           30 * 1000 // 30 seconds cache - shorter for entity avatar images
-        )
-      ]);
+        ),
+      ])
 
       // Process header images - FIRST PRIORITY: entity header image
-      let foundEntityHeaderImage = false;
-      
-      console.log('🔍 Header data response:', { 
-        success: headerData.success, 
+      let foundEntityHeaderImage = false
+
+      console.log('🔍 Header data response:', {
+        success: headerData.success,
         albumsCount: headerData.albums?.length || 0,
-        albums: headerData.albums?.map((a: any) => ({ id: a.id, name: a.name, imagesCount: a.images?.length || 0 }))
-      });
-      
+        albums: headerData.albums?.map((a: any) => ({
+          id: a.id,
+          name: a.name,
+          imagesCount: a.images?.length || 0,
+        })),
+      })
+
       if (headerData.success && headerData.albums && headerData.albums.length > 0) {
-        const headerAlbum = headerData.albums[0];
-        console.log('🔍 Header album details:', { 
-          id: headerAlbum.id, 
-          name: headerAlbum.name, 
+        const headerAlbum = headerData.albums[0]
+        console.log('🔍 Header album details:', {
+          id: headerAlbum.id,
+          name: headerAlbum.name,
           imagesCount: headerAlbum.images?.length || 0,
-          images: headerAlbum.images?.map((img: any) => ({ 
-            id: img.id, 
-            is_cover: img.is_cover, 
+          images: headerAlbum.images?.map((img: any) => ({
+            id: img.id,
+            is_cover: img.is_cover,
             hasImage: !!img.image,
             imageUrl: img.image?.url || 'NO URL',
-            imageId: img.image?.id || 'NO ID'
-          }))
-        });
-        
+            imageId: img.image?.id || 'NO ID',
+          })),
+        })
+
         if (headerAlbum.images && headerAlbum.images.length > 0) {
           // Filter out images with null image objects
-          const validImages = headerAlbum.images.filter((img: any) => img.image && img.image.url);
-          console.log(`🔍 Filtered ${validImages.length} valid images from ${headerAlbum.images.length} total`);
-          
+          const validImages = headerAlbum.images.filter((img: any) => img.image && img.image.url)
+          console.log(
+            `🔍 Filtered ${validImages.length} valid images from ${headerAlbum.images.length} total`
+          )
+
           if (validImages.length > 0) {
-            let headerImage = validImages.find((img: any) => img.is_cover);
-            
+            let headerImage = validImages.find((img: any) => img.is_cover)
+
             if (!headerImage) {
               headerImage = validImages.reduce((latest: any, current: any) => {
-                if (!latest) return current;
-                const latestDate = new Date(latest.image?.created_at || 0);
-                const currentDate = new Date(current.image?.created_at || 0);
-                return currentDate > latestDate ? current : latest;
-              });
+                if (!latest) return current
+                const latestDate = new Date(latest.image?.created_at || 0)
+                const currentDate = new Date(current.image?.created_at || 0)
+                return currentDate > latestDate ? current : latest
+              })
             }
-            
+
             if (headerImage && headerImage.image) {
-              console.log('✅ Found entity header image, setting:', headerImage.image.url);
-              setCoverImageUrlState(headerImage.image.url);
-              foundEntityHeaderImage = true;
+              console.log('✅ Found entity header image, setting:', headerImage.image.url)
+              setCoverImageUrlState(headerImage.image.url)
+              foundEntityHeaderImage = true
             } else {
-              console.warn('⚠️ Header image found but missing image object:', headerImage);
+              console.warn('⚠️ Header image found but missing image object:', headerImage)
             }
           } else {
-            console.warn('⚠️ No valid images found in header album (all images have null image objects)');
+            console.warn(
+              '⚠️ No valid images found in header album (all images have null image objects)'
+            )
           }
         } else {
-          console.warn('⚠️ Header album has no images array or empty images array');
+          console.warn('⚠️ Header album has no images array or empty images array')
         }
       } else {
-        console.warn('⚠️ No header albums found or request failed:', { 
-          success: headerData.success, 
+        console.warn('⚠️ No header albums found or request failed:', {
+          success: headerData.success,
           error: headerData.error,
-          albumsCount: headerData.albums?.length || 0
-        });
+          albumsCount: headerData.albums?.length || 0,
+        })
       }
-      
+
       // FALLBACK: Only use original coverImageUrl if no entity header image was found
       if (!foundEntityHeaderImage) {
-        console.log('⚠️ No entity header image found, falling back to original cover image');
-        setCoverImageUrlState(coverImageUrl);
+        console.log('⚠️ No entity header image found, falling back to original cover image')
+        setCoverImageUrlState(coverImageUrl)
       }
-      
+
       // Process avatar images
-      console.log('🔍 Avatar data response:', { 
-        success: avatarData.success, 
+      console.log('🔍 Avatar data response:', {
+        success: avatarData.success,
         albumsCount: avatarData.albums?.length || 0,
-        albums: avatarData.albums?.map((a: any) => ({ id: a.id, name: a.name, imagesCount: a.images?.length || 0 }))
-      });
-      
+        albums: avatarData.albums?.map((a: any) => ({
+          id: a.id,
+          name: a.name,
+          imagesCount: a.images?.length || 0,
+        })),
+      })
+
       if (avatarData.success && avatarData.albums && avatarData.albums.length > 0) {
-        const avatarAlbum = avatarData.albums[0];
-        console.log('🔍 Avatar album details:', { 
-          id: avatarAlbum.id, 
-          name: avatarAlbum.name, 
+        const avatarAlbum = avatarData.albums[0]
+        console.log('🔍 Avatar album details:', {
+          id: avatarAlbum.id,
+          name: avatarAlbum.name,
           imagesCount: avatarAlbum.images?.length || 0,
-          images: avatarAlbum.images?.map((img: any) => ({ 
-            id: img.id, 
-            is_cover: img.is_cover, 
+          images: avatarAlbum.images?.map((img: any) => ({
+            id: img.id,
+            is_cover: img.is_cover,
             hasImage: !!img.image,
             imageUrl: img.image?.url || 'NO URL',
-            imageId: img.image?.id || 'NO ID'
-          }))
-        });
-        
+            imageId: img.image?.id || 'NO ID',
+          })),
+        })
+
         if (avatarAlbum.images && avatarAlbum.images.length > 0) {
           // Filter out images with null image objects
-          const validImages = avatarAlbum.images.filter((img: any) => img.image && img.image.url);
-          console.log(`🔍 Filtered ${validImages.length} valid images from ${avatarAlbum.images.length} total`);
-          
+          const validImages = avatarAlbum.images.filter((img: any) => img.image && img.image.url)
+          console.log(
+            `🔍 Filtered ${validImages.length} valid images from ${avatarAlbum.images.length} total`
+          )
+
           if (validImages.length > 0) {
-            let avatarImage = validImages.find((img: any) => img.is_cover);
-            
+            let avatarImage = validImages.find((img: any) => img.is_cover)
+
             if (!avatarImage) {
               avatarImage = validImages.reduce((latest: any, current: any) => {
-                if (!latest) return current;
-                const latestDate = new Date(latest.image?.created_at || 0);
-                const currentDate = new Date(current.image?.created_at || 0);
-                return currentDate > latestDate ? current : latest;
-              });
+                if (!latest) return current
+                const latestDate = new Date(latest.image?.created_at || 0)
+                const currentDate = new Date(current.image?.created_at || 0)
+                return currentDate > latestDate ? current : latest
+              })
             }
-            
+
             if (avatarImage && avatarImage.image) {
-              console.log('✅ Setting avatar image:', avatarImage.image.url);
-              setAuthorImageUrlState(avatarImage.image.url);
+              console.log('✅ Setting avatar image:', avatarImage.image.url)
+              setAuthorImageUrlState(avatarImage.image.url)
             } else {
-              console.warn('⚠️ Avatar image found but missing image object:', avatarImage);
+              console.warn('⚠️ Avatar image found but missing image object:', avatarImage)
               // Fallback to original avatar image
-              setAuthorImageUrlState(authorImageUrl);
+              setAuthorImageUrlState(authorImageUrl)
             }
           } else {
-            console.warn('⚠️ No valid images found in avatar album (all images have null image objects)');
+            console.warn(
+              '⚠️ No valid images found in avatar album (all images have null image objects)'
+            )
             // Fallback to original avatar image
-            setAuthorImageUrlState(authorImageUrl);
+            setAuthorImageUrlState(authorImageUrl)
           }
         } else {
-          console.warn('⚠️ Avatar album has no images array or empty images array');
+          console.warn('⚠️ Avatar album has no images array or empty images array')
           // Fallback to original avatar image
-          setAuthorImageUrlState(authorImageUrl);
+          setAuthorImageUrlState(authorImageUrl)
         }
       } else {
-        console.warn('⚠️ No avatar albums found or request failed:', { 
-          success: avatarData.success, 
+        console.warn('⚠️ No avatar albums found or request failed:', {
+          success: avatarData.success,
           error: avatarData.error,
-          albumsCount: avatarData.albums?.length || 0
-        });
+          albumsCount: avatarData.albums?.length || 0,
+        })
         // Fallback to original avatar image if no album images found
-        setAuthorImageUrlState(authorImageUrl);
+        setAuthorImageUrlState(authorImageUrl)
       }
-      
     } catch (error) {
-      console.error('❌ Error fetching entity images:', error);
+      console.error('❌ Error fetching entity images:', error)
       // On error, fall back to original images
-      setCoverImageUrlState(coverImageUrl);
-      setAuthorImageUrlState(authorImageUrl);
+      setCoverImageUrlState(coverImageUrl)
+      setAuthorImageUrlState(authorImageUrl)
     }
-  }, [params.id, coverImageUrl, authorImageUrl]);
+  }, [params.id, coverImageUrl, authorImageUrl])
 
   // Fetch entity images from photo albums when component mounts
   useEffect(() => {
-    console.log('🚀 useEffect triggered, calling fetchEntityImages');
-    fetchEntityImages();
-  }, [fetchEntityImages]);
+    console.log('🚀 useEffect triggered, calling fetchEntityImages')
+    fetchEntityImages()
+  }, [fetchEntityImages])
 
   // Listen for entity image changes (when user sets new cover in photos tab)
   useEffect(() => {
     const handleEntityImageChanged = () => {
-      console.log('🔄 Entity image changed event received, refreshing images...');
-      fetchEntityImages();
-    };
+      console.log('🔄 Entity image changed event received, refreshing images...')
+      fetchEntityImages()
+    }
 
-    window.addEventListener('entityImageChanged', handleEntityImageChanged);
-    
+    window.addEventListener('entityImageChanged', handleEntityImageChanged)
+
     return () => {
-      window.removeEventListener('entityImageChanged', handleEntityImageChanged);
-    };
-  }, [fetchEntityImages]);
+      window.removeEventListener('entityImageChanged', handleEntityImageChanged)
+    }
+  }, [fetchEntityImages])
 
   // Function to refresh author data
   const refreshAuthorData = async () => {
@@ -519,9 +548,9 @@ export function ClientAuthorPage({
     } catch (error) {
       console.error('Error refreshing author data:', error)
       toast({
-        title: "Error",
-        description: "Failed to refresh author data",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to refresh author data',
+        variant: 'destructive',
       })
     } finally {
       setRefreshing(false)
@@ -538,10 +567,10 @@ export function ClientAuthorPage({
   }
 
   const openBioDialog = () => {
-    console.log("Opening bio dialog with author bio:", author?.bio);
+    console.log('Opening bio dialog with author bio:', author?.bio)
     // Force set the bio directly from the current author state
-    setEditedBio(author?.bio || "");
-    setBioDialogOpen(true);
+    setEditedBio(author?.bio || '')
+    setBioDialogOpen(true)
   }
 
   const openContactDialog = () => {
@@ -564,19 +593,19 @@ export function ClientAuthorPage({
       }
 
       // Update local state
-      setAuthor((prev: any) => prev ? { ...prev, bio: editedBio } : null)
+      setAuthor((prev: any) => (prev ? { ...prev, bio: editedBio } : null))
       setBioDialogOpen(false)
-      
+
       toast({
-        title: "Success",
-        description: "Author bio updated successfully",
+        title: 'Success',
+        description: 'Author bio updated successfully',
       })
     } catch (error) {
       console.error('Error updating author bio:', error)
       toast({
-        title: "Error",
-        description: "Failed to update author bio",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to update author bio',
+        variant: 'destructive',
       })
     } finally {
       setSaving(false)
@@ -597,47 +626,47 @@ export function ClientAuthorPage({
         city: editedContact.city || undefined,
         state: editedContact.state || undefined,
         postal_code: editedContact.postal_code || undefined,
-        country: editedContact.country || undefined
-      });
-      
+        country: editedContact.country || undefined,
+      })
+
       if (updatedContact) {
-        setContactInfo(updatedContact);
-        setContactDialogOpen(false);
+        setContactInfo(updatedContact)
+        setContactDialogOpen(false)
         toast({
-          title: "Success",
-          description: "Contact information updated successfully"
-        });
+          title: 'Success',
+          description: 'Contact information updated successfully',
+        })
       }
     } catch (error) {
-      console.error('Error updating contact info:', error);
+      console.error('Error updating contact info:', error)
       toast({
-        title: "Error",
-        description: "Failed to update contact information",
-        variant: "destructive"
-      });
+        title: 'Error',
+        description: 'Failed to update contact information',
+        variant: 'destructive',
+      })
     }
-  };
+  }
 
   // Toggle bio display
   const toggleBioDisplay = () => {
-    setShowFullBio((prev: boolean) => !prev);
+    setShowFullBio((prev: boolean) => !prev)
   }
 
   // Keep activeTab in sync with URL
   useEffect(() => {
     if (tabParam && validTabIds.includes(tabParam) && tabParam !== activeTab) {
-      setActiveTab(tabParam);
+      setActiveTab(tabParam)
     }
-  }, [tabParam, validTabIds, activeTab]);
+  }, [tabParam, validTabIds, activeTab])
 
   return (
     <div className="author-page author-page__container py-6">
       <EntityHeader
         entityType="author"
-        name={author?.name || "Author"}
-        username={`@${author?.name?.toLowerCase().replace(/\s+/g, '') || "author"}`}
-        coverImageUrl={coverImageUrlState || "/placeholder.svg?height=400&width=1200"}
-        profileImageUrl={authorImageUrlState || "/placeholder.svg?height=200&width=200"}
+        name={author?.name || 'Author'}
+        username={`@${author?.name?.toLowerCase().replace(/\s+/g, '') || 'author'}`}
+        coverImageUrl={coverImageUrlState || '/placeholder.svg?height=400&width=1200'}
+        profileImageUrl={authorImageUrlState || '/placeholder.svg?height=200&width=200'}
         stats={stats}
         location={author?.nationality || undefined}
         website={author?.website || undefined}
@@ -650,7 +679,7 @@ export function ClientAuthorPage({
         author={{
           id: author.id,
           name: author.name,
-          author_image: author.author_image || undefined
+          author_image: author.author_image || undefined,
         }}
         authorBookCount={booksCount}
         isFollowing={isFollowing}
@@ -667,120 +696,141 @@ export function ClientAuthorPage({
       />
 
       {/* Content Section with Sidebar on Left + Main Content on Right */}
-      {activeTab === "timeline" && (
-      <div className="author-page__content">
-        <div className="author-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* LEFT SIDEBAR - 1 Column */}
-          <div className="lg:col-span-1 space-y-6 self-end sticky bottom-0">
-            {/* About Section */}
-            <TimelineAboutSection
-              bio={author?.bio}
-              nationality={author?.nationality || undefined}
-              website={author?.website || undefined}
-              onViewMore={() => setActiveTab("about")}
-              onViewFullDetails={() => setActiveTab("about")}
-            />
+      {activeTab === 'timeline' && (
+        <div className="author-page__content">
+          <div className="author-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* LEFT SIDEBAR - 1 Column */}
+            <div className="lg:col-span-1 space-y-6 self-end sticky bottom-0">
+              {/* About Section */}
+              <TimelineAboutSection
+                bio={author?.bio}
+                nationality={author?.nationality || undefined}
+                website={author?.website || undefined}
+                onViewMore={() => setActiveTab('about')}
+                onViewFullDetails={() => setActiveTab('about')}
+              />
 
-            {/* Currently Reading Section */}
-            <Card>
-              <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
-                <div className="text-2xl font-semibold leading-none tracking-tight">Currently Reading</div>
-                <Link href="/my-books" className="text-sm text-primary hover:underline">See All</Link>
-              </div>
-              <CardContent className="p-6 pt-0 space-y-4">
-                <div className="flex gap-3">
-                  <div className="relative h-20 w-14 flex-shrink-0">
-                    <img 
-                      src="/placeholder.svg?height=240&width=160"
-                      alt="The Name of the Wind"
-                      className="object-cover rounded-md absolute inset-0 w-full h-full"
-                    />
+              {/* Currently Reading Section */}
+              <Card>
+                <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
+                  <div className="text-2xl font-semibold leading-none tracking-tight">
+                    Currently Reading
                   </div>
-                  <div className="flex-1 space-y-1">
-                    <h4 className="font-medium line-clamp-1">The Name of the Wind</h4>
-                    <p className="text-sm text-muted-foreground">by Patrick Rothfuss</p>
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-xs">
-                        <span>Progress</span>
-                        <span>65%</span>
-                      </div>
-                      <div className="relative w-full overflow-hidden rounded-full bg-secondary h-1.5">
-                        <div className="h-full w-full flex-1 bg-primary transition-all" style={{transform: 'translateX(-35%)'}}></div>
-                      </div>
-                    </div>
-                  </div>
+                  <Link href="/my-books" className="text-sm text-primary hover:underline">
+                    See All
+                  </Link>
                 </div>
-                <div className="flex gap-3">
-                  <div className="relative h-20 w-14 flex-shrink-0">
-                    <img 
-                      src="/placeholder.svg?height=240&width=160"
-                      alt="Project Hail Mary"
-                      className="object-cover rounded-md absolute inset-0 w-full h-full"
-                    />
-                  </div>
-                  <div className="flex-1 space-y-1">
-                    <h4 className="font-medium line-clamp-1">Project Hail Mary</h4>
-                    <p className="text-sm text-muted-foreground">by Andy Weir</p>
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-xs">
-                        <span>Progress</span>
-                        <span>23%</span>
-                      </div>
-                      <div className="relative w-full overflow-hidden rounded-full bg-secondary h-1.5">
-                        <div className="h-full w-full flex-1 bg-primary transition-all" style={{transform: 'translateX(-77%)'}}></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Photos Section */}
-            <Card>
-              <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
-                <div className="text-2xl font-semibold leading-none tracking-tight">Photos</div>
-                <Link href={`/authors/${params.id}/photos`} className="text-sm text-primary hover:underline">See All</Link>
-              </div>
-              <CardContent className="p-6 pt-0">
-                <div className="grid grid-cols-3 gap-2">
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-                    <div key={num} className="aspect-square relative rounded-sm overflow-hidden">
-                      <img 
-                        src={`/placeholder.svg?height=100&width=100&text=${num}`}
-                        alt={`Photo ${num}`}
-                        className="object-cover w-full h-full"
+                <CardContent className="p-6 pt-0 space-y-4">
+                  <div className="flex gap-3">
+                    <div className="relative h-20 w-14 flex-shrink-0 overflow-hidden rounded-md">
+                      <Image
+                        src="/placeholder.svg?height=240&width=160"
+                        alt="The Name of the Wind"
+                        fill
+                        sizes="56px"
+                        className="object-cover"
                       />
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Friends/Followers Section */}
-            <FollowersList
-              followers={followers}
-              followersCount={followersCount}
-              entityId={params.id}
-              entityType="author"
-              onViewMore={() => setActiveTab("followers")}
-            />
-          </div>
-
-          {/* MAIN CONTENT - 2 Columns */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Timeline Feed - This has full posting functionality */}
-            <EnterpriseTimelineActivities
-              entityType="author"
-              entityId={params.id}
-              enableReadingProgress={true}
-              enablePrivacyControls={true}
-            />
-          </div>
+                    <div className="flex-1 space-y-1">
+                      <h4 className="font-medium line-clamp-1">The Name of the Wind</h4>
+                      <p className="text-sm text-muted-foreground">by Patrick Rothfuss</p>
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-xs">
+                          <span>Progress</span>
+                          <span>65%</span>
+                        </div>
+                        <div className="relative w-full overflow-hidden rounded-full bg-secondary h-1.5">
+                          <div
+                            className="h-full w-full flex-1 bg-primary transition-all"
+                            style={{ transform: 'translateX(-35%)' }}
+                          ></div>
+                        </div>
                       </div>
                     </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="relative h-20 w-14 flex-shrink-0 overflow-hidden rounded-md">
+                      <Image
+                        src="/placeholder.svg?height=240&width=160"
+                        alt="Project Hail Mary"
+                        fill
+                        sizes="56px"
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <h4 className="font-medium line-clamp-1">Project Hail Mary</h4>
+                      <p className="text-sm text-muted-foreground">by Andy Weir</p>
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-xs">
+                          <span>Progress</span>
+                          <span>23%</span>
+                        </div>
+                        <div className="relative w-full overflow-hidden rounded-full bg-secondary h-1.5">
+                          <div
+                            className="h-full w-full flex-1 bg-primary transition-all"
+                            style={{ transform: 'translateX(-77%)' }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Photos Section */}
+              <Card>
+                <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
+                  <div className="text-2xl font-semibold leading-none tracking-tight">Photos</div>
+                  <Link
+                    href={`/authors/${params.id}/photos`}
+                    className="text-sm text-primary hover:underline"
+                  >
+                    See All
+                  </Link>
+                </div>
+                <CardContent className="p-6 pt-0">
+                  <div className="grid grid-cols-3 gap-2">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                      <div key={num} className="aspect-square relative rounded-sm overflow-hidden">
+                        <Image
+                          src={`/placeholder.svg?height=100&width=100&text=${num}`}
+                          alt={`Photo ${num}`}
+                          fill
+                          sizes="(max-width: 768px) 33vw, 120px"
+                          className="object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Friends/Followers Section */}
+              <FollowersList
+                followers={followers}
+                followersCount={followersCount}
+                entityId={params.id}
+                entityType="author"
+                onViewMore={() => setActiveTab('followers')}
+              />
+            </div>
+
+            {/* MAIN CONTENT - 2 Columns */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Timeline Feed - This has full posting functionality */}
+              <EnterpriseTimelineActivities
+                entityType="author"
+                entityId={params.id}
+                enableReadingProgress={true}
+                enablePrivacyControls={true}
+              />
+            </div>
+          </div>
+        </div>
       )}
 
-      {activeTab === "about" && (
+      {activeTab === 'about' && (
         <div className="publisher-page__content">
           <div className="publisher-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-1">
@@ -789,35 +839,65 @@ export function ClientAuthorPage({
                   <h2 className="about-navigation__title text-lg font-medium">About</h2>
                   <div className="about-navigation__settings-wrapper relative">
                     {user && user.role === 'admin' && (
-                      <Button variant="ghost" size="icon" className="about-navigation__settings-button h-8 w-8 rounded-full">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="about-navigation__settings-button h-8 w-8 rounded-full"
+                      >
                         <Settings className="about-navigation__settings-icon h-4 w-4" />
                       </Button>
                     )}
                   </div>
                 </div>
                 <nav className="about-navigation__nav p-2">
-                  <a href="#overview" className="about-navigation__nav-link flex items-center px-3 py-2 rounded-md hover:bg-muted text-primary">Overview</a>
-                  <a href="#contact-info" className="about-navigation__nav-link flex items-center px-3 py-2 rounded-md hover:bg-muted">Contact Information</a>
-                  <a href="#location" className="about-navigation__nav-link flex items-center px-3 py-2 rounded-md hover:bg-muted">Location</a>
-                  <a href="#books" className="about-navigation__nav-link flex items-center px-3 py-2 rounded-md hover:bg-muted">Published Books</a>
+                  <a
+                    href="#overview"
+                    className="about-navigation__nav-link flex items-center px-3 py-2 rounded-md hover:bg-muted text-primary"
+                  >
+                    Overview
+                  </a>
+                  <a
+                    href="#contact-info"
+                    className="about-navigation__nav-link flex items-center px-3 py-2 rounded-md hover:bg-muted"
+                  >
+                    Contact Information
+                  </a>
+                  <a
+                    href="#location"
+                    className="about-navigation__nav-link flex items-center px-3 py-2 rounded-md hover:bg-muted"
+                  >
+                    Location
+                  </a>
+                  <a
+                    href="#books"
+                    className="about-navigation__nav-link flex items-center px-3 py-2 rounded-md hover:bg-muted"
+                  >
+                    Published Books
+                  </a>
                 </nav>
               </div>
-                </div>
+            </div>
             <div className="lg:col-span-2">
-              <div className="rounded-lg border bg-card text-card-foreground shadow-xs overview-section mb-6" id="overview">
+              <div
+                className="rounded-lg border bg-card text-card-foreground shadow-xs overview-section mb-6"
+                id="overview"
+              >
                 <div className="overview-section__header flex flex-col space-y-1.5 p-6 border-b">
                   <div className="overview-section__title-row flex justify-between items-center">
                     <h3 className="overview-section__title text-xl font-semibold">Overview</h3>
-                    {user && (user.role === 'admin' || user.role === 'super_admin' || user.role === 'super-admin') && (
-                      <Button 
-                        variant="ghost" 
-                        className="overview-section__edit-button h-8 gap-1 rounded-md px-3"
-                        onClick={openBioDialog}
-                      >
-                        <SquarePen className="overview-section__edit-icon h-4 w-4" />
-                        <span>Edit</span>
-                      </Button>
-                    )}
+                    {user &&
+                      (user.role === 'admin' ||
+                        user.role === 'super_admin' ||
+                        user.role === 'super-admin') && (
+                        <Button
+                          variant="ghost"
+                          className="overview-section__edit-button h-8 gap-1 rounded-md px-3"
+                          onClick={openBioDialog}
+                        >
+                          <SquarePen className="overview-section__edit-icon h-4 w-4" />
+                          <span>Edit</span>
+                        </Button>
+                      )}
                   </div>
                 </div>
                 <div className="overview-section__content p-6 space-y-4">
@@ -829,34 +909,41 @@ export function ClientAuthorPage({
                       className="overview-section__about-wrapper relative"
                       contentClassName="overview-section__about-text whitespace-pre-wrap text-base"
                     >
-                        {author?.bio || `About ${author?.name || "the Author"}
+                      {author?.bio ||
+                        `About ${author?.name || 'the Author'}
                         
-${author?.name || "The author"} is a renowned writer known for captivating storytelling and compelling characters. With a distinctive voice that resonates with readers across generations, ${author?.name?.split(' ')[0] || "they"} has established ${author?.name?.includes(' ') ? 'themselves' : 'themself'} as a significant figure in contemporary literature.
+${author?.name || 'The author'} is a renowned writer known for captivating storytelling and compelling characters. With a distinctive voice that resonates with readers across generations, ${author?.name?.split(' ')[0] || 'they'} has established ${author?.name?.includes(' ') ? 'themselves' : 'themself'} as a significant figure in contemporary literature.
 
-Born in ${author?.nationality || "their native country"}, ${author?.name?.split(' ')[0] || "the author"} began writing at an early age, influenced by the rich cultural heritage and literary traditions surrounding ${author?.name?.includes(' ') ? 'them' : 'them'}. After completing ${author?.name?.includes(' ') ? 'their' : 'their'} education, ${author?.name?.split(' ')[0] || "they"} devoted ${author?.name?.includes(' ') ? 'themselves' : 'themself'} to the craft of writing, publishing ${author?.name?.includes(' ') ? 'their' : 'their'} first work to critical acclaim.
+Born in ${author?.nationality || 'their native country'}, ${author?.name?.split(' ')[0] || 'the author'} began writing at an early age, influenced by the rich cultural heritage and literary traditions surrounding ${author?.name?.includes(' ') ? 'them' : 'them'}. After completing ${author?.name?.includes(' ') ? 'their' : 'their'} education, ${author?.name?.split(' ')[0] || 'they'} devoted ${author?.name?.includes(' ') ? 'themselves' : 'themself'} to the craft of writing, publishing ${author?.name?.includes(' ') ? 'their' : 'their'} first work to critical acclaim.
 
-Throughout ${author?.name?.includes(' ') ? 'their' : 'their'} career, ${author?.name?.split(' ')[0] || "the author"} has explored various themes including identity, belonging, human relationships, and the complexities of modern society. ${author?.name?.includes(' ') ? 'Their' : 'Their'} works often blend elements of realism with lyrical prose, creating immersive narratives that challenge readers to reflect on their own experiences and perspectives.
+Throughout ${author?.name?.includes(' ') ? 'their' : 'their'} career, ${author?.name?.split(' ')[0] || 'the author'} has explored various themes including identity, belonging, human relationships, and the complexities of modern society. ${author?.name?.includes(' ') ? 'Their' : 'Their'} works often blend elements of realism with lyrical prose, creating immersive narratives that challenge readers to reflect on their own experiences and perspectives.
 
-${author?.name || "The author"} has received numerous accolades for ${author?.name?.includes(' ') ? 'their' : 'their'} contributions to literature, including prestigious literary awards and recognition from peers in the industry. Beyond writing, ${author?.name?.split(' ')[0] || "they"} is passionate about promoting literacy and supporting emerging writers through workshops, mentorship programs, and public speaking engagements.
+${author?.name || 'The author'} has received numerous accolades for ${author?.name?.includes(' ') ? 'their' : 'their'} contributions to literature, including prestigious literary awards and recognition from peers in the industry. Beyond writing, ${author?.name?.split(' ')[0] || 'they'} is passionate about promoting literacy and supporting emerging writers through workshops, mentorship programs, and public speaking engagements.
 
-When not writing, ${author?.name?.split(' ')[0] || "the author"} enjoys reading widely across genres, traveling to gather inspiration for new stories, and engaging with readers through book tours and literary festivals. ${author?.name?.includes(' ') ? 'Their' : 'Their'} dedication to the craft and genuine connection with audiences have established ${author?.name || "the author"} as a beloved figure in the literary world.
+When not writing, ${author?.name?.split(' ')[0] || 'the author'} enjoys reading widely across genres, traveling to gather inspiration for new stories, and engaging with readers through book tours and literary festivals. ${author?.name?.includes(' ') ? 'Their' : 'Their'} dedication to the craft and genuine connection with audiences have established ${author?.name || 'the author'} as a beloved figure in the literary world.
 
-${author?.name || "The author"} continues to push boundaries with each new work, exploring fresh narrative approaches while maintaining the distinctive voice that has captivated readers worldwide. With each publication, ${author?.name?.split(' ')[0] || "they"} reaffirms ${author?.name?.includes(' ') ? 'their' : 'their'} place as one of the most significant literary voices of our time.`}
+${author?.name || 'The author'} continues to push boundaries with each new work, exploring fresh narrative approaches while maintaining the distinctive voice that has captivated readers worldwide. With each publication, ${author?.name?.split(' ')[0] || 'they'} reaffirms ${author?.name?.includes(' ') ? 'their' : 'their'} place as one of the most significant literary voices of our time.`}
                     </ExpandableSection>
                   </div>
                   {author?.birth_date && (
                     <div className="overview-section__founded flex items-center">
                       <Calendar className="overview-section__founded-icon h-4 w-4 mr-2 text-muted-foreground" />
-                      <span className="overview-section__founded-text">Born in {new Date(author.birth_date).getFullYear()}</span>
+                      <span className="overview-section__founded-text">
+                        Born in {new Date(author.birth_date).getFullYear()}
+                      </span>
                     </div>
                   )}
                   {author?.website && (
                     <div className="overview-section__website flex items-start">
                       <Globe className="overview-section__website-icon h-4 w-4 mr-2 text-muted-foreground flex-shrink-0 mt-1" />
-                      <a 
-                        href={author.website.startsWith('http') ? author.website : `https://${author.website}`}
-                        target="_blank" 
-                        rel="noopener noreferrer" 
+                      <a
+                        href={
+                          author.website.startsWith('http')
+                            ? author.website
+                            : `https://${author.website}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="overview-section__website-link text-primary hover:underline break-words"
                       >
                         {author.website}
@@ -865,15 +952,20 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                   )}
                 </div>
               </div>
-              
+
               {/* Contact Information Section */}
-              <div className="rounded-lg border bg-card text-card-foreground shadow-xs contact-section mb-6" id="contact-info">
+              <div
+                className="rounded-lg border bg-card text-card-foreground shadow-xs contact-section mb-6"
+                id="contact-info"
+              >
                 <div className="contact-section__header flex flex-col space-y-1.5 p-6 border-b">
                   <div className="contact-section__title-row flex justify-between items-center">
-                    <h3 className="contact-section__title text-xl font-semibold">Contact Information</h3>
+                    <h3 className="contact-section__title text-xl font-semibold">
+                      Contact Information
+                    </h3>
                     {canEdit && (
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         className="contact-section__edit-button h-8 gap-1 rounded-md px-3"
                         onClick={() => setContactDialogOpen(true)}
                       >
@@ -886,73 +978,103 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                 <div className="contact-section__content p-6">
                   <div className="contact-section__grid grid grid-cols-1 md:grid-cols-2 gap-4">
                     {contactInfo?.email && (
-                          <div className="contact-section__email flex flex-col">
-                            <span className="contact-section__label text-sm text-muted-foreground">Email</span>
-                        <a href={`mailto:${contactInfo.email}`} className="text-primary hover:underline">
+                      <div className="contact-section__email flex flex-col">
+                        <span className="contact-section__label text-sm text-muted-foreground">
+                          Email
+                        </span>
+                        <a
+                          href={`mailto:${contactInfo.email}`}
+                          className="text-primary hover:underline"
+                        >
                           {contactInfo.email}
-                            </a>
-                          </div>
-                        )}
+                        </a>
+                      </div>
+                    )}
                     {contactInfo?.phone && (
                       <div className="contact-section__phone flex flex-col">
-                        <span className="contact-section__label text-sm text-muted-foreground">Phone</span>
-                        <a href={`tel:${contactInfo.phone}`} className="text-primary hover:underline">
+                        <span className="contact-section__label text-sm text-muted-foreground">
+                          Phone
+                        </span>
+                        <a
+                          href={`tel:${contactInfo.phone}`}
+                          className="text-primary hover:underline"
+                        >
                           {contactInfo.phone}
-                            </a>
-                          </div>
-                        )}
+                        </a>
+                      </div>
+                    )}
                     {contactInfo?.website && (
                       <div className="contact-section__website flex flex-col">
-                        <span className="contact-section__label text-sm text-muted-foreground">Website</span>
-                        <a 
-                          href={contactInfo.website.startsWith('http') ? contactInfo.website : `https://${contactInfo.website}`}
-                          target="_blank" 
-                          rel="noopener noreferrer" 
+                        <span className="contact-section__label text-sm text-muted-foreground">
+                          Website
+                        </span>
+                        <a
+                          href={
+                            contactInfo.website.startsWith('http')
+                              ? contactInfo.website
+                              : `https://${contactInfo.website}`
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="text-primary hover:underline"
                         >
                           {contactInfo.website}
-                            </a>
-                          </div>
-                        )}
-                    {(contactInfo?.address_line1 || contactInfo?.address_line2 || contactInfo?.city || contactInfo?.state || contactInfo?.postal_code || contactInfo?.country) && (
+                        </a>
+                      </div>
+                    )}
+                    {(contactInfo?.address_line1 ||
+                      contactInfo?.address_line2 ||
+                      contactInfo?.city ||
+                      contactInfo?.state ||
+                      contactInfo?.postal_code ||
+                      contactInfo?.country) && (
                       <div className="contact-section__address flex flex-col">
-                        <span className="contact-section__label text-sm text-muted-foreground">Address</span>
+                        <span className="contact-section__label text-sm text-muted-foreground">
+                          Address
+                        </span>
                         <div className="flex flex-col">
                           {contactInfo.address_line1 && <span>{contactInfo.address_line1}</span>}
                           {contactInfo.address_line2 && <span>{contactInfo.address_line2}</span>}
                           <span>
-                            {[
-                              contactInfo.city,
-                              contactInfo.state,
-                              contactInfo.postal_code
-                            ].filter(Boolean).join(', ')}
+                            {[contactInfo.city, contactInfo.state, contactInfo.postal_code]
+                              .filter(Boolean)
+                              .join(', ')}
                           </span>
                           {contactInfo.country && <span>{contactInfo.country}</span>}
                         </div>
-                          </div>
-                        )}
-                    {!contactInfo?.email && !contactInfo?.phone && !contactInfo?.website && 
-                     !contactInfo?.address_line1 && !contactInfo?.address_line2 && !contactInfo?.city && 
-                     !contactInfo?.state && !contactInfo?.postal_code && !contactInfo?.country && (
-                      <div className="col-span-2 text-center text-muted-foreground py-4">
-                        No contact information available
                       </div>
                     )}
+                    {!contactInfo?.email &&
+                      !contactInfo?.phone &&
+                      !contactInfo?.website &&
+                      !contactInfo?.address_line1 &&
+                      !contactInfo?.address_line2 &&
+                      !contactInfo?.city &&
+                      !contactInfo?.state &&
+                      !contactInfo?.postal_code &&
+                      !contactInfo?.country && (
+                        <div className="col-span-2 text-center text-muted-foreground py-4">
+                          No contact information available
+                        </div>
+                      )}
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          
+
           {/* Bio Edit Dialog */}
-          <Dialog open={bioDialogOpen} onOpenChange={(open) => {
-            if (open) {
-              // When opening, ensure we have the latest bio
-              setEditedBio(author?.bio || "");
-              console.log("Dialog opening, setting bio to:", author?.bio);
-            }
-            setBioDialogOpen(open);
-          }}>
+          <Dialog
+            open={bioDialogOpen}
+            onOpenChange={(open) => {
+              if (open) {
+                // When opening, ensure we have the latest bio
+                setEditedBio(author?.bio || '')
+                console.log('Dialog opening, setting bio to:', author?.bio)
+              }
+              setBioDialogOpen(open)
+            }}
+          >
             <DialogContent className="w-[95vw] max-w-[800px] h-auto max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Edit Author Biography</DialogTitle>
@@ -971,14 +1093,24 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row justify-end gap-2 mt-2">
-                <Button variant="outline" onClick={() => setBioDialogOpen(false)} className="w-full sm:w-auto order-2 sm:order-1">Cancel</Button>
-                <Button onClick={saveBio} disabled={saving} className="w-full sm:w-auto order-1 sm:order-2 mb-2 sm:mb-0">
-                  {saving ? "Saving..." : "Save Changes"}
+                <Button
+                  variant="outline"
+                  onClick={() => setBioDialogOpen(false)}
+                  className="w-full sm:w-auto order-2 sm:order-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={saveBio}
+                  disabled={saving}
+                  className="w-full sm:w-auto order-1 sm:order-2 mb-2 sm:mb-0"
+                >
+                  {saving ? 'Saving...' : 'Save Changes'}
                 </Button>
               </div>
             </DialogContent>
           </Dialog>
-          
+
           {/* Contact Edit Dialog */}
           <Dialog open={contactDialogOpen} onOpenChange={setContactDialogOpen}>
             <DialogContent className="w-[95vw] max-w-[600px] h-auto max-h-[90vh] overflow-y-auto">
@@ -991,7 +1123,9 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                   <Input
                     id="email"
                     value={editedContact.email || ''}
-                    onChange={(e) => setEditedContact(prev => ({ ...prev, email: e.target.value }))}
+                    onChange={(e) =>
+                      setEditedContact((prev) => ({ ...prev, email: e.target.value }))
+                    }
                     placeholder="Enter email address"
                   />
                 </div>
@@ -1000,7 +1134,9 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                   <Input
                     id="phone"
                     value={editedContact.phone || ''}
-                    onChange={(e) => setEditedContact(prev => ({ ...prev, phone: e.target.value }))}
+                    onChange={(e) =>
+                      setEditedContact((prev) => ({ ...prev, phone: e.target.value }))
+                    }
                     placeholder="Enter phone number"
                   />
                 </div>
@@ -1009,7 +1145,9 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                   <Input
                     id="website"
                     value={editedContact.website || ''}
-                    onChange={(e) => setEditedContact(prev => ({ ...prev, website: e.target.value }))}
+                    onChange={(e) =>
+                      setEditedContact((prev) => ({ ...prev, website: e.target.value }))
+                    }
                     placeholder="Enter website URL"
                   />
                 </div>
@@ -1018,7 +1156,9 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                   <Input
                     id="address_line1"
                     value={editedContact.address_line1 || ''}
-                    onChange={(e) => setEditedContact(prev => ({ ...prev, address_line1: e.target.value }))}
+                    onChange={(e) =>
+                      setEditedContact((prev) => ({ ...prev, address_line1: e.target.value }))
+                    }
                     placeholder="Enter address line 1"
                   />
                 </div>
@@ -1027,7 +1167,9 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                   <Input
                     id="address_line2"
                     value={editedContact.address_line2 || ''}
-                    onChange={(e) => setEditedContact(prev => ({ ...prev, address_line2: e.target.value }))}
+                    onChange={(e) =>
+                      setEditedContact((prev) => ({ ...prev, address_line2: e.target.value }))
+                    }
                     placeholder="Enter address line 2"
                   />
                 </div>
@@ -1037,7 +1179,9 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                     <Input
                       id="city"
                       value={editedContact.city || ''}
-                      onChange={(e) => setEditedContact(prev => ({ ...prev, city: e.target.value }))}
+                      onChange={(e) =>
+                        setEditedContact((prev) => ({ ...prev, city: e.target.value }))
+                      }
                       placeholder="Enter city"
                     />
                   </div>
@@ -1046,7 +1190,9 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                     <Input
                       id="state"
                       value={editedContact.state || ''}
-                      onChange={(e) => setEditedContact(prev => ({ ...prev, state: e.target.value }))}
+                      onChange={(e) =>
+                        setEditedContact((prev) => ({ ...prev, state: e.target.value }))
+                      }
                       placeholder="Enter state"
                     />
                   </div>
@@ -1057,7 +1203,9 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                     <Input
                       id="postal_code"
                       value={editedContact.postal_code || ''}
-                      onChange={(e) => setEditedContact(prev => ({ ...prev, postal_code: e.target.value }))}
+                      onChange={(e) =>
+                        setEditedContact((prev) => ({ ...prev, postal_code: e.target.value }))
+                      }
                       placeholder="Enter postal code"
                     />
                   </div>
@@ -1066,7 +1214,9 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                     <Input
                       id="country"
                       value={editedContact.country || ''}
-                      onChange={(e) => setEditedContact(prev => ({ ...prev, country: e.target.value }))}
+                      onChange={(e) =>
+                        setEditedContact((prev) => ({ ...prev, country: e.target.value }))
+                      }
                       placeholder="Enter country"
                     />
                   </div>
@@ -1076,16 +1226,14 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                 <Button variant="outline" onClick={() => setContactDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleUpdateContact}>
-                  Save Changes
-                </Button>
+                <Button onClick={handleUpdateContact}>Save Changes</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>
       )}
 
-      {activeTab === "books" && (
+      {activeTab === 'books' && (
         <div className="books-section">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {books.map((book) => (
@@ -1094,11 +1242,17 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                 id={book.id}
                 title={book.title}
                 coverImageUrl={book.cover_image_url}
-                author={author ? {
-                  id: author.id,
-                  name: author.name,
-                  author_image: author.author_image ? { url: author.author_image.url } : undefined
-                } : undefined}
+                author={
+                  author
+                    ? {
+                        id: author.id,
+                        name: author.name,
+                        author_image: author.author_image
+                          ? { url: author.author_image.url }
+                          : undefined,
+                      }
+                    : undefined
+                }
                 authorBookCount={booksCount}
               />
             ))}
@@ -1106,7 +1260,7 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
         </div>
       )}
 
-      {activeTab === "followers" && (
+      {activeTab === 'followers' && (
         <FollowersListTab
           followers={followers}
           followersCount={followersCount}
@@ -1115,7 +1269,7 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
         />
       )}
 
-      {activeTab === "photos" && (
+      {activeTab === 'photos' && (
         <div className="author-page__photos-tab">
           <div className="author-page__tab-content space-y-6">
             <EntityPhotoAlbums
@@ -1127,20 +1281,19 @@ ${author?.name || "The author"} continues to push boundaries with each new work,
                 name: author.name,
                 type: 'author' as const,
                 author_image: author.author_image || undefined,
-                bookCount: booksCount || 0
+                bookCount: booksCount || 0,
               }}
             />
           </div>
         </div>
       )}
 
-      {activeTab === "more" && (
+      {activeTab === 'more' && (
         <div className="more-section">
           <h2 className="text-2xl font-semibold mb-4">More</h2>
           {/* Add more content here */}
         </div>
       )}
-
     </div>
   )
 }

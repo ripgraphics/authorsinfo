@@ -15,9 +15,12 @@ export async function GET(request: Request) {
     // Get ISBNdb API key from environment
     const apiKey = process.env.ISBNDB_API_KEY
     if (!apiKey) {
-      return NextResponse.json({ 
-        error: 'ISBNdb API key not configured' 
-      }, { status: 500 })
+      return NextResponse.json(
+        {
+          error: 'ISBNdb API key not configured',
+        },
+        { status: 500 }
+      )
     }
 
     let url: string
@@ -28,13 +31,13 @@ export async function GET(request: Request) {
       // Since ISBNdb doesn't track "date added", we use recent years as proxy
       const currentYear = new Date().getFullYear()
       const searchText = searchQuery || `${currentYear}` // Use search query or default to current year
-      
+
       // Use the /search/books endpoint for more flexibility
       url = `https://api2.isbndb.com/search/books`
       params = new URLSearchParams({
         text: searchText,
         pageSize,
-        page
+        page,
       })
     } else {
       // Date range search or year-based search
@@ -44,7 +47,7 @@ export async function GET(request: Request) {
         params = new URLSearchParams({
           text: searchQuery || `${startDate} ${endDate}`,
           pageSize,
-          page
+          page,
         })
       } else {
         // Original functionality for year-based search using /books/{year}
@@ -52,16 +55,16 @@ export async function GET(request: Request) {
         params = new URLSearchParams({
           pageSize,
           page,
-          column: 'date_published'
+          column: 'date_published',
         })
       }
     }
 
     const response = await fetch(`${url}?${params}`, {
       headers: {
-        'Authorization': apiKey,
-        'Content-Type': 'application/json'
-      }
+        Authorization: apiKey,
+        'Content-Type': 'application/json',
+      },
     })
 
     if (!response.ok) {
@@ -69,53 +72,55 @@ export async function GET(request: Request) {
     }
 
     const data = await response.json()
-    
+
     // Handle different response formats
     let books = []
     if (sortBy === 'newest_added' || (startDate && endDate)) {
       // /search/books returns data in a different format
-      books = data.data?.map((book: any) => ({
-        title: book.title,
-        title_long: book.title_long,
-        image: book.image,
-        image_original: book.image_original,
-        authors: book.authors || [],
-        date_published: book.date_published,
-        publisher: book.publisher,
-        pages: book.pages,
-        dimensions: book.dimensions,
-        edition: book.edition,
-        msrp: book.msrp,
-        dimensions_structured: book.dimensions_structured,
-        isbn10: book.isbn,
-        isbn13: book.isbn13,
-        synopsis: book.synopsis,
-        overview: book.overview,
-        language: book.language,
-        binding: book.binding
-      })) || []
+      books =
+        data.data?.map((book: any) => ({
+          title: book.title,
+          title_long: book.title_long,
+          image: book.image,
+          image_original: book.image_original,
+          authors: book.authors || [],
+          date_published: book.date_published,
+          publisher: book.publisher,
+          pages: book.pages,
+          dimensions: book.dimensions,
+          edition: book.edition,
+          msrp: book.msrp,
+          dimensions_structured: book.dimensions_structured,
+          isbn10: book.isbn,
+          isbn13: book.isbn13,
+          synopsis: book.synopsis,
+          overview: book.overview,
+          language: book.language,
+          binding: book.binding,
+        })) || []
     } else {
       // /books/{year} returns books directly
-      books = data.books?.map((book: any) => ({
-        title: book.title,
-        title_long: book.title_long,
-        image: book.image,
-        image_original: book.image_original,
-        authors: book.authors || [],
-        date_published: book.date_published,
-        publisher: book.publisher,
-        pages: book.pages,
-        dimensions: book.dimensions,
-        edition: book.edition,
-        msrp: book.msrp,
-        dimensions_structured: book.dimensions_structured,
-        isbn10: book.isbn,
-        isbn13: book.isbn13,
-        synopsis: book.synopsis,
-        overview: book.overview,
-        language: book.language,
-        binding: book.binding
-      })) || []
+      books =
+        data.books?.map((book: any) => ({
+          title: book.title,
+          title_long: book.title_long,
+          image: book.image,
+          image_original: book.image_original,
+          authors: book.authors || [],
+          date_published: book.date_published,
+          publisher: book.publisher,
+          pages: book.pages,
+          dimensions: book.dimensions,
+          edition: book.edition,
+          msrp: book.msrp,
+          dimensions_structured: book.dimensions_structured,
+          isbn10: book.isbn,
+          isbn13: book.isbn13,
+          synopsis: book.synopsis,
+          overview: book.overview,
+          language: book.language,
+          binding: book.binding,
+        })) || []
     }
 
     // Filter by date range if specified
@@ -155,14 +160,19 @@ export async function GET(request: Request) {
       startDate,
       endDate,
       searchQuery,
-      note: sortBy === 'newest_added' ? 'Showing recent publications (ISBNdb does not track "date added")' : null
+      note:
+        sortBy === 'newest_added'
+          ? 'Showing recent publications (ISBNdb does not track "date added")'
+          : null,
     })
-
   } catch (error) {
     console.error('Failed to fetch latest books from ISBNdb:', error)
-    return NextResponse.json({ 
-      error: error instanceof Error ? error.message : 'Unknown error',
-      books: []
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        books: [],
+      },
+      { status: 500 }
+    )
   }
-} 
+}

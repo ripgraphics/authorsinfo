@@ -1,17 +1,10 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
+import Image from 'next/image'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { 
-  X, 
-  ChevronLeft, 
-  ChevronRight, 
-  ZoomIn, 
-  ZoomOut, 
-  Download,
-  Share2
-} from 'lucide-react'
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Download, Share2 } from 'lucide-react'
 import { CloseButton } from '@/components/ui/close-button'
 
 interface SimplePhoto {
@@ -36,31 +29,42 @@ export function SimplePhotoViewer({
   onClose,
   photos,
   currentIndex,
-  onIndexChange
+  onIndexChange,
 }: SimplePhotoViewerProps) {
   const [zoom, setZoom] = useState(1)
-  
+
   const currentPhoto = photos[currentIndex]
 
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (!isOpen) return
+
+      switch (e.key) {
+        case 'Escape':
+          onClose()
+          break
+        case 'ArrowLeft':
+          if (currentIndex > 0) onIndexChange(currentIndex - 1)
+          break
+        case 'ArrowRight':
+          if (currentIndex < photos.length - 1) onIndexChange(currentIndex + 1)
+          break
+      }
+    },
+    [isOpen, currentIndex, photos.length, onIndexChange, onClose]
+  )
+
+  // Attach keyboard listener
+  useEffect(() => {
     if (!isOpen) return
-    
-    switch (e.key) {
-      case 'Escape':
-        onClose()
-        break
-      case 'ArrowLeft':
-        if (currentIndex > 0) onIndexChange(currentIndex - 1)
-        break
-      case 'ArrowRight':
-        if (currentIndex < photos.length - 1) onIndexChange(currentIndex + 1)
-        break
-    }
-  }, [isOpen, currentIndex, photos.length, onIndexChange, onClose])
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, handleKeyDown])
 
   const handleDownload = () => {
     if (!currentPhoto) return
-    
+
     const link = document.createElement('a')
     link.href = currentPhoto.url
     link.download = `photo-${currentPhoto.id}.jpg`
@@ -71,7 +75,7 @@ export function SimplePhotoViewer({
 
   const handleShare = async () => {
     if (!currentPhoto) return
-    
+
     try {
       const shareUrl = `${window.location.origin}/photos/${currentPhoto.id}`
       await navigator.clipboard.writeText(shareUrl)
@@ -98,7 +102,7 @@ export function SimplePhotoViewer({
           >
             <ChevronLeft className="h-6 w-6" />
           </Button>
-          
+
           <Button
             variant="ghost"
             size="icon"
@@ -114,7 +118,7 @@ export function SimplePhotoViewer({
             <div className="text-white bg-black/50 px-3 py-1 rounded-sm">
               {currentIndex + 1} of {photos.length}
             </div>
-            
+
             <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
@@ -124,7 +128,7 @@ export function SimplePhotoViewer({
               >
                 {zoom === 1 ? <ZoomIn className="h-4 w-4" /> : <ZoomOut className="h-4 w-4" />}
               </Button>
-              
+
               <Button
                 variant="ghost"
                 size="icon"
@@ -133,7 +137,7 @@ export function SimplePhotoViewer({
               >
                 <Share2 className="h-4 w-4" />
               </Button>
-              
+
               <Button
                 variant="ghost"
                 size="icon"
@@ -142,24 +146,28 @@ export function SimplePhotoViewer({
               >
                 <Download className="h-4 w-4" />
               </Button>
-              
-                             <CloseButton
-                 onClick={onClose}
-                 className="text-white hover:opacity-80 transition-opacity"
-               />
+
+              <CloseButton
+                onClick={onClose}
+                className="text-white hover:opacity-80 transition-opacity"
+              />
             </div>
           </div>
 
           {/* Main Image */}
-          <img
-            src={currentPhoto.url}
-            alt={currentPhoto.alt_text || 'Photo'}
-            className="max-w-full max-h-full object-contain"
-            style={{
-              transform: `scale(${zoom})`,
-              transition: 'transform 0.3s ease'
-            }}
-          />
+          <div className="relative w-full h-full flex items-center justify-center">
+            <Image
+              src={currentPhoto.url}
+              alt={currentPhoto.alt_text || 'Photo'}
+              fill
+              className="object-contain"
+              style={{
+                transform: `scale(${zoom})`,
+                transition: 'transform 0.3s ease',
+              }}
+              sizes="100vw"
+            />
+          </div>
 
           {/* Photo Info */}
           {currentPhoto.description && (
@@ -174,4 +182,4 @@ export function SimplePhotoViewer({
       </DialogContent>
     </Dialog>
   )
-} 
+}

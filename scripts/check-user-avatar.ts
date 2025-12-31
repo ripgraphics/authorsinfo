@@ -23,20 +23,23 @@ if (!supabaseUrl || !supabaseServiceKey) {
 const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {
     autoRefreshToken: false,
-    persistSession: false
-  }
+    persistSession: false,
+  },
 })
 
 async function checkUserAvatar(userIdentifier: string) {
   console.log(`\n🔍 Checking avatar for user: ${userIdentifier}\n`)
-  
+
   try {
     // Step 1: Find the user by permalink or ID
-    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userIdentifier)
-    
+    const isUUID =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        userIdentifier
+      )
+
     let user: any = null
     let userQuery
-    
+
     if (isUUID) {
       // Try UUID first
       userQuery = supabase
@@ -52,21 +55,21 @@ async function checkUserAvatar(userIdentifier: string) {
         .eq('permalink', userIdentifier)
         .single()
     }
-    
+
     const { data: userData, error: userError } = await userQuery
-    
+
     if (userError || !userData) {
       console.error('❌ User not found:', userError?.message || 'No user found')
       return
     }
-    
+
     user = userData
     console.log('✅ User found:')
     console.log(`   ID: ${user.id}`)
     console.log(`   Name: ${user.name}`)
     console.log(`   Permalink: ${user.permalink}`)
     console.log(`   Email: ${user.email || 'N/A'}`)
-    
+
     // Step 2: Check profile for avatar_image_id
     console.log('\n📋 Checking profile...')
     const { data: profile, error: profileError } = await supabase
@@ -74,24 +77,24 @@ async function checkUserAvatar(userIdentifier: string) {
       .select('id, user_id, avatar_image_id, cover_image_id, created_at')
       .eq('user_id', user.id)
       .single()
-    
+
     if (profileError) {
       console.error('❌ Profile not found:', profileError.message)
       console.log('   This user may not have a profile record yet.')
       return
     }
-    
+
     console.log('✅ Profile found:')
     console.log(`   Profile ID: ${profile.id}`)
     console.log(`   Avatar Image ID: ${profile.avatar_image_id || '❌ NOT SET'}`)
     console.log(`   Cover Image ID: ${profile.cover_image_id || 'N/A'}`)
-    
+
     if (!profile.avatar_image_id) {
       console.log('\n⚠️  WARNING: No avatar_image_id in profile!')
       console.log('   The avatar upload may have failed to update the profile.')
       return
     }
-    
+
     // Step 3: Check if image exists in images table
     console.log('\n🖼️  Checking image record...')
     const { data: image, error: imageError } = await supabase
@@ -99,13 +102,13 @@ async function checkUserAvatar(userIdentifier: string) {
       .select('id, url, alt_text, storage_provider, storage_path, created_at, metadata')
       .eq('id', profile.avatar_image_id)
       .single()
-    
+
     if (imageError || !image) {
       console.error('❌ Image record not found:', imageError?.message || 'No image found')
       console.log(`   Looking for image ID: ${profile.avatar_image_id}`)
       return
     }
-    
+
     console.log('✅ Image record found:')
     console.log(`   Image ID: ${image.id}`)
     console.log(`   URL: ${image.url}`)
@@ -116,23 +119,23 @@ async function checkUserAvatar(userIdentifier: string) {
     if (image.metadata) {
       console.log(`   Metadata:`, JSON.stringify(image.metadata, null, 2))
     }
-    
+
     // Step 4: Verify Cloudinary URL
     console.log('\n☁️  Checking Cloudinary URL...')
     const cloudinaryUrl = image.url
-    
+
     if (!cloudinaryUrl) {
       console.error('❌ No URL in image record!')
       return
     }
-    
+
     if (!cloudinaryUrl.includes('cloudinary.com')) {
       console.warn('⚠️  URL does not appear to be a Cloudinary URL:')
       console.log(`   ${cloudinaryUrl}`)
     } else {
       console.log('✅ Cloudinary URL detected:')
       console.log(`   ${cloudinaryUrl}`)
-      
+
       // Extract public_id from URL
       const urlParts = cloudinaryUrl.split('/')
       const uploadIndex = urlParts.findIndex((part: string) => part === 'upload')
@@ -142,7 +145,7 @@ async function checkUserAvatar(userIdentifier: string) {
         const publicId = filename.split('.')[0]
         console.log(`   Extracted Public ID: ${publicId}`)
       }
-      
+
       // Try to fetch the image to verify it exists
       console.log('\n🌐 Verifying image is accessible...')
       try {
@@ -155,20 +158,25 @@ async function checkUserAvatar(userIdentifier: string) {
           console.warn(`⚠️  Image returned status: ${response.status}`)
         }
       } catch (fetchError) {
-        console.error('❌ Error fetching image:', fetchError instanceof Error ? fetchError.message : 'Unknown error')
+        console.error(
+          '❌ Error fetching image:',
+          fetchError instanceof Error ? fetchError.message : 'Unknown error'
+        )
       }
     }
-    
+
     // Step 5: Check if there are any album entries for this avatar
     console.log('\n📁 Checking album entries...')
     const { data: albumEntries, error: albumError } = await supabase
       .from('entity_images')
-      .select('id, entity_id, entity_type, album_purpose, image_id, is_cover, is_featured, created_at')
+      .select(
+        'id, entity_id, entity_type, album_purpose, image_id, is_cover, is_featured, created_at'
+      )
       .eq('entity_id', user.id)
       .eq('entity_type', 'user')
       .eq('album_purpose', 'avatar')
       .eq('image_id', profile.avatar_image_id)
-    
+
     if (albumError) {
       console.warn('⚠️  Error checking album entries:', albumError.message)
     } else if (albumEntries && albumEntries.length > 0) {
@@ -182,20 +190,23 @@ async function checkUserAvatar(userIdentifier: string) {
       })
     } else {
       console.warn('⚠️  No album entries found for this avatar')
-      console.log('   The avatar may not be in the user\'s album.')
+      console.log("   The avatar may not be in the user's album.")
     }
-    
+
     // Summary
     console.log('\n' + '='.repeat(60))
     console.log('📊 SUMMARY')
     console.log('='.repeat(60))
     console.log(`✅ User: ${user.name} (${user.permalink})`)
-    console.log(`${profile.avatar_image_id ? '✅' : '❌'} Profile has avatar_image_id: ${profile.avatar_image_id || 'MISSING'}`)
+    console.log(
+      `${profile.avatar_image_id ? '✅' : '❌'} Profile has avatar_image_id: ${profile.avatar_image_id || 'MISSING'}`
+    )
     console.log(`${image ? '✅' : '❌'} Image record exists: ${image ? image.id : 'MISSING'}`)
     console.log(`${cloudinaryUrl ? '✅' : '❌'} Image URL: ${cloudinaryUrl ? 'SET' : 'MISSING'}`)
-    console.log(`${albumEntries && albumEntries.length > 0 ? '✅' : '⚠️ '} Album entries: ${albumEntries?.length || 0}`)
+    console.log(
+      `${albumEntries && albumEntries.length > 0 ? '✅' : '⚠️ '} Album entries: ${albumEntries?.length || 0}`
+    )
     console.log('='.repeat(60))
-    
   } catch (error) {
     console.error('❌ Unexpected error:', error)
     if (error instanceof Error) {
@@ -226,4 +237,3 @@ checkUserAvatar(userIdentifier)
     console.error('\n❌ Script failed:', error)
     process.exit(1)
   })
-

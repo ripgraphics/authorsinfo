@@ -1,43 +1,38 @@
-'use client';
+'use client'
 
-import { useEffect, useState, useCallback, useMemo, Suspense } from 'react';
-import { supabaseClient } from '@/lib/supabase-client';
-import { toast } from 'react-hot-toast';
-import WriteReviewModal from './WriteReviewModal';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle, 
-  AlertDialogTrigger 
-} from '@/components/ui/alert-dialog';
-import { 
-  Tooltip, 
-  TooltipContent, 
-  TooltipProvider, 
-  TooltipTrigger 
-} from '@/components/ui/tooltip';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
-import { 
-  MoreHorizontal, 
-  Edit, 
-  Trash2, 
-  Star, 
-  BookOpen, 
-  Users, 
+import { useEffect, useState, useCallback, useMemo, Suspense } from 'react'
+import { supabaseClient } from '@/lib/supabase-client'
+import { toast } from 'react-hot-toast'
+import WriteReviewModal from './WriteReviewModal'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Star,
+  BookOpen,
+  Users,
   TrendingUp,
   AlertTriangle,
   Loader2,
@@ -45,65 +40,65 @@ import {
   Filter,
   Search,
   Eye,
-  EyeOff
-} from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+  EyeOff,
+} from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface Book {
-  id: number;
-  title: string;
-  author: string;
-  cover_image_id: string | null;
-  average_rating: number;
-  review_count: number;
-  isbn?: string;
-  publication_year?: number;
-  publisher?: string;
+  id: number
+  title: string
+  author: string
+  cover_image_id: string | null
+  average_rating: number
+  review_count: number
+  isbn?: string
+  publication_year?: number
+  publisher?: string
 }
 
 interface User {
-  id: string;
-  name: string;
-  avatar_url?: string;
-  role?: 'admin' | 'moderator' | 'member';
+  id: string
+  name: string
+  avatar_url?: string
+  role?: 'admin' | 'moderator' | 'member'
 }
 
 interface Group {
-  id: string;
-  name: string;
+  id: string
+  name: string
   settings?: {
-    allow_anonymous_reviews?: boolean;
-    require_moderation?: boolean;
-    max_reviews_per_user?: number;
-  };
+    allow_anonymous_reviews?: boolean
+    require_moderation?: boolean
+    max_reviews_per_user?: number
+  }
 }
 
 interface BookReview {
-  id: string;
-  group_id: string | null;
-  book_id: string;
-  user_id: string;
-  rating: number;
-  review_text: string;
-  created_at: string;
-  updated_at?: string;
-  visibility: 'public' | 'private' | 'group_only';
-  contains_spoilers?: boolean;
-  books: Book;
-  users: User;
-  groups: Group | null;
+  id: string
+  group_id: string | null
+  book_id: string
+  user_id: string
+  rating: number
+  review_text: string
+  created_at: string
+  updated_at?: string
+  visibility: 'public' | 'private' | 'group_only'
+  contains_spoilers?: boolean
+  books: Book
+  users: User
+  groups: Group | null
   _analytics?: {
-    helpful_votes: number;
-    total_votes: number;
-    report_count: number;
-  };
+    helpful_votes: number
+    total_votes: number
+    report_count: number
+  }
 }
 
 interface Props {
-  initialBookReviews: BookReview[];
-  groupId: string;
-  currentUser?: User;
-  groupSettings?: Group['settings'];
+  initialBookReviews: BookReview[]
+  groupId: string
+  currentUser?: User
+  groupSettings?: Group['settings']
 }
 
 // Loading skeleton component
@@ -132,173 +127,178 @@ const ReviewSkeleton = () => (
       </div>
     </CardContent>
   </Card>
-);
+)
 
-export default function BookReviewsClient({ 
-  initialBookReviews, 
-  groupId, 
+export default function BookReviewsClient({
+  initialBookReviews,
+  groupId,
   currentUser,
-  groupSettings 
+  groupSettings,
 }: Props) {
-  const [bookReviews, setBookReviews] = useState<BookReview[]>(initialBookReviews);
-  const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [selectedReview, setSelectedReview] = useState<BookReview | null>(null);
-  const [filterVisibility, setFilterVisibility] = useState<'all' | 'public' | 'private' | 'group_only'>('all');
-  const [sortBy, setSortBy] = useState<'date' | 'rating' | 'helpful'>('date');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showSpoilers, setShowSpoilers] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  
-  const supabase = supabaseClient;
+  const [bookReviews, setBookReviews] = useState<BookReview[]>(initialBookReviews)
+  const [isWriteModalOpen, setIsWriteModalOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [selectedReview, setSelectedReview] = useState<BookReview | null>(null)
+  const [filterVisibility, setFilterVisibility] = useState<
+    'all' | 'public' | 'private' | 'group_only'
+  >('all')
+  const [sortBy, setSortBy] = useState<'date' | 'rating' | 'helpful'>('date')
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showSpoilers, setShowSpoilers] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+
+  const supabase = supabaseClient
 
   // Memoized filtered and sorted reviews
   const filteredReviews = useMemo(() => {
-    let filtered = bookReviews;
-    
+    let filtered = bookReviews
+
     // Filter by visibility
     if (filterVisibility !== 'all') {
-      filtered = filtered.filter(review => review.visibility === filterVisibility);
+      filtered = filtered.filter((review) => review.visibility === filterVisibility)
     }
-    
+
     // Filter spoilers if user doesn't want to see them
     if (!showSpoilers) {
-      filtered = filtered.filter(review => !review.contains_spoilers);
+      filtered = filtered.filter((review) => !review.contains_spoilers)
     }
-    
+
     // Filter by search query
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(review => 
-        review.books.title.toLowerCase().includes(query) ||
-        review.books.author.toLowerCase().includes(query) ||
-        review.review_text.toLowerCase().includes(query) ||
-        review.users.name.toLowerCase().includes(query)
-      );
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(
+        (review) =>
+          review.books.title.toLowerCase().includes(query) ||
+          review.books.author.toLowerCase().includes(query) ||
+          review.review_text.toLowerCase().includes(query) ||
+          review.users.name.toLowerCase().includes(query)
+      )
     }
-    
+
     // Sort reviews
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'rating':
-          return b.rating - a.rating;
+          return b.rating - a.rating
         case 'helpful':
-          return (b._analytics?.helpful_votes || 0) - (a._analytics?.helpful_votes || 0);
+          return (b._analytics?.helpful_votes || 0) - (a._analytics?.helpful_votes || 0)
         case 'date':
         default:
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       }
-    });
-    
-    return filtered;
-  }, [bookReviews, filterVisibility, searchQuery, sortBy, showSpoilers]);
+    })
+
+    return filtered
+  }, [bookReviews, filterVisibility, searchQuery, sortBy, showSpoilers])
 
   // Analytics calculations
   const analytics = useMemo(() => {
-    const total = bookReviews.length;
-    const publicReviews = bookReviews.filter(r => r.visibility === 'public').length;
-    const privateReviews = bookReviews.filter(r => r.visibility === 'private').length;
-    const groupReviews = bookReviews.filter(r => r.visibility === 'group_only').length;
-    const spoilerReviews = bookReviews.filter(r => r.contains_spoilers).length;
-    const averageRating = total > 0 
-      ? bookReviews.reduce((sum, r) => sum + r.rating, 0) / total 
-      : 0;
-    
-    return { 
-      total, 
-      public: publicReviews, 
-      private: privateReviews, 
-      group: groupReviews, 
+    const total = bookReviews.length
+    const publicReviews = bookReviews.filter((r) => r.visibility === 'public').length
+    const privateReviews = bookReviews.filter((r) => r.visibility === 'private').length
+    const groupReviews = bookReviews.filter((r) => r.visibility === 'group_only').length
+    const spoilerReviews = bookReviews.filter((r) => r.contains_spoilers).length
+    const averageRating = total > 0 ? bookReviews.reduce((sum, r) => sum + r.rating, 0) / total : 0
+
+    return {
+      total,
+      public: publicReviews,
+      private: privateReviews,
+      group: groupReviews,
       spoilers: spoilerReviews,
-      averageRating 
-    };
-  }, [bookReviews]);
+      averageRating,
+    }
+  }, [bookReviews])
 
   // User permissions
   const userPermissions = useMemo(() => {
-    if (!currentUser) return { canWrite: false, canModerate: false, canDelete: false };
-    
-    const isAdmin = currentUser.role === 'admin';
-    const isModerator = currentUser.role === 'moderator';
-    const isGroupMember = bookReviews.some(r => r.user_id === currentUser.id);
-    
+    if (!currentUser) return { canWrite: false, canModerate: false, canDelete: false }
+
+    const isAdmin = currentUser.role === 'admin'
+    const isModerator = currentUser.role === 'moderator'
+    const isGroupMember = bookReviews.some((r) => r.user_id === currentUser.id)
+
     return {
       canWrite: isAdmin || isModerator || isGroupMember,
       canModerate: isAdmin || isModerator,
       canDelete: isAdmin || isModerator,
       canFlag: true,
-      canEditOwn: true
-    };
-  }, [currentUser, bookReviews]);
+      canEditOwn: true,
+    }
+  }, [currentUser, bookReviews])
 
   // Load more reviews
   const loadMoreReviews = useCallback(async () => {
-    if (isLoading || !hasMore) return;
-    
-    setIsLoading(true);
+    if (isLoading || !hasMore) return
+
+    setIsLoading(true)
     try {
       const { data, error } = await supabase
         .from('book_reviews')
-        .select(`
+        .select(
+          `
           *,
           books (*),
           users (*),
           groups (*)
-        `)
+        `
+        )
         .eq('group_id', groupId)
         .range((page - 1) * 20, page * 20 - 1)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
 
-      if (error) throw error;
-      
+      if (error) throw error
+
       if (data && data.length > 0) {
-        setBookReviews(prev => [...prev, ...data]);
-        setPage(prev => prev + 1);
-        setHasMore(data.length === 20);
+        setBookReviews((prev) => [...prev, ...data])
+        setPage((prev) => prev + 1)
+        setHasMore(data.length === 20)
       } else {
-        setHasMore(false);
+        setHasMore(false)
       }
     } catch (error) {
-      console.error('Error loading more reviews:', error);
-      setError('Failed to load more reviews');
+      console.error('Error loading more reviews:', error)
+      setError('Failed to load more reviews')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  }, [groupId, page, isLoading, hasMore]);
+  }, [groupId, page, isLoading, hasMore])
 
   // Refresh reviews
   const refreshReviews = useCallback(async () => {
-    setIsRefreshing(true);
-    setError(null);
+    setIsRefreshing(true)
+    setError(null)
     try {
       const { data, error } = await supabase
         .from('book_reviews')
-        .select(`
+        .select(
+          `
           *,
           books (*),
           users (*),
           groups (*)
-        `)
+        `
+        )
         .eq('group_id', groupId)
         .order('created_at', { ascending: false })
-        .limit(20);
+        .limit(20)
 
-      if (error) throw error;
-      
-      setBookReviews(data || []);
-      setPage(1);
-      setHasMore((data?.length || 0) === 20);
+      if (error) throw error
+
+      setBookReviews(data || [])
+      setPage(1)
+      setHasMore((data?.length || 0) === 20)
     } catch (error) {
-      console.error('Error refreshing reviews:', error);
-      setError('Failed to refresh reviews');
+      console.error('Error refreshing reviews:', error)
+      setError('Failed to refresh reviews')
     } finally {
-      setIsRefreshing(false);
+      setIsRefreshing(false)
     }
-  }, [groupId]);
+  }, [groupId])
 
   useEffect(() => {
     // Subscribe to real-time updates
@@ -310,68 +310,68 @@ export default function BookReviewsClient({
           event: '*',
           schema: 'public',
           table: 'book_reviews',
-          filter: `group_id=eq.${groupId}`
+          filter: `group_id=eq.${groupId}`,
         },
         (payload: any) => {
           if (payload.eventType === 'INSERT') {
-            setBookReviews(prev => [payload.new as BookReview, ...prev]);
-            toast.success('New book review added!');
+            setBookReviews((prev) => [payload.new as BookReview, ...prev])
+            toast.success('New book review added!')
           } else if (payload.eventType === 'DELETE') {
-            setBookReviews(prev => prev.filter(review => review.id !== payload.old.id));
-            toast.success('Book review removed');
+            setBookReviews((prev) => prev.filter((review) => review.id !== payload.old.id))
+            toast.success('Book review removed')
           } else if (payload.eventType === 'UPDATE') {
-            setBookReviews(prev => 
-              prev.map(review => 
-                review.id === payload.new.id ? payload.new as BookReview : review
+            setBookReviews((prev) =>
+              prev.map((review) =>
+                review.id === payload.new.id ? (payload.new as BookReview) : review
               )
-            );
-            toast.success('Book review updated');
+            )
+            toast.success('Book review updated')
           }
         }
       )
-      .subscribe();
+      .subscribe()
 
     return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [groupId]);
-
-  const handleDeleteReview = useCallback(async (reviewId: string) => {
-    if (!userPermissions.canDelete) {
-      toast.error('You do not have permission to delete reviews');
-      return;
+      supabase.removeChannel(channel)
     }
+  }, [groupId])
 
-    setIsLoading(true);
-    try {
-      const { error } = await supabase
-        .from('book_reviews')
-        .delete()
-        .eq('id', reviewId);
+  const handleDeleteReview = useCallback(
+    async (reviewId: string) => {
+      if (!userPermissions.canDelete) {
+        toast.error('You do not have permission to delete reviews')
+        return
+      }
 
-      if (error) throw error;
-      
-      toast.success('Review deleted successfully');
-    } catch (error) {
-      console.error('Error deleting review:', error);
-      toast.error('Failed to delete review');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userPermissions.canDelete]);
+      setIsLoading(true)
+      try {
+        const { error } = await supabase.from('book_reviews').delete().eq('id', reviewId)
+
+        if (error) throw error
+
+        toast.success('Review deleted successfully')
+      } catch (error) {
+        console.error('Error deleting review:', error)
+        toast.error('Failed to delete review')
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [userPermissions.canDelete]
+  )
 
   const handleVoteHelpful = useCallback(async (reviewId: string, isHelpful: boolean) => {
     // Implementation for helpful votes
-    toast.success(`Marked review as ${isHelpful ? 'helpful' : 'not helpful'}`);
-  }, []);
+    toast.success(`Marked review as ${isHelpful ? 'helpful' : 'not helpful'}`)
+  }, [])
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
-    });
-  };
+      day: 'numeric',
+    })
+  }
 
   const renderStars = (rating: number) => {
     return (
@@ -387,8 +387,8 @@ export default function BookReviewsClient({
         ))}
         <span className="sr-only">{rating} out of 5 stars</span>
       </div>
-    );
-  };
+    )
+  }
 
   if (!currentUser) {
     return (
@@ -399,7 +399,7 @@ export default function BookReviewsClient({
           <p className="text-gray-600">Please sign in to access the book reviews for this group.</p>
         </CardContent>
       </Card>
-    );
+    )
   }
 
   if (error) {
@@ -415,7 +415,7 @@ export default function BookReviewsClient({
           </Button>
         </CardContent>
       </Card>
-    );
+    )
   }
 
   return (
@@ -452,7 +452,9 @@ export default function BookReviewsClient({
                 <div className="text-sm text-gray-600">Spoilers</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">{analytics.averageRating.toFixed(1)}</div>
+                <div className="text-2xl font-bold text-purple-600">
+                  {analytics.averageRating.toFixed(1)}
+                </div>
                 <div className="text-sm text-gray-600">Avg Rating</div>
               </div>
             </div>
@@ -477,12 +479,7 @@ export default function BookReviewsClient({
             >
               Write Review
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={refreshReviews}
-              disabled={isRefreshing}
-            >
+            <Button variant="outline" size="sm" onClick={refreshReviews} disabled={isRefreshing}>
               {isRefreshing ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : (
@@ -491,7 +488,7 @@ export default function BookReviewsClient({
               Refresh
             </Button>
           </div>
-          
+
           <div className="flex gap-2">
             <select
               value={filterVisibility}
@@ -503,7 +500,7 @@ export default function BookReviewsClient({
               <option value="private">Private</option>
               <option value="group_only">Group Only</option>
             </select>
-            
+
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
@@ -547,14 +544,28 @@ export default function BookReviewsClient({
         </div>
 
         {/* Reviews Grid/List */}
-        <Suspense fallback={
-          <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
-            {Array.from({ length: 6 }).map((_, i) => (
-              <ReviewSkeleton key={i} />
-            ))}
-          </div>
-        }>
-          <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
+        <Suspense
+          fallback={
+            <div
+              className={
+                viewMode === 'grid'
+                  ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
+                  : 'space-y-4'
+              }
+            >
+              {Array.from({ length: 6 }).map((_, i) => (
+                <ReviewSkeleton key={i} />
+              ))}
+            </div>
+          }
+        >
+          <div
+            className={
+              viewMode === 'grid'
+                ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
+                : 'space-y-4'
+            }
+          >
             {filteredReviews.map((review) => (
               <Card key={review.id} className="h-full">
                 <CardHeader className="pb-3">
@@ -580,7 +591,7 @@ export default function BookReviewsClient({
                         )}
                       </div>
                     </div>
-                    
+
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -595,7 +606,7 @@ export default function BookReviewsClient({
                             Edit
                           </DropdownMenuItem>
                         )}
-                        
+
                         {userPermissions.canDelete && (
                           <>
                             <DropdownMenuSeparator />
@@ -610,7 +621,8 @@ export default function BookReviewsClient({
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>Delete Review</AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    Are you sure you want to delete this review? This action cannot be undone.
+                                    Are you sure you want to delete this review? This action cannot
+                                    be undone.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
@@ -630,16 +642,14 @@ export default function BookReviewsClient({
                     </DropdownMenu>
                   </div>
                 </CardHeader>
-                
+
                 <CardContent className="pt-0">
                   <div className="space-y-3">
                     {/* Rating and Visibility */}
                     <div className="flex items-center justify-between">
                       {renderStars(review.rating)}
                       <div className="flex gap-2">
-                        <Badge className="bg-blue-100 text-blue-800">
-                          {review.visibility}
-                        </Badge>
+                        <Badge className="bg-blue-100 text-blue-800">{review.visibility}</Badge>
                         {review.contains_spoilers && (
                           <Badge className="bg-red-100 text-red-800">
                             <AlertTriangle className="w-3 h-3 mr-1" />
@@ -648,14 +658,14 @@ export default function BookReviewsClient({
                         )}
                       </div>
                     </div>
-                    
+
                     {/* Review Content */}
                     <div className="space-y-2">
                       <p className="text-gray-700 text-sm leading-relaxed line-clamp-4">
                         {review.review_text}
                       </p>
                     </div>
-                    
+
                     {/* Metadata */}
                     <div className="flex items-center justify-between text-xs text-gray-500">
                       <div className="flex items-center gap-2">
@@ -664,7 +674,7 @@ export default function BookReviewsClient({
                       </div>
                       <span>{formatDate(review.created_at)}</span>
                     </div>
-                    
+
                     {/* Helpful Votes */}
                     {review._analytics && (
                       <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
@@ -716,15 +726,12 @@ export default function BookReviewsClient({
               <BookOpen className="w-16 h-16 mx-auto text-gray-400 mb-4" />
               <h3 className="text-lg font-semibold mb-2">No reviews found</h3>
               <p className="text-gray-600 mb-4">
-                {searchQuery 
+                {searchQuery
                   ? `No reviews match "${searchQuery}"`
-                  : 'Be the first to write a review for this group!'
-                }
+                  : 'Be the first to write a review for this group!'}
               </p>
               {userPermissions.canWrite && (
-                <Button onClick={() => setIsWriteModalOpen(true)}>
-                  Write First Review
-                </Button>
+                <Button onClick={() => setIsWriteModalOpen(true)}>Write First Review</Button>
               )}
             </CardContent>
           </Card>
@@ -738,5 +745,5 @@ export default function BookReviewsClient({
         />
       </div>
     </TooltipProvider>
-  );
-} 
+  )
+}

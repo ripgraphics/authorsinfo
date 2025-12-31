@@ -87,7 +87,7 @@ export function PhotoAlbumsList({ albums, onAlbumUpdated }: PhotoAlbumsListProps
                     name: album.name,
                     is_public: album.is_public ?? false,
                     cover_image_id: album.cover_image_id,
-                    metadata: album.metadata
+                    metadata: album.metadata,
                   })
                   setIsSettingsOpen(true)
                 }}
@@ -95,10 +95,7 @@ export function PhotoAlbumsList({ albums, onAlbumUpdated }: PhotoAlbumsListProps
                 Settings
               </Button>
             </div>
-            <Button
-              variant="ghost"
-              onClick={() => router.push(`/albums/${album.id}`)}
-            >
+            <Button variant="ghost" onClick={() => router.push(`/albums/${album.id}`)}>
               View Album
             </Button>
           </CardFooter>
@@ -122,4 +119,4 @@ export function PhotoAlbumsList({ albums, onAlbumUpdated }: PhotoAlbumsListProps
       )}
     </div>
   )
-} 
+}

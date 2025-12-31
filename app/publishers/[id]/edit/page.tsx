@@ -1,20 +1,20 @@
-"use client"
+'use client'
 
-import type React from "react"
-import { useState, useEffect, useRef } from "react"
-import { useRouter, useSearchParams, useParams } from "next/navigation"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, Building, AlertTriangle } from "lucide-react"
-import { supabaseClient } from "@/lib/supabase/client"
-import { uploadImage } from "@/app/actions/upload"
-import { CountrySelect } from "@/components/country-select"
-import type { Publisher } from "@/types/database"
+import type React from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useRouter, useSearchParams, useParams } from 'next/navigation'
+import Image from 'next/image'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Loader2, Building, AlertTriangle } from 'lucide-react'
+import { supabaseClient } from '@/lib/supabase/client'
+import { uploadImage } from '@/app/actions/upload'
+import { CountrySelect } from '@/components/country-select'
+import type { Publisher } from '@/types/database'
 
 export default function PublisherEditPage() {
   const router = useRouter()
@@ -22,12 +22,12 @@ export default function PublisherEditPage() {
   const searchParams = useSearchParams()
   const section = searchParams.get('section')
   const publisherId = params.id as string
-  
+
   // Add refs for each section
   const overviewRef = useRef<HTMLDivElement>(null)
   const contactRef = useRef<HTMLDivElement>(null)
   const locationRef = useRef<HTMLDivElement>(null)
-  
+
   const [publisher, setPublisher] = useState<Publisher | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -45,18 +45,20 @@ export default function PublisherEditPage() {
       try {
         setLoading(true)
         const { data, error } = await supabaseClient
-          .from("publishers")
-          .select(`
+          .from('publishers')
+          .select(
+            `
             *,
             publisher_image:publisher_image_id(id, url, alt_text),
             cover_image:cover_image_id(id, url, alt_text),
             country_details:country_id(id, name, code)
-          `)
-          .eq("id", publisherId)
+          `
+          )
+          .eq('id', publisherId)
           .single()
 
         if (error) {
-          console.error("Error fetching publisher:", error)
+          console.error('Error fetching publisher:', error)
           setError(`Error fetching publisher: ${error.message}`)
           return
         }
@@ -78,8 +80,8 @@ export default function PublisherEditPage() {
           setCoverPreview((data as any).cover_image.url)
         }
       } catch (error) {
-        console.error("Error in fetchPublisher:", error)
-        setError("An unexpected error occurred. Please try again.")
+        console.error('Error in fetchPublisher:', error)
+        setError('An unexpected error occurred. Please try again.')
       } finally {
         setLoading(false)
       }
@@ -93,7 +95,7 @@ export default function PublisherEditPage() {
     if (!loading && section) {
       setTimeout(() => {
         let targetRef = null
-        
+
         switch (section) {
           case 'overview':
             targetRef = overviewRef.current
@@ -105,7 +107,7 @@ export default function PublisherEditPage() {
             targetRef = locationRef.current
             break
         }
-        
+
         if (targetRef) {
           targetRef.scrollIntoView({ behavior: 'smooth' })
           // Add a highlight effect
@@ -150,17 +152,17 @@ export default function PublisherEditPage() {
 
       // Create update data object
       const updateData: Partial<Publisher> = {
-        name: formData.get("name") as string,
-        website: formData.get("website") as string,
-        founded_year: Number.parseInt(formData.get("founded_year") as string) || null,
-        email: formData.get("email") as string,
-        phone: formData.get("phone") as string,
-        address_line1: formData.get("address_line1") as string,
-        address_line2: formData.get("address_line2") as string,
-        city: formData.get("city") as string,
-        state: formData.get("state") as string,
-        postal_code: formData.get("postal_code") as string,
-        about: formData.get("about") as string,
+        name: formData.get('name') as string,
+        website: formData.get('website') as string,
+        founded_year: Number.parseInt(formData.get('founded_year') as string) || null,
+        email: formData.get('email') as string,
+        phone: formData.get('phone') as string,
+        address_line1: formData.get('address_line1') as string,
+        address_line2: formData.get('address_line2') as string,
+        city: formData.get('city') as string,
+        state: formData.get('state') as string,
+        postal_code: formData.get('postal_code') as string,
+        about: formData.get('about') as string,
         country_id: countryId,
       }
 
@@ -178,14 +180,18 @@ export default function PublisherEditPage() {
           })
 
           const base64Image = await base64Promise
-          const logoResult = await uploadImage(base64Image, "authorsinfo/publisher_image", `Logo for ${publisher.name}`)
+          const logoResult = await uploadImage(
+            base64Image,
+            'authorsinfo/publisher_image',
+            `Logo for ${publisher.name}`
+          )
 
           if (logoResult) {
             updateData.publisher_image_id = logoResult.imageId
           }
         } catch (error) {
-          console.error("Error uploading logo:", error)
-          setError("Failed to upload logo image. Please try again.")
+          console.error('Error uploading logo:', error)
+          setError('Failed to upload logo image. Please try again.')
           setSaving(false)
           return
         }
@@ -205,38 +211,44 @@ export default function PublisherEditPage() {
           })
 
           const base64Image = await base64Promise
-          const coverResult = await uploadImage(base64Image, "authorsinfo/page_cover", `Cover for ${publisher.name}`)
+          const coverResult = await uploadImage(
+            base64Image,
+            'authorsinfo/page_cover',
+            `Cover for ${publisher.name}`
+          )
 
           if (coverResult) {
             updateData.cover_image_id = coverResult.imageId
           }
         } catch (error) {
-          console.error("Error uploading cover:", error)
-          setError("Failed to upload cover image. Please try again.")
+          console.error('Error uploading cover:', error)
+          setError('Failed to upload cover image. Please try again.')
           setSaving(false)
           return
         }
       }
 
       // Update publisher in database
-      const { error: updateError } = await (supabaseClient.from("publishers") as any).update(updateData).eq("id", publisherId)
+      const { error: updateError } = await (supabaseClient.from('publishers') as any)
+        .update(updateData)
+        .eq('id', publisherId)
 
       if (updateError) {
-        console.error("Error updating publisher:", updateError)
+        console.error('Error updating publisher:', updateError)
         setError(`Error updating publisher: ${updateError.message}`)
         setSaving(false)
         return
       }
 
-      setSuccessMessage("Publisher updated successfully!")
+      setSuccessMessage('Publisher updated successfully!')
 
       // Redirect back to the publisher page after a short delay
       setTimeout(() => {
         router.push(`/publishers/${publisherId}`)
       }, 1500)
     } catch (error: any) {
-      console.error("Error in handleSubmit:", error)
-      setError("An unexpected error occurred while saving. Please try again.")
+      console.error('Error in handleSubmit:', error)
+      setError('An unexpected error occurred while saving. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -301,10 +313,10 @@ export default function PublisherEditPage() {
                     <div className="mt-2 flex items-center gap-4">
                       <div className="relative h-32 w-32 overflow-hidden rounded-md border">
                         {logoPreview ? (
-                          <Image 
-                            src={logoPreview} 
-                            alt="Publisher logo" 
-                            fill 
+                          <Image
+                            src={logoPreview}
+                            alt="Publisher logo"
+                            fill
                             className="object-cover"
                             sizes="128px"
                           />
@@ -365,7 +377,7 @@ export default function PublisherEditPage() {
                 <CardContent className="space-y-4">
                   <div>
                     <Label htmlFor="name">Publisher Name</Label>
-                    <Input id="name" name="name" defaultValue={publisher.name || ""} required />
+                    <Input id="name" name="name" defaultValue={publisher.name || ''} required />
                   </div>
 
                   <div>
@@ -374,13 +386,18 @@ export default function PublisherEditPage() {
                       id="founded_year"
                       name="founded_year"
                       type="number"
-                      defaultValue={publisher.founded_year?.toString() || ""}
+                      defaultValue={publisher.founded_year?.toString() || ''}
                     />
                   </div>
 
                   <div>
                     <Label htmlFor="website">Website</Label>
-                    <Input id="website" name="website" type="url" defaultValue={publisher.website || ""} />
+                    <Input
+                      id="website"
+                      name="website"
+                      type="url"
+                      defaultValue={publisher.website || ''}
+                    />
                   </div>
 
                   <div>
@@ -389,7 +406,7 @@ export default function PublisherEditPage() {
                       id="about"
                       name="about"
                       rows={8}
-                      defaultValue={publisher.about || ""}
+                      defaultValue={publisher.about || ''}
                       placeholder="Enter information about the publisher..."
                     />
                   </div>
@@ -404,12 +421,17 @@ export default function PublisherEditPage() {
                 <CardContent className="space-y-4">
                   <div>
                     <Label htmlFor="email">Email</Label>
-                    <Input id="email" name="email" type="email" defaultValue={publisher.email || ""} />
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      defaultValue={publisher.email || ''}
+                    />
                   </div>
 
                   <div>
                     <Label htmlFor="phone">Phone</Label>
-                    <Input id="phone" name="phone" defaultValue={publisher.phone || ""} />
+                    <Input id="phone" name="phone" defaultValue={publisher.phone || ''} />
                   </div>
                 </CardContent>
               </Card>
@@ -422,33 +444,49 @@ export default function PublisherEditPage() {
                 <CardContent className="space-y-4">
                   <div>
                     <Label htmlFor="address_line1">Address Line 1</Label>
-                    <Input id="address_line1" name="address_line1" defaultValue={publisher.address_line1 || ""} />
+                    <Input
+                      id="address_line1"
+                      name="address_line1"
+                      defaultValue={publisher.address_line1 || ''}
+                    />
                   </div>
 
                   <div>
                     <Label htmlFor="address_line2">Address Line 2</Label>
-                    <Input id="address_line2" name="address_line2" defaultValue={publisher.address_line2 || ""} />
+                    <Input
+                      id="address_line2"
+                      name="address_line2"
+                      defaultValue={publisher.address_line2 || ''}
+                    />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="city">City</Label>
-                      <Input id="city" name="city" defaultValue={publisher.city || ""} />
+                      <Input id="city" name="city" defaultValue={publisher.city || ''} />
                     </div>
                     <div>
                       <Label htmlFor="state">State/Province</Label>
-                      <Input id="state" name="state" defaultValue={publisher.state || ""} />
+                      <Input id="state" name="state" defaultValue={publisher.state || ''} />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="postal_code">Postal Code</Label>
-                      <Input id="postal_code" name="postal_code" defaultValue={publisher.postal_code || ""} />
+                      <Input
+                        id="postal_code"
+                        name="postal_code"
+                        defaultValue={publisher.postal_code || ''}
+                      />
                     </div>
                     <div>
                       <Label htmlFor="country">Country</Label>
-                      <CountrySelect value={countryId} onChange={setCountryId} placeholder="Select country" />
+                      <CountrySelect
+                        value={countryId}
+                        onChange={setCountryId}
+                        placeholder="Select country"
+                      />
                     </div>
                   </div>
                 </CardContent>

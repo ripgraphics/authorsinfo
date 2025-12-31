@@ -8,14 +8,17 @@ export async function GET(
   try {
     const { type, id } = await params
     const supabase = await createRouteHandlerClientAsync()
-    
+
     // Get the current user to check permissions
-    const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser()
-    
+    const {
+      data: { user: currentUser },
+      error: authError,
+    } = await supabase.auth.getUser()
+
     if (authError) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
-    
+
     // Validate entity type
     const validEntityTypes = ['users', 'authors', 'publishers', 'groups', 'events']
     if (!validEntityTypes.includes(type)) {
@@ -25,7 +28,7 @@ export async function GET(
     // Check if the entity exists based on type
     let entity: { id: string; name?: string; permalink?: string } | null = null
     let entityError
-    
+
     switch (type) {
       case 'users':
         const { data: user, error: userError } = await supabase
@@ -36,7 +39,7 @@ export async function GET(
         entity = user
         entityError = userError
         break
-        
+
       case 'authors':
         const { data: author, error: authorError } = await supabase
           .from('authors')
@@ -46,7 +49,7 @@ export async function GET(
         entity = author
         entityError = authorError
         break
-        
+
       case 'publishers':
         const { data: publisher, error: publisherError } = await supabase
           .from('publishers')
@@ -56,7 +59,7 @@ export async function GET(
         entity = publisher
         entityError = publisherError
         break
-        
+
       case 'groups':
         const { data: group, error: groupError } = await supabase
           .from('groups')
@@ -66,7 +69,7 @@ export async function GET(
         entity = group
         entityError = groupError
         break
-        
+
       case 'events':
         const { data: event, error: eventError } = await supabase
           .from('events')
@@ -76,7 +79,7 @@ export async function GET(
         entity = event
         entityError = eventError
         break
-        
+
       default:
         return NextResponse.json({ error: 'Unsupported entity type' }, { status: 400 })
     }
@@ -96,16 +99,22 @@ export async function GET(
         .single()
 
       const privacySettings = privacySettingsData as {
-        allow_public_reading_profile?: boolean;
-        allow_friends_to_see_reading?: boolean;
-        allow_followers_to_see_reading?: boolean;
+        allow_public_reading_profile?: boolean
+        allow_friends_to_see_reading?: boolean
+        allow_followers_to_see_reading?: boolean
       } | null
 
       canViewProgress = !!(
-        (currentUser?.id === entityWithId.id) || // Own profile
-        privacySettings?.allow_public_reading_profile === true || // Public profile
-        (currentUser && privacySettings?.allow_friends_to_see_reading === true && await checkIfFriends(currentUser.id, entityWithId.id, supabase)) || // Friends only
-        (currentUser && privacySettings?.allow_followers_to_see_reading === true && await checkIfFollowing(currentUser.id, entityWithId.id, supabase)) // Followers only
+        (
+          currentUser?.id === entityWithId.id || // Own profile
+          privacySettings?.allow_public_reading_profile === true || // Public profile
+          (currentUser &&
+            privacySettings?.allow_friends_to_see_reading === true &&
+            (await checkIfFriends(currentUser.id, entityWithId.id, supabase))) || // Friends only
+          (currentUser &&
+            privacySettings?.allow_followers_to_see_reading === true &&
+            (await checkIfFollowing(currentUser.id, entityWithId.id, supabase)))
+        ) // Followers only
       )
     }
 
@@ -116,35 +125,38 @@ export async function GET(
     // Fetch reading progress based on entity type
     let readingData
     let readingError
-    
+
     switch (type) {
       case 'users':
         // For users, fetch their personal reading progress
         readingData = await fetchUserReadingProgress(entityWithId.id, supabase)
         break
-        
+
       case 'authors':
         // For authors, fetch books they've written and reading progress
         readingData = await fetchAuthorReadingProgress(entityWithId.id, supabase)
         break
-        
+
       case 'publishers':
         // For publishers, fetch books they've published and reading progress
         readingData = await fetchPublisherReadingProgress(entityWithId.id, supabase)
         break
-        
+
       case 'groups':
         // For groups, fetch collective reading progress
         readingData = await fetchGroupReadingProgress(entityWithId.id, supabase)
         break
-        
+
       case 'events':
         // For events, fetch reading progress related to the event
         readingData = await fetchEventReadingProgress(entityWithId.id, supabase)
         break
-        
+
       default:
-        return NextResponse.json({ error: 'Unsupported entity type for reading progress' }, { status: 400 })
+        return NextResponse.json(
+          { error: 'Unsupported entity type for reading progress' },
+          { status: 400 }
+        )
     }
 
     if (readingError) {
@@ -153,11 +165,13 @@ export async function GET(
     }
 
     // Fetch entity statistics
-    const { data: entityStats, error: statsError } = await supabase
-      .rpc('get_entity_profile_stats' as any, { 
-        entity_uuid: entityWithId.id, 
-        entity_type: type 
-      } as any)
+    const { data: entityStats, error: statsError } = await supabase.rpc(
+      'get_entity_profile_stats' as any,
+      {
+        entity_uuid: entityWithId.id,
+        entity_type: type,
+      } as any
+    )
 
     if (statsError) {
       console.error('Error fetching entity stats:', statsError)
@@ -169,7 +183,7 @@ export async function GET(
         id: entityWithId.id,
         name: entityWithId.name,
         permalink: entityWithId.permalink,
-        type: type
+        type: type,
       },
       readingProgress: readingData,
       entityStats: entityStats?.[0] || {},
@@ -177,12 +191,11 @@ export async function GET(
         totalPagesRead: readingData.totalPagesRead || 0,
         averageRating: readingData.averageRating || 0,
         readingStreak: (entityStats as any)?.[0]?.reading_streak_days || 0,
-        profileCompletion: (entityStats as any)?.[0]?.profile_completion || 0
-      }
+        profileCompletion: (entityStats as any)?.[0]?.profile_completion || 0,
+      },
     }
 
     return NextResponse.json(response)
-
   } catch (error) {
     console.error('Error in reading progress API:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -194,7 +207,8 @@ async function fetchUserReadingProgress(userId: string, supabase: any) {
   // Fetch currently reading books
   const { data: currentlyReading, error: currentError } = await supabase
     .from('reading_progress')
-    .select(`
+    .select(
+      `
       id,
       book_id,
       status,
@@ -212,7 +226,8 @@ async function fetchUserReadingProgress(userId: string, supabase: any) {
         review_count,
         pages
       )
-    `)
+    `
+    )
     .eq('user_id', userId)
     .eq('status', 'in_progress')
     .order('updated_at', { ascending: false })
@@ -220,7 +235,8 @@ async function fetchUserReadingProgress(userId: string, supabase: any) {
   // Fetch recently completed books
   const { data: recentlyCompleted, error: completedError } = await supabase
     .from('reading_progress')
-    .select(`
+    .select(
+      `
       id,
       book_id,
       progress_percentage,
@@ -236,7 +252,8 @@ async function fetchUserReadingProgress(userId: string, supabase: any) {
         review_count,
         pages
       )
-    `)
+    `
+    )
     .eq('user_id', userId)
     .eq('status', 'completed')
     .order('completed_at', { ascending: false })
@@ -246,18 +263,20 @@ async function fetchUserReadingProgress(userId: string, supabase: any) {
     throw new Error('Failed to fetch user reading progress')
   }
 
-  const totalPagesRead = currentlyReading?.reduce((sum: number, book: any) => 
-    sum + (book.current_page || 0), 0) || 0
+  const totalPagesRead =
+    currentlyReading?.reduce((sum: number, book: any) => sum + (book.current_page || 0), 0) || 0
 
-  const averageRating = recentlyCompleted?.length > 0 
-    ? recentlyCompleted.reduce((sum: number, book: any) => sum + (book.rating || 0), 0) / recentlyCompleted.length
-    : 0
+  const averageRating =
+    recentlyCompleted?.length > 0
+      ? recentlyCompleted.reduce((sum: number, book: any) => sum + (book.rating || 0), 0) /
+        recentlyCompleted.length
+      : 0
 
   return {
     currentlyReading: currentlyReading || [],
     recentlyCompleted: recentlyCompleted || [],
     totalPagesRead,
-    averageRating: Math.round(averageRating * 10) / 10
+    averageRating: Math.round(averageRating * 10) / 10,
   }
 }
 
@@ -265,7 +284,8 @@ async function fetchAuthorReadingProgress(authorId: string, supabase: any) {
   // Fetch books by this author and their reading progress
   const { data: authorBooks, error: booksError } = await supabase
     .from('book_authors')
-    .select(`
+    .select(
+      `
       book_id,
       books (
         id,
@@ -275,7 +295,8 @@ async function fetchAuthorReadingProgress(authorId: string, supabase: any) {
         review_count,
         pages
       )
-    `)
+    `
+    )
     .eq('author_id', authorId)
 
   if (booksError) {
@@ -285,18 +306,20 @@ async function fetchAuthorReadingProgress(authorId: string, supabase: any) {
   // Get reading progress for these books across all users
   const bookIds = authorBooks?.map((ab: any) => ab.book_id) || []
   let totalReadingProgress = []
-  
+
   if (bookIds.length > 0) {
     const { data: readingProgress, error: progressError } = await supabase
       .from('reading_progress')
-      .select(`
+      .select(
+        `
         id,
         book_id,
         status,
         progress_percentage,
         user_id,
         users (name)
-      `)
+      `
+      )
       .in('book_id', bookIds)
       .order('updated_at', { ascending: false })
       .limit(20)
@@ -311,7 +334,9 @@ async function fetchAuthorReadingProgress(authorId: string, supabase: any) {
     totalReadingProgress,
     totalBooks: authorBooks?.length || 0,
     totalPagesRead: 0, // Would need to calculate from reading progress
-    averageRating: authorBooks?.reduce((sum: number, ab: any) => sum + (ab.books?.average_rating || 0), 0) / Math.max(authorBooks?.length || 1, 1) || 0
+    averageRating:
+      authorBooks?.reduce((sum: number, ab: any) => sum + (ab.books?.average_rating || 0), 0) /
+        Math.max(authorBooks?.length || 1, 1) || 0,
   }
 }
 
@@ -319,7 +344,8 @@ async function fetchPublisherReadingProgress(publisherId: string, supabase: any)
   // Fetch books published by this publisher
   const { data: publisherBooks, error: booksError } = await supabase
     .from('books')
-    .select(`
+    .select(
+      `
       id,
       title,
       author,
@@ -327,7 +353,8 @@ async function fetchPublisherReadingProgress(publisherId: string, supabase: any)
       average_rating,
       review_count,
       pages
-    `)
+    `
+    )
     .eq('publisher_id', publisherId)
     .order('average_rating', { ascending: false })
 
@@ -338,8 +365,11 @@ async function fetchPublisherReadingProgress(publisherId: string, supabase: any)
   return {
     publisherBooks: publisherBooks || [],
     totalBooks: publisherBooks?.length || 0,
-    totalPagesRead: publisherBooks?.reduce((sum: number, book: any) => sum + (book.pages || 0), 0) || 0,
-    averageRating: publisherBooks?.reduce((sum: number, book: any) => sum + (book.average_rating || 0), 0) / Math.max(publisherBooks?.length || 1, 1) || 0
+    totalPagesRead:
+      publisherBooks?.reduce((sum: number, book: any) => sum + (book.pages || 0), 0) || 0,
+    averageRating:
+      publisherBooks?.reduce((sum: number, book: any) => sum + (book.average_rating || 0), 0) /
+        Math.max(publisherBooks?.length || 1, 1) || 0,
   }
 }
 
@@ -347,10 +377,12 @@ async function fetchGroupReadingProgress(groupId: string, supabase: any) {
   // Fetch group members and their collective reading progress
   const { data: groupMembers, error: membersError } = await supabase
     .from('group_members')
-    .select(`
+    .select(
+      `
       user_id,
       users (name)
-    `)
+    `
+    )
     .eq('group_id', groupId)
     .eq('status', 'active')
 
@@ -360,11 +392,12 @@ async function fetchGroupReadingProgress(groupId: string, supabase: any) {
 
   const memberIds = groupMembers?.map((member: any) => member.user_id) || []
   let collectiveReadingProgress = []
-  
+
   if (memberIds.length > 0) {
     const { data: readingProgress, error: progressError } = await supabase
       .from('reading_progress')
-      .select(`
+      .select(
+        `
         id,
         book_id,
         status,
@@ -372,7 +405,8 @@ async function fetchGroupReadingProgress(groupId: string, supabase: any) {
         user_id,
         users (name),
         books (title, cover_image_url)
-      `)
+      `
+      )
       .in('user_id', memberIds)
       .order('updated_at', { ascending: false })
       .limit(30)
@@ -387,7 +421,7 @@ async function fetchGroupReadingProgress(groupId: string, supabase: any) {
     collectiveReadingProgress,
     totalMembers: groupMembers?.length || 0,
     totalPagesRead: 0,
-    averageRating: 0
+    averageRating: 0,
   }
 }
 
@@ -395,7 +429,8 @@ async function fetchEventReadingProgress(eventId: string, supabase: any) {
   // Fetch reading progress related to this event (e.g., book club events)
   const { data: eventBooks, error: booksError } = await supabase
     .from('event_books')
-    .select(`
+    .select(
+      `
       book_id,
       books (
         id,
@@ -405,7 +440,8 @@ async function fetchEventReadingProgress(eventId: string, supabase: any) {
         review_count,
         pages
       )
-    `)
+    `
+    )
     .eq('event_id', eventId)
 
   if (booksError) {
@@ -415,8 +451,11 @@ async function fetchEventReadingProgress(eventId: string, supabase: any) {
   return {
     eventBooks: eventBooks || [],
     totalBooks: eventBooks?.length || 0,
-    totalPagesRead: eventBooks?.reduce((sum: number, eb: any) => sum + (eb.books?.pages || 0), 0) || 0,
-    averageRating: eventBooks?.reduce((sum: number, eb: any) => sum + (eb.books?.average_rating || 0), 0) / Math.max(eventBooks?.length || 1, 1) || 0
+    totalPagesRead:
+      eventBooks?.reduce((sum: number, eb: any) => sum + (eb.books?.pages || 0), 0) || 0,
+    averageRating:
+      eventBooks?.reduce((sum: number, eb: any) => sum + (eb.books?.average_rating || 0), 0) /
+        Math.max(eventBooks?.length || 1, 1) || 0,
   }
 }
 
@@ -425,7 +464,9 @@ async function checkIfFriends(userId1: string, userId2: string, supabase: any): 
   const { data: friendship } = await supabase
     .from('user_friends')
     .select('id')
-    .or(`and(user_id.eq.${userId1},friend_id.eq.${userId2}),and(user_id.eq.${userId2},friend_id.eq.${userId1})`)
+    .or(
+      `and(user_id.eq.${userId1},friend_id.eq.${userId2}),and(user_id.eq.${userId2},friend_id.eq.${userId1})`
+    )
     .eq('status', 'accepted')
     .single()
 
@@ -433,7 +474,11 @@ async function checkIfFriends(userId1: string, userId2: string, supabase: any): 
 }
 
 // Helper function to check if user1 is following user2
-async function checkIfFollowing(followerId: string, targetId: string, supabase: any): Promise<boolean> {
+async function checkIfFollowing(
+  followerId: string,
+  targetId: string,
+  supabase: any
+): Promise<boolean> {
   const { data: follow } = await supabase
     .from('follows')
     .select('id')

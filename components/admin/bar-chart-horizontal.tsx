@@ -1,8 +1,8 @@
-"use client"
+'use client'
 
-import { useEffect, useRef } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
+import { useEffect, useRef } from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface BarChartHorizontalProps {
   title: string
@@ -20,7 +20,7 @@ export function BarChartHorizontal({
   description,
   labels,
   data,
-  color = "#3b82f6",
+  color = '#3b82f6',
   height = 300,
   loading = false,
   maxBars = 10,
@@ -30,7 +30,7 @@ export function BarChartHorizontal({
   useEffect(() => {
     if (loading || !canvasRef.current) return
 
-    const ctx = canvasRef.current.getContext("2d")
+    const ctx = canvasRef.current.getContext('2d')
     if (!ctx) return
 
     // Clear previous chart
@@ -42,10 +42,10 @@ export function BarChartHorizontal({
 
     if (limitedLabels.length === 0 || limitedData.length === 0) {
       // Draw "No data" message
-      ctx.font = "16px sans-serif"
-      ctx.fillStyle = "#6b7280"
-      ctx.textAlign = "center"
-      ctx.fillText("No data available", canvasRef.current.width / 2, canvasRef.current.height / 2)
+      ctx.font = '16px sans-serif'
+      ctx.fillStyle = '#6b7280'
+      ctx.textAlign = 'center'
+      ctx.fillText('No data available', canvasRef.current.width / 2, canvasRef.current.height / 2)
       return
     }
 
@@ -59,16 +59,16 @@ export function BarChartHorizontal({
 
     // Draw x-axis
     ctx.beginPath()
-    ctx.strokeStyle = "#e5e7eb"
+    ctx.strokeStyle = '#e5e7eb'
     ctx.lineWidth = 1
     ctx.moveTo(padding.left, padding.top)
     ctx.lineTo(padding.left, canvasRef.current.height - padding.bottom)
     ctx.stroke()
 
     // Draw x-axis labels
-    ctx.font = "12px sans-serif"
-    ctx.fillStyle = "#6b7280"
-    ctx.textAlign = "center"
+    ctx.font = '12px sans-serif'
+    ctx.fillStyle = '#6b7280'
+    ctx.textAlign = 'center'
     const xLabelCount = 5
     for (let i = 0; i <= xLabelCount; i++) {
       const value = Math.round((maxValue * i) / xLabelCount)
@@ -77,7 +77,7 @@ export function BarChartHorizontal({
 
       // Draw vertical grid line
       ctx.beginPath()
-      ctx.strokeStyle = "#f3f4f6"
+      ctx.strokeStyle = '#f3f4f6'
       ctx.moveTo(x, padding.top)
       ctx.lineTo(x, canvasRef.current.height - padding.bottom)
       ctx.stroke()
@@ -88,13 +88,13 @@ export function BarChartHorizontal({
       const y = padding.top + barSpacing * (i + 1) + barHeight * i
 
       // Draw label
-      ctx.fillStyle = "#6b7280"
-      ctx.font = "12px sans-serif"
-      ctx.textAlign = "right"
+      ctx.fillStyle = '#6b7280'
+      ctx.font = '12px sans-serif'
+      ctx.textAlign = 'right'
       ctx.fillText(
-        limitedLabels[i].length > 20 ? limitedLabels[i].substring(0, 20) + "..." : limitedLabels[i],
+        limitedLabels[i].length > 20 ? limitedLabels[i].substring(0, 20) + '...' : limitedLabels[i],
         padding.left - 10,
-        y + barHeight / 2 + 4,
+        y + barHeight / 2 + 4
       )
 
       // Draw bar
@@ -103,8 +103,8 @@ export function BarChartHorizontal({
       ctx.fillRect(padding.left, y, barWidth, barHeight)
 
       // Draw value at the end of the bar
-      ctx.fillStyle = "#6b7280"
-      ctx.textAlign = "left"
+      ctx.fillStyle = '#6b7280'
+      ctx.textAlign = 'left'
       ctx.fillText(limitedData[i].toString(), padding.left + barWidth + 5, y + barHeight / 2 + 4)
     }
   }, [labels, data, color, height, loading, maxBars])

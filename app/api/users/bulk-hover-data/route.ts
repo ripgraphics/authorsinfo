@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 
-
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClientAsync()
@@ -19,30 +18,24 @@ export async function POST(request: NextRequest) {
     // Fetch all user data in parallel
     const [usersData, readingProgress, userFriends, profiles] = await Promise.all([
       // Get basic user data
-      (supabase
-        .from('users') as any)
+      (supabase.from('users') as any)
         .select('id, name, email, created_at, permalink, location, website')
         .in('id', userIds),
 
       // Get reading progress for all users
-      (supabase
-        .from('reading_progress') as any)
+      (supabase.from('reading_progress') as any)
         .select('user_id, status')
         .in('user_id', userIds)
         .eq('status', 'completed'),
 
       // Get friends data for all users
-      (supabase
-        .from('user_friends') as any)
+      (supabase.from('user_friends') as any)
         .select('user_id, friend_id, status')
         .in('user_id', userIds)
         .eq('status', 'accepted'),
 
       // Get profile data for all users
-      (supabase
-        .from('profiles') as any)
-        .select('user_id, bio')
-        .in('user_id', userIds)
+      (supabase.from('profiles') as any).select('user_id, bio').in('user_id', userIds),
     ])
 
     // Check for errors
@@ -67,7 +60,7 @@ export async function POST(request: NextRequest) {
         booksRead: 0,
         friendsCount: 0,
         followersCount: 0,
-        bio: null
+        bio: null,
       }
     })
 
@@ -96,7 +89,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Convert to array format
-    const results = Object.values(userStatsMap).map(user => ({
+    const results = Object.values(userStatsMap).map((user) => ({
       id: user.id,
       stats: {
         booksRead: user.booksRead,
@@ -105,18 +98,17 @@ export async function POST(request: NextRequest) {
         location: user.location,
         website: user.website,
         joinedDate: user.created_at,
-        bio: user.bio
-      }
+        bio: user.bio,
+      },
     }))
 
     const response = NextResponse.json({ users: results })
-    
+
     // Add caching headers
     response.headers.set('Cache-Control', 'public, max-age=300') // Cache for 5 minutes
     response.headers.set('ETag', `"bulk-${userIds.length}-${Date.now()}"`)
 
     return response
-
   } catch (error) {
     console.error('Error fetching bulk user hover data:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

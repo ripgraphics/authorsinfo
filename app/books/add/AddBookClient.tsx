@@ -44,12 +44,12 @@ interface AddBookClientProps {
   otherBooksByPublisher?: any[]
 }
 
-export function AddBookClient({ 
-  isbn, 
+export function AddBookClient({
+  isbn,
   serverBookData,
   existingBook,
   otherBooksByAuthor = [],
-  otherBooksByPublisher = []
+  otherBooksByPublisher = [],
 }: AddBookClientProps) {
   const router = useRouter()
   const [bookData, setBookData] = useState<BookData | null>(serverBookData || null)
@@ -60,7 +60,7 @@ export function AddBookClient({
     // Check sessionStorage first to avoid redundant API calls
     const bookDataKey = `isbndb_book_${isbn}`
     const storedData = sessionStorage.getItem(bookDataKey)
-    
+
     if (storedData) {
       try {
         const parsedData = JSON.parse(storedData)
@@ -137,7 +137,7 @@ export function AddBookClient({
   // Handle adding the book
   const handleAddBook = async () => {
     if (!bookData) return
-    
+
     setIsSubmitting(true)
     try {
       const result = await addBookFromISBNDB({
@@ -168,7 +168,9 @@ export function AddBookClient({
     <div className="space-y-6">
       <div className="py-6">
         <h1 className="text-3xl font-bold tracking-tight">Add Book to Library</h1>
-        <p className="text-muted-foreground mt-2">Review the book details and add it to your library</p>
+        <p className="text-muted-foreground mt-2">
+          Review the book details and add it to your library
+        </p>
       </div>
 
       <div className="max-w-4xl mx-auto">
@@ -179,14 +181,20 @@ export function AddBookClient({
               {existingBook ? (
                 (() => {
                   const coverImage: any = existingBook.cover_image
-                  const coverImageUrl = Array.isArray(coverImage) ? coverImage[0]?.url : coverImage?.url
+                  const coverImageUrl = Array.isArray(coverImage)
+                    ? coverImage[0]?.url
+                    : coverImage?.url
                   if (!coverImageUrl) return null
                   return (
                     <Link href={`/books/${existingBook.id}`}>
                       <div className="w-full h-full cursor-pointer hover:opacity-90 transition-opacity">
                         <Image
                           src={coverImageUrl}
-                          alt={Array.isArray(coverImage) ? coverImage[0]?.alt_text || existingBook.title : coverImage?.alt_text || existingBook.title}
+                          alt={
+                            Array.isArray(coverImage)
+                              ? coverImage[0]?.alt_text || existingBook.title
+                              : coverImage?.alt_text || existingBook.title
+                          }
                           width={400}
                           height={600}
                           className="w-full aspect-[2/3] object-cover"
@@ -197,12 +205,7 @@ export function AddBookClient({
                 })()
               ) : coverImageUrl ? (
                 <div className="w-full aspect-[2/3] relative">
-                  <Image
-                    src={coverImageUrl}
-                    alt={bookTitle}
-                    fill
-                    className="object-cover"
-                  />
+                  <Image src={coverImageUrl} alt={bookTitle} fill className="object-cover" />
                 </div>
               ) : (
                 <div className="w-full aspect-[2/3] bg-muted flex items-center justify-center">
@@ -218,7 +221,7 @@ export function AddBookClient({
               <CardHeader>
                 <CardTitle>
                   {existingBook ? (
-                    <Link 
+                    <Link
                       href={`/books/${existingBook.id}`}
                       className="hover:text-primary transition-colors cursor-pointer"
                     >
@@ -233,7 +236,7 @@ export function AddBookClient({
                 {existingBook?.author ? (
                   <div>
                     <h3 className="font-medium">Author</h3>
-                    <Link 
+                    <Link
                       href={`/authors/${(() => {
                         const author = existingBook.author as any
                         return Array.isArray(author) ? author[0]?.id : author?.id
@@ -246,17 +249,20 @@ export function AddBookClient({
                       })()}
                     </Link>
                   </div>
-                ) : bookAuthors && bookAuthors.length > 0 && (
-                  <div>
-                    <h3 className="font-medium">Author{bookAuthors.length > 1 ? 's' : ''}</h3>
-                    <p className="text-muted-foreground">{bookAuthors.join(', ')}</p>
-                  </div>
+                ) : (
+                  bookAuthors &&
+                  bookAuthors.length > 0 && (
+                    <div>
+                      <h3 className="font-medium">Author{bookAuthors.length > 1 ? 's' : ''}</h3>
+                      <p className="text-muted-foreground">{bookAuthors.join(', ')}</p>
+                    </div>
+                  )
                 )}
 
                 {existingBook?.publisher ? (
                   <div>
                     <h3 className="font-medium">Publisher</h3>
-                    <Link 
+                    <Link
                       href={`/publishers/${(() => {
                         const publisher = existingBook.publisher as any
                         return Array.isArray(publisher) ? publisher[0]?.id : publisher?.id
@@ -269,11 +275,13 @@ export function AddBookClient({
                       })()}
                     </Link>
                   </div>
-                ) : bookPublisher && (
-                  <div>
-                    <h3 className="font-medium">Publisher</h3>
-                    <p className="text-muted-foreground">{bookPublisher}</p>
-                  </div>
+                ) : (
+                  bookPublisher && (
+                    <div>
+                      <h3 className="font-medium">Publisher</h3>
+                      <p className="text-muted-foreground">{bookPublisher}</p>
+                    </div>
+                  )
                 )}
 
                 {(bookPublishDate || bookDatePublished) && (
@@ -370,7 +378,7 @@ export function AddBookClient({
                 {cleanedSynopsis && (
                   <div>
                     <h3 className="font-medium">Synopsis</h3>
-                    <div 
+                    <div
                       className="text-muted-foreground prose prose-sm max-w-none"
                       dangerouslySetInnerHTML={{ __html: cleanedSynopsis }}
                     />
@@ -386,11 +394,7 @@ export function AddBookClient({
                     </div>
                   </div>
                 ) : (
-                  <Button 
-                    onClick={handleAddBook}
-                    disabled={isSubmitting}
-                    className="w-full mt-4"
-                  >
+                  <Button onClick={handleAddBook} disabled={isSubmitting} className="w-full mt-4">
                     {isSubmitting ? 'Adding...' : 'Add to Library'}
                   </Button>
                 )}
@@ -406,7 +410,8 @@ export function AddBookClient({
             {otherBooksByAuthor.length > 0 && (
               <div>
                 <h2 className="text-2xl font-bold tracking-tight mb-4">
-                  Other Books by {(() => {
+                  Other Books by{' '}
+                  {(() => {
                     const author = existingBook.author as any
                     return Array.isArray(author) ? author[0]?.name : author?.name
                   })()}
@@ -443,7 +448,8 @@ export function AddBookClient({
             {otherBooksByPublisher.length > 0 && (
               <div>
                 <h2 className="text-2xl font-bold tracking-tight mb-4">
-                  Other Books by {(() => {
+                  Other Books by{' '}
+                  {(() => {
                     const publisher = existingBook.publisher as any
                     return Array.isArray(publisher) ? publisher[0]?.name : publisher?.name
                   })()}
@@ -481,4 +487,3 @@ export function AddBookClient({
     </div>
   )
 }
-

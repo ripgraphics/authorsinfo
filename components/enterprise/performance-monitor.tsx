@@ -4,15 +4,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { 
-  Activity, 
-  Zap, 
-  TrendingUp, 
-  Clock, 
-  BarChart3,
-  RefreshCw,
-  Info
-} from 'lucide-react'
+import { Activity, Zap, TrendingUp, Clock, BarChart3, RefreshCw, Info } from 'lucide-react'
 
 interface PerformanceMetrics {
   renderTime: number
@@ -32,7 +24,7 @@ interface PerformanceMonitorProps {
 export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
   componentName,
   showDetails = false,
-  className = ''
+  className = '',
 }) => {
   const [metrics, setMetrics] = useState<PerformanceMetrics[]>([])
   const [isMonitoring, setIsMonitoring] = useState(false)
@@ -44,18 +36,21 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
   useEffect(() => {
     renderStartTime.current = performance.now()
     renderCount.current++
-    
+
     const renderTime = performance.now() - renderStartTime.current
-    
+
     if (isMonitoring) {
-      setMetrics(prev => [...prev, {
-        renderTime,
-        memoryUsage: (performance as any).memory?.usedJSHeapSize || 0,
-        apiCallTime: 0,
-        cacheHitRate: 0,
-        componentRenders: renderCount.current,
-        timestamp: new Date()
-      }])
+      setMetrics((prev) => [
+        ...prev,
+        {
+          renderTime,
+          memoryUsage: (performance as any).memory?.usedJSHeapSize || 0,
+          apiCallTime: 0,
+          cacheHitRate: 0,
+          componentRenders: renderCount.current,
+          timestamp: new Date(),
+        },
+      ])
     }
   })
 
@@ -98,15 +93,13 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
             <Activity className="h-5 w-5" />
             Performance Monitor
           </CardTitle>
-          <Badge variant={isMonitoring ? "default" : "secondary"}>
-            {isMonitoring ? "Monitoring" : "Idle"}
+          <Badge variant={isMonitoring ? 'default' : 'secondary'}>
+            {isMonitoring ? 'Monitoring' : 'Idle'}
           </Badge>
         </div>
-        <p className="text-sm text-muted-foreground">
-          Component: {componentName}
-        </p>
+        <p className="text-sm text-muted-foreground">Component: {componentName}</p>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         {/* Performance Score */}
         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -114,9 +107,7 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
             <Zap className="h-4 w-4 text-yellow-600" />
             <span className="font-medium">Performance Score</span>
           </div>
-          <Badge className={performanceScore.color}>
-            {performanceScore.score}
-          </Badge>
+          <Badge className={performanceScore.color}>{performanceScore.score}</Badge>
         </div>
 
         {/* Key Metrics */}
@@ -127,11 +118,9 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
             </div>
             <div className="text-sm text-blue-600">Avg Render Time</div>
           </div>
-          
+
           <div className="text-center p-3 bg-green-50 rounded-lg">
-            <div className="text-2xl font-bold text-green-600">
-              {renderCount.current}
-            </div>
+            <div className="text-2xl font-bold text-green-600">{renderCount.current}</div>
             <div className="text-sm text-green-600">Total Renders</div>
           </div>
         </div>
@@ -149,16 +138,12 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
               Stop Monitoring
             </Button>
           )}
-          
+
           <Button onClick={clearMetrics} size="sm" variant="outline">
             <RefreshCw className="h-4 w-4" />
           </Button>
-          
-          <Button 
-            onClick={() => setShowAdvanced(!showAdvanced)} 
-            size="sm" 
-            variant="outline"
-          >
+
+          <Button onClick={() => setShowAdvanced(!showAdvanced)} size="sm" variant="outline">
             <BarChart3 className="h-4 w-4" />
           </Button>
         </div>
@@ -170,19 +155,25 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
               <TrendingUp className="h-4 w-4" />
               Detailed Metrics
             </h4>
-            
+
             <div className="max-h-40 overflow-y-auto space-y-2">
-              {metrics.slice(-10).reverse().map((metric, index) => (
-                <div key={index} className="flex items-center justify-between text-sm p-2 bg-gray-50 rounded-sm">
-                  <span className="text-muted-foreground">
-                    {metric.timestamp.toLocaleTimeString()}
-                  </span>
-                  <div className="flex items-center gap-4">
-                    <span>Render: {metric.renderTime.toFixed(1)}ms</span>
-                    <span>Memory: {(metric.memoryUsage / 1024 / 1024).toFixed(1)}MB</span>
+              {metrics
+                .slice(-10)
+                .reverse()
+                .map((metric, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between text-sm p-2 bg-gray-50 rounded-sm"
+                  >
+                    <span className="text-muted-foreground">
+                      {metric.timestamp.toLocaleTimeString()}
+                    </span>
+                    <div className="flex items-center gap-4">
+                      <span>Render: {metric.renderTime.toFixed(1)}ms</span>
+                      <span>Memory: {(metric.memoryUsage / 1024 / 1024).toFixed(1)}MB</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           </div>
         )}

@@ -1,9 +1,9 @@
-"use client"
+'use client'
 
-import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 export default function GroupResourcesPage() {
   const params = useParams()
@@ -11,7 +11,7 @@ export default function GroupResourcesPage() {
   const [resources, setResources] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ type: "link", title: "", url: "", description: "" })
+  const [form, setForm] = useState({ type: 'link', title: '', url: '', description: '' })
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
@@ -31,17 +31,17 @@ export default function GroupResourcesPage() {
     setError(null)
     setSuccess(null)
     const res = await fetch(`/api/groups/${groupId}/resources`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
     })
     if (res.ok) {
-      setSuccess("Resource added!")
-      setForm({ type: "link", title: "", url: "", description: "" })
+      setSuccess('Resource added!')
+      setForm({ type: 'link', title: '', url: '', description: '' })
       setShowForm(false)
     } else {
       const err = await res.json()
-      setError(err.error || "Failed to add resource")
+      setError(err.error || 'Failed to add resource')
     }
   }
 
@@ -49,7 +49,7 @@ export default function GroupResourcesPage() {
     <div className="max-w-3xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-4">Group Resources</h2>
       <Button onClick={() => setShowForm((v) => !v)} className="mb-4">
-        {showForm ? "Cancel" : "Add Resource"}
+        {showForm ? 'Cancel' : 'Add Resource'}
       </Button>
       {showForm && (
         <form onSubmit={handleSubmit} className="mb-6 space-y-2">
@@ -113,7 +113,16 @@ export default function GroupResourcesPage() {
                   <tr key={item.id} className="border-t">
                     <td className="p-2">{item.type}</td>
                     <td className="p-2 font-semibold">{item.title}</td>
-                    <td className="p-2"><a href={item.url} className="text-blue-600 underline" target="_blank" rel="noopener noreferrer">{item.url}</a></td>
+                    <td className="p-2">
+                      <a
+                        href={item.url}
+                        className="text-blue-600 underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {item.url}
+                      </a>
+                    </td>
                     <td className="p-2">{item.description}</td>
                     <td className="p-2">{item.created_at?.slice(0, 10)}</td>
                   </tr>
@@ -125,4 +134,4 @@ export default function GroupResourcesPage() {
       )}
     </div>
   )
-} 
+}

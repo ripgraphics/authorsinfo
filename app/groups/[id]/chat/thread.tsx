@@ -1,18 +1,24 @@
-"use client"
+'use client'
 
-import { useEffect, useRef, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { useEffect, useRef, useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
-export default function GroupChatThreadPage({ params, thread }: { params: { id: string }, thread: any }) {
+export default function GroupChatThreadPage({
+  params,
+  thread,
+}: {
+  params: { id: string }
+  thread: any
+}) {
   const groupId = params.id
   const threadId = thread.id
   const [messages, setMessages] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [body, setBody] = useState("")
+  const [body, setBody] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const user = { id: "mock", name: "Test User" }
+  const user = { id: 'mock', name: 'Test User' }
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -23,7 +29,7 @@ export default function GroupChatThreadPage({ params, thread }: { params: { id: 
   }, [groupId, threadId, success])
 
   useEffect(() => {
-    if (bottomRef.current) bottomRef.current.scrollIntoView({ behavior: "smooth" })
+    if (bottomRef.current) bottomRef.current.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
   const handleSubmit = async (e: any) => {
@@ -31,16 +37,16 @@ export default function GroupChatThreadPage({ params, thread }: { params: { id: 
     setError(null)
     setSuccess(null)
     const res = await fetch(`/api/groups/${groupId}/chat-thread-messages`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ thread_id: threadId, user_id: user.id, body }),
     })
     if (res.ok) {
-      setSuccess("Message sent!")
-      setBody("")
+      setSuccess('Message sent!')
+      setBody('')
     } else {
       const err = await res.json()
-      setError(err.error || "Failed to send message")
+      setError(err.error || 'Failed to send message')
     }
   }
 
@@ -55,11 +61,20 @@ export default function GroupChatThreadPage({ params, thread }: { params: { id: 
         ) : (
           <div className="space-y-2">
             {messages.map((msg) => (
-              <div key={msg.id} className={`flex ${msg.user_id === user.id ? 'justify-end' : 'justify-start'}`}>
-                <div className={`rounded-lg px-4 py-2 max-w-xs ${msg.user_id === user.id ? 'bg-blue-500 text-white' : 'bg-white border'}`}>
-                  <div className="text-xs font-semibold mb-1">{msg.user_id === user.id ? 'You' : msg.user_id}</div>
+              <div
+                key={msg.id}
+                className={`flex ${msg.user_id === user.id ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`rounded-lg px-4 py-2 max-w-xs ${msg.user_id === user.id ? 'bg-blue-500 text-white' : 'bg-white border'}`}
+                >
+                  <div className="text-xs font-semibold mb-1">
+                    {msg.user_id === user.id ? 'You' : msg.user_id}
+                  </div>
                   <div>{msg.body}</div>
-                  <div className="text-[10px] text-gray-400 mt-1">{msg.created_at?.slice(0, 16).replace("T", " ")}</div>
+                  <div className="text-[10px] text-gray-400 mt-1">
+                    {msg.created_at?.slice(0, 16).replace('T', ' ')}
+                  </div>
                 </div>
               </div>
             ))}
@@ -70,7 +85,7 @@ export default function GroupChatThreadPage({ params, thread }: { params: { id: 
       <form onSubmit={handleSubmit} className="flex gap-2">
         <Input
           value={body}
-          onChange={e => setBody(e.target.value)}
+          onChange={(e) => setBody(e.target.value)}
           placeholder="Type a message..."
           className="flex-1"
           required
@@ -81,4 +96,4 @@ export default function GroupChatThreadPage({ params, thread }: { params: { id: 
       {success && <div className="text-green-600 text-xs mt-2">{success}</div>}
     </div>
   )
-} 
+}

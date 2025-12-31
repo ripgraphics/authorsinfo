@@ -1,21 +1,21 @@
-"use client"
+'use client'
 
-import React, { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Separator } from "@/components/ui/separator"
-import { EntityHeader, TabConfig } from "@/components/entity-header"
-import { FollowersList } from "@/components/followers-list"
-import { PhotosList } from "@/components/photos-list"
-import { Timeline, TimelineItem } from "@/components/timeline"
+import React, { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Separator } from '@/components/ui/separator'
+import { EntityHeader, TabConfig } from '@/components/entity-header'
+import { FollowersList } from '@/components/followers-list'
+import { PhotosList } from '@/components/photos-list'
+import { Timeline, TimelineItem } from '@/components/timeline'
 import { FollowButton } from '@/components/follow-button'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
-import { formatDate } from "@/utils/dateUtils"
+import { formatDate } from '@/utils/dateUtils'
 import { canUserEditEntity } from '@/lib/auth-utils'
-import type { Group } from "@/types/group"
+import type { Group } from '@/types/group'
 import {
   BookOpen,
   Users,
@@ -40,10 +40,13 @@ import {
   User,
   Settings,
   MessageCircle,
-  Activity
-} from "lucide-react"
+  Activity,
+} from 'lucide-react'
 import { EntityPhotoAlbums } from '@/components/user-photo-albums'
 import EnterpriseTimelineActivities from '@/components/enterprise/enterprise-timeline-activities-optimized'
+import { ContentSection } from '@/components/ui/content-section'
+import { UserListLayout } from '@/components/ui/user-list-layout'
+import Link from 'next/link'
 
 interface Follower {
   id: string
@@ -127,7 +130,7 @@ export function ClientGroupPage({
   booksCount = 0,
   discussions = [],
   activities = [],
-  currentUser
+  currentUser,
 }: ClientGroupPageProps) {
   const { user } = useAuth()
   const searchParams = useSearchParams()
@@ -135,7 +138,7 @@ export function ClientGroupPage({
   const { toast } = useToast()
 
   // State management
-  const [activeTab, setActiveTab] = useState("timeline")
+  const [activeTab, setActiveTab] = useState('timeline')
   const [isFollowing, setIsFollowing] = useState(false)
   const [isLoadingFollow, setIsLoadingFollow] = useState(false)
   const [canEdit, setCanEdit] = useState(false)
@@ -160,7 +163,7 @@ export function ClientGroupPage({
   // Initialize tab from URL
   useEffect(() => {
     const tabParam = searchParams?.get('tab')
-    const validTabIds = validTabs.map(t => t.id)
+    const validTabIds = validTabs.map((t) => t.id)
     if (tabParam && validTabIds.includes(tabParam)) {
       setActiveTab(tabParam)
     }
@@ -179,11 +182,13 @@ export function ClientGroupPage({
     const checkFollowStatus = async () => {
       if (user && group) {
         try {
-          // Check if user is following this group
-          // This would typically involve a database call
-          setIsFollowing(false) // Placeholder
+          const { getGroupFollowStatus } = await import('@/app/actions/groups/get-follow-status')
+          const result = await getGroupFollowStatus(group.id, user.id)
+          if (result.success) {
+            setIsFollowing(result.isFollowing || false)
+          }
         } catch (error) {
-          console.error("Error checking follow status:", error)
+          console.error('Error checking follow status:', error)
         }
       }
     }
@@ -196,25 +201,29 @@ export function ClientGroupPage({
   const groupStats = [
     {
       icon: <Users className="h-4 w-4 mr-1" />,
-      text: `${membersCount} members`
+      text: `${membersCount} members`,
     },
     {
       icon: <BookOpen className="h-4 w-4 mr-1" />,
-      text: `${booksCount} books`
+      text: `${booksCount} books`,
     },
     {
-      icon: group.is_private ? <Info className="h-4 w-4 mr-1" /> : <Globe className="h-4 w-4 mr-1" />,
-      text: group.is_private ? "Private" : "Public"
-    }
+      icon: group.is_private ? (
+        <Info className="h-4 w-4 mr-1" />
+      ) : (
+        <Globe className="h-4 w-4 mr-1" />
+      ),
+      text: group.is_private ? 'Private' : 'Public',
+    },
   ]
 
   // Handle follow action
   const handleFollow = async () => {
     if (!user) {
       toast({
-        title: "Authentication required",
-        description: "Please log in to follow this group.",
-        variant: "destructive"
+        title: 'Authentication required',
+        description: 'Please log in to follow this group.',
+        variant: 'destructive',
       })
       return
     }
@@ -224,15 +233,17 @@ export function ClientGroupPage({
       // Implement follow logic here
       setIsFollowing(!isFollowing)
       toast({
-        title: isFollowing ? "Unfollowed" : "Following",
-        description: isFollowing ? "You've unfollowed this group." : "You're now following this group."
+        title: isFollowing ? 'Unfollowed' : 'Following',
+        description: isFollowing
+          ? "You've unfollowed this group."
+          : "You're now following this group.",
       })
     } catch (error) {
-      console.error("Error following group:", error)
+      console.error('Error following group:', error)
       toast({
-        title: "Error",
-        description: "Failed to follow group. Please try again.",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to follow group. Please try again.',
+        variant: 'destructive',
       })
     } finally {
       setIsLoadingFollow(false)
@@ -244,64 +255,176 @@ export function ClientGroupPage({
     switch (activeTab) {
       case 'timeline':
         return (
-          <div className="space-y-6">
-            <EnterpriseTimelineActivities
-              entityId={group.id}
-              entityType="group"
-              isOwnEntity={canEdit}
-              entityDisplayInfo={{
-                id: group.id,
-                name: group.name,
-                type: 'group' as const
-              }}
-            />
+          <div className="group-page__timeline-tab">
+            <div className="group-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left Sidebar */}
+              <div className="group-page__sidebar lg:col-span-1 space-y-6 self-end sticky bottom-0">
+                {/* About Section */}
+                <ContentSection
+                  title="About"
+                  onViewMore={() => handleTabChange('about')}
+                  className="group-page__about-section"
+                >
+                  <div className="space-y-2">
+                    {group.description ? (
+                      <p className="text-sm text-muted-foreground line-clamp-4">
+                        {group.description}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No description available.</p>
+                    )}
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <Info className="h-4 w-4 mr-2" />
+                      <span>{group.is_private ? 'Private Group' : 'Public Group'}</span>
+                    </div>
+                  </div>
+                </ContentSection>
+
+                {/* Followers Section */}
+                <FollowersList
+                  followers={followers || []}
+                  followersCount={followersCount}
+                  entityId={group.id}
+                  entityType="group"
+                  onViewMore={() => handleTabChange('followers')}
+                  className="group-page__followers-section"
+                />
+              </div>
+
+              {/* Main Content Area */}
+              <div className="group-page__main-content lg:col-span-2 space-y-6">
+                <EnterpriseTimelineActivities
+                  entityId={group.id}
+                  entityType="group"
+                  isOwnEntity={canEdit}
+                  entityDisplayInfo={{
+                    id: group.id,
+                    name: group.name,
+                    type: 'group' as const,
+                  }}
+                />
+              </div>
+            </div>
           </div>
         )
       case 'about':
-        return <AboutSection group={group} />
+        return (
+          <div className="group-page__about-tab">
+            <div className="group-page__tab-content space-y-6">
+              <AboutSection group={group} />
+            </div>
+          </div>
+        )
       case 'books':
-        return <BooksSection books={books} />
+        return (
+          <div className="group-page__books-tab">
+            <div className="group-page__tab-content space-y-6">
+              <BooksSection books={books} />
+            </div>
+          </div>
+        )
       case 'members':
-        return <MembersSection members={members} />
+        return (
+          <div className="group-page__members-tab">
+            <div className="group-page__tab-content space-y-6">
+              <MembersSection members={members} membersCount={membersCount} />
+            </div>
+          </div>
+        )
       case 'discussions':
-        return <DiscussionsSection discussions={discussions} groupId={group.id} />
+        return (
+          <div className="group-page__discussions-tab">
+            <div className="group-page__tab-content space-y-6">
+              <DiscussionsSection discussions={discussions} groupId={group.id} />
+            </div>
+          </div>
+        )
       case 'followers':
-        return <FollowersList followers={followers || []} followersCount={followersCount} entityId={group.id} entityType="group" onViewMore={() => handleTabChange("followers")} />
+        return (
+          <div className="group-page__followers-tab">
+            <div className="group-page__tab-content space-y-6">
+              <FollowersList
+                followers={followers || []}
+                followersCount={followersCount}
+                entityId={group.id}
+                entityType="group"
+                onViewMore={() => handleTabChange('followers')}
+              />
+            </div>
+          </div>
+        )
       case 'photos':
         return (
-          <div className="space-y-6">
-            <EntityPhotoAlbums
-              entityId={group.id}
-              entityType="group"
-              isOwnEntity={canEdit}
-            />
+          <div className="group-page__photos-tab">
+            <div className="group-page__tab-content space-y-6">
+              <EntityPhotoAlbums entityId={group.id} entityType="group" isOwnEntity={canEdit} />
+            </div>
           </div>
         )
       default:
         return (
-          <div className="space-y-6">
-            <EnterpriseTimelineActivities
-              entityId={group.id}
-              entityType="group"
-              isOwnEntity={canEdit}
-              entityDisplayInfo={{
-                id: group.id,
-                name: group.name,
-                type: 'group' as const
-              }}
-            />
+          <div className="group-page__timeline-tab">
+            <div className="group-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left Sidebar */}
+              <div className="group-page__sidebar lg:col-span-1 space-y-6 self-end sticky bottom-0">
+                {/* About Section */}
+                <ContentSection
+                  title="About"
+                  onViewMore={() => handleTabChange('about')}
+                  className="group-page__about-section"
+                >
+                  <div className="space-y-2">
+                    {group.description ? (
+                      <p className="text-sm text-muted-foreground line-clamp-4">
+                        {group.description}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No description available.</p>
+                    )}
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <Info className="h-4 w-4 mr-2" />
+                      <span>{group.is_private ? 'Private Group' : 'Public Group'}</span>
+                    </div>
+                  </div>
+                </ContentSection>
+
+                {/* Followers Section */}
+                <FollowersList
+                  followers={followers || []}
+                  followersCount={followersCount}
+                  entityId={group.id}
+                  entityType="group"
+                  onViewMore={() => handleTabChange('followers')}
+                  className="group-page__followers-section"
+                />
+              </div>
+
+              {/* Main Content Area */}
+              <div className="group-page__main-content lg:col-span-2 space-y-6">
+                <EnterpriseTimelineActivities
+                  entityId={group.id}
+                  entityType="group"
+                  isOwnEntity={canEdit}
+                  entityDisplayInfo={{
+                    id: group.id,
+                    name: group.name,
+                    type: 'group' as const,
+                  }}
+                />
+              </div>
+            </div>
           </div>
         )
     }
   }
 
   return (
-    <div className="w-full">
+    <div className="group-page group-page__container py-6">
       <EntityHeader
         entityType="group"
         name={group.name}
-        coverImageUrl={coverImageUrl || ""}
-        profileImageUrl={groupImageUrl || ""}
+        coverImageUrl={coverImageUrl || ''}
+        profileImageUrl={groupImageUrl || ''}
         stats={groupStats}
         isEditable={canEdit}
         onFollow={handleFollow}
@@ -311,27 +434,25 @@ export function ClientGroupPage({
         onTabChange={handleTabChange}
         entityId={group.id}
         targetType="group"
-        description={group.description}
+        description={group.description ?? undefined}
         group={{
           id: group.id,
           name: group.name,
           group_image: groupImageUrl ? { url: groupImageUrl } : undefined,
           member_count: membersCount,
-          is_private: group.is_private
+          is_private: group.is_private,
         }}
         isMessageable={true}
       />
 
-      <main className="container mx-auto py-8 px-4 md:px-6 lg:px-8">
-        {renderContent()}
-      </main>
+      <div className="group-page__content">{renderContent()}</div>
     </div>
   )
 }
 
 // Tab content components
 const GroupTimeline = ({ activities }: { activities: GroupActivity[] }) => {
-  const timelineItems: TimelineItem[] = activities.map(activity => ({
+  const timelineItems: TimelineItem[] = activities.map((activity) => ({
     id: activity.id,
     avatarUrl: activity.user?.avatar_url || undefined,
     name: activity.user?.name || 'System',
@@ -370,32 +491,30 @@ const AboutSection = ({ group }: { group: Group }) => (
     <div className="flex items-center justify-between">
       <h2 className="text-2xl font-bold">About</h2>
     </div>
-    
+
     <Card>
       <CardContent className="p-6">
         <div className="space-y-4">
           <div>
             <h3 className="font-semibold text-lg mb-2">Description</h3>
             <p className="text-muted-foreground">
-              {group.description || "No description available."}
+              {group.description || 'No description available.'}
             </p>
           </div>
-          
+
           <Separator />
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <h4 className="font-medium mb-2">Group Type</h4>
               <p className="text-sm text-muted-foreground">
-                {group.is_private ? "Private Group" : "Public Group"}
+                {group.is_private ? 'Private Group' : 'Public Group'}
               </p>
             </div>
-            
+
             <div>
               <h4 className="font-medium mb-2">Created</h4>
-              <p className="text-sm text-muted-foreground">
-                {formatDate(group.created_at)}
-              </p>
+              <p className="text-sm text-muted-foreground">{formatDate(group.created_at)}</p>
             </div>
           </div>
         </div>
@@ -409,14 +528,14 @@ const BooksSection = ({ books }: { books: GroupBook[] }) => (
     <div className="flex items-center justify-between">
       <h2 className="text-2xl font-bold">Group Books</h2>
     </div>
-    
+
     {books.length > 0 ? (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {books.map((book) => (
           <Card key={book.id} className="overflow-hidden">
             <div className="aspect-[3/4] relative">
               <img
-                src={book.cover_image_url || "/placeholder.svg?height=300&width=200"}
+                src={book.cover_image_url || '/placeholder.svg?height=300&width=200'}
                 alt={book.title}
                 className="w-full h-full object-cover"
               />
@@ -438,46 +557,67 @@ const BooksSection = ({ books }: { books: GroupBook[] }) => (
   </div>
 )
 
-const MembersSection = ({ members }: { members: GroupMember[] }) => (
-  <div className="space-y-6">
-    <div className="flex items-center justify-between">
-      <h2 className="text-2xl font-bold">Members</h2>
-    </div>
-    
-    {members.length > 0 ? (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {members.map((member) => (
-          <Card key={member.user_id} className="p-4">
-            <div className="flex items-center space-x-3">
-              <Avatar
-                src={member.user.avatar_url || undefined}
-                name={member.user.name || 'User'}
-                size="sm"
-              />
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">
-                  {member.user.name}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Joined {formatDate(member.joined_at)}
-                </p>
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
-    ) : (
-      <Card>
-        <CardContent className="p-6 text-center text-muted-foreground">
-          <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-          <p>No members yet.</p>
-        </CardContent>
-      </Card>
-    )}
-  </div>
-)
+const MembersSection = ({
+  members,
+  membersCount,
+}: {
+  members: GroupMember[]
+  membersCount: number
+}) => {
+  // Transform members to match the format expected by UserListLayout
+  const membersForList = members.map((member) => ({
+    id: member.user.id,
+    name: member.user.name,
+    email: member.user.email,
+    avatar_url: member.user.avatar_url,
+    joined_at: member.joined_at,
+    followSince: member.joined_at, // For sorting compatibility (UserListLayout sorts by followSince or friendshipDate)
+    friendshipDate: member.joined_at, // For sorting compatibility
+  }))
 
-const DiscussionsSection = ({ discussions, groupId }: { discussions: GroupDiscussion[], groupId: string }) => (
+  const sortOptions = [
+    { value: 'recent', label: 'Recently Joined' },
+    { value: 'oldest', label: 'Oldest Members' },
+    { value: 'name_asc', label: 'Name (A-Z)' },
+    { value: 'name_desc', label: 'Name (Z-A)' },
+  ]
+
+  return (
+    <UserListLayout
+      title={`Members · ${membersCount}`}
+      items={membersForList}
+      searchPlaceholder="Search members..."
+      sortOptions={sortOptions}
+      defaultSort="recent"
+      emptyMessage="No members yet"
+      emptySearchMessage="No members found matching your search"
+      renderItem={(member) => (
+        <Card className="p-4">
+          <div className="flex items-center space-x-3">
+            <Avatar src={member.avatar_url || undefined} name={member.name || 'User'} size="sm" />
+            <div className="flex-1 min-w-0">
+              <Link
+                href={`/profile/${member.id}`}
+                className="font-medium text-sm truncate block hover:underline"
+              >
+                {member.name || member.email}
+              </Link>
+              <p className="text-xs text-muted-foreground">Joined {formatDate(member.joined_at)}</p>
+            </div>
+          </div>
+        </Card>
+      )}
+    />
+  )
+}
+
+const DiscussionsSection = ({
+  discussions,
+  groupId,
+}: {
+  discussions: GroupDiscussion[]
+  groupId: string
+}) => (
   <div className="space-y-6">
     <div className="flex items-center justify-between">
       <h2 className="text-2xl font-bold">Discussions</h2>
@@ -486,7 +626,7 @@ const DiscussionsSection = ({ discussions, groupId }: { discussions: GroupDiscus
         Start Discussion
       </Button>
     </div>
-    
+
     {discussions.length > 0 ? (
       <div className="space-y-4">
         {discussions.map((discussion) => (
@@ -500,17 +640,13 @@ const DiscussionsSection = ({ discussions, groupId }: { discussions: GroupDiscus
               />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2 mb-1">
-                  <p className="font-medium text-sm">
-                    {discussion.user.name}
-                  </p>
+                  <p className="font-medium text-sm">{discussion.user.name}</p>
                   <span className="text-xs text-muted-foreground">
                     {formatDate(discussion.created_at)}
                   </span>
                 </div>
                 <h3 className="font-semibold text-sm mb-2">{discussion.title}</h3>
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {discussion.content}
-                </p>
+                <p className="text-sm text-muted-foreground line-clamp-2">{discussion.content}</p>
               </div>
             </div>
           </Card>
@@ -525,4 +661,4 @@ const DiscussionsSection = ({ discussions, groupId }: { discussions: GroupDiscus
       </Card>
     )}
   </div>
-) 
+)

@@ -1,15 +1,21 @@
-"use client"
+'use client'
 
-import type React from "react"
+import type React from 'react'
 
-import { useState, useEffect } from "react"
-import type { BookFilter } from "@/app/actions/admin-books"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Slider } from "@/components/ui/slider"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { X, Filter, ChevronDown, ChevronUp } from "lucide-react"
+import { useState, useEffect } from 'react'
+import type { BookFilter } from '@/app/actions/admin-books'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Slider } from '@/components/ui/slider'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { X, Filter, ChevronDown, ChevronUp } from 'lucide-react'
 
 interface BookFilterSidebarProps {
   genres: { id: string; name: string }[]
@@ -88,10 +94,14 @@ export function BookFilterSidebar({
         <div className="border rounded-md">
           <button
             className="w-full flex items-center justify-between p-3 text-sm font-medium"
-            onClick={() => toggleSection("basic")}
+            onClick={() => toggleSection('basic')}
           >
             <span>Basic Filters</span>
-            {expanded.basic ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            {expanded.basic ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
           </button>
           {expanded.basic && (
             <div className="p-3 border-t space-y-3">
@@ -102,7 +112,7 @@ export function BookFilterSidebar({
                     id="title"
                     name="title"
                     placeholder="Search by title"
-                    value={filters.title || ""}
+                    value={filters.title || ''}
                     onChange={handleInputChange}
                   />
                 </div>
@@ -112,7 +122,7 @@ export function BookFilterSidebar({
                     id="author"
                     name="author"
                     placeholder="Search by author"
-                    value={filters.author || ""}
+                    value={filters.author || ''}
                     onChange={handleInputChange}
                   />
                 </div>
@@ -122,7 +132,7 @@ export function BookFilterSidebar({
                     id="publisher"
                     name="publisher"
                     placeholder="Search by publisher"
-                    value={filters.publisher || ""}
+                    value={filters.publisher || ''}
                     onChange={handleInputChange}
                   />
                 </div>
@@ -132,7 +142,7 @@ export function BookFilterSidebar({
                     id="isbn"
                     name="isbn"
                     placeholder="Search by ISBN"
-                    value={filters.isbn || ""}
+                    value={filters.isbn || ''}
                     onChange={handleInputChange}
                   />
                 </div>
@@ -142,7 +152,7 @@ export function BookFilterSidebar({
                     id="publishedYear"
                     name="publishedYear"
                     placeholder="e.g. 2020"
-                    value={filters.publishedYear || ""}
+                    value={filters.publishedYear || ''}
                     onChange={handleInputChange}
                   />
                 </div>
@@ -155,17 +165,24 @@ export function BookFilterSidebar({
         <div className="border rounded-md">
           <button
             className="w-full flex items-center justify-between p-3 text-sm font-medium"
-            onClick={() => toggleSection("format")}
+            onClick={() => toggleSection('format')}
           >
             <span>Format & Type</span>
-            {expanded.format ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            {expanded.format ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
           </button>
           {expanded.format && (
             <div className="p-3 border-t space-y-3">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="language">Language</Label>
-                  <Select value={filters.language || ""} onValueChange={(value) => handleSelectChange("language", value)}>
+                  <Select
+                    value={filters.language || ''}
+                    onValueChange={(value) => handleSelectChange('language', value)}
+                  >
                     <SelectTrigger id="language">
                       <SelectValue placeholder="All languages" />
                     </SelectTrigger>
@@ -181,7 +198,10 @@ export function BookFilterSidebar({
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="genre">Genre</Label>
-                  <Select value={filters.genre || ""} onValueChange={(value) => handleSelectChange("genre", value)}>
+                  <Select
+                    value={filters.genre || ''}
+                    onValueChange={(value) => handleSelectChange('genre', value)}
+                  >
                     <SelectTrigger id="genre">
                       <SelectValue placeholder="All genres" />
                     </SelectTrigger>
@@ -197,7 +217,10 @@ export function BookFilterSidebar({
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="format">Format</Label>
-                  <Select value={filters.format || ""} onValueChange={(value) => handleSelectChange("format", value)}>
+                  <Select
+                    value={filters.format || ''}
+                    onValueChange={(value) => handleSelectChange('format', value)}
+                  >
                     <SelectTrigger id="format">
                       <SelectValue placeholder="All formats" />
                     </SelectTrigger>
@@ -213,7 +236,10 @@ export function BookFilterSidebar({
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="binding">Binding</Label>
-                  <Select value={filters.binding || ""} onValueChange={(value) => handleSelectChange("binding", value)}>
+                  <Select
+                    value={filters.binding || ''}
+                    onValueChange={(value) => handleSelectChange('binding', value)}
+                  >
                     <SelectTrigger id="binding">
                       <SelectValue placeholder="All bindings" />
                     </SelectTrigger>
@@ -236,10 +262,14 @@ export function BookFilterSidebar({
         <div className="border rounded-md">
           <button
             className="w-full flex items-center justify-between p-3 text-sm font-medium"
-            onClick={() => toggleSection("rating")}
+            onClick={() => toggleSection('rating')}
           >
             <span>Rating</span>
-            {expanded.rating ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            {expanded.rating ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
           </button>
           {expanded.rating && (
             <div className="p-3 border-t space-y-3">
@@ -265,10 +295,14 @@ export function BookFilterSidebar({
         <div className="border rounded-md">
           <button
             className="w-full flex items-center justify-between p-3 text-sm font-medium"
-            onClick={() => toggleSection("advanced")}
+            onClick={() => toggleSection('advanced')}
           >
             <span>Advanced Filters</span>
-            {expanded.advanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            {expanded.advanced ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
           </button>
           {expanded.advanced && (
             <div className="p-3 border-t space-y-3">
@@ -279,13 +313,16 @@ export function BookFilterSidebar({
                     id="publishedYear"
                     name="publishedYear"
                     placeholder="e.g. 2023"
-                    value={filters.publishedYear || ""}
+                    value={filters.publishedYear || ''}
                     onChange={handleInputChange}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="status">Status</Label>
-                  <Select value={filters.status || ""} onValueChange={(value) => handleSelectChange("status", value)}>
+                  <Select
+                    value={filters.status || ''}
+                    onValueChange={(value) => handleSelectChange('status', value)}
+                  >
                     <SelectTrigger id="status">
                       <SelectValue placeholder="All statuses" />
                     </SelectTrigger>

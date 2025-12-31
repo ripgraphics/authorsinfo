@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper'
 
-
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClientAsync()
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
     if (authError || !user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
@@ -28,14 +30,12 @@ export async function POST(request: NextRequest) {
       .maybeSingle()
 
     if (!existing) {
-      const { error: insertError } = await (supabase
-        .from('activity_log') as any)
-        .insert({
-          user_id: user.id,
-          action: 'hide_comment',
-          target_type: 'comment',
-          target_id: commentId
-        })
+      const { error: insertError } = await (supabase.from('activity_log') as any).insert({
+        user_id: user.id,
+        action: 'hide_comment',
+        target_type: 'comment',
+        target_id: commentId,
+      })
 
       if (insertError) {
         return NextResponse.json({ error: insertError.message }, { status: 500 })
@@ -44,8 +44,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 })
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    )
   }
 }
-
-

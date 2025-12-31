@@ -1,7 +1,7 @@
-"use client"
+'use client'
 
-import React from "react"
-import { Button } from "@/components/ui/button"
+import React from 'react'
+import { Button } from '@/components/ui/button'
 
 interface ExpandableSectionProps {
   expanded?: boolean
@@ -26,13 +26,13 @@ interface ExpandableSectionProps {
 export const ExpandableSection: React.FC<ExpandableSectionProps> = ({
   expanded: controlledExpanded,
   onToggle: controlledOnToggle,
-  maxHeight,
-  className = "",
+  maxHeight: _maxHeight,
+  className = '',
   children,
-  viewMoreText = "View More",
-  viewLessText = "View Less",
-  fadeGradientClassName = "overview-section__fade-gradient absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent",
-  contentClassName = "overview-section__about-text text-base",
+  viewMoreText = 'View More',
+  viewLessText = 'View Less',
+  fadeGradientClassName = 'overview-section__fade-gradient absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent',
+  contentClassName = 'overview-section__about-text text-base',
   hideToggle = false,
   clipLines = 10,
   title,
@@ -54,16 +54,16 @@ export const ExpandableSection: React.FC<ExpandableSectionProps> = ({
       <div
         className={[
           contentClassName,
-          sidePanelStyle ? "pt-0" : "",
-          !expanded ? `line-clamp-${clipLines}` : ""
-        ].filter(Boolean).join(" ")}
+          sidePanelStyle ? 'pt-0' : '',
+          !expanded ? `line-clamp-${clipLines}` : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
         aria-expanded={expanded}
       >
-        <div className={expanded ? "whitespace-pre-wrap" : ""}>
-          {children}
-        </div>
+        <div className={expanded ? 'whitespace-pre-wrap' : ''}>{children}</div>
         {!expanded && (
-          <div className={fadeGradientClassName} style={{ zIndex: 2, pointerEvents: "none" }} />
+          <div className={fadeGradientClassName} style={{ zIndex: 2, pointerEvents: 'none' }} />
         )}
       </div>
       {/* Toggle button below content, unless headerButton is present or hideToggle is true */}
@@ -80,4 +80,4 @@ export const ExpandableSection: React.FC<ExpandableSectionProps> = ({
       )}
     </div>
   )
-} 
+}

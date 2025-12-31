@@ -9,11 +9,11 @@ import EntityAvatar from '@/components/entity-avatar'
 import { useToast } from '@/hooks/use-toast'
 import { UserHoverCard } from '@/components/entity-hover-cards'
 import { EntityHoverCard } from '@/components/entity-hover-cards'
-import { 
-  Heart, 
-  MessageCircle, 
-  Share2, 
-  Download, 
+import {
+  Heart,
+  MessageCircle,
+  Share2,
+  Download,
   Send,
   MoreVertical,
   Reply,
@@ -23,13 +23,9 @@ import {
   Users,
   ThumbsUp,
   Smile,
-  Image as ImageIcon
+  Image as ImageIcon,
 } from 'lucide-react'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 
 interface Comment {
@@ -74,7 +70,7 @@ export default function EntityComments({
   entityAvatar,
   entityCreatedAt,
   isOwner,
-  entityDisplayInfo
+  entityDisplayInfo,
 }: EntityCommentsProps) {
   const [comments, setComments] = useState<Comment[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -96,7 +92,9 @@ export default function EntityComments({
   // Get current user
   const getCurrentUser = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
       if (user) {
         // Get user data from the users table
         const { data: userData } = await supabase
@@ -104,12 +102,12 @@ export default function EntityComments({
           .select('name, email')
           .eq('id', user.id)
           .single()
-        
+
         setCurrentUser({
           id: user.id,
           name: (userData as any)?.name || user.email,
           email: user.email,
-          avatar_url: (user as any)?.avatar_url || null
+          avatar_url: (user as any)?.avatar_url || null,
         })
       }
     } catch (error) {
@@ -174,17 +172,19 @@ export default function EntityComments({
           .select('id')
           .eq('follower_id', ownerId)
           .eq('following_id', currentUser.id)
-          .limit(1)
+          .limit(1),
       ])
 
       const isFollower = (youFollow?.length || 0) > 0
       const isFriend = isFollower && (theyFollow?.length || 0) > 0
-      const allowed = (
-        postingPolicy === 'public' ? true :
-        postingPolicy === 'followers' ? (isFollower || isFriend) :
-        postingPolicy === 'friends' ? isFriend :
-        false
-      )
+      const allowed =
+        postingPolicy === 'public'
+          ? true
+          : postingPolicy === 'followers'
+            ? isFollower || isFriend
+            : postingPolicy === 'friends'
+              ? isFriend
+              : false
       setCanComment(allowed)
     } catch (e) {
       console.warn('Permission check failed; defaulting to no composer')
@@ -195,20 +195,22 @@ export default function EntityComments({
   // Fetch comments
   const fetchComments = useCallback(async () => {
     if (!entityId || !entityType) return
-    
+
     setIsLoading(true)
     try {
       console.log('🔍 Fetching comments for:', { entityId, entityType })
-      
+
       // Use existing unified engagement API for all entities
-      const response = await fetch(`/api/engagement?entity_id=${entityId}&entity_type=${entityType}`)
+      const response = await fetch(
+        `/api/engagement?entity_id=${entityId}&entity_type=${entityType}`
+      )
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
-      
+
       const data = await response.json()
       console.log('🔍 EntityComments: Raw API response:', data)
-      
+
       if (data?.recent_comments && Array.isArray(data.recent_comments)) {
         console.log('🔍 EntityComments: Comments data from API:', data.recent_comments)
         // Map API shape from /api/engagement to component shape
@@ -223,7 +225,11 @@ export default function EntityComments({
           updated_at: c.updated_at,
           is_hidden: false,
           is_deleted: false,
-          user: { id: c.user?.id || c.user_id, name: c.user?.name || 'User', avatar_url: c.user?.avatar_url },
+          user: {
+            id: c.user?.id || c.user_id,
+            name: c.user?.name || 'User',
+            avatar_url: c.user?.avatar_url,
+          },
           replies: [],
         }))
         setComments(mapped)
@@ -231,18 +237,17 @@ export default function EntityComments({
         console.log('🔍 EntityComments: No comments data or invalid format:', data)
         setComments([])
       }
-      
+
       // Update engagement counts
       if (data.likes) {
         setLikeCount(data.likes.length || 0)
       }
-      
     } catch (error) {
       console.error('❌ Error fetching comments:', error)
       toast({
-        title: "Error",
-        description: "Failed to load comments",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to load comments',
+        variant: 'destructive',
       })
     } finally {
       setIsLoading(false)
@@ -252,7 +257,7 @@ export default function EntityComments({
   // Submit new comment
   const submitComment = useCallback(async () => {
     if (!newComment.trim() || !currentUser) return
-    
+
     setIsSubmitting(true)
     try {
       const response = await fetch('/api/engagement', {
@@ -264,8 +269,8 @@ export default function EntityComments({
           entity_id: entityId,
           entity_type: entityType,
           engagement_type: 'comment',
-          content: newComment.trim()
-        })
+          content: newComment.trim(),
+        }),
       })
 
       if (!response.ok) {
@@ -290,28 +295,27 @@ export default function EntityComments({
         user: {
           id: currentUser.id,
           name: currentUser.name,
-          avatar_url: currentUser.avatar_url
+          avatar_url: currentUser.avatar_url,
         },
         replies: [],
         reaction_count: 0,
-        user_reaction: undefined
+        user_reaction: undefined,
       }
 
-      setComments(prev => [newCommentObj, ...prev])
+      setComments((prev) => [newCommentObj, ...prev])
       setNewComment('')
-      
-      toast({
-        title: "Comment posted!",
-        description: "Your comment has been added",
-        variant: "default"
-      })
 
+      toast({
+        title: 'Comment posted!',
+        description: 'Your comment has been added',
+        variant: 'default',
+      })
     } catch (error) {
       console.error('❌ Error submitting comment:', error)
       toast({
-        title: "Error",
-        description: "Failed to post comment. Please try again.",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to post comment. Please try again.',
+        variant: 'destructive',
       })
     } finally {
       setIsSubmitting(false)
@@ -319,98 +323,102 @@ export default function EntityComments({
   }, [newComment, currentUser, entityType, entityId, toast])
 
   // Handle reply submission
-  const submitReply = useCallback(async (parentCommentId: string) => {
-    if (!replyContent.trim() || !currentUser) return
-    
-    try {
-      const response = await fetch('/api/engagement', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          entity_id: entityId,
-          entity_type: entityType,
-          engagement_type: 'comment',
-          content: replyContent.trim(),
-          parent_id: parentCommentId
+  const submitReply = useCallback(
+    async (parentCommentId: string) => {
+      if (!replyContent.trim() || !currentUser) return
+
+      try {
+        const response = await fetch('/api/engagement', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            entity_id: entityId,
+            entity_type: entityType,
+            engagement_type: 'comment',
+            content: replyContent.trim(),
+            parent_id: parentCommentId,
+          }),
         })
-      })
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const result = await response.json()
-      console.log('✅ Reply submitted:', result)
-
-      // Add new reply to local state
-      const newReply: Comment = {
-        id: result.comment_id || `reply-${Date.now()}`,
-        user_id: currentUser.id,
-        entity_type: entityType,
-        entity_id: entityId,
-        content: replyContent.trim(),
-        parent_id: parentCommentId,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        is_hidden: false,
-        is_deleted: false,
-        user: {
-          id: currentUser.id,
-          name: currentUser.name,
-          avatar_url: currentUser.avatar_url
-        },
-        replies: [],
-        reaction_count: 0,
-        user_reaction: undefined
-      }
-
-      // Update comments with new reply
-      setComments(prev => prev.map(comment => {
-        if (comment.id === parentCommentId) {
-          return {
-            ...comment,
-            replies: [...(comment.replies || []), newReply]
-          }
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
         }
-        return comment
-      }))
 
-      setReplyContent('')
-      setReplyingTo(null)
-      
-      toast({
-        title: "Reply posted!",
-        description: "Your reply has been added",
-        variant: "default"
-      })
+        const result = await response.json()
+        console.log('✅ Reply submitted:', result)
 
-    } catch (error) {
-      console.error('❌ Error submitting reply:', error)
-      toast({
-        title: "Error",
-        description: "Failed to post reply. Please try again.",
-        variant: "destructive"
-      })
-    }
-  }, [replyContent, currentUser, entityType, entityId, toast])
+        // Add new reply to local state
+        const newReply: Comment = {
+          id: result.comment_id || `reply-${Date.now()}`,
+          user_id: currentUser.id,
+          entity_type: entityType,
+          entity_id: entityId,
+          content: replyContent.trim(),
+          parent_id: parentCommentId,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          is_hidden: false,
+          is_deleted: false,
+          user: {
+            id: currentUser.id,
+            name: currentUser.name,
+            avatar_url: currentUser.avatar_url,
+          },
+          replies: [],
+          reaction_count: 0,
+          user_reaction: undefined,
+        }
+
+        // Update comments with new reply
+        setComments((prev) =>
+          prev.map((comment) => {
+            if (comment.id === parentCommentId) {
+              return {
+                ...comment,
+                replies: [...(comment.replies || []), newReply],
+              }
+            }
+            return comment
+          })
+        )
+
+        setReplyContent('')
+        setReplyingTo(null)
+
+        toast({
+          title: 'Reply posted!',
+          description: 'Your reply has been added',
+          variant: 'default',
+        })
+      } catch (error) {
+        console.error('❌ Error submitting reply:', error)
+        toast({
+          title: 'Error',
+          description: 'Failed to post reply. Please try again.',
+          variant: 'destructive',
+        })
+      }
+    },
+    [replyContent, currentUser, entityType, entityId, toast]
+  )
 
   // Format timestamp
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp)
     const now = new Date()
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
-    
+
     if (diffInSeconds < 60) return 'Just now'
     if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`
     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`
     if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d ago`
-    
+
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
     })
   }
 
@@ -463,7 +471,13 @@ export default function EntityComments({
           <div className="entity-comment-input-container flex items-center gap-3">
             {/* User Avatar */}
             <div className="entity-comment-avatar flex-shrink-0">
-              <EntityAvatar type="user" id={currentUser.id} name={currentUser.name || currentUser.email} src={currentUser.avatar_url} size="sm" />
+              <EntityAvatar
+                type="user"
+                id={currentUser.id}
+                name={currentUser.name || currentUser.email}
+                src={currentUser.avatar_url}
+                size="sm"
+              />
             </div>
 
             {/* Inline pill input with right-side quick icons */}
@@ -512,7 +526,12 @@ export default function EntityComments({
               </div>
 
               {/* Hidden file input for images */}
-              <input id="entity-comment-file-input" type="file" accept="image/*" className="hidden" />
+              <input
+                id="entity-comment-file-input"
+                type="file"
+                accept="image/*"
+                className="hidden"
+              />
 
               {/* Submit */}
               <Button
@@ -529,7 +548,9 @@ export default function EntityComments({
       )}
       {currentUser && !canComment && (
         <div className="px-4 py-3 border-b border-gray-100">
-          <p className="text-xs text-gray-500">You cannot comment on this post due to the owner's privacy settings.</p>
+          <p className="text-xs text-gray-500">
+            You cannot comment on this post due to the owner's privacy settings.
+          </p>
         </div>
       )}
 
@@ -553,14 +574,25 @@ export default function EntityComments({
                 <div className="entity-comment-content flex items-start gap-3">
                   {/* Comment Avatar */}
                   <div className="entity-comment-avatar flex-shrink-0">
-                    <EntityAvatar type="user" id={comment.user.id} name={comment.user.name} src={comment.user.avatar_url} size="sm" />
+                    <EntityAvatar
+                      type="user"
+                      id={comment.user.id}
+                      name={comment.user.name}
+                      src={comment.user.avatar_url}
+                      size="sm"
+                    />
                   </div>
 
                   {/* Comment Details */}
                   <div className="entity-comment-details flex-1 min-w-0">
                     {/* Comment Header */}
                     <div className="entity-comment-header flex items-center gap-2 mb-1">
-                      <EntityName type="user" id={comment.user.id} name={comment.user.name} className="entity-comment-author font-medium text-sm text-gray-900" />
+                      <EntityName
+                        type="user"
+                        id={comment.user.id}
+                        name={comment.user.name}
+                        className="entity-comment-author font-medium text-sm text-gray-900"
+                      />
                       <span className="entity-comment-timestamp text-xs text-gray-500">
                         {formatTimestamp(comment.created_at)}
                       </span>
@@ -602,7 +634,13 @@ export default function EntityComments({
                       <div className="entity-reply-input mt-3">
                         <div className="entity-reply-input-container flex items-start gap-2">
                           <div className="entity-reply-avatar flex-shrink-0">
-                            <EntityAvatar type="user" id={currentUser?.id as string} name={currentUser?.name || currentUser?.email} src={currentUser?.avatar_url} size="xs" />
+                            <EntityAvatar
+                              type="user"
+                              id={currentUser?.id as string}
+                              name={currentUser?.name || currentUser?.email}
+                              src={currentUser?.avatar_url}
+                              size="xs"
+                            />
                           </div>
 
                           <div className="entity-reply-input-area flex-1">
@@ -614,7 +652,7 @@ export default function EntityComments({
                               rows={1}
                               onKeyDown={handleReplyKeyDown}
                             />
-                            
+
                             <div className="entity-reply-submit mt-2 flex justify-end gap-2">
                               <Button
                                 variant="ghost"
@@ -645,15 +683,29 @@ export default function EntityComments({
                     {comment.replies && comment.replies.length > 0 && (
                       <div className="entity-comment-replies mt-3 ml-8 space-y-2">
                         {comment.replies.map((reply) => (
-                          <div key={reply.id} className="entity-reply-item bg-gray-50 rounded-lg p-2">
+                          <div
+                            key={reply.id}
+                            className="entity-reply-item bg-gray-50 rounded-lg p-2"
+                          >
                             <div className="entity-reply-content flex items-start gap-2">
                               <div className="entity-reply-avatar flex-shrink-0">
-                                <EntityAvatar type="user" id={reply.user.id} name={reply.user.name} src={reply.user.avatar_url} size="xs" />
+                                <EntityAvatar
+                                  type="user"
+                                  id={reply.user.id}
+                                  name={reply.user.name}
+                                  src={reply.user.avatar_url}
+                                  size="xs"
+                                />
                               </div>
 
                               <div className="entity-reply-details flex-1 min-w-0">
                                 <div className="entity-reply-header flex items-center gap-2 mb-1">
-                                  <EntityName type="user" id={reply.user.id} name={reply.user.name} className="entity-reply-author font-medium text-xs text-gray-900" />
+                                  <EntityName
+                                    type="user"
+                                    id={reply.user.id}
+                                    name={reply.user.name}
+                                    className="entity-reply-author font-medium text-xs text-gray-900"
+                                  />
                                   <span className="entity-reply-timestamp text-xs text-gray-500">
                                     {formatTimestamp(reply.created_at)}
                                   </span>
@@ -677,4 +729,4 @@ export default function EntityComments({
       </div>
     </div>
   )
-} 
+}

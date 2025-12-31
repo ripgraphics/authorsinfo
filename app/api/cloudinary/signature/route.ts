@@ -1,5 +1,5 @@
-import { type NextRequest, NextResponse } from "next/server"
-import crypto from "crypto"
+import { type NextRequest, NextResponse } from 'next/server'
+import crypto from 'crypto'
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,9 +9,9 @@ export async function POST(request: NextRequest) {
     console.log('Signature request received for folder:', folder)
 
     // Validate the folder path to prevent directory traversal attacks
-    if (!folder || typeof folder !== "string" || !folder.match(/^[a-zA-Z0-9_/-]+$/)) {
+    if (!folder || typeof folder !== 'string' || !folder.match(/^[a-zA-Z0-9_/-]+$/)) {
       console.log('Invalid folder path:', folder)
-      return NextResponse.json({ error: "Invalid folder path" }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid folder path' }, { status: 400 })
     }
 
     // Create the full folder path
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 
     if (!cloudName || !apiKey || !apiSecret) {
       console.error('Missing Cloudinary credentials')
-      return NextResponse.json({ error: "Cloudinary credentials not configured" }, { status: 500 })
+      return NextResponse.json({ error: 'Cloudinary credentials not configured' }, { status: 500 })
     }
 
     // Generate a timestamp for the signature
@@ -54,10 +54,10 @@ export async function POST(request: NextRequest) {
     const signatureString =
       Object.entries(sortedParams)
         .map(([key, value]) => `${key}=${value}`)
-        .join("&") + apiSecret
+        .join('&') + apiSecret
 
     // Generate the signature
-    const signature = crypto.createHash("sha1").update(signatureString).digest("hex")
+    const signature = crypto.createHash('sha1').update(signatureString).digest('hex')
 
     console.log('Generated signature successfully')
 
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       cloudName,
     })
   } catch (error) {
-    console.error("Error generating Cloudinary signature:", error)
-    return NextResponse.json({ error: "Failed to generate signature" }, { status: 500 })
+    console.error('Error generating Cloudinary signature:', error)
+    return NextResponse.json({ error: 'Failed to generate signature' }, { status: 500 })
   }
-} 
+}

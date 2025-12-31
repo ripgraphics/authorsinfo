@@ -1,47 +1,49 @@
-import { Button } from "@/components/ui/button"
-import { supabaseAdmin } from "@/lib/supabase/server"
-import { Card, CardContent } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from '@/components/ui/button'
+import { supabaseAdmin } from '@/lib/supabase/server'
+import { Card, CardContent } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 async function getStatistics() {
   try {
     // Get all books with their binding types
     const { data: booksWithBindingTypes, error: bindingError } = await supabaseAdmin
-      .from("books")
-      .select("binding_type_id")
-      .not("binding_type_id", "is", null)
+      .from('books')
+      .select('binding_type_id')
+      .not('binding_type_id', 'is', null)
 
     if (bindingError) {
-      console.error("Error fetching binding stats:", bindingError)
+      console.error('Error fetching binding stats:', bindingError)
       return { bindingTypesWithNames: [], formatTypesWithNames: [] }
     }
 
     // Get all books with their format types
     const { data: booksWithFormatTypes, error: formatError } = await supabaseAdmin
-      .from("books")
-      .select("format_type_id")
-      .not("format_type_id", "is", null)
+      .from('books')
+      .select('format_type_id')
+      .not('format_type_id', 'is', null)
 
     if (formatError) {
-      console.error("Error fetching format stats:", formatError)
+      console.error('Error fetching format stats:', formatError)
       return { bindingTypesWithNames: [], formatTypesWithNames: [] }
     }
 
     // Get binding types
     const { data: bindingTypes, error: bindingTypesError } = await supabaseAdmin
-      .from("binding_types")
-      .select("id, name")
+      .from('binding_types')
+      .select('id, name')
 
     if (bindingTypesError) {
-      console.error("Error fetching binding types:", bindingTypesError)
+      console.error('Error fetching binding types:', bindingTypesError)
       return { bindingTypesWithNames: [], formatTypesWithNames: [] }
     }
 
     // Get format types
-    const { data: formatTypes, error: formatTypesError } = await supabaseAdmin.from("format_types").select("id, name")
+    const { data: formatTypes, error: formatTypesError } = await supabaseAdmin
+      .from('format_types')
+      .select('id, name')
 
     if (formatTypesError) {
-      console.error("Error fetching format types:", formatTypesError)
+      console.error('Error fetching format types:', formatTypesError)
       return { bindingTypesWithNames: [], formatTypesWithNames: [] }
     }
 
@@ -88,7 +90,7 @@ async function getStatistics() {
       formatTypesWithNames,
     }
   } catch (error) {
-    console.error("Error in getStatistics:", error)
+    console.error('Error in getStatistics:', error)
     return { bindingTypesWithNames: [], formatTypesWithNames: [] }
   }
 }

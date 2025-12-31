@@ -161,10 +161,10 @@ interface EnterprisePhotoGalleryProps {
   premiumFeatures?: boolean
 }
 
-export function EnterprisePhotoGallery({ 
-  entityId, 
-  entityType, 
-  initialAlbumId, 
+export function EnterprisePhotoGallery({
+  entityId,
+  entityType,
+  initialAlbumId,
   isEditable = true,
   showStats = true,
   showShare = true,
@@ -178,7 +178,7 @@ export function EnterprisePhotoGallery({
   enableAnalytics = true,
   enableCommunity = true,
   enableAI = true,
-  premiumFeatures = false
+  premiumFeatures = false,
 }: EnterprisePhotoGalleryProps) {
   const [currentAlbumId, setCurrentAlbumId] = useState<string | undefined>(initialAlbumId)
   const [albumState, setAlbumState] = useState<EnterpriseAlbumState>({
@@ -192,22 +192,24 @@ export function EnterprisePhotoGallery({
       total_shares: 0,
       total_revenue: 0,
       engagement_rate: 0,
-      viral_score: 0
+      viral_score: 0,
     },
     monetization: {
       total_earnings: 0,
       premium_subscribers: 0,
-      revenue_share: 0
+      revenue_share: 0,
     },
     community: {
       active_followers: 0,
       total_interactions: 0,
-      community_score: 0
-    }
+      community_score: 0,
+    },
   })
   const [showCreateAlbum, setShowCreateAlbum] = useState(false)
   const [newAlbumName, setNewAlbumName] = useState('')
-  const [activeTab, setActiveTab] = useState<'gallery' | 'analytics' | 'monetization' | 'community'>('gallery')
+  const [activeTab, setActiveTab] = useState<
+    'gallery' | 'analytics' | 'monetization' | 'community'
+  >('gallery')
 
   const supabase = createBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -221,184 +223,218 @@ export function EnterprisePhotoGallery({
   const ai = usePhotoGalleryAI(currentAlbumId || '')
 
   // Load album and images with enterprise features
-  const loadAlbum = useCallback(async (albumId: string) => {
-    setAlbumState(prev => ({ ...prev, isLoading: true, error: null }))
+  const loadAlbum = useCallback(
+    async (albumId: string) => {
+      setAlbumState((prev) => ({ ...prev, isLoading: true, error: null }))
 
-    try {
-      // Get album details with enterprise features
-      const { data: album, error: albumError } = await supabase
-        .from('photo_albums')
-        .select('*')
-        .eq('id', albumId)
-        .eq('entity_id', entityId)
-        .eq('entity_type', entityType)
-        .is('deleted_at', null)
-        .single()
+      try {
+        // Get album details with enterprise features
+        const { data: album, error: albumError } = await supabase
+          .from('photo_albums')
+          .select('*')
+          .eq('id', albumId)
+          .eq('entity_id', entityId)
+          .eq('entity_type', entityType)
+          .is('deleted_at', null)
+          .single()
 
-      if (albumError) {
-        if (albumError.code === 'PGRST116') {
-          setCurrentAlbumId(undefined)
-          setAlbumState(prev => ({ 
-            ...prev, 
-            isLoading: false, 
-            album: null, 
-            images: [] 
-          }))
-          return
+        if (albumError) {
+          if (albumError.code === 'PGRST116') {
+            setCurrentAlbumId(undefined)
+            setAlbumState((prev) => ({
+              ...prev,
+              isLoading: false,
+              album: null,
+              images: [],
+            }))
+            return
+          }
+          throw albumError
         }
-        throw albumError
-      }
 
-      // Get album images with enterprise features
-      const { data: albumImages, error: imagesError } = await supabase
-        .from('album_images')
-        .select(`
+        // Get album images with enterprise features
+        const { data: albumImages, error: imagesError } = await supabase
+          .from('album_images')
+          .select(
+            `
           *,
           image:images(*)
-        `)
-        .eq('album_id', albumId)
-        .order('display_order', { ascending: true })
+        `
+          )
+          .eq('album_id', albumId)
+          .order('display_order', { ascending: true })
 
-      if (imagesError) throw imagesError
+        if (imagesError) throw imagesError
 
-      // Calculate enterprise analytics
-      const analyticsData = {
-        total_views: albumImages?.reduce((sum, ai: any) => sum + (ai.view_count || 0), 0) || 0,
-        total_likes: albumImages?.reduce((sum, ai: any) => sum + (ai.like_count || 0), 0) || 0,
-        total_shares: albumImages?.reduce((sum, ai: any) => sum + (ai.share_count || 0), 0) || 0,
-        total_revenue: albumImages?.reduce((sum, ai: any) => sum + (ai.revenue_generated || 0), 0) || 0,
-        engagement_rate: albumImages?.length ? 
-          ((albumImages.reduce((sum, ai: any) => sum + (ai.view_count || 0), 0) / albumImages.length) * 100) : 0,
-        viral_score: albumImages?.reduce((sum, ai: any) => sum + (ai.share_count || 0), 0) || 0
+        // Calculate enterprise analytics
+        const analyticsData = {
+          total_views: albumImages?.reduce((sum, ai: any) => sum + (ai.view_count || 0), 0) || 0,
+          total_likes: albumImages?.reduce((sum, ai: any) => sum + (ai.like_count || 0), 0) || 0,
+          total_shares: albumImages?.reduce((sum, ai: any) => sum + (ai.share_count || 0), 0) || 0,
+          total_revenue:
+            albumImages?.reduce((sum, ai: any) => sum + (ai.revenue_generated || 0), 0) || 0,
+          engagement_rate: albumImages?.length
+            ? (albumImages.reduce((sum, ai: any) => sum + (ai.view_count || 0), 0) /
+                albumImages.length) *
+              100
+            : 0,
+          viral_score: albumImages?.reduce((sum, ai: any) => sum + (ai.share_count || 0), 0) || 0,
+        }
+
+        // Calculate monetization metrics
+        const monetizationData = {
+          total_earnings:
+            albumImages?.reduce((sum, ai: any) => sum + (ai.revenue_generated || 0), 0) || 0,
+          premium_subscribers: (album as any)?.metadata?.premium_subscribers || 0,
+          revenue_share: (album as any)?.metadata?.revenue_share || 0,
+        }
+
+        // Calculate community metrics
+        const communityData = {
+          active_followers: (album as any)?.metadata?.active_followers || 0,
+          total_interactions: analyticsData.total_likes + analyticsData.total_shares,
+          community_score: (album as any)?.metadata?.community_score || 0,
+        }
+
+        setAlbumState({
+          isLoading: false,
+          error: null,
+          album,
+          images: albumImages || [],
+          analytics: analyticsData,
+          monetization: monetizationData,
+          community: communityData,
+        })
+
+        // Track analytics
+        if (enableAnalytics) {
+          analytics.trackView()
+        }
+      } catch (error) {
+        console.error('Error loading album:', error)
+        setAlbumState((prev) => ({
+          ...prev,
+          isLoading: false,
+          error: error instanceof Error ? error.message : 'Failed to load album',
+        }))
       }
-
-      // Calculate monetization metrics
-      const monetizationData = {
-        total_earnings: albumImages?.reduce((sum, ai: any) => sum + (ai.revenue_generated || 0), 0) || 0,
-        premium_subscribers: (album as any)?.metadata?.premium_subscribers || 0,
-        revenue_share: (album as any)?.metadata?.revenue_share || 0
-      }
-
-      // Calculate community metrics
-      const communityData = {
-        active_followers: (album as any)?.metadata?.active_followers || 0,
-        total_interactions: analyticsData.total_likes + analyticsData.total_shares,
-        community_score: (album as any)?.metadata?.community_score || 0
-      }
-
-      setAlbumState({
-        isLoading: false,
-        error: null,
-        album,
-        images: albumImages || [],
-        analytics: analyticsData,
-        monetization: monetizationData,
-        community: communityData
-      })
-
-      // Track analytics
-      if (enableAnalytics) {
-        analytics.trackView()
-      }
-
-    } catch (error) {
-      console.error('Error loading album:', error)
-      setAlbumState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: error instanceof Error ? error.message : 'Failed to load album'
-      }))
-    }
-  }, [supabase, entityId, entityType, analytics, enableAnalytics])
+    },
+    [supabase, entityId, entityType, analytics, enableAnalytics]
+  )
 
   // Create new album with enterprise features
-  const createAlbum = useCallback(async (name: string, description?: string): Promise<EnterprisePhotoAlbum> => {
-    try {
-      const { data, error } = await (supabase
-        .from('photo_albums') as any)
-        .insert({
-          name,
-          description,
-          owner_id: entityId,
-          entity_id: entityId,
-          entity_type: entityType,
-          is_public: false,
-          monetization_enabled: enableMonetization,
-          premium_content: premiumFeatures,
-          community_features: enableCommunity,
-          ai_enhanced: enableAI,
-          analytics_enabled: enableAnalytics,
-          metadata: {
-            total_images: 0,
-            total_size: 0,
-            last_modified: new Date().toISOString(),
-            premium_subscribers: 0,
-            revenue_share: 0,
-            active_followers: 0,
-            community_score: 0
-          }
-        })
-        .select()
-        .single()
+  const createAlbum = useCallback(
+    async (name: string, description?: string): Promise<EnterprisePhotoAlbum> => {
+      try {
+        const { data, error } = await (supabase.from('photo_albums') as any)
+          .insert({
+            name,
+            description,
+            owner_id: entityId,
+            entity_id: entityId,
+            entity_type: entityType,
+            is_public: false,
+            monetization_enabled: enableMonetization,
+            premium_content: premiumFeatures,
+            community_features: enableCommunity,
+            ai_enhanced: enableAI,
+            analytics_enabled: enableAnalytics,
+            metadata: {
+              total_images: 0,
+              total_size: 0,
+              last_modified: new Date().toISOString(),
+              premium_subscribers: 0,
+              revenue_share: 0,
+              active_followers: 0,
+              community_score: 0,
+            },
+          })
+          .select()
+          .single()
 
-      if (error) throw error
-      return data
-    } catch (error) {
-      console.error('Error creating album:', error)
-      throw error
-    }
-  }, [supabase, entityId, entityType, enableMonetization, premiumFeatures, enableCommunity, enableAI, enableAnalytics])
+        if (error) throw error
+        return data
+      } catch (error) {
+        console.error('Error creating album:', error)
+        throw error
+      }
+    },
+    [
+      supabase,
+      entityId,
+      entityType,
+      enableMonetization,
+      premiumFeatures,
+      enableCommunity,
+      enableAI,
+      enableAnalytics,
+    ]
+  )
 
   // Handle file upload with enterprise features
-  const handleFileUpload = useCallback(async (files: File[]) => {
-    console.log('Enterprise upload started with files:', files.length)
-    
-    try {
-      if (!currentAlbumId) {
-        console.log('Creating new enterprise album...')
-        const album = await createAlbum('Photo Album')
-        setCurrentAlbumId(album.id)
-        await loadAlbum(album.id)
-      }
+  const handleFileUpload = useCallback(
+    async (files: File[]) => {
+      console.log('Enterprise upload started with files:', files.length)
 
-      console.log('Uploading files to enterprise album:', currentAlbumId)
-
-      for (const file of files) {
-        try {
-          const result = await uploadPhoto(file, entityType, entityId, currentAlbumId)
-          
-          // AI analysis if enabled
-          if (enableAI && result.imageId) {
-            await ai.analyzeImage(result.imageId)
-          }
-
-          // Analytics tracking
-          if (enableAnalytics) {
-            analytics.trackUpload(result.imageId)
-          }
-
-          // Monetization tracking
-          if (enableMonetization) {
-            monetization.trackUpload(result.imageId)
-          }
-
-          console.log('Enterprise upload successful:', result)
-        } catch (error) {
-          console.error('Enterprise upload error:', error)
-          throw error
+      try {
+        if (!currentAlbumId) {
+          console.log('Creating new enterprise album...')
+          const album = await createAlbum('Photo Album')
+          setCurrentAlbumId(album.id)
+          await loadAlbum(album.id)
         }
-      }
 
-      // Reload album to get updated data
-      if (currentAlbumId) {
-        await loadAlbum(currentAlbumId)
-      }
+        console.log('Uploading files to enterprise album:', currentAlbumId)
 
-    } catch (error) {
-      console.error('Enterprise upload failed:', error)
-      throw error
-    }
-  }, [currentAlbumId, entityType, entityId, createAlbum, loadAlbum, ai, analytics, monetization, enableAI, enableAnalytics, enableMonetization])
+        for (const file of files) {
+          try {
+            const result = await uploadPhoto(file, entityType, entityId, currentAlbumId)
+
+            // AI analysis if enabled
+            if (enableAI && result.imageId) {
+              await ai.analyzeImage(result.imageId)
+            }
+
+            // Analytics tracking
+            if (enableAnalytics) {
+              analytics.trackUpload(result.imageId)
+            }
+
+            // Monetization tracking
+            if (enableMonetization) {
+              monetization.trackUpload(result.imageId)
+            }
+
+            console.log('Enterprise upload successful:', result)
+          } catch (error) {
+            console.error('Enterprise upload error:', error)
+            throw error
+          }
+        }
+
+        // Reload album to get updated data
+        if (currentAlbumId) {
+          await loadAlbum(currentAlbumId)
+        }
+      } catch (error) {
+        console.error('Enterprise upload failed:', error)
+        throw error
+      }
+    },
+    [
+      currentAlbumId,
+      entityType,
+      entityId,
+      createAlbum,
+      loadAlbum,
+      ai,
+      analytics,
+      monetization,
+      enableAI,
+      enableAnalytics,
+      enableMonetization,
+    ]
+  )
 
   // Handle album creation
   const handleCreateAlbum = useCallback(async () => {
@@ -438,10 +474,7 @@ export function EnterprisePhotoGallery({
           showShare={showShare}
           onUpload={handleFileUpload}
         />
-        <PhotoGalleryEmpty
-          isEditable={isEditable}
-          onUpload={handleFileUpload}
-        />
+        <PhotoGalleryEmpty isEditable={isEditable} onUpload={handleFileUpload} />
       </div>
     )
   }
@@ -451,7 +484,7 @@ export function EnterprisePhotoGallery({
       <div className="enterprise-photo-gallery-empty">
         <div className="enterprise-photo-gallery-empty-icon">📸</div>
         <div className="enterprise-photo-gallery-empty-text">No album selected</div>
-        <button 
+        <button
           className="enterprise-photo-gallery-button"
           onClick={() => setShowCreateAlbum(true)}
         >
@@ -475,14 +508,14 @@ export function EnterprisePhotoGallery({
 
       {/* Enterprise Tab Navigation */}
       <div className="enterprise-tab-navigation">
-        <button 
+        <button
           className={`enterprise-tab ${activeTab === 'gallery' ? 'active' : ''}`}
           onClick={() => setActiveTab('gallery')}
         >
           Gallery
         </button>
         {showAnalytics && enableAnalytics && (
-          <button 
+          <button
             className={`enterprise-tab ${activeTab === 'analytics' ? 'active' : ''}`}
             onClick={() => setActiveTab('analytics')}
           >
@@ -490,7 +523,7 @@ export function EnterprisePhotoGallery({
           </button>
         )}
         {showMonetization && enableMonetization && (
-          <button 
+          <button
             className={`enterprise-tab ${activeTab === 'monetization' ? 'active' : ''}`}
             onClick={() => setActiveTab('monetization')}
           >
@@ -498,7 +531,7 @@ export function EnterprisePhotoGallery({
           </button>
         )}
         {showCommunity && enableCommunity && (
-          <button 
+          <button
             className={`enterprise-tab ${activeTab === 'community' ? 'active' : ''}`}
             onClick={() => setActiveTab('community')}
           >
@@ -508,15 +541,12 @@ export function EnterprisePhotoGallery({
       </div>
 
       {/* Tab Content */}
-      {activeTab === 'gallery' && (
-        albumState.images.length === 0 ? (
-          <PhotoGalleryEmpty
-            isEditable={isEditable}
-            onUpload={handleFileUpload}
-          />
+      {activeTab === 'gallery' &&
+        (albumState.images.length === 0 ? (
+          <PhotoGalleryEmpty isEditable={isEditable} onUpload={handleFileUpload} />
         ) : (
           <PhotoGalleryGrid
-            images={albumState.images.map(ai => ({
+            images={albumState.images.map((ai) => ({
               id: ai.image?.id || ai.image_id,
               url: ai.image?.url || '',
               filename: ai.image?.original_filename || 'image',
@@ -533,7 +563,7 @@ export function EnterprisePhotoGallery({
                 revenue_generated: ai.revenue_generated,
                 ai_tags: ai.ai_tags,
                 community_engagement: ai.community_engagement,
-                ...(ai.image?.metadata || {})
+                ...(ai.image?.metadata || {}),
               },
               albumId: ai.album_id,
               entityType: entityType,
@@ -543,7 +573,7 @@ export function EnterprisePhotoGallery({
               isFeatured: ai.is_featured,
               displayOrder: ai.display_order,
               createdAt: ai.image?.created_at || ai.created_at,
-              updatedAt: ai.image?.updated_at || ai.updated_at
+              updatedAt: ai.image?.updated_at || ai.updated_at,
             }))}
             gridCols={3}
             isEditable={isEditable}
@@ -570,26 +600,19 @@ export function EnterprisePhotoGallery({
               }
             }}
           />
-        )
-      )}
+        ))}
 
       {activeTab === 'analytics' && showAnalytics && enableAnalytics && (
-        <PhotoGalleryAnalytics
-          analytics={albumState.analytics}
-        />
+        <PhotoGalleryAnalytics analytics={albumState.analytics} />
       )}
 
       {activeTab === 'monetization' && showMonetization && enableMonetization && (
-        <PhotoGalleryMonetization
-          monetization={albumState.monetization}
-        />
+        <PhotoGalleryMonetization monetization={albumState.monetization} />
       )}
 
       {activeTab === 'community' && showCommunity && enableCommunity && (
-        <PhotoGalleryCommunity
-          community={albumState.community}
-        />
+        <PhotoGalleryCommunity community={albumState.community} />
       )}
     </div>
   )
-} 
+}

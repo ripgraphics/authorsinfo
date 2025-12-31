@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabaseClient } from '@/lib/supabase/client'
 
-export type GroupPermission = 
+export type GroupPermission =
   | 'manage_group'
   | 'manage_members'
   | 'manage_content'
@@ -59,7 +59,7 @@ export function useGroupPermissions(groupId: string | null, userId?: string) {
 
       try {
         console.log('Loading permissions for user:', userId, 'in group:', groupId)
-        
+
         // First check if user is the group creator
         const { data: groupData, error: groupError } = await supabaseClient
           .from('groups')
@@ -76,7 +76,19 @@ export function useGroupPermissions(groupId: string | null, userId?: string) {
         // If user is creator, they automatically have all permissions
         if (isGroupCreator) {
           setIsMember(true)
-          setPermissions(['manage_group', 'manage_members', 'manage_content', 'view_content', 'create_content', 'delete_content', 'manage_roles', 'invite_members', 'remove_members', 'create_events', 'manage_events'])
+          setPermissions([
+            'manage_group',
+            'manage_members',
+            'manage_content',
+            'view_content',
+            'create_content',
+            'delete_content',
+            'manage_roles',
+            'invite_members',
+            'remove_members',
+            'create_events',
+            'manage_events',
+          ])
           setLoading(false)
           return
         }
@@ -90,7 +102,8 @@ export function useGroupPermissions(groupId: string | null, userId?: string) {
           .single()
 
         if (memberError) {
-          if (memberError.code === 'PGRST116') { // Record not found
+          if (memberError.code === 'PGRST116') {
+            // Record not found
             console.log('User is not a member of the group')
             setIsMember(false)
             setMembership(null)
@@ -107,20 +120,40 @@ export function useGroupPermissions(groupId: string | null, userId?: string) {
         setMembership(memberData)
 
         // Get role details and permissions
+        const roleId = (memberData as any).role_id
+
+        // If role_id is null or undefined, set default permissions for members
+        if (!roleId) {
+          console.log('No role_id found for member, using default member permissions')
+          setRole(null)
+          setPermissions(['view_content', 'create_content']) // Default member permissions
+          setLoading(false)
+          return
+        }
+
         const { data: roleData, error: roleError } = await supabaseClient
           .from('group_roles')
-          .select('*')
-          .eq('id', (memberData as any).role_id)
+          .select('id, name, display_name, permissions, is_default, created_at')
+          .eq('id', roleId)
           .single()
 
-        if (roleError) throw roleError
+        if (roleError) {
+          // If role doesn't exist, use default member permissions
+          console.warn('Role not found, using default member permissions:', roleError)
+          setRole(null)
+          setPermissions(['view_content', 'create_content']) // Default member permissions
+          setLoading(false)
+          return
+        }
 
         console.log('User role data:', roleData)
         setRole(roleData)
-        setPermissions((roleData as any).permissions)
+        setPermissions((roleData as any).permissions || ['view_content', 'create_content'])
       } catch (err: any) {
         console.error('Error loading group permissions:', err)
-        setError(err.message)
+        // Only set error message if it exists and is a string
+        const errorMessage = err?.message || err?.toString() || 'Unknown error occurred'
+        setError(typeof errorMessage === 'string' ? errorMessage : 'Error loading permissions')
       } finally {
         setLoading(false)
       }
@@ -163,6 +196,6 @@ export function useGroupPermissions(groupId: string | null, userId?: string) {
     isCreator,
     hasPermission,
     isOwner,
-    isAdmin
+    isAdmin,
   }
-} 
+}

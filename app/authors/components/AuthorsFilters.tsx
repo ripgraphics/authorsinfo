@@ -1,9 +1,15 @@
-"use client"
+'use client'
 
-import { useRouter, useSearchParams } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Filter } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Filter } from 'lucide-react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Sheet,
   SheetContent,
@@ -13,21 +19,21 @@ import {
   SheetTrigger,
   SheetFooter,
   SheetClose,
-} from "@/components/ui/sheet"
-import { Label } from "@/components/ui/label"
-import { ReusableSearch } from "@/components/ui/reusable-search"
+} from '@/components/ui/sheet'
+import { Label } from '@/components/ui/label'
+import { ReusableSearch } from '@/components/ui/reusable-search'
 
-export function AuthorsFilters({ 
-  search, 
-  nationality, 
+export function AuthorsFilters({
+  search,
+  nationality,
   sort,
   nationalities,
-  onSearchChange
-}: { 
-  search?: string, 
-  nationality?: string, 
-  sort?: string,
-  nationalities: string[],
+  onSearchChange,
+}: {
+  search?: string
+  nationality?: string
+  sort?: string
+  nationalities: string[]
   onSearchChange?: (value: string) => void
 }) {
   const router = useRouter()
@@ -76,9 +82,7 @@ export function AuthorsFilters({
         <SheetContent>
           <SheetHeader>
             <SheetTitle>Filters</SheetTitle>
-            <SheetDescription>
-              Filter authors by nationality and sort order.
-            </SheetDescription>
+            <SheetDescription>Filter authors by nationality and sort order.</SheetDescription>
           </SheetHeader>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
@@ -129,4 +133,4 @@ export function AuthorsFilters({
       </Sheet>
     </div>
   )
-} 
+}

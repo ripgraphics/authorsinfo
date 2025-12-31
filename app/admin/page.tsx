@@ -1,13 +1,13 @@
-import { Suspense } from "react"
-import { Book, User, Building2, Star } from "lucide-react"
-import { StatCard } from "@/components/admin/stat-card"
-import { BarChart as BarChartComponent } from "@/components/admin/bar-chart"
-import { ProgressList } from "@/components/admin/progress-list"
-import { RecentActivityList } from "@/components/admin/recent-activity-list"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
+import { Suspense } from 'react'
+import { Book, User, Building2, Star } from 'lucide-react'
+import { StatCard } from '@/components/admin/stat-card'
+import { BarChart as BarChartComponent } from '@/components/admin/bar-chart'
+import { ProgressList } from '@/components/admin/progress-list'
+import { RecentActivityList } from '@/components/admin/recent-activity-list'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   getContentStats,
   getRecentContent,
@@ -15,9 +15,9 @@ import {
   getPopularContent,
   getUserEngagementMetrics,
   getSystemHealthMetrics,
-} from "@/app/actions/admin-dashboard"
+} from '@/app/actions/admin-dashboard'
 
-export const dynamic = "force-dynamic"
+export const dynamic = 'force-dynamic'
 
 async function ContentStatsSection() {
   const stats = await getContentStats()
@@ -98,13 +98,13 @@ async function PopularContentSection() {
   const { topRatedBooks, mostReviewedBooks, prolificAuthors } = await getPopularContent()
 
   const topRatedData = topRatedBooks.map((book) => ({
-    label: book.title.length > 20 ? book.title.substring(0, 20) + "..." : book.title,
+    label: book.title.length > 20 ? book.title.substring(0, 20) + '...' : book.title,
     value: Number(book.average_rating) || 0,
     max: 5, // Max rating is 5
   }))
 
   const mostReviewedData = mostReviewedBooks.map((book) => ({
-    label: book.title.length > 20 ? book.title.substring(0, 20) + "..." : book.title,
+    label: book.title.length > 20 ? book.title.substring(0, 20) + '...' : book.title,
     value: Number(book.review_count) || 0,
   }))
 
@@ -142,12 +142,12 @@ async function UserEngagementSection() {
 
   const readingStatusData = readingStatusCounts.map((item) => ({
     label:
-      item.status === "want_to_read"
-        ? "Want to Read"
-        : item.status === "currently_reading"
-          ? "Reading"
-          : item.status === "read"
-            ? "Read"
+      item.status === 'want_to_read'
+        ? 'Want to Read'
+        : item.status === 'currently_reading'
+          ? 'Reading'
+          : item.status === 'read'
+            ? 'Read'
             : item.status,
     value: Number(item.count) || 0,
   }))
@@ -220,7 +220,7 @@ async function RecentActivitySection() {
   const bookItems = recentBooks.map((book) => ({
     id: book.id,
     title: book.title,
-    subtitle: "New book added",
+    subtitle: 'New book added',
     timestamp: book.created_at,
     icon: <Book className="h-4 w-4" />,
   }))
@@ -228,7 +228,7 @@ async function RecentActivitySection() {
   const authorItems = recentAuthors.map((author) => ({
     id: author.id,
     title: author.name,
-    subtitle: "New author added",
+    subtitle: 'New author added',
     timestamp: author.created_at,
     icon: <User className="h-4 w-4" />,
   }))
@@ -236,7 +236,7 @@ async function RecentActivitySection() {
   const publisherItems = recentPublishers.map((publisher) => ({
     id: publisher.id,
     title: publisher.name,
-    subtitle: "New publisher added",
+    subtitle: 'New publisher added',
     timestamp: publisher.created_at,
     icon: <Building2 className="h-4 w-4" />,
   }))
@@ -261,12 +261,13 @@ async function RecentActivitySection() {
 async function SystemHealthSection() {
   const result = await getSystemHealthMetrics()
   const storage = result.storage
-  const typedErrorLogs: Array<{ id: string; error_message: string; created_at: string }> = (result.errorLogs || []) as Array<{ id: string; error_message: string; created_at: string }>
+  const typedErrorLogs: Array<{ id: string; error_message: string; created_at: string }> =
+    (result.errorLogs || []) as Array<{ id: string; error_message: string; created_at: string }>
 
   const errorItems = typedErrorLogs.map((log) => ({
     id: log.id,
     title: log.error_message,
-    subtitle: "Error occurred",
+    subtitle: 'Error occurred',
     timestamp: log.created_at,
     icon: (
       <svg
@@ -502,7 +503,9 @@ export default function AdminPage() {
         </TabsContent>
       </Tabs>
 
-      <div className="text-center text-sm text-muted-foreground mt-8">Author&apos;s Info Admin Dashboard</div>
+      <div className="text-center text-sm text-muted-foreground mt-8">
+        Author&apos;s Info Admin Dashboard
+      </div>
     </div>
   )
 }

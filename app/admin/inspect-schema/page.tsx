@@ -1,7 +1,7 @@
-import { getTableColumns } from "@/app/actions/inspect-schema"
+import { getTableColumns } from '@/app/actions/inspect-schema'
 
 export default async function InspectSchemaPage() {
-  const { columns, error } = await getTableColumns("books")
+  const { columns, error } = await getTableColumns('books')
 
   if (error) {
     return (
@@ -13,7 +13,9 @@ export default async function InspectSchemaPage() {
   }
 
   // Filter for ISBN-related columns
-  const isbnColumns = columns.filter((col: { column_name: string }) => col.column_name.toLowerCase().includes("isbn"))
+  const isbnColumns = columns.filter((col: { column_name: string }) =>
+    col.column_name.toLowerCase().includes('isbn')
+  )
 
   return (
     <div className="p-6">
@@ -35,7 +37,7 @@ export default async function InspectSchemaPage() {
                 <tr key={column.column_name} className="border-b">
                   <td className="py-2 px-4">{column.column_name}</td>
                   <td className="py-2 px-4">{column.data_type}</td>
-                  <td className="py-2 px-4">{column.is_nullable === "YES" ? "Yes" : "No"}</td>
+                  <td className="py-2 px-4">{column.is_nullable === 'YES' ? 'Yes' : 'No'}</td>
                 </tr>
               ))}
             </tbody>
@@ -60,7 +62,7 @@ export default async function InspectSchemaPage() {
               <tr key={column.column_name} className="border-b">
                 <td className="py-2 px-4">{column.column_name}</td>
                 <td className="py-2 px-4">{column.data_type}</td>
-                <td className="py-2 px-4">{column.is_nullable === "YES" ? "Yes" : "No"}</td>
+                <td className="py-2 px-4">{column.is_nullable === 'YES' ? 'Yes' : 'No'}</td>
               </tr>
             ))}
           </tbody>

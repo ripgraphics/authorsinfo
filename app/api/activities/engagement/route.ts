@@ -6,19 +6,13 @@ export async function POST(request: Request) {
     const { activity_id, action } = await request.json()
 
     if (!activity_id || !action) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
     // Validate action type
     const validActions = ['like', 'comment', 'share']
     if (!validActions.includes(action)) {
-      return NextResponse.json(
-        { error: 'Invalid action type' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid action type' }, { status: 400 })
     }
 
     // Get current activity
@@ -29,10 +23,7 @@ export async function POST(request: Request) {
       .single()
 
     if (fetchError || !activity) {
-      return NextResponse.json(
-        { error: 'Activity not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Activity not found' }, { status: 404 })
     }
 
     // Update engagement count
@@ -46,9 +37,9 @@ export async function POST(request: Request) {
         {
           action,
           timestamp: new Date().toISOString(),
-          user_id: 'anonymous' // In a real app, this would be the authenticated user
-        }
-      ]
+          user_id: 'anonymous', // In a real app, this would be the authenticated user
+        },
+      ],
     }
 
     // Update the activity
@@ -59,23 +50,16 @@ export async function POST(request: Request) {
 
     if (updateError) {
       console.error('Error updating activity engagement:', updateError)
-      return NextResponse.json(
-        { error: 'Failed to update engagement' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Failed to update engagement' }, { status: 500 })
     }
 
     return NextResponse.json({
       success: true,
       engagement_count: newMetadata.engagement_count,
-      action
+      action,
     })
-
   } catch (error) {
     console.error('Error in engagement API:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-} 
+}

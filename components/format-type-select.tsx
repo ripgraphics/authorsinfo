@@ -1,12 +1,19 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-import { Check, ChevronsUpDown } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { supabaseClient } from "@/lib/supabase/client"
+import { useState, useEffect } from 'react'
+import { Check, ChevronsUpDown } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { supabaseClient } from '@/lib/supabase/client'
 
 interface FormatType {
   id: number
@@ -24,7 +31,7 @@ interface FormatTypeSelectProps {
 export function FormatTypeSelect({
   value,
   onChange,
-  placeholder = "Select format type",
+  placeholder = 'Select format type',
   disabled = false,
 }: FormatTypeSelectProps) {
   const [open, setOpen] = useState(false)
@@ -37,16 +44,16 @@ export function FormatTypeSelect({
     async function fetchFormatTypes() {
       try {
         setLoading(true)
-        const { data, error } = await supabaseClient.from("format_types").select("*").order("name")
+        const { data, error } = await supabaseClient.from('format_types').select('*').order('name')
 
         if (error) {
-          console.error("Error fetching format types:", error)
+          console.error('Error fetching format types:', error)
           return
         }
 
         setFormatTypes(data as FormatType[])
       } catch (error) {
-        console.error("Error in fetchFormatTypes:", error)
+        console.error('Error in fetchFormatTypes:', error)
       } finally {
         setLoading(false)
       }
@@ -64,16 +71,20 @@ export function FormatTypeSelect({
       }
 
       try {
-        const { data, error } = await supabaseClient.from("format_types").select("*").eq("id", value).single()
+        const { data, error } = await supabaseClient
+          .from('format_types')
+          .select('*')
+          .eq('id', value)
+          .single()
 
         if (error) {
-          console.error("Error fetching selected format type:", error)
+          console.error('Error fetching selected format type:', error)
           return
         }
 
         setSelectedFormatType(data as FormatType)
       } catch (error) {
-        console.error("Error in fetchSelectedFormatType:", error)
+        console.error('Error in fetchSelectedFormatType:', error)
       }
     }
 
@@ -109,7 +120,12 @@ export function FormatTypeSelect({
                     setOpen(false)
                   }}
                 >
-                  <Check className={cn("mr-2 h-4 w-4", value === formatType.id ? "opacity-100" : "opacity-0")} />
+                  <Check
+                    className={cn(
+                      'mr-2 h-4 w-4',
+                      value === formatType.id ? 'opacity-100' : 'opacity-0'
+                    )}
+                  />
                   {formatType.name}
                 </CommandItem>
               ))}

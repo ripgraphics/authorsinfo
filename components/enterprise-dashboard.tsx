@@ -5,11 +5,11 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
-import { 
-  BarChart3, 
-  TrendingUp, 
-  DollarSign, 
-  Users, 
+import {
+  BarChart3,
+  TrendingUp,
+  DollarSign,
+  Users,
   Crown,
   Zap,
   Shield,
@@ -19,7 +19,7 @@ import {
   Brain,
   Globe,
   Settings,
-  Rocket
+  Rocket,
 } from 'lucide-react'
 
 interface EnterpriseDashboardProps {
@@ -75,10 +75,10 @@ interface CommunityMetrics {
   viral_coefficient: number
 }
 
-export function EnterpriseDashboard({ 
-  entityId, 
-  entityType, 
-  entityName 
+export function EnterpriseDashboard({
+  entityId,
+  entityType,
+  entityName,
 }: EnterpriseDashboardProps) {
   const [metrics, setMetrics] = useState<EnterpriseMetrics | null>(null)
   const [aiInsights, setAiInsights] = useState<AIInsights | null>(null)
@@ -86,8 +86,11 @@ export function EnterpriseDashboard({
   const [communityMetrics, setCommunityMetrics] = useState<CommunityMetrics | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('overview')
-  
-  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   useEffect(() => {
     loadEnterpriseData()
@@ -103,8 +106,8 @@ export function EnterpriseDashboard({
         body: JSON.stringify({
           action: 'get_enterprise_insights',
           entityId,
-          entityType
-        })
+          entityType,
+        }),
       })
 
       if (response.ok) {
@@ -114,13 +117,12 @@ export function EnterpriseDashboard({
 
       // Load AI insights
       await loadAIInsights()
-      
+
       // Load monetization data
       await loadMonetizationData()
-      
+
       // Load community metrics
       await loadCommunityMetrics()
-
     } catch (error) {
       console.error('Error loading enterprise data:', error)
     } finally {
@@ -133,26 +135,27 @@ export function EnterpriseDashboard({
       const { data: aiAnalysis } = await supabase
         .from('ai_image_analysis')
         .select('*')
-        .in('image_id', 
-          (await supabase
-            .from('images')
-            .select('id')
-            .eq('entity_type_id', entityId)
-          ).data?.map(img => img.id) || []
+        .in(
+          'image_id',
+          (await supabase.from('images').select('id').eq('entity_type_id', entityId)).data?.map(
+            (img) => img.id
+          ) || []
         )
 
       if (aiAnalysis) {
         const insights: AIInsights = {
           total_analyses: aiAnalysis.length,
-          average_confidence: aiAnalysis.reduce((sum, analysis) => sum + (analysis.confidence_score || 0), 0) / aiAnalysis.length,
+          average_confidence:
+            aiAnalysis.reduce((sum, analysis) => sum + (analysis.confidence_score || 0), 0) /
+            aiAnalysis.length,
           top_tags: [],
           content_categories: {},
           quality_distribution: {},
-          sentiment_analysis: {}
+          sentiment_analysis: {},
         }
 
         // Process AI data
-        aiAnalysis.forEach(analysis => {
+        aiAnalysis.forEach((analysis) => {
           // Collect tags
           if (analysis.tags) {
             analysis.tags.forEach((tag: string) => {
@@ -164,24 +167,34 @@ export function EnterpriseDashboard({
           if (analysis.quality_metrics) {
             const quality = analysis.quality_metrics.quality_score || 0
             const qualityRange = quality < 0.5 ? 'low' : quality < 0.8 ? 'medium' : 'high'
-            insights.quality_distribution[qualityRange] = (insights.quality_distribution[qualityRange] || 0) + 1
+            insights.quality_distribution[qualityRange] =
+              (insights.quality_distribution[qualityRange] || 0) + 1
           }
 
           // Process sentiment
           if (analysis.sentiment_score !== undefined) {
-            const sentiment = analysis.sentiment_score < 0.3 ? 'negative' : analysis.sentiment_score < 0.7 ? 'neutral' : 'positive'
-            insights.sentiment_analysis[sentiment] = (insights.sentiment_analysis[sentiment] || 0) + 1
+            const sentiment =
+              analysis.sentiment_score < 0.3
+                ? 'negative'
+                : analysis.sentiment_score < 0.7
+                  ? 'neutral'
+                  : 'positive'
+            insights.sentiment_analysis[sentiment] =
+              (insights.sentiment_analysis[sentiment] || 0) + 1
           }
         })
 
         // Get top 10 tags
-        const tagCounts = insights.top_tags.reduce((acc, tag) => {
-          acc[tag] = (acc[tag] || 0) + 1
-          return acc
-        }, {} as Record<string, number>)
+        const tagCounts = insights.top_tags.reduce(
+          (acc, tag) => {
+            acc[tag] = (acc[tag] || 0) + 1
+            return acc
+          },
+          {} as Record<string, number>
+        )
 
         insights.top_tags = Object.entries(tagCounts)
-          .sort(([,a], [,b]) => b - a)
+          .sort(([, a], [, b]) => b - a)
           .slice(0, 10)
           .map(([tag]) => tag)
 
@@ -209,17 +222,27 @@ export function EnterpriseDashboard({
       if (transactions && subscriptions) {
         const totalEarnings = transactions.reduce((sum, tx) => sum + (tx.amount || 0), 0)
         const monthlyRevenue = transactions
-          .filter(tx => new Date(tx.created_at) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
+          .filter(
+            (tx) => new Date(tx.created_at) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+          )
           .reduce((sum, tx) => sum + (tx.amount || 0), 0)
 
         const monetizationData: MonetizationData = {
           total_earnings: totalEarnings,
           monthly_revenue: monthlyRevenue,
-          revenue_growth: monthlyRevenue > 0 ? ((monthlyRevenue - (totalEarnings - monthlyRevenue)) / (totalEarnings - monthlyRevenue)) * 100 : 0,
+          revenue_growth:
+            monthlyRevenue > 0
+              ? ((monthlyRevenue - (totalEarnings - monthlyRevenue)) /
+                  (totalEarnings - monthlyRevenue)) *
+                100
+              : 0,
           premium_subscribers: subscriptions.length,
-          average_subscription_value: subscriptions.length > 0 ? 
-            subscriptions.reduce((sum, sub) => sum + (sub.amount || 0), 0) / subscriptions.length : 0,
-          top_earning_images: []
+          average_subscription_value:
+            subscriptions.length > 0
+              ? subscriptions.reduce((sum, sub) => sum + (sub.amount || 0), 0) /
+                subscriptions.length
+              : 0,
+          top_earning_images: [],
         }
 
         setMonetizationData(monetizationData)
@@ -250,10 +273,18 @@ export function EnterpriseDashboard({
         const communityMetrics: CommunityMetrics = {
           active_followers: Math.floor(Math.random() * 1000) + 100, // Mock data
           total_interactions: interactions.length,
-          challenge_participants: challenges.reduce((sum, challenge) => sum + (challenge.current_participants || 0), 0),
+          challenge_participants: challenges.reduce(
+            (sum, challenge) => sum + (challenge.current_participants || 0),
+            0
+          ),
           awards_earned: awards.length,
-          community_engagement_rate: interactions.length > 0 ? (interactions.filter(i => i.interaction_type !== 'view').length / interactions.length) * 100 : 0,
-          viral_coefficient: Math.random() * 2 + 0.5 // Mock viral coefficient
+          community_engagement_rate:
+            interactions.length > 0
+              ? (interactions.filter((i) => i.interaction_type !== 'view').length /
+                  interactions.length) *
+                100
+              : 0,
+          viral_coefficient: Math.random() * 2 + 0.5, // Mock viral coefficient
         }
 
         setCommunityMetrics(communityMetrics)
@@ -271,8 +302,8 @@ export function EnterpriseDashboard({
         body: JSON.stringify({
           action: 'initialize_enterprise_features',
           entityId,
-          entityType
-        })
+          entityType,
+        }),
       })
 
       if (response.ok) {
@@ -317,9 +348,7 @@ export function EnterpriseDashboard({
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{metrics.total_images.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">
-                +12% from last month
-              </p>
+              <p className="text-xs text-muted-foreground">+12% from last month</p>
             </CardContent>
           </Card>
 
@@ -330,9 +359,7 @@ export function EnterpriseDashboard({
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">${metrics.total_revenue.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground">
-                +8.2% from last month
-              </p>
+              <p className="text-xs text-muted-foreground">+8.2% from last month</p>
             </CardContent>
           </Card>
 
@@ -344,7 +371,10 @@ export function EnterpriseDashboard({
             <CardContent>
               <div className="text-2xl font-bold">{metrics.ai_processed_images}</div>
               <p className="text-xs text-muted-foreground">
-                {metrics.total_images > 0 ? ((metrics.ai_processed_images / metrics.total_images) * 100).toFixed(1) : 0}% processed
+                {metrics.total_images > 0
+                  ? ((metrics.ai_processed_images / metrics.total_images) * 100).toFixed(1)
+                  : 0}
+                % processed
               </p>
             </CardContent>
           </Card>
@@ -448,13 +478,17 @@ export function EnterpriseDashboard({
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Average Confidence</span>
-                    <Badge variant="secondary">{(aiInsights.average_confidence * 100).toFixed(1)}%</Badge>
+                    <Badge variant="secondary">
+                      {(aiInsights.average_confidence * 100).toFixed(1)}%
+                    </Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Top Tags</span>
                     <div className="flex flex-wrap gap-1">
-                      {aiInsights.top_tags.slice(0, 3).map(tag => (
-                        <Badge key={tag} variant="outline" className="text-xs">{tag}</Badge>
+                      {aiInsights.top_tags.slice(0, 3).map((tag) => (
+                        <Badge key={tag} variant="outline" className="text-xs">
+                          {tag}
+                        </Badge>
                       ))}
                     </div>
                   </div>
@@ -498,12 +532,17 @@ export function EnterpriseDashboard({
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Monthly Revenue</span>
-                    <Badge variant="secondary">${monetizationData.monthly_revenue.toFixed(2)}</Badge>
+                    <Badge variant="secondary">
+                      ${monetizationData.monthly_revenue.toFixed(2)}
+                    </Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Revenue Growth</span>
-                    <Badge variant={monetizationData.revenue_growth > 0 ? "default" : "destructive"}>
-                      {monetizationData.revenue_growth > 0 ? '+' : ''}{monetizationData.revenue_growth.toFixed(1)}%
+                    <Badge
+                      variant={monetizationData.revenue_growth > 0 ? 'default' : 'destructive'}
+                    >
+                      {monetizationData.revenue_growth > 0 ? '+' : ''}
+                      {monetizationData.revenue_growth.toFixed(1)}%
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
@@ -523,11 +562,19 @@ export function EnterpriseDashboard({
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Avg Subscription Value</span>
-                    <Badge variant="secondary">${monetizationData.average_subscription_value.toFixed(2)}</Badge>
+                    <Badge variant="secondary">
+                      ${monetizationData.average_subscription_value.toFixed(2)}
+                    </Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Monthly Recurring Revenue</span>
-                    <Badge variant="secondary">${(monetizationData.premium_subscribers * monetizationData.average_subscription_value).toFixed(2)}</Badge>
+                    <Badge variant="secondary">
+                      $
+                      {(
+                        monetizationData.premium_subscribers *
+                        monetizationData.average_subscription_value
+                      ).toFixed(2)}
+                    </Badge>
                   </div>
                 </CardContent>
               </Card>
@@ -548,11 +595,15 @@ export function EnterpriseDashboard({
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Active Followers</span>
-                    <Badge variant="secondary">{communityMetrics.active_followers.toLocaleString()}</Badge>
+                    <Badge variant="secondary">
+                      {communityMetrics.active_followers.toLocaleString()}
+                    </Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Total Interactions</span>
-                    <Badge variant="secondary">{communityMetrics.total_interactions.toLocaleString()}</Badge>
+                    <Badge variant="secondary">
+                      {communityMetrics.total_interactions.toLocaleString()}
+                    </Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Challenge Participants</span>
@@ -575,11 +626,15 @@ export function EnterpriseDashboard({
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Engagement Rate</span>
-                    <Badge variant="secondary">{communityMetrics.community_engagement_rate.toFixed(1)}%</Badge>
+                    <Badge variant="secondary">
+                      {communityMetrics.community_engagement_rate.toFixed(1)}%
+                    </Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Viral Coefficient</span>
-                    <Badge variant="secondary">{communityMetrics.viral_coefficient.toFixed(2)}</Badge>
+                    <Badge variant="secondary">
+                      {communityMetrics.viral_coefficient.toFixed(2)}
+                    </Badge>
                   </div>
                 </CardContent>
               </Card>
@@ -705,4 +760,4 @@ export function EnterpriseDashboard({
       </Tabs>
     </div>
   )
-} 
+}

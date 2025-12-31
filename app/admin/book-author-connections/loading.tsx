@@ -1,6 +1,6 @@
-import { Skeleton } from "@/components/ui/skeleton"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { BookX, UserX, BookCheck, BarChart3 } from "lucide-react"
+import { Skeleton } from '@/components/ui/skeleton'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { BookX, UserX, BookCheck, BarChart3 } from 'lucide-react'
 
 export default function BookAuthorConnectionsLoading() {
   return (

@@ -1,9 +1,9 @@
-import { Suspense } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Camera, Search, Filter } from "lucide-react"
+import { Suspense } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Camera, Search, Filter } from 'lucide-react'
 import {
   Pagination,
   PaginationContent,
@@ -11,10 +11,16 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination"
-import { supabaseAdmin } from "@/lib/supabase/server"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+} from '@/components/ui/pagination'
+import { supabaseAdmin } from '@/lib/supabase/server'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Sheet,
   SheetContent,
@@ -24,8 +30,8 @@ import {
   SheetTrigger,
   SheetFooter,
   SheetClose,
-} from "@/components/ui/sheet"
-import { Label } from "@/components/ui/label"
+} from '@/components/ui/sheet'
+import { Label } from '@/components/ui/label'
 
 interface PhotosPageProps {
   searchParams: Promise<{
@@ -42,12 +48,12 @@ async function getUniqueCategories() {
     // Photos table doesn't exist - use images table instead
     // Get unique categories from image metadata if available
     const { data, error } = await supabaseAdmin
-      .from("images")
-      .select("metadata")
-      .not("metadata", "is", null)
+      .from('images')
+      .select('metadata')
+      .not('metadata', 'is', null)
 
     if (error) {
-      console.error("Error fetching photo categories:", error)
+      console.error('Error fetching photo categories:', error)
       return []
     }
 
@@ -64,7 +70,7 @@ async function getUniqueCategories() {
 
     return Array.from(categories).sort()
   } catch (error) {
-    console.error("Error fetching categories:", error)
+    console.error('Error fetching categories:', error)
     return []
   }
 }
@@ -84,7 +90,7 @@ async function PhotosList({
   const offset = (page - 1) * pageSize
 
   // Build the query - use images table instead of photos table
-  let query = supabaseAdmin.from("images").select("*")
+  let query = supabaseAdmin.from('images').select('*')
 
   // Apply search filter if provided
   if (search) {
@@ -92,24 +98,24 @@ async function PhotosList({
   }
 
   // Apply category filter if provided (check metadata.category)
-  if (category && category !== "all") {
+  if (category && category !== 'all') {
     // Since category is in metadata JSON, we need to filter differently
     // For now, we'll skip category filtering or implement JSON filtering
     // This is a limitation of PostgREST with JSON columns
   }
 
   // Apply sorting
-  if (sort === "title_asc") {
-    query = query.order("alt_text", { ascending: true })
-  } else if (sort === "title_desc") {
-    query = query.order("alt_text", { ascending: false })
-  } else if (sort === "created_at_asc") {
-    query = query.order("created_at", { ascending: true })
-  } else if (sort === "created_at_desc") {
-    query = query.order("created_at", { ascending: false })
+  if (sort === 'title_asc') {
+    query = query.order('alt_text', { ascending: true })
+  } else if (sort === 'title_desc') {
+    query = query.order('alt_text', { ascending: false })
+  } else if (sort === 'created_at_asc') {
+    query = query.order('created_at', { ascending: true })
+  } else if (sort === 'created_at_desc') {
+    query = query.order('created_at', { ascending: false })
   } else {
     // Default sorting
-    query = query.order("created_at", { ascending: false })
+    query = query.order('created_at', { ascending: false })
   }
 
   // Apply pagination
@@ -119,12 +125,12 @@ async function PhotosList({
   const { data: photos, error } = await query
 
   if (error) {
-    console.error("Error fetching photos:", error)
+    console.error('Error fetching photos:', error)
     return <div>Error loading photos</div>
   }
 
   // Get total count for pagination
-  let countQuery = supabaseAdmin.from("images").select("*", { count: "exact", head: true })
+  let countQuery = supabaseAdmin.from('images').select('*', { count: 'exact', head: true })
 
   if (search) {
     countQuery = countQuery.or(`alt_text.ilike.%${search}%,description.ilike.%${search}%`)
@@ -135,7 +141,7 @@ async function PhotosList({
   const { count, error: countError } = await countQuery
 
   if (countError) {
-    console.error("Error counting photos:", countError)
+    console.error('Error counting photos:', countError)
     return <div>Error loading photos</div>
   }
 
@@ -152,11 +158,11 @@ async function PhotosList({
           photos.map((photo) => (
             <Link href={`/photos/${photo.id}`} key={photo.id} className="block">
               <Card className="overflow-hidden h-full transition-transform hover:scale-105">
-                <div className="relative w-full" style={{ aspectRatio: "1/1" }}>
+                <div className="relative w-full" style={{ aspectRatio: '1/1' }}>
                   {photo.url ? (
                     <Image
-                      src={photo.url || "/placeholder.svg"}
-                      alt={photo.alt_text || "Photo"}
+                      src={photo.url || '/placeholder.svg'}
+                      alt={photo.alt_text || 'Photo'}
                       fill
                       className="object-cover"
                     />
@@ -167,10 +173,16 @@ async function PhotosList({
                   )}
                 </div>
                 <CardContent className="p-3">
-                  <h3 className="font-medium text-sm line-clamp-1">{photo.alt_text || "Untitled"}</h3>
-                  {photo.metadata && typeof photo.metadata === 'object' && 'category' in photo.metadata && (
-                    <p className="text-sm text-muted-foreground line-clamp-1">{(photo.metadata as any).category}</p>
-                  )}
+                  <h3 className="font-medium text-sm line-clamp-1">
+                    {photo.alt_text || 'Untitled'}
+                  </h3>
+                  {photo.metadata &&
+                    typeof photo.metadata === 'object' &&
+                    'category' in photo.metadata && (
+                      <p className="text-sm text-muted-foreground line-clamp-1">
+                        {(photo.metadata as any).category}
+                      </p>
+                    )}
                   {photo.created_at && (
                     <p className="text-xs text-muted-foreground mt-1">
                       {new Date(photo.created_at).toLocaleDateString()}
@@ -182,7 +194,9 @@ async function PhotosList({
           ))
         ) : (
           <div className="col-span-full text-center py-12">
-            <p className="text-muted-foreground">No photos found. Try adjusting your search or filters.</p>
+            <p className="text-muted-foreground">
+              No photos found. Try adjusting your search or filters.
+            </p>
           </div>
         )}
       </div>
@@ -193,24 +207,25 @@ async function PhotosList({
             {page > 1 && (
               <PaginationItem>
                 <PaginationPrevious
-                  href={`/photos?page=${page - 1}${search ? `&search=${search}` : ""}${
-                    category ? `&category=${category}` : ""
-                  }${sort ? `&sort=${sort}` : ""}`}
+                  href={`/photos?page=${page - 1}${search ? `&search=${search}` : ''}${
+                    category ? `&category=${category}` : ''
+                  }${sort ? `&sort=${sort}` : ''}`}
                 />
               </PaginationItem>
             )}
 
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              const pageNumber = page <= 3 ? i + 1 : page >= totalPages - 2 ? totalPages - 4 + i : page - 2 + i
+              const pageNumber =
+                page <= 3 ? i + 1 : page >= totalPages - 2 ? totalPages - 4 + i : page - 2 + i
 
               if (pageNumber <= 0 || pageNumber > totalPages) return null
 
               return (
                 <PaginationItem key={pageNumber}>
                   <PaginationLink
-                    href={`/photos?page=${pageNumber}${search ? `&search=${search}` : ""}${
-                      category ? `&category=${category}` : ""
-                    }${sort ? `&sort=${sort}` : ""}`}
+                    href={`/photos?page=${pageNumber}${search ? `&search=${search}` : ''}${
+                      category ? `&category=${category}` : ''
+                    }${sort ? `&sort=${sort}` : ''}`}
                     isActive={pageNumber === page}
                   >
                     {pageNumber}
@@ -222,9 +237,9 @@ async function PhotosList({
             {page < totalPages && (
               <PaginationItem>
                 <PaginationNext
-                  href={`/photos?page=${page + 1}${search ? `&search=${search}` : ""}${
-                    category ? `&category=${category}` : ""
-                  }${sort ? `&sort=${sort}` : ""}`}
+                  href={`/photos?page=${page + 1}${search ? `&search=${search}` : ''}${
+                    category ? `&category=${category}` : ''
+                  }${sort ? `&sort=${sort}` : ''}`}
                 />
               </PaginationItem>
             )}
@@ -237,10 +252,7 @@ async function PhotosList({
 
 export default async function PhotosPage({ searchParams }: PhotosPageProps) {
   // Get all required data first
-  const [categoriesList, params] = await Promise.all([
-    getUniqueCategories(),
-    searchParams
-  ])
+  const [categoriesList, params] = await Promise.all([getUniqueCategories(), searchParams])
 
   const page = params?.page ? parseInt(params.page) : 1
   const search = params?.search
@@ -251,15 +263,12 @@ export default async function PhotosPage({ searchParams }: PhotosPageProps) {
     <div className="space-y-6">
       <div className="py-6">
         <h1 className="text-3xl font-bold tracking-tight">Photos</h1>
-        <p className="text-muted-foreground mt-2">Browse and discover photos from our collection.</p>
+        <p className="text-muted-foreground mt-2">
+          Browse and discover photos from our collection.
+        </p>
       </div>
       <Suspense fallback={<div>Loading...</div>}>
-        <PhotosList
-          page={page}
-          search={search}
-          category={category}
-          sort={sort}
-        />
+        <PhotosList page={page} search={search} category={category} sort={sort} />
       </Suspense>
     </div>
   )

@@ -61,4 +61,4 @@ export function FollowTargetTypes() {
       ))}
     </div>
   )
-} 
+}

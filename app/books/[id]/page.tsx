@@ -1,14 +1,22 @@
-import { Metadata } from "next"
-import { notFound, redirect } from "next/navigation"
-import { getBookById, getAuthorsByBookId, getPublisherById, getReviewsByBookId, getBooksByPublisherId, getBooksByAuthorId, testDatabaseConnection } from "@/app/actions/data"
-import { supabaseAdmin } from "@/lib/supabase"
+import { Metadata } from 'next'
+import { notFound, redirect } from 'next/navigation'
+import {
+  getBookById,
+  getAuthorsByBookId,
+  getPublisherById,
+  getReviewsByBookId,
+  getBooksByPublisherId,
+  getBooksByAuthorId,
+  testDatabaseConnection,
+} from '@/app/actions/data'
+import { supabaseAdmin } from '@/lib/supabase'
 import type { Book, Author, Review, BindingType, FormatType } from '@/types/book'
-import { PageBanner } from "@/components/page-banner"
-import { ClientBookPage } from "./client"
-import { getFollowers, getFollowersCount } from "@/lib/follows-server"
-import { createServerComponentClientAsync } from "@/lib/supabase/client-helper"
+import { PageBanner } from '@/components/page-banner'
+import { ClientBookPage } from './client'
+import { getFollowers, getFollowersCount } from '@/lib/follows-server'
+import { createServerComponentClientAsync } from '@/lib/supabase/client-helper'
 
-export const dynamic = "force-dynamic"
+export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 interface BookPageProps {
@@ -22,13 +30,13 @@ async function getBookFormatAndBinding(bookId: string) {
   try {
     // First, get the book to get the binding_type_id and format_type_id
     const { data: book, error: bookError } = await supabaseAdmin
-      .from("books")
-      .select("binding_type_id, format_type_id")
-      .eq("id", bookId)
+      .from('books')
+      .select('binding_type_id, format_type_id')
+      .eq('id', bookId)
       .single()
 
     if (bookError) {
-      console.error("Error fetching book binding and format IDs:", bookError)
+      console.error('Error fetching book binding and format IDs:', bookError)
       return { bindingType: null, formatType: null }
     }
 
@@ -36,9 +44,9 @@ async function getBookFormatAndBinding(bookId: string) {
     let bindingType = null
     if (book.binding_type_id) {
       const { data: bindingData, error: bindingError } = await supabaseAdmin
-        .from("binding_types")
-        .select("id, name, description")
-        .eq("id", book.binding_type_id)
+        .from('binding_types')
+        .select('id, name, description')
+        .eq('id', book.binding_type_id)
         .single()
 
       if (!bindingError && bindingData) {
@@ -47,7 +55,7 @@ async function getBookFormatAndBinding(bookId: string) {
           name: bindingData.name,
           description: bindingData.description,
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         } as BindingType
       }
     }
@@ -56,9 +64,9 @@ async function getBookFormatAndBinding(bookId: string) {
     let formatType = null
     if (book.format_type_id) {
       const { data: formatData, error: formatError } = await supabaseAdmin
-        .from("format_types")
-        .select("id, name, description")
-        .eq("id", book.format_type_id)
+        .from('format_types')
+        .select('id, name, description')
+        .eq('id', book.format_type_id)
         .single()
 
       if (!formatError && formatData) {
@@ -67,14 +75,14 @@ async function getBookFormatAndBinding(bookId: string) {
           name: formatData.name,
           description: formatData.description,
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         } as FormatType
       }
     }
 
     return { bindingType, formatType }
   } catch (error) {
-    console.error("Error in getBookFormatAndBinding:", error)
+    console.error('Error in getBookFormatAndBinding:', error)
     return { bindingType: null, formatType: null }
   }
 }
@@ -82,16 +90,16 @@ async function getBookFormatAndBinding(bookId: string) {
 // Function to get a sample user from the database
 async function getSampleUser() {
   try {
-    const { data, error } = await supabaseAdmin.from("users").select("id").limit(1).single()
+    const { data, error } = await supabaseAdmin.from('users').select('id').limit(1).single()
 
     if (error) {
-      console.error("Error fetching sample user:", error)
+      console.error('Error fetching sample user:', error)
       return null
     }
 
     return data
   } catch (error) {
-    console.error("Error in getSampleUser:", error)
+    console.error('Error in getSampleUser:', error)
     return null
   }
 }
@@ -105,24 +113,24 @@ async function getUserReadingProgress(userId: string | null, bookId: string) {
 
   try {
     const { data, error } = await supabaseAdmin
-      .from("reading_progress")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("book_id", bookId)
+      .from('reading_progress')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('book_id', bookId)
       .single()
 
     if (error) {
       // If the error is that no rows were returned, that's fine
-      if (error.code === "PGRST116") {
+      if (error.code === 'PGRST116') {
         return null
       }
-      console.error("Error fetching reading progress:", error)
+      console.error('Error fetching reading progress:', error)
       return null
     }
 
     return data
   } catch (error) {
-    console.error("Error in getUserReadingProgress:", error)
+    console.error('Error in getUserReadingProgress:', error)
     return null
   }
 }
@@ -133,28 +141,28 @@ export default async function BookPageServer({ params }: { params: Promise<{ id:
   const supabase = await createServerComponentClientAsync()
 
   // Special case: if id is "add", redirect to the add page
-  if (id === "add") {
-    redirect("/books/add")
+  if (id === 'add') {
+    redirect('/books/add')
   }
 
   // Test database connection first (silent)
   const dbConnectionOk = await testDatabaseConnection()
   if (!dbConnectionOk) {
-    console.error("Database connection failed, cannot fetch book")
+    console.error('Database connection failed, cannot fetch book')
     return <div>Database connection error. Please try again later.</div>
   }
 
   try {
-    const bookOrNull = await getBookById(id);
+    const bookOrNull = await getBookById(id)
     if (!bookOrNull) {
-      notFound();
+      notFound()
     }
-    const book = bookOrNull;
+    const book = bookOrNull
 
     // Map DB authors to domain Author
-    let authors: Author[] = [];
+    let authors: Author[] = []
     try {
-      const rawAuthors = (await getAuthorsByBookId(id)) as any[];
+      const rawAuthors = (await getAuthorsByBookId(id)) as any[]
       authors = rawAuthors.map((a) => ({
         id: String(a.id),
         name: a.name,
@@ -164,9 +172,9 @@ export default async function BookPageServer({ params }: { params: Promise<{ id:
         photo_url: a.photo_url ?? undefined,
         author_image: a.author_image ?? null,
         cover_image_id: a.cover_image_id ?? undefined,
-      }));
+      }))
     } catch (error) {
-      console.error("Error fetching authors:", error)
+      console.error('Error fetching authors:', error)
       // Continue with empty authors array
     }
 
@@ -181,7 +189,14 @@ export default async function BookPageServer({ params }: { params: Promise<{ id:
         // Quiet
       }
     } catch (error) {
-      console.error("Error fetching publisher for book:", id, "publisher_id:", book.publisher_id, "error:", error)
+      console.error(
+        'Error fetching publisher for book:',
+        id,
+        'publisher_id:',
+        book.publisher_id,
+        'error:',
+        error
+      )
       // Continue with null publisher
     }
 
@@ -200,9 +215,9 @@ export default async function BookPageServer({ params }: { params: Promise<{ id:
     }
 
     // Map DB reviews to domain Review
-    let reviews: Review[] = [];
+    let reviews: Review[] = []
     try {
-      const rawReviews = (await getReviewsByBookId(id)) as any[];
+      const rawReviews = (await getReviewsByBookId(id)) as any[]
       reviews = rawReviews.map((r) => ({
         id: r.id,
         book_id: r.book_id,
@@ -212,14 +227,17 @@ export default async function BookPageServer({ params }: { params: Promise<{ id:
         created_at: r.created_at,
         updated_at: r.updated_at,
         contains_spoilers: false,
-      }));
+      }))
     } catch (error) {
-      console.error("Error fetching reviews:", error)
+      console.error('Error fetching reviews:', error)
       // Continue with empty reviews array
     }
 
     // Fetch binding and format types
-    const { bindingType, formatType } = await getBookFormatAndBinding(id) as { bindingType: BindingType | null; formatType: FormatType | null };
+    const { bindingType, formatType } = (await getBookFormatAndBinding(id)) as {
+      bindingType: BindingType | null
+      formatType: FormatType | null
+    }
 
     // Get a sample user from the database
     const sampleUser = await getSampleUser()
@@ -230,7 +248,7 @@ export default async function BookPageServer({ params }: { params: Promise<{ id:
     try {
       readingProgress = await getUserReadingProgress(userId, id)
     } catch (error) {
-      console.error("Error fetching reading progress:", error)
+      console.error('Error fetching reading progress:', error)
       // Continue with null reading progress
     }
 
@@ -242,7 +260,7 @@ export default async function BookPageServer({ params }: { params: Promise<{ id:
       followers = followersData.followers
       followersCount = followersData.count
     } catch (error) {
-      console.error("Error fetching book followers:", error)
+      console.error('Error fetching book followers:', error)
       // Continue with empty followers array and default count
       followersCount = 0
     }
@@ -271,7 +289,7 @@ export default async function BookPageServer({ params }: { params: Promise<{ id:
       </>
     )
   } catch (error) {
-    console.error("Error in BookPage:", error)
+    console.error('Error in BookPage:', error)
     return <div>Error loading book details.</div> // Or a more user-friendly error message
   }
 }

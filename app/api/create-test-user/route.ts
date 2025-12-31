@@ -6,15 +6,15 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClientAsync()
-    
+
     // Get current user from session
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
     // Check if user already exists in public.users table
@@ -26,16 +26,13 @@ export async function POST(request: NextRequest) {
 
     if (checkError && checkError.code !== 'PGRST116') {
       console.error('Error checking existing user:', checkError)
-      return NextResponse.json(
-        { error: 'Failed to check existing user' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Failed to check existing user' }, { status: 500 })
     }
 
     if (existingUser) {
       return NextResponse.json({
         message: 'User already exists in public.users table',
-        user: existingUser
+        user: existingUser,
       })
     }
 
@@ -47,7 +44,7 @@ export async function POST(request: NextRequest) {
         email: user.email,
         name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Test User',
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       } as any)
       .select()
       .single()
@@ -62,14 +59,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       message: 'User created successfully in public.users table',
-      user: newUser
+      user: newUser,
     })
-
   } catch (error) {
     console.error('Error in create-test-user API:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-} 
+}

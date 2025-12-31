@@ -1,27 +1,27 @@
-"use client"
+'use client'
 
 /**
  * PageBanner - A reusable carousel banner component
- * 
+ *
  * Example usage:
- * 
+ *
  * ```tsx
  * // Basic usage - automatically fetches 4 random images from Supabase
  * <PageBanner />
- * 
+ *
  * // Custom slides (only if needed)
- * <PageBanner 
+ * <PageBanner
  *   slides={[
  *     { imageUrl: "/banner1.jpg", altText: "Banner 1", title: "First slide" },
  *     { imageUrl: "/banner2.jpg", altText: "Banner 2", title: "Second slide" }
  *   ]}
  * />
- * 
+ *
  * // Custom aspect ratio (default is 7:2)
  * <PageBanner aspectRatio="aspect-[16/9]" />
- * 
+ *
  * // Other customization options
- * <PageBanner 
+ * <PageBanner
  *   aspectRatio="aspect-[4/1]"
  *   autoplaySpeed={3000}
  *   showControls={false}
@@ -30,12 +30,12 @@
  * ```
  */
 
-import { useState, useEffect, useRef } from "react"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight } from "lucide-react"
-import { createClient } from "@supabase/supabase-js"
-import { Database } from "@/types/database"
+import { useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
+import { Button } from '@/components/ui/button'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { createClient } from '@supabase/supabase-js'
+import { Database } from '@/types/database'
 
 interface BannerSlide {
   imageUrl: string
@@ -67,20 +67,20 @@ async function fetchRandomImages(count = 4) {
       .select('id, url, alt_text')
       .order('id', { ascending: false })
       .limit(50)
-    
+
     if (error) {
       console.error('Error fetching random images:', error)
       return getFallbackImages(count)
     }
-    
+
     if (!data || data.length === 0) {
       return getFallbackImages(count)
     }
-    
+
     // Shuffle and take the first 'count' images
     const shuffled = data.sort(() => 0.5 - Math.random())
     const selected = shuffled.slice(0, count)
-    
+
     return selected.map((image: any) => ({
       imageUrl: image.url,
       altText: image.alt_text || `Image ${image.id}`,
@@ -94,20 +94,20 @@ async function fetchRandomImages(count = 4) {
 // Provide fallback images in case Supabase is not available
 function getFallbackImages(count = 4) {
   const fallbackImages = [
-    { imageUrl: "/placeholder.svg", altText: "Book Cover 1" },
-    { imageUrl: "/placeholder.svg", altText: "Book Cover 2" },
-    { imageUrl: "/placeholder.svg", altText: "Book Cover 3" },
-    { imageUrl: "/placeholder.svg", altText: "Book Cover 4" }
+    { imageUrl: '/placeholder.svg', altText: 'Book Cover 1' },
+    { imageUrl: '/placeholder.svg', altText: 'Book Cover 2' },
+    { imageUrl: '/placeholder.svg', altText: 'Book Cover 3' },
+    { imageUrl: '/placeholder.svg', altText: 'Book Cover 4' },
   ]
-  
+
   return fallbackImages.slice(0, count)
 }
 
 export function PageBanner({
   slides: customSlides,
   autoplaySpeed = 5000,
-  aspectRatio = "aspect-[7/2]",
-  className = "",
+  aspectRatio = 'aspect-[7/2]',
+  className = '',
   showControls = true,
   showIndicators = true,
 }: PageBannerProps) {
@@ -117,27 +117,27 @@ export function PageBanner({
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
-  
+
   // Minimum swipe distance (in px)
   const minSwipeDistance = 50
-  
+
   // Touch handlers for mobile swipe
   const onTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null)
     setTouchStart(e.targetTouches[0].clientX)
   }
-  
+
   const onTouchMove = (e: React.TouchEvent) => {
     setTouchEnd(e.targetTouches[0].clientX)
   }
-  
+
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return
-    
+
     const distance = touchStart - touchEnd
     const isLeftSwipe = distance > minSwipeDistance
     const isRightSwipe = distance < -minSwipeDistance
-    
+
     if (isLeftSwipe) {
       goToNext()
     } else if (isRightSwipe) {
@@ -149,7 +149,7 @@ export function PageBanner({
   useEffect(() => {
     const loadSlides = async () => {
       setIsLoading(true)
-      
+
       if (customSlides && customSlides.length > 0) {
         setSlides(customSlides)
       } else {
@@ -158,27 +158,27 @@ export function PageBanner({
           setSlides(randomImages)
         }
       }
-      
+
       setIsLoading(false)
     }
-    
+
     loadSlides()
   }, [customSlides])
 
   // Autoplay function
   useEffect(() => {
     if (autoplaySpeed <= 0 || slides.length <= 1) return
-    
+
     const startTimer = () => {
       if (timerRef.current) clearInterval(timerRef.current)
-      
+
       timerRef.current = setInterval(() => {
-        setCurrentSlide(prev => (prev + 1) % slides.length)
+        setCurrentSlide((prev) => (prev + 1) % slides.length)
       }, autoplaySpeed)
     }
-    
+
     startTimer()
-    
+
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
     }
@@ -192,18 +192,20 @@ export function PageBanner({
 
   const goToPrev = () => {
     if (timerRef.current) clearInterval(timerRef.current)
-    setCurrentSlide(prev => (prev - 1 + slides.length) % slides.length)
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
   }
 
   const goToNext = () => {
     if (timerRef.current) clearInterval(timerRef.current)
-    setCurrentSlide(prev => (prev + 1) % slides.length)
+    setCurrentSlide((prev) => (prev + 1) % slides.length)
   }
 
   // Loading state
   if (isLoading) {
     return (
-      <div className={`page-banner ${aspectRatio} bg-gray-200 flex items-center justify-center ${className}`}>
+      <div
+        className={`page-banner ${aspectRatio} bg-gray-200 flex items-center justify-center ${className}`}
+      >
         <p className="text-gray-500">Loading banner...</p>
       </div>
     )
@@ -212,14 +214,16 @@ export function PageBanner({
   // No slides state
   if (slides.length === 0) {
     return (
-      <div className={`page-banner ${aspectRatio} bg-gray-200 flex items-center justify-center ${className}`}>
+      <div
+        className={`page-banner ${aspectRatio} bg-gray-200 flex items-center justify-center ${className}`}
+      >
         <p className="text-gray-500">No banner images available</p>
       </div>
     )
   }
 
   return (
-    <div 
+    <div
       className={`page-banner relative ${aspectRatio} bg-gray-200 overflow-hidden ${className}`}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
@@ -230,7 +234,7 @@ export function PageBanner({
         <div
           key={index}
           className={`absolute inset-0 transition-opacity duration-500 ${
-            index === currentSlide ? "opacity-100" : "opacity-0 pointer-events-none"
+            index === currentSlide ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         >
           <Image
@@ -242,7 +246,7 @@ export function PageBanner({
             sizes="100vw"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-          
+
           {/* Caption */}
           {(slide.title || slide.subtitle) && (
             <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 text-white">
@@ -284,7 +288,7 @@ export function PageBanner({
             <button
               key={index}
               className={`h-2 rounded-full transition-all ${
-                index === currentSlide ? "w-6 bg-white" : "w-2 bg-white/50"
+                index === currentSlide ? 'w-6 bg-white' : 'w-2 bg-white/50'
               }`}
               onClick={() => goToSlide(index)}
               aria-label={`Go to slide ${index + 1}`}
@@ -294,4 +298,4 @@ export function PageBanner({
       )}
     </div>
   )
-} 
+}

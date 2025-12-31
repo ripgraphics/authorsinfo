@@ -1,7 +1,7 @@
-"use server"
+'use server'
 
-import { supabaseAdmin } from "@/lib/supabase/server"
-import { uploadImage, deleteImage, getPublicIdFromUrl } from "@/app/actions/upload"
+import { supabaseAdmin } from '@/lib/supabase/server'
+import { uploadImage, deleteImage, getPublicIdFromUrl } from '@/app/actions/upload'
 
 type RegenerationProgress = {
   processed: number
@@ -17,14 +17,14 @@ export async function getBookCoverRegenerationCandidates(
   batchSize: number,
   lastProcessedId: string | null = null,
   filterEmptyCovers = true,
-  problemTypes: string[] = ["empty", "broken", "null_id"],
+  problemTypes: string[] = ['empty', 'broken', 'null_id']
 ) {
   try {
     // Get original_image_url from images table, not books table
     let query = supabaseAdmin
-      .from("books")
-      .select("id, title, cover_image_id, images:cover_image_id(url, id, original_image_url)")
-      .not("cover_image_id", "is", null)
+      .from('books')
+      .select('id, title, cover_image_id, images:cover_image_id(url, id, original_image_url)')
+      .not('cover_image_id', 'is', null)
 
     // Option to filter books with problematic covers
     if (filterEmptyCovers) {
@@ -34,45 +34,42 @@ export async function getBookCoverRegenerationCandidates(
 
       // Process each problem type separately
       for (const problemType of problemTypes) {
-        if (problemType === "empty") {
+        if (problemType === 'empty') {
           // Handle empty curly braces in images table
           const { data } = await supabaseAdmin
-            .from("books")
-            .select("id, images:cover_image_id(url)")
-            .not("cover_image_id", "is", null)
-            .eq("images.url", "{}")
+            .from('books')
+            .select('id, images:cover_image_id(url)')
+            .not('cover_image_id', 'is', null)
+            .eq('images.url', '{}')
 
           if (data) {
             data.forEach((book: { id: string }) => bookIds.add(book.id))
           }
-        } else if (problemType === "null") {
+        } else if (problemType === 'null') {
           // Handle NULL url in images table
           const { data } = await supabaseAdmin
-            .from("books")
-            .select("id, images:cover_image_id(url)")
-            .not("cover_image_id", "is", null)
-            .is("images.url", null)
+            .from('books')
+            .select('id, images:cover_image_id(url)')
+            .not('cover_image_id', 'is', null)
+            .is('images.url', null)
 
           if (data) {
             data.forEach((book: { id: string }) => bookIds.add(book.id))
           }
-        } else if (problemType === "broken") {
+        } else if (problemType === 'broken') {
           // Handle broken Cloudinary URLs with fetch: in them
           const { data } = await supabaseAdmin
-            .from("books")
-            .select("id, images:cover_image_id(url)")
-            .not("cover_image_id", "is", null)
-            .ilike("images.url", "%fetch:%")
+            .from('books')
+            .select('id, images:cover_image_id(url)')
+            .not('cover_image_id', 'is', null)
+            .ilike('images.url', '%fetch:%')
 
           if (data) {
             data.forEach((book: { id: string }) => bookIds.add(book.id))
           }
-        } else if (problemType === "null_id") {
+        } else if (problemType === 'null_id') {
           // Handle NULL cover_image_id
-          const { data } = await supabaseAdmin
-            .from("books")
-            .select("id")
-            .is("cover_image_id", null)
+          const { data } = await supabaseAdmin.from('books').select('id').is('cover_image_id', null)
 
           if (data) {
             data.forEach((book: { id: string }) => bookIds.add(book.id))
@@ -93,7 +90,7 @@ export async function getBookCoverRegenerationCandidates(
           const batchIds = filteredIds.sort().slice(0, batchSize)
 
           if (batchIds.length > 0) {
-            query = query.in("id", batchIds)
+            query = query.in('id', batchIds)
           } else {
             // No more books to process
             return { books: [], total: 0 }
@@ -101,7 +98,7 @@ export async function getBookCoverRegenerationCandidates(
         } else {
           // Sort and limit to batch size
           const batchIds = idsArray.sort().slice(0, batchSize)
-          query = query.in("id", batchIds)
+          query = query.in('id', batchIds)
         }
       } else {
         // No books match the problem types
@@ -110,17 +107,17 @@ export async function getBookCoverRegenerationCandidates(
     } else {
       // If we're not filtering for problematic covers, just paginate by ID
       if (lastProcessedId) {
-        query = query.gt("id", lastProcessedId)
+        query = query.gt('id', lastProcessedId)
       }
 
       // Order by ID to ensure consistent pagination
-      query = query.order("id").limit(batchSize)
+      query = query.order('id').limit(batchSize)
     }
 
     const { data, error } = await query
 
     if (error) {
-      console.error("Error fetching books for cover regeneration:", error)
+      console.error('Error fetching books for cover regeneration:', error)
       return { books: [], total: 0 }
     }
 
@@ -133,12 +130,12 @@ export async function getBookCoverRegenerationCandidates(
     } else {
       // Count all books with cover_image_id
       const { count, error: countError } = await supabaseAdmin
-        .from("books")
-        .select("id", { count: "exact", head: true })
-        .not("cover_image_id", "is", null)
+        .from('books')
+        .select('id', { count: 'exact', head: true })
+        .not('cover_image_id', 'is', null)
 
       if (countError) {
-        console.error("Error counting books for regeneration:", countError)
+        console.error('Error counting books for regeneration:', countError)
         total = data.length
       } else {
         total = count || 0
@@ -147,7 +144,7 @@ export async function getBookCoverRegenerationCandidates(
 
     return { books: data, total }
   } catch (error) {
-    console.error("Error in getBookCoverRegenerationCandidates:", error)
+    console.error('Error in getBookCoverRegenerationCandidates:', error)
     return { books: [], total: 0 }
   }
 }
@@ -158,14 +155,14 @@ export async function regenerateBookCovers(
   maxHeight: number,
   lastProcessedId: string | null = null,
   filterEmptyCovers = true,
-  problemTypes: string[] = ["empty", "broken", "null_id", "null"],
+  problemTypes: string[] = ['empty', 'broken', 'null_id', 'null']
 ): Promise<RegenerationProgress> {
   try {
     const { books, total } = await getBookCoverRegenerationCandidates(
       batchSize,
       lastProcessedId,
       filterEmptyCovers,
-      problemTypes,
+      problemTypes
     )
 
     const progress: RegenerationProgress = {
@@ -185,7 +182,10 @@ export async function regenerateBookCovers(
     // First, check the structure of the images table to determine field names
     let imageTableFields: Record<string, boolean> = {}
     try {
-      const { data: tableInfo, error: tableError } = await supabaseAdmin.from("images").select("*").limit(1)
+      const { data: tableInfo, error: tableError } = await supabaseAdmin
+        .from('images')
+        .select('*')
+        .limit(1)
 
       if (!tableError && tableInfo && tableInfo.length > 0) {
         // Create a map of field names that exist in the table
@@ -194,11 +194,11 @@ export async function regenerateBookCovers(
             acc[key] = true
             return acc
           },
-          {} as Record<string, boolean>,
+          {} as Record<string, boolean>
         )
       }
     } catch (error) {
-      console.error("Error checking images table structure:", error)
+      console.error('Error checking images table structure:', error)
       // Continue with default assumptions if we can't check the table
     }
 
@@ -213,7 +213,7 @@ export async function regenerateBookCovers(
         if (!originalImageUrl) {
           progress.errors.push({
             id: book.id,
-            error: "No original image URL in images table",
+            error: 'No original image URL in images table',
           })
           continue
         }
@@ -223,7 +223,12 @@ export async function regenerateBookCovers(
 
         // If we have an images relation, check its URL
         // Note: images is an array from the relation query
-        if (book.images && Array.isArray(book.images) && book.images.length > 0 && book.images[0]?.url) {
+        if (
+          book.images &&
+          Array.isArray(book.images) &&
+          book.images.length > 0 &&
+          book.images[0]?.url
+        ) {
           existingImageUrl = book.images[0].url
         } else if (book.images && !Array.isArray(book.images) && (book.images as any).url) {
           // Fallback for non-array case (shouldn't happen but for type safety)
@@ -231,7 +236,7 @@ export async function regenerateBookCovers(
         }
 
         // Delete existing cover image if it exists and is not problematic
-        if (existingImageUrl && existingImageUrl !== "{}" && !existingImageUrl.includes("fetch:")) {
+        if (existingImageUrl && existingImageUrl !== '{}' && !existingImageUrl.includes('fetch:')) {
           try {
             const publicId = await getPublicIdFromUrl(existingImageUrl)
             if (publicId) {
@@ -256,22 +261,22 @@ export async function regenerateBookCovers(
             }
 
             const imageBuffer = await imageResponse.arrayBuffer()
-            const base64Image = Buffer.from(imageBuffer).toString("base64")
+            const base64Image = Buffer.from(imageBuffer).toString('base64')
 
             // Upload the new image with transformations
             uploadResult = await uploadImage(
               base64Image,
-              "authorsinfo/book_cover",
+              'authorsinfo/book_cover',
               `Book cover for: ${book.title}`,
               maxWidth,
-              maxHeight,
+              maxHeight
             )
           } catch (error) {
             retries++
             console.warn(`Attempt ${retries}/${maxRetries} failed:`, error)
 
             // If it's a rate limit error, wait longer between retries
-            if (error instanceof Error && error.message?.includes("rate limit")) {
+            if (error instanceof Error && error.message?.includes('rate limit')) {
               await new Promise((resolve) => setTimeout(resolve, 2000 * retries)) // Exponential backoff
             } else if (retries < maxRetries) {
               await new Promise((resolve) => setTimeout(resolve, 1000)) // Wait 1 second before retry for other errors
@@ -283,17 +288,17 @@ export async function regenerateBookCovers(
         }
 
         if (!uploadResult) {
-          throw new Error("Failed to upload image to Cloudinary after multiple retries")
+          throw new Error('Failed to upload image to Cloudinary after multiple retries')
         }
 
         // If the book had a cover_image_id, update the image record
         if (book.cover_image_id) {
           const { error: imageUpdateError } = await supabaseAdmin
-            .from("images")
+            .from('images')
             .update({
               url: uploadResult.url,
             })
-            .eq("id", book.cover_image_id)
+            .eq('id', book.cover_image_id)
 
           if (imageUpdateError) {
             console.warn(`Failed to update image record: ${imageUpdateError.message}`)
@@ -309,7 +314,7 @@ export async function regenerateBookCovers(
           if (imageTableFields.img_type_id) {
             imageInsert.img_type_id = 1 // Assuming 1 is for book covers
           } else if (imageTableFields.type) {
-            imageInsert.type = "book_cover"
+            imageInsert.type = 'book_cover'
           }
 
           // Add alt text if the field exists
@@ -319,9 +324,9 @@ export async function regenerateBookCovers(
 
           // Create a new image record
           const { data: newImage, error: newImageError } = await supabaseAdmin
-            .from("images")
+            .from('images')
             .insert(imageInsert)
-            .select("id")
+            .select('id')
             .single()
 
           if (newImageError) {
@@ -330,11 +335,11 @@ export async function regenerateBookCovers(
 
           // Update the book with the new image ID
           const { error: updateBookError } = await supabaseAdmin
-            .from("books")
+            .from('books')
             .update({
               cover_image_id: newImage.id,
             })
-            .eq("id", book.id)
+            .eq('id', book.id)
 
           if (updateBookError) {
             throw new Error(`Failed to update book with new image ID: ${updateBookError.message}`)
@@ -362,7 +367,7 @@ export async function regenerateBookCovers(
 
     return progress
   } catch (error) {
-    console.error("Error in regenerateBookCovers:", error)
+    console.error('Error in regenerateBookCovers:', error)
     throw error
   }
 }
@@ -371,18 +376,18 @@ export async function getTotalBooksWithOriginalImages(): Promise<number> {
   try {
     // Count books with cover_image_id that have original_image_url in images table
     const { count, error } = await supabaseAdmin
-      .from("books")
-      .select("id, images:cover_image_id(original_image_url)", { count: "exact", head: true })
-      .not("cover_image_id", "is", null)
+      .from('books')
+      .select('id, images:cover_image_id(original_image_url)', { count: 'exact', head: true })
+      .not('cover_image_id', 'is', null)
 
     if (error) {
-      console.error("Error counting books with original images:", error)
+      console.error('Error counting books with original images:', error)
       return 0
     }
 
     return count || 0
   } catch (error) {
-    console.error("Error counting books with original images:", error)
+    console.error('Error counting books with original images:', error)
     return 0
   }
 }
@@ -393,7 +398,7 @@ export async function getTotalBooksWithProblematicCovers(): Promise<number> {
     // Just use the alternative method which is more reliable
     return await getTotalBooksWithProblematicCoversAlt()
   } catch (error) {
-    console.error("Error counting books with problematic covers:", error)
+    console.error('Error counting books with problematic covers:', error)
     return 0
   }
 }
@@ -403,12 +408,12 @@ export async function getTotalBooksWithProblematicCoversAlt(): Promise<number> {
   try {
     // Count books with NULL cover_image_id
     const { count: nullId, error: nullIdError } = await supabaseAdmin
-      .from("books")
-      .select("id", { count: "exact", head: true })
-      .is("cover_image_id", null)
+      .from('books')
+      .select('id', { count: 'exact', head: true })
+      .is('cover_image_id', null)
 
     if (nullIdError) {
-      console.error("Error counting books with NULL cover_image_id:", nullIdError)
+      console.error('Error counting books with NULL cover_image_id:', nullIdError)
       return 0
     }
 
@@ -418,45 +423,45 @@ export async function getTotalBooksWithProblematicCoversAlt(): Promise<number> {
     try {
       // Count books with empty braces {} in images table
       const { count: emptyBraces } = await supabaseAdmin
-        .from("books")
-        .select("id, images:cover_image_id(url)", { count: "exact", head: true })
-        .not("cover_image_id", "is", null)
-        .eq("images.url", "{}")
+        .from('books')
+        .select('id, images:cover_image_id(url)', { count: 'exact', head: true })
+        .not('cover_image_id', 'is', null)
+        .eq('images.url', '{}')
 
       totalProblematicImages += emptyBraces || 0
     } catch (error) {
-      console.error("Error counting books with empty braces in images:", error)
+      console.error('Error counting books with empty braces in images:', error)
     }
 
     try {
       // Count books with NULL url in images table
       const { count: nullUrl } = await supabaseAdmin
-        .from("books")
-        .select("id, images:cover_image_id(url)", { count: "exact", head: true })
-        .not("cover_image_id", "is", null)
-        .is("images.url", null)
+        .from('books')
+        .select('id, images:cover_image_id(url)', { count: 'exact', head: true })
+        .not('cover_image_id', 'is', null)
+        .is('images.url', null)
 
       totalProblematicImages += nullUrl || 0
     } catch (error) {
-      console.error("Error counting books with NULL url in images:", error)
+      console.error('Error counting books with NULL url in images:', error)
     }
 
     try {
       // Count books with broken URLs in images table
       const { count: brokenUrl } = await supabaseAdmin
-        .from("books")
-        .select("id, images:cover_image_id(url)", { count: "exact", head: true })
-        .not("cover_image_id", "is", null)
-        .ilike("images.url", "%fetch:%")
+        .from('books')
+        .select('id, images:cover_image_id(url)', { count: 'exact', head: true })
+        .not('cover_image_id', 'is', null)
+        .ilike('images.url', '%fetch:%')
 
       totalProblematicImages += brokenUrl || 0
     } catch (error) {
-      console.error("Error counting books with broken URLs in images:", error)
+      console.error('Error counting books with broken URLs in images:', error)
     }
 
     return (nullId || 0) + totalProblematicImages
   } catch (error) {
-    console.error("Error counting books with problematic covers (alt method):", error)
+    console.error('Error counting books with problematic covers (alt method):', error)
     return 0
   }
 }
@@ -478,65 +483,65 @@ export async function getProblematicCoverStats(): Promise<{
     // Count books with NULL cover_image_id
     try {
       const { count, error } = await supabaseAdmin
-        .from("books")
-        .select("id", { count: "exact", head: true })
-        .is("cover_image_id", null)
+        .from('books')
+        .select('id', { count: 'exact', head: true })
+        .is('cover_image_id', null)
 
       if (!error) {
         nullId = count || 0
       } else {
-        console.error("Error counting NULL cover_image_id:", error)
+        console.error('Error counting NULL cover_image_id:', error)
       }
     } catch (error) {
-      console.error("Error counting NULL cover_image_id:", error)
+      console.error('Error counting NULL cover_image_id:', error)
     }
 
     // Count books with empty braces {} in images table
     try {
       const { count, error } = await supabaseAdmin
-        .from("books")
-        .select("id, images:cover_image_id(url)", { count: "exact", head: true })
-        .eq("images.url", "{}")
+        .from('books')
+        .select('id, images:cover_image_id(url)', { count: 'exact', head: true })
+        .eq('images.url', '{}')
 
       if (!error) {
         emptyBraces = count || 0
       } else {
-        console.error("Error counting empty braces:", error)
+        console.error('Error counting empty braces:', error)
       }
     } catch (error) {
-      console.error("Error counting empty braces:", error)
+      console.error('Error counting empty braces:', error)
     }
 
     // Count books with NULL url in images table
     try {
       const { count, error } = await supabaseAdmin
-        .from("books")
-        .select("id, images:cover_image_id(url)", { count: "exact", head: true })
-        .is("images.url", null)
+        .from('books')
+        .select('id, images:cover_image_id(url)', { count: 'exact', head: true })
+        .is('images.url', null)
 
       if (!error) {
         nullUrl = count || 0
       } else {
-        console.error("Error counting NULL url in images:", error)
+        console.error('Error counting NULL url in images:', error)
       }
     } catch (error) {
-      console.error("Error counting NULL url in images:", error)
+      console.error('Error counting NULL url in images:', error)
     }
 
     // Count books with broken URLs in images table
     try {
       const { count, error } = await supabaseAdmin
-        .from("books")
-        .select("id, images:cover_image_id(url)", { count: "exact", head: true })
-        .ilike("images.url", "%fetch:%")
+        .from('books')
+        .select('id, images:cover_image_id(url)', { count: 'exact', head: true })
+        .ilike('images.url', '%fetch:%')
 
       if (!error) {
         brokenUrl = count || 0
       } else {
-        console.error("Error counting broken URLs:", error)
+        console.error('Error counting broken URLs:', error)
       }
     } catch (error) {
-      console.error("Error counting broken URLs:", error)
+      console.error('Error counting broken URLs:', error)
     }
 
     return {
@@ -546,7 +551,7 @@ export async function getProblematicCoverStats(): Promise<{
       nullId,
     }
   } catch (error) {
-    console.error("Error getting problematic cover stats:", error)
+    console.error('Error getting problematic cover stats:', error)
     return {
       emptyBraces: 0,
       nullUrl: 0,

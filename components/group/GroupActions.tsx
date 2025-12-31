@@ -1,11 +1,11 @@
-"use client"
+'use client'
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/use-toast'
-import { createBrowserClient } from '@supabase/ssr'
 import { Loader2, UserPlus, Heart } from 'lucide-react'
 import { FollowButton } from '@/components/follow-button'
+import { joinGroup } from '@/app/actions/groups/manage-members'
 
 interface GroupActionsProps {
   groupId: string
@@ -15,57 +15,60 @@ interface GroupActionsProps {
   onJoinChange?: () => void
 }
 
-export function GroupActions({ 
-  groupId, 
-  groupName, 
-  isPrivate, 
+export function GroupActions({
+  groupId,
+  groupName,
+  isPrivate,
   isMember,
-  onJoinChange 
+  onJoinChange,
 }: GroupActionsProps) {
   const [isJoining, setIsJoining] = useState(false)
   const { toast } = useToast()
-  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
   const handleJoin = async () => {
     setIsJoining(true)
     try {
-      // Get the default member role
-      const { data: defaultRole } = await supabase
-        .from('group_roles')
-        .select('id')
-        .eq('group_id', groupId)
-        .eq('is_default', true)
-        .single()
+      const result = await joinGroup(groupId)
 
-      if (!defaultRole) {
-        throw new Error('Default role not found')
+      if (!result.success) {
+        console.error('Join group failed:', result.error)
+        toast({
+          title: 'Error',
+          description: result.error || 'Failed to join group',
+          variant: 'destructive',
+        })
+        setIsJoining(false)
+        return
       }
 
-      // Add user as member
-      const { error } = await supabase
-        .from('group_members')
-        .insert({
-          group_id: groupId,
-          role_id: defaultRole.id,
-          status: 'active',
-          joined_at: new Date().toISOString()
-        })
-
-      if (error) throw error
-
+      // Show toast with sufficient delay to ensure it's visible before reload
       toast({
-        title: "Success",
-        description: `You have joined ${groupName}`
+        title: 'Success',
+        description:
+          result.member?.status === 'pending'
+            ? `Your request to join ${groupName} has been submitted and is pending approval`
+            : `You have joined ${groupName}`,
       })
 
-      onJoinChange?.()
+      // Call callback or reload after a delay to allow toast to display
+      if (onJoinChange) {
+        // Increased delay to ensure toast is visible
+        setTimeout(() => {
+          onJoinChange()
+        }, 1500)
+      } else {
+        // Fallback to page reload with longer delay to show toast
+        setTimeout(() => {
+          window.location.reload()
+        }, 1500)
+      }
     } catch (error: any) {
+      console.error('Error joining group:', error)
       toast({
-        title: "Error",
+        title: 'Error',
         description: error.message || 'Failed to join group',
-        variant: "destructive"
+        variant: 'destructive',
       })
-    } finally {
       setIsJoining(false)
     }
   }
@@ -73,11 +76,7 @@ export function GroupActions({
   return (
     <div className="flex items-center gap-2">
       {!isMember && !isPrivate && (
-        <Button
-          variant="default"
-          onClick={handleJoin}
-          disabled={isJoining}
-        >
+        <Button variant="default" onClick={handleJoin} disabled={isJoining}>
           {isJoining ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -99,4 +98,4 @@ export function GroupActions({
       />
     </div>
   )
-} 
+}

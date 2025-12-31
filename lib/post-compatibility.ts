@@ -5,7 +5,8 @@ import { Post, ActivityPost, isPost, isActivityPost } from '@/types/post'
 import { createBrowserClient } from '@supabase/ssr'
 
 // Performance optimization: Define only the columns we actually need
-const ACTIVITIES_SELECT_COLUMNS = 'id, user_id, text, image_url, link_url, created_at, updated_at, visibility, content_type, hashtags, entity_type, entity_id, like_count, comment_count, share_count, view_count, engagement_score, publish_status, activity_type'
+const ACTIVITIES_SELECT_COLUMNS =
+  'id, user_id, text, image_url, link_url, created_at, updated_at, visibility, content_type, hashtags, entity_type, entity_id, like_count, comment_count, share_count, view_count, engagement_score, publish_status, activity_type'
 
 export interface UnifiedPost {
   id: string
@@ -38,7 +39,10 @@ export interface UnifiedPost {
 }
 
 export class PostCompatibilityLayer {
-  private supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  private supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   /**
    * Convert a Post object to UnifiedPost format
@@ -69,7 +73,7 @@ export class PostCompatibilityLayer {
       publish_status: post.publish_status,
       last_activity_at: post.last_activity_at,
       source: 'posts',
-      original_activity_id: post.content.original_activity_id
+      original_activity_id: post.content.original_activity_id,
     }
   }
 
@@ -97,7 +101,7 @@ export class PostCompatibilityLayer {
       share_count: activity.share_count || 0,
       view_count: activity.view_count || 0,
       engagement_score: activity.engagement_score || 0,
-      source: 'activities'
+      source: 'activities',
     }
   }
 
@@ -131,17 +135,16 @@ export class PostCompatibilityLayer {
 
       // Add activities data
       if (activitiesData) {
-        activitiesData.forEach(activity => {
+        activitiesData.forEach((activity) => {
           unifiedPosts.push(PostCompatibilityLayer.activityToUnified(activity))
         })
       }
 
       // Sort by creation date and remove duplicates
       const uniquePosts = this.removeDuplicates(unifiedPosts)
-      return uniquePosts.sort((a, b) => 
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      ).slice(0, limit)
-
+      return uniquePosts
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, limit)
     } catch (error) {
       console.error('Error in getUnifiedPosts:', error)
       return []
@@ -177,17 +180,16 @@ export class PostCompatibilityLayer {
       const unifiedPosts: UnifiedPost[] = []
 
       if (activitiesData) {
-        activitiesData.forEach(activity => {
+        activitiesData.forEach((activity) => {
           unifiedPosts.push(PostCompatibilityLayer.activityToUnified(activity))
         })
       }
 
       // Remove duplicates and sort
       const uniquePosts = this.removeDuplicates(unifiedPosts)
-      return uniquePosts.sort((a, b) => 
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      ).slice(0, limit)
-
+      return uniquePosts
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, limit)
     } catch (error) {
       console.error('Error in getUnifiedEntityPosts:', error)
       return []
@@ -199,7 +201,7 @@ export class PostCompatibilityLayer {
    */
   private removeDuplicates(posts: UnifiedPost[]): UnifiedPost[] {
     const seen = new Set<string>()
-    return posts.filter(post => {
+    return posts.filter((post) => {
       const key = `${post.user_id}-${post.text.substring(0, 100)}-${post.created_at}`
       if (seen.has(key)) {
         return false
@@ -219,7 +221,7 @@ export class PostCompatibilityLayer {
   }> {
     try {
       // Performance optimization: Use specific columns instead of select('*')
-      const { data: activityData, error: activityError } = await this.supabase
+      const { data: activityData, error: _activityError } = await this.supabase
         .from('activities')
         .select(ACTIVITIES_SELECT_COLUMNS)
         .eq('id', postId)
@@ -230,19 +232,19 @@ export class PostCompatibilityLayer {
         return {
           exists: true,
           source: 'activities',
-          post: PostCompatibilityLayer.activityToUnified(activityData)
+          post: PostCompatibilityLayer.activityToUnified(activityData),
         }
       } else {
         return {
           exists: false,
-          source: 'none'
+          source: 'none',
         }
       }
     } catch (error) {
       console.error('Error checking post existence:', error)
       return {
         exists: false,
-        source: 'none'
+        source: 'none',
       }
     }
   }
@@ -258,30 +260,32 @@ export class PostCompatibilityLayer {
   }> {
     try {
       const { data, error } = await this.supabase.rpc('get_migration_status')
-      
+
       if (error) {
         console.error('Error getting migration status:', error)
         return {
           total_activities: 0,
           migrated_posts: 0,
           new_posts: 0,
-          migration_status: 'ERROR'
+          migration_status: 'ERROR',
         }
       }
 
-      return data[0] || {
-        total_activities: 0,
-        migrated_posts: 0,
-        new_posts: 0,
-        migration_status: 'UNKNOWN'
-      }
+      return (
+        data[0] || {
+          total_activities: 0,
+          migrated_posts: 0,
+          new_posts: 0,
+          migration_status: 'UNKNOWN',
+        }
+      )
     } catch (error) {
       console.error('Error in getMigrationStatus:', error)
       return {
         total_activities: 0,
         migrated_posts: 0,
         new_posts: 0,
-        migration_status: 'ERROR'
+        migration_status: 'ERROR',
       }
     }
   }
@@ -289,15 +293,17 @@ export class PostCompatibilityLayer {
   /**
    * Validate migration integrity
    */
-  async validateMigration(): Promise<Array<{
-    check_name: string
-    status: string
-    details: string
-    count_value: number
-  }>> {
+  async validateMigration(): Promise<
+    Array<{
+      check_name: string
+      status: string
+      details: string
+      count_value: number
+    }>
+  > {
     try {
       const { data, error } = await this.supabase.rpc('validate_posts_migration')
-      
+
       if (error) {
         console.error('Error validating migration:', error)
         return []
@@ -342,16 +348,18 @@ export function convertToUnifiedPost(post: any): UnifiedPost {
       share_count: post.share_count || post.shares || 0,
       view_count: post.view_count || post.views || 0,
       engagement_score: post.engagement_score || 0,
-      source: 'activities'
+      source: 'activities',
     }
   }
 }
 
 // Type guard for UnifiedPost
 export function isUnifiedPost(obj: any): obj is UnifiedPost {
-  return obj && 
-         typeof obj.id === 'string' && 
-         typeof obj.user_id === 'string' && 
-         typeof obj.text === 'string' &&
-         typeof obj.created_at === 'string'
+  return (
+    obj &&
+    typeof obj.id === 'string' &&
+    typeof obj.user_id === 'string' &&
+    typeof obj.text === 'string' &&
+    typeof obj.created_at === 'string'
+  )
 }

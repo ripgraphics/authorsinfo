@@ -1,15 +1,21 @@
-import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { useToast } from "@/components/ui/use-toast"
-import { createBrowserClient } from "@supabase/ssr"
-import type { Database } from "@/types/database"
+import { useState, useEffect } from 'react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { useToast } from '@/components/ui/use-toast'
+import { createBrowserClient } from '@supabase/ssr'
+import type { Database } from '@/types/database'
 import { useAuth } from '@/hooks/useAuth'
-import { ImageIcon, Globe, Users, Lock, Eye, EyeOff, Share2 } from "lucide-react"
+import { ImageIcon, Globe, Users, Lock, Eye, EyeOff, Share2 } from 'lucide-react'
 
 interface AlbumSettingsDialogProps {
   isOpen?: boolean
@@ -36,48 +42,51 @@ export function AlbumSettingsDialog({
   onClose: externalOnClose,
   album,
   photos = [],
-  onSettingsUpdated
+  onSettingsUpdated,
 }: AlbumSettingsDialogProps) {
   const [internalIsOpen, setInternalIsOpen] = useState(false)
   const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen
   const onClose = externalOnClose || (() => setInternalIsOpen(false))
-  
+
   const [privacyLevel, setPrivacyLevel] = useState<PrivacyLevel>('public')
   const [showInFeed, setShowInFeed] = useState(true)
   const [selectedCoverId, setSelectedCoverId] = useState(album.cover_image_id)
   const [isSaving, setIsSaving] = useState(false)
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const [availableUsers, setAvailableUsers] = useState<any[]>([])
-  
+
   const { toast } = useToast()
   const { user } = useAuth()
-  const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   const privacyOptions = [
     {
       value: 'public',
       label: 'Public',
       description: 'Anyone can view this album',
-      icon: <Globe className="h-4 w-4" />
+      icon: <Globe className="h-4 w-4" />,
     },
     {
       value: 'friends',
       label: 'Friends Only',
       description: 'Only your friends can view this album',
-      icon: <Users className="h-4 w-4" />
+      icon: <Users className="h-4 w-4" />,
     },
     {
       value: 'private',
       label: 'Private',
       description: 'Only you can view this album',
-      icon: <Lock className="h-4 w-4" />
+      icon: <Lock className="h-4 w-4" />,
     },
     {
       value: 'custom',
       label: 'Custom',
       description: 'Choose specific people who can view this album',
-      icon: <Eye className="h-4 w-4" />
-    }
+      icon: <Eye className="h-4 w-4" />,
+    },
   ]
 
   // Load current album settings
@@ -86,7 +95,7 @@ export function AlbumSettingsDialog({
       setPrivacyLevel(album.metadata.privacy_level || 'public')
       setShowInFeed(album.metadata.show_in_feed !== false)
     } else {
-      setPrivacyLevel(album.is_public ?? false ? 'public' : 'private')
+      setPrivacyLevel((album.is_public ?? false) ? 'public' : 'private')
       setShowInFeed(album.is_public ?? false)
     }
   }, [album])
@@ -127,9 +136,9 @@ export function AlbumSettingsDialog({
   const handleSave = async () => {
     if (!user) {
       toast({
-        title: "Authentication Required",
-        description: "Please sign in to update album settings",
-        variant: "destructive"
+        title: 'Authentication Required',
+        description: 'Please sign in to update album settings',
+        variant: 'destructive',
       })
       return
     }
@@ -151,9 +160,9 @@ export function AlbumSettingsDialog({
             .select('friend_id')
             .eq('user_id', user.id)
             .eq('status', 'accepted')
-          
+
           if (friends) {
-            allowedViewers = friends.map(f => f.friend_id)
+            allowedViewers = friends.map((f) => f.friend_id)
           }
           break
         case 'private':
@@ -174,8 +183,8 @@ export function AlbumSettingsDialog({
             privacy_level: privacyLevel,
             show_in_feed: showInFeed,
             allowed_viewers: allowedViewers,
-            updated_at: new Date().toISOString()
-          }
+            updated_at: new Date().toISOString(),
+          },
         })
         .eq('id', album.id)
 
@@ -184,25 +193,20 @@ export function AlbumSettingsDialog({
       // Handle custom permissions
       if (privacyLevel === 'custom') {
         // Remove existing shares
-        await supabase
-          .from('album_shares')
-          .delete()
-          .eq('album_id', album.id)
+        await supabase.from('album_shares').delete().eq('album_id', album.id)
 
         // Create new shares if users are selected
         if (selectedUsers.length > 0) {
-          const shareRecords = selectedUsers.map(userId => ({
+          const shareRecords = selectedUsers.map((userId) => ({
             album_id: album.id,
             share_type: 'view',
             shared_by: user.id,
             shared_with: userId,
             access_token: null,
-            expires_at: null
+            expires_at: null,
           }))
 
-          const { error: shareError } = await supabase
-            .from('album_shares')
-            .insert(shareRecords)
+          const { error: shareError } = await supabase.from('album_shares').insert(shareRecords)
 
           if (shareError) {
             console.error('Error updating album shares:', shareError)
@@ -223,19 +227,17 @@ export function AlbumSettingsDialog({
 
         if (!existingActivity) {
           // Create feed activity
-          await supabase
-            .from('activities')
-            .insert({
-              user_id: user.id,
-              activity_type: 'album_created',
-              entity_type: 'photo_album',
-              entity_id: album.id,
-              visibility: 'public',
-              metadata: {
-                album_name: album.name,
-                privacy_level: privacyLevel
-              }
-            })
+          await supabase.from('activities').insert({
+            user_id: user.id,
+            activity_type: 'album_created',
+            entity_type: 'photo_album',
+            entity_id: album.id,
+            visibility: 'public',
+            metadata: {
+              album_name: album.name,
+              privacy_level: privacyLevel,
+            },
+          })
         }
       } else {
         // Remove feed activity if album is no longer public
@@ -248,17 +250,17 @@ export function AlbumSettingsDialog({
       }
 
       toast({
-        title: "Success",
-        description: "Album settings updated successfully"
+        title: 'Success',
+        description: 'Album settings updated successfully',
       })
       onSettingsUpdated?.()
       onClose()
     } catch (error) {
       console.error('Error updating album settings:', error)
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update album settings",
-        variant: "destructive"
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to update album settings',
+        variant: 'destructive',
       })
     } finally {
       setIsSaving(false)
@@ -286,9 +288,7 @@ export function AlbumSettingsDialog({
                   }`}
                   onClick={() => handlePrivacyChange(option.value as PrivacyLevel)}
                 >
-                  <div className="flex-shrink-0">
-                    {option.icon}
-                  </div>
+                  <div className="flex-shrink-0">{option.icon}</div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{option.label}</span>
@@ -298,9 +298,7 @@ export function AlbumSettingsDialog({
                         </Badge>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {option.description}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{option.description}</p>
                   </div>
                 </div>
               ))}
@@ -342,9 +340,9 @@ export function AlbumSettingsDialog({
                         : 'border-border hover:bg-muted/50'
                     }`}
                     onClick={() => {
-                      setSelectedUsers(prev => 
+                      setSelectedUsers((prev) =>
                         prev.includes(user.id)
-                          ? prev.filter(id => id !== user.id)
+                          ? prev.filter((id) => id !== user.id)
                           : [...prev, user.id]
                       )
                     }}
@@ -371,14 +369,12 @@ export function AlbumSettingsDialog({
                   key={photo.id}
                   onClick={() => setSelectedCoverId(photo.id)}
                   className={`relative aspect-square rounded-md overflow-hidden border-2 ${
-                    selectedCoverId === photo.id
-                      ? "border-primary"
-                      : "border-transparent"
+                    selectedCoverId === photo.id ? 'border-primary' : 'border-transparent'
                   }`}
                 >
                   <img
                     src={photo.url}
-                    alt={photo.alt || "Album photo"}
+                    alt={photo.alt || 'Album photo'}
                     className="object-cover w-full h-full"
                   />
                 </button>
@@ -393,22 +389,15 @@ export function AlbumSettingsDialog({
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={onClose}
-              disabled={isSaving}
-            >
+            <Button variant="outline" onClick={onClose} disabled={isSaving}>
               Cancel
             </Button>
-            <Button
-              onClick={handleSave}
-              disabled={isSaving}
-            >
-              {isSaving ? "Saving..." : "Save Changes"}
+            <Button onClick={handleSave} disabled={isSaving}>
+              {isSaving ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
         </div>
       </DialogContent>
     </Dialog>
   )
-} 
+}

@@ -68,4 +68,3 @@ function SearchValueReceiver({ onSearchChange }: { onSearchChange: (value: strin
 
   return null
 }
-

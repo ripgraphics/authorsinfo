@@ -1,14 +1,14 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { AlertCircle, CheckCircle, Loader2 } from "lucide-react"
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react'
 
 export function GenerateActivitiesForm() {
-  const [type, setType] = useState<string>("all")
+  const [type, setType] = useState<string>('all')
   const [isGenerating, setIsGenerating] = useState(false)
   const [result, setResult] = useState<{
     success?: boolean
@@ -23,10 +23,10 @@ export function GenerateActivitiesForm() {
       setResult(null)
       setError(null)
 
-      const response = await fetch("/api/admin/generate-activities", {
-        method: "POST",
+      const response = await fetch('/api/admin/generate-activities', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ type }),
       })
@@ -34,12 +34,12 @@ export function GenerateActivitiesForm() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to generate activities")
+        throw new Error(data.error || 'Failed to generate activities')
       }
 
       setResult(data)
     } catch (err: any) {
-      setError(err.message || "An unexpected error occurred")
+      setError(err.message || 'An unexpected error occurred')
     } finally {
       setIsGenerating(false)
     }
@@ -50,11 +50,7 @@ export function GenerateActivitiesForm() {
       <h3 className="text-lg font-medium mb-4">Generate Activities</h3>
 
       <div className="mb-6">
-        <RadioGroup
-          value={type}
-          onValueChange={setType}
-          className="flex flex-col space-y-3"
-        >
+        <RadioGroup value={type} onValueChange={setType} className="flex flex-col space-y-3">
           <div className="flex items-start space-x-2">
             <RadioGroupItem value="all" id="all" />
             <div className="grid gap-1.5">
@@ -73,9 +69,7 @@ export function GenerateActivitiesForm() {
               <Label htmlFor="author" className="font-medium">
                 Authors only
               </Label>
-              <p className="text-sm text-muted-foreground">
-                Generate activities for all authors
-              </p>
+              <p className="text-sm text-muted-foreground">Generate activities for all authors</p>
             </div>
           </div>
 
@@ -85,9 +79,7 @@ export function GenerateActivitiesForm() {
               <Label htmlFor="book" className="font-medium">
                 Books only
               </Label>
-              <p className="text-sm text-muted-foreground">
-                Generate activities for all books
-              </p>
+              <p className="text-sm text-muted-foreground">Generate activities for all books</p>
             </div>
           </div>
 
@@ -121,31 +113,27 @@ export function GenerateActivitiesForm() {
               <Label htmlFor="group" className="font-medium">
                 Groups only
               </Label>
-              <p className="text-sm text-muted-foreground">
-                Generate activities for all groups
-              </p>
+              <p className="text-sm text-muted-foreground">Generate activities for all groups</p>
             </div>
           </div>
         </RadioGroup>
       </div>
 
-      <Button 
-        onClick={handleGenerate} 
-        disabled={isGenerating}
-        className="w-full sm:w-auto"
-      >
+      <Button onClick={handleGenerate} disabled={isGenerating} className="w-full sm:w-auto">
         {isGenerating ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Generating...
           </>
         ) : (
-          "Generate Activities"
+          'Generate Activities'
         )}
       </Button>
 
       {result && (
-        <div className={`mt-4 p-4 rounded-md ${result.success ? 'bg-green-50 border border-green-200' : 'bg-amber-50 border border-amber-200'}`}>
+        <div
+          className={`mt-4 p-4 rounded-md ${result.success ? 'bg-green-50 border border-green-200' : 'bg-amber-50 border border-amber-200'}`}
+        >
           <div className="flex items-start">
             <div className="flex-shrink-0">
               {result.success ? (
@@ -155,8 +143,10 @@ export function GenerateActivitiesForm() {
               )}
             </div>
             <div className="ml-3">
-              <h3 className={`text-sm font-medium ${result.success ? 'text-green-800' : 'text-amber-800'}`}>
-                {result.success ? "Success" : "Partial Success"}
+              <h3
+                className={`text-sm font-medium ${result.success ? 'text-green-800' : 'text-amber-800'}`}
+              >
+                {result.success ? 'Success' : 'Partial Success'}
               </h3>
               <div className="mt-1 text-sm">
                 <p className={result.success ? 'text-green-700' : 'text-amber-700'}>
@@ -210,4 +200,4 @@ export function GenerateActivitiesForm() {
       )}
     </Card>
   )
-} 
+}

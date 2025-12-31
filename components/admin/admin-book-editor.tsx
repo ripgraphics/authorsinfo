@@ -1,19 +1,31 @@
-"use client"
+'use client'
 
-import React, { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { useToast } from "@/hooks/use-toast"
-import { 
+import React, { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { useToast } from '@/hooks/use-toast'
+import {
   BookOpen,
   User,
   Building,
@@ -39,8 +51,8 @@ import {
   ExternalLink,
   Copy,
   Check,
-  AlertCircle
-} from "lucide-react"
+  AlertCircle,
+} from 'lucide-react'
 
 interface Book {
   id?: string
@@ -101,7 +113,7 @@ interface AdminBookEditorProps {
 
 export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookEditorProps) {
   const { toast } = useToast()
-  
+
   // Form state
   const [formData, setFormData] = useState<Book>({
     title: '',
@@ -125,20 +137,20 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
     publisher_id: '',
     binding_type_id: '',
     format_type_id: '',
-    status_id: ''
+    status_id: '',
   })
-  
+
   // Options for dropdowns
   const [authors, setAuthors] = useState<Array<{ id: string; name: string }>>([])
   const [publishers, setPublishers] = useState<Array<{ id: string; name: string }>>([])
   const [bindingTypes, setBindingTypes] = useState<Array<{ id: string; name: string }>>([])
   const [formatTypes, setFormatTypes] = useState<Array<{ id: string; name: string }>>([])
   const [statuses, setStatuses] = useState<Array<{ id: string; name: string }>>([])
-  
+
   // Loading states
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
-  
+
   // Image upload state
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -169,7 +181,7 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
         publisher_id: book.publisher_id || book.publisher?.id || '',
         binding_type_id: book.binding_type_id || book.binding_type?.id || '',
         format_type_id: book.format_type_id || book.format_type?.id || '',
-        status_id: book.status_id || book.status?.id || ''
+        status_id: book.status_id || book.status?.id || '',
       })
     } else {
       setFormData({
@@ -194,7 +206,7 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
         publisher_id: '',
         binding_type_id: '',
         format_type_id: '',
-        status_id: ''
+        status_id: '',
       })
     }
   }, [book])
@@ -209,13 +221,14 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
   const loadOptions = async () => {
     setLoading(true)
     try {
-      const [authorsRes, publishersRes, bindingTypesRes, formatTypesRes, statusesRes] = await Promise.all([
-        fetch('/api/admin/authors'),
-        fetch('/api/admin/publishers'),
-        fetch('/api/admin/binding-types'),
-        fetch('/api/admin/format-types'),
-        fetch('/api/admin/statuses')
-      ])
+      const [authorsRes, publishersRes, bindingTypesRes, formatTypesRes, statusesRes] =
+        await Promise.all([
+          fetch('/api/admin/authors'),
+          fetch('/api/admin/publishers'),
+          fetch('/api/admin/binding-types'),
+          fetch('/api/admin/format-types'),
+          fetch('/api/admin/statuses'),
+        ])
 
       if (authorsRes.ok) {
         const authorsData = await authorsRes.json()
@@ -243,9 +256,9 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to load options",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to load options',
+        variant: 'destructive',
       })
     } finally {
       setLoading(false)
@@ -253,7 +266,7 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
   }
 
   const handleInputChange = (field: keyof Book, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -275,7 +288,7 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
 
     const response = await fetch('/api/upload', {
       method: 'POST',
-      body: formData
+      body: formData,
     })
 
     if (!response.ok) {
@@ -298,7 +311,7 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
 
       const bookData = {
         ...formData,
-        cover_image_url: coverImageUrl
+        cover_image_url: coverImageUrl,
       }
 
       const url = book?.id ? `/api/admin/books/${book.id}` : '/api/admin/books'
@@ -307,31 +320,31 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
       const response = await fetch(url, {
         method,
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(bookData)
+        body: JSON.stringify(bookData),
       })
 
       if (response.ok) {
         toast({
-          title: "Success",
-          description: book?.id ? "Book updated successfully" : "Book created successfully"
+          title: 'Success',
+          description: book?.id ? 'Book updated successfully' : 'Book created successfully',
         })
         onSave()
         onOpenChange(false)
       } else {
         const data = await response.json()
         toast({
-          title: "Error",
-          description: data.error || "Failed to save book",
-          variant: "destructive"
+          title: 'Error',
+          description: data.error || 'Failed to save book',
+          variant: 'destructive',
         })
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to save book",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to save book',
+        variant: 'destructive',
       })
     } finally {
       setSaving(false)
@@ -348,29 +361,29 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
     setSaving(true)
     try {
       const response = await fetch(`/api/admin/books/${book.id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
       })
 
       if (response.ok) {
         toast({
-          title: "Success",
-          description: "Book deleted successfully"
+          title: 'Success',
+          description: 'Book deleted successfully',
         })
         onSave()
         onOpenChange(false)
       } else {
         const data = await response.json()
         toast({
-          title: "Error",
-          description: data.error || "Failed to delete book",
-          variant: "destructive"
+          title: 'Error',
+          description: data.error || 'Failed to delete book',
+          variant: 'destructive',
         })
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to delete book",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to delete book',
+        variant: 'destructive',
       })
     } finally {
       setSaving(false)
@@ -452,7 +465,12 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
 
               <div className="space-y-2">
                 <Label htmlFor="language">Language</Label>
-                <Select value={formData.language || 'none'} onValueChange={(value) => handleInputChange('language', value === 'none' ? undefined : value)}>
+                <Select
+                  value={formData.language || 'none'}
+                  onValueChange={(value) =>
+                    handleInputChange('language', value === 'none' ? undefined : value)
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select language" />
                   </SelectTrigger>
@@ -478,7 +496,9 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
                   id="pages"
                   type="number"
                   value={formData.pages || ''}
-                  onChange={(e) => handleInputChange('pages', e.target.value ? Number(e.target.value) : undefined)}
+                  onChange={(e) =>
+                    handleInputChange('pages', e.target.value ? Number(e.target.value) : undefined)
+                  }
                   placeholder="Number of pages"
                 />
               </div>
@@ -490,7 +510,12 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
                   type="number"
                   step="0.01"
                   value={formData.list_price || ''}
-                  onChange={(e) => handleInputChange('list_price', e.target.value ? Number(e.target.value) : undefined)}
+                  onChange={(e) =>
+                    handleInputChange(
+                      'list_price',
+                      e.target.value ? Number(e.target.value) : undefined
+                    )
+                  }
                   placeholder="0.00"
                 />
               </div>
@@ -546,7 +571,9 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
                   id="weight"
                   type="number"
                   value={formData.weight || ''}
-                  onChange={(e) => handleInputChange('weight', e.target.value ? Number(e.target.value) : undefined)}
+                  onChange={(e) =>
+                    handleInputChange('weight', e.target.value ? Number(e.target.value) : undefined)
+                  }
                   placeholder="Weight in grams"
                 />
               </div>
@@ -560,7 +587,12 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
                   min="0"
                   max="5"
                   value={formData.average_rating || ''}
-                  onChange={(e) => handleInputChange('average_rating', e.target.value ? Number(e.target.value) : undefined)}
+                  onChange={(e) =>
+                    handleInputChange(
+                      'average_rating',
+                      e.target.value ? Number(e.target.value) : undefined
+                    )
+                  }
                   placeholder="0.0 - 5.0"
                 />
               </div>
@@ -571,7 +603,12 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
                   id="review_count"
                   type="number"
                   value={formData.review_count || ''}
-                  onChange={(e) => handleInputChange('review_count', e.target.value ? Number(e.target.value) : undefined)}
+                  onChange={(e) =>
+                    handleInputChange(
+                      'review_count',
+                      e.target.value ? Number(e.target.value) : undefined
+                    )
+                  }
                   placeholder="Number of reviews"
                 />
               </div>
@@ -649,7 +686,12 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
                 {formData.original_image_url && (
                   <div className="text-sm text-muted-foreground">
                     <ExternalLink className="h-4 w-4 inline mr-1" />
-                    <a href={formData.original_image_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                    <a
+                      href={formData.original_image_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
                       View original image
                     </a>
                   </div>
@@ -662,7 +704,12 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="author">Author</Label>
-                <Select value={formData.author_id || 'none'} onValueChange={(value) => handleInputChange('author_id', value === 'none' ? undefined : value)}>
+                <Select
+                  value={formData.author_id || 'none'}
+                  onValueChange={(value) =>
+                    handleInputChange('author_id', value === 'none' ? undefined : value)
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select author" />
                   </SelectTrigger>
@@ -679,7 +726,12 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
 
               <div className="space-y-2">
                 <Label htmlFor="publisher">Publisher</Label>
-                <Select value={formData.publisher_id || 'none'} onValueChange={(value) => handleInputChange('publisher_id', value === 'none' ? undefined : value)}>
+                <Select
+                  value={formData.publisher_id || 'none'}
+                  onValueChange={(value) =>
+                    handleInputChange('publisher_id', value === 'none' ? undefined : value)
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select publisher" />
                   </SelectTrigger>
@@ -696,7 +748,12 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
 
               <div className="space-y-2">
                 <Label htmlFor="binding_type">Binding Type</Label>
-                <Select value={formData.binding_type_id || 'none'} onValueChange={(value) => handleInputChange('binding_type_id', value === 'none' ? undefined : value)}>
+                <Select
+                  value={formData.binding_type_id || 'none'}
+                  onValueChange={(value) =>
+                    handleInputChange('binding_type_id', value === 'none' ? undefined : value)
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select binding type" />
                   </SelectTrigger>
@@ -713,7 +770,12 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
 
               <div className="space-y-2">
                 <Label htmlFor="format_type">Format Type</Label>
-                <Select value={formData.format_type_id || 'none'} onValueChange={(value) => handleInputChange('format_type_id', value === 'none' ? undefined : value)}>
+                <Select
+                  value={formData.format_type_id || 'none'}
+                  onValueChange={(value) =>
+                    handleInputChange('format_type_id', value === 'none' ? undefined : value)
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select format type" />
                   </SelectTrigger>
@@ -730,7 +792,12 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
 
               <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
-                <Select value={formData.status_id || 'none'} onValueChange={(value) => handleInputChange('status_id', value === 'none' ? undefined : value)}>
+                <Select
+                  value={formData.status_id || 'none'}
+                  onValueChange={(value) =>
+                    handleInputChange('status_id', value === 'none' ? undefined : value)
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
@@ -767,4 +834,4 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
       </DialogContent>
     </Dialog>
   )
-} 
+}

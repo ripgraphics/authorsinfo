@@ -1,7 +1,7 @@
-import { Suspense } from "react"
-import { getBooksWithMultipleAuthors } from "@/app/actions/admin-book-authors"
-import { BooksWithMultipleAuthorsClient } from "./client"
-import BooksWithMultipleAuthorsLoading from "./loading"
+import { Suspense } from 'react'
+import { getBooksWithMultipleAuthors } from '@/app/actions/admin-book-authors'
+import { BooksWithMultipleAuthorsClient } from './client'
+import BooksWithMultipleAuthorsLoading from './loading'
 
 interface BooksWithMultipleAuthorsPageProps {
   searchParams: Promise<{
@@ -10,7 +10,9 @@ interface BooksWithMultipleAuthorsPageProps {
   }>
 }
 
-export default async function BooksWithMultipleAuthorsPage({ searchParams }: BooksWithMultipleAuthorsPageProps) {
+export default async function BooksWithMultipleAuthorsPage({
+  searchParams,
+}: BooksWithMultipleAuthorsPageProps) {
   const params = await searchParams
   const page = Number(params.page) || 1
   const pageSize = Number(params.pageSize) || 20
@@ -33,9 +35,10 @@ export default async function BooksWithMultipleAuthorsPage({ searchParams }: Boo
     // Transform books to handle cover_image array -> single object
     const transformedBooks = books.map((book: any) => ({
       ...book,
-      cover_image: Array.isArray(book.cover_image) && book.cover_image.length > 0 
-        ? book.cover_image[0] 
-        : book.cover_image || undefined
+      cover_image:
+        Array.isArray(book.cover_image) && book.cover_image.length > 0
+          ? book.cover_image[0]
+          : book.cover_image || undefined,
     }))
 
     return (

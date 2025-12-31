@@ -1,7 +1,7 @@
-import { Avatar } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { Heart, MessageSquare, Share2, Ellipsis } from "lucide-react"
-import Link from "next/link"
+import { Avatar } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import { Heart, MessageSquare, Share2, Ellipsis } from 'lucide-react'
+import Link from 'next/link'
 
 export interface TimelineItem {
   id: string
@@ -19,25 +19,41 @@ interface TimelineProps {
   className?: string
 }
 
-export function Timeline({ items, showActions = true, className = "" }: TimelineProps) {
+export function Timeline({ items, showActions = true, className = '' }: TimelineProps) {
   return (
     <div className={`timeline ${className}`}>
-      {items.map(item => (
-        <div key={item.id} className="timeline__item rounded-lg border bg-card text-card-foreground shadow-xs mb-6">
+      {items.map((item) => (
+        <div
+          key={item.id}
+          className="timeline__item rounded-lg border bg-card text-card-foreground shadow-xs mb-6"
+        >
           <div className="timeline__header flex flex-col space-y-1.5 p-6 pb-3">
             <div className="timeline__header-row flex justify-between">
               <div className="timeline__user flex items-center gap-3">
-                <Avatar src={item.avatarUrl} alt={item.name} name={item.name} size="sm" className="timeline__avatar" />
+                <Avatar
+                  src={item.avatarUrl}
+                  alt={item.name}
+                  name={item.name}
+                  size="sm"
+                  className="timeline__avatar"
+                />
                 <div>
                   <div className="timeline__name font-medium">
                     {item.profileUrl ? (
-                      <Link href={item.profileUrl} className="timeline__profile-link hover:underline">{item.name}</Link>
+                      <Link
+                        href={item.profileUrl}
+                        className="timeline__profile-link hover:underline"
+                      >
+                        {item.name}
+                      </Link>
                     ) : (
                       item.name
                     )}
                   </div>
                   <div className="timeline__timestamp text-xs text-muted-foreground">
-                    {typeof item.timestamp === "string" ? item.timestamp : new Date(item.timestamp).toLocaleDateString()}
+                    {typeof item.timestamp === 'string'
+                      ? item.timestamp
+                      : new Date(item.timestamp).toLocaleDateString()}
                   </div>
                 </div>
               </div>
@@ -46,9 +62,7 @@ export function Timeline({ items, showActions = true, className = "" }: Timeline
               </Button>
             </div>
           </div>
-          <div className="timeline__content p-6 pt-0 pb-3">
-            {item.content}
-          </div>
+          <div className="timeline__content p-6 pt-0 pb-3">{item.content}</div>
           {showActions && (
             <div className="timeline__footer p-6 flex items-center justify-between py-3">
               <div className="timeline__actions flex items-center gap-6">
@@ -71,4 +85,4 @@ export function Timeline({ items, showActions = true, className = "" }: Timeline
       ))}
     </div>
   )
-} 
+}

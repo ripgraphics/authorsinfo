@@ -1,15 +1,29 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { BookOpen, Users } from "lucide-react"
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { BookOpen, Users } from 'lucide-react'
 
 // Helper function to safely truncate IDs
 function truncateId(id: string | number | null | undefined): string {
-  if (id === null || id === undefined) return "N/A"
+  if (id === null || id === undefined) return 'N/A'
   const strId = String(id)
   return strId.length > 8 ? `${strId.substring(0, 8)}...` : strId
 }
@@ -58,7 +72,7 @@ export function BooksWithMultipleAuthorsClient({
         <h1 className="text-2xl font-bold">Books With Multiple Authors</h1>
         <Button
           variant="outline"
-          onClick={() => router.push("/admin/book-author-connections")}
+          onClick={() => router.push('/admin/book-author-connections')}
           className="flex items-center gap-2"
         >
           <Users className="h-4 w-4" />
@@ -94,9 +108,9 @@ export function BooksWithMultipleAuthorsClient({
                 books.map((book) => (
                   <TableRow key={String(book.id)}>
                     <TableCell className="font-mono">{truncateId(book.id)}</TableCell>
-                    <TableCell>{book.title || "Untitled"}</TableCell>
-                    <TableCell>{book.isbn10 || "—"}</TableCell>
-                    <TableCell>{book.isbn13 || "—"}</TableCell>
+                    <TableCell>{book.title || 'Untitled'}</TableCell>
+                    <TableCell>{book.isbn10 || '—'}</TableCell>
+                    <TableCell>{book.isbn13 || '—'}</TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="outline"
@@ -117,7 +131,12 @@ export function BooksWithMultipleAuthorsClient({
         {totalPages > 1 && (
           <CardFooter className="flex justify-center py-4 border-t">
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => handlePageChange(page - 1)} disabled={page <= 1}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(page - 1)}
+                disabled={page <= 1}
+              >
                 Previous
               </Button>
               <span className="text-sm">

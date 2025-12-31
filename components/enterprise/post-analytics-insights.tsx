@@ -8,14 +8,14 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { 
-  BarChart3, 
-  TrendingUp, 
-  TrendingDown, 
-  Eye, 
-  Heart, 
-  MessageCircle, 
-  Share2, 
+import {
+  BarChart3,
+  TrendingUp,
+  TrendingDown,
+  Eye,
+  Heart,
+  MessageCircle,
+  Share2,
   Bookmark,
   Calendar,
   Filter,
@@ -27,7 +27,7 @@ import {
   Users,
   Clock,
   Award,
-  AlertCircle
+  AlertCircle,
 } from 'lucide-react'
 
 interface PostAnalyticsInsightsProps {
@@ -98,8 +98,8 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
     audienceInsights: {
       peakHours: [],
       peakDays: [],
-      demographics: []
-    }
+      demographics: [],
+    },
   })
   const [topPosts, setTopPosts] = useState<PostPerformance[]>([])
   const [currentTab, setCurrentTab] = useState('overview')
@@ -125,14 +125,14 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
         views: Math.floor(Math.random() * 100) + 50,
         likes: Math.floor(Math.random() * 20) + 5,
         comments: Math.floor(Math.random() * 10) + 2,
-        shares: Math.floor(Math.random() * 8) + 1
+        shares: Math.floor(Math.random() * 8) + 1,
       })),
       topHashtags: [
         { tag: 'tech', count: 45, engagement: 12.3 },
         { tag: 'programming', count: 38, engagement: 15.7 },
         { tag: 'webdev', count: 32, engagement: 9.8 },
         { tag: 'javascript', count: 28, engagement: 18.2 },
-        { tag: 'react', count: 25, engagement: 22.1 }
+        { tag: 'react', count: 25, engagement: 22.1 },
       ],
       audienceInsights: {
         peakHours: [9, 12, 18, 21],
@@ -141,9 +141,9 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
           { age: '18-24', percentage: 35 },
           { age: '25-34', percentage: 42 },
           { age: '35-44', percentage: 18 },
-          { age: '45+', percentage: 5 }
-        ]
-      }
+          { age: '45+', percentage: 5 },
+        ],
+      },
     }
 
     setAnalytics(mockAnalytics)
@@ -151,7 +151,8 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
 
   // Calculate engagement rate
   const calculateEngagementRate = useCallback((post: Post) => {
-    const totalInteractions = (post.like_count || 0) + (post.comment_count || 0) + (post.share_count || 0)
+    const totalInteractions =
+      (post.like_count || 0) + (post.comment_count || 0) + (post.share_count || 0)
     const reach = post.view_count || 1
     return (totalInteractions / reach) * 100
   }, [])
@@ -168,10 +169,10 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
     const now = new Date()
     const postDate = new Date(post.created_at)
     const hoursSincePost = (now.getTime() - postDate.getTime()) / (1000 * 60 * 60)
-    
+
     const engagement = (post.like_count || 0) + (post.comment_count || 0) + (post.share_count || 0)
     const views = post.view_count || 0
-    
+
     // Trending score formula: (engagement * views) / (hours since post + 1)
     return (engagement * views) / (hoursSincePost + 1)
   }, [])
@@ -179,18 +180,18 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
   // Get performance insights
   const getPerformanceInsights = useCallback(() => {
     const insights = []
-    
+
     if (analytics.averageEngagement > 10) {
       insights.push({
         type: 'positive',
         message: 'Your engagement rate is above average! Keep creating quality content.',
-        icon: '🎉'
+        icon: '🎉',
       })
     } else if (analytics.averageEngagement < 5) {
       insights.push({
         type: 'warning',
         message: 'Consider optimizing your content for better engagement.',
-        icon: '💡'
+        icon: '💡',
       })
     }
 
@@ -198,7 +199,7 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
       insights.push({
         type: 'positive',
         message: `${analytics.trendingPosts} posts are currently trending!`,
-        icon: '🔥'
+        icon: '🔥',
       })
     }
 
@@ -206,7 +207,7 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
       insights.push({
         type: 'positive',
         message: `${analytics.viralPosts} posts went viral this period!`,
-        icon: '🚀'
+        icon: '🚀',
       })
     }
 
@@ -214,23 +215,26 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
   }, [analytics])
 
   // Get top performing posts
-  const getTopPerformingPosts = useCallback((posts: Post[]) => {
-    return posts
-      .map(post => ({
-        post,
-        views: post.view_count || 0,
-        likes: post.like_count || 0,
-        comments: post.comment_count || 0,
-        shares: post.share_count || 0,
-        bookmarks: 0, // Mock data
-        engagementScore: calculateEngagementRate(post),
-        reach: post.view_count || 0,
-        viralCoefficient: calculateViralCoefficient(post),
-        trendingScore: calculateTrendingScore(post)
-      }))
-      .sort((a, b) => b.engagementScore - a.engagementScore)
-      .slice(0, 10)
-  }, [calculateEngagementRate, calculateViralCoefficient, calculateTrendingScore])
+  const getTopPerformingPosts = useCallback(
+    (posts: Post[]) => {
+      return posts
+        .map((post) => ({
+          post,
+          views: post.view_count || 0,
+          likes: post.like_count || 0,
+          comments: post.comment_count || 0,
+          shares: post.share_count || 0,
+          bookmarks: 0, // Mock data
+          engagementScore: calculateEngagementRate(post),
+          reach: post.view_count || 0,
+          viralCoefficient: calculateViralCoefficient(post),
+          trendingScore: calculateTrendingScore(post),
+        }))
+        .sort((a, b) => b.engagementScore - a.engagementScore)
+        .slice(0, 10)
+    },
+    [calculateEngagementRate, calculateViralCoefficient, calculateTrendingScore]
+  )
 
   // Mock posts for demonstration
   useEffect(() => {
@@ -253,7 +257,7 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
         is_hidden: false,
         last_activity_at: new Date().toISOString(),
         metadata: {},
-        enterprise_features: {}
+        enterprise_features: {},
       } as Post,
       {
         id: '2',
@@ -273,8 +277,8 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
         is_hidden: false,
         last_activity_at: new Date(Date.now() - 86400000).toISOString(),
         metadata: {},
-        enterprise_features: {}
-      } as Post
+        enterprise_features: {},
+      } as Post,
     ]
 
     setTopPosts(getTopPerformingPosts(mockPosts))
@@ -286,7 +290,9 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
     return (
       <Card>
         <CardContent className="p-6 text-center">
-          <p className="text-muted-foreground">Please log in to access post analytics and insights.</p>
+          <p className="text-muted-foreground">
+            Please log in to access post analytics and insights.
+          </p>
         </CardContent>
       </Card>
     )
@@ -298,7 +304,9 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Post Analytics & Insights</h1>
-          <p className="text-muted-foreground">Track performance, identify trends, and optimize your content strategy</p>
+          <p className="text-muted-foreground">
+            Track performance, identify trends, and optimize your content strategy
+          </p>
         </div>
         <div className="flex items-center space-x-2">
           <select
@@ -336,7 +344,7 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
@@ -349,7 +357,7 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
@@ -362,7 +370,7 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
@@ -392,8 +400,8 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
                 <div
                   key={index}
                   className={`p-4 rounded-lg border ${
-                    insight.type === 'positive' 
-                      ? 'border-green-200 bg-green-50' 
+                    insight.type === 'positive'
+                      ? 'border-green-200 bg-green-50'
                       : 'border-yellow-200 bg-yellow-50'
                   }`}
                 >
@@ -450,12 +458,13 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
               <CardContent>
                 <div className="space-y-3">
                   {analytics.topHashtags.map((hashtag, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 border rounded-sm">
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-2 border rounded-sm"
+                    >
                       <div className="flex items-center space-x-2">
                         <Badge variant="secondary">#{hashtag.tag}</Badge>
-                        <span className="text-sm text-muted-foreground">
-                          {hashtag.count} posts
-                        </span>
+                        <span className="text-sm text-muted-foreground">{hashtag.count} posts</span>
                       </div>
                       <div className="text-sm font-medium">
                         {hashtag.engagement.toFixed(1)}% engagement
@@ -483,20 +492,21 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
                   >
                     <div className="flex items-center space-x-2">
                       <Badge variant="outline">#{index + 1}</Badge>
-                      {index < 3 && (
-                        <Award className="h-4 w-4 text-yellow-500" />
-                      )}
+                      {index < 3 && <Award className="h-4 w-4 text-yellow-500" />}
                     </div>
-                    
+
                     <div className="flex-1">
                       <h4 className="font-medium truncate">
-                        {performance.post.content?.text || (performance.post as any).text || (performance.post as any).data?.text || 'No content'}
+                        {performance.post.content?.text ||
+                          (performance.post as any).text ||
+                          (performance.post as any).data?.text ||
+                          'No content'}
                       </h4>
                       <p className="text-sm text-muted-foreground">
                         {new Date(performance.post.created_at).toLocaleDateString()}
                       </p>
                     </div>
-                    
+
                     <div className="grid grid-cols-5 gap-4 text-sm text-center">
                       <div>
                         <p className="font-medium">{performance.views}</p>
@@ -519,7 +529,7 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
                         <p className="text-muted-foreground">Engagement</p>
                       </div>
                     </div>
-                    
+
                     <div className="text-right">
                       <Badge variant="secondary">
                         Score: {performance.trendingScore.toFixed(1)}
@@ -550,16 +560,12 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
                     {analytics.viralPosts} posts went viral this period
                   </p>
                 </div>
-                
+
                 {/* Trending Score */}
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-medium mb-2">Trending Score</h4>
-                  <p className="text-2xl font-bold text-green-600">
-                    {analytics.trendingPosts}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Posts currently trending
-                  </p>
+                  <p className="text-2xl font-bold text-green-600">{analytics.trendingPosts}</p>
+                  <p className="text-sm text-muted-foreground">Posts currently trending</p>
                 </div>
               </div>
             </CardContent>
@@ -581,7 +587,7 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
                       <span className="text-sm">{hour}:00</span>
                       <div className="flex-1 mx-4">
                         <div className="bg-blue-200 h-2 rounded-full">
-                          <div 
+                          <div
                             className="bg-blue-600 h-2 rounded-full"
                             style={{ width: `${(hour / 24) * 100}%` }}
                           />
@@ -606,7 +612,7 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
                       <span className="text-sm">{demo.age}</span>
                       <div className="flex-1 mx-4">
                         <div className="bg-gray-200 h-2 rounded-full">
-                          <div 
+                          <div
                             className="bg-green-600 h-2 rounded-full"
                             style={{ width: `${demo.percentage}%` }}
                           />

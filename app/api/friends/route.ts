@@ -7,9 +7,12 @@ export async function POST(request: NextRequest) {
   try {
     console.log('Friend request POST started')
     const supabase = await createRouteHandlerClientAsync()
-    
+
     // Get the current user - use getUser() to authenticate with Supabase Auth server
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
     if (userError) {
       console.error('User authentication error:', userError)
       return NextResponse.json({ error: 'Failed to authenticate user' }, { status: 500 })
@@ -22,7 +25,7 @@ export async function POST(request: NextRequest) {
     console.log('User authenticated:', user.id)
     const { targetUserId } = await request.json()
     console.log('Target user ID:', targetUserId)
-    
+
     if (!targetUserId) {
       return NextResponse.json({ error: 'Target user ID is required' }, { status: 400 })
     }
@@ -70,7 +73,7 @@ export async function POST(request: NextRequest) {
 
     // Combine both results
     const allRequests = [...(existingRequests || []), ...(reverseRequests || [])]
-    const existingRequest = (allRequests[0] as any)
+    const existingRequest = allRequests[0] as any
 
     if (existingRequest) {
       console.log('Existing request found:', existingRequest)
@@ -86,9 +89,9 @@ export async function POST(request: NextRequest) {
       user_id: user.id,
       friend_id: targetUserUUID,
       requested_by: user.id,
-      status: 'pending'
+      status: 'pending',
     })
-    
+
     try {
       // user_friends table type not fully defined in Supabase types - using type assertion
       const { data: friendRequest, error: insertError } = await (supabase as any)
@@ -98,7 +101,7 @@ export async function POST(request: NextRequest) {
           friend_id: targetUserUUID,
           requested_by: user.id,
           status: 'pending',
-          requested_at: new Date().toISOString()
+          requested_at: new Date().toISOString(),
         })
         .select()
         .single()
@@ -112,60 +115,73 @@ export async function POST(request: NextRequest) {
           code: insertError.code,
           details: insertError.details,
           hint: insertError.hint,
-          fullError: JSON.stringify(insertError, null, 2)
+          fullError: JSON.stringify(insertError, null, 2),
         })
-        return NextResponse.json({ 
-          error: 'Failed to send friend request',
-          details: insertError.message,
-          code: insertError.code,
-          hint: insertError.hint
-        }, { status: 500 })
+        return NextResponse.json(
+          {
+            error: 'Failed to send friend request',
+            details: insertError.message,
+            code: insertError.code,
+            hint: insertError.hint,
+          },
+          { status: 500 }
+        )
       }
 
       if (!friendRequest) {
         console.error('❌ No friend request returned from insert')
-        return NextResponse.json({ 
-          error: 'Failed to send friend request',
-          details: 'No data returned from insert'
-        }, { status: 500 })
+        return NextResponse.json(
+          {
+            error: 'Failed to send friend request',
+            details: 'No data returned from insert',
+          },
+          { status: 500 }
+        )
       }
 
-
-
-      return NextResponse.json({ 
-        success: true, 
+      return NextResponse.json({
+        success: true,
         message: 'Friend request sent successfully',
-        request: friendRequest
+        request: friendRequest,
       })
     } catch (insertException) {
       console.error('❌ Exception during insert:', insertException)
-      const exceptionMessage = insertException instanceof Error ? insertException.message : String(insertException)
+      const exceptionMessage =
+        insertException instanceof Error ? insertException.message : String(insertException)
       const exceptionStack = insertException instanceof Error ? insertException.stack : undefined
       console.error('Exception stack:', exceptionStack)
-      return NextResponse.json({ 
-        error: 'Failed to send friend request',
-        details: exceptionMessage
-      }, { status: 500 })
+      return NextResponse.json(
+        {
+          error: 'Failed to send friend request',
+          details: exceptionMessage,
+        },
+        { status: 500 }
+      )
     }
-
   } catch (error) {
     console.error('Error in friend request:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     const errorStack = error instanceof Error ? error.stack : undefined
     console.error('Error stack:', errorStack)
-    return NextResponse.json({ 
-      error: 'Internal server error',
-      message: errorMessage
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: 'Internal server error',
+        message: errorMessage,
+      },
+      { status: 500 }
+    )
   }
 }
 
 export async function PUT(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClientAsync()
-    
+
     // Get the current user - use getUser() to authenticate with Supabase Auth server
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
     if (userError) {
       console.error('User authentication error:', userError)
       return NextResponse.json({ error: 'Failed to authenticate user' }, { status: 500 })
@@ -175,15 +191,18 @@ export async function PUT(request: NextRequest) {
     }
 
     const { requestId, action } = await request.json()
-    
+
     console.log('PUT /api/friends - requestId:', requestId, 'action:', action, 'user:', user.id)
-    
+
     if (!requestId || !action) {
       return NextResponse.json({ error: 'Request ID and action are required' }, { status: 400 })
     }
 
     if (!['accept', 'reject'].includes(action)) {
-      return NextResponse.json({ error: 'Invalid action. Must be "accept" or "reject"' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Invalid action. Must be "accept" or "reject"' },
+        { status: 400 }
+      )
     }
 
     // Get the friend request
@@ -205,7 +224,12 @@ export async function PUT(request: NextRequest) {
     // Verify the current user is the one who received the request
     const friendReq = friendRequest as any
     if (friendReq.friend_id !== user.id) {
-      console.error('User not authorized to modify request. User:', user.id, 'Friend ID:', friendReq.friend_id)
+      console.error(
+        'User not authorized to modify request. User:',
+        user.id,
+        'Friend ID:',
+        friendReq.friend_id
+      )
       return NextResponse.json({ error: 'Unauthorized to modify this request' }, { status: 403 })
     }
 
@@ -226,7 +250,7 @@ export async function PUT(request: NextRequest) {
       .from('user_friends')
       .update({
         status: newStatus,
-        responded_at: respondedAt
+        responded_at: respondedAt,
       })
       .eq('id', requestId)
       .select()
@@ -240,40 +264,46 @@ export async function PUT(request: NextRequest) {
         message: updateError.message,
         code: updateError.code,
         details: updateError.details,
-        hint: updateError.hint
+        hint: updateError.hint,
       })
-      return NextResponse.json({ 
-        error: 'Failed to update friend request',
-        details: updateError.message
-      }, { status: 500 })
+      return NextResponse.json(
+        {
+          error: 'Failed to update friend request',
+          details: updateError.message,
+        },
+        { status: 500 }
+      )
     }
-
-
 
     return NextResponse.json({
       success: true,
       message: `Friend request ${action}ed successfully`,
-      request: updatedRequest
+      request: updatedRequest,
     })
-
   } catch (error) {
     console.error('Error updating friend request:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     const errorStack = error instanceof Error ? error.stack : undefined
     console.error('Error stack:', errorStack)
-    return NextResponse.json({ 
-      error: 'Internal server error',
-      message: errorMessage
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: 'Internal server error',
+        message: errorMessage,
+      },
+      { status: 500 }
+    )
   }
 }
 
 export async function DELETE(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClientAsync()
-    
+
     // Get the current user - use getUser() to authenticate with Supabase Auth server
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
     if (userError) {
       console.error('User authentication error:', userError)
       return NextResponse.json({ error: 'Failed to authenticate user' }, { status: 500 })
@@ -284,7 +314,7 @@ export async function DELETE(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const friendId = searchParams.get('friendId')
-    
+
     if (!friendId) {
       return NextResponse.json({ error: 'Friend ID is required' }, { status: 400 })
     }
@@ -293,7 +323,9 @@ export async function DELETE(request: NextRequest) {
     const { data: friendRelationship, error: findError } = await supabase
       .from('user_friends')
       .select('*')
-      .or(`and(user_id.eq.${user.id},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${user.id})`)
+      .or(
+        `and(user_id.eq.${user.id},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${user.id})`
+      )
       .single()
 
     if (findError || !friendRelationship) {
@@ -312,54 +344,59 @@ export async function DELETE(request: NextRequest) {
         message: deleteError.message,
         code: deleteError.code,
         details: deleteError.details,
-        hint: deleteError.hint
+        hint: deleteError.hint,
       })
-      return NextResponse.json({ 
-        error: 'Failed to remove friend',
-        details: deleteError.message
-      }, { status: 500 })
+      return NextResponse.json(
+        {
+          error: 'Failed to remove friend',
+          details: deleteError.message,
+        },
+        { status: 500 }
+      )
     }
-
-
 
     return NextResponse.json({
       success: true,
-      message: 'Friend removed successfully'
+      message: 'Friend removed successfully',
     })
-
   } catch (error) {
     console.error('Error removing friend:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     const errorStack = error instanceof Error ? error.stack : undefined
     console.error('Error stack:', errorStack)
-    return NextResponse.json({ 
-      error: 'Internal server error',
-      message: errorMessage
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        error: 'Internal server error',
+        message: errorMessage,
+      },
+      { status: 500 }
+    )
   }
 }
 
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClientAsync()
-    
+
     // Get the current user (optional - allow checking friend status without auth)
-    const { data: { user } } = await supabase.auth.getUser()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
     const { searchParams } = new URL(request.url)
     const targetUserId = searchParams.get('targetUserId')
-    
+
     if (!targetUserId) {
       return NextResponse.json({ error: 'Target user ID is required' }, { status: 400 })
     }
-    
+
     // If no user is logged in, return a default status
     if (!user) {
       return NextResponse.json({
         status: 'none',
         isPending: false,
         isRequestedByMe: false,
-        isFriends: false
+        isFriends: false,
       })
     }
 
@@ -382,7 +419,7 @@ export async function GET(request: NextRequest) {
         .select('status, requested_by')
         .eq('user_id', targetUserUUID)
         .eq('friend_id', user.id)
-        .maybeSingle()
+        .maybeSingle(),
     ])
 
     if (existingResult.error) {
@@ -413,11 +450,10 @@ export async function GET(request: NextRequest) {
       status,
       isPending,
       isRequestedByMe,
-      isFriends: status === 'accepted'
+      isFriends: status === 'accepted',
     })
-
   } catch (error) {
     console.error('Error checking friend status:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-} 
+}

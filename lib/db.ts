@@ -1,6 +1,6 @@
-import { cache } from "./cache"
-import { getSupabaseClient } from "./supabase/client"
-import { Database } from "@/types/database"
+import { cache } from './cache'
+import { getSupabaseClient } from './supabase/client'
+import type { Database } from '@/types/database'
 
 type QueryOptions = {
   ttl?: number
@@ -35,20 +35,22 @@ export class DB {
     options: QueryOptions = {}
   ): Promise<T[] | { count: number }> {
     const cacheKey = options.cacheKey || this.generateCacheKey(table, query)
-    const cached = cache.get<T[]>(cacheKey)
-    
+    const cached = await cache.get<T[]>(cacheKey)
+
     if (cached) {
       return cached
     }
 
     // Convert string[] to comma-separated string for Supabase select
-    const selectValue = options.select 
-      ? Array.isArray(options.select) 
-        ? options.select.join(',') 
-        : options.select 
+    const selectValue = options.select
+      ? Array.isArray(options.select)
+        ? options.select.join(',')
+        : options.select
       : '*'
 
-    let q = this.supabase.from(table).select(selectValue, { count: options.count ? 'exact' : undefined })
+    let q = this.supabase
+      .from(table)
+      .select(selectValue, { count: options.count ? 'exact' : undefined })
 
     // Handle date ranges and other special queries
     Object.entries(query).forEach(([key, value]) => {
@@ -92,7 +94,7 @@ export class DB {
     }
 
     const result = data as T[]
-    cache.set(cacheKey, result, options.ttl)
+    await cache.set(cacheKey, result, options.ttl)
     return result
   }
 
@@ -102,35 +104,26 @@ export class DB {
     options: QueryOptions = {}
   ): Promise<T | null> {
     const cacheKey = options.cacheKey || `${table}:${id}`
-    const cached = cache.get<T>(cacheKey)
-    
+    const cached = await cache.get<T>(cacheKey)
+
     if (cached) {
       return cached
     }
 
-    const { data, error } = await this.supabase
-      .from(table)
-      .select()
-      .eq('id', id)
-      .single()
+    const { data, error } = await this.supabase.from(table).select().eq('id', id).single()
 
     if (error) {
       throw error
     }
 
     if (data) {
-      cache.set(cacheKey, data, options.ttl)
+      await cache.set(cacheKey, data, options.ttl)
     }
     return data
   }
 
-  async insert<T = any>(
-    table: string,
-    data: Partial<T>,
-    options: QueryOptions = {}
-  ): Promise<T> {
-    const { data: result, error } = await (this.supabase
-      .from(table) as any)
+  async insert<T = any>(table: string, data: Partial<T>, _options: QueryOptions = {}): Promise<T> {
+    const { data: result, error } = await (this.supabase.from(table) as any)
       .insert(data)
       .select()
       .single()
@@ -140,7 +133,7 @@ export class DB {
     }
 
     // Invalidate related caches
-    cache.delete(`${table}:${result.id}`)
+    await cache.delete(`${table}:${result.id}`)
     return result
   }
 
@@ -148,10 +141,9 @@ export class DB {
     table: string,
     id: string | number,
     data: Partial<T>,
-    options: QueryOptions = {}
+    _options: QueryOptions = {}
   ): Promise<T> {
-    const { data: result, error } = await (this.supabase
-      .from(table) as any)
+    const { data: result, error } = await (this.supabase.from(table) as any)
       .update(data)
       .eq('id', id)
       .select()
@@ -162,27 +154,20 @@ export class DB {
     }
 
     // Invalidate related caches
-    cache.delete(`${table}:${id}`)
+    await cache.delete(`${table}:${id}`)
     return result
   }
 
-  async delete(
-    table: string,
-    id: string | number,
-    options: QueryOptions = {}
-  ): Promise<void> {
-    const { error } = await this.supabase
-      .from(table)
-      .delete()
-      .eq('id', id)
+  async delete(table: string, id: string | number, _options: QueryOptions = {}): Promise<void> {
+    const { error } = await this.supabase.from(table).delete().eq('id', id)
 
     if (error) {
       throw error
     }
 
     // Invalidate related caches
-    cache.delete(`${table}:${id}`)
+    await cache.delete(`${table}:${id}`)
   }
 }
 
-export const db = DB.getInstance() 
+export const db = DB.getInstance()

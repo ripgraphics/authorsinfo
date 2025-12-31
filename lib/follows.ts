@@ -1,21 +1,26 @@
-import { supabaseClient } from '@/lib/supabase-client'
-import { Database } from '@/types/database'
+import { supabaseClient as supabaseClientUnsafe } from '@/lib/supabase-client'
+import type { Database } from '@/types/database'
 import { FollowTargetType } from './follows-server'
 import { createBrowserClient } from '@supabase/ssr'
 
-interface FollowData {
-  id: string
-  follower_id: string
-  following_id: string | number
-  target_type_id: number
-  created_at: string
-  updated_at: string
-}
+const supabaseClient = supabaseClientUnsafe as any
 
 export interface FollowTargetTypeData {
-  id: number
+  id: string
   name: string
-  description: string
+  description: string | null
+}
+
+export interface FollowUser {
+  id: string
+  name: string | null
+  email: string | null
+}
+
+export interface FollowData {
+  id: string
+  follower_id: string
+  users: FollowUser
 }
 
 interface FollowResponse {
@@ -24,17 +29,9 @@ interface FollowResponse {
   isFollowing?: boolean
 }
 
-interface FollowCountResponse {
-  count: number
-  error?: string
-}
-
 // Get all available target types
 export async function getFollowTargetTypes(): Promise<FollowTargetTypeData[]> {
-  const { data, error } = await supabaseClient
-    .from('follow_target_types')
-    .select('*')
-    .order('id')
+  const { data, error } = await supabaseClient.from('follow_target_types').select('id, name, description').order('id')
 
   if (error) {
     console.error('Error fetching follow target types:', error)
@@ -45,10 +42,12 @@ export async function getFollowTargetTypes(): Promise<FollowTargetTypeData[]> {
 }
 
 // Get a specific target type by name
-export async function getFollowTargetType(name: FollowTargetType): Promise<FollowTargetTypeData | null> {
+export async function getFollowTargetType(
+  name: FollowTargetType
+): Promise<FollowTargetTypeData | null> {
   const { data, error } = await supabaseClient
     .from('follow_target_types')
-    .select('*')
+    .select('id, name, description')
     .eq('name', name)
     .single()
 
@@ -61,65 +60,86 @@ export async function getFollowTargetType(name: FollowTargetType): Promise<Follo
 }
 
 // Follow an entity
-export async function followEntity(followingId: string | number, targetType: FollowTargetType): Promise<FollowResponse> {
+export async function followEntity(
+  followingId: string | number,
+  targetType: FollowTargetType
+): Promise<FollowResponse> {
   try {
     // Get current user
-    const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-    
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
+
     if (userError || !user) {
       return { success: false, error: 'Authentication required' }
     }
 
     console.log('Getting target type for:', targetType)
-  const targetTypeData = await getFollowTargetType(targetType)
+    const targetTypeData = await getFollowTargetType(targetType)
     console.log('Target type data:', targetTypeData)
-  if (!targetTypeData) {
+    if (!targetTypeData) {
       return { success: false, error: `Invalid target type: ${targetType}` }
-  }
+    }
 
     console.log('Inserting follow record:', {
       follower_id: user.id,
       following_id: followingId,
-      target_type_id: targetTypeData.id
+      target_type_id: targetTypeData.id,
     })
-  const { data, error } = await (supabaseClient
-    .from('follows') as any)
-    .insert({
+    const { data: _data, error } = await supabaseClient
+      .from('follows')
+      .insert({
         follower_id: user.id,
-      following_id: followingId,
-      target_type_id: targetTypeData.id
-    })
-    .select()
-    .single()
+        following_id: String(followingId),
+        target_type_id: targetTypeData.id,
+      })
+      .select()
+      .single()
 
-  if (error) {
-    console.error('Error following entity:', error)
+    if (error) {
+      console.error('Error following entity:', error)
       console.error('Error details:', {
         code: error.code,
         message: error.message,
         details: error.details,
-        hint: error.hint
+        hint: error.hint,
       })
       return { success: false, error: error.message || 'Database error occurred' }
-  }
+    }
 
     return { success: true }
   } catch (error: any) {
     console.error('Error following entity:', error)
     console.error('Error type:', typeof error)
     console.error('Error stringified:', JSON.stringify(error, null, 2))
-    return { success: false, error: error?.message || error?.toString() || 'An unexpected error occurred' }
+    return {
+      success: false,
+      error: error?.message || error?.toString() || 'An unexpected error occurred',
+    }
   }
 }
 
 // Unfollow an entity
-export async function unfollowEntity(followingId: string | number, targetType: FollowTargetType): Promise<FollowResponse> {
+export async function unfollowEntity(
+  followingId: string | number,
+  targetType: FollowTargetType
+): Promise<FollowResponse> {
   try {
     // Get current user
-    const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-    
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
+
     if (userError || !user) {
       return { success: false, error: 'Authentication required' }
     }
@@ -134,16 +154,16 @@ export async function unfollowEntity(followingId: string | number, targetType: F
     console.log('Deleting follow record:', {
       follower_id: user.id,
       following_id: followingId,
-      target_type_id: targetTypeData.id
+      target_type_id: targetTypeData.id,
     })
-  const { error } = await supabaseClient
-    .from('follows')
-    .delete()
+    const { error } = await supabaseClient
+      .from('follows')
+      .delete()
       .eq('follower_id', user.id)
-    .eq('following_id', followingId)
+      .eq('following_id', followingId)
       .eq('target_type_id', targetTypeData.id)
 
-  if (error) {
+    if (error) {
       console.error('Error unfollowing entity:', error)
       return { success: false, error: error.message }
     }
@@ -159,9 +179,15 @@ export async function unfollowEntity(followingId: string | number, targetType: F
 export async function isFollowing(followingId: string | number, targetType: FollowTargetType) {
   try {
     // Get current user
-    const supabase = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-    
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
+
     if (userError || !user) {
       return false
     }
@@ -176,22 +202,22 @@ export async function isFollowing(followingId: string | number, targetType: Foll
     console.log('Checking follow status:', {
       follower_id: user.id,
       following_id: followingId,
-      target_type_id: targetTypeData.id
+      target_type_id: targetTypeData.id,
     })
-  const { data, error } = await supabaseClient
-    .from('follows')
-    .select('id')
+    const { data, error } = await supabaseClient
+      .from('follows')
+      .select('id')
       .eq('follower_id', user.id)
-    .eq('following_id', followingId)
+      .eq('following_id', followingId)
       .eq('target_type_id', targetTypeData.id)
-    .single()
+      .single()
 
-  if (error && error.code !== 'PGRST116') {
-    console.error('Error checking follow status:', error)
+    if (error && error.code !== 'PGRST116') {
+      console.error('Error checking follow status:', error)
       return false
-  }
+    }
 
-  return !!data
+    return !!data
   } catch (error) {
     console.error('Error checking follow status:', error)
     return false
@@ -199,7 +225,10 @@ export async function isFollowing(followingId: string | number, targetType: Foll
 }
 
 // Get followers count for an entity
-export async function getFollowersCount(followingId: string | number, targetType: FollowTargetType) {
+export async function getFollowersCount(
+  followingId: string | number,
+  targetType: FollowTargetType
+) {
   const targetTypeData = await getFollowTargetType(targetType)
   if (!targetTypeData) {
     throw new Error(`Invalid target type: ${targetType}`)
@@ -220,12 +249,18 @@ export async function getFollowersCount(followingId: string | number, targetType
 }
 
 // Get followers for an entity with pagination
-export async function getFollowers(followingId: string | number, targetType: FollowTargetType, page = 1, limit = 10) {
+export async function getFollowers(
+  followingId: string | number,
+  targetType: FollowTargetType,
+  page = 1,
+  limit = 10
+) {
   const start = (page - 1) * limit
 
   const { data, error, count } = await supabaseClient
     .from('follows')
-    .select(`
+    .select(
+      `
       id,
       follower_id,
       users!follows_follower_id_fkey (
@@ -233,7 +268,9 @@ export async function getFollowers(followingId: string | number, targetType: Fol
         name,
         email
       )
-    `, { count: 'exact' })
+    `,
+      { count: 'exact' }
+    )
     .eq('following_id', followingId)
     .eq('target_type_id', targetType)
     .order('created_at', { ascending: false })
@@ -245,12 +282,13 @@ export async function getFollowers(followingId: string | number, targetType: Fol
   }
 
   return {
-    followers: data?.map((follow: any) => ({
-      id: (follow as any).users.id,
-      name: (follow as any).users.name,
-      email: (follow as any).users.email
-    })) || [],
-    count: count || 0
+    followers:
+      data?.map((follow: FollowData) => ({
+        id: follow.users.id,
+        name: follow.users.name,
+        email: follow.users.email,
+      })) || [],
+    count: count || 0,
   }
 }
 
@@ -260,11 +298,14 @@ export async function getUserFollows(targetType: FollowTargetType, page = 1, lim
 
   const { data, error, count } = await supabaseClient
     .from('follows')
-    .select(`
+    .select(
+      `
       id,
       following_id,
       created_at
-    `, { count: 'exact' })
+    `,
+      { count: 'exact' }
+    )
     .eq('target_type_id', targetType)
     .order('created_at', { ascending: false })
     .range(start, start + limit - 1)
@@ -276,6 +317,6 @@ export async function getUserFollows(targetType: FollowTargetType, page = 1, lim
 
   return {
     follows: data || [],
-    count: count || 0
+    count: count || 0,
   }
 }

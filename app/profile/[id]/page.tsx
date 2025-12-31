@@ -1,10 +1,10 @@
-import { supabaseAdmin } from "@/lib/supabase/server"
-import { notFound } from "next/navigation"
-import { ClientProfilePage } from "./client"
-import { getFollowersCount, getFollowers } from "@/lib/follows-server"
-import { getFriends } from "@/lib/friends-server"
+import { supabaseAdmin } from '@/lib/supabase/server'
+import { notFound } from 'next/navigation'
+import { ClientProfilePage } from './client'
+import { getFollowersCount, getFollowers } from '@/lib/follows-server'
+import { getFriends } from '@/lib/friends-server'
 
-export const dynamic = "force-dynamic"
+export const dynamic = 'force-dynamic'
 
 interface ProfilePageProps {
   params: Promise<{ id: string }>
@@ -19,7 +19,8 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     let error = null
 
     // Check if the ID looks like a UUID
-    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)
+    const isUUID =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)
 
     if (isUUID) {
       // Try to find by UUID first
@@ -61,18 +62,18 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     }
 
     if (error || !user) {
-      console.error("User not found:", error)
+      console.error('User not found:', error)
       notFound()
     }
 
     // Fetch user statistics
-    let userStats = {
+    const userStats = {
       booksRead: 0,
       friendsCount: 0,
       followersCount: 0, // Added missing followersCount
       location: user.location, // Now available from the users table
       website: user.website, // Now available from the users table
-      joinedDate: user.created_at
+      joinedDate: user.created_at,
     }
 
     // Initialize followers and friends arrays at the top level
@@ -108,11 +109,11 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
       if (!friendsError && !reverseFriendsError) {
         userStats.friendsCount = (friendsCountData?.length || 0) + (reverseFriends?.length || 0)
-        
-        console.log('👥 Friends Query:', { 
-          friends: friendsCountData?.length, 
+
+        console.log('👥 Friends Query:', {
+          friends: friendsCountData?.length,
           reverseFriends: reverseFriends?.length,
-          totalFriends: userStats.friendsCount
+          totalFriends: userStats.friendsCount,
         })
       }
 
@@ -120,7 +121,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       try {
         const followersCount = await getFollowersCount(user.id, 'user')
         userStats.followersCount = followersCount
-        
+
         // Fetch followers list if count > 0
         if (followersCount > 0) {
           const followersData = await getFollowers(user.id, 'user', 1, 100) // Get up to 100 followers
@@ -128,7 +129,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         }
         console.log('👥 Followers Count:', followersCount, 'Followers List:', followers.length)
       } catch (followersError) {
-        console.error("Error fetching followers:", followersError)
+        console.error('Error fetching followers:', followersError)
         // Continue with default value of 0
         userStats.followersCount = 0
         followers = []
@@ -142,17 +143,17 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         }
         console.log('👥 Friends Count:', userStats.friendsCount, 'Friends List:', friends.length)
       } catch (friendsError) {
-        console.error("Error fetching friends:", friendsError)
+        console.error('Error fetching friends:', friendsError)
         friends = []
       }
     } catch (statsError) {
-      console.error("Error fetching user stats:", statsError)
+      console.error('Error fetching user stats:', statsError)
       // Continue with default values if stats fail
     }
 
     // Fetch avatar and cover images from images table via profiles
-    let avatarUrl = "/placeholder.svg?height=200&width=200"
-    let coverImageUrl = "/placeholder.svg?height=400&width=1200"
+    let avatarUrl = '/placeholder.svg?height=200&width=200'
+    let coverImageUrl = '/placeholder.svg?height=400&width=1200'
 
     try {
       // Get profile with avatar_image_id and cover_image_id
@@ -190,7 +191,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         }
       }
     } catch (imageError) {
-      console.error("Error fetching profile images:", imageError)
+      console.error('Error fetching profile images:', imageError)
       // Continue with placeholder images if fetch fails
     }
 
@@ -205,13 +206,11 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         .limit(100)
 
       if (readingError) {
-        console.error("Error fetching reading progress:", readingError)
+        console.error('Error fetching reading progress:', readingError)
         books = []
       } else if (readingProgress && readingProgress.length > 0) {
         // Get all book IDs
-        const bookIds = readingProgress
-          .map((rp: any) => rp.book_id)
-          .filter(Boolean)
+        const bookIds = readingProgress.map((rp: any) => rp.book_id).filter(Boolean)
 
         if (bookIds.length === 0) {
           console.log('📚 No book IDs found in reading progress')
@@ -220,16 +219,18 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
           // Fetch books with cover images
           const { data: booksFromDb, error: booksError } = await supabaseAdmin
             .from('books')
-            .select(`
+            .select(
+              `
               id,
               title,
               cover_image_id,
               cover_image:images!books_cover_image_id_fkey(url, alt_text)
-            `)
+            `
+            )
             .in('id', bookIds)
 
           if (booksError) {
-            console.error("Error fetching books:", booksError)
+            console.error('Error fetching books:', booksError)
             books = []
           } else if (!booksFromDb || booksFromDb.length === 0) {
             console.log('📚 No books found for IDs:', bookIds)
@@ -244,16 +245,18 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             })
 
             // Fetch authors for all books
-            let authorMap = new Map<string, any>()
+            const authorMap = new Map<string, any>()
             const { data: bookAuthors, error: authorsError } = await supabaseAdmin
               .from('book_authors')
-              .select(`
+              .select(
+                `
                 book_id,
                 authors (
                   id,
                   name
                 )
-              `)
+              `
+              )
               .in('book_id', bookIds)
 
             if (!authorsError && bookAuthors) {
@@ -270,7 +273,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
               .map((rp: any) => rp.book_id)
               .filter(Boolean)
 
-            let ratingMap = new Map<string, number | null>()
+            const ratingMap = new Map<string, number | null>()
             if (completedBookIds.length > 0) {
               const { data: completedProgress, error: ratingError } = await supabaseAdmin
                 .from('reading_progress')
@@ -306,10 +309,12 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                   status: rp.status,
                   rating: rating,
                   progress_percentage: rp.progress_percentage,
-                  author: author ? {
-                    id: author.id,
-                    name: author.name
-                  } : null
+                  author: author
+                    ? {
+                        id: author.id,
+                        name: author.name,
+                      }
+                    : null,
                 }
               })
               .filter(Boolean) // Remove null entries
@@ -319,7 +324,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
               booksCount: books.length,
               bookIds: bookIds.length,
               booksDataCount: booksData.length,
-              authorMapSize: authorMap.size
+              authorMapSize: authorMap.size,
             })
           }
         }
@@ -328,7 +333,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         books = []
       }
     } catch (booksError) {
-      console.error("Error fetching user books:", booksError)
+      console.error('Error fetching user books:', booksError)
       books = []
     }
 
@@ -339,7 +344,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       booksRead: userStats.booksRead,
       friendsCount: userStats.friendsCount,
       followersCount: userStats.followersCount,
-      booksCount: books.length
+      booksCount: books.length,
     })
 
     return (
@@ -357,7 +362,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       />
     )
   } catch (error) {
-    console.error("Error loading user profile:", error)
+    console.error('Error loading user profile:', error)
     notFound()
   }
 }

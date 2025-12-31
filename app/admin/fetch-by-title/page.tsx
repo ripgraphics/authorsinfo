@@ -1,56 +1,56 @@
-"use client";
+'use client'
 
-import React, { useState } from 'react';
-import Link from 'next/link';
+import React, { useState } from 'react'
+import Link from 'next/link'
 
 interface Book {
-  title: string;
-  image: string;
-  authors: string[];
-  date_published: string;
-  publisher: string;
-  pages: number;
+  title: string
+  image: string
+  authors: string[]
+  date_published: string
+  publisher: string
+  pages: number
 }
 
 export default function FetchByTitlePage() {
-  const [query, setQuery] = useState('');
-  const [books, setBooks] = useState<Book[]>([]);
-  const [page, setPage] = useState(1);
-  const pageSize = 100;
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState('')
+  const [books, setBooks] = useState<Book[]>([])
+  const [page, setPage] = useState(1)
+  const pageSize = 100
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleFetch = async (newPage = 1) => {
-    setLoading(true);
-    setError(null);
-    setBooks([]);
+    setLoading(true)
+    setError(null)
+    setBooks([])
     if (!query.trim()) {
-      setError('Please enter a title or keyword.');
-      setLoading(false);
-      return;
+      setError('Please enter a title or keyword.')
+      setLoading(false)
+      return
     }
-    setPage(newPage);
+    setPage(newPage)
     try {
       const res = await fetch('/api/isbn/fetch-by-title', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query, page: newPage, pageSize }),
-      });
+      })
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Failed to fetch books');
+        const err = await res.json()
+        throw new Error(err.error || 'Failed to fetch books')
       }
-      const data = await res.json();
-      setBooks(data.books);
-      setTotal(data.total || 0);
+      const data = await res.json()
+      setBooks(data.books)
+      setTotal(data.total || 0)
     } catch (err) {
-      if (err instanceof Error) setError(err.message);
-      else setError('An unknown error occurred');
+      if (err instanceof Error) setError(err.message)
+      else setError('An unknown error occurred')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="p-6">
@@ -86,13 +86,19 @@ export default function FetchByTitlePage() {
             disabled={page <= 1}
             onClick={() => handleFetch(page - 1)}
             className="px-3 py-1 bg-gray-200 rounded-sm disabled:opacity-50"
-          >Prev</button>
-          <span>Page {page} of {Math.ceil(total / pageSize)}</span>
+          >
+            Prev
+          </button>
+          <span>
+            Page {page} of {Math.ceil(total / pageSize)}
+          </span>
           <button
             disabled={page * pageSize >= total}
             onClick={() => handleFetch(page + 1)}
             className="px-3 py-1 bg-gray-200 rounded-sm disabled:opacity-50"
-          >Next</button>
+          >
+            Next
+          </button>
         </div>
       )}
 
@@ -115,5 +121,5 @@ export default function FetchByTitlePage() {
         ))}
       </div>
     </div>
-  );
-} 
+  )
+}

@@ -1,23 +1,23 @@
-"use client"
+'use client'
 
-import type React from "react"
+import type React from 'react'
 
-import { useRouter, useParams } from "next/navigation"
-import Image from "next/image"
-import Link from "next/link"
-import { useState, useEffect } from "react"
-import { PageHeader } from "@/components/page-header"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { User, Calendar, BookOpen, Loader2, AlertTriangle } from "lucide-react"
-import { supabaseClient } from "@/lib/supabase/client"
-import { uploadImage } from "@/app/actions/upload"
-import type { Author, Book } from "@/types/database"
-import { Combobox } from "@/components/ui/combobox"
+import { useRouter, useParams } from 'next/navigation'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useState, useEffect } from 'react'
+import { PageHeader } from '@/components/page-header'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { User, Calendar, BookOpen, Loader2, AlertTriangle } from 'lucide-react'
+import { supabaseClient } from '@/lib/supabase/client'
+import { uploadImage } from '@/app/actions/upload'
+import type { Author, Book } from '@/types/database'
+import { Combobox } from '@/components/ui/combobox'
 
 export default function EditAuthorPage() {
   const router = useRouter()
@@ -29,7 +29,7 @@ export default function EditAuthorPage() {
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [nationalities, setNationalities] = useState<string[]>([])
-  const [selectedNationality, setSelectedNationality] = useState<string>("")
+  const [selectedNationality, setSelectedNationality] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -43,62 +43,66 @@ export default function EditAuthorPage() {
 
         // Fetch author
         const { data: authorData, error: authorError } = await supabaseClient
-          .from("authors")
-          .select("*, author_image:author_image_id(url)")
-          .eq("id", params.id as string)
+          .from('authors')
+          .select('*, author_image:author_image_id(url)')
+          .eq('id', params.id as string)
           .single()
 
         if (authorError) {
-          console.error("Error fetching author:", authorError)
+          console.error('Error fetching author:', authorError)
           setError(`Error fetching author: ${authorError.message}`)
           return
         }
 
         const author = authorData as Author
         setAuthor(author)
-        setSelectedNationality(author.nationality || "")
+        setSelectedNationality(author.nationality || '')
 
         // Set the image URL from the joined author_image table
-        const authorImage = (authorData as any).author_image as any;
+        const authorImage = (authorData as any).author_image as any
         if (authorImage && authorImage.url) {
           setAuthorImageUrl(authorImage.url)
         }
 
         // Fetch books by this author
         const { data: booksData, error: booksError } = await supabaseClient
-          .from("books")
-          .select("*")
-          .eq("author_id", params.id as string)
-          .order("title")
+          .from('books')
+          .select('*')
+          .eq('author_id', params.id as string)
+          .order('title')
 
         if (booksError) {
-          console.error("Error fetching author books:", booksError)
+          console.error('Error fetching author books:', booksError)
         } else {
           setAuthorBooks(booksData as Book[])
         }
 
         // Get list of nationalities from existing authors for dropdown
         const { data: nationalitiesData, error: nationalitiesError } = await supabaseClient
-          .from("authors")
-          .select("nationality")
-          .not("nationality", "is", null)
-          .order("nationality")
+          .from('authors')
+          .select('nationality')
+          .not('nationality', 'is', null)
+          .order('nationality')
 
         if (nationalitiesError) {
-          console.error("Error fetching nationalities:", nationalitiesError)
+          console.error('Error fetching nationalities:', nationalitiesError)
         } else if (nationalitiesData) {
           // Extract unique nationalities
           const uniqueNationalities = Array.from(
-            new Set(nationalitiesData.map((item: { nationality: string | null }) => item.nationality).filter(Boolean) as string[]),
+            new Set(
+              nationalitiesData
+                .map((item: { nationality: string | null }) => item.nationality)
+                .filter(Boolean) as string[]
+            )
           )
           setNationalities(uniqueNationalities)
         }
 
         setLoading(false)
       } catch (error) {
-        console.error("Error in fetchAuthorData:", error)
+        console.error('Error in fetchAuthorData:', error)
         setLoading(false)
-        setError("An unexpected error occurred. Please try again.")
+        setError('An unexpected error occurred. Please try again.')
       }
     }
 
@@ -140,28 +144,32 @@ export default function EditAuthorPage() {
               resolve(base64)
             }
             reader.onerror = () => {
-              reject(new Error("Failed to read file"))
+              reject(new Error('Failed to read file'))
             }
             reader.readAsDataURL(photoFile)
           })
 
           const base64Image = await base64Promise
-          console.log("Base64 image prepared, uploading to Cloudinary...")
+          console.log('Base64 image prepared, uploading to Cloudinary...')
 
           // Upload the new image to Cloudinary with alt text
-          const authorName = formData.get("name") as string
-          const uploadResult = await uploadImage(base64Image, "authorimage", `Photo of ${authorName}`)
+          const authorName = formData.get('name') as string
+          const uploadResult = await uploadImage(
+            base64Image,
+            'authorimage',
+            `Photo of ${authorName}`
+          )
 
           if (uploadResult) {
-            console.log("Image uploaded successfully:", uploadResult.url)
+            console.log('Image uploaded successfully:', uploadResult.url)
             newAuthorImageId = uploadResult.imageId
           } else {
-            throw new Error("Failed to upload image - no URL returned")
+            throw new Error('Failed to upload image - no URL returned')
           }
         } catch (uploadError) {
-          console.error("Upload error details:", uploadError)
+          console.error('Upload error details:', uploadError)
           setError(
-            `Failed to upload author photo: ${uploadError instanceof Error ? uploadError.message : "Unknown error"}`,
+            `Failed to upload author photo: ${uploadError instanceof Error ? uploadError.message : 'Unknown error'}`
           )
           setSaving(false)
           return
@@ -169,40 +177,42 @@ export default function EditAuthorPage() {
       }
 
       // Prepare the update data
-      const birthDateValue = formData.get("birth_date") as string
+      const birthDateValue = formData.get('birth_date') as string
       const updateData: any = {
-        name: formData.get("name") as string,
-        bio: formData.get("bio") as string,
+        name: formData.get('name') as string,
+        bio: formData.get('bio') as string,
         // Only include birth_date if it's not empty
         ...(birthDateValue.trim() ? { birth_date: birthDateValue } : { birth_date: null }),
         nationality: selectedNationality,
-        website: formData.get("website") as string,
-        twitter_handle: formData.get("twitter_handle") as string,
-        facebook_handle: formData.get("facebook_handle") as string,
-        instagram_handle: formData.get("instagram_handle") as string,
-        goodreads_url: formData.get("goodreads_url") as string,
+        website: formData.get('website') as string,
+        twitter_handle: formData.get('twitter_handle') as string,
+        facebook_handle: formData.get('facebook_handle') as string,
+        instagram_handle: formData.get('instagram_handle') as string,
+        goodreads_url: formData.get('goodreads_url') as string,
         author_image_id: newAuthorImageId,
       }
 
       // Update the author
-      const { error: updateError } = await (supabaseClient.from("authors") as any).update(updateData).eq("id", params.id as string)
+      const { error: updateError } = await (supabaseClient.from('authors') as any)
+        .update(updateData)
+        .eq('id', params.id as string)
 
       if (updateError) {
-        console.error("Error updating author:", updateError)
+        console.error('Error updating author:', updateError)
         setError(`Error updating author: ${updateError.message}`)
         setSaving(false)
         return
       }
 
-      setSuccessMessage("Author updated successfully!")
+      setSuccessMessage('Author updated successfully!')
 
       // Redirect back to the author page after a short delay
       setTimeout(() => {
         router.push(`/authors/${params.id as string}`)
       }, 1500)
     } catch (error) {
-      console.error("Error in handleSubmit:", error)
-      setError("An unexpected error occurred while saving. Please try again.")
+      console.error('Error in handleSubmit:', error)
+      setError('An unexpected error occurred while saving. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -261,7 +271,10 @@ export default function EditAuthorPage() {
             <div className="mb-6">
               <p className="text-sm mb-1">Uploading image: {uploadProgress}%</p>
               <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${uploadProgress}%` }}></div>
+                <div
+                  className="bg-blue-600 h-2.5 rounded-full"
+                  style={{ width: `${uploadProgress}%` }}
+                ></div>
               </div>
             </div>
           )}
@@ -273,7 +286,7 @@ export default function EditAuthorPage() {
                 {photoPreview ? (
                   <div className="w-full h-full">
                     <Image
-                      src={photoPreview || "/placeholder.svg"}
+                      src={photoPreview || '/placeholder.svg'}
                       alt={author.name}
                       width={400}
                       height={400}
@@ -283,7 +296,7 @@ export default function EditAuthorPage() {
                 ) : authorImageUrl ? (
                   <div className="w-full h-full">
                     <Image
-                      src={authorImageUrl || "/placeholder.svg"}
+                      src={authorImageUrl || '/placeholder.svg'}
                       alt={author.name}
                       width={400}
                       height={400}
@@ -300,7 +313,12 @@ export default function EditAuthorPage() {
                 <Label htmlFor="author-photo" className="block mb-2">
                   Change Photo
                 </Label>
-                <Input id="author-photo" type="file" accept="image/*" onChange={handlePhotoChange} />
+                <Input
+                  id="author-photo"
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoChange}
+                />
                 <p className="text-xs text-muted-foreground mt-1">
                   Images will be stored in Cloudinary in the authorsinfo/authorimage folder
                 </p>
@@ -366,7 +384,7 @@ export default function EditAuthorPage() {
                               id="birth_date"
                               name="birth_date"
                               className="pl-10"
-                              defaultValue={author.birth_date || ""}
+                              defaultValue={author.birth_date || ''}
                               placeholder="YYYY-MM-DD or text format"
                             />
                           </div>
@@ -376,7 +394,7 @@ export default function EditAuthorPage() {
                       {/* Biography */}
                       <div>
                         <Label htmlFor="bio">Biography</Label>
-                        <Textarea id="bio" name="bio" rows={8} defaultValue={author.bio || ""} />
+                        <Textarea id="bio" name="bio" rows={8} defaultValue={author.bio || ''} />
                       </div>
 
                       {/* Social Media */}
@@ -389,7 +407,7 @@ export default function EditAuthorPage() {
                               id="website"
                               name="website"
                               type="url"
-                              defaultValue={author.website || ""}
+                              defaultValue={author.website || ''}
                               placeholder="https://example.com"
                             />
                           </div>
@@ -399,7 +417,7 @@ export default function EditAuthorPage() {
                             <Input
                               id="twitter_handle"
                               name="twitter_handle"
-                              defaultValue={author.twitter_handle || ""}
+                              defaultValue={author.twitter_handle || ''}
                               placeholder="@username"
                             />
                           </div>
@@ -409,7 +427,7 @@ export default function EditAuthorPage() {
                             <Input
                               id="facebook_handle"
                               name="facebook_handle"
-                              defaultValue={author.facebook_handle || ""}
+                              defaultValue={author.facebook_handle || ''}
                               placeholder="username or page name"
                             />
                           </div>
@@ -419,7 +437,7 @@ export default function EditAuthorPage() {
                             <Input
                               id="instagram_handle"
                               name="instagram_handle"
-                              defaultValue={author.instagram_handle || ""}
+                              defaultValue={author.instagram_handle || ''}
                               placeholder="username"
                             />
                           </div>
@@ -429,7 +447,7 @@ export default function EditAuthorPage() {
                             <Input
                               id="goodreads_url"
                               name="goodreads_url"
-                              defaultValue={author.goodreads_url || ""}
+                              defaultValue={author.goodreads_url || ''}
                               placeholder="https://www.goodreads.com/author/show/..."
                             />
                           </div>
@@ -448,7 +466,7 @@ export default function EditAuthorPage() {
                             Saving...
                           </>
                         ) : (
-                          "Save Changes"
+                          'Save Changes'
                         )}
                       </Button>
                     </div>

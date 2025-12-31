@@ -76,7 +76,11 @@ export default function EntityCommentComposer({
   // Only activate when focusControl changes to a new positive value
   const lastFocusTickRef = useRef<number | undefined>(undefined)
   useEffect(() => {
-    if (typeof focusControl === 'number' && focusControl > 0 && focusControl !== lastFocusTickRef.current) {
+    if (
+      typeof focusControl === 'number' &&
+      focusControl > 0 &&
+      focusControl !== lastFocusTickRef.current
+    ) {
       lastFocusTickRef.current = focusControl
       focusComposer()
     }
@@ -103,7 +107,11 @@ export default function EntityCommentComposer({
       return
     }
     if (content.length > maxChars) {
-      toast({ title: 'Too long', description: `Max ${maxChars} characters`, variant: 'destructive' })
+      toast({
+        title: 'Too long',
+        description: `Max ${maxChars} characters`,
+        variant: 'destructive',
+      })
       return
     }
     try {
@@ -130,10 +138,17 @@ export default function EntityCommentComposer({
       }
       setText('')
       setIsActive(false)
-      toast({ title: 'Comment posted', description: parentCommentId ? 'Your reply has been added' : 'Your comment has been added' })
+      toast({
+        title: 'Comment posted',
+        description: parentCommentId ? 'Your reply has been added' : 'Your comment has been added',
+      })
       onSubmitted?.()
     } catch (e) {
-      toast({ title: 'Error', description: 'Failed to post comment. Please try again.', variant: 'destructive' })
+      toast({
+        title: 'Error',
+        description: 'Failed to post comment. Please try again.',
+        variant: 'destructive',
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -143,7 +158,14 @@ export default function EntityCommentComposer({
     <div className={rootClassName || ''}>
       <div className={containerClassName || ''}>
         <div className={rowClassName || 'flex items-center gap-3'}>
-          <EntityAvatar type="user" id={currentUserId || 'current-user'} name={currentUserName || 'You'} src={currentUserAvatar || undefined} size="sm" className={avatarClassName} />
+          <EntityAvatar
+            type="user"
+            id={currentUserId || 'current-user'}
+            name={currentUserName || 'You'}
+            src={currentUserAvatar || undefined}
+            size="sm"
+            className={avatarClassName}
+          />
           {!isActive ? (
             <button
               onClick={focusComposer}
@@ -155,7 +177,9 @@ export default function EntityCommentComposer({
               data-no-secondary-hover
             >
               <span className="truncate opacity-80">Comment as {currentUserName || 'You'}</span>
-              <div className={triggerIconsClassName || 'flex items-center gap-2 ml-3 text-gray-400'}>
+              <div
+                className={triggerIconsClassName || 'flex items-center gap-2 ml-3 text-gray-400'}
+              >
                 <ImageIcon className="h-4 w-4" />
                 <Smile className="h-4 w-4" />
                 <span className="text-[10px] font-semibold">GIF</span>
@@ -163,7 +187,11 @@ export default function EntityCommentComposer({
             </button>
           ) : (
             <div className="flex-1">
-              <div className={expandedClassName || 'bg-gray-50 border border-gray-200 rounded-2xl px-3 py-2'}>
+              <div
+                className={
+                  expandedClassName || 'bg-gray-50 border border-gray-200 rounded-2xl px-3 py-2'
+                }
+              >
                 <Textarea
                   ref={textareaRef}
                   value={text}
@@ -178,10 +206,20 @@ export default function EntityCommentComposer({
                 />
                 <div className={actionsClassName || 'flex items-center justify-between mt-2'}>
                   <div className={quickActionsClassName || 'flex items-center gap-2 text-gray-500'}>
-                    <button className={iconButtonClassName || 'p-2 hover:text-gray-700 transition-colors rounded-full hover:bg-gray-100'}>
+                    <button
+                      className={
+                        iconButtonClassName ||
+                        'p-2 hover:text-gray-700 transition-colors rounded-full hover:bg-gray-100'
+                      }
+                    >
                       <ImageIcon className="h-4 w-4" />
                     </button>
-                    <button className={iconButtonClassName || 'p-2 hover:text-gray-700 transition-colors rounded-full hover:bg-gray-100'}>
+                    <button
+                      className={
+                        iconButtonClassName ||
+                        'p-2 hover:text-gray-700 transition-colors rounded-full hover:bg-gray-100'
+                      }
+                    >
                       <Smile className="h-4 w-4" />
                     </button>
                     <span className="text-[10px] font-semibold ml-1">GIF</span>
@@ -217,5 +255,3 @@ export default function EntityCommentComposer({
     </div>
   )
 }
-
-

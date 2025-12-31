@@ -15,12 +15,12 @@ export const supabaseClient = createSupabaseClient<Database>(
   {
     auth: {
       autoRefreshToken: true,
-      persistSession: true
-    }
+      persistSession: true,
+    },
   }
 )
 
 // Export createClient function for compatibility
 export function createClient() {
   return supabaseClient
-} 
+}

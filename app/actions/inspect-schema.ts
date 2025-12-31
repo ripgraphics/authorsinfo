@@ -1,7 +1,7 @@
-"use server"
+'use server'
 
-import { schemaService } from "@/lib/schema/supabase-schema-service"
-import type { TableSchema, ColumnInfo, RLSPolicy } from "@/lib/schema/supabase-schema-service"
+import { schemaService } from '@/lib/schema/supabase-schema-service'
+import type { TableSchema, ColumnInfo, RLSPolicy } from '@/lib/schema/supabase-schema-service'
 
 /**
  * Get table columns using the comprehensive schema service
@@ -10,19 +10,19 @@ import type { TableSchema, ColumnInfo, RLSPolicy } from "@/lib/schema/supabase-s
 export async function getTableColumns(tableName: string) {
   try {
     const schema = await schemaService.getTableSchema(tableName)
-    return { 
-      columns: schema.columns.map(col => ({
+    return {
+      columns: schema.columns.map((col) => ({
         column_name: col.column_name,
         data_type: col.data_type,
-        is_nullable: col.is_nullable
+        is_nullable: col.is_nullable,
       })),
-      error: null 
+      error: null,
     }
   } catch (error) {
     console.error(`Error in getTableColumns for ${tableName}:`, error)
-    return { 
-      columns: [], 
-      error: error instanceof Error ? error.message : String(error) 
+    return {
+      columns: [],
+      error: error instanceof Error ? error.message : String(error),
     }
   }
 }
@@ -39,9 +39,9 @@ export async function getTableSchema(tableName: string): Promise<{
     return { schema, error: null }
   } catch (error) {
     console.error(`Error getting schema for ${tableName}:`, error)
-    return { 
-      schema: null, 
-      error: error instanceof Error ? error.message : String(error) 
+    return {
+      schema: null,
+      error: error instanceof Error ? error.message : String(error),
     }
   }
 }
@@ -50,7 +50,7 @@ export async function getTableSchema(tableName: string): Promise<{
  * Get column information for a specific column
  */
 export async function getColumnInfo(
-  tableName: string, 
+  tableName: string,
   columnName: string
 ): Promise<{
   column: ColumnInfo | null
@@ -61,9 +61,9 @@ export async function getColumnInfo(
     return { column, error: null }
   } catch (error) {
     console.error(`Error getting column info for ${tableName}.${columnName}:`, error)
-    return { 
-      column: null, 
-      error: error instanceof Error ? error.message : String(error) 
+    return {
+      column: null,
+      error: error instanceof Error ? error.message : String(error),
     }
   }
 }
@@ -80,9 +80,9 @@ export async function getTableRLSPolicies(tableName: string): Promise<{
     return { policies: schema.rls_policies, error: null }
   } catch (error) {
     console.error(`Error getting RLS policies for ${tableName}:`, error)
-    return { 
-      policies: [], 
-      error: error instanceof Error ? error.message : String(error) 
+    return {
+      policies: [],
+      error: error instanceof Error ? error.message : String(error),
     }
   }
 }
@@ -91,7 +91,7 @@ export async function getTableRLSPolicies(tableName: string): Promise<{
  * Check if a column exists in a table
  */
 export async function checkColumnExists(
-  tableName: string, 
+  tableName: string,
   columnName: string
 ): Promise<{
   exists: boolean
@@ -102,9 +102,9 @@ export async function checkColumnExists(
     return { exists, error: null }
   } catch (error) {
     console.error(`Error checking column existence for ${tableName}.${columnName}:`, error)
-    return { 
-      exists: false, 
-      error: error instanceof Error ? error.message : String(error) 
+    return {
+      exists: false,
+      error: error instanceof Error ? error.message : String(error),
     }
   }
 }
@@ -121,9 +121,9 @@ export async function getAllTables(): Promise<{
     return { tables, error: null }
   } catch (error) {
     console.error('Error getting all tables:', error)
-    return { 
-      tables: [], 
-      error: error instanceof Error ? error.message : String(error) 
+    return {
+      tables: [],
+      error: error instanceof Error ? error.message : String(error),
     }
   }
 }

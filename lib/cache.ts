@@ -1,19 +1,10 @@
-import { Database } from "@/types/database"
-
-type CacheEntry<T> = {
-  data: T
-  timestamp: number
-  ttl: number
-}
+import { redis } from './redis'
 
 class Cache {
   private static instance: Cache
-  private cache: Map<string, CacheEntry<any>>
-  private defaultTTL: number = 5 * 60 * 1000 // 5 minutes
+  private defaultTTL: number = 5 * 60 // 5 minutes in seconds
 
-  private constructor() {
-    this.cache = new Map()
-  }
+  private constructor() {}
 
   static getInstance(): Cache {
     if (!Cache.instance) {
@@ -22,33 +13,21 @@ class Cache {
     return Cache.instance
   }
 
-  set<T>(key: string, data: T, ttl: number = this.defaultTTL): void {
-    this.cache.set(key, {
-      data,
-      timestamp: Date.now(),
-      ttl
-    })
+  async set<T>(key: string, data: T, ttl: number = this.defaultTTL): Promise<void> {
+    await redis.set(key, data, { ex: ttl })
   }
 
-  get<T>(key: string): T | null {
-    const entry = this.cache.get(key)
-    if (!entry) return null
-
-    if (Date.now() - entry.timestamp > entry.ttl) {
-      this.cache.delete(key)
-      return null
-    }
-
-    return entry.data
+  async get<T>(key: string): Promise<T | null> {
+    return await redis.get<T>(key)
   }
 
-  delete(key: string): void {
-    this.cache.delete(key)
+  async delete(key: string): Promise<void> {
+    await redis.del(key)
   }
 
-  clear(): void {
-    this.cache.clear()
+  async clear(): Promise<void> {
+    await redis.flushdb()
   }
 }
 
-export const cache = Cache.getInstance() 
+export const cache = Cache.getInstance()

@@ -14,7 +14,11 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination'
 import { useSearchFilter } from '@/lib/hooks/use-search-filter'
-import { authorSearchFields, authorSearchScorer, SearchableAuthor } from '@/lib/search/author-search-config'
+import {
+  authorSearchFields,
+  authorSearchScorer,
+  SearchableAuthor,
+} from '@/lib/search/author-search-config'
 
 interface Author {
   id: string
@@ -64,7 +68,7 @@ export function ClientAuthorsList({
   // Apply sorting client-side
   const sortedAuthors = useMemo(() => {
     const sorted = [...nationalityFilteredAuthors]
-    
+
     if (sort === 'name_asc') {
       sorted.sort((a, b) => (a.name || '').localeCompare(b.name || ''))
     } else if (sort === 'name_desc') {
@@ -85,7 +89,7 @@ export function ClientAuthorsList({
       // Default: name_asc
       sorted.sort((a, b) => (a.name || '').localeCompare(b.name || ''))
     }
-    
+
     return sorted
   }, [nationalityFilteredAuthors, sort])
 
@@ -120,7 +124,7 @@ export function ClientAuthorsList({
                   {author.photo_url ? (
                     <Image
                       src={author.photo_url}
-                      alt={author.name || "Author"}
+                      alt={author.name || 'Author'}
                       fill
                       className="object-cover"
                     />
@@ -133,9 +137,13 @@ export function ClientAuthorsList({
                 <CardContent className="p-3">
                   <h3 className="font-medium text-sm line-clamp-1">{author.name}</h3>
                   {author.nationality && (
-                    <p className="text-sm text-muted-foreground line-clamp-1">{author.nationality}</p>
+                    <p className="text-sm text-muted-foreground line-clamp-1">
+                      {author.nationality}
+                    </p>
                   )}
-                  {author.birth_date && <p className="text-xs text-muted-foreground mt-1">{author.birth_date}</p>}
+                  {author.birth_date && (
+                    <p className="text-xs text-muted-foreground mt-1">{author.birth_date}</p>
+                  )}
                 </CardContent>
               </Card>
             </Link>
@@ -162,11 +170,7 @@ export function ClientAuthorsList({
 
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
               const pageNumber =
-                page <= 3
-                  ? i + 1
-                  : page >= totalPages - 2
-                    ? totalPages - 4 + i
-                    : page - 2 + i
+                page <= 3 ? i + 1 : page >= totalPages - 2 ? totalPages - 4 + i : page - 2 + i
 
               if (pageNumber <= 0 || pageNumber > totalPages) return null
 
@@ -190,4 +194,3 @@ export function ClientAuthorsList({
     </div>
   )
 }
-

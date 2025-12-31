@@ -735,3 +735,4 @@ async function getEnterpriseInsights(supabase: any, entityId: string, entityType
     return NextResponse.json({ error: 'Failed to get enterprise insights' }, { status: 500 })
   }
 }
+

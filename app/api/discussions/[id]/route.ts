@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase-server'
 // GET /api/discussions/[id] - Get a specific discussion
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{}> }
 ) {
   try {
     const supabase = createClient()
@@ -54,7 +54,7 @@ export async function GET(
 // PATCH /api/discussions/[id] - Update a discussion
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{}> }
 ) {
   try {
     const supabase = createClient()
@@ -108,7 +108,7 @@ export async function PATCH(
 // DELETE /api/discussions/[id] - Delete a discussion
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{}> }
 ) {
   try {
     const supabase = createClient()

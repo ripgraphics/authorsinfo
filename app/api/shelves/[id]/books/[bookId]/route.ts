@@ -7,7 +7,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -37,7 +37,7 @@ async function verifyShelfOwnership(shelfId: string, userEmail: string) {
 // POST /api/shelves/:id/books - Add book to shelf
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{}> }
 ) {
   try {
     const session = await getServerSession();
@@ -128,7 +128,7 @@ export async function POST(
 // DELETE /api/shelves/:id/books/:bookId - Remove book from shelf
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; bookId: string } }
+  { params }: { params: Promise<{}> }
 ) {
   try {
     const session = await getServerSession();
@@ -171,7 +171,7 @@ export async function DELETE(
 // PATCH /api/shelves/:id/books/:bookId - Update book position
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; bookId: string } }
+  { params }: { params: Promise<{}> }
 ) {
   try {
     const session = await getServerSession();

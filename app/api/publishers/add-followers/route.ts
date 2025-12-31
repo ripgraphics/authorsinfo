@@ -95,3 +95,4 @@ export async function GET() {
     return NextResponse.json({ error: 'Failed to add followers to publisher' }, { status: 500 })
   }
 }
+

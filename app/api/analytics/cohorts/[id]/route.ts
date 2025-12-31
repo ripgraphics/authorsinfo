@@ -1,17 +1,10 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper';
 import { NextRequest, NextResponse } from 'next/server';
-import { Database } from '@/types/database';
 import {
   UpdateCohortPayload,
   CohortResponse,
   CohortRetentionView,
 } from '@/types/analytics';
-
-const getClient = async () => {
-  const cookieStore = await cookies();
-  return createRouteHandlerClient<Database>({ cookies: () => cookieStore });
-};
 
 const validateAdminRole = async (supabase: any, userId: string): Promise<boolean> => {
   const { data: profile } = await supabase
@@ -25,10 +18,11 @@ const validateAdminRole = async (supabase: any, userId: string): Promise<boolean
 // GET /api/analytics/cohorts/[id] - Get cohort details
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = await getClient();
+    const { id } = await params;
+    const supabase = await createRouteHandlerClientAsync();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
@@ -41,7 +35,7 @@ export async function GET(
     const { data, error } = await supabase
       .from('user_cohorts')
       .select('*')
-      .eq('id', parseInt(params.id))
+      .eq('id', parseInt(id))
       .single();
 
     if (error) throw error;
@@ -70,10 +64,11 @@ export async function GET(
 // PATCH /api/analytics/cohorts/[id] - Update cohort (admin only)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = await getClient();
+    const { id } = await params;
+    const supabase = await createRouteHandlerClientAsync();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
@@ -96,7 +91,7 @@ export async function PATCH(
     const { data, error } = await supabase
       .from('user_cohorts')
       .update(payload)
-      .eq('id', parseInt(params.id))
+      .eq('id', parseInt(id))
       .select()
       .single();
 
@@ -120,10 +115,11 @@ export async function PATCH(
 // DELETE /api/analytics/cohorts/[id] - Delete cohort (admin only)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = await getClient();
+    const { id } = await params;
+    const supabase = await createRouteHandlerClientAsync();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
@@ -144,7 +140,7 @@ export async function DELETE(
     const { error } = await supabase
       .from('user_cohorts')
       .delete()
-      .eq('id', parseInt(params.id));
+      .eq('id', parseInt(id));
 
     if (error) throw error;
 

@@ -1,21 +1,14 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper';
 import { NextRequest, NextResponse } from 'next/server';
-import { Database } from '@/types/database';
 import {
   TrendingTopic,
   TrendingTopicsResponse,
 } from '@/types/analytics';
 
-const getClient = async () => {
-  const cookieStore = await cookies();
-  return createRouteHandlerClient<Database>({ cookies: () => cookieStore });
-};
-
 // GET /api/analytics/trending-topics - Get trending topics
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await getClient();
+    const supabase = await createRouteHandlerClientAsync();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
@@ -147,3 +140,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

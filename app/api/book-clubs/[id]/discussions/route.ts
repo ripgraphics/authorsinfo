@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase-server'
 // GET /api/book-clubs/[id]/discussions - Get all discussions in a book club
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{}> }
 ) {
   try {
     const supabase = createClient()
@@ -46,7 +46,7 @@ export async function GET(
 // POST /api/book-clubs/[id]/discussions - Create a new discussion
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{}> }
 ) {
   try {
     const supabase = createClient()

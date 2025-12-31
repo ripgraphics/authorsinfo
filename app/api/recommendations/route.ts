@@ -493,3 +493,4 @@ function generateDefaultReason(reasonType: RecommendationReasonType): string {
   };
   return reasons[reasonType] || 'Recommended for you';
 }
+

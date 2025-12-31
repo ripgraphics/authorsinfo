@@ -3,9 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = await createClient();
+  const { id } = await params;
 
   try {
     const { data, error } = await supabase
@@ -21,7 +22,7 @@ export async function GET(
           engaged_at
         )
       `)
-      .eq('user_id', params.id)
+      .eq('user_id', id)
       .single();
 
     if (error) throw error;
@@ -44,9 +45,10 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = await createClient();
+  const { id } = await params;
 
   try {
     const { data: { user } } = await supabase.auth.getUser();
@@ -75,7 +77,7 @@ export async function PATCH(
         engagement_trend,
         updated_at: new Date().toISOString(),
       })
-      .eq('user_id', params.id)
+      .eq('user_id', id)
       .select()
       .single();
 

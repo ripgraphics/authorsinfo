@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic';
 // GET /api/reading-sessions/:id - Get session details
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{}> }
 ) {
   try {
     const supabase = await createRouteHandlerClientAsync();
@@ -84,7 +84,7 @@ export async function GET(
 // PATCH /api/reading-sessions/:id - Update session
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{}> }
 ) {
   try {
     const supabase = await createRouteHandlerClientAsync();
@@ -193,7 +193,7 @@ export async function PATCH(
 // DELETE /api/reading-sessions/:id - Delete session
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{}> }
 ) {
   try {
     const supabase = await createRouteHandlerClientAsync();

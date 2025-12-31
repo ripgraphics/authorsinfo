@@ -78,3 +78,4 @@ export async function DELETE(request: NextRequest) {
     return nextErrorResponse(error, 'Failed to unblock user')
   }
 }
+

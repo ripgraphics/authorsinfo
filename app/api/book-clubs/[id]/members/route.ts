@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase-server'
 // GET /api/book-clubs/[id]/members - Get all members of a book club
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{}> }
 ) {
   try {
     const supabase = createClient()
@@ -34,7 +34,7 @@ export async function GET(
 // POST /api/book-clubs/[id]/members - Join a book club
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{}> }
 ) {
   try {
     const supabase = createClient()
@@ -108,7 +108,7 @@ export async function POST(
 // DELETE /api/book-clubs/[id]/members - Leave a book club
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{}> }
 ) {
   try {
     const supabase = createClient()

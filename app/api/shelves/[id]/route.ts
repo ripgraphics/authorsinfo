@@ -28,7 +28,7 @@ async function verifyShelfOwnership(supabase: any, shelfId: string, userId: stri
 // GET /api/shelves/:id - Get shelf details with books (paginated)
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{}> }
 ) {
   try {
     const supabase = await createRouteHandlerClientAsync();
@@ -126,7 +126,7 @@ export async function GET(
 // PATCH /api/shelves/:id - Update shelf metadata
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{}> }
 ) {
   try {
     const supabase = await createRouteHandlerClientAsync();
@@ -190,7 +190,7 @@ export async function PATCH(
 // DELETE /api/shelves/:id - Delete shelf
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{}> }
 ) {
   try {
     const supabase = await createRouteHandlerClientAsync();
@@ -248,7 +248,7 @@ export async function DELETE(
 // POST /api/shelves/:id/books - Add book to shelf
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{}> }
 ) {
   try {
     const supabase = await createRouteHandlerClientAsync();
@@ -324,7 +324,7 @@ export async function POST(
 // DELETE /api/shelves/:id/books/:bookId - Remove book from shelf
 export async function DELETE_BOOK(
   request: NextRequest,
-  { params }: { params: { id: string; bookId: string } }
+  { params }: { params: Promise<{}> }
 ) {
   try {
     const supabase = await createRouteHandlerClientAsync();
@@ -369,7 +369,7 @@ export async function DELETE_BOOK(
 // PATCH /api/shelves/:id/books/:bookId - Update book position in shelf
 export async function PATCH_BOOK(
   request: NextRequest,
-  { params }: { params: { id: string; bookId: string } }
+  { params }: { params: Promise<{}> }
 ) {
   try {
     const supabase = await createRouteHandlerClientAsync();

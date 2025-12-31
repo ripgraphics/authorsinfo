@@ -29,7 +29,7 @@ async function verifyChallengeOwnership(supabase: any, challengeId: string, user
 // GET /api/challenges/:id - Get challenge details with tracking
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{}> }
 ) {
   try {
     const supabase = await createRouteHandlerClientAsync();
@@ -86,7 +86,7 @@ export async function GET(
 // PATCH /api/challenges/:id - Update challenge metadata
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{}> }
 ) {
   try {
     const supabase = await createRouteHandlerClientAsync();
@@ -137,7 +137,7 @@ export async function PATCH(
 // DELETE /api/challenges/:id - Delete challenge
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{}> }
 ) {
   try {
     const supabase = await createRouteHandlerClientAsync();
@@ -171,7 +171,7 @@ export async function DELETE(
 // POST /api/challenges/:id/progress - Log progress
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{}> }
 ) {
   try {
     const supabase = await createRouteHandlerClientAsync();

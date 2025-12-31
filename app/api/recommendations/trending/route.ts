@@ -304,3 +304,4 @@ async function calculateTrendingBooks(
     }
   }));
 }
+

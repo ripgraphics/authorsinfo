@@ -13,7 +13,7 @@ const supabase = createClient(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{}> }
 ) {
   try {
     const authHeader = request.headers.get('authorization');

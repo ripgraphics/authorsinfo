@@ -11,3 +11,4 @@ export async function GET() {
     return NextResponse.json({ error: String(error) }, { status: 500 })
   }
 }
+

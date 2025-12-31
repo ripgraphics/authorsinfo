@@ -179,3 +179,4 @@ function calculateStreakFromDates(dates: string[]): { currentStreak: number; lon
 
   return { currentStreak, longestStreak };
 }
+

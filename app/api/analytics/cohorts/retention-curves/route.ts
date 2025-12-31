@@ -1,13 +1,6 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper';
 import { NextRequest, NextResponse } from 'next/server';
-import { Database } from '@/types/database';
 import { CohortRetentionView } from '@/types/analytics';
-
-const getClient = async () => {
-  const cookieStore = await cookies();
-  return createRouteHandlerClient<Database>({ cookies: () => cookieStore });
-};
 
 interface RetentionResponse {
   success: boolean;
@@ -18,7 +11,7 @@ interface RetentionResponse {
 // GET /api/analytics/cohorts/retention-curves - Get retention curves for all cohorts
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await getClient();
+    const supabase = await createRouteHandlerClientAsync();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
@@ -150,3 +143,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

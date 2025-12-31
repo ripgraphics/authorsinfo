@@ -204,3 +204,4 @@ function getStreakMessage(currentStreak: number, readToday: boolean, streakAtRis
   
   return `${currentStreak}-day streak`;
 }
+

@@ -231,3 +231,4 @@ function calculateStreak(sessions: any[]): { currentStreak: number; longestStrea
     lastReadDate,
   };
 }
+

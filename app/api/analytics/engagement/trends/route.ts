@@ -1,16 +1,9 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper';
 import { NextRequest, NextResponse } from 'next/server';
-import { Database } from '@/types/database';
 import {
   EngagementTrendView,
   EngagementTrendsResponse,
 } from '@/types/analytics';
-
-const getClient = async () => {
-  const cookieStore = await cookies();
-  return createRouteHandlerClient<Database>({ cookies: () => cookieStore });
-};
 
 interface TrendsResponse {
   success: boolean;
@@ -22,7 +15,7 @@ interface TrendsResponse {
 // GET /api/analytics/engagement/trends - Get engagement trends
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await getClient();
+    const supabase = await createRouteHandlerClientAsync();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
@@ -153,3 +146,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

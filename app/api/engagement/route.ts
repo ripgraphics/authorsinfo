@@ -596,3 +596,4 @@ async function handleBookmark(supabase: any, userId: string, entityId: string, e
     )
   }
 }
+

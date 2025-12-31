@@ -74,3 +74,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to generate signature' }, { status: 500 })
   }
 }
+

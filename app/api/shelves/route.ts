@@ -129,4 +129,20 @@ export async function GET(request: NextRequest) {
       .eq('user_id', userData.id)
       .order('display_order');
 
-    if
+    if (error) {
+      return NextResponse.json(
+        { error: error.message || 'Failed to fetch shelves' },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json({ success: true, data: shelves || [] });
+  } catch (error) {
+    console.error('Error fetching shelves:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+

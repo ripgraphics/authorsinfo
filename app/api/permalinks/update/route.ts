@@ -168,3 +168,4 @@ function generateSuggestions(permalink: string): string[] {
 
   return suggestions.slice(0, 5) // Return max 5 suggestions
 }
+

@@ -1,18 +1,11 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper';
 import { NextRequest, NextResponse } from 'next/server';
-import { Database } from '@/types/database';
 import {
   UserChurnRisk,
   RiskLevel,
   ChurnRiskQueryParams,
   ChurnRiskResponse,
 } from '@/types/analytics';
-
-const getClient = async () => {
-  const cookieStore = await cookies();
-  return createRouteHandlerClient<Database>({ cookies: () => cookieStore });
-};
 
 const validateAdminRole = async (supabase: any, userId: string): Promise<boolean> => {
   const { data: profile } = await supabase
@@ -26,7 +19,7 @@ const validateAdminRole = async (supabase: any, userId: string): Promise<boolean
 // GET /api/analytics/churn/at-risk-users - Get users at churn risk
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await getClient();
+    const supabase = await createRouteHandlerClientAsync();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
@@ -176,3 +169,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

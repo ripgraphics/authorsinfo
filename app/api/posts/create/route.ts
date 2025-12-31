@@ -71,3 +71,4 @@ export async function POST(request: NextRequest) {
     return nextErrorResponse(error, 'Failed to create post')
   }
 }
+

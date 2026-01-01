@@ -18,6 +18,8 @@ export async function GET(request: NextRequest) {
     // If no userId provided and user is logged in, use their ID
     const userId = targetUserId || user?.id
 
+    console.log(`Friends list requested for userId: ${userId}, targetUserId: ${targetUserId}, authenticated: ${!!user?.id}`)
+
     if (!userId) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
     }
@@ -48,19 +50,29 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch friends' }, { status: 500 })
     }
 
+    console.log(`Found ${(friends || []).length} friend relationships for user ${userId}`)
+
     // Extract all friend user IDs (the ones that aren't the current user)
     const friendUserIds = ((friends || []) as any[]).map((friend: any) =>
       friend.user_id === userId ? friend.friend_id : friend.user_id
     )
 
     // Batch fetch all user data, profiles, and stats in parallel - use admin client for speed
-    const [usersResult, profilesResult] = await Promise.all([
-      supabaseAdmin.from('users').select('id, name, email, permalink').in('id', friendUserIds),
-      supabaseAdmin
-        .from('profiles')
-        .select('user_id, avatar_image_id')
-        .in('user_id', friendUserIds),
-    ])
+    // Only fetch if we have friend IDs to avoid empty array issues with .in() filter
+    let usersResult = { data: [] as any[] }
+    let profilesResult = { data: [] as any[] }
+
+    if (friendUserIds.length > 0) {
+      const results = await Promise.all([
+        supabaseAdmin.from('users').select('id, name, email, permalink').in('id', friendUserIds),
+        supabaseAdmin
+          .from('profiles')
+          .select('user_id, avatar_image_id')
+          .in('user_id', friendUserIds),
+      ])
+      usersResult = results[0]
+      profilesResult = results[1]
+    }
 
     const users = usersResult.data || []
     const profiles = (profilesResult.data || []) as any[]

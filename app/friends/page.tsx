@@ -1,10 +1,60 @@
+'use client'
+
 import { Suspense } from 'react'
 import { FriendList } from '@/components/friend-list'
 import { FriendSuggestions } from '@/components/friend-suggestions'
 import { PendingFriendRequests } from '@/components/pending-friend-requests'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Users, UserPlus, Clock, Sparkles } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Users, UserPlus, Clock, Sparkles, LogIn } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import Link from 'next/link'
+
+function AuthRequired() {
+  return (
+    <div className="container mx-auto px-4 py-16 max-w-md">
+      <Card>
+        <CardHeader className="text-center">
+          <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+            <Users className="h-8 w-8 text-primary" />
+          </div>
+          <CardTitle className="text-2xl">Sign In Required</CardTitle>
+        </CardHeader>
+        <CardContent className="text-center space-y-4">
+          <p className="text-muted-foreground">
+            You need to be signed in to view your friends and manage your connections.
+          </p>
+          <Button asChild className="w-full">
+            <Link href="/login">
+              <LogIn className="h-4 w-4 mr-2" />
+              Sign In
+            </Link>
+          </Button>
+          <p className="text-sm text-muted-foreground">
+            Don&apos;t have an account?{' '}
+            <Link href="/login" className="text-primary hover:underline">
+              Create one
+            </Link>
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+function LoadingState() {
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading friends dashboard...</p>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function FriendsDashboard() {
   return (
@@ -146,20 +196,17 @@ function FriendsDashboard() {
 }
 
 export default function FriendsPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Loading friends dashboard...</p>
-            </div>
-          </div>
-        </div>
-      }
-    >
-      <FriendsDashboard />
-    </Suspense>
-  )
+  const { user, loading } = useAuth()
+
+  // Show loading state while auth is being determined
+  if (loading) {
+    return <LoadingState />
+  }
+
+  // Require authentication
+  if (!user) {
+    return <AuthRequired />
+  }
+
+  return <FriendsDashboard />
 }

@@ -77,7 +77,7 @@ export function FriendList({
   initialFriends = [],
   initialCount = 0,
 }: FriendListProps) {
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const normalizedInitialFriends = useMemo(
     () => (initialFriends || []).map(normalizeFriendEntry).filter(Boolean) as Friend[],
     [initialFriends]
@@ -176,14 +176,20 @@ export function FriendList({
 
   // Fetch friends when user data becomes available
   useEffect(() => {
+    // Wait for auth to finish loading before making decisions
+    if (authLoading) return
+    
     const targetId = userId && userId !== 'undefined' ? userId : user?.id
     if (targetId && normalizedInitialFriends.length === 0) {
       // Only fetch if we have a user ID and no initial data was provided
       // Pass the targetId explicitly to avoid closure issues
       fetchFriends(1, { replace: true, targetId })
+    } else if (!targetId && normalizedInitialFriends.length === 0) {
+      // No user ID and no initial data - stop loading and show empty state
+      setIsLoading(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, userId])
+  }, [user?.id, userId, authLoading])
 
   if (isLoading) {
     return (

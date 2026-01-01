@@ -14,18 +14,22 @@ class Cache {
   }
 
   async set<T>(key: string, data: T, ttl: number = this.defaultTTL): Promise<void> {
+    if (!redis) return // Skip caching if Redis is unavailable
     await redis.set(key, data, { ex: ttl })
   }
 
   async get<T>(key: string): Promise<T | null> {
+    if (!redis) return null // Return null if Redis is unavailable
     return await redis.get<T>(key)
   }
 
   async delete(key: string): Promise<void> {
+    if (!redis) return // Skip deletion if Redis is unavailable
     await redis.del(key)
   }
 
   async clear(): Promise<void> {
+    if (!redis) return // Skip clearing if Redis is unavailable
     await redis.flushdb()
   }
 }

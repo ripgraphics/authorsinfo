@@ -114,6 +114,16 @@ export function FriendList({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage])
 
+  // Fetch friends when user data becomes available
+  useEffect(() => {
+    const targetId = userId && userId !== 'undefined' ? userId : user?.id
+    if (targetId && normalizedInitialFriends.length === 0) {
+      // Only fetch if we have a user ID and no initial data was provided
+      fetchFriends(1, { replace: true })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, userId])
+
   const fetchFriends = async (page = currentPage, options: { replace?: boolean } = {}) => {
     try {
       setIsLoading(true)

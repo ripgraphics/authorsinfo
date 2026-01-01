@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { ContentSection } from '@/components/ui/content-section'
 import { Calendar, MapPin, Clock } from 'lucide-react'
 import { formatDate } from '@/utils/dateUtils'
-import type { Event } from '@/types/book'
+import type { Event } from '@/types/phase3'
 
 interface BookEventsSectionProps {
   bookId: string
@@ -55,28 +55,28 @@ export function BookEventsSection({ bookId, className }: BookEventsSectionProps)
         {events.map((event) => (
           <Link
             key={event.id}
-            href={`/events/${event.slug || event.id}`}
+            href={`/events/${(event as any).slug || event.id}`}
             className="block"
           >
             <Card className="hover:bg-accent transition-colors cursor-pointer">
               <CardContent className="p-4 space-y-2">
-                <h4 className="font-semibold text-sm line-clamp-2">{event.title}</h4>
-                {event.description && (
+                <h4 className="font-semibold text-sm line-clamp-2">{(event as any).title}</h4>
+                {(event as any).description && (
                   <p className="text-xs text-muted-foreground line-clamp-2">
-                    {event.description}
+                    {(event as any).description}
                   </p>
                 )}
                 <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
-                  {event.start_date && (
+                  {(event as any).start_date && (
                     <div className="flex items-center gap-1.5">
                       <Calendar className="h-3 w-3" />
-                      <span>{formatDate(event.start_date)}</span>
+                      <span>{formatDate((event as any).start_date)}</span>
                     </div>
                   )}
-                  {event.format && (
+                  {(event as any).format && (
                     <div className="flex items-center gap-1.5">
                       <MapPin className="h-3 w-3" />
-                      <span className="capitalize">{event.format}</span>
+                      <span className="capitalize">{(event as any).format}</span>
                     </div>
                   )}
                 </div>

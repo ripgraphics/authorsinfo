@@ -7,9 +7,10 @@ import { createClient } from '@/lib/supabase/server';
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -17,7 +18,7 @@ export async function POST(
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const { id: eventId } = params;
+    const eventId = id;
 
     // Check if event exists and is happening now
     const { data: event, error: eventError } = await supabase
@@ -115,9 +116,10 @@ export async function POST(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -125,7 +127,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const { id: eventId } = params;
+    const eventId = id;
 
     // Find user's participant record
     const { data: participant } = await supabase

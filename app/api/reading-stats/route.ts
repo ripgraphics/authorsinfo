@@ -42,8 +42,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get sessions within period
-    const { data: sessions, error: sessionsError } = await supabase
-      .from('reading_sessions')
+    const { data: sessions, error: sessionsError } = await (supabase.from('reading_sessions') as any)
       .select('*')
       .eq('user_id', user.id)
       .gte('started_at', startDate.toISOString());
@@ -54,15 +53,14 @@ export async function GET(request: NextRequest) {
     }
 
     // Get completed books
-    const { data: readingProgress } = await supabase
-      .from('reading_progress')
+    const { data: readingProgress } = await (supabase.from('reading_progress') as any)
       .select('*')
       .eq('user_id', user.id);
 
     // Calculate statistics
     const totalSessions = sessions?.length || 0;
-    const totalPages = sessions?.reduce((sum, s) => sum + (s.pages_read || 0), 0) || 0;
-    const totalMinutes = sessions?.reduce((sum, s) => sum + (s.duration_minutes || 0), 0) || 0;
+    const totalPages = sessions?.reduce((sum: number, s: any) => sum + ((s as any).pages_read || 0), 0) || 0;
+    const totalMinutes = sessions?.reduce((sum: number, s: any) => sum + ((s as any).duration_minutes || 0), 0) || 0;
     
     const avgPagesPerSession = totalSessions > 0 ? totalPages / totalSessions : 0;
     const avgMinutesPerSession = totalSessions > 0 ? totalMinutes / totalSessions : 0;
@@ -80,8 +78,8 @@ export async function GET(request: NextRequest) {
     const formatCounts: Record<string, number> = {};
     const locationCounts: Record<string, number> = {};
 
-    sessions?.forEach(s => {
-      const date = new Date(s.started_at);
+    sessions?.forEach((s: any) => {
+      const date = new Date((s as any).started_at);
       const hour = date.getHours();
       const day = date.getDay();
       
@@ -102,14 +100,14 @@ export async function GET(request: NextRequest) {
     const preferredLocation = Object.entries(locationCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
 
     // Count books
-    const totalBooksRead = readingProgress?.filter(p => p.status === 'completed').length || 0;
+    const totalBooksRead = readingProgress?.filter((p: any) => (p as any).status === 'completed').length || 0;
 
     // Time distribution by hour
     const timeDistribution = Array.from({ length: 24 }, (_, hour) => ({
       hour,
       sessionCount: hourCounts[hour] || 0,
-      totalPages: sessions?.filter(s => new Date(s.started_at).getHours() === hour)
-        .reduce((sum, s) => sum + (s.pages_read || 0), 0) || 0,
+      totalPages: sessions?.filter((s: any) => new Date((s as any).started_at).getHours() === hour)
+        .reduce((sum: number, s: any) => sum + ((s as any).pages_read || 0), 0) || 0,
       percentage: totalSessions > 0 ? ((hourCounts[hour] || 0) / totalSessions) * 100 : 0,
     }));
 
@@ -119,8 +117,8 @@ export async function GET(request: NextRequest) {
       day,
       dayName: dayNames[day],
       sessionCount: dayCounts[day] || 0,
-      totalPages: sessions?.filter(s => new Date(s.started_at).getDay() === day)
-        .reduce((sum, s) => sum + (s.pages_read || 0), 0) || 0,
+      totalPages: sessions?.filter((s: any) => new Date((s as any).started_at).getDay() === day)
+        .reduce((sum: number, s: any) => sum + ((s as any).pages_read || 0), 0) || 0,
       percentage: totalSessions > 0 ? ((dayCounts[day] || 0) / totalSessions) * 100 : 0,
     }));
 

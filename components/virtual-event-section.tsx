@@ -167,7 +167,7 @@ export function VirtualEventSection({
   const hasEnded = now > end;
 
   const attendingCount = participants.filter(p => p.rsvp_status === 'attending').length;
-  const capacityReached = maxParticipants && attendingCount >= maxParticipants;
+  const capacityReached = !!(maxParticipants && attendingCount >= maxParticipants);
 
   return (
     <div className="space-y-6">

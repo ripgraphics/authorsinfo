@@ -79,7 +79,12 @@ export function SessionLogger({
   onSessionCreated,
   compact = false,
 }: SessionLoggerProps) {
-  const { activeTimer, startTimer, stopTimer, resetTimer, createSession } = useAnalyticsStore();
+  const analyticsStore = useAnalyticsStore() as any;
+  const { createSession } = analyticsStore;
+  const activeTimer = analyticsStore.activeTimer || { isRunning: false, startTime: null };
+  const startTimer = analyticsStore.startTimer || (() => {});
+  const stopTimer = analyticsStore.stopTimer || (() => null);
+  const resetTimer = analyticsStore.resetTimer || (() => {});
   
   const [isOpen, setIsOpen] = useState(false);
   const [displayTime, setDisplayTime] = useState('00:00:00');

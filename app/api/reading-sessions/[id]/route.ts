@@ -13,9 +13,10 @@ export const dynamic = 'force-dynamic';
 // GET /api/reading-sessions/:id - Get session details
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createRouteHandlerClientAsync();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -35,7 +36,7 @@ export async function GET(
           page_count
         )
       `)
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('user_id', user.id)
       .single();
 
@@ -45,30 +46,30 @@ export async function GET(
 
     // Transform to camelCase
     const transformedSession = {
-      id: session.id,
-      userId: session.user_id,
-      bookId: session.book_id,
-      book: session.books ? {
-        id: session.books.id,
-        title: session.books.title,
-        author: session.books.author,
-        coverUrl: session.books.cover_url,
-        pageCount: session.books.page_count,
+      id: (session as any).id,
+      userId: (session as any).user_id,
+      bookId: (session as any).book_id,
+      book: (session as any).books ? {
+        id: (session as any).books.id,
+        title: (session as any).books.title,
+        author: (session as any).books.author,
+        coverUrl: (session as any).books.cover_url,
+        pageCount: (session as any).books.page_count,
       } : null,
-      startedAt: session.started_at,
-      endedAt: session.ended_at,
-      durationMinutes: session.duration_minutes,
-      pagesRead: session.pages_read,
-      startPage: session.start_page,
-      endPage: session.end_page,
-      percentageRead: session.percentage_read,
-      readingLocation: session.reading_location,
-      readingFormat: session.reading_format,
-      notes: session.notes,
-      mood: session.mood,
-      pagesPerMinute: session.pages_per_minute,
-      createdAt: session.created_at,
-      updatedAt: session.updated_at,
+      startedAt: (session as any).started_at,
+      endedAt: (session as any).ended_at,
+      durationMinutes: (session as any).duration_minutes,
+      pagesRead: (session as any).pages_read,
+      startPage: (session as any).start_page,
+      endPage: (session as any).end_page,
+      percentageRead: (session as any).percentage_read,
+      readingLocation: (session as any).reading_location,
+      readingFormat: (session as any).reading_format,
+      notes: (session as any).notes,
+      mood: (session as any).mood,
+      pagesPerMinute: (session as any).pages_per_minute,
+      createdAt: (session as any).created_at,
+      updatedAt: (session as any).updated_at,
     };
 
     return NextResponse.json({
@@ -84,9 +85,10 @@ export async function GET(
 // PATCH /api/reading-sessions/:id - Update session
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createRouteHandlerClientAsync();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -98,7 +100,7 @@ export async function PATCH(
     const { data: existing } = await supabase
       .from('reading_sessions')
       .select('id')
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('user_id', user.id)
       .single();
 
@@ -133,10 +135,9 @@ export async function PATCH(
     if (mood !== undefined) updates.mood = mood;
     updates.updated_at = new Date().toISOString();
 
-    const { data: session, error } = await supabase
-      .from('reading_sessions')
+    const { data: session, error } = await (supabase.from('reading_sessions') as any)
       .update(updates)
-      .eq('id', params.id)
+      .eq('id', id)
       .select(`
         *,
         books (
@@ -155,29 +156,29 @@ export async function PATCH(
 
     // Transform to camelCase
     const transformedSession = {
-      id: session.id,
-      userId: session.user_id,
-      bookId: session.book_id,
-      book: session.books ? {
-        id: session.books.id,
-        title: session.books.title,
-        author: session.books.author,
-        coverUrl: session.books.cover_url,
+      id: (session as any).id,
+      userId: (session as any).user_id,
+      bookId: (session as any).book_id,
+      book: (session as any).books ? {
+        id: (session as any).books.id,
+        title: (session as any).books.title,
+        author: (session as any).books.author,
+        coverUrl: (session as any).books.cover_url,
       } : null,
-      startedAt: session.started_at,
-      endedAt: session.ended_at,
-      durationMinutes: session.duration_minutes,
-      pagesRead: session.pages_read,
-      startPage: session.start_page,
-      endPage: session.end_page,
-      percentageRead: session.percentage_read,
-      readingLocation: session.reading_location,
-      readingFormat: session.reading_format,
-      notes: session.notes,
-      mood: session.mood,
-      pagesPerMinute: session.pages_per_minute,
-      createdAt: session.created_at,
-      updatedAt: session.updated_at,
+      startedAt: (session as any).started_at,
+      endedAt: (session as any).ended_at,
+      durationMinutes: (session as any).duration_minutes,
+      pagesRead: (session as any).pages_read,
+      startPage: (session as any).start_page,
+      endPage: (session as any).end_page,
+      percentageRead: (session as any).percentage_read,
+      readingLocation: (session as any).reading_location,
+      readingFormat: (session as any).reading_format,
+      notes: (session as any).notes,
+      mood: (session as any).mood,
+      pagesPerMinute: (session as any).pages_per_minute,
+      createdAt: (session as any).created_at,
+      updatedAt: (session as any).updated_at,
     };
 
     return NextResponse.json({
@@ -193,9 +194,10 @@ export async function PATCH(
 // DELETE /api/reading-sessions/:id - Delete session
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createRouteHandlerClientAsync();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -206,7 +208,7 @@ export async function DELETE(
     const { error } = await supabase
       .from('reading_sessions')
       .delete()
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('user_id', user.id);
 
     if (error) {

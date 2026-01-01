@@ -181,7 +181,7 @@ export interface NotificationSummary {
 /**
  * Daily email delivery health (materialized view)
  */
-export interface EmailDeliveryStatus {
+export interface EmailDeliveryHealth {
   delivery_date: string;
   total_sent: number;
   successfully_sent: number;

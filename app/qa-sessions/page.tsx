@@ -21,8 +21,6 @@ export default function QASessionsPage() {
   const {
     qaSessions,
     qaSessionLoading,
-    qaFilters,
-    setQAFilters,
     fetchQASessions,
     fetchMyQASessions,
   } = useCommunityStore();
@@ -32,31 +30,22 @@ export default function QASessionsPage() {
 
   useEffect(() => {
     if (activeTab === 'all') {
-      fetchQASessions(qaFilters);
+      fetchQASessions();
     } else {
       fetchMyQASessions();
     }
-  }, [activeTab, qaFilters, fetchQASessions, fetchMyQASessions]);
+  }, [activeTab, fetchQASessions, fetchMyQASessions]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    // Implement search filter when API supports it
   };
 
-  const handleStatusFilter = (status: string) => {
-    setQAFilters({ ...qaFilters, status: status === 'all' ? undefined : status });
-  };
-
-  const handleTypeFilter = (type: string) => {
-    setQAFilters({ ...qaFilters, sessionType: type === 'all' ? undefined : type });
-  };
-
-  const filteredSessions = qaSessions.filter((session) => {
+  const filteredSessions = qaSessions.filter((session: any) => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     return (
-      session.title.toLowerCase().includes(query) ||
-      session.description?.toLowerCase().includes(query)
+      (session as any).title.toLowerCase().includes(query) ||
+      (session as any).description?.toLowerCase().includes(query)
     );
   });
 
@@ -137,38 +126,6 @@ export default function QASessionsPage() {
                 className="pl-10"
               />
             </div>
-
-            <Select
-              value={qaFilters.status || 'all'}
-              onValueChange={handleStatusFilter}
-            >
-              <SelectTrigger className="w-full md:w-[180px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="scheduled">Scheduled</SelectItem>
-                <SelectItem value="accepting_questions">Accepting Questions</SelectItem>
-                <SelectItem value="live">Live</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select
-              value={qaFilters.sessionType || 'all'}
-              onValueChange={handleTypeFilter}
-            >
-              <SelectTrigger className="w-full md:w-[180px]">
-                <SelectValue placeholder="Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="author_qa">Author Q&A</SelectItem>
-                <SelectItem value="book_discussion">Book Discussion</SelectItem>
-                <SelectItem value="expert_panel">Expert Panel</SelectItem>
-                <SelectItem value="ama">Ask Me Anything</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
 
           {/* Loading State */}
@@ -214,7 +171,6 @@ export default function QASessionsPage() {
                   showAuthor
                   showBook
                   showQuestionCount
-                  showStatus
                 />
               ))}
             </div>

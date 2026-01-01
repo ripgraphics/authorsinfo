@@ -4,11 +4,11 @@ import { createClient } from '@/lib/supabase-server'
 // GET /api/book-clubs/[id]/discussions - Get all discussions in a book club
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = createClient()
-    const { id } = params
     const searchParams = request.nextUrl.searchParams
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')
@@ -46,17 +46,16 @@ export async function GET(
 // POST /api/book-clubs/[id]/discussions - Create a new discussion
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
-
-    const { id } = params
 
     // Check if user is a member
     const { data: membership } = await supabase

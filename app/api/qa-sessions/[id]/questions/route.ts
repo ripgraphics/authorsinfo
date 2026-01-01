@@ -11,12 +11,12 @@ import { createClient } from '@/lib/supabase/server';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    const { id: sessionId } = params;
     const searchParams = request.nextUrl.searchParams;
 
     const status = searchParams.get('status');
@@ -27,7 +27,7 @@ export async function GET(
     const { data: session, error: sessionError } = await supabase
       .from('qa_sessions')
       .select('id, is_public')
-      .eq('id', sessionId)
+      .eq('id', id)
       .single();
 
     if (sessionError || !session) {
@@ -45,7 +45,7 @@ export async function GET(
           responder:responder_id(id, full_name, avatar_url)
         )
       `)
-      .eq('session_id', sessionId);
+      .eq('session_id', id);
 
     // Filter by status
     if (status) {
@@ -103,9 +103,10 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -113,7 +114,6 @@ export async function POST(
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const { id: sessionId } = params;
     const body = await request.json();
     const { question_text, is_anonymous = false } = body;
 
@@ -128,7 +128,7 @@ export async function POST(
     const { data: session, error: sessionError } = await supabase
       .from('qa_sessions')
       .select('id, status, max_questions, allow_anonymous')
-      .eq('id', sessionId)
+      .eq('id', id)
       .single();
 
     if (sessionError || !session) {
@@ -153,7 +153,7 @@ export async function POST(
     const { count: questionCount } = await supabase
       .from('qa_questions')
       .select('*', { count: 'exact', head: true })
-      .eq('session_id', sessionId);
+      .eq('session_id', id);
 
     if (questionCount && questionCount >= session.max_questions) {
       return NextResponse.json(
@@ -166,7 +166,7 @@ export async function POST(
     const { data: question, error } = await supabase
       .from('qa_questions')
       .insert({
-        session_id: sessionId,
+        session_id: id,
         user_id: is_anonymous ? null : user.id,
         question_text: question_text.trim(),
         is_anonymous,

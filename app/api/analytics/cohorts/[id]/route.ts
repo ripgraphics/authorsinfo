@@ -88,8 +88,8 @@ export async function PATCH(
 
     const payload: UpdateCohortPayload = await request.json();
 
-    const { data, error } = await supabase
-      .from('user_cohorts')
+    const { data, error } = await (supabase
+      .from('user_cohorts') as any)
       .update(payload)
       .eq('id', parseInt(id))
       .select()

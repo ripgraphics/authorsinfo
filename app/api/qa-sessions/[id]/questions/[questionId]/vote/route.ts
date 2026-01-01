@@ -7,17 +7,16 @@ import { createClient } from '@/lib/supabase/server';
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string; questionId: string }> }
 ) {
   try {
+    const { id, questionId } = await params;
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
-
-    const { questionId } = params;
 
     // Check if question exists
     const { data: question, error: questionError } = await supabase
@@ -88,17 +87,16 @@ export async function POST(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string; questionId: string }> }
 ) {
   try {
+    const { id, questionId } = await params;
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
-
-    const { questionId } = params;
 
     // Remove the vote
     const { error } = await supabase

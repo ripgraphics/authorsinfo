@@ -150,14 +150,13 @@ export async function POST(request: NextRequest) {
 
     // Calculate percentage if we have book info
     if (bookId && startPage !== undefined && endPage !== undefined) {
-      const { data: book } = await supabase
-        .from('books')
+      const { data: book } = await (supabase.from('books') as any)
         .select('page_count')
         .eq('id', bookId)
         .single();
 
-      if (book?.page_count && book.page_count > 0) {
-        sessionData.percentage_read = ((endPage - startPage) / book.page_count) * 100;
+      if ((book as any)?.page_count && (book as any).page_count > 0) {
+        sessionData.percentage_read = ((endPage - startPage) / (book as any).page_count) * 100;
       }
     }
 
@@ -182,29 +181,29 @@ export async function POST(request: NextRequest) {
 
     // Transform to camelCase
     const transformedSession = {
-      id: session.id,
-      userId: session.user_id,
-      bookId: session.book_id,
-      book: session.books ? {
-        id: session.books.id,
-        title: session.books.title,
-        author: session.books.author,
-        coverUrl: session.books.cover_url,
+      id: (session as any).id,
+      userId: (session as any).user_id,
+      bookId: (session as any).book_id,
+      book: (session as any).books ? {
+        id: (session as any).books.id,
+        title: (session as any).books.title,
+        author: (session as any).books.author,
+        coverUrl: (session as any).books.cover_url,
       } : null,
-      startedAt: session.started_at,
-      endedAt: session.ended_at,
-      durationMinutes: session.duration_minutes,
-      pagesRead: session.pages_read,
-      startPage: session.start_page,
-      endPage: session.end_page,
-      percentageRead: session.percentage_read,
-      readingLocation: session.reading_location,
-      readingFormat: session.reading_format,
-      notes: session.notes,
-      mood: session.mood,
-      pagesPerMinute: session.pages_per_minute,
-      createdAt: session.created_at,
-      updatedAt: session.updated_at,
+      startedAt: (session as any).started_at,
+      endedAt: (session as any).ended_at,
+      durationMinutes: (session as any).duration_minutes,
+      pagesRead: (session as any).pages_read,
+      startPage: (session as any).start_page,
+      endPage: (session as any).end_page,
+      percentageRead: (session as any).percentage_read,
+      readingLocation: (session as any).reading_location,
+      readingFormat: (session as any).reading_format,
+      notes: (session as any).notes,
+      mood: (session as any).mood,
+      pagesPerMinute: (session as any).pages_per_minute,
+      createdAt: (session as any).created_at,
+      updatedAt: (session as any).updated_at,
     };
 
     return NextResponse.json({

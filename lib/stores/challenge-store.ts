@@ -267,7 +267,6 @@ export const useChallengeStore = create<ChallengeStore>()(
         name: 'challenge-store',
         partialize: (state) => ({
           challenges: state.challenges,
-          currentChallenge: state.currentChallenge,
         }),
       }
     )

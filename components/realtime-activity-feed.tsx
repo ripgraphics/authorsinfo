@@ -2,17 +2,17 @@
 
 import { useEffect } from 'react'
 import { useRealtimeStore } from '@/lib/stores/realtime-store'
-import { useAuth } from '@supabase/auth-helpers-react'
+import { useAuth } from '@/hooks/useAuth'
 
 export function RealtimeActivityFeed() {
-  const { session } = useAuth()
+  const { user } = useAuth()
   const { activityFeed, initialize } = useRealtimeStore()
 
   useEffect(() => {
-    if (session?.user?.id) {
-      initialize(session.user.id)
+    if (user?.id) {
+      initialize(user.id)
     }
-  }, [session?.user?.id, initialize])
+  }, [user?.id, initialize])
 
   return (
     <div className="space-y-4">

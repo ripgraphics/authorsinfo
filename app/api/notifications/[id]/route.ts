@@ -23,9 +23,10 @@ const supabase = createClient(
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {
       return NextResponse.json(
@@ -47,7 +48,7 @@ export async function GET(
     const { data, error } = await supabase
       .from('notifications')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('recipient_id', user.id)
       .single();
 
@@ -93,9 +94,10 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {
       return NextResponse.json(
@@ -120,7 +122,7 @@ export async function PATCH(
     const { data, error } = await supabase
       .from('notifications')
       .update(payload)
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('recipient_id', user.id)
       .select()
       .single();
@@ -160,9 +162,10 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {
       return NextResponse.json(
@@ -185,7 +188,7 @@ export async function DELETE(
     const { data: notification } = await supabase
       .from('notifications')
       .select('recipient_id')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (!notification || notification.recipient_id !== user.id) {
@@ -198,7 +201,7 @@ export async function DELETE(
     const { error } = await supabase
       .from('notifications')
       .delete()
-      .eq('id', params.id);
+      .eq('id', id);
 
     if (error) {
       console.error('Supabase error:', error);

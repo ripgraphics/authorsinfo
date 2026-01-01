@@ -4,11 +4,11 @@ import { createClient } from '@/lib/supabase-server'
 // GET /api/discussions/[id] - Get a specific discussion
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = createClient()
-    const { id } = params
 
     // Check if id is a permalink or UUID
     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
@@ -54,17 +54,16 @@ export async function GET(
 // PATCH /api/discussions/[id] - Update a discussion
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
-
-    const { id } = params
 
     // Verify ownership
     const { data: existing } = await supabase
@@ -108,17 +107,16 @@ export async function PATCH(
 // DELETE /api/discussions/[id] - Delete a discussion
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
-
-    const { id } = params
 
     // Verify ownership
     const { data: existing } = await supabase

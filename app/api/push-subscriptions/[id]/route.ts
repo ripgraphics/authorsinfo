@@ -16,9 +16,10 @@ const supabase = createClient(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const authHeader = request.headers.get('authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -38,7 +39,7 @@ export async function PATCH(
     const { data: device, error: checkError } = await supabase
       .from('push_subscriptions')
       .select('user_id')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (checkError || !device || device.user_id !== user.id) {
@@ -58,7 +59,7 @@ export async function PATCH(
     const { data, error } = await supabase
       .from('push_subscriptions')
       .update(updates)
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
       .single();
 
@@ -86,9 +87,10 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const authHeader = request.headers.get('authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -108,7 +110,7 @@ export async function DELETE(
     const { data: device, error: checkError } = await supabase
       .from('push_subscriptions')
       .select('user_id')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (checkError || !device || device.user_id !== user.id) {
@@ -121,7 +123,7 @@ export async function DELETE(
     const { error } = await supabase
       .from('push_subscriptions')
       .delete()
-      .eq('id', params.id);
+      .eq('id', id);
 
     if (error) {
       console.error('Error deleting device:', error);

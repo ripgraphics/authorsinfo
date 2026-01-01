@@ -8,9 +8,10 @@ const supabase = createClient(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const authHeader = request.headers.get('authorization')
     if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
@@ -26,7 +27,7 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 })
     }
 
-    const segmentId = parseInt(params.id, 10)
+    const segmentId = parseInt(id, 10)
 
     const { data, error } = await supabase
       .from('user_segments')
@@ -72,9 +73,10 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const authHeader = request.headers.get('authorization')
     if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
@@ -101,9 +103,16 @@ export async function PATCH(
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
     }
 
-    const segmentId = parseInt(params.id, 10)
+    const segmentId = parseInt(id, 10)
     const body = await request.json()
     const { name, description, criteria, status } = body
+
+    // Get previous data for logging
+    const { data: previousData } = await supabase
+      .from('user_segments')
+      .select('*')
+      .eq('id', segmentId)
+      .single()
 
     const { data, error } = await supabase
       .from('user_segments')
@@ -121,7 +130,7 @@ export async function PATCH(
     if (error) throw error
 
     // Log criteria change
-    if (body.criteria && previousData?.criteria !== body.criteria) {
+    if (body.criteria && (previousData as any)?.criteria !== body.criteria) {
       await supabase
         .from('segment_events')
         .insert([
@@ -129,7 +138,7 @@ export async function PATCH(
             segment_id: segmentId,
             user_id: user.id,
             event_type: 'criteria_update',
-            previous_state: { criteria: previousData?.criteria },
+            previous_state: { criteria: (previousData as any)?.criteria },
             new_state: { criteria: body.criteria },
           },
         ])
@@ -147,9 +156,10 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const authHeader = request.headers.get('authorization')
     if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
@@ -176,7 +186,7 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
     }
 
-    const segmentId = parseInt(params.id, 10)
+    const segmentId = parseInt(id, 10)
 
     const { error } = await supabase
       .from('user_segments')

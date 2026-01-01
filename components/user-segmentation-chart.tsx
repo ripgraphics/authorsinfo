@@ -114,12 +114,12 @@ export const UserSegmentationChart: React.FC<UserSegmentationChartProps> = ({
     if (!segments || segments.length === 0) return [];
 
     return segments
-      .filter((s) => s.segment_size && s.segment_size > 0)
+      .filter((s) => (s as any).segment_size && (s as any).segment_size > 0)
       .map((segment) => ({
         name: segment.name || `Segment ${segment.id}`,
-        value: segment.segment_size || 0,
+        value: (segment as any).segment_size || 0,
         segmentId: segment.id,
-        segmentType: segment.segment_type,
+        segmentType: (segment as any).segment_type,
       }))
       .sort((a, b) => b.value - a.value);
   }, [segments]);
@@ -134,7 +134,8 @@ export const UserSegmentationChart: React.FC<UserSegmentationChartProps> = ({
     };
 
     chartData.forEach((d) => {
-      breakdown[d.segmentType] += d.value;
+      const segmentType = (d.segmentType as SegmentType) || 'behavioral';
+      breakdown[segmentType] = (breakdown[segmentType] || 0) + d.value;
     });
 
     return breakdown;

@@ -77,14 +77,14 @@ export default function QASessionDetailPage() {
     toast.success('Link copied to clipboard!');
   };
 
-  const handleQuestionSubmit = async (question: string, isAnonymous: boolean) => {
+  const handleQuestionSubmit = async (data: { questionText: string; isAnonymous: boolean }) => {
     try {
       const response = await fetch(`/api/qa-sessions/${sessionId}/questions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          question_text: question,
-          is_anonymous: isAnonymous,
+          question_text: data.questionText,
+          is_anonymous: data.isAnonymous,
         }),
       });
 
@@ -143,7 +143,7 @@ export default function QASessionDetailPage() {
                 {isLive && <span className="animate-pulse mr-1">●</span>}
                 {currentQASession.status.replace('_', ' ').toUpperCase()}
               </Badge>
-              <Badge variant="outline">{currentQASession.session_type}</Badge>
+              <Badge variant="outline">{currentQASession.sessionType}</Badge>
             </div>
             <h1 className="text-3xl font-bold mb-2">{currentQASession.title}</h1>
             {currentQASession.description && (
@@ -187,10 +187,10 @@ export default function QASessionDetailPage() {
             </CardHeader>
             <CardContent>
               <div className="text-xl font-bold">
-                {format(new Date(currentQASession.scheduled_start), 'MMM d')}
+                {format(new Date(currentQASession.scheduledStart), 'MMM d')}
               </div>
               <p className="text-xs text-muted-foreground">
-                {format(new Date(currentQASession.scheduled_start), 'h:mm a')}
+                {format(new Date(currentQASession.scheduledStart), 'h:mm a')}
               </p>
             </CardContent>
           </Card>
@@ -203,8 +203,8 @@ export default function QASessionDetailPage() {
             <CardContent>
               <div className="text-xl font-bold">
                 {Math.round(
-                  (new Date(currentQASession.scheduled_end).getTime() -
-                    new Date(currentQASession.scheduled_start).getTime()) /
+                  (new Date(currentQASession.scheduledEnd).getTime() -
+                    new Date(currentQASession.scheduledStart).getTime()) /
                     (1000 * 60)
                 )}
                 m
@@ -283,9 +283,8 @@ export default function QASessionDetailPage() {
               </CardHeader>
               <CardContent>
                 <QuestionSubmission
-                  sessionId={sessionId}
                   onSubmit={handleQuestionSubmit}
-                  allowAnonymous={currentQASession.allow_anonymous}
+                  allowAnonymous={(currentQASession as any).allow_anonymous}
                   maxLength={500}
                 />
               </CardContent>
@@ -296,8 +295,9 @@ export default function QASessionDetailPage() {
           <LiveQAFeed
             sessionId={sessionId}
             autoRefresh={isLive}
-            refreshInterval={isLive ? 10000 : 30000}
-            showSubmitForm={false}
+            autoRefreshInterval={isLive ? 10000 : 30000}
+            onFetchQuestions={async () => []}
+            onVoteQuestion={async () => {}}
           />
         </TabsContent>
 
@@ -323,7 +323,7 @@ export default function QASessionDetailPage() {
                   <dl className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <dt className="text-muted-foreground">Type:</dt>
-                      <dd className="font-medium">{currentQASession.session_type}</dd>
+                      <dd className="font-medium">{(currentQASession as any).sessionType}</dd>
                     </div>
                     <div className="flex justify-between">
                       <dt className="text-muted-foreground">Status:</dt>
@@ -332,13 +332,13 @@ export default function QASessionDetailPage() {
                     <div className="flex justify-between">
                       <dt className="text-muted-foreground">Max Questions:</dt>
                       <dd className="font-medium">
-                        {currentQASession.max_questions || 'Unlimited'}
+                        {(currentQASession as any).maxQuestions || 'Unlimited'}
                       </dd>
                     </div>
                     <div className="flex justify-between">
                       <dt className="text-muted-foreground">Public:</dt>
                       <dd className="font-medium">
-                        {currentQASession.is_public ? 'Yes' : 'No'}
+                        {(currentQASession as any).isPublic ? 'Yes' : 'No'}
                       </dd>
                     </div>
                   </dl>
@@ -350,13 +350,13 @@ export default function QASessionDetailPage() {
                     <div className="flex justify-between">
                       <dt className="text-muted-foreground">Requires Approval:</dt>
                       <dd className="font-medium">
-                        {currentQASession.requires_approval ? 'Yes' : 'No'}
+                        {(currentQASession as any).requiresApproval ? 'Yes' : 'No'}
                       </dd>
                     </div>
                     <div className="flex justify-between">
                       <dt className="text-muted-foreground">Anonymous Questions:</dt>
                       <dd className="font-medium">
-                        {currentQASession.allow_anonymous ? 'Allowed' : 'Not Allowed'}
+                        {(currentQASession as any).allowAnonymous ? 'Allowed' : 'Not Allowed'}
                       </dd>
                     </div>
                   </dl>

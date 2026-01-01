@@ -2,14 +2,14 @@
 
 import { useEffect } from 'react'
 import { useRealtimeStore } from '@/lib/stores/realtime-store'
-import { useAuth } from '@supabase/auth-helpers-react'
+import { useAuth } from '@/hooks/useAuth'
 
 export function PresenceIndicator() {
-  const { session } = useAuth()
+  const { user } = useAuth()
   const { userPresence, updatePresence } = useRealtimeStore()
 
   useEffect(() => {
-    if (!session?.user?.id) return
+    if (!user?.id) return
 
     const handleVisibilityChange = () => {
       const status = document.hidden ? 'away' : 'online'
@@ -19,7 +19,7 @@ export function PresenceIndicator() {
     document.addEventListener('visibilitychange', handleVisibilityChange)
     return () =>
       document.removeEventListener('visibilitychange', handleVisibilityChange)
-  }, [session?.user?.id, updatePresence])
+  }, [user?.id, updatePresence])
 
   const onlineCount = Array.from(userPresence.values()).filter(
     (p) => p.status === 'online'

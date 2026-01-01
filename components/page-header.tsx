@@ -42,9 +42,14 @@ import { usePathname } from 'next/navigation'
 interface PageHeaderProps {
   title?: string
   description?: string
+  children?: React.ReactNode
 }
 
-export function PageHeader({ title, description }: PageHeaderProps) {
+export function PageHeaderHeading({ children }: { children?: React.ReactNode }) {
+  return <h1 className="text-3xl font-bold tracking-tight">{children}</h1>
+}
+
+export function PageHeader({ title, description, children }: PageHeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [searchOpen, setSearchOpen] = useState(false)

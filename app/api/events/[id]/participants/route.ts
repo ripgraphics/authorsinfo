@@ -10,11 +10,12 @@ import { createClient } from '@/lib/supabase/server';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = createClient();
-    const { id: eventId } = params;
+    const eventId = id;
     const searchParams = request.nextUrl.searchParams;
 
     const rsvpStatus = searchParams.get('rsvp_status');
@@ -76,9 +77,10 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -86,7 +88,7 @@ export async function POST(
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const { id: eventId } = params;
+    const eventId = id;
     const body = await request.json();
     const { rsvp_status = 'attending' } = body;
 
@@ -164,9 +166,10 @@ export async function POST(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -174,7 +177,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const { id: eventId } = params;
+    const eventId = id;
     const body = await request.json();
     const { rsvp_status } = body;
 

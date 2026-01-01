@@ -267,7 +267,7 @@ class PerformanceMonitor {
     queryMetrics: QueryMetric[]
     databaseMetrics: DatabaseMetric[]
     alerts: PerformanceAlert[]
-    summary: ReturnType<typeof this.getPerformanceSummary>
+    summary: any
   } {
     return {
       queryMetrics: [...this.queryMetrics],

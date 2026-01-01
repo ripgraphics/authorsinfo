@@ -44,8 +44,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user ID from session
-    const { data: userData } = await supabase
-      .from('users')
+    const { data: userData } = await (supabase.from('users') as any)
       .select('id')
       .eq('id', user.id)
       .single();
@@ -55,20 +54,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Get next display order
-    const { data: shelves } = await supabase
-      .from('custom_shelves')
+    const { data: shelves } = await (supabase.from('custom_shelves') as any)
       .select('display_order')
-      .eq('user_id', userData.id)
+      .eq('user_id', (userData as any).id)
       .order('display_order', { ascending: false })
       .limit(1);
 
     const nextOrder = (shelves?.[0]?.display_order ?? -1) + 1;
 
     // Create shelf
-    const { data: newShelf, error } = await supabase
-      .from('custom_shelves')
+    const { data: newShelf, error } = await (supabase.from('custom_shelves') as any)
       .insert({
-        user_id: userData.id,
+        user_id: (userData as any).id,
         name: name.trim(),
         description: description?.trim() || null,
         icon: icon || null,
@@ -113,8 +110,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user ID
-    const { data: userData } = await supabase
-      .from('users')
+    const { data: userData } = await (supabase.from('users') as any)
       .select('id')
       .eq('id', user.id)
       .single();
@@ -123,10 +119,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const { data: shelves, error } = await supabase
-      .from('custom_shelves')
+    const { data: shelves, error } = await (supabase.from('custom_shelves') as any)
       .select('*')
-      .eq('user_id', userData.id)
+      .eq('user_id', (userData as any).id)
       .order('display_order');
 
     if (error) {

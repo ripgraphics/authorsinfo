@@ -158,7 +158,7 @@ export function ShelfManager() {
                 <ShelfCard
                   key={shelf.id}
                   shelf={shelf as any}
-                  onSelect={selectShelf}
+                  onSelect={() => selectShelf(shelf as any)}
                   onSettings={handleSettingsClick}
                   onDelete={handleDeleteClick}
                   isSelected={selectedShelfId === shelf.id}

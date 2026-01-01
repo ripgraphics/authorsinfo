@@ -145,7 +145,7 @@ export default function UserSegmentationDashboard() {
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
-            <Tooltip formatter={(value) => value.toLocaleString()} />
+            <Tooltip formatter={(value: any) => (value || 0).toLocaleString()} />
             <Legend />
           </PieChart>
         </ResponsiveContainer>

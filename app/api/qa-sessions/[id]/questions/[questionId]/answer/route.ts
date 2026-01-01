@@ -8,9 +8,10 @@ import { createClient } from '@/lib/supabase/server';
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string; questionId: string }> }
 ) {
   try {
+    const { id, questionId } = await params;
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -18,7 +19,6 @@ export async function POST(
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const { id: sessionId, questionId } = params;
     const body = await request.json();
     const { answer_text, is_official = false } = body;
 
@@ -34,7 +34,7 @@ export async function POST(
       .from('qa_questions')
       .select('id, session_id')
       .eq('id', questionId)
-      .eq('session_id', sessionId)
+      .eq('session_id', id)
       .single();
 
     if (questionError || !question) {
@@ -47,7 +47,7 @@ export async function POST(
       const { data: session } = await supabase
         .from('qa_sessions')
         .select('host_id')
-        .eq('id', sessionId)
+        .eq('id', id)
         .single();
 
       isHost = session?.host_id === user.id;

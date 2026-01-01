@@ -40,9 +40,9 @@ export async function generateMetadata({
     title: `${event.title} - Event`,
     description:
       event.summary || event.description?.substring(0, 160) || 'Join this literary event',
-    openGraph: event.cover_image?.url
+    openGraph: (event as any).cover_image?.url
       ? {
-          images: [{ url: event.cover_image.url }],
+          images: [{ url: (event as any).cover_image.url }],
         }
       : undefined,
   }
@@ -58,7 +58,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
   // Set default image
   const coverImageUrl =
-    eventData.cover_image?.url || eventData.event_image?.url || '/images/event-placeholder.jpg'
+    (eventData as any).cover_image?.url || (eventData as any).event_image?.url || '/images/event-placeholder.jpg'
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -66,11 +66,11 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         event={eventData}
         coverImageUrl={coverImageUrl}
         params={{ slug }}
-        followers={eventData.followers || []}
-        followersCount={eventData.followers?.length || 0}
-        speakers={eventData.speakers || []}
-        sessions={eventData.sessions || []}
-        books={eventData.books || []}
+        followers={(eventData as any).followers || []}
+        followersCount={(eventData as any).followers?.length || 0}
+        speakers={(eventData as any).speakers || []}
+        sessions={(eventData as any).sessions || []}
+        books={(eventData as any).books || []}
       />
     </div>
   )

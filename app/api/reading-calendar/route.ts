@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     // Aggregate by date
     const dateMap: Record<string, { totalPages: number; totalMinutes: number; sessionCount: number }> = {};
 
-    sessions?.forEach(s => {
+    sessions?.forEach((s: any) => {
       const date = new Date(s.started_at);
       const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
       

@@ -29,9 +29,10 @@ async function verifyChallengeOwnership(supabase: any, challengeId: string, user
 // GET /api/challenges/:id - Get challenge details with tracking
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createRouteHandlerClientAsync();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -40,10 +41,10 @@ export async function GET(
     }
 
     // Verify ownership or check if public
-    const { data: challenge, error: challengeError } = await supabase
-      .from('reading_challenges')
+    const { data: challenge, error: challengeError } = await (supabase
+      .from('reading_challenges') as any)
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (challengeError || !challenge) {
@@ -51,7 +52,7 @@ export async function GET(
     }
 
     // Check if user owns it or if it's public
-    if (challenge.user_id !== user.id && !challenge.is_public) {
+    if ((challenge as any).user_id !== user.id && !(challenge as any).is_public) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -67,7 +68,7 @@ export async function GET(
           cover_url
         )
       `)
-      .eq('challenge_id', params.id)
+      .eq('challenge_id', id)
       .order('date_added', { ascending: false });
 
     return NextResponse.json({
@@ -86,9 +87,10 @@ export async function GET(
 // PATCH /api/challenges/:id - Update challenge metadata
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createRouteHandlerClientAsync();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -96,7 +98,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const isOwner = await verifyChallengeOwnership(supabase, params.id, user.id);
+    const isOwner = await verifyChallengeOwnership(supabase, id, user.id);
     if (!isOwner) {
       return NextResponse.json({ error: 'Challenge not found' }, { status: 404 });
     }
@@ -113,10 +115,10 @@ export async function PATCH(
     if (endDate !== undefined) updates.end_date = endDate;
     updates.updated_at = new Date().toISOString();
 
-    const { data: updatedChallenge, error } = await supabase
-      .from('reading_challenges')
+    const { data: updatedChallenge, error } = await (supabase
+      .from('reading_challenges') as any)
       .update(updates)
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
       .single();
 
@@ -137,9 +139,10 @@ export async function PATCH(
 // DELETE /api/challenges/:id - Delete challenge
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createRouteHandlerClientAsync();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -147,7 +150,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const isOwner = await verifyChallengeOwnership(supabase, params.id, user.id);
+    const isOwner = await verifyChallengeOwnership(supabase, id, user.id);
     if (!isOwner) {
       return NextResponse.json({ error: 'Challenge not found' }, { status: 404 });
     }
@@ -155,7 +158,7 @@ export async function DELETE(
     const { error } = await supabase
       .from('reading_challenges')
       .delete()
-      .eq('id', params.id);
+      .eq('id', id);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
@@ -171,9 +174,10 @@ export async function DELETE(
 // POST /api/challenges/:id/progress - Log progress
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createRouteHandlerClientAsync();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -181,7 +185,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const isOwner = await verifyChallengeOwnership(supabase, params.id, user.id);
+    const isOwner = await verifyChallengeOwnership(supabase, id, user.id);
     if (!isOwner) {
       return NextResponse.json({ error: 'Challenge not found' }, { status: 404 });
     }
@@ -193,10 +197,10 @@ export async function POST(
     }
 
     // Insert tracking record
-    const { error: insertError } = await supabase
-      .from('challenge_tracking')
+    const { error: insertError } = await (supabase
+      .from('challenge_tracking') as any)
       .insert({
-        challenge_id: params.id,
+        challenge_id: id,
         book_id: bookId || null,
         pages_read: pagesRead || null,
         minutes_read: minutesRead || null,
@@ -211,7 +215,7 @@ export async function POST(
     const { data: updatedChallenge, error: fetchError } = await supabase
       .from('reading_challenges')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (fetchError || !updatedChallenge) {
@@ -230,7 +234,7 @@ export async function POST(
           cover_url
         )
       `)
-      .eq('challenge_id', params.id)
+      .eq('challenge_id', id)
       .order('date_added', { ascending: false });
 
     // Check for badge eligibility after logging progress

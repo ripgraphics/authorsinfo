@@ -28,9 +28,10 @@ async function verifyShelfOwnership(supabase: any, shelfId: string, userId: stri
 // GET /api/shelves/:id - Get shelf details with books (paginated)
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createRouteHandlerClientAsync();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -39,7 +40,7 @@ export async function GET(
     }
 
     // Verify ownership
-    const isOwner = await verifyShelfOwnership(supabase, params.id, user.id);
+    const isOwner = await verifyShelfOwnership(supabase, id, user.id);
     if (!isOwner) {
       return NextResponse.json({ error: 'Shelf not found' }, { status: 404 });
     }
@@ -53,7 +54,7 @@ export async function GET(
     const { data: shelf, error: shelfError } = await supabase
       .from('custom_shelves')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (shelfError || !shelf) {
@@ -78,7 +79,7 @@ export async function GET(
         )
       `
       )
-      .eq('shelf_id', params.id)
+      .eq('shelf_id', id)
       .order('display_order')
       .range(skip, skip + take - 1);
 
@@ -93,12 +94,12 @@ export async function GET(
     const { count } = await supabase
       .from('shelf_books')
       .select('*', { count: 'exact', head: true })
-      .eq('shelf_id', params.id);
+      .eq('shelf_id', id);
 
     return NextResponse.json({
       success: true,
       data: {
-        ...shelf,
+        ...(shelf as any),
         books: books?.map((b: any) => ({
           ...b.books,
           shelfBookId: b.id,
@@ -126,9 +127,10 @@ export async function GET(
 // PATCH /api/shelves/:id - Update shelf metadata
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createRouteHandlerClientAsync();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -136,7 +138,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const isOwner = await verifyShelfOwnership(supabase, params.id, user.id);
+    const isOwner = await verifyShelfOwnership(supabase, id, user.id);
     if (!isOwner) {
       return NextResponse.json({ error: 'Shelf not found' }, { status: 404 });
     }
@@ -160,10 +162,9 @@ export async function PATCH(
       );
     }
 
-    const { data: updatedShelf, error } = await supabase
-      .from('custom_shelves')
+    const { data: updatedShelf, error } = await (supabase.from('custom_shelves') as any)
       .update(updates)
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
       .single();
 
@@ -190,9 +191,10 @@ export async function PATCH(
 // DELETE /api/shelves/:id - Delete shelf
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createRouteHandlerClientAsync();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -200,19 +202,18 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const isOwner = await verifyShelfOwnership(supabase, params.id, user.id);
+    const isOwner = await verifyShelfOwnership(supabase, id, user.id);
     if (!isOwner) {
       return NextResponse.json({ error: 'Shelf not found' }, { status: 404 });
     }
 
     // Check if default shelf
-    const { data: shelf } = await supabase
-      .from('custom_shelves')
+    const { data: shelf } = await (supabase.from('custom_shelves') as any)
       .select('is_default')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
-    if (shelf?.is_default) {
+    if ((shelf as any)?.is_default) {
       return NextResponse.json(
         { error: 'Cannot delete default shelf' },
         { status: 400 }
@@ -223,7 +224,7 @@ export async function DELETE(
     const { error } = await supabase
       .from('custom_shelves')
       .delete()
-      .eq('id', params.id);
+      .eq('id', id);
 
     if (error) {
       return NextResponse.json(
@@ -248,9 +249,10 @@ export async function DELETE(
 // POST /api/shelves/:id/books - Add book to shelf
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createRouteHandlerClientAsync();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -258,7 +260,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const isOwner = await verifyShelfOwnership(supabase, params.id, user.id);
+    const isOwner = await verifyShelfOwnership(supabase, id, user.id);
     if (!isOwner) {
       return NextResponse.json({ error: 'Shelf not found' }, { status: 404 });
     }
@@ -274,7 +276,7 @@ export async function POST(
     const { data: existing } = await supabase
       .from('shelf_books')
       .select('id')
-      .eq('shelf_id', params.id)
+      .eq('shelf_id', id)
       .eq('book_id', bookId)
       .single();
 
@@ -286,10 +288,9 @@ export async function POST(
     }
 
     // Add book to shelf
-    const { data: shelfBook, error: insertError } = await supabase
-      .from('shelf_books')
+    const { data: shelfBook, error: insertError } = await (supabase.from('shelf_books') as any)
       .insert({
-        shelf_id: params.id,
+        shelf_id: id,
         book_id: bookId,
         display_order: displayOrder,
       })
@@ -324,9 +325,10 @@ export async function POST(
 // DELETE /api/shelves/:id/books/:bookId - Remove book from shelf
 export async function DELETE_BOOK(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createRouteHandlerClientAsync();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -334,17 +336,19 @@ export async function DELETE_BOOK(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const isOwner = await verifyShelfOwnership(supabase, params.id, user.id);
+    const isOwner = await verifyShelfOwnership(supabase, id, user.id);
     if (!isOwner) {
       return NextResponse.json({ error: 'Shelf not found' }, { status: 404 });
     }
+
+    const { bookId } = await request.json();
 
     // Remove book from shelf
     const { error } = await supabase
       .from('shelf_books')
       .delete()
-      .eq('id', params.bookId)
-      .eq('shelf_id', params.id);
+      .eq('id', bookId)
+      .eq('shelf_id', id);
 
     if (error) {
       return NextResponse.json(
@@ -369,9 +373,10 @@ export async function DELETE_BOOK(
 // PATCH /api/shelves/:id/books/:bookId - Update book position in shelf
 export async function PATCH_BOOK(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createRouteHandlerClientAsync();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -379,19 +384,18 @@ export async function PATCH_BOOK(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const isOwner = await verifyShelfOwnership(supabase, params.id, user.id);
+    const isOwner = await verifyShelfOwnership(supabase, id, user.id);
     if (!isOwner) {
       return NextResponse.json({ error: 'Shelf not found' }, { status: 404 });
     }
 
-    const { displayOrder } = await request.json();
+    const { displayOrder, bookId } = await request.json();
 
     // Update book position
-    const { data: updatedBook, error } = await supabase
-      .from('shelf_books')
+    const { data: updatedBook, error } = await (supabase.from('shelf_books') as any)
       .update({ display_order: displayOrder })
-      .eq('id', params.bookId)
-      .eq('shelf_id', params.id)
+      .eq('id', bookId)
+      .eq('shelf_id', id)
       .select()
       .single();
 

@@ -4,11 +4,11 @@ import { createClient } from '@/lib/supabase-server'
 // GET /api/book-clubs/[id]/members - Get all members of a book club
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = createClient()
-    const { id } = params
 
     const { data: members, error } = await supabase
       .from('book_club_members')
@@ -34,17 +34,16 @@ export async function GET(
 // POST /api/book-clubs/[id]/members - Join a book club
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
-
-    const { id } = params
 
     // Check if club exists and is public
     const { data: club, error: clubError } = await supabase
@@ -108,17 +107,16 @@ export async function POST(
 // DELETE /api/book-clubs/[id]/members - Leave a book club
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
-
-    const { id } = params
     const searchParams = request.nextUrl.searchParams
     const targetUserId = searchParams.get('user_id') || user.id
 

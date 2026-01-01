@@ -11,15 +11,15 @@ export async function GET(req: NextRequest) {
     }
 
     // 1. Get friends' IDs
-    const { data: friends, error: friendsError } = await supabase
-      .from('friends')
+    const { data: friends, error: friendsError } = await (supabase
+      .from('friends') as any)
       .select('friend_id')
       .eq('user_id', user.id)
       .eq('status', 'accepted');
 
     if (friendsError) throw friendsError;
 
-    const friendIds = friends.map(f => f.friend_id);
+    const friendIds = friends.map((f: any) => f.friend_id);
 
     if (friendIds.length === 0) {
       return NextResponse.json([]);

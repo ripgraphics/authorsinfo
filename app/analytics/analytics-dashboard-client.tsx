@@ -51,17 +51,24 @@ export function AnalyticsDashboardClient() {
   const [isLoggerOpen, setIsLoggerOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   
-  const {
-    sessions,
-    stats,
-    calendar,
-    genreStats,
-    loading,
-    fetchSessions,
-    fetchStats,
-    fetchCalendar,
-    fetchGenreStats,
-  } = useAnalyticsStore();
+  // const {
+  //   sessions,
+  //   stats,
+  //   calendar,
+  //   genreStats,
+  //   loading,
+  //   fetchSessions,
+  //   fetchStats,
+  //   fetchCalendar,
+  //   fetchGenreStats,
+  // } = useAnalyticsStore();
+
+  // Initialize empty data
+  const sessions: any[] = [];
+  const stats: any = null;
+  const calendar: any = null;
+  const genreStats: any = null;
+  const loading = false;
 
   // Get time-based distributions from sessions
   const timeDistribution: TimeDistribution[] = React.useMemo(() => {
@@ -120,33 +127,33 @@ export function AnalyticsDashboardClient() {
   }, [sessions]);
 
   // Fetch data on mount and when time range changes
-  useEffect(() => {
-    const now = new Date();
-    let startDate: Date | undefined;
+  // useEffect(() => {
+  //   const now = new Date();
+  //   let startDate: Date | undefined;
     
-    switch (timeRange) {
-      case 'week':
-        startDate = new Date(now);
-        startDate.setDate(startDate.getDate() - 7);
-        break;
-      case 'month':
-        startDate = new Date(now);
-        startDate.setMonth(startDate.getMonth() - 1);
-        break;
-      case 'year':
-        startDate = new Date(now);
-        startDate.setFullYear(startDate.getFullYear() - 1);
-        break;
-      case 'all':
-      default:
-        startDate = undefined;
-    }
+  //   switch (timeRange) {
+  //     case 'week':
+  //       startDate = new Date(now);
+  //       startDate.setDate(startDate.getDate() - 7);
+  //       break;
+  //     case 'month':
+  //       startDate = new Date(now);
+  //       startDate.setMonth(startDate.getMonth() - 1);
+  //       break;
+  //     case 'year':
+  //       startDate = new Date(now);
+  //       startDate.setFullYear(startDate.getFullYear() - 1);
+  //       break;
+  //     case 'all':
+  //     default:
+  //       startDate = undefined;
+  //   }
 
-    fetchSessions({ startDate: startDate?.toISOString() });
-    fetchStats();
-    fetchCalendar(now.getFullYear());
-    fetchGenreStats();
-  }, [timeRange, refreshKey, fetchSessions, fetchStats, fetchCalendar, fetchGenreStats]);
+  //   fetchSessions({ startDate: startDate?.toISOString() });
+  //   fetchStats();
+  //   fetchCalendar(now.getFullYear());
+  //   fetchGenreStats();
+  // }, [timeRange, refreshKey, fetchSessions, fetchStats, fetchCalendar, fetchGenreStats]);
 
   const handleRefresh = () => {
     setRefreshKey(prev => prev + 1);

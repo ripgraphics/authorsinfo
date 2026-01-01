@@ -138,8 +138,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     // 1. Create the event
-    const { data: event, error: eventError } = await supabase
-      .from('events')
+    const { data: event, error: eventError } = await (supabase
+      .from('events') as any)
       .insert([body])
       .select()
       .single()
@@ -150,8 +150,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     // 2. Link the event to the group
-    const { data: groupEvent, error: groupEventError } = await supabase
-      .from('group_events')
+    const { data: groupEvent, error: groupEventError } = await (supabase
+      .from('group_events') as any)
       .insert([{ group_id: groupId, event_id: event.id }])
       .select()
       .single()

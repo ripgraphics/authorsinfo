@@ -10,11 +10,12 @@ import { createClient } from '@/lib/supabase/server';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = createClient();
-    const { id: eventId } = params;
+    const eventId = id;
     const searchParams = request.nextUrl.searchParams;
 
     const sessionId = searchParams.get('session_id');
@@ -74,9 +75,10 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -84,7 +86,7 @@ export async function POST(
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const { id: eventId } = params;
+    const eventId = id;
     const body = await request.json();
     const { content, session_id, is_announcement = false } = body;
 

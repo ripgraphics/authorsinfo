@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
 // POST /api/analytics/churn/at-risk-users - Create or update churn risk record (admin only)
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await getClient();
+    const supabase = await createRouteHandlerClientAsync();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
@@ -128,14 +128,14 @@ export async function POST(request: NextRequest) {
 
     // Determine risk level from score
     let risk_level: RiskLevel;
-    if (risk_score < 25) risk_level = 'low' as const;
-    else if (risk_score < 50) risk_level = 'medium' as const;
-    else if (risk_score < 75) risk_level = 'high' as const;
-    else risk_level = 'critical' as const;
+    if (risk_score < 25) risk_level = RiskLevel.LOW;
+    else if (risk_score < 50) risk_level = RiskLevel.MEDIUM;
+    else if (risk_score < 75) risk_level = RiskLevel.HIGH;
+    else risk_level = RiskLevel.CRITICAL;
 
-    const { data, error } = await supabase
-      .from('user_churn_risk')
-      .upsert({
+    const { data, error } = await (supabase
+      .from('user_churn_risk') as any)
+      .upsert([{
         user_id,
         risk_score,
         risk_level,
@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
         predicted_churn_date,
         confidence_score,
         contributing_factors: contributing_factors || {},
-      }, {
+      }], {
         onConflict: 'user_id',
       })
       .select()

@@ -79,8 +79,7 @@ export async function GET(request: NextRequest) {
     const historyDays = parseInt(searchParams.get('historyDays') || '90');
 
     // Get all sessions to calculate streak
-    const { data: sessions, error: sessionsError } = await supabase
-      .from('reading_sessions')
+    const { data: sessions, error: sessionsError } = await (supabase.from('reading_sessions') as any)
       .select('started_at')
       .eq('user_id', user.id)
       .order('started_at', { ascending: true });
@@ -92,8 +91,8 @@ export async function GET(request: NextRequest) {
 
     // Get unique dates with reading sessions
     const uniqueDates = Array.from(new Set(
-      (sessions || []).map(s => getDateString(new Date(s.started_at)))
-    )).sort();
+      (sessions || []).map((s: any) => getDateString(new Date((s as any).started_at)))
+    )).sort() as string[];
 
     // Calculate today and yesterday
     const today = new Date();

@@ -37,17 +37,25 @@ async function verifyShelfOwnership(shelfId: string, userEmail: string) {
 // POST /api/shelves/:id/books - Add book to shelf
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession();
-    if (!session?.user?.email) {
+    const { id } = await params;
+    const supabaseAuth = await createRouteHandlerClientAsync();
+    const { data: { user } } = await supabaseAuth.auth.getUser();
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Verify ownership
-    const userId = await verifyShelfOwnership(params.id, session.user.email);
-    if (!userId) {
+    const { data: shelf } = await supabase
+      .from('custom_shelves')
+      .select('id')
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .single();
+
+    if (!shelf) {
       return NextResponse.json({ error: 'Shelf not found' }, { status: 404 });
     }
 
@@ -77,7 +85,7 @@ export async function POST(
       const { data: lastBook } = await supabase
         .from('shelf_books')
         .select('display_order')
-        .eq('shelf_id', params.id)
+        .eq('shelf_id', id)
         .order('display_order', { ascending: false })
         .limit(1);
 
@@ -88,7 +96,7 @@ export async function POST(
     const { data: shelfBook, error } = await supabase
       .from('shelf_books')
       .insert({
-        shelf_id: params.id,
+        shelf_id: id,
         book_id: bookId,
         display_order: order,
       })
@@ -128,25 +136,33 @@ export async function POST(
 // DELETE /api/shelves/:id/books/:bookId - Remove book from shelf
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string; bookId: string }> }
 ) {
   try {
-    const session = await getServerSession();
-    if (!session?.user?.email) {
+    const { id, bookId } = await params;
+    const supabaseAuth = await createRouteHandlerClientAsync();
+    const { data: { user } } = await supabaseAuth.auth.getUser();
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Verify ownership
-    const userId = await verifyShelfOwnership(params.id, session.user.email);
-    if (!userId) {
+    const { data: shelf } = await supabase
+      .from('custom_shelves')
+      .select('id')
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .single();
+
+    if (!shelf) {
       return NextResponse.json({ error: 'Shelf not found' }, { status: 404 });
     }
 
     const { error } = await supabase
       .from('shelf_books')
       .delete()
-      .eq('shelf_id', params.id)
-      .eq('book_id', params.bookId);
+      .eq('shelf_id', id)
+      .eq('book_id', bookId);
 
     if (error) {
       return NextResponse.json(
@@ -171,17 +187,25 @@ export async function DELETE(
 // PATCH /api/shelves/:id/books/:bookId - Update book position
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string; bookId: string }> }
 ) {
   try {
-    const session = await getServerSession();
-    if (!session?.user?.email) {
+    const { id, bookId } = await params;
+    const supabaseAuth = await createRouteHandlerClientAsync();
+    const { data: { user } } = await supabaseAuth.auth.getUser();
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Verify ownership
-    const userId = await verifyShelfOwnership(params.id, session.user.email);
-    if (!userId) {
+    const { data: shelf } = await supabase
+      .from('custom_shelves')
+      .select('id')
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .single();
+
+    if (!shelf) {
       return NextResponse.json({ error: 'Shelf not found' }, { status: 404 });
     }
 
@@ -197,8 +221,8 @@ export async function PATCH(
     const { data: updatedBook, error } = await supabase
       .from('shelf_books')
       .update({ display_order: displayOrder })
-      .eq('shelf_id', params.id)
-      .eq('book_id', params.bookId)
+      .eq('shelf_id', id)
+      .eq('book_id', bookId)
       .select()
       .single();
 

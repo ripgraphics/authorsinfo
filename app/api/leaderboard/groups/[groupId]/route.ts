@@ -12,11 +12,11 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ groupId: string }> }
 ) {
   try {
+    const { groupId } = await params;
     const supabase = await createClient();
-    const { groupId } = params;
 
     // Verify user is authenticated
     const {

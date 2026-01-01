@@ -114,8 +114,8 @@ export async function GET(req: NextRequest) {
 
     // 3. Calculate statistics from sessions
     const sessionsData = filteredSessions;
-    const totalPages = sessionsData.reduce((sum, session) => sum + (session.pages_read || 0), 0);
-    const totalMinutes = sessionsData.reduce((sum, session) => sum + (session.duration_minutes || 0), 0);
+    const totalPages = sessionsData.reduce((sum, session: any) => sum + (session.pages_read || 0), 0);
+    const totalMinutes = sessionsData.reduce((sum, session: any) => sum + (session.duration_minutes || 0), 0);
     const totalBooks = readingProgress?.length || 0;
 
     // 4. Calculate reading streak from sessions
@@ -127,7 +127,7 @@ export async function GET(req: NextRequest) {
       // Get unique dates from sessions, sorted descending
       const uniqueDates = Array.from(
         new Set(
-          sessionsData.map(s => {
+          sessionsData.map((s: any) => {
             const d = new Date(s.session_date);
             d.setHours(0, 0, 0, 0);
             return d.getTime();
@@ -160,10 +160,10 @@ export async function GET(req: NextRequest) {
     // 5. Calculate reading speed (pages per day) for last 30 days
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const recentSessions = sessionsData.filter(s => 
+    const recentSessions = sessionsData.filter((s: any) => 
       new Date(s.session_date) >= thirtyDaysAgo
     );
-    const recentPages = recentSessions.reduce((sum, session) => sum + (session.pages_read || 0), 0);
+    const recentPages = recentSessions.reduce((sum, session: any) => sum + (session.pages_read || 0), 0);
     const pagesPerDay = recentSessions.length > 0 
       ? Math.round((recentPages / 30) * 10) / 10 
       : 0;

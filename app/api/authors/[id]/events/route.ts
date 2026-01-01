@@ -116,8 +116,8 @@ export async function POST(
     }
 
     // Create the event
-    const { data: event, error: eventError } = await supabase
-      .from('events')
+    const { data: event, error: eventError } = await (supabase
+      .from('events') as any)
       .insert([body])
       .select()
       .single()

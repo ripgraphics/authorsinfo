@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
 // POST /api/analytics/cohorts/retention-curves - Create retention snapshot (admin only)
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await getClient();
+    const supabase = await createRouteHandlerClientAsync();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
@@ -80,13 +80,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify admin role
-    const { data: profile } = await supabase
-      .from('profiles')
+    const { data: profile } = await (supabase
+      .from('profiles') as any)
       .select('role')
       .eq('id', user.id)
       .single();
 
-    if (profile?.role !== 'admin' && profile?.role !== 'super_admin') {
+    if ((profile as any)?.role !== 'admin' && (profile as any)?.role !== 'super_admin') {
       return NextResponse.json(
         { success: false, error: 'Admin access required' },
         { status: 403 }
@@ -112,8 +112,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data, error } = await supabase
-      .from('cohort_retention_snapshots')
+    const { data, error } = await (supabase
+      .from('cohort_retention_snapshots') as any)
       .insert({
         cohort_id,
         snapshot_date,

@@ -13,9 +13,10 @@ const supabase = createClient(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{}> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const authHeader = request.headers.get('authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -35,7 +36,7 @@ export async function PATCH(
     const { data: notification, error: checkError } = await supabase
       .from('notifications')
       .select('recipient_id, is_read')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (checkError || !notification || notification.recipient_id !== user.id) {
@@ -54,7 +55,7 @@ export async function PATCH(
         is_read: isRead,
         read_at: isRead ? new Date() : null,
       })
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
       .single();
 

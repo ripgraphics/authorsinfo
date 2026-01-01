@@ -63,15 +63,15 @@ export async function GET(request: NextRequest) {
     let profilesResult = { data: [] as any[] }
 
     if (friendUserIds.length > 0) {
-      const results = await Promise.all([
+      const [usersRes, profilesRes] = await Promise.all([
         supabaseAdmin.from('users').select('id, name, email, permalink').in('id', friendUserIds),
         supabaseAdmin
           .from('profiles')
           .select('user_id, avatar_image_id')
           .in('user_id', friendUserIds),
       ])
-      usersResult = results[0]
-      profilesResult = results[1]
+      usersResult = usersRes as any
+      profilesResult = profilesRes as any
     }
 
     const users = usersResult.data || []

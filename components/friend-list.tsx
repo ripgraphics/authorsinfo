@@ -78,30 +78,53 @@ export function FriendList({
   initialCount = 0,
 }: FriendListProps) {
   const { user } = useAuth()
+  // Stabilize the initialFriends reference to prevent infinite loops
+  const initialFriendsRef = useRef(initialFriends)
+  const initialCountRef = useRef(initialCount)
+  
+  // Only update refs if the actual data changed (not just reference)
+  if (JSON.stringify(initialFriends) !== JSON.stringify(initialFriendsRef.current)) {
+    initialFriendsRef.current = initialFriends
+  }
+  if (initialCount !== initialCountRef.current) {
+    initialCountRef.current = initialCount
+  }
+  
   const normalizedInitialFriends = useMemo(
-    () => (initialFriends || []).map(normalizeFriendEntry).filter(Boolean) as Friend[],
-    [initialFriends]
+    () => (initialFriendsRef.current || []).map(normalizeFriendEntry).filter(Boolean) as Friend[],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [JSON.stringify(initialFriendsRef.current)]
   )
-  const [friends, setFriends] = useState<Friend[]>(normalizedInitialFriends)
-  const [isLoading, setIsLoading] = useState(normalizedInitialFriends.length === 0)
+  const [friends, setFriends] = useState<Friend[]>(() => normalizedInitialFriends)
+  const [isLoading, setIsLoading] = useState(() => normalizedInitialFriends.length === 0)
   const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(
-    Math.max(1, Math.ceil((initialCount || normalizedInitialFriends.length || 0) / PAGE_SIZE))
+  const [totalPages, setTotalPages] = useState(() =>
+    Math.max(1, Math.ceil((initialCountRef.current || normalizedInitialFriends.length || 0) / PAGE_SIZE))
   )
   const retryCount = useRef(0)
   const hasInitialServerData = useRef(normalizedInitialFriends.length > 0)
+  const hasInitialized = useRef(false)
 
   const { toast } = useToast()
 
+  // Only run this effect once on mount or when initialFriends actually changes with new data
   useEffect(() => {
-    setFriends(normalizedInitialFriends)
-    setTotalPages(
-      Math.max(1, Math.ceil((initialCount || normalizedInitialFriends.length || 0) / PAGE_SIZE))
-    )
-    setIsLoading(normalizedInitialFriends.length === 0)
-    setCurrentPage(1)
-    hasInitialServerData.current = normalizedInitialFriends.length > 0
-  }, [normalizedInitialFriends, initialCount])
+    // Skip if already initialized and no new data
+    if (hasInitialized.current && normalizedInitialFriends.length === 0) {
+      return
+    }
+    hasInitialized.current = true
+    
+    if (normalizedInitialFriends.length > 0) {
+      setFriends(normalizedInitialFriends)
+      setTotalPages(
+        Math.max(1, Math.ceil((initialCountRef.current || normalizedInitialFriends.length || 0) / PAGE_SIZE))
+      )
+      setIsLoading(false)
+      hasInitialServerData.current = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [normalizedInitialFriends.length])
 
   useEffect(() => {
     const shouldSkipFetch = hasInitialServerData.current && currentPage === 1
@@ -114,13 +137,24 @@ export function FriendList({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage])
 
+  // Track whether we've already fetched to avoid duplicate fetches
+  const hasFetchedRef = useRef(false)
+  const lastFetchedUserIdRef = useRef<string | null>(null)
+
   // Fetch friends when user data becomes available
   useEffect(() => {
     const targetId = userId && userId !== 'undefined' ? userId : user?.id
-    if (targetId && normalizedInitialFriends.length === 0) {
-      // Only fetch if we have a user ID and no initial data was provided
-      fetchFriends(1, { replace: true })
+    // Skip if no target ID, or if we already have initial data, or if we already fetched for this user
+    if (!targetId || normalizedInitialFriends.length > 0) {
+      return
     }
+    // Skip if we already fetched for this user
+    if (hasFetchedRef.current && lastFetchedUserIdRef.current === targetId) {
+      return
+    }
+    hasFetchedRef.current = true
+    lastFetchedUserIdRef.current = targetId
+    fetchFriends(1, { replace: true })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, userId])
 

@@ -56,7 +56,7 @@ function LoadingState() {
   )
 }
 
-function FriendsDashboard() {
+function FriendsDashboard({ user }: { user: any }) {
   return (
     <div className="space-y-6">
       <div className="py-6">
@@ -87,7 +87,12 @@ function FriendsDashboard() {
         </TabsList>
 
         <TabsContent value="friends" className="space-y-6">
-          <FriendList />
+          <FriendList
+            userId={user.id}
+            profileOwnerId={user.id}
+            profileOwnerName={user.name}
+            profileOwnerPermalink={user.permalink}
+          />
         </TabsContent>
 
         <TabsContent value="requests" className="space-y-6">
@@ -173,5 +178,5 @@ export default function FriendsPage() {
     return <AuthRequired />
   }
 
-  return <FriendsDashboard />
+  return <FriendsDashboard user={user} />
 }

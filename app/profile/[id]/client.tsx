@@ -149,31 +149,10 @@ export function ClientProfilePage({
       })
     : 'Unknown'
 
-  // Mock currently reading books (can be replaced with real data later)
-  const mockCurrentlyReading = [
-    {
-      title: 'The Name of the Wind',
-      author: 'Patrick Rothfuss',
-      progress: 65,
-      coverUrl: '/placeholder.svg?height=240&width=160',
-    },
-    {
-      title: 'Project Hail Mary',
-      author: 'Andy Weir',
-      progress: 23,
-      coverUrl: '/placeholder.svg?height=240&width=160',
-    },
-  ]
-
-  // Mock photos (can be replaced with real data later)
-  const mockPhotos = [
-    '/placeholder.svg?height=300&width=300',
-    '/placeholder.svg?height=300&width=300',
-    '/placeholder.svg?height=300&width=300',
-    '/placeholder.svg?height=300&width=300',
-    '/placeholder.svg?height=300&width=300',
-    '/placeholder.svg?height=300&width=300',
-  ]
+  // Filter for currently reading books from the books prop
+  const currentlyReadingBooks = books.filter(
+    (book: any) => book.status === 'reading' || book.status === 'currently_reading'
+  )
 
   // Set up stats for the EntityHeader using real data
   const profileUrl = `/profile/${params.id}`
@@ -288,60 +267,59 @@ export function ClientProfilePage({
                   viewMoreLink="/my-books"
                   viewMoreText="See All"
                 >
-                  <div className="space-y-4">
-                    {mockCurrentlyReading.map((book, index) => (
-                      <div key={index} className="flex gap-3">
-                        <div className="relative h-20 w-14 flex-shrink-0">
-                          <Image
-                            src={book.coverUrl || '/placeholder.svg'}
-                            alt={book.title}
-                            fill
-                            className="object-cover rounded-md"
-                            priority={index === 0}
-                          />
-                        </div>
-                        <div className="flex-1 space-y-1">
-                          <h4 className="font-medium line-clamp-1">{book.title}</h4>
-                          <p className="text-sm text-muted-foreground">by {book.author}</p>
-                          <div className="space-y-1">
-                            <div className="flex justify-between text-xs">
-                              <span>Progress</span>
-                              <span>{book.progress}%</span>
+                  {currentlyReadingBooks.length > 0 ? (
+                    <div className="space-y-4">
+                      {currentlyReadingBooks.slice(0, 3).map((book: any) => (
+                        <Link key={book.id} href={`/books/${book.id}`} className="block">
+                          <div className="flex gap-3">
+                            <div className="relative h-20 w-14 flex-shrink-0">
+                              <Image
+                                src={book.coverImageUrl || '/placeholder.svg?height=80&width=56'}
+                                alt={book.title}
+                                fill
+                                className="object-cover rounded-md"
+                              />
                             </div>
-                            <div className="relative w-full overflow-hidden rounded-full bg-secondary h-1.5">
-                              <div
-                                className="h-full w-full flex-1 bg-primary transition-all"
-                                style={{ transform: `translateX(-${100 - book.progress}%)` }}
-                              ></div>
+                            <div className="flex-1 space-y-1">
+                              <h4 className="font-medium line-clamp-1">{book.title}</h4>
+                              {book.author && (
+                                <p className="text-sm text-muted-foreground">by {book.author.name}</p>
+                              )}
+                              {book.progress_percentage != null && (
+                                <div className="space-y-1">
+                                  <div className="flex justify-between text-xs">
+                                    <span>Progress</span>
+                                    <span>{book.progress_percentage}%</span>
+                                  </div>
+                                  <div className="relative w-full overflow-hidden rounded-full bg-secondary h-1.5">
+                                    <div
+                                      className="h-full w-full flex-1 bg-primary transition-all"
+                                      style={{ transform: `translateX(-${100 - book.progress_percentage}%)` }}
+                                    ></div>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      No books currently being read
+                    </p>
+                  )}
                 </ContentSection>
 
                 {/* Photos Section */}
                 <ContentSection
                   title="Photos"
-                  viewMoreLink={`/profile/${realUsername}/photos`}
+                  onViewMore={() => setActiveTab('photos')}
                   viewMoreText="See All"
                 >
-                  <div className="grid grid-cols-3 gap-2">
-                    {mockPhotos.slice(0, 6).map((photoUrl, index) => (
-                      <div
-                        key={index}
-                        className="aspect-square relative rounded-sm overflow-hidden"
-                      >
-                        <Image
-                          src={photoUrl || '/placeholder.svg'}
-                          alt={`Photo ${index + 1}`}
-                          fill
-                          className="object-cover hover:scale-105 transition-transform"
-                        />
-                      </div>
-                    ))}
-                  </div>
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    View photos in the Photos tab
+                  </p>
                 </ContentSection>
 
                 {/* Followers Section */}

@@ -139,259 +139,8 @@ export function ClientPublisherPage({
         publisher?.country ||
         (publisher?.country_details ? publisher.country_details.name : '')
 
-  // Mock data for the profile
-  const mockName = publisher?.name || 'Jane Reader'
-  const mockUsername = publisher?.name
-    ? publisher.name.replace(/\s+/g, '').toLowerCase()
-    : 'janereader'
-  const mockBooksRead = 127
-  const mockFriendsCount = followersCount || 248
-  const mockLocation = 'Portland, OR'
-  const mockWebsite = mockUsername + '.com'
-  const mockAbout =
-    'Book lover, coffee addict, and aspiring writer. I read mostly fantasy, sci-fi, and literary fiction.'
-  const mockJoinedDate = 'March 2020'
-
-  // Mock currently reading books
-  const mockCurrentlyReading = [
-    {
-      title: 'The Name of the Wind',
-      author: 'Patrick Rothfuss',
-      progress: 65,
-      coverUrl: '/placeholder.svg?height=240&width=160',
-    },
-    {
-      title: 'Project Hail Mary',
-      author: 'Andy Weir',
-      progress: 23,
-      coverUrl: '/placeholder.svg?height=240&width=160',
-    },
-  ]
-
-  // Mock photos
-  const mockPhotos = [
-    '/placeholder.svg?height=300&width=300',
-    '/placeholder.svg?height=300&width=300',
-    '/placeholder.svg?height=300&width=300',
-    '/placeholder.svg?height=300&width=300',
-    '/placeholder.svg?height=300&width=300',
-    '/placeholder.svg?height=300&width=300',
-    '/placeholder.svg?height=300&width=300',
-    '/placeholder.svg?height=300&width=300',
-    '/placeholder.svg?height=300&width=300',
-  ]
-
-  // Mock friends
-  const mockFriends = [
-    { id: '1', name: 'Alex Thompson', avatar: '/placeholder.svg?height=100&width=100' },
-    { id: '2', name: 'Maria Garcia', avatar: '/placeholder.svg?height=100&width=100' },
-    { id: '3', name: 'James Wilson', avatar: '/placeholder.svg?height=100&width=100' },
-    { id: '4', name: 'Emma Davis', avatar: '/placeholder.svg?height=100&width=100' },
-    { id: '5', name: 'Michael Brown', avatar: '/placeholder.svg?height=100&width=100' },
-    { id: '6', name: 'Sophia Martinez', avatar: '/placeholder.svg?height=100&width=100' },
-    { id: '7', name: 'Daniel Lee', avatar: '/placeholder.svg?height=100&width=100' },
-    { id: '8', name: 'Olivia Johnson', avatar: '/placeholder.svg?height=100&width=100' },
-    { id: '9', name: 'William Smith', avatar: '/placeholder.svg?height=100&width=100' },
-  ]
-
-  // Mock activities
-  const mockActivities = [
-    {
-      id: '1',
-      type: 'rating',
-      bookTitle: 'Dune',
-      bookAuthor: 'Frank Herbert',
-      rating: 5,
-      timeAgo: '2 days ago',
-    },
-    {
-      id: '2',
-      type: 'finished',
-      bookTitle: 'The Hobbit',
-      bookAuthor: 'J.R.R. Tolkien',
-      timeAgo: '1 week ago',
-    },
-    {
-      id: '3',
-      type: 'added',
-      bookTitle: 'The Way of Kings',
-      bookAuthor: 'Brandon Sanderson',
-      shelf: 'Want to Read',
-      timeAgo: '2 weeks ago',
-    },
-    {
-      id: '4',
-      type: 'reviewed',
-      bookTitle: 'Circe',
-      bookAuthor: 'Madeline Miller',
-      timeAgo: '3 weeks ago',
-    },
-  ]
-
-  // Mock data for friends tab
-  const mockFriendsTabData = [
-    {
-      id: '1',
-      name: 'Alex Thompson',
-      avatar: '/placeholder.svg?height=100&width=100',
-      location: 'Seattle, WA',
-      mutualFriends: 15,
-    },
-    {
-      id: '2',
-      name: 'Maria Garcia',
-      avatar: '/placeholder.svg?height=100&width=100',
-      location: 'Portland, OR',
-      mutualFriends: 8,
-    },
-    {
-      id: '3',
-      name: 'James Wilson',
-      avatar: '/placeholder.svg?height=100&width=100',
-      location: 'San Francisco, CA',
-      mutualFriends: 12,
-    },
-    {
-      id: '4',
-      name: 'Emma Davis',
-      avatar: '/placeholder.svg?height=100&width=100',
-      location: 'Chicago, IL',
-      mutualFriends: 5,
-    },
-    {
-      id: '5',
-      name: 'Michael Brown',
-      avatar: '/placeholder.svg?height=100&width=100',
-      location: 'New York, NY',
-      mutualFriends: 10,
-    },
-    {
-      id: '6',
-      name: 'Sophia Martinez',
-      avatar: '/placeholder.svg?height=100&width=100',
-      location: 'Los Angeles, CA',
-      mutualFriends: 7,
-    },
-    {
-      id: '7',
-      name: 'Daniel Lee',
-      avatar: '/placeholder.svg?height=100&width=100',
-      location: 'Boston, MA',
-      mutualFriends: 9,
-    },
-    {
-      id: '8',
-      name: 'Olivia Johnson',
-      avatar: '/placeholder.svg?height=100&width=100',
-      location: 'Austin, TX',
-      mutualFriends: 6,
-    },
-    {
-      id: '9',
-      name: 'William Smith',
-      avatar: '/placeholder.svg?height=100&width=100',
-      location: 'Denver, CO',
-      mutualFriends: 11,
-    },
-  ]
-
-  // Mock friend suggestions
-  const mockFriendSuggestions = [
-    {
-      id: '101',
-      name: 'Mark Johnson',
-      avatar: '/placeholder.svg?height=100&width=100',
-      mutualFriends: 12,
-    },
-    {
-      id: '102',
-      name: 'Sarah Williams',
-      avatar: '/placeholder.svg?height=100&width=100',
-      mutualFriends: 8,
-    },
-    {
-      id: '103',
-      name: 'David Chen',
-      avatar: '/placeholder.svg?height=100&width=100',
-      mutualFriends: 5,
-    },
-  ]
-
-  // Mock photos tab data
-  const mockPhotosTabData = [
-    {
-      id: '1',
-      title: 'Reading at the park',
-      date: 'June 15, 2023',
-      url: '/placeholder.svg?height=300&width=300',
-    },
-    {
-      id: '2',
-      title: 'My bookshelf',
-      date: 'May 22, 2023',
-      url: '/placeholder.svg?height=300&width=300',
-    },
-    {
-      id: '3',
-      title: 'Book haul!',
-      date: 'April 10, 2023',
-      url: '/placeholder.svg?height=300&width=300',
-    },
-    {
-      id: '4',
-      title: 'Author signing event',
-      date: 'March 5, 2023',
-      url: '/placeholder.svg?height=300&width=300',
-    },
-    {
-      id: '5',
-      title: 'Reading nook',
-      date: 'February 18, 2023',
-      url: '/placeholder.svg?height=300&width=300',
-    },
-    {
-      id: '6',
-      title: 'Book club meeting',
-      date: 'January 30, 2023',
-      url: '/placeholder.svg?height=300&width=300',
-    },
-    {
-      id: '7',
-      title: 'Visiting the library',
-      date: 'December 12, 2022',
-      url: '/placeholder.svg?height=300&width=300',
-    },
-    {
-      id: '8',
-      title: 'New bookmarks',
-      date: 'November 5, 2022',
-      url: '/placeholder.svg?height=300&width=300',
-    },
-    {
-      id: '9',
-      title: 'Reading by the fireplace',
-      date: 'October 22, 2022',
-      url: '/placeholder.svg?height=300&width=300',
-    },
-    {
-      id: '10',
-      title: 'Book festival',
-      date: 'September 17, 2022',
-      url: '/placeholder.svg?height=300&width=300',
-    },
-    {
-      id: '11',
-      title: 'Author panel',
-      date: 'August 8, 2022',
-      url: '/placeholder.svg?height=300&width=300',
-    },
-    {
-      id: '12',
-      title: 'Book-themed cafe',
-      date: 'July 24, 2022',
-      url: '/placeholder.svg?height=300&width=300',
-    },
-  ]
+  // Note: Publishers don't have personal reading stats or friends like users do
+  // Real data is passed from server via props (followers, followersCount, books, booksCount)
 
   return (
     <div className="publisher-page publisher-page__container py-6">
@@ -440,73 +189,40 @@ export function ClientPublisherPage({
                 onViewMore={() => handleTabChange('followers')}
               />
 
-              {/* Currently Reading Section */}
+              {/* Recent Books Section - Shows recently published books */}
               <Card>
                 <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
                   <div className="text-2xl font-semibold leading-none tracking-tight">
-                    Currently Reading
+                    Recent Books
                   </div>
-                  <Link href="/my-books" className="text-sm text-primary hover:underline">
-                    See All
-                  </Link>
-                </div>
-                <CardContent className="p-6 pt-0 space-y-4">
-                  {mockCurrentlyReading.map((book, index) => (
-                    <div key={index} className="flex gap-3">
-                      <div className="relative h-20 w-14 flex-shrink-0">
-                        <img
-                          src={book.coverUrl || '/placeholder.svg'}
-                          alt={book.title}
-                          className="object-cover rounded-md absolute inset-0 w-full h-full"
-                        />
-                      </div>
-                      <div className="flex-1 space-y-1">
-                        <h4 className="font-medium line-clamp-1">{book.title}</h4>
-                        <p className="text-sm text-muted-foreground">by {book.author}</p>
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-xs">
-                            <span>Progress</span>
-                            <span>{book.progress}%</span>
-                          </div>
-                          <div className="relative w-full overflow-hidden rounded-full bg-secondary h-1.5">
-                            <div
-                              className="h-full w-full flex-1 bg-primary transition-all"
-                              style={{ transform: `translateX(-${100 - book.progress}%)` }}
-                            ></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-
-              {/* Photos Section */}
-              <Card>
-                <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
-                  <div className="text-2xl font-semibold leading-none tracking-tight">Photos</div>
-                  <Link
-                    href="/profile/janereader/photos"
+                  <Link 
+                    href={`/publishers/${params.id}?tab=books`} 
                     className="text-sm text-primary hover:underline"
                   >
                     See All
                   </Link>
                 </div>
                 <CardContent className="p-6 pt-0">
-                  <div className="grid grid-cols-3 gap-2">
-                    {mockPhotos.map((photoUrl, index) => (
-                      <div
-                        key={index}
-                        className="aspect-square relative rounded-sm overflow-hidden"
-                      >
-                        <img
-                          src={photoUrl || '/placeholder.svg'}
-                          alt={`Photo ${index + 1}`}
-                          className="object-cover hover:scale-105 transition-transform absolute inset-0 w-full h-full"
-                        />
-                      </div>
-                    ))}
-                  </div>
+                  {books && books.length > 0 ? (
+                    <div className="grid grid-cols-3 gap-3">
+                      {books.slice(0, 6).map((book) => (
+                        <Link key={book.id} href={`/books/${book.id}`}>
+                          <div className="aspect-[2/3] relative rounded-sm overflow-hidden">
+                            <img
+                              src={book.cover_image_url || '/placeholder.svg?height=120&width=80'}
+                              alt={book.title}
+                              className="object-cover hover:scale-105 transition-transform absolute inset-0 w-full h-full"
+                            />
+                          </div>
+                          <p className="text-xs mt-1 line-clamp-1">{book.title}</p>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground text-center py-4">
+                      No books published yet
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             </div>

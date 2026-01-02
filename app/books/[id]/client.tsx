@@ -340,139 +340,8 @@ export function ClientBookPage({
     checkEditPermissions()
   }, [user, book.id])
 
-  // Mock photos for the Photos tab
-  const mockPhotosTabData = [
-    {
-      id: '1',
-      title: 'Reading at the park',
-      date: 'June 15, 2023',
-      url: '/placeholder.svg?height=300&width=300',
-    },
-    {
-      id: '2',
-      title: 'My bookshelf',
-      date: 'May 22, 2023',
-      url: '/placeholder.svg?height=300&width=300',
-    },
-    {
-      id: '3',
-      title: 'Book haul!',
-      date: 'April 10, 2023',
-      url: '/placeholder.svg?height=300&width=300',
-    },
-    {
-      id: '4',
-      title: 'Author signing event',
-      date: 'March 5, 2023',
-      url: '/placeholder.svg?height=300&width=300',
-    },
-    {
-      id: '5',
-      title: 'Reading nook',
-      date: 'February 18, 2023',
-      url: '/placeholder.svg?height=300&width=300',
-    },
-    {
-      id: '6',
-      title: 'Book club meeting',
-      date: 'January 30, 2023',
-      url: '/placeholder.svg?height=300&width=300',
-    },
-    {
-      id: '7',
-      title: 'Visiting the library',
-      date: 'December 12, 2022',
-      url: '/placeholder.svg?height=300&width=300',
-    },
-    {
-      id: '8',
-      title: 'New bookmarks',
-      date: 'November 5, 2022',
-      url: '/placeholder.svg?height=300&width=300',
-    },
-    {
-      id: '9',
-      title: 'Reading by the fireplace',
-      date: 'October 22, 2022',
-      url: '/placeholder.svg?height=300&width=300',
-    },
-  ]
-
-  // Mock currently reading books
-  const mockCurrentlyReading = [
-    {
-      title: 'The Name of the Wind',
-      author: 'Patrick Rothfuss',
-      progress: 65,
-      coverUrl: '/placeholder.svg?height=240&width=160',
-    },
-    {
-      title: 'Project Hail Mary',
-      author: 'Andy Weir',
-      progress: 23,
-      coverUrl: '/placeholder.svg?height=240&width=160',
-    },
-  ]
-
-  // Mock photos for timeline
-  const mockPhotos = [
-    '/placeholder.svg?height=300&width=300',
-    '/placeholder.svg?height=300&width=300',
-    '/placeholder.svg?height=300&width=300',
-    '/placeholder.svg?height=300&width=300',
-    '/placeholder.svg?height=300&width=300',
-    '/placeholder.svg?height=300&width=300',
-    '/placeholder.svg?height=300&width=300',
-    '/placeholder.svg?height=300&width=300',
-    '/placeholder.svg?height=300&width=300',
-  ]
-
-  // Mock friends
-  const mockFriends = [
-    { id: '1', name: 'Alex Thompson', avatar: '/placeholder.svg?height=100&width=100' },
-    { id: '2', name: 'Maria Garcia', avatar: '/placeholder.svg?height=100&width=100' },
-    { id: '3', name: 'James Wilson', avatar: '/placeholder.svg?height=100&width=100' },
-    { id: '4', name: 'Emma Davis', avatar: '/placeholder.svg?height=100&width=100' },
-    { id: '5', name: 'Michael Brown', avatar: '/placeholder.svg?height=100&width=100' },
-    { id: '6', name: 'Sophia Martinez', avatar: '/placeholder.svg?height=100&width=100' },
-    { id: '7', name: 'Daniel Lee', avatar: '/placeholder.svg?height=100&width=100' },
-    { id: '8', name: 'Olivia Johnson', avatar: '/placeholder.svg?height=100&width=100' },
-    { id: '9', name: 'William Smith', avatar: '/placeholder.svg?height=100&width=100' },
-  ]
-
-  // Mock activities
-  const mockActivities = [
-    {
-      id: '1',
-      type: 'rating',
-      bookTitle: 'Dune',
-      bookAuthor: 'Frank Herbert',
-      rating: 5,
-      timeAgo: '2 days ago',
-    },
-    {
-      id: '2',
-      type: 'finished',
-      bookTitle: 'The Hobbit',
-      bookAuthor: 'J.R.R. Tolkien',
-      timeAgo: '1 week ago',
-    },
-    {
-      id: '3',
-      type: 'added',
-      bookTitle: 'The Way of Kings',
-      bookAuthor: 'Brandon Sanderson',
-      shelf: 'Want to Read',
-      timeAgo: '2 weeks ago',
-    },
-    {
-      id: '4',
-      type: 'reviewed',
-      bookTitle: 'Circe',
-      bookAuthor: 'Madeline Miller',
-      timeAgo: '3 weeks ago',
-    },
-  ]
+  // Note: Mock data removed - using real data from props (moreBooks, followers, etc.)
+  // Photos tab now uses EntityPhotoAlbums component which fetches data from the API
 
   // Follow/unfollow handler - now handled by FollowButton component
   const handleFollow = () => {
@@ -1263,64 +1132,40 @@ export function ClientBookPage({
                   className="book-page__followers-section"
                 />
 
-                {/* Currently Reading Section */}
-                <ContentSection
-                  title="Currently Reading"
-                  viewMoreLink="/my-books"
-                  viewMoreText="See All"
-                  className="book-page__currently-reading-section"
-                >
-                  <div className="space-y-4">
-                    {mockCurrentlyReading.map((book, index) => (
-                      <div key={index} className="flex gap-3">
-                        <div className="relative h-20 w-14 flex-shrink-0">
-                          <img
-                            src={book.coverUrl || '/placeholder.svg'}
-                            alt={book.title}
-                            className="object-cover rounded-md absolute inset-0 w-full h-full"
-                          />
-                        </div>
-                        <div className="flex-1 space-y-1">
-                          <h4 className="font-medium line-clamp-1">{book.title}</h4>
-                          <p className="text-sm text-muted-foreground">by {book.author}</p>
-                          <div className="space-y-1">
-                            <div className="flex justify-between text-xs">
-                              <span>Progress</span>
-                              <span>{book.progress}%</span>
-                            </div>
-                            <div className="relative w-full overflow-hidden rounded-full bg-secondary h-1.5">
-                              <div
-                                className="h-full w-full flex-1 bg-primary transition-all"
-                                style={{ transform: `translateX(-${100 - book.progress}%)` }}
-                              ></div>
-                            </div>
+                {/* More by Author Section - Shows other books by the same author */}
+                {moreBooks && moreBooks.length > 0 && (
+                  <ContentSection
+                    title={`More by ${authors?.[0]?.name || 'this Author'}`}
+                    onViewMore={() => authors?.[0]?.id && window.location.assign(`/authors/${authors[0].id}?tab=books`)}
+                    viewMoreText="See All"
+                    className="book-page__more-by-author-section"
+                  >
+                    <div className="grid grid-cols-3 gap-3">
+                      {moreBooks.slice(0, 6).map((book) => (
+                        <Link key={book.id} href={`/books/${book.id}`}>
+                          <div className="aspect-[2/3] relative rounded-sm overflow-hidden">
+                            <img
+                              src={book.cover_image?.url || '/placeholder.svg?height=120&width=80'}
+                              alt={book.title}
+                              className="object-cover hover:scale-105 transition-transform absolute inset-0 w-full h-full"
+                            />
                           </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </ContentSection>
+                          <p className="text-xs mt-1 line-clamp-1">{book.title}</p>
+                        </Link>
+                      ))}
+                    </div>
+                  </ContentSection>
+                )}
 
-                {/* Photos Section */}
+                {/* Photos Section - Shows photos from the photos tab */}
                 <ContentSection
                   title="Photos"
                   onViewMore={() => setActiveTab('photos')}
                   className="book-page__photos-section"
                 >
-                  <div className="grid grid-cols-3 gap-2">
-                    {mockPhotos.map((photoUrl, index) => (
-                      <div
-                        key={index}
-                        className="aspect-square relative rounded-sm overflow-hidden"
-                      >
-                        <img
-                          src={photoUrl || '/placeholder.svg'}
-                          alt={`Photo ${index + 1}`}
-                          className="object-cover hover:scale-105 transition-transform absolute inset-0 w-full h-full"
-                        />
-                      </div>
-                    ))}
-                  </div>
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    View photos in the Photos tab
+                  </p>
                 </ContentSection>
 
                 {/* Book Events Section */}

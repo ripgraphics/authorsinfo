@@ -18,8 +18,6 @@ export async function GET(request: NextRequest) {
     // If no userId provided and user is logged in, use their ID
     const userId = targetUserId || user?.id
 
-    console.log(`Friends list requested for userId: ${userId}, targetUserId: ${targetUserId}, authenticated: ${!!user?.id}`)
-
     if (!userId) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
     }
@@ -49,8 +47,6 @@ export async function GET(request: NextRequest) {
       console.error('Error fetching friends:', error)
       return NextResponse.json({ error: 'Failed to fetch friends' }, { status: 500 })
     }
-
-    console.log(`Found ${(friends || []).length} friend relationships for user ${userId}`)
 
     // Extract all friend user IDs (the ones that aren't the current user)
     const friendUserIds = ((friends || []) as any[]).map((friend: any) =>

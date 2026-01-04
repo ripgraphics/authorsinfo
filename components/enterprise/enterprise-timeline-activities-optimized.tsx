@@ -235,9 +235,9 @@ const EnterpriseTimelineActivities = React.memo(
     const [isLoadingMore, setIsLoadingMore] = useState(false)
     const [retryCount, setRetryCount] = useState(0)
     const [lastFetchTime, setLastFetchTime] = useState<Date | null>(null)
+    const [isPending, startTransition] = useTransition()
     // Composer & posting state
     const [postForm, setPostForm] = useState({
-      content: '',
       contentType: 'text',
       visibility: 'friends' as 'friends' | 'followers' | 'private',
       imageUrl: '',
@@ -248,7 +248,6 @@ const EnterpriseTimelineActivities = React.memo(
     const [isUploading, setIsUploading] = useState(false)
     // Top post composer state (two-state, like comment composer)
     const [isTopComposerActive, setIsTopComposerActive] = useState(false)
-    const topComposerRef = useRef<HTMLTextAreaElement>(null)
     // Permissions and connections
     const [userConnections, setUserConnections] = useState<{
       friends: string[]
@@ -274,9 +273,6 @@ const EnterpriseTimelineActivities = React.memo(
       date_range: 'all' as 'all' | '1d' | '7d' | '30d',
       content_type: 'all' as 'all' | 'text' | 'image' | 'link',
     })
-
-    // Performance optimization: Use transitions for non-urgent updates
-    const [isPending, startTransition] = useTransition()
 
     // Performance optimization: Memoized refs
     const observerRef = useRef<IntersectionObserver | null>(null)
@@ -708,6 +704,7 @@ const EnterpriseTimelineActivities = React.memo(
               showComments={true}
               showEngagement={true}
               className=""
+              onPostDeleted={handlePostDeleted}
             />
             <div className="mt-3 p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -914,113 +911,112 @@ const EnterpriseTimelineActivities = React.memo(
 
     const focusTopComposer = useCallback(() => {
       setIsTopComposerActive(true)
-      setTimeout(() => topComposerRef.current?.focus(), 0)
     }, [])
 
-    const resizeTopComposer = useCallback(() => {
-      const el = topComposerRef.current
-      if (!el) return
-      el.style.height = 'auto'
-      const lineHeight = parseFloat(getComputedStyle(el).lineHeight || '20') || 20
-      const maxHeight = lineHeight * MAX_COMPOSER_LINES
-      const newHeight = Math.min(el.scrollHeight, Math.ceil(maxHeight))
-      el.style.height = `${newHeight}px`
-      el.style.overflowY = el.scrollHeight > maxHeight ? 'auto' : 'hidden'
-    }, [])
+    const handleCreatePost = useCallback(
+      async (content: string) => {
+        if (!user) return false
+        const trimmed = content.trim()
+        if (!trimmed) return false
+        // Only allow posting to user timelines where permitted; allow entity posts otherwise
+        if (memoizedEntityType === 'user') {
+          const check = await canUserPostOnTimeline(user.id, memoizedUserId)
+          if (!check.canPost) {
+            toast({
+              title: 'Access denied',
+              description: check.reason || 'Cannot post here',
+              variant: 'destructive',
+            })
+            return false
+          }
+        }
+        setIsPosting(true)
+        try {
+          const now = new Date().toISOString()
 
-    const handleCreatePost = useCallback(async () => {
-      if (!user) return
-      if (!postForm.content.trim()) return
-      // Only allow posting to user timelines where permitted; allow entity posts otherwise
-      if (memoizedEntityType === 'user') {
-        const check = await canUserPostOnTimeline(user.id, memoizedUserId)
-        if (!check.canPost) {
+          // Use schema-validated insert via server action
+          const { createActivityWithValidation } =
+            await import('@/app/actions/create-activity-with-validation')
+          const result = await createActivityWithValidation({
+            user_id: user.id,
+            activity_type: 'post_created',
+            visibility: postForm.visibility,
+            content_type: postForm.imageUrl ? 'image' : postForm.contentType,
+            text: trimmed,
+            content_summary: trimmed.substring(0, 100),
+            image_url: postForm.imageUrl || null,
+            link_url: postForm.linkUrl || null,
+            hashtags: postForm.hashtags
+              ? postForm.hashtags
+                  .split(',')
+                  .map((t) => t.trim())
+                  .filter(Boolean)
+              : [],
+            data: {
+              content: trimmed,
+              content_type: postForm.imageUrl ? 'image' : postForm.contentType,
+            },
+            entity_type: memoizedEntityType,
+            entity_id: memoizedUserId,
+            metadata: { privacy_level: postForm.visibility },
+            publish_status: 'published',
+            published_at: now,
+            created_at: now,
+            updated_at: now,
+          })
+
+          if (!result.success) {
+            const errorMessage = result.error || 'Failed to create post'
+            if (result.removedColumns && result.removedColumns.length > 0) {
+              console.warn('Removed non-existent columns:', result.removedColumns)
+            }
+            throw new Error(errorMessage)
+          }
+
+          if (result.warnings && result.warnings.length > 0) {
+            console.warn('Post creation warnings:', result.warnings)
+          }
+
+          setPostForm({
+            contentType: 'text',
+            visibility: 'friends',
+            imageUrl: '',
+            linkUrl: '',
+            hashtags: '',
+          })
+          setIsTopComposerActive(false)
+          // Clear cache and refresh the timeline to show the new post
+          cacheRef.current.clear()
+          await fetchActivities(1, false)
+          toast({ title: 'Posted', description: 'Your post is live.' })
+          return true
+        } catch (e: any) {
+          console.error('Failed to create post:', e)
           toast({
-            title: 'Access denied',
-            description: check.reason || 'Cannot post here',
+            title: 'Failed to post',
+            description: e?.message || 'Try again',
             variant: 'destructive',
           })
-          return
+          return false
+        } finally {
+          setIsPosting(false)
         }
-      }
-      setIsPosting(true)
-      try {
-        const now = new Date().toISOString()
+      },
+      [
+        user,
+        postForm,
+        memoizedEntityType,
+        memoizedUserId,
+        canUserPostOnTimeline,
+        fetchActivities,
+        toast,
+      ]
+    )
 
-        // Use schema-validated insert via server action
-        const { createActivityWithValidation } =
-          await import('@/app/actions/create-activity-with-validation')
-        const result = await createActivityWithValidation({
-          user_id: user.id,
-          activity_type: 'post_created',
-          visibility: postForm.visibility,
-          content_type: postForm.imageUrl ? 'image' : postForm.contentType,
-          text: postForm.content,
-          content_summary: postForm.content.substring(0, 100),
-          image_url: postForm.imageUrl || null,
-          link_url: postForm.linkUrl || null,
-          hashtags: postForm.hashtags
-            ? postForm.hashtags
-                .split(',')
-                .map((t) => t.trim())
-                .filter(Boolean)
-            : [],
-          data: {
-            content: postForm.content,
-            content_type: postForm.imageUrl ? 'image' : postForm.contentType,
-          },
-          entity_type: memoizedEntityType,
-          entity_id: memoizedUserId,
-          metadata: { privacy_level: postForm.visibility },
-          publish_status: 'published',
-          published_at: now,
-          created_at: now,
-          updated_at: now,
-        })
-
-        if (!result.success) {
-          const errorMessage = result.error || 'Failed to create post'
-          if (result.removedColumns && result.removedColumns.length > 0) {
-            console.warn('Removed non-existent columns:', result.removedColumns)
-          }
-          throw new Error(errorMessage)
-        }
-
-        if (result.warnings && result.warnings.length > 0) {
-          console.warn('Post creation warnings:', result.warnings)
-        }
-
-        setPostForm({
-          content: '',
-          contentType: 'text',
-          visibility: 'friends',
-          imageUrl: '',
-          linkUrl: '',
-          hashtags: '',
-        })
-        setIsTopComposerActive(false)
-        // Refresh the timeline to show the new post
-        await fetchActivities(1, false)
-        toast({ title: 'Posted', description: 'Your post is live.' })
-      } catch (e: any) {
-        console.error('Failed to create post:', e)
-        toast({
-          title: 'Failed to post',
-          description: e?.message || 'Try again',
-          variant: 'destructive',
-        })
-      } finally {
-        setIsPosting(false)
-      }
-    }, [
-      user,
-      postForm,
-      memoizedEntityType,
-      memoizedUserId,
-      canUserPostOnTimeline,
-      fetchActivities,
-      toast,
-    ])
+    const handlePostDeleted = useCallback((postId: string) => {
+      // Remove the deleted post from the activities list
+      setActivities((prev) => prev.filter((activity) => activity.id !== postId))
+    }, [])
 
     const handlePhotoUpload = useCallback(() => {
       const input = document.createElement('input')
@@ -1122,81 +1118,23 @@ const EnterpriseTimelineActivities = React.memo(
                     </div>
                   </button>
                 ) : (
-                  <div className="flex-1">
-                    <div className="bg-gray-50 border border-gray-200 rounded-2xl px-3 py-2">
-                      <Textarea
-                        ref={topComposerRef}
-                        value={postForm.content}
-                        onChange={(e) => {
-                          const next = e.target.value.slice(0, MAX_POST_CHARS)
-                          setPostForm((prev) => ({ ...prev, content: next }))
-                        }}
-                        placeholder={
-                          memoizedEntityType === 'user'
-                            ? "What's on your mind?"
-                            : 'Share your thoughts...'
-                        }
-                        className="border-0 resize-none focus:ring-0 focus:outline-none min-h-[48px] text-sm bg-transparent"
-                        rows={2}
-                        onInput={resizeTopComposer}
-                      />
-                      {!!postForm.imageUrl && (
-                        <div className="mt-2 text-xs text-muted-foreground">
-                          Images: {postForm.imageUrl.split(',').filter(Boolean).length}
-                        </div>
-                      )}
-                      <div className="flex items-center justify-between mt-2">
-                        <div className="flex items-center gap-2 text-gray-500">
-                          <button
-                            className="p-2 hover:text-gray-700 transition-colors rounded-full hover:bg-gray-100"
-                            onClick={handlePhotoUpload}
-                            disabled={isUploading}
-                          >
-                            <ImageIcon className="h-4 w-4" />
-                          </button>
-                          <button className="p-2 hover:text-gray-700 transition-colors rounded-full hover:bg-gray-100">
-                            <Smile className="h-4 w-4" />
-                          </button>
-                          <span className="text-[10px] font-semibold ml-1">GIF</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Select
-                            value={postForm.visibility}
-                            onValueChange={(v) =>
-                              setPostForm((prev) => ({ ...prev, visibility: v as any }))
-                            }
-                          >
-                            <SelectTrigger className="w-[8rem]">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="friends">Friends</SelectItem>
-                              <SelectItem value="followers">Followers</SelectItem>
-                              <SelectItem value="private">Only me</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 px-3 text-xs"
-                            onClick={() => {
-                              setIsTopComposerActive(false)
-                              setPostForm((prev) => ({ ...prev, content: '' }))
-                            }}
-                          >
-                            Cancel
-                          </Button>
-                          <PostButton
-                            onClick={handleCreatePost}
-                            disabled={isPosting || !postForm.content.trim()}
-                            loading={isPosting}
-                            sizeClassName="h-8 px-4 text-xs"
-                            label="Post"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <EnterpriseTimelineComposer
+                    placeholder={
+                      memoizedEntityType === 'user'
+                        ? "What's on your mind?"
+                        : 'Share your thoughts...'
+                    }
+                    imageUrl={postForm.imageUrl}
+                    visibility={postForm.visibility}
+                    onVisibilityChange={(value) =>
+                      setPostForm((prev) => ({ ...prev, visibility: value as any }))
+                    }
+                    onUpload={handlePhotoUpload}
+                    onCancel={() => setIsTopComposerActive(false)}
+                    onSubmit={handleCreatePost}
+                    isUploading={isUploading}
+                    isPosting={isPosting}
+                  />
                 )}
               </div>
             </CardContent>
@@ -1281,6 +1219,130 @@ const EnterpriseTimelineActivities = React.memo(
 )
 
 // ============================================================================
+// COMPOSER SUBCOMPONENT
+
+interface EnterpriseTimelineComposerProps {
+  placeholder: string
+  visibility: 'friends' | 'followers' | 'private'
+  imageUrl?: string
+  onVisibilityChange: (value: string) => void
+  onUpload: () => void
+  onCancel: () => void
+  onSubmit: (content: string) => Promise<boolean>
+  isUploading: boolean
+  isPosting: boolean
+}
+
+const EnterpriseTimelineComposer = React.memo(function EnterpriseTimelineComposer({
+  placeholder,
+  visibility,
+  imageUrl,
+  onVisibilityChange,
+  onUpload,
+  onCancel,
+  onSubmit,
+  isUploading,
+  isPosting,
+}: EnterpriseTimelineComposerProps) {
+  const [text, setText] = useState('')
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  const imageCount = useMemo(() => {
+    if (!imageUrl) return 0
+    return imageUrl
+      .split(',')
+      .map((value) => value.trim())
+      .filter(Boolean).length
+  }, [imageUrl])
+
+  const resizeComposer = useCallback(() => {
+    const el = textareaRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    const lineHeight = parseFloat(getComputedStyle(el).lineHeight || '20') || 20
+    const maxHeight = lineHeight * MAX_COMPOSER_LINES
+    const newHeight = Math.min(el.scrollHeight, Math.ceil(maxHeight))
+    el.style.height = `${newHeight}px`
+    el.style.overflowY = el.scrollHeight > maxHeight ? 'auto' : 'hidden'
+  }, [])
+
+  useEffect(() => {
+    resizeComposer()
+  }, [text, resizeComposer])
+
+  const trimmed = text.trim()
+
+  const handleSubmit = useCallback(async () => {
+    if (!trimmed || isPosting) return
+    const success = await onSubmit(trimmed)
+    if (success) {
+      setText('')
+    }
+  }, [isPosting, onSubmit, trimmed])
+
+  return (
+    <div className="flex-1">
+      <div className="bg-gray-50 border border-gray-200 rounded-2xl px-3 py-2">
+        <Textarea
+          ref={textareaRef}
+          value={text}
+          onChange={(e) => setText(e.target.value.slice(0, MAX_POST_CHARS))}
+          placeholder={placeholder}
+          className="border-0 resize-none focus:ring-0 focus:outline-none min-h-[48px] text-sm bg-transparent"
+          rows={2}
+          onInput={resizeComposer}
+        />
+        {imageCount > 0 && (
+          <div className="mt-2 text-xs text-muted-foreground">Images: {imageCount}</div>
+        )}
+        <div className="flex items-center justify-between mt-2">
+          <div className="flex items-center gap-2 text-gray-500">
+            <button
+              className="p-2 hover:text-gray-700 transition-colors rounded-full hover:bg-gray-100"
+              onClick={onUpload}
+              disabled={isUploading}
+            >
+              <ImageIcon className="h-4 w-4" />
+            </button>
+            <button className="p-2 hover:text-gray-700 transition-colors rounded-full hover:bg-gray-100">
+              <Smile className="h-4 w-4" />
+            </button>
+            <span className="text-[10px] font-semibold ml-1">GIF</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Select value={visibility} onValueChange={onVisibilityChange}>
+              <SelectTrigger className="w-[8rem]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="friends">Friends</SelectItem>
+                <SelectItem value="followers">Followers</SelectItem>
+                <SelectItem value="private">Only me</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 px-3 text-xs"
+              onClick={onCancel}
+              disabled={isPosting}
+            >
+              Cancel
+            </Button>
+            <PostButton
+              onClick={handleSubmit}
+              disabled={!trimmed || isPosting}
+              loading={isPosting}
+              sizeClassName="h-8 px-4 text-xs"
+              label="Post"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+})
+
 // PERFORMANCE UTILITY FUNCTIONS
 // ============================================================================
 

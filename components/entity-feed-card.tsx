@@ -92,6 +92,16 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 export interface EntityFeedCardProps {
   post: FeedPost
@@ -196,6 +206,10 @@ export default function EntityFeedCard({
   const [selectedImage, setSelectedImage] = useState<{ url: string; index: number } | null>(null)
   const [showImageModal, setShowImageModal] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+
+  // Delete confirmation state
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Bottom composer state
   const [bottomComment, setBottomComment] = useState('')
@@ -904,11 +918,22 @@ export default function EntityFeedCard({
 
   // Handle delete post
   const handleDeletePost = async () => {
-    console.log('Delete button clicked!')
-    if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+    if (isDeleting) return // Prevent double-clicks
+    
+    // Validate post ID
+    if (!post?.id) {
+      console.error('❌ Cannot delete: Post ID is missing')
+      toast({
+        title: 'Error',
+        description: 'Post ID is missing. Cannot delete post.',
+        variant: 'destructive',
+      })
       return
     }
-
+    
+    console.log('🗑️ Delete button clicked!')
+    setIsDeleting(true)
+    
     try {
       // Enhanced logging to debug the post structure
       console.log('=== DELETE DEBUG ===')
@@ -924,36 +949,87 @@ export default function EntityFeedCard({
       // All posts now use the unified activities table system
       const endpoint = '/api/activities'
       console.log('Deleting post from unified activities table')
+      
       const response = await fetch(endpoint, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Include cookies for authentication
         body: JSON.stringify({ id: post.id }),
       })
 
       console.log('Delete response status:', response.status)
       console.log('Delete response ok:', response.ok)
 
+      // Parse response body - handle both success and error cases
+      let responseData: any = {}
+      try {
+        const contentType = response.headers.get('content-type')
+        if (contentType && contentType.includes('application/json')) {
+          responseData = await response.json()
+        } else {
+          const responseText = await response.text()
+          if (responseText) {
+            try {
+              responseData = JSON.parse(responseText)
+            } catch {
+              responseData = { error: responseText || 'Unknown error' }
+            }
+          }
+        }
+      } catch (parseError) {
+        console.error('Error parsing response:', parseError)
+        responseData = { error: 'Failed to parse server response' }
+      }
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        console.error('Delete error response:', errorData)
-        throw new Error(errorData.error || `Failed to delete post (${response.status})`)
+        console.error('Delete error response status:', response.status)
+        console.error('Delete error response body:', responseData)
+        const errorMessage = responseData.error || responseData.message || `Failed to delete post (${response.status})`
+        throw new Error(errorMessage)
       }
 
-      if (onPostDeleted) {
-        onPostDeleted(post.id)
-      }
+      // Check for success in response
+      if (responseData.success === true || (responseData.success !== false && !responseData.error)) {
+        console.log('✅ Post deleted successfully')
+        
+        // Call the callback to remove post from UI
+        if (onPostDeleted) {
+          console.log('Calling onPostDeleted callback with post ID:', post.id)
+          onPostDeleted(post.id)
+        } else {
+          console.warn('⚠️ onPostDeleted callback not provided - post may not be removed from UI')
+        }
 
-      toast({
-        title: 'Success',
-        description: 'Post deleted successfully',
-      })
+        toast({
+          title: 'Success',
+          description: responseData.message || 'Post deleted successfully',
+        })
+      } else {
+        const errorMessage = responseData.error || responseData.message || 'Failed to delete post'
+        throw new Error(errorMessage)
+      }
     } catch (error) {
-      console.error('Error deleting post:', error)
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to delete post',
-        variant: 'destructive',
-      })
+      console.error('❌ Error deleting post:', error)
+      
+      // Handle network errors specifically
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        toast({
+          title: 'Network Error',
+          description: 'Unable to connect to the server. Please check your internet connection.',
+          variant: 'destructive',
+        })
+      } else {
+        toast({
+          title: 'Error',
+          description: error instanceof Error ? error.message : 'Failed to delete post',
+          variant: 'destructive',
+        })
+      }
+    } finally {
+      setIsDeleting(false)
+      setShowDeleteDialog(false)
     }
   }
 
@@ -1800,7 +1876,17 @@ export default function EntityFeedCard({
                 )}
                 {canDelete && (
                   <button
-                    onClick={handleDeletePost}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      setShowActionsMenu(false)
+                      // Use requestAnimationFrame to ensure dropdown closes before dialog opens
+                      requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                          setShowDeleteDialog(true)
+                        })
+                      })
+                    }}
                     className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 text-red-600 flex items-center gap-2 cursor-pointer transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -2892,6 +2978,28 @@ export default function EntityFeedCard({
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Post</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this post? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeletePost}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

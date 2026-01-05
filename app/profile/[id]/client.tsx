@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { EntityHeader, TabConfig } from '@/components/entity-header'
+import { EntityHeader } from '@/components/entity-header'
 import { ContentSection } from '@/components/ui/content-section'
 import {
   BookOpen,
@@ -51,6 +51,8 @@ import { ShelfManager } from '@/components/shelf-manager'
 import { EntityAboutTab } from '@/components/entity/EntityAboutTab'
 import { EntityMoreTab } from '@/components/entity/EntityMoreTab'
 import { EntityMetadata } from '@/types/entity'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { EntityTab } from '@/components/ui/entity-tabs'
 
 interface ClientProfilePageProps {
   user: any
@@ -177,14 +179,14 @@ export function ClientProfilePage({
     },
   ]
 
-  // Configure tabs for the EntityHeader
-  const tabs: TabConfig[] = [
+  // Configure tabs for the profile using EntityTab interface
+  const validTabs: EntityTab[] = [
     { id: 'timeline', label: 'Timeline' },
     { id: 'about', label: 'About' },
     { id: 'books', label: 'Books' },
     { id: 'shelves', label: 'Shelves' },
     { id: 'friends', label: 'Friends' },
-    { id: 'followers', label: 'Followers' },
+    { id: 'followers', label: `Followers (${realFollowersCount})` },
     { id: 'photos', label: 'Photos' },
     { id: 'more', label: 'More' },
   ]
@@ -204,7 +206,7 @@ export function ClientProfilePage({
         profileImageUrl={avatarUrl}
         coverImageUrl={coverImageUrl}
         stats={userStatsForHeader}
-        tabs={tabs}
+        tabs={validTabs}
         activeTab={activeTab}
         onTabChange={setActiveTab}
         isFollowing={isFollowing}
@@ -217,7 +219,8 @@ export function ClientProfilePage({
       />
 
       <div className="profile-page__content">
-        {activeTab === 'timeline' && (
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsContent value="timeline" className="mt-6">
           <div className="profile-page__timeline-tab">
             <div className="profile-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Left Sidebar */}
@@ -360,9 +363,9 @@ export function ClientProfilePage({
               </div>
             </div>
           </div>
-        )}
+          </TabsContent>
 
-        {activeTab === 'about' && (
+          <TabsContent value="about" className="mt-6">
           <div className="profile-page__about-tab">
             <div className="profile-page__tab-content">
               <EntityAboutTab
@@ -388,9 +391,9 @@ export function ClientProfilePage({
               />
             </div>
           </div>
-        )}
+          </TabsContent>
 
-        {activeTab === 'books' && (
+          <TabsContent value="books" className="mt-6">
           <div className="profile-page__books-tab">
             <div className="profile-page__tab-content">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
@@ -449,18 +452,17 @@ export function ClientProfilePage({
                 <Button>Load More Books</Button>
               </div>
             </div>
-          </div>
-        )}
+          </TabsContent>
 
-        {activeTab === 'shelves' && (
+          <TabsContent value="shelves" className="mt-6">
           <div className="profile-page__shelves-tab">
             <div className="profile-page__tab-content">
               <ShelfManager />
             </div>
           </div>
-        )}
+          </TabsContent>
 
-        {activeTab === 'friends' && (
+          <TabsContent value="friends" className="mt-6">
           <div className="profile-page__friends-tab">
             <div className="profile-page__tab-content">
               <FriendList
@@ -473,9 +475,9 @@ export function ClientProfilePage({
               />
             </div>
           </div>
-        )}
+          </TabsContent>
 
-        {activeTab === 'followers' && (
+          <TabsContent value="followers" className="mt-6">
           <div className="profile-page__followers-tab">
             <div className="profile-page__tab-content">
               <FollowersListTab
@@ -489,9 +491,9 @@ export function ClientProfilePage({
               />
             </div>
           </div>
-        )}
+          </TabsContent>
 
-        {activeTab === 'photos' && (
+          <TabsContent value="photos" className="mt-6">
           <div className="profile-page__photos-tab">
             <div className="profile-page__tab-content space-y-6">
               <EntityPhotoAlbums
@@ -501,9 +503,9 @@ export function ClientProfilePage({
               />
             </div>
           </div>
-        )}
+          </TabsContent>
 
-        {activeTab === 'more' && (
+          <TabsContent value="more" className="mt-6">
           <EntityMoreTab
             entity={{
               entityType: 'user',
@@ -515,7 +517,8 @@ export function ClientProfilePage({
             }}
             isOwnEntity={authUser?.id === params.id}
           />
-        )}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   )

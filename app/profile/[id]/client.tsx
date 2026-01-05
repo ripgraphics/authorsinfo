@@ -452,6 +452,7 @@ export function ClientProfilePage({
                 <Button>Load More Books</Button>
               </div>
             </div>
+          </div>
           </TabsContent>
 
           <TabsContent value="shelves" className="mt-6">

@@ -1936,8 +1936,8 @@ export function ClientBookPage({
               entityType: 'book',
               entityId: params.id,
               title: book.title,
-              synopsis: book.synopsis,
-              about: book.overview,
+              synopsis: book.synopsis || undefined,
+              about: book.overview || undefined,
               createdAt: book.created_at || new Date().toISOString(),
               updatedAt: book.updated_at || new Date().toISOString(),
             }}

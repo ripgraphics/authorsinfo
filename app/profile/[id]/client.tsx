@@ -51,7 +51,6 @@ import { ShelfManager } from '@/components/shelf-manager'
 import { EntityAboutTab } from '@/components/entity/EntityAboutTab'
 import { EntityMoreTab } from '@/components/entity/EntityMoreTab'
 import { EntityMetadata } from '@/types/entity'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { EntityTab } from '@/components/ui/entity-tabs'
 
 interface ClientProfilePageProps {
@@ -104,7 +103,7 @@ export function ClientProfilePage({
     const tabParam = searchParams.get('tab')
     if (
       tabParam &&
-      ['timeline', 'about', 'books', 'friends', 'followers', 'photos', 'more'].includes(tabParam)
+      ['timeline', 'about', 'books', 'shelves', 'friends', 'followers', 'photos', 'more'].includes(tabParam)
     ) {
       setActiveTab(tabParam)
     }
@@ -219,9 +218,8 @@ export function ClientProfilePage({
       />
 
       <div className="profile-page__content">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsContent value="timeline" className="mt-6">
-          <div className="profile-page__timeline-tab">
+        {activeTab === 'timeline' && (
+          <div className="profile-page__timeline-tab mt-6">
             <div className="profile-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Left Sidebar */}
               <div className="profile-page__sidebar lg:col-span-1 space-y-6 self-end sticky bottom-0">
@@ -363,10 +361,10 @@ export function ClientProfilePage({
               </div>
             </div>
           </div>
-          </TabsContent>
+        )}
 
-          <TabsContent value="about" className="mt-6">
-          <div className="profile-page__about-tab">
+        {activeTab === 'about' && (
+          <div className="profile-page__about-tab mt-6">
             <div className="profile-page__tab-content">
               <EntityAboutTab
                 entity={{
@@ -391,10 +389,10 @@ export function ClientProfilePage({
               />
             </div>
           </div>
-          </TabsContent>
+        )}
 
-          <TabsContent value="books" className="mt-6">
-          <div className="profile-page__books-tab">
+        {activeTab === 'books' && (
+          <div className="profile-page__books-tab mt-6">
             <div className="profile-page__tab-content">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                 <h2 className="text-2xl font-bold">My Books ({realBooksRead})</h2>
@@ -453,18 +451,18 @@ export function ClientProfilePage({
               </div>
             </div>
           </div>
-          </TabsContent>
+        )}
 
-          <TabsContent value="shelves" className="mt-6">
-          <div className="profile-page__shelves-tab">
+        {activeTab === 'shelves' && (
+          <div className="profile-page__shelves-tab mt-6">
             <div className="profile-page__tab-content">
               <ShelfManager />
             </div>
           </div>
-          </TabsContent>
+        )}
 
-          <TabsContent value="friends" className="mt-6">
-          <div className="profile-page__friends-tab">
+        {activeTab === 'friends' && (
+          <div className="profile-page__friends-tab mt-6">
             <div className="profile-page__tab-content">
               <FriendList
                 userId={params.id}
@@ -476,10 +474,10 @@ export function ClientProfilePage({
               />
             </div>
           </div>
-          </TabsContent>
+        )}
 
-          <TabsContent value="followers" className="mt-6">
-          <div className="profile-page__followers-tab">
+        {activeTab === 'followers' && (
+          <div className="profile-page__followers-tab mt-6">
             <div className="profile-page__tab-content">
               <FollowersListTab
                 followers={followers}
@@ -492,10 +490,10 @@ export function ClientProfilePage({
               />
             </div>
           </div>
-          </TabsContent>
+        )}
 
-          <TabsContent value="photos" className="mt-6">
-          <div className="profile-page__photos-tab">
+        {activeTab === 'photos' && (
+          <div className="profile-page__photos-tab mt-6">
             <div className="profile-page__tab-content space-y-6">
               <EntityPhotoAlbums
                 entityId={params.id}
@@ -504,22 +502,23 @@ export function ClientProfilePage({
               />
             </div>
           </div>
-          </TabsContent>
+        )}
 
-          <TabsContent value="more" className="mt-6">
-          <EntityMoreTab
-            entity={{
-              entityType: 'user',
-              entityId: params.id,
-              title: user.name,
-              bio: user.bio,
-              createdAt: user.created_at || new Date().toISOString(),
-              updatedAt: user.updated_at || new Date().toISOString(),
-            }}
-            isOwnEntity={authUser?.id === params.id}
-          />
-          </TabsContent>
-        </Tabs>
+        {activeTab === 'more' && (
+          <div className="mt-6">
+            <EntityMoreTab
+              entity={{
+                entityType: 'user',
+                entityId: params.id,
+                title: user.name,
+                bio: user.bio,
+                createdAt: user.created_at || new Date().toISOString(),
+                updatedAt: user.updated_at || new Date().toISOString(),
+              }}
+              isOwnEntity={authUser?.id === params.id}
+            />
+          </div>
+        )}
       </div>
     </div>
   )

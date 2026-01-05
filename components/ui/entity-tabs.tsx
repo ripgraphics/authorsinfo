@@ -42,7 +42,8 @@ export function EntityTabs({ tabs, activeTab, onTabChange, className = '' }: Ent
 
   return (
     <div
-      className={`entity-tabs grid grid-cols-${tabs.length} h-auto mt-0 bg-transparent ${className}`}
+      className={`entity-tabs grid h-auto mt-0 bg-transparent ${className}`}
+      style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
       role="tablist"
     >
       {tabs.map((tab) => (

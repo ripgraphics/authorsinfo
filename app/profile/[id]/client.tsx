@@ -48,6 +48,9 @@ import { TimelineActivities } from '@/components/timeline-activities'
 import EnterpriseTimelineActivities from '@/components/enterprise/enterprise-timeline-activities-optimized'
 import { BookCard } from '@/components/book-card'
 import { ShelfManager } from '@/components/shelf-manager'
+import { EntityAboutTab } from '@/components/entity/EntityAboutTab'
+import { EntityMoreTab } from '@/components/entity/EntityMoreTab'
+import { EntityMetadata } from '@/types/entity'
 
 interface ClientProfilePageProps {
   user: any
@@ -362,69 +365,27 @@ export function ClientProfilePage({
         {activeTab === 'about' && (
           <div className="profile-page__about-tab">
             <div className="profile-page__tab-content">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1">
-                  <div className="bg-card rounded-lg shadow-sm overflow-hidden sticky top-20 border">
-                    <div className="p-4 border-b">
-                      <h2 className="text-lg font-medium">About</h2>
-                    </div>
-                    <nav className="p-2">
-                      <a
-                        href="#overview"
-                        className="flex items-center px-3 py-2 rounded-md hover:bg-muted text-primary"
-                      >
-                        Overview
-                      </a>
-                      <a
-                        href="#work-education"
-                        className="flex items-center px-3 py-2 rounded-md hover:bg-muted"
-                      >
-                        Work and Education
-                      </a>
-                      <a
-                        href="#contact-info"
-                        className="flex items-center px-3 py-2 rounded-md hover:bg-muted"
-                      >
-                        Contact Information
-                      </a>
-                    </nav>
-                  </div>
-                </div>
-                <div className="lg:col-span-2 space-y-6">
-                  <ContentSection title="Overview">
-                    <p className="text-muted-foreground">{realAbout}</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                      {realWebsite && (
-                        <div className="flex items-start gap-3">
-                          <Globe className="h-5 w-5 text-muted-foreground mt-0.5" />
-                          <div>
-                            <h3 className="font-medium">Website</h3>
-                            <a
-                              href={
-                                realWebsite.startsWith('http')
-                                  ? realWebsite
-                                  : `https://${realWebsite}`
-                              }
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-primary hover:underline"
-                            >
-                              {realWebsite}
-                            </a>
-                          </div>
-                        </div>
-                      )}
-                      <div className="flex items-start gap-3">
-                        <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
-                        <div>
-                          <h3 className="font-medium">Joined</h3>
-                          <p className="text-muted-foreground">{realJoinedDate}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </ContentSection>
-                </div>
-              </div>
+              <EntityAboutTab
+                entity={{
+                  entityType: 'user',
+                  entityId: user.id,
+                  title: user.name,
+                  bio: user.bio,
+                  website: user.website,
+                  contact: {
+                    entity_type: 'user',
+                    entity_id: user.id,
+                    email: user.email,
+                    phone: user.phone,
+                  },
+                  entityData: {
+                    location: user.location,
+                    occupation: user.occupation,
+                  },
+                  createdAt: user.created_at || new Date().toISOString(),
+                  updatedAt: user.updated_at || new Date().toISOString(),
+                }}
+              />
             </div>
           </div>
         )}
@@ -543,136 +504,17 @@ export function ClientProfilePage({
         )}
 
         {activeTab === 'more' && (
-          <div className="profile-page__more-tab">
-            <div className="profile-page__tab-content">
-              <h2 className="text-2xl font-bold mb-6">More</h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card>
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-semibold mb-4">Reading Stats</h3>
-                    <div className="space-y-4">
-                      <div>
-                        <div className="flex justify-between mb-2">
-                          <span>Total Books Read</span>
-                          <span className="font-medium">{realBooksRead}</span>
-                        </div>
-                        <div className="flex justify-between mb-2">
-                          <span>Pages Read</span>
-                          <span className="font-medium">32,845</span>
-                        </div>
-                        <div className="flex justify-between mb-2">
-                          <span>Average Rating</span>
-                          <span className="font-medium">4.2</span>
-                        </div>
-                        <div className="flex justify-between mb-2">
-                          <span>Reviews Written</span>
-                          <span className="font-medium">94</span>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-semibold mb-4">Reading Preferences</h3>
-                    <div className="space-y-3">
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm">Fiction</span>
-                          <span className="text-sm text-muted-foreground">67%</span>
-                        </div>
-                        <div className="h-2 bg-muted rounded-full overflow-hidden">
-                          <div className="h-full bg-primary" style={{ width: '67%' }}></div>
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm">Non-Fiction</span>
-                          <span className="text-sm text-muted-foreground">33%</span>
-                        </div>
-                        <div className="h-2 bg-muted rounded-full overflow-hidden">
-                          <div className="h-full bg-primary" style={{ width: '33%' }}></div>
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm">Paperback</span>
-                          <span className="text-sm text-muted-foreground">45%</span>
-                        </div>
-                        <div className="h-2 bg-muted rounded-full overflow-hidden">
-                          <div className="h-full bg-primary" style={{ width: '45%' }}></div>
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm">E-book</span>
-                          <span className="text-sm text-muted-foreground">40%</span>
-                        </div>
-                        <div className="h-2 bg-muted rounded-full overflow-hidden">
-                          <div className="h-full bg-primary" style={{ width: '40%' }}></div>
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm">Audiobook</span>
-                          <span className="text-sm text-muted-foreground">15%</span>
-                        </div>
-                        <div className="h-2 bg-muted rounded-full overflow-hidden">
-                          <div className="h-full bg-primary" style={{ width: '15%' }}></div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-semibold mb-4">Events</h3>
-                    <div className="space-y-4">
-                      {[
-                        { name: 'Portland Book Fair', date: 'June 15, 2023' },
-                        { name: 'Author Meet & Greet: J.K. Rowling', date: 'July 8, 2023' },
-                        { name: 'Book Club Meeting - The Great Gatsby', date: 'August 3, 2023' },
-                      ].map((event, i) => (
-                        <div key={i} className="border-b pb-3 last:border-0">
-                          <h4 className="font-medium">{event.name}</h4>
-                          <p className="text-sm text-muted-foreground">{event.date}</p>
-                        </div>
-                      ))}
-                    </div>
-                    <Button variant="outline" className="w-full mt-4">
-                      View All Events
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-semibold mb-4">Settings</h3>
-                    <div className="space-y-3">
-                      <Button variant="outline" className="w-full justify-start">
-                        Edit Profile
-                      </Button>
-                      <Button variant="outline" className="w-full justify-start">
-                        Privacy Settings
-                      </Button>
-                      <Button variant="outline" className="w-full justify-start">
-                        Notification Preferences
-                      </Button>
-                      <Button variant="outline" className="w-full justify-start">
-                        Connected Accounts
-                      </Button>
-                      <Button variant="outline" className="w-full justify-start">
-                        Reading Preferences
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </div>
+          <EntityMoreTab
+            entity={{
+              entityType: 'user',
+              entityId: params.id,
+              title: user.name,
+              bio: user.bio,
+              createdAt: user.created_at || new Date().toISOString(),
+              updatedAt: user.updated_at || new Date().toISOString(),
+            }}
+            isOwnEntity={authUser?.id === params.id}
+          />
         )}
       </div>
     </div>

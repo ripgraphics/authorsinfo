@@ -64,6 +64,10 @@ import EnterpriseTimelineActivities from '@/components/enterprise/enterprise-tim
 import { CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { EntityHeader, TabConfig } from '@/components/entity-header'
 import { deduplicatedRequest } from '@/lib/request-utils'
+import { EntityAboutTab } from '@/components/entity/EntityAboutTab'
+import { EntityMoreTab } from '@/components/entity/EntityMoreTab'
+import { EntityMetadata } from '@/types/entity'
+import { getTabsForEntity } from '@/lib/tabContentRegistry'
 
 interface ClientAuthorPageProps {
   author: Author
@@ -833,233 +837,28 @@ export function ClientAuthorPage({
       {activeTab === 'about' && (
         <div className="publisher-page__content">
           <div className="publisher-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-1">
-              <div className="about-navigation bg-white rounded-lg shadow-sm overflow-hidden sticky top-20">
-                <div className="about-navigation__header p-4 border-b flex justify-between items-center">
-                  <h2 className="about-navigation__title text-lg font-medium">About</h2>
-                  <div className="about-navigation__settings-wrapper relative">
-                    {user && user.role === 'admin' && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="about-navigation__settings-button h-8 w-8 rounded-full"
-                      >
-                        <Settings className="about-navigation__settings-icon h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-                <nav className="about-navigation__nav p-2">
-                  <a
-                    href="#overview"
-                    className="about-navigation__nav-link flex items-center px-3 py-2 rounded-md hover:bg-muted text-primary"
-                  >
-                    Overview
-                  </a>
-                  <a
-                    href="#contact-info"
-                    className="about-navigation__nav-link flex items-center px-3 py-2 rounded-md hover:bg-muted"
-                  >
-                    Contact Information
-                  </a>
-                  <a
-                    href="#location"
-                    className="about-navigation__nav-link flex items-center px-3 py-2 rounded-md hover:bg-muted"
-                  >
-                    Location
-                  </a>
-                  <a
-                    href="#books"
-                    className="about-navigation__nav-link flex items-center px-3 py-2 rounded-md hover:bg-muted"
-                  >
-                    Published Books
-                  </a>
-                </nav>
-              </div>
-            </div>
             <div className="lg:col-span-2">
-              <div
-                className="rounded-lg border bg-card text-card-foreground shadow-xs overview-section mb-6"
-                id="overview"
-              >
-                <div className="overview-section__header flex flex-col space-y-1.5 p-6 border-b">
-                  <div className="overview-section__title-row flex justify-between items-center">
-                    <h3 className="overview-section__title text-xl font-semibold">Overview</h3>
-                    {user &&
-                      (user.role === 'admin' ||
-                        user.role === 'super_admin' ||
-                        user.role === 'super-admin') && (
-                        <Button
-                          variant="ghost"
-                          className="overview-section__edit-button h-8 gap-1 rounded-md px-3"
-                          onClick={openBioDialog}
-                        >
-                          <SquarePen className="overview-section__edit-icon h-4 w-4" />
-                          <span>Edit</span>
-                        </Button>
-                      )}
-                  </div>
-                </div>
-                <div className="overview-section__content p-6 space-y-4">
-                  <div className="overview-section__about space-y-2">
-                    <ExpandableSection
-                      expanded={showFullBio}
-                      onToggle={() => setShowFullBio((v) => !v)}
-                      maxHeight={500}
-                      className="overview-section__about-wrapper relative"
-                      contentClassName="overview-section__about-text whitespace-pre-wrap text-base"
-                    >
-                      {author?.bio ||
-                        `About ${author?.name || 'the Author'}
-                        
-${author?.name || 'The author'} is a renowned writer known for captivating storytelling and compelling characters. With a distinctive voice that resonates with readers across generations, ${author?.name?.split(' ')[0] || 'they'} has established ${author?.name?.includes(' ') ? 'themselves' : 'themself'} as a significant figure in contemporary literature.
-
-Born in ${author?.nationality || 'their native country'}, ${author?.name?.split(' ')[0] || 'the author'} began writing at an early age, influenced by the rich cultural heritage and literary traditions surrounding ${author?.name?.includes(' ') ? 'them' : 'them'}. After completing ${author?.name?.includes(' ') ? 'their' : 'their'} education, ${author?.name?.split(' ')[0] || 'they'} devoted ${author?.name?.includes(' ') ? 'themselves' : 'themself'} to the craft of writing, publishing ${author?.name?.includes(' ') ? 'their' : 'their'} first work to critical acclaim.
-
-Throughout ${author?.name?.includes(' ') ? 'their' : 'their'} career, ${author?.name?.split(' ')[0] || 'the author'} has explored various themes including identity, belonging, human relationships, and the complexities of modern society. ${author?.name?.includes(' ') ? 'Their' : 'Their'} works often blend elements of realism with lyrical prose, creating immersive narratives that challenge readers to reflect on their own experiences and perspectives.
-
-${author?.name || 'The author'} has received numerous accolades for ${author?.name?.includes(' ') ? 'their' : 'their'} contributions to literature, including prestigious literary awards and recognition from peers in the industry. Beyond writing, ${author?.name?.split(' ')[0] || 'they'} is passionate about promoting literacy and supporting emerging writers through workshops, mentorship programs, and public speaking engagements.
-
-When not writing, ${author?.name?.split(' ')[0] || 'the author'} enjoys reading widely across genres, traveling to gather inspiration for new stories, and engaging with readers through book tours and literary festivals. ${author?.name?.includes(' ') ? 'Their' : 'Their'} dedication to the craft and genuine connection with audiences have established ${author?.name || 'the author'} as a beloved figure in the literary world.
-
-${author?.name || 'The author'} continues to push boundaries with each new work, exploring fresh narrative approaches while maintaining the distinctive voice that has captivated readers worldwide. With each publication, ${author?.name?.split(' ')[0] || 'they'} reaffirms ${author?.name?.includes(' ') ? 'their' : 'their'} place as one of the most significant literary voices of our time.`}
-                    </ExpandableSection>
-                  </div>
-                  {author?.birth_date && (
-                    <div className="overview-section__founded flex items-center">
-                      <Calendar className="overview-section__founded-icon h-4 w-4 mr-2 text-muted-foreground" />
-                      <span className="overview-section__founded-text">
-                        Born in {new Date(author.birth_date).getFullYear()}
-                      </span>
-                    </div>
-                  )}
-                  {author?.website && (
-                    <div className="overview-section__website flex items-start">
-                      <Globe className="overview-section__website-icon h-4 w-4 mr-2 text-muted-foreground flex-shrink-0 mt-1" />
-                      <a
-                        href={
-                          author.website.startsWith('http')
-                            ? author.website
-                            : `https://${author.website}`
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="overview-section__website-link text-primary hover:underline break-words"
-                      >
-                        {author.website}
-                      </a>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Contact Information Section */}
-              <div
-                className="rounded-lg border bg-card text-card-foreground shadow-xs contact-section mb-6"
-                id="contact-info"
-              >
-                <div className="contact-section__header flex flex-col space-y-1.5 p-6 border-b">
-                  <div className="contact-section__title-row flex justify-between items-center">
-                    <h3 className="contact-section__title text-xl font-semibold">
-                      Contact Information
-                    </h3>
-                    {canEdit && (
-                      <Button
-                        variant="ghost"
-                        className="contact-section__edit-button h-8 gap-1 rounded-md px-3"
-                        onClick={() => setContactDialogOpen(true)}
-                      >
-                        <SquarePen className="contact-section__edit-icon h-4 w-4" />
-                        <span>Edit</span>
-                      </Button>
-                    )}
-                  </div>
-                </div>
-                <div className="contact-section__content p-6">
-                  <div className="contact-section__grid grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {contactInfo?.email && (
-                      <div className="contact-section__email flex flex-col">
-                        <span className="contact-section__label text-sm text-muted-foreground">
-                          Email
-                        </span>
-                        <a
-                          href={`mailto:${contactInfo.email}`}
-                          className="text-primary hover:underline"
-                        >
-                          {contactInfo.email}
-                        </a>
-                      </div>
-                    )}
-                    {contactInfo?.phone && (
-                      <div className="contact-section__phone flex flex-col">
-                        <span className="contact-section__label text-sm text-muted-foreground">
-                          Phone
-                        </span>
-                        <a
-                          href={`tel:${contactInfo.phone}`}
-                          className="text-primary hover:underline"
-                        >
-                          {contactInfo.phone}
-                        </a>
-                      </div>
-                    )}
-                    {contactInfo?.website && (
-                      <div className="contact-section__website flex flex-col">
-                        <span className="contact-section__label text-sm text-muted-foreground">
-                          Website
-                        </span>
-                        <a
-                          href={
-                            contactInfo.website.startsWith('http')
-                              ? contactInfo.website
-                              : `https://${contactInfo.website}`
-                          }
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:underline"
-                        >
-                          {contactInfo.website}
-                        </a>
-                      </div>
-                    )}
-                    {(contactInfo?.address_line1 ||
-                      contactInfo?.address_line2 ||
-                      contactInfo?.city ||
-                      contactInfo?.state ||
-                      contactInfo?.postal_code ||
-                      contactInfo?.country) && (
-                      <div className="contact-section__address flex flex-col">
-                        <span className="contact-section__label text-sm text-muted-foreground">
-                          Address
-                        </span>
-                        <div className="flex flex-col">
-                          {contactInfo.address_line1 && <span>{contactInfo.address_line1}</span>}
-                          {contactInfo.address_line2 && <span>{contactInfo.address_line2}</span>}
-                          <span>
-                            {[contactInfo.city, contactInfo.state, contactInfo.postal_code]
-                              .filter(Boolean)
-                              .join(', ')}
-                          </span>
-                          {contactInfo.country && <span>{contactInfo.country}</span>}
-                        </div>
-                      </div>
-                    )}
-                    {!contactInfo?.email &&
-                      !contactInfo?.phone &&
-                      !contactInfo?.website &&
-                      !contactInfo?.address_line1 &&
-                      !contactInfo?.address_line2 &&
-                      !contactInfo?.city &&
-                      !contactInfo?.state &&
-                      !contactInfo?.postal_code &&
-                      !contactInfo?.country && (
-                        <div className="col-span-2 text-center text-muted-foreground py-4">
-                          No contact information available
-                        </div>
-                      )}
-                  </div>
-                </div>
-              </div>
+              <EntityAboutTab
+                entity={{
+                  entityType: 'author',
+                  entityId: params.id,
+                  title: author?.name || 'Author',
+                  bio: author?.bio,
+                  about: author?.bio,
+                  website: author?.website,
+                  contact: contactInfo || undefined,
+                  socialLinks: {
+                    twitter: author?.twitter_handle ? `https://twitter.com/${author.twitter_handle}` : undefined,
+                    facebook: author?.facebook_handle ? `https://facebook.com/${author.facebook_handle}` : undefined,
+                    instagram: author?.instagram_handle ? `https://instagram.com/${author.instagram_handle}` : undefined,
+                    goodreads: author?.goodreads_url,
+                  },
+                  createdAt: author?.created_at || new Date().toISOString(),
+                  updatedAt: author?.updated_at || new Date().toISOString(),
+                }}
+                canEdit={canEdit}
+                onEditClick={() => setBioDialogOpen(true)}
+              />
             </div>
           </div>
 
@@ -1289,10 +1088,24 @@ ${author?.name || 'The author'} continues to push boundaries with each new work,
       )}
 
       {activeTab === 'more' && (
-        <div className="more-section">
-          <h2 className="text-2xl font-semibold mb-4">More</h2>
-          {/* Add more content here */}
-        </div>
+        <EntityMoreTab
+          entity={{
+            entityType: 'author',
+            entityId: params.id,
+            title: author?.name || 'Author',
+            bio: author?.bio,
+            createdAt: author?.created_at || new Date().toISOString(),
+            updatedAt: author?.updated_at || new Date().toISOString(),
+          }}
+          config={{
+            sections: {
+              stats: false,
+              preferences: false,
+              events: true,
+              recommendations: true,
+            },
+          }}
+        />
       )}
     </div>
   )

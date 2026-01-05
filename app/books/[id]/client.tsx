@@ -74,6 +74,10 @@ import { CameraIconButton } from '@/components/ui/camera-icon-button'
 import { HoverOverlay } from '@/components/ui/hover-overlay'
 import { ImageCropper } from '@/components/ui/image-cropper'
 import { createBrowserClient } from '@supabase/ssr'
+import { EntityAboutTab } from '@/components/entity/EntityAboutTab'
+import { EntityMoreTab } from '@/components/entity/EntityMoreTab'
+import { EntityMetadata } from '@/types/entity'
+import { getTabsForEntity } from '@/lib/tabContentRegistry'
 
 interface Follower {
   id: string
@@ -1927,160 +1931,59 @@ export function ClientBookPage({
         )}
 
         {activeTab === 'more' && (
-          <div className="book-page__more-tab">
-            <div className="book-page__tab-content grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <ContentSection
-                title="Groups"
-                headerRight={
-                  <Link href={`/groups/add?target_type=book&target_id=${params.id}`}>
-                    <Button className="book-groups__create-button">
-                      <Users className="h-4 w-4 mr-2" />
-                      Create Group
-                    </Button>
-                  </Link>
-                }
-                className="book-page__groups-section"
-              >
-                <div className="book-groups__list space-y-4">
-                  <div className="book-groups__item flex items-center gap-3 p-3 border rounded-lg">
-                    <span className="book-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                      <img
-                        src="/placeholder.svg?height=100&width=100"
-                        alt="Fantasy Book Club"
-                        className="aspect-square h-full w-full"
-                      />
-                    </span>
-                    <div className="book-groups__content flex-1 min-w-0">
-                      <h3 className="book-groups__name font-medium truncate">Fantasy Book Club</h3>
-                      <div className="book-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
-                        <div className="book-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                          Moderator
+          <EntityMoreTab
+            entity={{
+              entityType: 'book',
+              entityId: params.id,
+              title: book.title,
+              synopsis: book.synopsis,
+              about: book.overview,
+              createdAt: book.created_at || new Date().toISOString(),
+              updatedAt: book.updated_at || new Date().toISOString(),
+            }}
+            config={{
+              sections: {
+                stats: false,
+                preferences: false,
+                events: true,
+                recommendations: true,
+              },
+              customSections: {
+                groups: (
+                  <div className="space-y-4">
+                    <Link href={`/groups/add?target_type=book&target_id=${params.id}`}>
+                      <Button className="book-groups__create-button">
+                        <Users className="h-4 w-4 mr-2" />
+                        Create Group
+                      </Button>
+                    </Link>
+                    <div className="book-groups__item flex items-center gap-3 p-3 border rounded-lg">
+                      <span className="book-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
+                        <img
+                          src="/placeholder.svg?height=100&width=100"
+                          alt="Fantasy Book Club"
+                          className="aspect-square h-full w-full"
+                        />
+                      </span>
+                      <div className="book-groups__content flex-1 min-w-0">
+                        <h3 className="book-groups__name font-medium truncate">Fantasy Book Club</h3>
+                        <div className="book-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
+                          <div className="book-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
+                            Moderator
+                          </div>
+                          <span>·</span>
+                          <span>1243 members</span>
                         </div>
-                        <span>·</span>
-                        <span>1243 members</span>
-                        <span>·</span>
-                        <span>Joined January 2021</span>
                       </div>
+                      <Button variant="outline" className="book-groups__view-button h-9 rounded-md px-3">
+                        View
+                      </Button>
                     </div>
-                    <Button
-                      variant="outline"
-                      className="book-groups__view-button h-9 rounded-md px-3"
-                    >
-                      View
-                    </Button>
                   </div>
-                  <div className="book-groups__item flex items-center gap-3 p-3 border rounded-lg">
-                    <span className="book-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                      <img
-                        src="/placeholder.svg?height=100&width=100"
-                        alt="Science Fiction Readers"
-                        className="aspect-square h-full w-full"
-                      />
-                    </span>
-                    <div className="book-groups__content flex-1 min-w-0">
-                      <h3 className="book-groups__name font-medium truncate">
-                        Science Fiction Readers
-                      </h3>
-                      <div className="book-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
-                        <div className="book-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                          Member
-                        </div>
-                        <span>·</span>
-                        <span>3567 members</span>
-                        <span>·</span>
-                        <span>Joined March 2021</span>
-                      </div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      className="book-groups__view-button h-9 rounded-md px-3"
-                    >
-                      View
-                    </Button>
-                  </div>
-                  <div className="book-groups__item flex items-center gap-3 p-3 border rounded-lg">
-                    <span className="book-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                      <img
-                        src="/placeholder.svg?height=100&width=100"
-                        alt="Portland Book Lovers"
-                        className="aspect-square h-full w-full"
-                      />
-                    </span>
-                    <div className="book-groups__content flex-1 min-w-0">
-                      <h3 className="book-groups__name font-medium truncate">
-                        Portland Book Lovers
-                      </h3>
-                      <div className="book-groups__meta flex items-center gap-2 text-xs text-muted-foreground">
-                        <div className="book-groups__role inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                          Member
-                        </div>
-                        <span>·</span>
-                        <span>892 members</span>
-                        <span>·</span>
-                        <span>Joined May 2021</span>
-                      </div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      className="book-groups__view-button h-9 rounded-md px-3"
-                    >
-                      View
-                    </Button>
-                  </div>
-                </div>
-              </ContentSection>
-
-              <ContentSection title="Pages" className="book-page__pages-section">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 p-3 border rounded-lg">
-                    <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                      <img
-                        src="/placeholder.svg?height=100&width=100"
-                        alt="Brandon Sanderson"
-                        className="aspect-square h-full w-full"
-                      />
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate">Brandon Sanderson</h3>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                          Author
-                        </div>
-                        <span>·</span>
-                        <span>Following Since 2020</span>
-                      </div>
-                    </div>
-                    <Button variant="outline" className="h-9 rounded-md px-3">
-                      View
-                    </Button>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3 border rounded-lg">
-                    <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
-                      <img
-                        src="/placeholder.svg?height=100&width=100"
-                        alt="Tor Books"
-                        className="aspect-square h-full w-full"
-                      />
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate">Tor Books</h3>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground text-xs">
-                          Publisher
-                        </div>
-                        <span>·</span>
-                        <span>Following Since 2022</span>
-                      </div>
-                    </div>
-                    <Button variant="outline" className="h-9 rounded-md px-3">
-                      View
-                    </Button>
-                  </div>
-                </div>
-              </ContentSection>
-            </div>
-          </div>
+                ),
+              },
+            }}
+          />
         )}
       </div>
     </div>

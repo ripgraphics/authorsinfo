@@ -27,7 +27,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-4 lg:px-8 flex justify-between items-center h-16">
           <div className="flex items-center gap-2 text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
             <BookOpen className="w-8 h-8 text-blue-600" />
             Authors Info
@@ -44,7 +44,7 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
+      <section className="pt-32 pb-20 px-4 sm:px-4 lg:px-8">
         <div className="max-w-6xl mx-auto text-center space-y-8">
           <div className="space-y-4 animate-fade-in">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 rounded-full text-blue-700 text-sm font-semibold">
@@ -89,17 +89,17 @@ export default function LandingPage() {
       </section>
 
       {/* Core Features Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+      <section className="py-20 px-4 sm:px-4 lg:px-8 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-4xl font-bold text-slate-900">Powerful Features Built for You</h2>
             <p className="text-xl text-slate-600">Everything you need to connect with the book community</p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Feature Card 1 */}
             <Card 
-              className="p-6 hover:shadow-xl transition-all border-slate-200 cursor-pointer"
+              className="p-4 hover:shadow-xl transition-all border-slate-200 cursor-pointer"
               onMouseEnter={() => setHoveredCard('discovery')}
               onMouseLeave={() => setHoveredCard(null)}
             >
@@ -117,7 +117,7 @@ export default function LandingPage() {
 
             {/* Feature Card 2 */}
             <Card 
-              className="p-6 hover:shadow-xl transition-all border-slate-200 cursor-pointer"
+              className="p-4 hover:shadow-xl transition-all border-slate-200 cursor-pointer"
               onMouseEnter={() => setHoveredCard('social')}
               onMouseLeave={() => setHoveredCard(null)}
             >
@@ -135,7 +135,7 @@ export default function LandingPage() {
 
             {/* Feature Card 3 */}
             <Card 
-              className="p-6 hover:shadow-xl transition-all border-slate-200 cursor-pointer"
+              className="p-4 hover:shadow-xl transition-all border-slate-200 cursor-pointer"
               onMouseEnter={() => setHoveredCard('progress')}
               onMouseLeave={() => setHoveredCard(null)}
             >
@@ -153,7 +153,7 @@ export default function LandingPage() {
 
             {/* Feature Card 4 */}
             <Card 
-              className="p-6 hover:shadow-xl transition-all border-slate-200 cursor-pointer"
+              className="p-4 hover:shadow-xl transition-all border-slate-200 cursor-pointer"
               onMouseEnter={() => setHoveredCard('gamification')}
               onMouseLeave={() => setHoveredCard(null)}
             >
@@ -171,7 +171,7 @@ export default function LandingPage() {
 
             {/* Feature Card 5 */}
             <Card 
-              className="p-6 hover:shadow-xl transition-all border-slate-200 cursor-pointer"
+              className="p-4 hover:shadow-xl transition-all border-slate-200 cursor-pointer"
               onMouseEnter={() => setHoveredCard('analytics')}
               onMouseLeave={() => setHoveredCard(null)}
             >
@@ -189,7 +189,7 @@ export default function LandingPage() {
 
             {/* Feature Card 6 */}
             <Card 
-              className="p-6 hover:shadow-xl transition-all border-slate-200 cursor-pointer"
+              className="p-4 hover:shadow-xl transition-all border-slate-200 cursor-pointer"
               onMouseEnter={() => setHoveredCard('realtime')}
               onMouseLeave={() => setHoveredCard(null)}
             >
@@ -209,7 +209,7 @@ export default function LandingPage() {
       </section>
 
       {/* Advanced Features Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-slate-50 to-white">
+      <section className="py-20 px-4 sm:px-4 lg:px-8 bg-gradient-to-b from-slate-50 to-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-4xl font-bold text-slate-900">Enterprise-Grade Capabilities</h2>
@@ -299,7 +299,7 @@ export default function LandingPage() {
       </section>
 
       {/* Use Cases Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+      <section className="py-20 px-4 sm:px-4 lg:px-8 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-4xl font-bold text-slate-900">Built for Everyone</h2>
@@ -389,7 +389,7 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-slate-50">
+      <section className="py-20 px-4 sm:px-4 lg:px-8 bg-gradient-to-b from-white to-slate-50">
         <div className="max-w-6xl mx-auto">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-4xl font-bold text-slate-900">Simple, Transparent Pricing</h2>
@@ -485,7 +485,7 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-indigo-600">
+      <section className="py-20 px-4 sm:px-4 lg:px-8 bg-gradient-to-r from-blue-600 to-indigo-600">
         <div className="max-w-4xl mx-auto text-center space-y-8">
           <h2 className="text-4xl font-bold text-white">Ready to Transform Your Reading Life?</h2>
           <p className="text-xl text-blue-100">Join thousands of readers and authors already using Authors Info</p>
@@ -501,7 +501,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-slate-900 text-slate-300 py-12 px-4 sm:px-6 lg:px-8">
+      <footer className="bg-slate-900 text-slate-300 py-12 px-4 sm:px-4 lg:px-8">
         <div className="max-w-6xl mx-auto grid md:grid-cols-4 gap-8 mb-8">
           <div>
             <h4 className="text-white font-bold mb-4">Product</h4>

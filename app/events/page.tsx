@@ -49,7 +49,7 @@ export default async function EventsPage({
 
   return (
     <div className="space-y-6">
-      <div className="py-6">
+      <div className="py-4">
         <h1 className="text-3xl font-bold tracking-tight">Events</h1>
         <p className="text-muted-foreground mt-2">
           Discover and join book-related events, author meetups, reading groups, and virtual sessions.
@@ -142,7 +142,7 @@ export default async function EventsPage({
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {events.map((event) => (
                   <EventCard key={event.id} event={event} />
                 ))}

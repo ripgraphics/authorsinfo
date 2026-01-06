@@ -206,12 +206,12 @@ export function ClientEventPage({
       {/* Content Section */}
       {activeTab === 'timeline' && (
         <div className="event-page__content">
-          <div className="event-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="event-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* LEFT SIDEBAR - 1 Column */}
             <div className="lg:col-span-1 space-y-6 self-end sticky bottom-0">
               {/* About Section */}
               <Card>
-                <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
+                <div className="space-y-1.5 p-4 flex flex-row items-center justify-between">
                   <div className="text-2xl font-semibold leading-none tracking-tight">About</div>
                   <button
                     className="text-sm text-primary hover:underline"
@@ -220,7 +220,7 @@ export function ClientEventPage({
                     View More
                   </button>
                 </div>
-                <CardContent className="p-6 pt-0">
+                <CardContent className="p-4 pt-0">
                   <p className="line-clamp-4">
                     {event?.description || 'No description available.'}
                   </p>
@@ -230,12 +230,12 @@ export function ClientEventPage({
               {/* Registration Status */}
               {event.requires_registration && (
                 <Card>
-                  <div className="space-y-1.5 p-6">
+                  <div className="space-y-1.5 p-4">
                     <div className="text-2xl font-semibold leading-none tracking-tight">
                       Registration
                     </div>
                   </div>
-                  <CardContent className="p-6 pt-0">
+                  <CardContent className="p-4 pt-0">
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">Status</span>
@@ -263,7 +263,7 @@ export function ClientEventPage({
 
               {/* Photos Section */}
               <Card>
-                <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
+                <div className="space-y-1.5 p-4 flex flex-row items-center justify-between">
                   <div className="text-2xl font-semibold leading-none tracking-tight">Photos</div>
                   <button
                     className="text-sm text-primary hover:underline"
@@ -272,7 +272,7 @@ export function ClientEventPage({
                     See All
                   </button>
                 </div>
-                <CardContent className="p-6 pt-0">
+                <CardContent className="p-4 pt-0">
                   <div className="grid grid-cols-3 gap-2">
                     {[1, 2, 3, 4, 5, 6].map((num) => (
                       <div key={num} className="aspect-square relative rounded-sm overflow-hidden">
@@ -319,12 +319,12 @@ export function ClientEventPage({
       {activeTab === 'about' && (
         <div className="event-page__tab-content">
           <Card>
-            <div className="space-y-1.5 p-6">
+            <div className="space-y-1.5 p-4">
               <div className="text-2xl font-semibold leading-none tracking-tight">
                 About This Event
               </div>
             </div>
-            <CardContent className="p-6 pt-0">
+            <CardContent className="p-4 pt-0">
               <div className="prose prose-blue max-w-none">
                 {event.description ? (
                   <div dangerouslySetInnerHTML={{ __html: event.description }} />
@@ -345,10 +345,10 @@ export function ClientEventPage({
             <h2 className="text-2xl font-bold">Speakers</h2>
           </div>
           {speakers && speakers.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {speakers.map((speaker) => (
                 <Card key={speaker.id}>
-                  <CardContent className="p-6">
+                  <CardContent className="p-4">
                     <div className="flex items-start space-x-4">
                       {speaker.headshot_url ? (
                         <div className="flex-shrink-0">
@@ -421,7 +421,7 @@ export function ClientEventPage({
             <div className="space-y-4">
               {sessions.map((session) => (
                 <Card key={session.id}>
-                  <CardContent className="p-6">
+                  <CardContent className="p-4">
                     <div className="flex flex-col md:flex-row md:items-center justify-between">
                       <div>
                         <h3 className="text-lg font-medium">{session.title}</h3>

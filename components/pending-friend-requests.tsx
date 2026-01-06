@@ -98,7 +98,7 @@ export function PendingFriendRequests() {
   if (isLoading) {
     return (
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="p-4">
           <div className="flex items-center justify-center">
             <Loader2 className="h-6 w-6 animate-spin" />
             <span className="ml-2">Loading friend requests...</span>
@@ -111,7 +111,7 @@ export function PendingFriendRequests() {
   if (requests.length === 0) {
     return (
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="p-4">
           <div className="flex flex-col items-center text-center">
             <Users className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No pending friend requests</h3>

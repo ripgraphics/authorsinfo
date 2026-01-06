@@ -334,7 +334,7 @@ export default async function BooksPage({ searchParams }: BooksPageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="py-6">
+      <div className="py-4">
         <h1 className="text-3xl font-bold tracking-tight">Books</h1>
         <p className="text-muted-foreground mt-2">Browse and discover books from our collection.</p>
       </div>

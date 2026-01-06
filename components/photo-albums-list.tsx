@@ -40,7 +40,7 @@ export function PhotoAlbumsList({ albums, onAlbumUpdated }: PhotoAlbumsListProps
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {albums.map((album) => (
         <Card key={album.id} className="overflow-hidden">
           <CardHeader className="p-0">

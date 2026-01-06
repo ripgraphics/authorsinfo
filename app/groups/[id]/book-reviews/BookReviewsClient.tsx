@@ -392,7 +392,7 @@ export default function BookReviewsClient({
 
   if (!currentUser) {
     return (
-      <Card className="p-6">
+      <Card className="p-4">
         <CardContent className="text-center">
           <BookOpen className="w-16 h-16 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-semibold mb-2">Sign in to view book reviews</h3>
@@ -404,7 +404,7 @@ export default function BookReviewsClient({
 
   if (error) {
     return (
-      <Card className="p-6">
+      <Card className="p-4">
         <CardContent className="text-center">
           <AlertTriangle className="w-16 h-16 mx-auto text-red-400 mb-4" />
           <h3 className="text-lg font-semibold mb-2 text-red-600">Error Loading Reviews</h3>
@@ -549,7 +549,7 @@ export default function BookReviewsClient({
             <div
               className={
                 viewMode === 'grid'
-                  ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
+                  ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'
                   : 'space-y-4'
               }
             >
@@ -562,7 +562,7 @@ export default function BookReviewsClient({
           <div
             className={
               viewMode === 'grid'
-                ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
+                ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'
                 : 'space-y-4'
             }
           >

@@ -86,7 +86,7 @@ export function AddBookClient({
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="py-6">
+        <div className="py-4">
           <h1 className="text-3xl font-bold tracking-tight">Add Book to Library</h1>
           <p className="text-muted-foreground mt-2">Loading book details...</p>
         </div>
@@ -97,7 +97,7 @@ export function AddBookClient({
   if (!bookData) {
     return (
       <div className="space-y-6">
-        <div className="py-6">
+        <div className="py-4">
           <h1 className="text-3xl font-bold tracking-tight">Add Book to Library</h1>
           <p className="text-muted-foreground mt-2">Book not found. Please try searching again.</p>
         </div>
@@ -166,7 +166,7 @@ export function AddBookClient({
 
   return (
     <div className="space-y-6">
-      <div className="py-6">
+      <div className="py-4">
         <h1 className="text-3xl font-bold tracking-tight">Add Book to Library</h1>
         <p className="text-muted-foreground mt-2">
           Review the book details and add it to your library

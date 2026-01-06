@@ -155,7 +155,7 @@ export default function AddAuthorPage() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="flex flex-col md:flex-row gap-6">
+                <div className="flex flex-col md:flex-row gap-4">
                   {/* Author Photo */}
                   <div className="flex flex-col items-center gap-4">
                     <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-xl relative">

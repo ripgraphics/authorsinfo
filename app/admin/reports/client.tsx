@@ -207,7 +207,7 @@ export function ReportsClient() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="md:col-span-3">
           <DateRangePicker
             dateRange={dateRange}
@@ -233,16 +233,16 @@ export function ReportsClient() {
 
         {/* User Activity Tab */}
         <TabsContent value="user_activity" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white p-6 rounded-lg shadow-xs border">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white p-4 rounded-lg shadow-xs border">
               <h3 className="text-lg font-medium">New Users</h3>
               <p className="text-3xl font-bold mt-2">{userActivityData?.totalNewUsers || 0}</p>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-xs border">
+            <div className="bg-white p-4 rounded-lg shadow-xs border">
               <h3 className="text-lg font-medium">Total Logins</h3>
               <p className="text-3xl font-bold mt-2">{userActivityData?.totalLogins || 0}</p>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-xs border">
+            <div className="bg-white p-4 rounded-lg shadow-xs border">
               <h3 className="text-lg font-medium">Reading Activities</h3>
               <p className="text-3xl font-bold mt-2">
                 {userActivityData?.totalReadingActivities || 0}
@@ -250,7 +250,7 @@ export function ReportsClient() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <LineChart
               title="User Registrations"
               description="New user sign-ups over time"
@@ -281,7 +281,7 @@ export function ReportsClient() {
 
         {/* Content Popularity Tab */}
         <TabsContent value="content_popularity" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <DataTable
               title="Most Viewed Books"
               description="Books with the highest number of views"
@@ -324,7 +324,7 @@ export function ReportsClient() {
 
         {/* Reading Trends Tab */}
         <TabsContent value="reading_trends" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <PieChart
               title="Reading Status Distribution"
               description="Distribution of reading statuses"
@@ -358,7 +358,7 @@ export function ReportsClient() {
 
         {/* Author Performance Tab */}
         <TabsContent value="author_performance" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <DataTable
               title="Top Authors by Book Count"
               description="Authors with the most books"

@@ -84,17 +84,17 @@ export function ClientProfilePage({
       />
 
       {/* Tab Content */}
-      {activeTab === 'timeline' && <div className="p-6">Timeline content would go here</div>}
+      {activeTab === 'timeline' && <div className="p-4">Timeline content would go here</div>}
 
-      {activeTab === 'about' && <div className="p-6">About content would go here</div>}
+      {activeTab === 'about' && <div className="p-4">About content would go here</div>}
 
-      {activeTab === 'books' && <div className="p-6">Books content would go here</div>}
+      {activeTab === 'books' && <div className="p-4">Books content would go here</div>}
 
-      {activeTab === 'friends' && <div className="p-6">Friends content would go here</div>}
+      {activeTab === 'friends' && <div className="p-4">Friends content would go here</div>}
 
-      {activeTab === 'photos' && <div className="p-6">Photos content would go here</div>}
+      {activeTab === 'photos' && <div className="p-4">Photos content would go here</div>}
 
-      {activeTab === 'more' && <div className="p-6">More content would go here</div>}
+      {activeTab === 'more' && <div className="p-4">More content would go here</div>}
     </>
   )
 }

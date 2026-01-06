@@ -177,7 +177,7 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
         )}
       >
         {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+        <div className="px-4 py-4 border-b border-gray-200 bg-gray-50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div
@@ -207,7 +207,7 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
         {/* Modal Content */}
         <div className="flex flex-col h-[calc(90vh-140px)]">
           {/* Reactions List */}
-          <div className="flex-1 overflow-y-auto px-6 py-4">
+          <div className="flex-1 overflow-y-auto px-4 py-4">
             {!isLoading && !error && reactions.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {reactions.map((reaction) => (
@@ -295,7 +295,7 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({
 
           {/* Loading State */}
           {isLoading && (
-            <div className="px-6 py-8 text-center">
+            <div className="px-4 py-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3"></div>
               <p className="text-gray-500">Loading reactions...</p>
             </div>

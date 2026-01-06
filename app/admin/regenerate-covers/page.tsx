@@ -277,7 +277,7 @@ export default function RegenerateCoversPage() {
     <div className="container mx-auto py-8">
       <h1 className="text-3xl font-bold mb-6">Regenerate Book Covers</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <Card>
           <CardHeader>
             <CardTitle>Book Statistics</CardTitle>
@@ -361,7 +361,7 @@ export default function RegenerateCoversPage() {
                   disabled={isProcessing}
                 />
               </div>
-              <div className="flex items-center space-x-2 pt-6">
+              <div className="flex items-center space-x-2 pt-4">
                 <Switch
                   id="filterEmptyCovers"
                   checked={filterEmptyCovers}

@@ -22,7 +22,7 @@ export default async function BooksWithMultipleAuthorsPage({
 
     if (error) {
       return (
-        <div className="p-6">
+        <div className="p-4">
           <h1 className="text-2xl font-bold mb-4">Books With Multiple Authors</h1>
           <div className="p-4 bg-red-50 text-red-700 rounded-md">
             <p className="font-semibold">Error loading books:</p>
@@ -42,7 +42,7 @@ export default async function BooksWithMultipleAuthorsPage({
     }))
 
     return (
-      <div className="p-6">
+      <div className="p-4">
         <Suspense fallback={<BooksWithMultipleAuthorsLoading />}>
           <BooksWithMultipleAuthorsClient
             initialBooks={transformedBooks}
@@ -55,7 +55,7 @@ export default async function BooksWithMultipleAuthorsPage({
     )
   } catch (error) {
     return (
-      <div className="p-6">
+      <div className="p-4">
         <h1 className="text-2xl font-bold mb-4">Books With Multiple Authors</h1>
         <div className="p-4 bg-red-50 text-red-700 rounded-md">
           <p className="font-semibold">Error loading books:</p>

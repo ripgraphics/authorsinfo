@@ -159,7 +159,7 @@ export function PrivacySettings({
     return (
       <div className={`space-y-6 ${className}`}>
         <Card>
-          <CardContent className="flex items-center justify-center p-6">
+          <CardContent className="flex items-center justify-center p-4">
             <RefreshCw className="h-6 w-6 animate-spin" />
             <span className="ml-2">Loading privacy settings...</span>
           </CardContent>

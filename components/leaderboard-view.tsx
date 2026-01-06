@@ -91,7 +91,7 @@ export function LeaderboardView({
           </div>
         </CardHeader>
       )}
-      <CardContent className={cn(!showTitle && 'pt-6')}>
+      <CardContent className={cn(!showTitle && 'pt-4')}>
         <Tabs
           value={activeTab}
           onValueChange={(v) => setActiveTab(v as any)}

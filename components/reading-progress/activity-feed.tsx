@@ -113,7 +113,7 @@ export function ActivityFeed({ type, limit = 5, className }: ActivityFeedProps) 
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-center text-muted-foreground py-6">
+          <p className="text-center text-muted-foreground py-4">
             {error === 'User not authenticated'
               ? 'Please sign in to view reading activity'
               : error === 'No friends found' && type === 'friends'
@@ -137,7 +137,7 @@ export function ActivityFeed({ type, limit = 5, className }: ActivityFeedProps) 
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-center text-muted-foreground py-6">
+          <p className="text-center text-muted-foreground py-4">
             {type === 'user'
               ? "You haven't tracked any books yet. Start tracking your reading progress!"
               : 'No activity from your friends yet.'}

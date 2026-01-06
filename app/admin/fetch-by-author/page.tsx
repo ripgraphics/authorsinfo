@@ -281,7 +281,7 @@ export default function FetchByAuthorPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4">
       <Link href="/admin/retrieve-books" className="text-blue-500 underline">
         &larr; Back to Retrieval Options
       </Link>
@@ -424,7 +424,7 @@ export default function FetchByAuthorPage() {
         </div>
       )}
 
-      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
         {books.map((book, idx) => {
           const bookKey = `${book.title}-${book.authors.join('-')}-${idx}`
           const isSelected = selectedBooks.has(bookKey)

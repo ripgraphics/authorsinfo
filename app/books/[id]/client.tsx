@@ -1049,7 +1049,7 @@ export function ClientBookPage({
       <div className="book-page__content">
         {activeTab === 'timeline' && (
           <div className="book-page__timeline-tab">
-            <div className="book-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="book-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-4">
               {/* Left Sidebar */}
               <div className="book-page__sidebar lg:col-span-1 space-y-6 self-end sticky bottom-0">
                 {/* About Section */}
@@ -1201,9 +1201,9 @@ export function ClientBookPage({
 
         {activeTab === 'details' && (
           <div className="book-page__details-tab">
-            <div className="book-detail-layout grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="book-detail-layout grid grid-cols-1 lg:grid-cols-3 gap-4">
               {/* Left Column - Book Cover (1/3 width) */}
-              <div className="book-page__details-sidebar lg:col-span-1 lg:sticky lg:top-6 lg:self-start">
+              <div className="book-page__details-sidebar lg:col-span-1 lg:sticky lg:top-4 lg:self-start">
                 {/* Book Cover (full width) */}
                 <Card
                   className="book-page__cover-card overflow-hidden relative"
@@ -1354,7 +1354,7 @@ export function ClientBookPage({
                           : 'Add to Shelf'}
                       </button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-lg p-6">
+                    <DialogContent className="max-w-lg p-4">
                       <DialogHeader>
                         <DialogTitle>
                           {currentReadingStatus ? 'Update Reading Status' : 'Add Book to Shelf'}
@@ -1881,7 +1881,7 @@ export function ClientBookPage({
                     ))}
                   </div>
                 ) : (
-                  <div className="no-reviews text-center py-6">
+                  <div className="no-reviews text-center py-4">
                     <p className="text-muted-foreground">
                       No reviews yet. Be the first to review this book!
                     </p>

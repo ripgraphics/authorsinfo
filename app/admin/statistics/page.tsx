@@ -99,7 +99,7 @@ export default async function StatisticsPage() {
   const { bindingTypesWithNames, formatTypesWithNames } = await getStatistics()
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Statistics</h1>
@@ -116,7 +116,7 @@ export default async function StatisticsPage() {
       </div>
 
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="p-4">
           <Tabs defaultValue="binding">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-medium">Book Format Statistics</h3>

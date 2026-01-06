@@ -1242,7 +1242,7 @@ export function EntityHeader({
       {renderCoverImage()}
 
       {/* Header Content */}
-      <div className="entity-header__content px-6 pb-6">
+      <div className="entity-header__content px-4 pb-4">
         <div className="entity-header__profile-section flex flex-col md:flex-row md:items-start relative z-10">
           {/* Profile Image - Only this should go outside the container */}
           <div className="shrink-0 self-start" style={{ transform: 'translateY(-40px)' }}>

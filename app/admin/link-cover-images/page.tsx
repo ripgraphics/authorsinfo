@@ -118,7 +118,7 @@ export default function LinkCoverImagesPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-2xl">
+    <div className="container mx-auto p-4 max-w-2xl">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

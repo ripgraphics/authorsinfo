@@ -136,7 +136,7 @@ export default function BookListAnalytics({ listId, groupId }: Props) {
   }, [listId])
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
+    <div className="bg-white rounded-lg shadow-sm p-4">
       <h2 className="text-xl font-semibold mb-4">List Analytics</h2>
 
       <div className="grid grid-cols-3 gap-4 mb-6">

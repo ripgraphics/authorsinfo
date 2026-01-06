@@ -331,7 +331,7 @@ export default function GroupEditPage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4">
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Group Name</Label>
@@ -383,7 +383,7 @@ export default function GroupEditPage() {
         </Card>
 
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4">
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Group Avatar</Label>

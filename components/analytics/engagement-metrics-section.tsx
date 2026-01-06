@@ -84,23 +84,23 @@ export default function EngagementMetricsSection() {
     <div className="space-y-8">
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-card border rounded-lg p-6">
+        <div className="bg-card border rounded-lg p-4">
           <p className="text-sm font-medium text-muted-foreground">Total Activities</p>
           <p className="text-3xl font-bold mt-2">{metrics.total_activities.toLocaleString()}</p>
         </div>
-        <div className="bg-card border rounded-lg p-6">
+        <div className="bg-card border rounded-lg p-4">
           <p className="text-sm font-medium text-muted-foreground">Active Users</p>
           <p className="text-3xl font-bold mt-2">{metrics.unique_users.toLocaleString()}</p>
         </div>
-        <div className="bg-card border rounded-lg p-6">
+        <div className="bg-card border rounded-lg p-4">
           <p className="text-sm font-medium text-muted-foreground">Daily Average</p>
           <p className="text-3xl font-bold mt-2">{metrics.avg_daily_activities.toLocaleString()}</p>
         </div>
       </div>
 
       {/* Activity Type Breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-card border rounded-lg p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="bg-card border rounded-lg p-4">
           <h3 className="text-lg font-semibold mb-4">Activity Type Breakdown</h3>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={activityChartData}>
@@ -114,7 +114,7 @@ export default function EngagementMetricsSection() {
         </div>
 
         {/* Entity Breakdown */}
-        <div className="bg-card border rounded-lg p-6">
+        <div className="bg-card border rounded-lg p-4">
           <h3 className="text-lg font-semibold mb-4">Entity Engagement Distribution</h3>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
@@ -140,24 +140,24 @@ export default function EngagementMetricsSection() {
 
       {/* Activity Breakdown Details Table */}
       <div className="bg-card border rounded-lg overflow-hidden">
-        <div className="p-6 border-b">
+        <div className="p-4 border-b">
           <h3 className="text-lg font-semibold">Activity Breakdown</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-muted border-b">
               <tr>
-                <th className="px-6 py-3 text-left font-medium">Activity Type</th>
-                <th className="px-6 py-3 text-right font-medium">Count</th>
-                <th className="px-6 py-3 text-right font-medium">% of Total</th>
+                <th className="px-4 py-3 text-left font-medium">Activity Type</th>
+                <th className="px-4 py-3 text-right font-medium">Count</th>
+                <th className="px-4 py-3 text-right font-medium">% of Total</th>
               </tr>
             </thead>
             <tbody>
               {activityChartData.map((item, index) => (
                 <tr key={item.name} className="border-b hover:bg-muted/50">
-                  <td className="px-6 py-4 font-medium">{item.name}</td>
-                  <td className="px-6 py-4 text-right">{item.value.toLocaleString()}</td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-4 py-4 font-medium">{item.name}</td>
+                  <td className="px-4 py-4 text-right">{item.value.toLocaleString()}</td>
+                  <td className="px-4 py-4 text-right">
                     {(
                       (item.value / metrics.total_activities) *
                       100

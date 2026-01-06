@@ -46,7 +46,7 @@ export function GenerateActivitiesForm() {
   }
 
   return (
-    <Card className="p-6">
+    <Card className="p-4">
       <h3 className="text-lg font-medium mb-4">Generate Activities</h3>
 
       <div className="mb-6">

@@ -21,7 +21,7 @@ export function FeedItemFooter({
   isLiked = false,
 }: FeedItemFooterProps) {
   return (
-    <div className="px-6 py-3 bg-muted/50 flex items-center justify-between text-sm">
+    <div className="px-4 py-3 bg-muted/50 flex items-center justify-between text-sm">
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"

@@ -55,7 +55,7 @@ export function SidebarSection({
       )}
     >
       {/* Header Section */}
-      <div className={cn('sidebar-section__header-container p-6 pb-2 border-b', headerClassName)}>
+      <div className={cn('sidebar-section__header-container p-4 pb-2 border-b', headerClassName)}>
         <div className="sidebar-section__header-content flex items-center justify-between">
           <h3 className="sidebar-section__title text-2xl font-semibold leading-none tracking-tight">
             {title}
@@ -76,7 +76,7 @@ export function SidebarSection({
       </div>
 
       {/* Main Content Section */}
-      <CardContent className={cn('sidebar-section__content-container p-6 pt-4', contentClassName)}>
+      <CardContent className={cn('sidebar-section__content-container p-4 pt-4', contentClassName)}>
         {isExpandable ? (
           <ExpandableSection
             expanded={expanded}
@@ -96,7 +96,7 @@ export function SidebarSection({
 
       {/* Footer Section */}
       {footer && (
-        <div className={cn('sidebar-section__footer-container p-6 pt-0', footerClassName)}>
+        <div className={cn('sidebar-section__footer-container p-4 pt-0', footerClassName)}>
           {footer}
         </div>
       )}

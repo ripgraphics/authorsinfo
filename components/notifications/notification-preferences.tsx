@@ -148,7 +148,7 @@ export function NotificationPreferences({
   if (!preferences) {
     return (
       <Card className={className}>
-        <CardContent className="pt-6">
+        <CardContent className="pt-4">
           <p className="text-sm text-red-600">Failed to load preferences</p>
         </CardContent>
       </Card>

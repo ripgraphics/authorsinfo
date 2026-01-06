@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card'
 
 export default function Loading() {
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 space-y-6">
       <div className="flex items-center justify-between">
         <Skeleton className="h-8 w-64" />
         <div className="hidden md:flex items-center gap-4">
@@ -12,7 +12,7 @@ export default function Loading() {
       </div>
 
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="p-4">
           <div className="flex items-center justify-between mb-6">
             <Skeleton className="h-6 w-40" />
             <Skeleton className="h-10 w-48 rounded-md" />

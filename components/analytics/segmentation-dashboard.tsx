@@ -110,15 +110,15 @@ export default function UserSegmentationDashboard() {
     <div className="space-y-8">
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-card border rounded-lg p-6">
+        <div className="bg-card border rounded-lg p-4">
           <p className="text-sm font-medium text-muted-foreground">Total Segments</p>
           <p className="text-3xl font-bold mt-2">{segments.length}</p>
         </div>
-        <div className="bg-card border rounded-lg p-6">
+        <div className="bg-card border rounded-lg p-4">
           <p className="text-sm font-medium text-muted-foreground">Total Members</p>
           <p className="text-3xl font-bold mt-2">{totalMembers.toLocaleString()}</p>
         </div>
-        <div className="bg-card border rounded-lg p-6">
+        <div className="bg-card border rounded-lg p-4">
           <p className="text-sm font-medium text-muted-foreground">Average Segment Size</p>
           <p className="text-3xl font-bold mt-2">
             {Math.round(totalMembers / segments.length).toLocaleString()}
@@ -127,7 +127,7 @@ export default function UserSegmentationDashboard() {
       </div>
 
       {/* Segment Distribution Pie Chart */}
-      <div className="bg-card border rounded-lg p-6">
+      <div className="bg-card border rounded-lg p-4">
         <h3 className="text-lg font-semibold mb-4">Member Distribution by Segment</h3>
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
@@ -152,7 +152,7 @@ export default function UserSegmentationDashboard() {
       </div>
 
       {/* Segment Type Distribution */}
-      <div className="bg-card border rounded-lg p-6">
+      <div className="bg-card border rounded-lg p-4">
         <h3 className="text-lg font-semibold mb-4">Segments by Type</h3>
         <ResponsiveContainer width="100%" height={250}>
           <BarChart data={typeChartData}>
@@ -167,32 +167,32 @@ export default function UserSegmentationDashboard() {
 
       {/* Segments Table */}
       <div className="bg-card border rounded-lg overflow-hidden">
-        <div className="p-6 border-b">
+        <div className="p-4 border-b">
           <h3 className="text-lg font-semibold">User Segments</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-muted border-b">
               <tr>
-                <th className="px-6 py-3 text-left font-medium">Segment Name</th>
-                <th className="px-6 py-3 text-left font-medium">Type</th>
-                <th className="px-6 py-3 text-left font-medium">Description</th>
-                <th className="px-6 py-3 text-right font-medium">Members</th>
-                <th className="px-6 py-3 text-left font-medium">% of Total</th>
+                <th className="px-4 py-3 text-left font-medium">Segment Name</th>
+                <th className="px-4 py-3 text-left font-medium">Type</th>
+                <th className="px-4 py-3 text-left font-medium">Description</th>
+                <th className="px-4 py-3 text-right font-medium">Members</th>
+                <th className="px-4 py-3 text-left font-medium">% of Total</th>
               </tr>
             </thead>
             <tbody>
               {segments.map((segment) => (
                 <tr key={segment.id} className="border-b hover:bg-muted/50 transition-colors">
-                  <td className="px-6 py-4 font-medium">{segment.name}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4 font-medium">{segment.name}</td>
+                  <td className="px-4 py-4">
                     <Badge variant="outline">{SEGMENT_TYPE_LABELS[segment.segment_type]}</Badge>
                   </td>
-                  <td className="px-6 py-4 text-muted-foreground">
+                  <td className="px-4 py-4 text-muted-foreground">
                     {segment.description || 'N/A'}
                   </td>
-                  <td className="px-6 py-4 text-right">{segment.member_count.toLocaleString()}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4 text-right">{segment.member_count.toLocaleString()}</td>
+                  <td className="px-4 py-4">
                     {totalMembers > 0
                       ? `${((segment.member_count / totalMembers) * 100).toFixed(1)}%`
                       : 'N/A'}

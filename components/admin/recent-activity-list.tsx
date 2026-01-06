@@ -55,7 +55,7 @@ export function RecentActivityList({
             ))}
           </div>
         ) : (
-          <div className="py-6 text-center text-muted-foreground">{emptyMessage}</div>
+          <div className="py-4 text-center text-muted-foreground">{emptyMessage}</div>
         )}
       </CardContent>
     </Card>

@@ -347,7 +347,7 @@ export default function FetchByYearPage() {
   }).length
 
   return (
-    <div className="p-6">
+    <div className="p-4">
       <Link href="/admin/retrieve-books" className="text-blue-500 underline">
         &larr; Back to Retrieval Options
       </Link>
@@ -495,7 +495,7 @@ export default function FetchByYearPage() {
         </div>
       )}
 
-      <div className="results-grid mt-6 grid grid-cols-1 md:grid-cols-6 gap-6">
+      <div className="results-grid mt-6 grid grid-cols-1 md:grid-cols-6 gap-4">
         {books.map((book, idx) => {
           const isbn = book.isbn13 || book.isbn
           const isInSystem = isbn ? booksInSystem.has(isbn) : false

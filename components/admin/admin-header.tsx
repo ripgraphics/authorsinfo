@@ -40,7 +40,7 @@ export function AdminHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-background px-6">
+      <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-background px-4">
         <Button variant="ghost" size="icon" className="h-10 w-10">
           <Menu className="h-5 w-5" />
           <span className="sr-only">Toggle Menu</span>

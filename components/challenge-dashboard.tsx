@@ -108,7 +108,7 @@ export function ChallengeDashboard() {
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : activeChallenges.length > 0 ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {activeChallenges.map((challenge) => (
                 <ChallengeCard 
                   key={challenge.id} 
@@ -133,7 +133,7 @@ export function ChallengeDashboard() {
 
         <TabsContent value="completed" className="mt-6">
           {completedChallenges.length > 0 ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {completedChallenges.map((challenge) => (
                 <ChallengeCard 
                   key={challenge.id} 
@@ -151,7 +151,7 @@ export function ChallengeDashboard() {
 
         <TabsContent value="friends" className="mt-6">
           {friendsChallenges.length > 0 ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {friendsChallenges.map((challenge) => (
                 <ChallengeCard 
                   key={challenge.id} 

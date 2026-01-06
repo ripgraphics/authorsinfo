@@ -114,7 +114,7 @@ export default function PostEditor({
   if (!user) {
     return (
       <Card className="w-full">
-        <CardContent className="p-6">
+        <CardContent className="p-4">
           <p className="text-center text-muted-foreground">Please sign in to create a post</p>
         </CardContent>
       </Card>

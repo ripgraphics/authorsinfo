@@ -127,7 +127,7 @@ export function BookClubDashboard({
     <div className="space-y-6">
       {/* Club Header */}
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="pt-4">
           <div className="flex items-start justify-between">
             <div className="flex gap-4">
               {club.cover_image_url && (
@@ -203,7 +203,7 @@ export function BookClubDashboard({
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Stats Cards */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -256,7 +256,7 @@ export function BookClubDashboard({
           </div>
 
           {/* Top Readers & Most Active */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Top Readers 📚</CardTitle>

@@ -27,7 +27,7 @@ export function Timeline({ items, showActions = true, className = '' }: Timeline
           key={item.id}
           className="timeline__item rounded-lg border bg-card text-card-foreground shadow-xs mb-6"
         >
-          <div className="timeline__header flex flex-col space-y-1.5 p-6 pb-3">
+          <div className="timeline__header flex flex-col space-y-1.5 p-4 pb-3">
             <div className="timeline__header-row flex justify-between">
               <div className="timeline__user flex items-center gap-3">
                 <Avatar
@@ -62,10 +62,10 @@ export function Timeline({ items, showActions = true, className = '' }: Timeline
               </Button>
             </div>
           </div>
-          <div className="timeline__content p-6 pt-0 pb-3">{item.content}</div>
+          <div className="timeline__content p-4 pt-0 pb-3">{item.content}</div>
           {showActions && (
-            <div className="timeline__footer p-6 flex items-center justify-between py-3">
-              <div className="timeline__actions flex items-center gap-6">
+            <div className="timeline__footer p-4 flex items-center justify-between py-3">
+              <div className="timeline__actions flex items-center gap-4">
                 <Button variant="ghost" className="timeline__action-btn h-9 rounded-md px-3 gap-1">
                   <Heart className="h-4 w-4" />
                   <span>Like</span>

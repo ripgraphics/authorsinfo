@@ -172,7 +172,7 @@ export default function ChallengeDetailsPage() {
             </div>
 
             <Card>
-              <CardContent className="pt-6 space-y-6">
+              <CardContent className="pt-4 space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Progress</p>

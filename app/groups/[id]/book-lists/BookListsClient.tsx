@@ -169,7 +169,7 @@ export default function BookListsClient({ initialBookLists, groupId }: Props) {
           <Reorder.Item
             key={list.id}
             value={list}
-            className="bg-white p-6 rounded-lg shadow-sm mb-4"
+            className="bg-white p-4 rounded-lg shadow-sm mb-4"
           >
             <div className="flex justify-between items-start mb-4">
               <div>
@@ -195,7 +195,7 @@ export default function BookListsClient({ initialBookLists, groupId }: Props) {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-4">
                 {list.group_book_list_items.map((item) => (
                   <div

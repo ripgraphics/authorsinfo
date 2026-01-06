@@ -26,7 +26,7 @@ export function TimelineAboutSection({
   return (
     <div className="timeline-about-section rounded-lg border bg-card text-card-foreground shadow-xs">
       {/* Header Section */}
-      <div className="timeline-about-section__header-section p-6 pb-2 border-b">
+      <div className="timeline-about-section__header-section p-4 pb-2 border-b">
         <SectionHeader
           title={title}
           right={
@@ -43,7 +43,7 @@ export function TimelineAboutSection({
         />
       </div>
       {/* Main Section */}
-      <div className="timeline-about-section__main-section p-6 pb-0 space-y-4">
+      <div className="timeline-about-section__main-section p-4 pb-0 space-y-4">
         <ExpandableSection hideToggle sidePanelStyle>
           {bio || 'No biography available for this author.'}
         </ExpandableSection>
@@ -68,7 +68,7 @@ export function TimelineAboutSection({
         )}
       </div>
       {/* Footer Section */}
-      <div className="timeline-about-section__footer-section p-6">
+      <div className="timeline-about-section__footer-section p-4">
         <ViewFullDetailsButton onClick={onViewFullDetails} />
       </div>
     </div>

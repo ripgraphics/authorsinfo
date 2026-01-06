@@ -128,7 +128,7 @@ export function FriendSuggestions() {
   if (isLoading) {
     return (
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="p-4">
           <div className="flex items-center justify-center">
             <Loader2 className="h-6 w-6 animate-spin" />
             <span className="ml-2">Loading suggestions...</span>
@@ -171,7 +171,7 @@ export function FriendSuggestions() {
       <div className="space-y-3">
         {suggestions.length === 0 ? (
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-4">
               <div className="flex flex-col items-center text-center">
                 <Sparkles className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No suggestions available</h3>

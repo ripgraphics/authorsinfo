@@ -1161,7 +1161,7 @@ export default function EntityFeedCard({
             {/* Image Upload Area */}
             {showImageUpload && (
               <div
-                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center transition-colors hover:border-blue-400"
+                className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center transition-colors hover:border-blue-400"
                 onDragOver={(e) => {
                   e.preventDefault()
                   e.currentTarget.classList.add('border-blue-400', 'bg-blue-50')
@@ -1683,7 +1683,7 @@ export default function EntityFeedCard({
 
   return (
     <div className="rounded-lg border bg-card text-card-foreground shadow-xs enterprise-feed-card enterprise-timeline-feed-card">
-      <div className="flex flex-col space-y-1.5 p-6 enterprise-feed-card-header pb-3">
+      <div className="flex flex-col space-y-1.5 p-4 enterprise-feed-card-header pb-3">
         <div className="enterprise-feed-card-header-content flex items-start gap-3">
           {/* User Avatar */}
           <EntityHoverCard
@@ -1906,7 +1906,7 @@ export default function EntityFeedCard({
         </div>
       </div>
 
-      <div className="p-6 pt-0 enterprise-feed-card-content">
+      <div className="p-4 pt-0 enterprise-feed-card-content">
         {/* Content Warnings */}
         {renderContentWarnings()}
 
@@ -2326,7 +2326,7 @@ export default function EntityFeedCard({
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg max-w-2xl w-full mx-4 h-[90vh] shadow-2xl flex flex-col">
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <div className="px-4 py-4 border-b border-gray-200 bg-gray-50">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -2351,7 +2351,7 @@ export default function EntityFeedCard({
               {/* Single scrollable column: header + post content + filter + comments */}
               <div className="flex-1 overflow-y-auto">
                 {/* Feed header (same as card header) */}
-                <div className="px-6 pt-4">
+                <div className="px-4 pt-4">
                   <div className="enterprise-feed-card-header-content flex items-start gap-3">
                     <EntityHoverCard
                       type="user"
@@ -2415,10 +2415,10 @@ export default function EntityFeedCard({
                 </div>
 
                 {/* Post content */}
-                <div className="px-6 pt-2">{renderContent()}</div>
+                <div className="px-4 pt-2">{renderContent()}</div>
 
                 {/* Filter */}
-                <div className="px-6 pt-2">
+                <div className="px-4 pt-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button className="text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors rounded-full px-3 py-1">
@@ -2448,7 +2448,7 @@ export default function EntityFeedCard({
                 </div>
 
                 {/* Comments List */}
-                <div className="px-6 py-4">
+                <div className="px-4 py-4">
                   {!isLoadingComments && comments.length > 0 ? (
                     <div className="space-y-4">
                       {(commentFilter === 'all' ? [...comments] : comments).map((comment) => (
@@ -2942,7 +2942,7 @@ export default function EntityFeedCard({
 
               {/* Comment Input Section (reused composer) */}
               {canCommentModal && (
-                <div className="bg-white px-6 py-3 border-t border-gray-200 shrink-0">
+                <div className="bg-white px-4 py-3 border-t border-gray-200 shrink-0">
                   <EntityCommentComposer
                     entityId={post.id}
                     entityType={post.entity_type || 'activity'}

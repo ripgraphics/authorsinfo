@@ -151,7 +151,7 @@ export default function CloudinaryImagesPage() {
   }, [folder])
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="container mx-auto py-4 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Cloudinary Images</h1>
@@ -204,7 +204,7 @@ export default function CloudinaryImagesPage() {
       )}
 
       {/* Images Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {filteredImages.map((image) => (
           <Card key={image.public_id} className="overflow-hidden">
             <div className="aspect-square relative bg-muted">

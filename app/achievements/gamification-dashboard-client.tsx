@@ -95,7 +95,7 @@ export function GamificationDashboardClient({ userId }: GamificationDashboardCli
       {/* Stats Overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-2xl font-bold">{earnedBadges.length}</p>
@@ -111,7 +111,7 @@ export function GamificationDashboardClient({ userId }: GamificationDashboardCli
         </Card>
 
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-2xl font-bold">{tierStats.gold + tierStats.platinum + tierStats.diamond}</p>
@@ -140,7 +140,7 @@ export function GamificationDashboardClient({ userId }: GamificationDashboardCli
         </Card>
 
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-2xl font-bold">{featuredBadges.length}</p>
@@ -155,7 +155,7 @@ export function GamificationDashboardClient({ userId }: GamificationDashboardCli
         </Card>
 
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-2xl font-bold">{nearlyComplete.length}</p>

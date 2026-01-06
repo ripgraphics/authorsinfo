@@ -87,7 +87,7 @@ export default async function AnalyticsTabPage({ params }: PageProps) {
           <p className="text-slate-400 mb-6">The analytics tab you requested does not exist.</p>
           <a
             href="/analytics"
-            className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            className="inline-block px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
           >
             Back to Analytics
           </a>

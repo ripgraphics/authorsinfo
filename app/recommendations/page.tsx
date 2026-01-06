@@ -358,7 +358,7 @@ export default function RecommendationsPage() {
 
           {/* Tips card */}
           <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-            <CardContent className="pt-6">
+            <CardContent className="pt-4">
               <h4 className="font-medium flex items-center gap-2 mb-2">
                 <Sparkles className="h-4 w-4 text-primary" />
                 Improve Your Recommendations

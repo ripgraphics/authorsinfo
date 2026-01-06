@@ -98,11 +98,11 @@ export default function BookDiscussionsClient({ initialDiscussions, groupId, use
 
   return (
     <div>
-      <div className="grid grid-cols-1 gap-6">
+      <div className="grid grid-cols-1 gap-4">
         {discussions.map((discussion) => (
           <div
             key={discussion.id}
-            className={`bg-white rounded-lg shadow-md p-6 border ${
+            className={`bg-white rounded-lg shadow-md p-4 border ${
               discussion.is_pinned ? 'border-blue-500' : 'border-gray-200'
             }`}
           >

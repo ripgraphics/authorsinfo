@@ -1212,7 +1212,7 @@ export function EnterprisePhotoViewer({
         {/* Photo Details Modal */}
         {showDetailsModal && (
           <div className="photo-details-modal-overlay absolute inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="photo-details-modal-content bg-background p-6 rounded-lg max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="photo-details-modal-content bg-background p-4 rounded-lg max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
               <div className="photo-details-modal-header flex items-center justify-between mb-4">
                 <h3 className="photo-details-modal-title font-semibold text-lg">Photo Details</h3>
                 <Button
@@ -1361,7 +1361,7 @@ export function EnterprisePhotoViewer({
         {/* Edit Modal */}
         {showEditModal && (
           <div className="photo-edit-modal-overlay absolute inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="photo-edit-modal-content bg-background p-6 rounded-lg max-w-md w-full mx-4">
+            <div className="photo-edit-modal-content bg-background p-4 rounded-lg max-w-md w-full mx-4">
               <div className="photo-edit-modal-header flex items-center justify-between mb-4">
                 <h3 className="photo-edit-modal-title font-semibold text-lg">Edit Photo</h3>
                 <CloseButton onClick={() => setShowEditModal(false)} />
@@ -1704,7 +1704,7 @@ export function EnterprisePhotoViewer({
         {/* Share Modal */}
         {showShareModal && (
           <div className="photo-share-modal-overlay absolute inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="photo-share-modal-content bg-background p-6 rounded-lg max-w-md w-full mx-4">
+            <div className="photo-share-modal-content bg-background p-4 rounded-lg max-w-md w-full mx-4">
               <div className="photo-share-modal-header flex items-center justify-between mb-4">
                 <h3 className="photo-share-modal-title font-semibold text-lg">Share Photo</h3>
                 <CloseButton onClick={() => setShowShareModal(false)} />

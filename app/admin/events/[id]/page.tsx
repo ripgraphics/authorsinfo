@@ -64,7 +64,7 @@ export default async function AdminEventDetailPage({
         </Link>
       </div>
 
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+      <div className="bg-white rounded-lg shadow-md p-4 mb-8">
         <div className="flex items-center gap-4 mb-4">
           <span className="text-sm text-gray-500">Status:</span>
           {event.status === 'published' && (
@@ -138,7 +138,7 @@ export default async function AdminEventDetailPage({
       </div>
 
       {/* Analytics Section */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+      <div className="bg-white rounded-lg shadow-md p-4 mb-8">
         <div className="flex items-center gap-2 mb-4">
           <ChartBarIcon className="h-5 w-5 text-blue-600" />
           <h2 className="text-lg font-semibold">Event Analytics</h2>
@@ -178,7 +178,7 @@ export default async function AdminEventDetailPage({
       </div>
 
       {/* Moderation Section */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+      <div className="bg-white rounded-lg shadow-md p-4 mb-8">
         <h2 className="text-lg font-semibold mb-4">Moderate Comments & Content</h2>
         {comments && comments.length > 0 ? (
           <ul className="divide-y divide-gray-200">
@@ -201,7 +201,7 @@ export default async function AdminEventDetailPage({
       </div>
 
       {/* Chat Moderation Section */}
-      <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="bg-white rounded-lg shadow-md p-4">
         <h2 className="text-lg font-semibold mb-4">Moderate Chat Messages</h2>
         {chatMessages && chatMessages.length > 0 ? (
           <ul className="divide-y divide-gray-200">

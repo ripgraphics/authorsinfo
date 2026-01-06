@@ -126,7 +126,7 @@ export function ReadingListClient({
 
               {books.length === 0 ? (
                 <Card>
-                  <CardContent className="pt-6">
+                  <CardContent className="pt-4">
                     <div className="text-center py-8">
                       <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                       <h3 className="text-lg font-medium mb-2">No books yet</h3>

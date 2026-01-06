@@ -114,7 +114,7 @@ export function ClientPublishersList({
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
         {paginatedPublishers.length > 0 ? (
           paginatedPublishers.map((publisher) => (
             <Link href={`/publishers/${publisher.id}`} key={publisher.id} className="block">

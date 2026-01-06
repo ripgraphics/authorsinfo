@@ -148,7 +148,7 @@ async function DiscussionsList({
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
         {discussions.length > 0 ? (
           discussions.map((discussion) => (
             <Link href={`/discussions/${discussion.id}`} key={discussion.id} className="block">
@@ -254,7 +254,7 @@ export default async function DiscussionsPage({ searchParams }: DiscussionsPageP
 
   return (
     <div className="space-y-6">
-      <div className="py-6">
+      <div className="py-4">
         <h1 className="text-3xl font-bold tracking-tight">Discussions</h1>
         <p className="text-muted-foreground mt-2">
           Browse and discover discussions from our community.

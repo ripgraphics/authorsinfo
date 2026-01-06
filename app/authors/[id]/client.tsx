@@ -664,7 +664,7 @@ export function ClientAuthorPage({
   }, [tabParam, validTabIds, activeTab])
 
   return (
-    <div className="author-page author-page__container py-6">
+    <div className="author-page author-page__container py-4">
       <EntityHeader
         entityType="author"
         name={author?.name || 'Author'}
@@ -702,7 +702,7 @@ export function ClientAuthorPage({
       {/* Content Section with Sidebar on Left + Main Content on Right */}
       {activeTab === 'timeline' && (
         <div className="author-page__content">
-          <div className="author-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="author-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* LEFT SIDEBAR - 1 Column */}
             <div className="lg:col-span-1 space-y-6 self-end sticky bottom-0">
               {/* About Section */}
@@ -716,7 +716,7 @@ export function ClientAuthorPage({
 
               {/* Currently Reading Section */}
               <Card>
-                <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
+                <div className="space-y-1.5 p-4 flex flex-row items-center justify-between">
                   <div className="text-2xl font-semibold leading-none tracking-tight">
                     Currently Reading
                   </div>
@@ -724,7 +724,7 @@ export function ClientAuthorPage({
                     See All
                   </Link>
                 </div>
-                <CardContent className="p-6 pt-0 space-y-4">
+                <CardContent className="p-4 pt-0 space-y-4">
                   <div className="flex gap-3">
                     <div className="relative h-20 w-14 flex-shrink-0 overflow-hidden rounded-md">
                       <Image
@@ -784,7 +784,7 @@ export function ClientAuthorPage({
 
               {/* Photos Section */}
               <Card>
-                <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
+                <div className="space-y-1.5 p-4 flex flex-row items-center justify-between">
                   <div className="text-2xl font-semibold leading-none tracking-tight">Photos</div>
                   <Link
                     href={`/authors/${params.id}/photos`}
@@ -793,7 +793,7 @@ export function ClientAuthorPage({
                     See All
                   </Link>
                 </div>
-                <CardContent className="p-6 pt-0">
+                <CardContent className="p-4 pt-0">
                   <div className="grid grid-cols-3 gap-2">
                     {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
                       <div key={num} className="aspect-square relative rounded-sm overflow-hidden">
@@ -836,7 +836,7 @@ export function ClientAuthorPage({
 
       {activeTab === 'about' && (
         <div className="publisher-page__content">
-          <div className="publisher-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="publisher-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div className="lg:col-span-2">
               <EntityAboutTab
                 entity={{

@@ -204,7 +204,7 @@ export default function SophisticatedPhotoGridDemo() {
       </Card>
 
       {/* Features Explanation */}
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-2 gap-4">
         <Card>
           <CardHeader>
             <CardTitle>Layout Intelligence</CardTitle>

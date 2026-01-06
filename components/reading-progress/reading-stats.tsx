@@ -97,7 +97,7 @@ export function ReadingStats({
           <CardTitle>Reading Statistics</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-center text-muted-foreground py-6">
+          <p className="text-center text-muted-foreground py-4">
             {error === 'User not authenticated'
               ? 'Please sign in to view your reading statistics'
               : 'Failed to load reading statistics. Please try again.'}
@@ -115,7 +115,7 @@ export function ReadingStats({
           <CardDescription>Track your reading journey</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-center text-muted-foreground py-6">
+          <p className="text-center text-muted-foreground py-4">
             You haven't tracked any books yet. Start tracking your reading progress!
           </p>
         </CardContent>

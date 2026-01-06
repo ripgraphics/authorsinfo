@@ -256,7 +256,7 @@ export function ClientGroupPage({
       case 'timeline':
         return (
           <div className="group-page__timeline-tab">
-            <div className="group-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="group-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-4">
               {/* Left Sidebar */}
               <div className="group-page__sidebar lg:col-span-1 space-y-6 self-end sticky bottom-0">
                 {/* About Section */}
@@ -364,7 +364,7 @@ export function ClientGroupPage({
       default:
         return (
           <div className="group-page__timeline-tab">
-            <div className="group-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="group-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-4">
               {/* Left Sidebar */}
               <div className="group-page__sidebar lg:col-span-1 space-y-6 self-end sticky bottom-0">
                 {/* About Section */}
@@ -419,7 +419,7 @@ export function ClientGroupPage({
   }
 
   return (
-    <div className="group-page group-page__container py-6">
+    <div className="group-page group-page__container py-4">
       <EntityHeader
         entityType="group"
         name={group.name}
@@ -476,7 +476,7 @@ const GroupTimeline = ({ activities }: { activities: GroupActivity[] }) => {
         <Timeline items={timelineItems} />
       ) : (
         <Card>
-          <CardContent className="p-6 text-center text-muted-foreground">
+          <CardContent className="p-4 text-center text-muted-foreground">
             <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>No activity yet. Be the first to start something!</p>
           </CardContent>
@@ -493,7 +493,7 @@ const AboutSection = ({ group }: { group: Group }) => (
     </div>
 
     <Card>
-      <CardContent className="p-6">
+      <CardContent className="p-4">
         <div className="space-y-4">
           <div>
             <h3 className="font-semibold text-lg mb-2">Description</h3>
@@ -530,7 +530,7 @@ const BooksSection = ({ books }: { books: GroupBook[] }) => (
     </div>
 
     {books.length > 0 ? (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {books.map((book) => (
           <Card key={book.id} className="overflow-hidden">
             <div className="aspect-[3/4] relative">
@@ -548,7 +548,7 @@ const BooksSection = ({ books }: { books: GroupBook[] }) => (
       </div>
     ) : (
       <Card>
-        <CardContent className="p-6 text-center text-muted-foreground">
+        <CardContent className="p-4 text-center text-muted-foreground">
           <Book className="h-12 w-12 mx-auto mb-4 opacity-50" />
           <p>No books added to this group yet.</p>
         </CardContent>
@@ -654,7 +654,7 @@ const DiscussionsSection = ({
       </div>
     ) : (
       <Card>
-        <CardContent className="p-6 text-center text-muted-foreground">
+        <CardContent className="p-4 text-center text-muted-foreground">
           <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
           <p>No discussions yet. Start the conversation!</p>
         </CardContent>

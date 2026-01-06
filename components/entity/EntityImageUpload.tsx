@@ -562,7 +562,7 @@ export function EntityImageUpload({
 
         {/* Preview - Takes available space */}
         <div
-          className={`flex-1 min-h-0 flex items-center justify-center ${type === 'bookCover' || type === 'entityHeaderCover' ? 'py-6' : 'py-4'}`}
+          className={`flex-1 min-h-0 flex items-center justify-center ${type === 'bookCover' || type === 'entityHeaderCover' ? 'py-4' : 'py-4'}`}
         >
           <div
             className={cn(

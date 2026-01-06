@@ -242,7 +242,7 @@ export const AnalyticsDashboardClient: React.FC<AnalyticsDashboardClientProps> =
       <div className="space-y-8">
         {activeTab === 'cohorts' && (
           <div className="space-y-6">
-            <div className="bg-slate-700/30 rounded-lg border border-slate-600 p-6">
+            <div className="bg-slate-700/30 rounded-lg border border-slate-600 p-4">
               <h2 className="text-xl font-bold text-white mb-6">Retention Analysis</h2>
               <RetentionCurveChart
                 cohorts={cohorts}
@@ -250,7 +250,7 @@ export const AnalyticsDashboardClient: React.FC<AnalyticsDashboardClientProps> =
                 height={400}
               />
             </div>
-            <div className="bg-slate-700/30 rounded-lg border border-slate-600 p-6">
+            <div className="bg-slate-700/30 rounded-lg border border-slate-600 p-4">
               <h2 className="text-xl font-bold text-white mb-6">Cohort Retention Heatmap</h2>
               <CohortRetentionTable
                 cohorts={cohorts}
@@ -261,7 +261,7 @@ export const AnalyticsDashboardClient: React.FC<AnalyticsDashboardClientProps> =
         )}
 
         {activeTab === 'churn' && (
-          <div className="bg-slate-700/30 rounded-lg border border-slate-600 p-6">
+          <div className="bg-slate-700/30 rounded-lg border border-slate-600 p-4">
             <h2 className="text-xl font-bold text-white mb-6">Churn Risk Analysis</h2>
             <ChurnRiskDashboard
               atRiskUsers={filteredChurnUsers}
@@ -272,8 +272,8 @@ export const AnalyticsDashboardClient: React.FC<AnalyticsDashboardClientProps> =
         )}
 
         {activeTab === 'segments' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-slate-700/30 rounded-lg border border-slate-600 p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="bg-slate-700/30 rounded-lg border border-slate-600 p-4">
               <h2 className="text-xl font-bold text-white mb-6">Segment Distribution</h2>
               <UserSegmentationChart
                 segments={filteredSegments}
@@ -281,7 +281,7 @@ export const AnalyticsDashboardClient: React.FC<AnalyticsDashboardClientProps> =
                 chartType="pie"
               />
             </div>
-            <div className="bg-slate-700/30 rounded-lg border border-slate-600 p-6">
+            <div className="bg-slate-700/30 rounded-lg border border-slate-600 p-4">
               <h2 className="text-xl font-bold text-white mb-6">Segment Comparison</h2>
               <UserSegmentationChart
                 segments={filteredSegments}
@@ -294,14 +294,14 @@ export const AnalyticsDashboardClient: React.FC<AnalyticsDashboardClientProps> =
 
         {activeTab === 'engagement' && (
           <div className="space-y-6">
-            <div className="bg-slate-700/30 rounded-lg border border-slate-600 p-6">
+            <div className="bg-slate-700/30 rounded-lg border border-slate-600 p-4">
               <h2 className="text-xl font-bold text-white mb-6">Engagement Heatmap</h2>
               <EngagementHeatmap
                 data={engagementData}
                 isLoading={isLoading}
               />
             </div>
-            <div className="bg-slate-700/30 rounded-lg border border-slate-600 p-6">
+            <div className="bg-slate-700/30 rounded-lg border border-slate-600 p-4">
               <h2 className="text-xl font-bold text-white mb-6">Trending Topics</h2>
               <TrendingTopicsTable
                 topics={trendingTopics}

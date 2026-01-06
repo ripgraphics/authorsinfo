@@ -36,7 +36,7 @@ export function FeedContent() {
       <div className="space-y-4">
         {Array.from({ length: 3 }).map((_, index) => (
           <Card key={index} className="animate-pulse">
-            <CardContent className="p-6">
+            <CardContent className="p-4">
               <div className="flex items-start space-x-4">
                 <div className="h-12 w-12 bg-gray-200 rounded-full" />
                 <div className="flex-1 space-y-2">
@@ -55,7 +55,7 @@ export function FeedContent() {
   if (!user) {
     return (
       <Card className="border-red-200 bg-red-50">
-        <CardContent className="p-6 text-center">
+        <CardContent className="p-4 text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-red-800 mb-2">Authentication Required</h3>
           <p className="text-red-600 mb-4">Please log in to view your feed.</p>

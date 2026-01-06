@@ -74,7 +74,7 @@ export function PageHeader({ title, description, children }: PageHeaderProps) {
     >
       <div className="container mx-auto flex h-16 items-center justify-between px-4 max-w-7xl">
         {/* Left section - Logo and Navigation */}
-        <div className="page-header__left flex items-center gap-4 md:gap-6 lg:gap-10">
+        <div className="page-header__left flex items-center gap-4 md:gap-4 lg:gap-10">
           <Link href="/" className="page-header__logo flex items-center gap-2 font-bold text-xl">
             <Image
               src="/images/authorsinfo-logo-b-135x45.svg"
@@ -217,7 +217,7 @@ export function PageHeader({ title, description, children }: PageHeaderProps) {
       </div>
 
       {title && (
-        <div className="container mx-auto px-4 max-w-7xl py-6">
+        <div className="container mx-auto px-4 max-w-7xl py-4">
           <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
           {description && <p className="text-muted-foreground mt-2">{description}</p>}
         </div>

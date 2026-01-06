@@ -42,7 +42,7 @@ export function ReadingStatsDashboard({
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <Card key={i}>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4">
               <div className="h-24 bg-muted animate-pulse rounded" />
             </CardContent>
           </Card>
@@ -83,7 +83,7 @@ export function ReadingStatsDashboard({
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {/* Total Books */}
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-3xl font-bold">{stats.totalBooksRead}</p>
@@ -96,7 +96,7 @@ export function ReadingStatsDashboard({
 
         {/* Total Pages */}
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-3xl font-bold">{stats.totalPagesRead.toLocaleString()}</p>
@@ -109,7 +109,7 @@ export function ReadingStatsDashboard({
 
         {/* Time Read */}
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-3xl font-bold">
@@ -124,7 +124,7 @@ export function ReadingStatsDashboard({
 
         {/* Current Streak */}
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-3xl font-bold">{stats.currentStreak}</p>

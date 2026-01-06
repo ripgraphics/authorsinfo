@@ -80,7 +80,7 @@ export function SearchResults({
 
   return (
     <div className="space-y-6">
-      <div className="py-6">
+      <div className="py-4">
         <h1 className="text-3xl font-bold tracking-tight">Search Results</h1>
         <p className="text-muted-foreground mt-2">
           {searchQuery
@@ -114,7 +114,7 @@ export function SearchResults({
             {isbndbBooks.length > 0 && (
               <div>
                 <h2 className="text-xl font-semibold mb-4">ISBNDB Results</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                   {isbndbBooks.slice(0, 4).map((book, index) => (
                     <Link
                       key={index}
@@ -156,7 +156,7 @@ export function SearchResults({
             {filteredBooks.length > 0 && (
               <div>
                 <h2 className="text-xl font-semibold mb-4">Books</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                   {filteredBooks.slice(0, 4).map((book) => (
                     <Link href={`/books/${book.id}`} key={book.id} className="block">
                       <Card className="overflow-hidden h-full transition-transform hover:scale-105">
@@ -195,7 +195,7 @@ export function SearchResults({
             {filteredAuthors.length > 0 && (
               <div>
                 <h2 className="text-xl font-semibold mb-4">Authors</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                   {filteredAuthors.slice(0, 4).map((author) => (
                     <Link href={`/authors/${author.id}`} key={author.id} className="block">
                       <Card className="overflow-hidden h-full transition-transform hover:scale-105">
@@ -234,7 +234,7 @@ export function SearchResults({
             {filteredPublishers.length > 0 && (
               <div>
                 <h2 className="text-xl font-semibold mb-4">Publishers</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                   {filteredPublishers.slice(0, 4).map((publisher) => (
                     <Link href={`/publishers/${publisher.id}`} key={publisher.id} className="block">
                       <Card className="overflow-hidden h-full transition-transform hover:scale-105">
@@ -358,7 +358,7 @@ export function SearchResults({
                 </Button>
               </div>
             )}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
               {isbndbBooks.map((book, index) => {
                 const isSelected = selectedBooks.has(index)
 
@@ -437,7 +437,7 @@ export function SearchResults({
           </TabsContent>
 
           <TabsContent value="authors" className="mt-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
               {filteredAuthors.length > 0 ? (
                 filteredAuthors.map((author) => (
                   <Link href={`/authors/${author.id}`} key={author.id} className="block">
@@ -471,7 +471,7 @@ export function SearchResults({
           </TabsContent>
 
           <TabsContent value="publishers" className="mt-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
               {filteredPublishers.length > 0 ? (
                 filteredPublishers.map((publisher) => (
                   <Link href={`/publishers/${publisher.id}`} key={publisher.id} className="block">

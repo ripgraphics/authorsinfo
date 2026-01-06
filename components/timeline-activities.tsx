@@ -348,7 +348,7 @@ export function TimelineActivities({ userId, userAvatarUrl, userName }: Timeline
                 <p className="mt-2 text-sm text-muted-foreground">{activity.data.description}</p>
               )}
 
-              <div className="flex items-center gap-6 mt-4">
+              <div className="flex items-center gap-4 mt-4">
                 <Button variant="ghost" size="sm" className="gap-1">
                   <Heart className="h-4 w-4" />
                   <span>Like</span>

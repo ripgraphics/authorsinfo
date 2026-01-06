@@ -258,7 +258,7 @@ export default function ContentModerationSystem({ className }: ContentModeration
   if (!user) {
     return (
       <Card>
-        <CardContent className="p-6 text-center">
+        <CardContent className="p-4 text-center">
           <p className="text-muted-foreground">
             Please log in to access the content moderation system.
           </p>
@@ -365,7 +365,7 @@ export default function ContentModerationSystem({ className }: ContentModeration
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Recent Reports */}
             <Card>
               <CardHeader>

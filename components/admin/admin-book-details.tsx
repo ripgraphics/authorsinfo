@@ -143,7 +143,7 @@ export function AdminBookDetails({ book, open, onOpenChange }: AdminBookDetailsP
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Cover Image */}
               <div className="md:col-span-1">
                 <Card>
@@ -329,7 +329,7 @@ export function AdminBookDetails({ book, open, onOpenChange }: AdminBookDetailsP
           </TabsContent>
 
           <TabsContent value="details" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Physical Details */}
               <Card>
                 <CardHeader>
@@ -405,7 +405,7 @@ export function AdminBookDetails({ book, open, onOpenChange }: AdminBookDetailsP
           </TabsContent>
 
           <TabsContent value="images" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Cover Image */}
               <Card>
                 <CardHeader>
@@ -495,7 +495,7 @@ export function AdminBookDetails({ book, open, onOpenChange }: AdminBookDetailsP
           </TabsContent>
 
           <TabsContent value="metadata" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* System Information */}
               <Card>
                 <CardHeader>

@@ -117,7 +117,7 @@ export default function FetchByIsbnPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4">
       <Link href="/admin/retrieve-books" className="text-blue-500 underline">
         &larr; Back to Retrieval Options
       </Link>
@@ -140,7 +140,7 @@ export default function FetchByIsbnPage() {
 
       {error && <p className="text-red-600 mt-4">{error}</p>}
 
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-6">
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-4">
         {books.map((book, idx) => (
           <Card key={idx} className="overflow-hidden hover:shadow-lg transition-shadow">
             {/* Image container with 2:3 aspect ratio */}

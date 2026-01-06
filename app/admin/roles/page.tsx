@@ -13,7 +13,7 @@ export default async function RolesPage() {
   const roles = await getRoles()
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 space-y-6">
       <TableEditor
         title="Role"
         items={roles}

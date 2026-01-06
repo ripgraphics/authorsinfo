@@ -21,7 +21,7 @@ export function ClientEventPage({ event, params, setActiveTab }: ClientEventPage
     <>
       {/* About Section */}
       <Card className="timeline-about-section">
-        <div className="timeline-about-section__header flex flex-col space-y-1.5 p-6">
+        <div className="timeline-about-section__header flex flex-col space-y-1.5 p-4">
           <div className="timeline-about-section__title-row flex justify-between items-center">
             <div className="timeline-about-section__title text-2xl font-semibold leading-none tracking-tight">
               About
@@ -34,7 +34,7 @@ export function ClientEventPage({ event, params, setActiveTab }: ClientEventPage
             </button>
           </div>
         </div>
-        <CardContent className="p-6 pt-0">
+        <CardContent className="p-4 pt-0">
           <p className="line-clamp-4">{event?.description || 'No description available.'}</p>
         </CardContent>
       </Card>

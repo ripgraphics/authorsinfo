@@ -64,7 +64,7 @@ export function BookHeader({ book, mainAuthor, bookCount = 0 }: BookHeaderProps)
         </Button>
       </div>
 
-      <div className="book-header-content px-6 pb-6">
+      <div className="book-header-content px-4 pb-4">
         <div className="book-header-profile flex flex-col md:flex-row md:items-end -mt-10 relative z-10">
           <div className="book-header-author-image-container relative">
             <div className="book-header-author-image relative flex shrink-0 overflow-hidden h-32 w-32 md:h-40 md:w-40 border-4 border-white rounded-full">

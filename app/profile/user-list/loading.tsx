@@ -4,12 +4,12 @@ import { Skeleton } from '@/components/ui/skeleton'
 export default function Loading() {
   return (
     <div className="space-y-6">
-      <div className="py-6">
+      <div className="py-4">
         <Skeleton className="h-10 w-1/3" />
         <Skeleton className="h-4 w-1/2 mt-2" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {Array.from({ length: 6 }).map((_, i) => (
           <Card key={i} className="overflow-hidden">
             <CardHeader className="pb-2">

@@ -105,7 +105,7 @@ export default async function PermalinkDemoPage() {
         </Card>
 
         {/* Features Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -201,7 +201,7 @@ export default async function PermalinkDemoPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <h3 className="font-semibold text-red-600 mb-2">Before (UUIDs)</h3>
                   <div className="space-y-2">
@@ -253,7 +253,7 @@ export default async function PermalinkDemoPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-4">
                 <div>
                   <h4 className="font-semibold">User Experience</h4>

@@ -511,7 +511,7 @@ export default function GroupsPage() {
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
       {/* Header Section */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
           <h1 className="text-4xl font-bold tracking-tight mb-2">Groups</h1>
           <p className="text-muted-foreground text-lg max-w-2xl">
@@ -701,7 +701,7 @@ export default function GroupsPage() {
 
         {/* Tab Content */}
         <TabsContent value="discover" className="mt-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {loading ? (
               Array.from({ length: 8 }).map((_, i) => <LoadingSkeleton key={i} />)
             ) : groups.length === 0 ? (
@@ -721,7 +721,7 @@ export default function GroupsPage() {
         </TabsContent>
 
         <TabsContent value="featured" className="mt-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {loading ? (
               Array.from({ length: 6 }).map((_, i) => <LoadingSkeleton key={i} />)
             ) : featuredGroups.length === 0 ? (
@@ -733,7 +733,7 @@ export default function GroupsPage() {
         </TabsContent>
 
         <TabsContent value="my-groups" className="mt-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {loading ? (
               Array.from({ length: 4 }).map((_, i) => <LoadingSkeleton key={i} />)
             ) : groups.length === 0 ? (

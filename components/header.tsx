@@ -12,7 +12,7 @@ export function Header() {
 
   return (
     <header className="border-b">
-      <div className="container flex h-16 items-center px-4 sm:px-6">
+      <div className="container flex h-16 items-center px-4 sm:px-4">
         <Link href="/" className="flex items-center gap-2 font-bold text-xl">
           <BookOpen className="h-6 w-6" />
           <span>Author's Info</span>

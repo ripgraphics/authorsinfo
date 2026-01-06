@@ -115,7 +115,7 @@ export default function TestRealtimePage() {
     return (
       <div className="container mx-auto p-8">
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <p className="text-center text-muted-foreground">
               Please sign in to test Supabase Realtime features
             </p>

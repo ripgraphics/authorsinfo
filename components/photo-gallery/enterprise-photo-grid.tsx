@@ -1007,7 +1007,7 @@ export function EnterprisePhotoGrid({
   const getGridClass = () => {
     switch (viewMode) {
       case 'grid-large':
-        return 'grid-cols-2 md:grid-cols-3 gap-6'
+        return 'grid-cols-2 md:grid-cols-3 gap-4'
       case 'grid-medium':
         return 'grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4'
       case 'grid-small':

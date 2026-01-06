@@ -59,7 +59,7 @@ function LoadingState() {
 function FriendsDashboard({ user }: { user: any }) {
   return (
     <div className="space-y-6">
-      <div className="py-6">
+      <div className="py-4">
         <h1 className="text-3xl font-bold tracking-tight">Friends</h1>
         <p className="text-muted-foreground mt-2">
           Manage your connections, discover new friends, and stay connected.
@@ -104,7 +104,7 @@ function FriendsDashboard({ user }: { user: any }) {
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Friends</CardTitle>

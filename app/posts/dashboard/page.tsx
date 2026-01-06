@@ -26,9 +26,9 @@ export default function PostsDashboardPage() {
       </div>
 
       {/* Quick Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center space-x-3">
               <div className="p-3 bg-blue-100 rounded-lg">
                 <BarChart3 className="h-6 w-6 text-blue-600" />
@@ -43,7 +43,7 @@ export default function PostsDashboardPage() {
         </Card>
 
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center space-x-3">
               <div className="p-3 bg-green-100 rounded-lg">
                 <TrendingUp className="h-6 w-6 text-green-600" />
@@ -58,7 +58,7 @@ export default function PostsDashboardPage() {
         </Card>
 
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center space-x-3">
               <div className="p-3 bg-orange-100 rounded-lg">
                 <Shield className="h-6 w-6 text-orange-600" />
@@ -73,7 +73,7 @@ export default function PostsDashboardPage() {
         </Card>
 
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center space-x-3">
               <div className="p-3 bg-purple-100 rounded-lg">
                 <Zap className="h-6 w-6 text-purple-600" />
@@ -160,7 +160,7 @@ export default function PostsDashboardPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="space-y-3">
               <h3 className="font-semibold flex items-center space-x-2">
                 <BarChart3 className="h-4 w-4 text-blue-600" />

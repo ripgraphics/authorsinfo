@@ -51,7 +51,7 @@ export default function GroupChatThreadPage({
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6 flex flex-col h-[70vh]">
+    <div className="max-w-2xl mx-auto p-4 flex flex-col h-[70vh]">
       <h3 className="text-xl font-bold mb-2">Thread: {thread.title}</h3>
       <div className="flex-1 overflow-y-auto bg-gray-50 rounded-sm p-4 mb-4">
         {loading ? (

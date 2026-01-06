@@ -5,7 +5,7 @@ export default async function InspectSchemaPage() {
 
   if (error) {
     return (
-      <div className="p-6">
+      <div className="p-4">
         <h1 className="text-2xl font-bold mb-4">Error Inspecting Schema</h1>
         <div className="p-4 bg-red-50 text-red-700 rounded-md">{error}</div>
       </div>
@@ -18,7 +18,7 @@ export default async function InspectSchemaPage() {
   )
 
   return (
-    <div className="p-6">
+    <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Books Table Schema</h1>
 
       <h2 className="text-xl font-semibold mt-6 mb-2">ISBN-Related Columns</h2>

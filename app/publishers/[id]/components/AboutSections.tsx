@@ -73,7 +73,7 @@ export function OverviewSection({
 
   return (
     <Card className="overview-section mb-6" id="overview" key={`overview-${refreshKey}`}>
-      <div className="overview-section__header flex flex-col space-y-1.5 p-6 border-b">
+      <div className="overview-section__header flex flex-col space-y-1.5 p-4 border-b">
         <div className="overview-section__title-row flex justify-between items-center">
           <h3 className="overview-section__title text-xl font-semibold">Overview</h3>
           <Button
@@ -87,7 +87,7 @@ export function OverviewSection({
           </Button>
         </div>
       </div>
-      <CardContent className="overview-section__content p-6 space-y-4">
+      <CardContent className="overview-section__content p-4 space-y-4">
         {publisher.about ? (
           <div className="overview-section__about space-y-2">
             <ExpandableSection title={null}>{publisher.about}</ExpandableSection>
@@ -216,7 +216,7 @@ export function ContactSection({
 
   return (
     <Card className="contact-section mb-6" id="contact-info" key={`contact-${refreshKey}`}>
-      <div className="contact-section__header flex flex-col space-y-1.5 p-6 border-b">
+      <div className="contact-section__header flex flex-col space-y-1.5 p-4 border-b">
         <div className="contact-section__title-row flex justify-between items-center">
           <h3 className="contact-section__title text-xl font-semibold">Contact Information</h3>
           <Button
@@ -230,7 +230,7 @@ export function ContactSection({
           </Button>
         </div>
       </div>
-      <CardContent className="contact-section__content p-6">
+      <CardContent className="contact-section__content p-4">
         <div className="contact-section__grid grid grid-cols-1 md:grid-cols-2 gap-4">
           {contactInfo?.email && (
             <div className="contact-section__email flex flex-col">
@@ -468,7 +468,7 @@ export function LocationSection({
 
   return (
     <Card className="location-section mb-6" id="location" key={`location-${refreshKey}`}>
-      <div className="location-section__header flex flex-col space-y-1.5 p-6 border-b">
+      <div className="location-section__header flex flex-col space-y-1.5 p-4 border-b">
         <div className="location-section__title-row flex justify-between items-center">
           <h3 className="location-section__title text-xl font-semibold">Location</h3>
           <Button
@@ -482,7 +482,7 @@ export function LocationSection({
           </Button>
         </div>
       </div>
-      <CardContent className="location-section__content p-6">
+      <CardContent className="location-section__content p-4">
         {publisher.address_line1 || publisher.city || publisher.state || publisher.country ? (
           <div className="location-section__info space-y-2">
             {publisher.address_line1 && (
@@ -557,10 +557,10 @@ export function BooksSection({
 }) {
   return (
     <Card className="books-section mb-6" id="books">
-      <div className="books-section__header flex flex-col space-y-1.5 p-6 border-b">
+      <div className="books-section__header flex flex-col space-y-1.5 p-4 border-b">
         <h3 className="books-section__title text-xl font-semibold">Published Books</h3>
       </div>
-      <CardContent className="books-section__content p-6">
+      <CardContent className="books-section__content p-4">
         {books && books.length > 0 ? (
           <div className="books-section__with-content">
             <p className="books-section__count mb-4">

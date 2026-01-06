@@ -75,7 +75,7 @@ export default function EngagementHeatmap() {
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   return (
-    <div className="bg-card border rounded-lg p-6">
+    <div className="bg-card border rounded-lg p-4">
       <h3 className="text-lg font-semibold mb-4">Engagement Heatmap (Day × Hour)</h3>
       
       <div className="overflow-x-auto">

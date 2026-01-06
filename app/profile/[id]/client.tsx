@@ -220,7 +220,7 @@ export function ClientProfilePage({
       <div className="profile-page__content">
         {activeTab === 'timeline' && (
           <div className="profile-page__timeline-tab mt-6">
-            <div className="profile-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="profile-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-4">
               {/* Left Sidebar */}
               <div className="profile-page__sidebar lg:col-span-1 space-y-6 self-end sticky bottom-0">
                 {/* About Section */}

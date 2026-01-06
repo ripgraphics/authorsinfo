@@ -168,7 +168,7 @@ function AuthorsTable({
           <CardTitle>Authors</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-6 text-red-600">Error: {error}</div>
+          <div className="text-center py-4 text-red-600">Error: {error}</div>
         </CardContent>
       </Card>
     )
@@ -181,7 +181,7 @@ function AuthorsTable({
           <CardTitle>Authors</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-6 text-muted-foreground">No data available</div>
+          <div className="text-center py-4 text-muted-foreground">No data available</div>
         </CardContent>
       </Card>
     )
@@ -237,7 +237,7 @@ function AuthorsTable({
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center py-4 text-muted-foreground">
                       No authors found. Try adjusting your search or filters.
                     </TableCell>
                   </TableRow>
@@ -321,7 +321,7 @@ export default function AdminAuthorsPage({ searchParams }: AdminAuthorsPageProps
   }, [])
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-4 p-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Authors Management</h1>
         <Button asChild>

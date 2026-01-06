@@ -138,7 +138,7 @@ export default function AdminEventsBulkUI({
         </div>
       </form>
 
-      <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="bg-white rounded-lg shadow-md p-4">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <input

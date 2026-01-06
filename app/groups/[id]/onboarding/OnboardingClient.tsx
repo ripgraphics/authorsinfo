@@ -135,7 +135,7 @@ export default function OnboardingClient({ groupId, welcomeMessages, checklists 
   const userWelcomeMessage = welcomeMessages.find((m) => m.role_id === userRole)
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-8">
+    <div className="max-w-4xl mx-auto p-4 space-y-8">
       {userWelcomeMessage && (
         <Card>
           <CardHeader>

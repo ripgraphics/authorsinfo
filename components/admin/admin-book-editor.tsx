@@ -616,11 +616,11 @@ export function AdminBookEditor({ book, open, onOpenChange, onSave }: AdminBookE
           </TabsContent>
 
           <TabsContent value="images" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Cover Image */}
               <div className="space-y-4">
                 <Label>Cover Image</Label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
                   {imagePreview || formData.cover_image_url ? (
                     <div className="space-y-4">
                       <img

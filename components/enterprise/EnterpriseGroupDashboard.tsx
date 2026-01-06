@@ -153,7 +153,7 @@ export default function EnterpriseGroupDashboard({ groupId }: EnterpriseGroupDas
   return (
     <div className="container mx-auto py-8 px-4 space-y-8">
       {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader>
             <CardTitle>Members</CardTitle>
@@ -182,7 +182,7 @@ export default function EnterpriseGroupDashboard({ groupId }: EnterpriseGroupDas
 
       {/* Main Dashboard */}
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="p-4">
           <Tabs defaultValue="analytics" className="space-y-6">
             <TabsList>
               <TabsTrigger value="analytics">Analytics</TabsTrigger>

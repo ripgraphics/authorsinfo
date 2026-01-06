@@ -100,7 +100,7 @@ export function GenreChart({
   }
 
   return (
-    <div className={cn('grid gap-6 lg:grid-cols-2', className)}>
+    <div className={cn('grid gap-4 lg:grid-cols-2', className)}>
       {/* Bar Chart */}
       <Card>
         <CardHeader>

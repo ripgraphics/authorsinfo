@@ -317,7 +317,7 @@ export default function QASessionDetailPage() {
 
               <Separator />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <h3 className="font-semibold mb-2">Session Details</h3>
                   <dl className="space-y-2 text-sm">

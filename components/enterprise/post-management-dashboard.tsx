@@ -308,7 +308,7 @@ export default function PostManagementDashboard({ className }: PostManagementDas
   if (!user) {
     return (
       <Card>
-        <CardContent className="p-6 text-center">
+        <CardContent className="p-4 text-center">
           <p className="text-muted-foreground">
             Please log in to access the post management dashboard.
           </p>
@@ -628,7 +628,7 @@ export default function PostManagementDashboard({ className }: PostManagementDas
       {/* Post Editor Modal */}
       {showPostEditor && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-background rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-background rounded-lg p-4 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <PostEditor
               onPostCreated={(newPost) => {
                 setPosts((prev) => [newPost, ...prev])
@@ -643,7 +643,7 @@ export default function PostManagementDashboard({ className }: PostManagementDas
       {/* Post Manager Modal */}
       {editingPost && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-background rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-background rounded-lg p-4 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <PostManager
               post={editingPost}
               onPostUpdated={(updatedPost) => {

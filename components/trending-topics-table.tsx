@@ -133,7 +133,7 @@ export const TrendingTopicsTable: React.FC<TrendingTopicsTableProps> = ({
 
   if (isLoading) {
     return (
-      <div className={`w-full bg-white rounded-lg border border-gray-200 p-6 ${className}`}>
+      <div className={`w-full bg-white rounded-lg border border-gray-200 p-4 ${className}`}>
         <div className="space-y-3">
           {[1, 2, 3, 4, 5].map((i) => (
             <div key={i} className="h-16 bg-gray-100 rounded animate-pulse" />
@@ -154,7 +154,7 @@ export const TrendingTopicsTable: React.FC<TrendingTopicsTableProps> = ({
   return (
     <div className={`w-full bg-white rounded-lg border border-gray-200 overflow-hidden ${className}`}>
       {/* Header */}
-      <div className="px-6 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-gray-200">
+      <div className="px-4 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-gray-200">
         <h3 className="text-lg font-semibold text-slate-900">Trending Topics</h3>
         <p className="text-sm text-slate-600 mt-1">
           {sortedTopics.length} trending topics with {stats.totalMentions.toLocaleString()} total mentions
@@ -162,7 +162,7 @@ export const TrendingTopicsTable: React.FC<TrendingTopicsTableProps> = ({
       </div>
 
       {/* Stats Bar */}
-      <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <div className="px-4 py-4 bg-gray-50 border-b border-gray-200 grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div>
           <p className="text-xs text-gray-600 font-semibold uppercase">Total Mentions</p>
           <p className="text-xl font-bold text-slate-900 mt-1">
@@ -193,22 +193,22 @@ export const TrendingTopicsTable: React.FC<TrendingTopicsTableProps> = ({
           {/* Table Head */}
           <thead>
             <tr className="border-b border-gray-200 bg-gray-50">
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                 Rank
               </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                 Topic
               </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                 Type
               </th>
-              <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
                 Mentions
               </th>
-              <th className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
                 Trend
               </th>
-              <th className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
                 Heat
               </th>
             </tr>
@@ -236,26 +236,26 @@ export const TrendingTopicsTable: React.FC<TrendingTopicsTableProps> = ({
                   } ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
                 >
                   {/* Rank */}
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4">
                     <div className="flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm bg-gradient-to-br from-blue-500 to-blue-600 text-white">
                       {idx + 1}
                     </div>
                   </td>
 
                   {/* Topic Name */}
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4">
                     <div className="font-semibold text-gray-900">{topic.topic_name}</div>
                   </td>
 
                   {/* Type Badge */}
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${typeInfo.bg} ${typeInfo.color}`}>
                       {typeInfo.label}
                     </span>
                   </td>
 
                   {/* Mention Count with Bar */}
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4">
                     <div className="text-right">
                       <div className="font-semibold text-gray-900 mb-1">
                         {(topic.mention_count || 0).toLocaleString()}
@@ -270,7 +270,7 @@ export const TrendingTopicsTable: React.FC<TrendingTopicsTableProps> = ({
                   </td>
 
                   {/* Trend Direction */}
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4">
                       <div className={`flex items-center justify-center`}>
                         <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${trend.bg}`}>
                           <TrendIcon className={`w-4 h-4 ${trend.color}`} />
@@ -282,7 +282,7 @@ export const TrendingTopicsTable: React.FC<TrendingTopicsTableProps> = ({
                   </td>
 
                   {/* Heat Indicator */}
-                  <td className="px-6 py-4 text-center">
+                  <td className="px-4 py-4 text-center">
                     {isHot ? (
                       <Flame className="w-5 h-5 text-red-500 inline" />
                     ) : (
@@ -297,7 +297,7 @@ export const TrendingTopicsTable: React.FC<TrendingTopicsTableProps> = ({
       </div>
 
       {/* Footer */}
-      <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+      <div className="px-4 py-4 bg-gray-50 border-t border-gray-200">
         <div className="flex flex-wrap gap-4 text-xs text-gray-600">
           <div className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-green-600" />

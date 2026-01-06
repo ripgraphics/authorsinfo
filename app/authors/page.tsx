@@ -170,7 +170,7 @@ export default async function AuthorsPage({ searchParams }: AuthorsPageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="py-6">
+      <div className="py-4">
         <h1 className="text-3xl font-bold tracking-tight">Authors</h1>
         <p className="text-muted-foreground mt-2">
           Browse and discover authors from our collection.

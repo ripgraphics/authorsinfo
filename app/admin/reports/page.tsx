@@ -3,7 +3,7 @@ import { ReportsClient } from './client'
 
 export default function ReportsPage() {
   return (
-    <div className="p-6">
+    <div className="p-4">
       <Suspense fallback={<div>Loading reports...</div>}>
         <ReportsClient />
       </Suspense>

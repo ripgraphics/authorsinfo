@@ -18,7 +18,7 @@ export default async function FeedPage() {
   }
 
   return (
-    <div className="container mx-auto py-6 max-w-4xl">
+    <div className="container mx-auto py-4 max-w-4xl">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Feed</h1>
         <p className="text-muted-foreground">
@@ -38,7 +38,7 @@ function FeedSkeleton() {
     <div className="space-y-6">
       {[...Array(3)].map((_, i) => (
         <Card key={i}>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-start space-x-4">
               <Skeleton className="h-12 w-12 rounded-full" />
               <div className="flex-1 space-y-2">

@@ -359,7 +359,7 @@ export default function MemberManagement({ groupId, userRole }: MemberManagement
                 </Dialog>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Card className="col-span-1">
                   <CardContent className="p-4">
                     <ScrollArea className="h-[500px]">

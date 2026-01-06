@@ -204,7 +204,7 @@ export function UserListLayout<T extends { id: string | number }>({
           {filteredAndSortedItems.length > 0 ? (
             filteredAndSortedItems.map((item) => <div key={item.id}>{renderItem(item)}</div>)
           ) : (
-            <div className="col-span-3 text-center p-6">
+            <div className="col-span-3 text-center p-4">
               <p className="text-muted-foreground">
                 {searchQuery
                   ? emptySearchMessage || `No items found matching "${searchQuery}"`

@@ -18,14 +18,14 @@ export default async function ReadingDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="py-6">
+      <div className="py-4">
         <h1 className="text-3xl font-bold tracking-tight">Reading Dashboard</h1>
         <p className="text-muted-foreground mt-2">
           Track your reading progress and see what your friends are reading
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Left Column - Stats */}
         <div className="space-y-6">
           <ReadingStats />
@@ -77,7 +77,7 @@ export default async function ReadingDashboardPage() {
                 </TabsContent>
 
                 <TabsContent value="similar">
-                  <p className="text-center text-muted-foreground py-6">
+                  <p className="text-center text-muted-foreground py-4">
                     Personalized recommendations coming soon!
                   </p>
                 </TabsContent>

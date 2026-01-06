@@ -48,7 +48,7 @@ export default async function BookAuthorConnectionsPage({
 
     if (error) {
       return (
-        <div className="p-6">
+        <div className="p-4">
           <h1 className="text-2xl font-bold mb-4">Book-Author Connections</h1>
           <div className="p-4 bg-red-50 text-red-700 rounded-md">
             <p className="font-semibold">Error loading books:</p>
@@ -65,7 +65,7 @@ export default async function BookAuthorConnectionsPage({
     }))
 
     return (
-      <div className="p-6">
+      <div className="p-4">
         <h1 className="text-2xl font-bold mb-4">Book-Author Connections</h1>
         <ImportBooksButton />
         <Suspense fallback={<BookAuthorConnectionsLoading />}>
@@ -88,7 +88,7 @@ export default async function BookAuthorConnectionsPage({
     )
   } catch (error) {
     return (
-      <div className="p-6">
+      <div className="p-4">
         <h1 className="text-2xl font-bold mb-4">Book-Author Connections</h1>
         <div className="p-4 bg-red-50 text-red-700 rounded-md">
           <p className="font-semibold">Error loading books:</p>

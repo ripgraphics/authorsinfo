@@ -56,7 +56,7 @@ export default async function UserSegmentationPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="border-b">
-        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-4 lg:px-8">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">User Segmentation</h1>
             <p className="mt-2 text-muted-foreground">
@@ -66,7 +66,7 @@ export default async function UserSegmentationPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-4 lg:px-8">
         <UserSegmentationDashboard />
       </div>
     </div>

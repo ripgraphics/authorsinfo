@@ -477,7 +477,7 @@ export function EntityPhotoAlbums({
           </div>
         </div>
       ) : (
-        <div className="user-photo-albums-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="user-photo-albums-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {albums.map((album) => (
             <Card
               key={album.id}

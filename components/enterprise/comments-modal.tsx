@@ -221,7 +221,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
         )}
       >
         {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+        <div className="px-4 py-4 border-b border-gray-200 bg-gray-50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -246,7 +246,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
         {/* Modal Content */}
         <div className="flex flex-col h-[calc(90vh-140px)]">
           {/* Comments List */}
-          <div className="flex-1 overflow-y-auto px-6 py-4">
+          <div className="flex-1 overflow-y-auto px-4 py-4">
             {!isLoading && !error && comments.length > 0 ? (
               <div className="space-y-4">
                 {comments.map((comment) => (
@@ -411,7 +411,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
 
           {/* Comment Input Section */}
           {allowCommenting && currentUserId && (
-            <div className="border-t border-gray-200 px-6 py-4 bg-gray-50">
+            <div className="border-t border-gray-200 px-4 py-4 bg-gray-50">
               <div className="flex gap-3">
                 <Avatar
                   src={currentUserAvatar || '/placeholder.svg?height=32&width=32'}
@@ -442,7 +442,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                     <Button
                       onClick={handleCommentSubmit}
                       disabled={!newComment.trim() || isSubmitting}
-                      className="px-6"
+                      className="px-4"
                     >
                       {isSubmitting ? 'Posting...' : 'Post Comment'}
                     </Button>
@@ -454,7 +454,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
 
           {/* Loading State */}
           {isLoading && (
-            <div className="px-6 py-8 text-center">
+            <div className="px-4 py-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3"></div>
               <p className="text-gray-500">Loading comments...</p>
             </div>

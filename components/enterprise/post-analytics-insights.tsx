@@ -289,7 +289,7 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
   if (!user) {
     return (
       <Card>
-        <CardContent className="p-6 text-center">
+        <CardContent className="p-4 text-center">
           <p className="text-muted-foreground">
             Please log in to access post analytics and insights.
           </p>
@@ -427,7 +427,7 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Engagement Trend Chart */}
             <Card>
               <CardHeader>
@@ -549,7 +549,7 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
               <CardTitle>Trending Analysis</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Viral Coefficient */}
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-medium mb-2">Viral Coefficient</h4>
@@ -574,7 +574,7 @@ export default function PostAnalyticsInsights({ className }: PostAnalyticsInsigh
 
         {/* Audience Tab */}
         <TabsContent value="audience" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Peak Activity Hours */}
             <Card>
               <CardHeader>

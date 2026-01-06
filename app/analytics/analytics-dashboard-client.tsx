@@ -228,7 +228,7 @@ export function AnalyticsDashboardClient() {
       {/* Today's Quick Stats */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
-          <CardContent className="pt-6">
+          <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Today's Sessions</p>
@@ -240,7 +240,7 @@ export function AnalyticsDashboardClient() {
         </Card>
         
         <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5">
-          <CardContent className="pt-6">
+          <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Pages Today</p>
@@ -252,7 +252,7 @@ export function AnalyticsDashboardClient() {
         </Card>
         
         <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5">
-          <CardContent className="pt-6">
+          <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Minutes Today</p>
@@ -264,7 +264,7 @@ export function AnalyticsDashboardClient() {
         </Card>
         
         <Card className="bg-gradient-to-br from-orange-500/10 to-orange-500/5">
-          <CardContent className="pt-6">
+          <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Current Streak</p>

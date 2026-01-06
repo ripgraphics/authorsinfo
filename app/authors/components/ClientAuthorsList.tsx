@@ -119,7 +119,7 @@ export function ClientAuthorsList({
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
         {paginatedAuthors.length > 0 ? (
           paginatedAuthors.map((author) => (
             <Link href={`/authors/${author.id}`} key={author.id} className="block">

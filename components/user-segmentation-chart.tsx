@@ -148,7 +148,7 @@ export const UserSegmentationChart: React.FC<UserSegmentationChartProps> = ({
 
   if (isLoading) {
     return (
-      <div className={`w-full bg-white rounded-lg border border-gray-200 p-6 ${className}`}>
+      <div className={`w-full bg-white rounded-lg border border-gray-200 p-4 ${className}`}>
         <div className="h-96 bg-gray-100 rounded animate-pulse" />
       </div>
     );
@@ -166,7 +166,7 @@ export const UserSegmentationChart: React.FC<UserSegmentationChartProps> = ({
   }
 
   return (
-    <div className={`w-full bg-white rounded-lg border border-gray-200 p-6 ${className}`}>
+    <div className={`w-full bg-white rounded-lg border border-gray-200 p-4 ${className}`}>
       {/* Header */}
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-slate-900">User Segmentation</h3>

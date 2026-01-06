@@ -127,7 +127,7 @@ export default function CohortAnalysisDashboard() {
   return (
     <div className="space-y-8">
       {/* Retention Comparison Chart */}
-      <div className="bg-card border rounded-lg p-6">
+      <div className="bg-card border rounded-lg p-4">
         <h3 className="text-lg font-semibold mb-4">30-Day Retention by Cohort</h3>
         <ResponsiveContainer width="100%" height={300}>
           <ComposedChart data={retentionChartData}>
@@ -145,7 +145,7 @@ export default function CohortAnalysisDashboard() {
 
       {/* Retention Heatmap Scatter Chart */}
       {heatmapData.length > 0 && (
-        <div className="bg-card border rounded-lg p-6">
+        <div className="bg-card border rounded-lg p-4">
           <h3 className="text-lg font-semibold mb-4">Retention Progression by Day</h3>
           <ResponsiveContainer width="100%" height={300}>
             <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
@@ -167,7 +167,7 @@ export default function CohortAnalysisDashboard() {
 
       {/* Cohort Summary Table */}
       <div className="bg-card border rounded-lg overflow-hidden">
-        <div className="p-6 border-b">
+        <div className="p-4 border-b">
           <h3 className="text-lg font-semibold">Cohort Summary</h3>
         </div>
         <div className="overflow-x-auto">

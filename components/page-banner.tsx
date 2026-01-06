@@ -249,7 +249,7 @@ export function PageBanner({
 
           {/* Caption */}
           {(slide.title || slide.subtitle) && (
-            <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 text-white">
+            <div className="absolute bottom-0 left-0 right-0 p-4 md:p-4 text-white">
               {slide.title && <h2 className="text-xl md:text-3xl font-bold">{slide.title}</h2>}
               {slide.subtitle && <p className="mt-2 text-sm md:text-base">{slide.subtitle}</p>}
             </div>

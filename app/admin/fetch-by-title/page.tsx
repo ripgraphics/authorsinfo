@@ -53,7 +53,7 @@ export default function FetchByTitlePage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4">
       <Link href="/admin/retrieve-books" className="text-blue-500 underline">
         &larr; Back to Retrieval Options
       </Link>
@@ -102,7 +102,7 @@ export default function FetchByTitlePage() {
         </div>
       )}
 
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
         {books.map((book, idx) => (
           <div key={idx} className="border rounded-sm shadow-sm p-4">
             <img

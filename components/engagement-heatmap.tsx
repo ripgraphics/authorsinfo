@@ -132,14 +132,14 @@ export const EngagementHeatmap: React.FC<EngagementHeatmapProps> = ({
 
   if (isLoading) {
     return (
-      <div className={`w-full bg-white rounded-lg border border-gray-200 p-6 ${className}`}>
+      <div className={`w-full bg-white rounded-lg border border-gray-200 p-4 ${className}`}>
         <div className="h-96 bg-gray-100 rounded animate-pulse" />
       </div>
     );
   }
 
   return (
-    <div className={`w-full bg-white rounded-lg border border-gray-200 p-6 ${className}`}>
+    <div className={`w-full bg-white rounded-lg border border-gray-200 p-4 ${className}`}>
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-4">

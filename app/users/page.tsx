@@ -15,11 +15,11 @@ export default async function UsersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="py-6">
+      <div className="py-4">
         <h1 className="text-3xl font-bold tracking-tight">All Users</h1>
         <p className="text-muted-foreground mt-2">Browse and discover users from our community.</p>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
         {users?.map((user: any) => (
           <UserCard key={user.id} user={user} />
         ))}

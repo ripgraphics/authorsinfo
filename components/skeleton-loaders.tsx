@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
  */
 export function DashboardSkeleton() {
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-4">
       {/* Header skeleton */}
       <div className="space-y-2">
         <Skeleton className="h-8 w-48" />
@@ -52,14 +52,14 @@ export function TabContentSkeleton() {
       </div>
 
       {/* Charts grid */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2">
         {[1, 2].map((i) => (
           <ChartSkeleton key={i} />
         ))}
       </div>
 
       {/* Additional charts */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2">
         {[1, 2].map((i) => (
           <ChartSkeleton key={i} />
         ))}
@@ -175,7 +175,7 @@ export function AnalyticsSummarySkeleton() {
  */
 export function DetailPageSkeleton() {
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-4">
       {/* Header */}
       <div className="space-y-2">
         <Skeleton className="h-8 w-48" />
@@ -183,7 +183,7 @@ export function DetailPageSkeleton() {
       </div>
 
       {/* Content grid */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3">
         {/* Main content */}
         <div className="space-y-6 lg:col-span-2">
           {[1, 2, 3].map((i) => (
@@ -236,7 +236,7 @@ export function ModerationQueueSkeleton() {
       <div className="space-y-3">
         {[1, 2, 3, 4, 5].map((i) => (
           <Card key={i}>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <Skeleton className="h-5 w-32" />
@@ -267,7 +267,7 @@ export function AuditLogsSkeleton() {
 
       {/* Logs table */}
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="pt-4">
           <TableSkeleton rows={10} />
         </CardContent>
       </Card>

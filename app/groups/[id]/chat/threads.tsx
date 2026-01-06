@@ -378,7 +378,7 @@ export default function GroupChatThreadsPage({
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
+    <div className="max-w-2xl mx-auto p-4">
       <audio ref={audioRef} src={notificationSound} preload="auto" />
       <audio ref={messageAudioRef} src={messageSound} preload="auto" />
       <audio ref={reactionAudioRef} src={reactionSound} preload="auto" />

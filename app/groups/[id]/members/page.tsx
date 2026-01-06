@@ -96,7 +96,7 @@ export default function GroupMembersPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Group Members & Roles</h1>
       {error && <div className="text-red-600 mb-2">{error}</div>}
       {success && <div className="text-green-600 mb-2">{success}</div>}

@@ -40,7 +40,7 @@ export function BadgeCard({
   const sizeClasses = {
     sm: 'p-2',
     md: 'p-4',
-    lg: 'p-6',
+    lg: 'p-4',
   };
 
   const iconSizes = {

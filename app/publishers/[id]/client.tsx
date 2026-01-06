@@ -143,7 +143,7 @@ export function ClientPublisherPage({
   // Real data is passed from server via props (followers, followersCount, books, booksCount)
 
   return (
-    <div className="publisher-page publisher-page__container py-6">
+    <div className="publisher-page publisher-page__container py-4">
       <EntityHeader
         entityType="publisher"
         name={publisher?.name || 'Publisher Name'}
@@ -165,7 +165,7 @@ export function ClientPublisherPage({
       {/* Conditionally render content based on active tab */}
       {activeTab === 'timeline' && (
         <div className="publisher-page__content">
-          <div className="publisher-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="publisher-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Left Sidebar */}
             <div className="lg:col-span-1 space-y-6 self-end sticky bottom-0">
               {/* About Section */}
@@ -191,7 +191,7 @@ export function ClientPublisherPage({
 
               {/* Recent Books Section - Shows recently published books */}
               <Card>
-                <div className="space-y-1.5 p-6 flex flex-row items-center justify-between">
+                <div className="space-y-1.5 p-4 flex flex-row items-center justify-between">
                   <div className="text-2xl font-semibold leading-none tracking-tight">
                     Recent Books
                   </div>
@@ -202,7 +202,7 @@ export function ClientPublisherPage({
                     See All
                   </Link>
                 </div>
-                <CardContent className="p-6 pt-0">
+                <CardContent className="p-4 pt-0">
                   {books && books.length > 0 ? (
                     <div className="grid grid-cols-3 gap-3">
                       {books.slice(0, 6).map((book) => (
@@ -253,7 +253,7 @@ export function ClientPublisherPage({
       )}
 
       {activeTab === 'about' && (
-        <div className="publisher-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="publisher-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-1">
             <AboutNavigation publisherId={publisher?.id} />
           </div>
@@ -273,16 +273,16 @@ export function ClientPublisherPage({
       {activeTab === 'books' && (
         <div className="publisher-page__tab-content">
           <Card className="rounded-lg border bg-card text-card-foreground shadow-xs">
-            <div className="flex flex-col space-y-1.5 p-6">
+            <div className="flex flex-col space-y-1.5 p-4">
               <div className="flex justify-between items-center">
                 <div className="text-2xl font-semibold leading-none tracking-tight">
                   Published Books · {booksCount}
                 </div>
               </div>
             </div>
-            <CardContent className="p-6 pt-0">
+            <CardContent className="p-4 pt-0">
               {books && books.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                   {books.map((book) => (
                     <BookCard
                       key={book.id}
@@ -339,9 +339,9 @@ export function ClientPublisherPage({
       )}
 
       {activeTab === 'more' && (
-        <div className="publisher-page__tab-content grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="publisher-page__tab-content grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="publisher-groups__card rounded-lg border bg-card text-card-foreground shadow-xs">
-            <div className="publisher-groups__header flex items-center justify-between p-6">
+            <div className="publisher-groups__header flex items-center justify-between p-4">
               <h2 className="publisher-groups__title text-2xl font-semibold leading-none tracking-tight">
                 Groups
               </h2>
@@ -352,7 +352,7 @@ export function ClientPublisherPage({
                 </Button>
               </Link>
             </div>
-            <div className="publisher-groups__list p-6 pt-0 space-y-4">
+            <div className="publisher-groups__list p-4 pt-0 space-y-4">
               <div className="publisher-groups__item flex items-center gap-3 p-3 border rounded-lg">
                 <span className="publisher-groups__avatar relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
                   <img
@@ -532,10 +532,10 @@ export function ClientPublisherPage({
             </div>
           </div>
           <div className="rounded-lg border bg-card text-card-foreground shadow-xs">
-            <div className="flex flex-col space-y-1.5 p-6">
+            <div className="flex flex-col space-y-1.5 p-4">
               <div className="text-2xl font-semibold leading-none tracking-tight">Pages</div>
             </div>
-            <div className="p-6 pt-0 space-y-4">
+            <div className="p-4 pt-0 space-y-4">
               <div className="flex items-center gap-3 p-3 border rounded-lg">
                 <span className="relative flex shrink-0 overflow-hidden rounded-full h-14 w-14">
                   <img

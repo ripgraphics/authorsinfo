@@ -18,7 +18,7 @@ export default async function ImageTypesPage() {
   const imageTypes = await getImageTypes()
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 space-y-6">
       <TableEditor
         title="Image Type"
         items={imageTypes}

@@ -18,7 +18,7 @@ export default async function BookGenresPage() {
   const bookGenres = await getBookGenres()
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 space-y-6">
       <TableEditor
         title="Book Genre"
         items={bookGenres}

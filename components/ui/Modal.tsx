@@ -59,7 +59,7 @@ export default function Modal({
         onClick={(e) => e.stopPropagation()}
         style={{ maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}
       >
-        <div className="flex items-center justify-between px-6 pt-6 pb-2 border-b border-gray-100">
+        <div className="flex items-center justify-between px-4 pt-4 pb-2 border-b border-gray-100">
           <div className="flex items-center gap-2">
             {icon && <span className="text-2xl">{icon}</span>}
             {title && <h2 className="text-xl font-bold">{title}</h2>}
@@ -72,7 +72,7 @@ export default function Modal({
             ×
           </button>
         </div>
-        <div className="overflow-y-auto px-6 py-4" style={{ flex: 1 }}>
+        <div className="overflow-y-auto px-4 py-4" style={{ flex: 1 }}>
           {children}
         </div>
       </div>

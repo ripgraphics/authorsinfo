@@ -360,7 +360,7 @@ export function AdminAnalyticsDashboard({ userId }: AdminAnalyticsDashboardProps
           )}
 
           {/* Action and Entity Breakdowns */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {engagement && (
               <>
                 <ActionBreakdownChart data={engagement.actionBreakdown} />

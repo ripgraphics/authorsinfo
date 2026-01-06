@@ -96,7 +96,7 @@ export const CohortRetentionTable: React.FC<CohortRetentionTableProps> = ({
 }) => {
   if (isLoading) {
     return (
-      <div className={`w-full bg-white rounded-lg border border-gray-200 p-6 ${className}`}>
+      <div className={`w-full bg-white rounded-lg border border-gray-200 p-4 ${className}`}>
         <div className="space-y-4">
           {[1, 2, 3, 4, 5].map((i) => (
             <div key={i} className="h-12 bg-gray-100 rounded animate-pulse" />
@@ -148,7 +148,7 @@ export const CohortRetentionTable: React.FC<CohortRetentionTableProps> = ({
   return (
     <div className={`w-full bg-white rounded-lg border border-gray-200 overflow-hidden ${className}`}>
       {/* Header */}
-      <div className="px-6 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-gray-200">
+      <div className="px-4 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-gray-200">
         <h3 className="text-lg font-semibold text-slate-900">Cohort Retention Rates</h3>
         <p className="text-sm text-slate-600 mt-1">
           Color-coded retention percentages across key milestones
@@ -161,19 +161,19 @@ export const CohortRetentionTable: React.FC<CohortRetentionTableProps> = ({
           {/* Table Head */}
           <thead>
             <tr className="border-b border-gray-200 bg-gray-50">
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                 Cohort
               </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                 Date
               </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                 Size
               </th>
               {columnOrder.map((col) => (
                 <th
                   key={col}
-                  className="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider"
+                  className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider"
                 >
                   {columnLabels[col]}
                 </th>
@@ -192,17 +192,17 @@ export const CohortRetentionTable: React.FC<CohortRetentionTableProps> = ({
                 } ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
               >
                 {/* Cohort Name */}
-                <td className="px-6 py-4">
+                <td className="px-4 py-4">
                   <div className="font-medium text-gray-900">{cohort.cohort_name || 'N/A'}</div>
                 </td>
 
                 {/* Cohort Date */}
-                <td className="px-6 py-4 text-sm text-gray-600">
+                <td className="px-4 py-4 text-sm text-gray-600">
                   {formatCohortDate(cohort.snapshot_date)}
                 </td>
 
                 {/* Cohort Size */}
-                <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                <td className="px-4 py-4 text-sm font-medium text-gray-900">
                   {cohort.cohort_size?.toLocaleString() || '0'}
                 </td>
 
@@ -212,7 +212,7 @@ export const CohortRetentionTable: React.FC<CohortRetentionTableProps> = ({
                   const color = getRetentionColor(retention);
 
                   return (
-                    <td key={col} className="px-6 py-4 text-center">
+                    <td key={col} className="px-4 py-4 text-center">
                       <div
                         className={`inline-flex items-center justify-center w-16 h-10 rounded font-semibold text-sm ${color.bg} ${color.text} border ${color.border}`}
                       >
@@ -228,8 +228,8 @@ export const CohortRetentionTable: React.FC<CohortRetentionTableProps> = ({
       </div>
 
       {/* Legend */}
-      <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-        <div className="flex flex-wrap gap-6 text-xs">
+      <div className="px-4 py-4 bg-gray-50 border-t border-gray-200">
+        <div className="flex flex-wrap gap-4 text-xs">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-emerald-900 rounded border border-emerald-700" />
             <span className="text-gray-600">Excellent (80-100%)</span>

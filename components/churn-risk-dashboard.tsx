@@ -145,7 +145,7 @@ export const ChurnRiskDashboard: React.FC<ChurnRiskDashboardProps> = ({
 
   if (isLoading) {
     return (
-      <div className={`w-full bg-white rounded-lg border border-gray-200 p-6 ${className}`}>
+      <div className={`w-full bg-white rounded-lg border border-gray-200 p-4 ${className}`}>
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="h-20 bg-gray-100 rounded animate-pulse" />
@@ -158,7 +158,7 @@ export const ChurnRiskDashboard: React.FC<ChurnRiskDashboardProps> = ({
   return (
     <div className={`w-full space-y-6 ${className}`}>
       {/* Header */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="bg-white rounded-lg border border-gray-200 p-4">
         <div className="flex items-center gap-3 mb-6">
           <AlertTriangle className="w-6 h-6 text-red-600" />
           <div>
@@ -231,7 +231,7 @@ export const ChurnRiskDashboard: React.FC<ChurnRiskDashboardProps> = ({
       </div>
 
       {/* Risk Level Distribution */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="bg-white rounded-lg border border-gray-200 p-4">
         <h4 className="text-base font-semibold text-slate-900 mb-4">Risk Distribution</h4>
         <div className="space-y-3">
           {/* Critical Bar */}
@@ -318,12 +318,12 @@ export const ChurnRiskDashboard: React.FC<ChurnRiskDashboardProps> = ({
 
       {/* At-Risk Users Table */}
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-gray-200">
+        <div className="px-4 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-gray-200">
           <h4 className="text-base font-semibold text-slate-900">At-Risk Users</h4>
         </div>
 
         {atRiskUsers.length === 0 ? (
-          <div className="px-6 py-12 text-center">
+          <div className="px-4 py-12 text-center">
             <p className="text-gray-500 text-sm">No at-risk users found</p>
           </div>
         ) : (
@@ -331,19 +331,19 @@ export const ChurnRiskDashboard: React.FC<ChurnRiskDashboardProps> = ({
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
                     User ID
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
                     Risk Score
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
                     Risk Level
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
                     Activity Decline
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
                     Action
                   </th>
                 </tr>
@@ -359,23 +359,23 @@ export const ChurnRiskDashboard: React.FC<ChurnRiskDashboardProps> = ({
                       key={user.user_id}
                       className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
                     >
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-4">
                         <div className="text-sm font-medium text-gray-900">{user.user_id}</div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-4">
                         <div className="font-bold text-slate-900">{user.risk_score.toFixed(1)}</div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-4">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${style.badge}`}>
                           {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-4">
                         <div className="text-sm text-gray-600">
                           {user.activity_trend ? `${(user.activity_trend * 100).toFixed(0)}%` : 'N/A'}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-4">
                         <button
                           onClick={() => onCreateIntervention?.(user.user_id)}
                           disabled={hasIntervention}

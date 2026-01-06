@@ -18,7 +18,7 @@ export default async function BindingTypesPage() {
   const bindingTypes = await getBindingTypes()
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 space-y-6">
       <TableEditor
         title="Binding Type"
         items={bindingTypes}

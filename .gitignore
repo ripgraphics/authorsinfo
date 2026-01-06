@@ -42,6 +42,12 @@ dev-server.log
 # reports (temporary/debug files)
 /reports
 
+# Playwright (generated artifacts)
+/artifacts/
+/playwright-report/
+/test-results/
+/blob-report/
+
 # corrupted filenames
 *chema*
 *et --hard*

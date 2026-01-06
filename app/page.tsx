@@ -5,7 +5,6 @@ import { Card } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { getRecentBooks, getRecentAuthors, getRecentPublishers } from './actions/data'
 import { BookOpen, User, Building } from 'lucide-react'
-import { PublisherAvatar } from '@/components/publisher-avatar'
 import FeaturedEvents from '@/components/featured-events'
 import { cn } from '@/lib/utils'
 
@@ -79,10 +78,10 @@ async function RecentAuthors() {
             <Link href={`/authors/${author.id}`} key={author.id} className="block">
               <Card className="overflow-hidden h-full transition-transform hover:scale-105">
                 <div className="relative aspect-square w-full">
-                  {author.photo_url ? (
+                  {author.author_image?.url ? (
                     <Image
-                      src={author.photo_url || '/placeholder.svg'}
-                      alt={author.name}
+                      src={author.author_image.url}
+                      alt={author.author_image.alt_text || author.name}
                       fill
                       className="object-cover"
                       sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
@@ -127,15 +126,30 @@ async function RecentPublishers() {
       >
         {publishers.length > 0 ? (
           publishers.map((publisher) => (
-            <PublisherAvatar
-              key={publisher.id}
-              publisherId={publisher.id}
-              name={publisher.name || 'Unknown Publisher'}
-              avatarUrl={publisher.publisher_image?.url}
-              size="md"
-              showName={true}
-              linkToProfile={true}
-            />
+            <Link href={`/publishers/${publisher.id}`} key={publisher.id} className="block">
+              <Card className="overflow-hidden h-full transition-transform hover:scale-105">
+                <div className="relative w-full" style={{ aspectRatio: '1/1' }}>
+                  {publisher.publisher_image?.url ? (
+                    <Image
+                      src={publisher.publisher_image.url}
+                      alt={publisher.name || 'Publisher'}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-muted flex items-center justify-center">
+                      <Building className="h-12 w-12 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+                <div className="p-3 text-center">
+                  <h3 className="font-medium text-sm line-clamp-1">
+                    {publisher.name || 'Unknown Publisher'}
+                  </h3>
+                </div>
+              </Card>
+            </Link>
           ))
         ) : (
           <div className="col-span-full text-center py-12">

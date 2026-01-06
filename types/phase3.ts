@@ -859,7 +859,11 @@ export interface QASession {
   author?: {
     id: string;
     name: string;
-    photo_url?: string;
+    author_image?: {
+      id: string;
+      url: string;
+      alt_text?: string;
+    } | null;
   };
   book?: {
     id: string;

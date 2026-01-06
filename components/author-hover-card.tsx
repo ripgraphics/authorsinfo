@@ -13,8 +13,8 @@ interface AuthorHoverCardProps {
 }
 
 export function AuthorHoverCard({ author, bookCount, children }: AuthorHoverCardProps) {
-  // Determine the image URL to use
-  const imageUrl = author.author_image?.url || author.photo_url || '/placeholder.svg'
+  // Determine the image URL to use - use author_image relation from database
+  const imageUrl = author.author_image?.url || '/placeholder.svg'
 
   return (
     <HoverCard>

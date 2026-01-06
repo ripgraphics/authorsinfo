@@ -200,10 +200,10 @@ export function SearchResults({
                     <Link href={`/authors/${author.id}`} key={author.id} className="block">
                       <Card className="overflow-hidden h-full transition-transform hover:scale-105">
                         <div className="relative aspect-square w-full">
-                          {(author as any).photo_url ? (
+                          {author.author_image?.url ? (
                             <Image
-                              src={(author as any).photo_url || '/placeholder.svg'}
-                              alt={author.name || 'Author'}
+                              src={author.author_image.url}
+                              alt={author.author_image.alt_text || author.name || 'Author'}
                               fill
                               className="object-cover"
                             />
@@ -443,10 +443,10 @@ export function SearchResults({
                   <Link href={`/authors/${author.id}`} key={author.id} className="block">
                     <Card className="overflow-hidden h-full transition-transform hover:scale-105">
                       <div className="relative aspect-square w-full">
-                        {(author as any).photo_url ? (
+                        {author.author_image?.url ? (
                           <Image
-                            src={(author as any).photo_url || '/placeholder.svg'}
-                            alt={author.name || 'Author'}
+                            src={author.author_image.url}
+                            alt={author.author_image.alt_text || author.name || 'Author'}
                             fill
                             className="object-cover"
                           />

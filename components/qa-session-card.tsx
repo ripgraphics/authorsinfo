@@ -279,7 +279,7 @@ export function QASessionCard({
             {showAuthor && session.author && (
               <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={session.author.photo_url} alt={session.author.name} />
+                  <AvatarImage src={session.author.author_image?.url} alt={session.author.name} />
                   <AvatarFallback>{getInitials(session.author.name)}</AvatarFallback>
                 </Avatar>
                 <div>
@@ -377,7 +377,7 @@ export function QASessionCard({
           {showAuthor && session.author && (
             <div className="flex items-center gap-2">
               <Avatar className="h-6 w-6">
-                <AvatarImage src={session.author.photo_url} alt={session.author.name} />
+                <AvatarImage src={session.author.author_image?.url} alt={session.author.name} />
                 <AvatarFallback>{getInitials(session.author.name)}</AvatarFallback>
               </Avatar>
               <span className="text-sm font-medium">{session.author.name}</span>

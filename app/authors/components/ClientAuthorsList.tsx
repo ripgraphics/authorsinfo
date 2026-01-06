@@ -25,7 +25,11 @@ interface Author {
   name: string
   nationality?: string
   birth_date?: string
-  photo_url?: string | null
+  author_image?: {
+    id: string
+    url: string
+    alt_text: string
+  } | null
   [key: string]: any
 }
 
@@ -121,10 +125,10 @@ export function ClientAuthorsList({
             <Link href={`/authors/${author.id}`} key={author.id} className="block">
               <Card className="overflow-hidden h-full transition-transform hover:scale-105">
                 <div className="relative w-full" style={{ aspectRatio: '1/1' }}>
-                  {author.photo_url ? (
+                  {author.author_image?.url ? (
                     <Image
-                      src={author.photo_url}
-                      alt={author.name || 'Author'}
+                      src={author.author_image.url}
+                      alt={author.author_image.alt_text || author.name || 'Author'}
                       fill
                       className="object-cover"
                     />

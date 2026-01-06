@@ -49,7 +49,6 @@ interface Author {
   name: string
   nationality?: string
   birth_date?: string
-  photo_url?: string
   author_image?: {
     id: string // UUID
     url: string
@@ -103,11 +102,8 @@ async function AuthorsList({
       `,
   })) as Author[]
 
-  // Process authors to include image URL
-  const processedAuthors = authors.map((author) => ({
-    ...author,
-    photo_url: author.author_image?.url || author.photo_url || null,
-  }))
+  // Authors already have author_image relation populated from query
+  // No additional processing needed
 
   // Get total count for initial pagination calculation
   const totalAuthorsResult = await db.query('authors', query, {
@@ -124,7 +120,7 @@ async function AuthorsList({
 
   // Return authors data to be passed to client component for instant filtering
   return {
-    authors: processedAuthors,
+    authors: authors,
     totalCount: totalAuthors,
     pageSize: 24,
   }

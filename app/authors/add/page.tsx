@@ -11,7 +11,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { supabaseClient } from '@/lib/supabase/client'
-import { uploadImage } from '@/app/actions/upload'
 import { User, Camera } from 'lucide-react'
 import { Combobox } from '@/components/ui/combobox'
 
@@ -91,35 +90,51 @@ export default function AddAuthorPage() {
     setLoading(true)
 
     try {
-      let photoUrl = null
-
-      // Upload profile photo if provided
-      if (photoFile) {
-        const reader = new FileReader()
-        reader.readAsDataURL(photoFile)
-        reader.onload = async () => {
-          const base64Image = reader.result as string
-          photoUrl = await uploadImage(base64Image, 'authors/photos', formData.name)
-        }
-      }
-
       // Create author in database
-      const { data, error } = await (supabaseClient.from('authors') as any)
+      const { data: createdAuthor, error } = await (supabaseClient.from('authors') as any)
         .insert({
           ...formData,
-          photo_url: photoUrl,
         })
-        .select()
+        .select('id')
+        .single()
 
       if (error) {
         console.error('Error creating author:', error)
         return
       }
 
-      // Redirect to the new author page
-      if (data && data.length > 0) {
-        router.push(`/authors/${data[0].id}`)
+      if (!createdAuthor?.id) {
+        console.error('Error creating author: no id returned')
+        return
       }
+
+      // Upload avatar if provided (strict: if user chose an avatar, it must link to author_image_id)
+      if (photoFile) {
+        const uploadForm = new FormData()
+        uploadForm.append('file', photoFile)
+        uploadForm.append('entityType', 'author')
+        uploadForm.append('entityId', createdAuthor.id)
+        uploadForm.append('imageType', 'avatar')
+        uploadForm.append('originalType', 'avatar')
+        uploadForm.append('isCropped', 'false')
+
+        const uploadResponse = await fetch('/api/upload/entity-image', {
+          method: 'POST',
+          body: uploadForm,
+        })
+
+        if (!uploadResponse.ok) {
+          const errorPayload = await uploadResponse.json().catch(() => ({}))
+          console.error('Error uploading author avatar:', errorPayload)
+
+          // Best-effort rollback: if avatar upload failed, remove the newly created author
+          await (supabaseClient.from('authors') as any).delete().eq('id', createdAuthor.id)
+          return
+        }
+      }
+
+      // Redirect to the new author page
+      router.push(`/authors/${createdAuthor.id}`)
     } catch (error) {
       console.error('Error saving author:', error)
     } finally {

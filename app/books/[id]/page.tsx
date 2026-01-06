@@ -169,7 +169,6 @@ export default async function BookPageServer({ params }: { params: Promise<{ id:
         bio: a.bio ?? undefined,
         created_at: a.created_at,
         updated_at: a.updated_at,
-        photo_url: a.photo_url ?? undefined,
         author_image: a.author_image ?? null,
         cover_image_id: a.cover_image_id ?? undefined,
       }))

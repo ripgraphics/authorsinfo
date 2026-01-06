@@ -8,7 +8,11 @@ interface Author {
   name: string
   nationality?: string
   birth_date?: string
-  photo_url?: string | null
+  author_image?: {
+    id: string
+    url: string
+    alt_text: string
+  } | null
   [key: string]: any
 }
 

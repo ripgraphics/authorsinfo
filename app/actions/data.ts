@@ -332,10 +332,13 @@ export async function getTotalAuthorsCount(): Promise<number> {
 // Update the getRecentAuthors function
 export async function getRecentAuthors(limit = 10, offset = 0): Promise<Author[]> {
   try {
-    // Fetch authors without foreign key relationships
+    // Fetch authors with author_image relation
     const { data, error } = await supabaseAdmin
       .from('authors')
-      .select('*')
+      .select(`
+        *,
+        author_image:author_image_id(id, url, alt_text)
+      `)
       .range(offset, offset + limit - 1)
 
     if (error) {
@@ -343,7 +346,7 @@ export async function getRecentAuthors(limit = 10, offset = 0): Promise<Author[]
       return []
     }
 
-    // Return authors as-is, without trying to join with images
+    // Return authors with author_image relation populated
     return data as Author[]
   } catch (error) {
     console.error('Error fetching authors:', error)

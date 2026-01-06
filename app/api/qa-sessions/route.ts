@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       .select(`
         *,
         host:host_id(id, full_name, avatar_url),
-        author:author_id(id, name, photo_url),
+        author:author_id(id, name, author_image:author_image_id(id, url, alt_text)),
         book:book_id(id, title, cover_url)
       `, { count: 'exact' });
 
@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
       .select(`
         *,
         host:host_id(id, full_name, avatar_url),
-        author:author_id(id, name, photo_url),
+        author:author_id(id, name, author_image:author_image_id(id, url, alt_text)),
         book:book_id(id, title, cover_url)
       `)
       .single();

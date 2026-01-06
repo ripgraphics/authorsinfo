@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { getProfileUrlFromUser } from '@/lib/utils/profile-url-client'
 import { ContentSection } from '@/components/ui/content-section'
+import { Card, CardContent } from '@/components/ui/card'
 
 interface Follower {
   id: string
@@ -58,30 +59,27 @@ export function FollowersList({
       </div>
       <div className="followers-list__grid grid grid-cols-3 gap-2">
         {followers.slice(-9).map((follower) => (
-          <Link
-            key={follower.id}
-            href={getProfileUrlFromUser(follower)}
-            className="followers-list__item flex flex-col items-center text-center p-2 rounded-lg border border-border hover:bg-accent/50 transition-colors"
-          >
-            <span className="followers-list__avatar-wrapper relative flex shrink-0 overflow-hidden rounded-full h-16 w-16 mb-1">
-              <div className="avatar-container relative w-24 h-24 overflow-hidden rounded-full border-2 border-white shadow-md followers-list__avatar">
+          <Link key={follower.id} href={getProfileUrlFromUser(follower)} className="block">
+            <Card className="overflow-hidden h-full transition-transform hover:scale-105">
+              <div className="relative w-full" style={{ aspectRatio: '1/1' }}>
                 <img
                   alt={follower.name}
                   loading="lazy"
-                  width={96}
-                  height={96}
+                  width={256}
+                  height={256}
                   decoding="async"
-                  data-nimg="1"
-                  className="object-cover rounded-full"
+                  className="h-full w-full object-cover"
                   src={
                     follower.avatar_url ||
                     `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(follower.name || 'User')}`
                   }
-                  style={{ color: 'transparent', aspectRatio: '1 / 1' }}
+                  style={{ color: 'transparent' }}
                 />
               </div>
-            </span>
-            <span className="followers-list__item-name text-xs line-clamp-1">{follower.name}</span>
+              <CardContent className="p-3 text-center">
+                <span className="text-xs line-clamp-1">{follower.name}</span>
+              </CardContent>
+            </Card>
           </Link>
         ))}
       </div>

@@ -94,6 +94,19 @@ async function deleteFromCloudinary(publicId: string): Promise<void> {
   }
 }
 
+async function deleteImageRecord(adminClient: any, imageId: string): Promise<void> {
+  try {
+    const { error } = await (adminClient.from('images') as any).delete().eq('id', imageId)
+    if (error) {
+      console.error(`⚠️ Rollback failed: Could not delete images row: ${imageId}`, error)
+    } else {
+      console.log(`✅ Rollback: Deleted orphaned images row: ${imageId}`)
+    }
+  } catch (error) {
+    console.error(`⚠️ Rollback error: Exception while deleting images row: ${imageId}`, error)
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Get authenticated user - use getUser() to authenticate with Supabase Auth server
@@ -379,6 +392,9 @@ export async function POST(request: NextRequest) {
     const columnName = deriveImageColumnName(entityType, normalizedImageType)
     const entityWarnings: string[] = []
 
+    // Strict integrity: if an author avatar is uploaded, it MUST be linked via authors.author_image_id.
+    const strictLinking = entityType === 'author' && normalizedImageType === 'avatar'
+
     const appendEntityWarning = (warning: string) => {
       console.warn(warning)
       entityWarnings.push(warning)
@@ -390,8 +406,8 @@ export async function POST(request: NextRequest) {
       return message.includes('column') && message.includes('does not exist')
     }
 
-    const upsertUserProfileImage = async () => {
-      if (!columnName) return
+    const upsertUserProfileImage = async (): Promise<boolean> => {
+      if (!columnName) return false
       try {
         const { data: existingProfile, error: profileError } = await (
           adminClient.from('profiles') as any
@@ -404,7 +420,7 @@ export async function POST(request: NextRequest) {
           const warning = `Unable to read profiles for user ${entityId}: ${profileError.message || 'Unknown error'}`
           console.error(warning, profileError)
           appendEntityWarning(warning)
-          return
+          return false
         }
 
         const updatePayload: Record<string, any> = {
@@ -429,6 +445,7 @@ export async function POST(request: NextRequest) {
           console.log(
             `✅ Profile created for user ${entityId}, linked ${columnName} = ${imageRecord.id}`
           )
+          return true
         } else {
           const { error: updateError, data: updatedProfile } = await (
             adminClient.from('profiles') as any
@@ -446,10 +463,11 @@ export async function POST(request: NextRequest) {
             const warning = `Profiles update affected 0 rows for user ${entityId}`
             console.warn(warning)
             appendEntityWarning(warning)
-            return
+            return false
           }
 
           console.log(`✅ Profile updated: ${updatedProfile.id}, ${columnName} = ${imageRecord.id}`)
+          return true
         }
       } catch (error: any) {
         const warning = isMissingColumnError(error)
@@ -457,11 +475,12 @@ export async function POST(request: NextRequest) {
           : `Failed to link image ${imageRecord.id} to profile for user ${entityId}: ${error?.message || 'Unknown error'}`
         console.error(warning, error)
         appendEntityWarning(warning)
+        return false
       }
     }
 
-    const updateGenericEntityImage = async () => {
-      if (!columnName) return
+    const updateGenericEntityImage = async (): Promise<boolean> => {
+      if (!columnName) return false
       try {
         const updatePayload: Record<string, any> = {
           [columnName]: imageRecord.id,
@@ -483,29 +502,53 @@ export async function POST(request: NextRequest) {
           const warning = `${entityType} ${entityId} not found in table '${entityTableName}', image saved without linking`
           console.warn(warning)
           appendEntityWarning(warning)
-          return
+          return false
         }
 
         console.log(
           `✅ Entity updated: ${entityType} ${entityId}, ${columnName} = ${imageRecord.id}`
         )
+
+        return true
       } catch (error: any) {
         const warning = isMissingColumnError(error)
           ? `Column '${columnName}' does not exist on table '${entityTableName}', cannot link image ${imageRecord.id}`
           : `Failed to update ${entityType} ${entityId} in '${entityTableName}': ${error?.message || 'Unknown error'}`
         console.error(warning, error)
         appendEntityWarning(warning)
+        return false
       }
     }
+
+    let linkSucceeded = false
 
     if (!columnName) {
       appendEntityWarning(
         `Unable to derive an image column for entity type '${entityType}' and image type '${imageType}'`
       )
     } else if (entityType === 'user') {
-      await upsertUserProfileImage()
+      linkSucceeded = await upsertUserProfileImage()
     } else {
-      await updateGenericEntityImage()
+      linkSucceeded = await updateGenericEntityImage()
+    }
+
+    if (strictLinking && !linkSucceeded) {
+      console.error(
+        `❌ Strict integrity violation: failed to link author avatar image ${imageRecord.id} to author ${entityId}`,
+        entityWarnings
+      )
+
+      // ROLLBACK: remove the orphan images row and Cloudinary asset
+      await deleteImageRecord(adminClient, imageRecord.id)
+      await deleteFromCloudinary(data.public_id)
+
+      return NextResponse.json(
+        {
+          error: 'Failed to link uploaded author avatar to author record',
+          details: entityWarnings,
+        },
+        { status: 500 }
+      )
     }
 
     console.log(`✅ Upload complete: Image ${imageRecord.id} saved to Supabase and Cloudinary`)

@@ -15,22 +15,47 @@ class Cache {
 
   async set<T>(key: string, data: T, ttl: number = this.defaultTTL): Promise<void> {
     if (!redis) return // Skip caching if Redis is unavailable
-    await redis.set(key, data, { ex: ttl })
+    try {
+      await redis.set(key, data, { ex: ttl })
+    } catch (error) {
+      console.warn('[cache] set failed; continuing without cache', {
+        error: error instanceof Error ? error.message : String(error),
+      })
+    }
   }
 
   async get<T>(key: string): Promise<T | null> {
     if (!redis) return null // Return null if Redis is unavailable
-    return await redis.get<T>(key)
+    try {
+      return await redis.get<T>(key)
+    } catch (error) {
+      console.warn('[cache] get failed; treating as cache miss', {
+        error: error instanceof Error ? error.message : String(error),
+      })
+      return null
+    }
   }
 
   async delete(key: string): Promise<void> {
     if (!redis) return // Skip deletion if Redis is unavailable
-    await redis.del(key)
+    try {
+      await redis.del(key)
+    } catch (error) {
+      console.warn('[cache] delete failed; continuing', {
+        error: error instanceof Error ? error.message : String(error),
+      })
+    }
   }
 
   async clear(): Promise<void> {
     if (!redis) return // Skip clearing if Redis is unavailable
-    await redis.flushdb()
+    try {
+      await redis.flushdb()
+    } catch (error) {
+      console.warn('[cache] clear failed; continuing', {
+        error: error instanceof Error ? error.message : String(error),
+      })
+    }
   }
 }
 

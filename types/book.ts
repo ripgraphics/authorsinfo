@@ -6,7 +6,6 @@ export type Author = {
   bio: string | undefined
   created_at: string
   updated_at: string
-  photo_url: string | undefined
   author_image: {
     id: string // UUID
     url: string

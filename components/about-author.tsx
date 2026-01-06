@@ -17,18 +17,7 @@ interface AboutAuthorProps {
 
 // Helper function to get author image URL
 function getAuthorImageUrl(author: Author): string {
-  // First check if author has photo_url directly
-  if (author.photo_url) {
-    return author.photo_url
-  }
-
-  // Then check for author_image from the joined table
-  if (author.author_image && author.author_image.url) {
-    return author.author_image.url
-  }
-
-  // Default placeholder
-  return '/placeholder.svg'
+  return author.author_image?.url || ''
 }
 
 export function AboutAuthor({

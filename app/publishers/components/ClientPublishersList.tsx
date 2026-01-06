@@ -1,7 +1,10 @@
 'use client'
 
 import { useMemo } from 'react'
-import { PublisherAvatar } from '@/components/publisher-avatar'
+import Link from 'next/link'
+import Image from 'next/image'
+import { Building } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Pagination,
   PaginationContent,
@@ -114,15 +117,30 @@ export function ClientPublishersList({
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
         {paginatedPublishers.length > 0 ? (
           paginatedPublishers.map((publisher) => (
-            <PublisherAvatar
-              key={publisher.id}
-              publisherId={publisher.id}
-              name={publisher.name || 'Unknown Publisher'}
-              avatarUrl={(publisher as any).publisher_image?.url}
-              size="md"
-              showName={true}
-              linkToProfile={true}
-            />
+            <Link href={`/publishers/${publisher.id}`} key={publisher.id} className="block">
+              <Card className="overflow-hidden h-full transition-transform hover:scale-105">
+                <div className="relative w-full" style={{ aspectRatio: '1/1' }}>
+                  {publisher.publisher_image?.url ? (
+                    <Image
+                      src={publisher.publisher_image.url}
+                      alt={publisher.name || 'Publisher'}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-muted flex items-center justify-center">
+                      <Building className="h-12 w-12 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+                <CardContent className="p-3 text-center">
+                  <h3 className="font-medium text-sm line-clamp-1">
+                    {publisher.name || 'Unknown Publisher'}
+                  </h3>
+                </CardContent>
+              </Card>
+            </Link>
           ))
         ) : (
           <div className="col-span-full text-center py-12">

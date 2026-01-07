@@ -42,9 +42,10 @@ export async function getUserReadingProgress(bookId: string) {
     }
 
     // Get the user's reading progress for this book
+    // Select only core columns that exist in the database
     const { data, error } = await supabase
       .from('reading_progress')
-      .select('id, user_id, book_id, status, current_page, total_pages, percentage, start_date, finish_date, notes, privacy_level, allow_friends, allow_followers, created_at, updated_at')
+      .select('id, user_id, book_id, status, start_date, finish_date, notes, privacy_level, allow_friends, allow_followers, created_at, updated_at')
       .eq('book_id', bookId)
       .eq('user_id', user.id)
       .single()
@@ -74,33 +75,60 @@ export async function updateReadingProgress(progress: Partial<ReadingProgress>) 
       return { success: false, error: 'User not authenticated' }
     }
 
-    // Check if a record already exists
+    // Check if a record already exists - select only core columns
     const { data: existingProgress } = await supabase
       .from('reading_progress')
-      .select('id, user_id, book_id, status, current_page, total_pages, percentage, start_date, finish_date, notes, privacy_level, allow_friends, allow_followers, created_at, updated_at')
+      .select('id, user_id, book_id, status, start_date, finish_date, notes, privacy_level, allow_friends, allow_followers, created_at, updated_at')
       .eq('book_id', progress.book_id || '')
       .eq('user_id', user.id)
       .single()
 
     let result
 
+    // Prepare progress data with only core columns that exist in the database
+    // Exclude current_page, total_pages, percentage which may not exist
+    const progressData: any = {
+      book_id: progress.book_id,
+      user_id: progress.user_id,
+      status: progress.status,
+      notes: progress.notes,
+      privacy_level: progress.privacy_level,
+      allow_friends: progress.allow_friends,
+      allow_followers: progress.allow_followers,
+    }
+
+    // Add start_date or finish_date based on status
+    if (progress.status === 'in_progress' && !existingProgress) {
+      progressData.start_date = progress.start_date || new Date().toISOString()
+    } else if (progress.status === 'completed') {
+      progressData.finish_date = progress.finish_date || new Date().toISOString()
+    }
+
     if (existingProgress) {
-      // Update existing record
+      // Update existing record - only update defined fields
+      const updateData: any = { updated_at: new Date().toISOString() }
+      if (progress.status !== undefined) updateData.status = progress.status
+      if (progress.notes !== undefined) updateData.notes = progress.notes
+      if (progress.privacy_level !== undefined) updateData.privacy_level = progress.privacy_level
+      if (progress.allow_friends !== undefined) updateData.allow_friends = progress.allow_friends
+      if (progress.allow_followers !== undefined) updateData.allow_followers = progress.allow_followers
+      if (progress.finish_date !== undefined) updateData.finish_date = progress.finish_date
+
       const { data, error } = await (supabase.from('reading_progress') as any)
-        .update({
-          ...progress,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('id', (existingProgress as any).id)
         .select()
 
       result = { data, error }
     } else {
-      // Insert new record
+      // Insert new record with core columns
       const { data, error } = await supabase
         .from('reading_progress')
         .insert({
-          ...progress,
+          book_id: progress.book_id,
+          user_id: progress.user_id || user.id,
+          status: progress.status,
+          notes: progress.notes,
           start_date: progress.start_date || new Date().toISOString(),
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
@@ -287,12 +315,12 @@ export async function getRecentReadingActivity(limit = 5): Promise<ReadingActivi
       return { activity: [], error: 'User not authenticated' }
     }
 
-    // Get the most recent reading progress updates
+    // Get the most recent reading progress updates - select only core columns
     const { data, error } = await supabase
       .from('reading_progress')
       .select(
         `
-        *,
+        id, book_id, user_id, status, start_date, finish_date, notes, privacy_level, created_at, updated_at,
         book:book_id(id, title, cover_image_id),
         book_cover:book_id(cover_image:cover_image_id(url))
       `
@@ -418,12 +446,12 @@ export async function getFriendsReadingActivity(limit = 10): Promise<ReadingActi
       return { activity: [], error: 'No friends found' }
     }
 
-    // Get friends' public reading activity
+    // Get friends' public reading activity - select only core columns
     const { data, error } = await supabase
       .from('reading_progress')
       .select(
         `
-        *,
+        id, book_id, user_id, status, start_date, finish_date, notes, privacy_level, created_at, updated_at,
         users(id, name, avatar_url),
         books(id, title, cover_image_id, cover_image_url)
       `

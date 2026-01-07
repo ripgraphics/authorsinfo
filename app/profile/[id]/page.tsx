@@ -337,6 +337,132 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       books = []
     }
 
+    // Fetch currently reading books directly from Supabase
+    let currentlyReadingBooks: any[] = []
+    try {
+      // Fetch reading progress entries with status = 'in_progress'
+      const { data: currentlyReadingProgress, error: currentlyReadingError } = await supabaseAdmin
+        .from('reading_progress')
+        .select('id, book_id, progress_percentage, updated_at')
+        .eq('user_id', user.id)
+        .eq('status', 'in_progress')
+        .order('updated_at', { ascending: false })
+        .limit(5)
+
+      if (currentlyReadingError) {
+        console.error('Error fetching currently reading progress:', currentlyReadingError)
+        currentlyReadingBooks = []
+      } else if (currentlyReadingProgress && currentlyReadingProgress.length > 0) {
+        // Get all book IDs
+        const currentlyReadingBookIds = currentlyReadingProgress
+          .map((rp: any) => rp.book_id)
+          .filter(Boolean)
+
+        if (currentlyReadingBookIds.length === 0) {
+          console.log('📚 No book IDs found in currently reading progress')
+          currentlyReadingBooks = []
+        } else {
+          // Fetch books with cover images
+          const { data: currentlyReadingBooksFromDb, error: currentlyReadingBooksError } =
+            await supabaseAdmin
+              .from('books')
+              .select(
+                `
+                id,
+                title,
+                cover_image_id,
+                cover_image:images!books_cover_image_id_fkey(url, alt_text)
+              `
+              )
+              .in('id', currentlyReadingBookIds)
+
+          if (currentlyReadingBooksError) {
+            console.error('Error fetching currently reading books:', currentlyReadingBooksError)
+            currentlyReadingBooks = []
+          } else if (
+            !currentlyReadingBooksFromDb ||
+            currentlyReadingBooksFromDb.length === 0
+          ) {
+            console.log('📚 No books found for currently reading IDs:', currentlyReadingBookIds)
+            currentlyReadingBooks = []
+          } else {
+            // Create a map of book_id to book data
+            const currentlyReadingBooksMap = new Map<string, any>()
+            currentlyReadingBooksFromDb.forEach((book: any) => {
+              currentlyReadingBooksMap.set(book.id, book)
+            })
+
+            // Create a map of book_id to progress_percentage
+            const progressMap = new Map<string, number | null>()
+            currentlyReadingProgress.forEach((rp: any) => {
+              if (rp.book_id) {
+                progressMap.set(rp.book_id, rp.progress_percentage)
+              }
+            })
+
+            // Fetch authors for all currently reading books
+            const currentlyReadingAuthorMap = new Map<string, any>()
+            const { data: currentlyReadingBookAuthors, error: currentlyReadingAuthorsError } =
+              await supabaseAdmin
+                .from('book_authors')
+                .select(
+                  `
+                  book_id,
+                  authors (
+                    id,
+                    name
+                  )
+                `
+                )
+                .in('book_id', currentlyReadingBookIds)
+
+            if (!currentlyReadingAuthorsError && currentlyReadingBookAuthors) {
+              currentlyReadingBookAuthors.forEach((ba: any) => {
+                if (ba.authors && !currentlyReadingAuthorMap.has(ba.book_id)) {
+                  currentlyReadingAuthorMap.set(ba.book_id, ba.authors)
+                }
+              })
+            }
+
+            // Transform the data to match the structure expected by the client component
+            currentlyReadingBooks = currentlyReadingProgress
+              .map((rp: any) => {
+                const book = currentlyReadingBooksMap.get(rp.book_id)
+                if (!book || !book.id) {
+                  return null
+                }
+
+                const author = currentlyReadingAuthorMap.get(book.id) || null
+                const progress_percentage = progressMap.get(book.id) || null
+
+                return {
+                  id: book.id,
+                  title: book.title,
+                  coverImageUrl: book.cover_image?.url || null,
+                  progress_percentage: progress_percentage,
+                  author: author
+                    ? {
+                        id: author.id,
+                        name: author.name,
+                      }
+                    : null,
+                }
+              })
+              .filter(Boolean) // Remove null entries
+
+            console.log('📚 Currently Reading Books:', {
+              progressCount: currentlyReadingProgress.length,
+              booksCount: currentlyReadingBooks.length,
+              bookIds: currentlyReadingBookIds.length,
+            })
+          }
+        }
+      }
+    } catch (currentlyReadingError) {
+      console.error('Error fetching currently reading books:', currentlyReadingError)
+      currentlyReadingBooks = []
+    }
+
     // Temporary debug logging
     console.log('🔍 Profile Page Debug:', {
       user: user,
@@ -345,6 +471,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       friendsCount: userStats.friendsCount,
       followersCount: userStats.followersCount,
       booksCount: books.length,
+      currentlyReadingCount: currentlyReadingBooks.length,
     })
 
     return (
@@ -358,6 +485,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         friends={friends}
         friendsCount={userStats.friendsCount}
         books={books}
+        currentlyReadingBooks={currentlyReadingBooks}
         params={{ id: user.id }}
       />
     )

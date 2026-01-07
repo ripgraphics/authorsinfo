@@ -76,13 +76,14 @@ export async function GET(request: NextRequest) {
         .eq('user_id', userData.id)
         .eq('status', 'completed');
 
-      // Get pages read
+      // Get pages read - join with books table to get page counts from completed books
       const { data: progressData } = await supabase
         .from('reading_progress')
-        .select('current_page')
-        .eq('user_id', userData.id);
+        .select('book_id, status, books!inner(pages)')
+        .eq('user_id', userData.id)
+        .eq('status', 'completed');
       
-      const pagesRead = (progressData as any[])?.reduce((sum, p) => sum + (p.current_page || 0), 0) || 0;
+      const pagesRead = (progressData as any[])?.reduce((sum, p) => sum + ((p.books as any)?.pages || 0), 0) || 0;
 
       // Get badges and points
       const { data: badges } = await supabase

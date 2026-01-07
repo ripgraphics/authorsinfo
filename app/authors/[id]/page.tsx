@@ -274,6 +274,124 @@ async function getAuthorAlbums(authorId: string) {
   }
 }
 
+async function getCurrentlyReadingBooksByAuthor(authorId: string) {
+  try {
+    // First, get all books by this author
+    const { data: authorBooks } = await supabaseAdmin
+      .from('books')
+      .select('id')
+      .eq('author_id', authorId)
+
+    if (!authorBooks || authorBooks.length === 0) {
+      return []
+    }
+
+    const bookIds = authorBooks.map((book) => book.id)
+
+    // Get reading progress entries for books by this author that are currently being read
+    // Filter by public reading activity (privacy_level = 'public' OR allow_followers = true)
+    const { data: readingProgress, error } = await supabaseAdmin
+      .from('reading_progress')
+      .select(
+        `
+        id,
+        book_id,
+        user_id,
+        current_page,
+        total_pages,
+        percentage,
+        updated_at,
+        books (
+          id,
+          title,
+          cover_image_id,
+          pages,
+          cover_image:images!books_cover_image_id_fkey(url, alt_text)
+        ),
+        profiles!reading_progress_user_id_fkey (
+          id,
+          full_name,
+          avatar_url
+        )
+      `
+      )
+      .in('book_id', bookIds)
+      .eq('status', 'in_progress')
+      .or('privacy_level.eq.public,allow_followers.eq.true')
+      .order('updated_at', { ascending: false })
+      .limit(10)
+
+    if (error) {
+      console.error('Error fetching currently reading books:', error)
+      return []
+    }
+
+    if (!readingProgress || readingProgress.length === 0) {
+      return []
+    }
+
+    // Get authors for books
+    const progressBookIds = readingProgress.map((rp: any) => rp.book_id).filter(Boolean)
+    const { data: bookAuthors } = await supabaseAdmin
+      .from('book_authors')
+      .select(
+        `
+        book_id,
+        authors (
+          id,
+          name
+        )
+      `
+      )
+      .in('book_id', progressBookIds)
+
+    const authorMap = new Map<string, any>()
+    if (bookAuthors) {
+      bookAuthors.forEach((ba: any) => {
+        if (ba.authors && !authorMap.has(ba.book_id)) {
+          authorMap.set(ba.book_id, ba.authors)
+        }
+      })
+    }
+
+    // Transform data
+    return readingProgress
+      .map((rp: any) => {
+        const book = rp.books
+        if (!book || !book.id) return null
+
+        const author = authorMap.get(book.id) || null
+
+        return {
+          id: book.id,
+          title: book.title,
+          coverImageUrl: book.cover_image?.url || null,
+          author: author
+            ? {
+                id: author.id,
+                name: author.name,
+              }
+            : null,
+          currentPage: rp.current_page,
+          totalPages: book.pages || rp.total_pages,
+          percentage: rp.percentage,
+          user: rp.profiles
+            ? {
+                id: rp.profiles.id,
+                name: rp.profiles.full_name,
+                avatarUrl: rp.profiles.avatar_url,
+              }
+            : null,
+          updatedAt: rp.updated_at,
+        }
+      })
+      .filter(Boolean)
+  } catch (error) {
+    console.error('Error fetching currently reading books by author:', error)
+    return []
+  }
+}
+
 // Helper function to convert timestamp to "time ago" format
 function getTimeAgo(date: Date): string {
   const now = new Date()
@@ -325,11 +443,12 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
     notFound()
   }
 
-  const [books, followers, activities, albums] = await Promise.all([
+  const [books, followers, activities, albums, currentlyReadingBooks] = await Promise.all([
     getAuthorBooks(authorId),
     getAuthorFollowers(authorId),
     getAuthorActivities(authorId),
     getAuthorAlbums(authorId),
+    getCurrentlyReadingBooksByAuthor(authorId),
   ])
 
   return (
@@ -346,6 +465,7 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
       photos={[]} // TODO: Implement photo fetching
       photosCount={0} // TODO: Implement photo count
       albums={albums}
+      currentlyReadingBooks={currentlyReadingBooks}
     />
   )
 }

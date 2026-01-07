@@ -47,11 +47,12 @@ import { FollowersListTab } from '@/components/followers-list-tab'
 import { TimelineActivities } from '@/components/timeline-activities'
 import EnterpriseTimelineActivities from '@/components/enterprise/enterprise-timeline-activities-optimized'
 import { BookCard } from '@/components/book-card'
-import { ShelfManager } from '@/components/shelf-manager'
+import { EntityShelvesList } from '@/components/entity-shelves-list'
 import { EntityAboutTab } from '@/components/entity/EntityAboutTab'
 import { EntityMoreTab } from '@/components/entity/EntityMoreTab'
 import { EntityMetadata } from '@/types/entity'
 import { EntityTab } from '@/components/ui/entity-tabs'
+import { ProfileBooksList } from '@/components/profile-books-list'
 
 interface ClientProfilePageProps {
   user: any
@@ -70,6 +71,7 @@ interface ClientProfilePageProps {
   friends?: any[]
   friendsCount?: number
   books?: any[]
+  currentlyReadingBooks?: any[]
   params: {
     id: string
   }
@@ -85,6 +87,7 @@ export function ClientProfilePage({
   friends = [],
   friendsCount = 0,
   books = [],
+  currentlyReadingBooks = [],
   params,
 }: ClientProfilePageProps) {
   const { user: authUser } = useAuth()
@@ -152,11 +155,6 @@ export function ClientProfilePage({
         month: 'long',
       })
     : 'Unknown'
-
-  // Filter for currently reading books from the books prop
-  const currentlyReadingBooks = books.filter(
-    (book: any) => book.status === 'reading' || book.status === 'currently_reading'
-  )
 
   // Set up stats for the EntityHeader using real data
   const profileUrl = `/profile/${params.id}`
@@ -394,61 +392,13 @@ export function ClientProfilePage({
         {activeTab === 'books' && (
           <div className="profile-page__books-tab mt-6">
             <div className="profile-page__tab-content">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                <h2 className="text-2xl font-bold">My Books ({realBooksRead})</h2>
-
-                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                  <div className="relative w-full sm:w-64">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input type="search" placeholder="Search books..." className="w-full pl-9" />
-                  </div>
-                  <div className="flex gap-2">
-                    <Select defaultValue="all">
-                      <SelectTrigger className="w-full sm:w-36">
-                        <SelectValue placeholder="Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Books</SelectItem>
-                        <SelectItem value="read">Read</SelectItem>
-                        <SelectItem value="reading">Reading</SelectItem>
-                        <SelectItem value="want">Want to Read</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    <Button variant="outline" className="flex items-center gap-1">
-                      <Filter className="h-4 w-4" />
-                      <span className="hidden sm:inline">Filter</span>
-                      <ChevronDown className="h-3 w-3 opacity-50" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mt-6">
-                {books.length > 0 ? (
-                  books.map((book) => (
-                    <BookCard
-                      key={book.id}
-                      id={book.id}
-                      title={book.title}
-                      coverImageUrl={book.coverImageUrl}
-                      author={book.author}
-                    />
-                  ))
-                ) : (
-                  <div className="col-span-full text-center py-12">
-                    <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                    <p className="text-muted-foreground">No books yet</p>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Start reading to see your books here
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-8 text-center">
-                <Button>Load More Books</Button>
-              </div>
+              <ProfileBooksList
+                books={books}
+                title={`My Books (${realBooksRead})`}
+                emptyMessage="No books yet"
+                emptySearchMessage="No books found matching your search"
+                showFilterStatus={true}
+              />
             </div>
           </div>
         )}
@@ -456,7 +406,12 @@ export function ClientProfilePage({
         {activeTab === 'shelves' && (
           <div className="profile-page__shelves-tab mt-6">
             <div className="profile-page__tab-content">
-              <ShelfManager />
+              <EntityShelvesList
+                profileOwnerId={user.id}
+                profileOwnerName={user.name}
+                profileOwnerPermalink={user.permalink}
+                isOwnEntity={authUser?.id === params.id}
+              />
             </div>
           </div>
         )}

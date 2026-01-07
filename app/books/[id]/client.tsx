@@ -51,6 +51,7 @@ import {
   MapPin,
   Camera,
   UserPlus,
+  Plus,
 } from 'lucide-react'
 import { Textarea } from '@/components/ui/textarea'
 import { FollowersList } from '@/components/followers-list'
@@ -78,6 +79,9 @@ import { EntityAboutTab } from '@/components/entity/EntityAboutTab'
 import { EntityMoreTab } from '@/components/entity/EntityMoreTab'
 import { EntityMetadata } from '@/types/entity'
 import { getTabsForEntity } from '@/lib/tabContentRegistry'
+import { ShelfCreateDialog } from '@/components/shelf-create-dialog'
+import { ShelfBookStatusModal, ReadingStatus } from '@/components/shelf-book-status-modal'
+import { useShelfStore } from '@/lib/stores/shelf-store'
 
 interface Follower {
   id: string
@@ -142,6 +146,10 @@ export function ClientBookPage({
   const [needsTimelineTruncation, setNeedsTimelineTruncation] = useState(false)
   const [currentReadingStatus, setCurrentReadingStatus] = useState<string | null>(null)
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false)
+  const [isShelfCreateDialogOpen, setIsShelfCreateDialogOpen] = useState(false)
+  const [isAddToShelfDialogOpen, setIsAddToShelfDialogOpen] = useState(false)
+  const [isPageInputModalOpen, setIsPageInputModalOpen] = useState(false)
+  const { fetchShelves } = useShelfStore()
   const [canEdit, setCanEdit] = useState(false)
   const [moreBooks, setMoreBooks] = useState<any[]>([])
   const [bookData, setBookData] = useState(book)
@@ -440,38 +448,83 @@ export function ClientBookPage({
       return
     }
 
+    // If status is "currently_reading", show page input modal
+    if (status === 'currently_reading') {
+      setIsAddToShelfDialogOpen(false)
+      setIsPageInputModalOpen(true)
+      return
+    }
+
+    // For other statuses, update directly and close dialog
+    await updateReadingStatus(status)
+    setIsAddToShelfDialogOpen(false)
+  }
+
+  // Update reading status with optional current page
+  const updateReadingStatus = async (status: string, currentPage?: number) => {
     setIsUpdatingStatus(true)
     try {
+      const requestBody: any = {
+        bookId: params.id,
+        status: status,
+      }
+
+      // If status is in_progress and we have current page, include it
+      if (status === 'currently_reading' && currentPage !== undefined) {
+        requestBody.currentPage = currentPage
+      }
+
       const response = await fetch('/api/reading-status', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          bookId: params.id,
-          status: status,
-        }),
+        body: JSON.stringify(requestBody),
       })
 
       if (response.ok) {
         const data = await response.json()
         setCurrentReadingStatus(data.status)
-        // Show success message
-        const statusText = status === 'remove' ? 'removed from shelf' : status.replace('_', ' ')
+        // Show success message with book title
+        const statusMap: Record<string, string> = {
+          want_to_read: 'Want to Read',
+          currently_reading: 'Currently Reading',
+          read: 'Read',
+          on_hold: 'On Hold',
+          abandoned: 'Abandoned',
+          remove: 'removed from',
+        }
+        const statusDisplayName = statusMap[status] || status.replace('_', ' ')
+        const actionText = status === 'remove' ? 'removed from' : 'added to'
+        const pageText = currentPage !== undefined ? ` (Page ${currentPage})` : ''
         toast({
           title: 'Success!',
-          description: `Book ${statusText}`,
+          description: `"${book.title}" ${actionText} ${statusDisplayName} shelf${pageText}`,
         })
       } else {
         const error = await response.json()
-        alert(error.error || 'Failed to update reading status')
+        toast({
+          title: 'Error',
+          description: error.error || `Failed to update reading status for "${book.title}"`,
+          variant: 'destructive',
+        })
       }
     } catch (error) {
       console.error('Error updating reading status:', error)
-      alert('An error occurred while updating reading status')
+      toast({
+        title: 'Error',
+        description: `An error occurred while updating reading status for "${book.title}"`,
+        variant: 'destructive',
+      })
     } finally {
       setIsUpdatingStatus(false)
     }
+  }
+
+  // Handle page input modal confirmation
+  const handlePageInputConfirm = async (status: ReadingStatus, currentPage?: number) => {
+    await updateReadingStatus('currently_reading', currentPage)
+    setIsPageInputModalOpen(false)
   }
 
   // Helper function to get display name for status
@@ -489,7 +542,11 @@ export function ClientBookPage({
   // Handle removing from shelf
   const handleRemoveFromShelf = async () => {
     if (!user) {
-      alert('Please log in to manage your shelf')
+      toast({
+        title: 'Authentication required',
+        description: 'Please sign in to manage your shelves',
+        variant: 'destructive',
+      })
       return
     }
 
@@ -507,17 +564,26 @@ export function ClientBookPage({
 
       if (response.ok) {
         setCurrentReadingStatus(null)
+        setIsAddToShelfDialogOpen(false)
         toast({
           title: 'Success!',
-          description: 'Book removed from shelf',
+          description: `"${book.title}" has been removed from your shelves`,
         })
       } else {
         const error = await response.json()
-        alert(error.error || 'Failed to remove from shelf')
+        toast({
+          title: 'Error',
+          description: error.error || `Failed to remove "${book.title}" from shelf`,
+          variant: 'destructive',
+        })
       }
     } catch (error) {
       console.error('Error removing from shelf:', error)
-      alert('An error occurred while removing from shelf')
+      toast({
+        title: 'Error',
+        description: `An error occurred while removing "${book.title}" from shelf`,
+        variant: 'destructive',
+      })
     } finally {
       setIsUpdatingStatus(false)
     }
@@ -1338,21 +1404,18 @@ export function ClientBookPage({
 
                 {/* Add to Shelf Section */}
                 <div className="book-page__shelf-section space-y-4 w-full mt-6">
-                  <Dialog>
+                  <Dialog open={isAddToShelfDialogOpen} onOpenChange={setIsAddToShelfDialogOpen}>
                     <DialogTrigger asChild>
-                      <button
-                        className={`book-page__shelf-button inline-flex items-center justify-center gap-2 w-full rounded-md text-sm font-medium border focus-visible:ring-1 focus-visible:ring-ring/25 focus-visible:ring-offset-0 h-10 px-4 py-2 ${
-                          currentReadingStatus
-                            ? 'border-primary bg-primary text-primary-foreground hover:bg-primary/90'
-                            : 'border-input bg-background hover:bg-accent hover:text-accent-foreground'
-                        }`}
+                      <Button
+                        variant="default"
+                        className="book-page__shelf-button w-full"
                         disabled={isUpdatingStatus}
                       >
-                        <BookMarked className="mr-2 h-4 w-4" />
+                        <BookMarked className="h-4 w-4" />
                         {currentReadingStatus
                           ? `On Shelf (${getStatusDisplayName(currentReadingStatus)})`
                           : 'Add to Shelf'}
-                      </button>
+                      </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-lg p-4">
                       <DialogHeader>
@@ -1432,12 +1495,62 @@ export function ClientBookPage({
                       <div role="separator" className="shelf-separator my-2 h-px bg-muted" />
                       <button
                         type="button"
+                        onClick={() => {
+                          setIsAddToShelfDialogOpen(false)
+                          setIsShelfCreateDialogOpen(true)
+                        }}
+                        className="shelf-menu-item flex items-center gap-2 rounded-xs px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer w-full text-left"
+                      >
+                        <Plus className="w-4 h-4" />
+                        New Shelf
+                      </button>
+                      <div role="separator" className="shelf-separator my-2 h-px bg-muted" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (user) {
+                            router.push(`/profile/${user.id}?tab=shelves`)
+                          } else {
+                            toast({
+                              title: 'Authentication required',
+                              description: 'Please sign in to manage your shelves',
+                              variant: 'destructive',
+                            })
+                          }
+                        }}
                         className="shelf-manage-button w-full text-left px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground"
                       >
                         Manage shelves...
                       </button>
                     </DialogContent>
                   </Dialog>
+
+                  {/* Shelf Create Dialog */}
+                  <ShelfCreateDialog
+                    open={isShelfCreateDialogOpen}
+                    onOpenChange={setIsShelfCreateDialogOpen}
+                    origin="add-to-shelf"
+                    autoAddBookId={params.id}
+                    autoAddBookTitle={book.title}
+                    onCreated={async (shelf) => {
+                      // Refresh shelves list
+                      await fetchShelves()
+                      // Close the add to shelf dialog if it's still open
+                      setIsAddToShelfDialogOpen(false)
+                    }}
+                  />
+
+                  {/* Page Input Modal for Currently Reading */}
+                  <ShelfBookStatusModal
+                    open={isPageInputModalOpen}
+                    onOpenChange={setIsPageInputModalOpen}
+                    bookId={params.id}
+                    bookTitle={book.title}
+                    totalPages={book.pages || book.page_count || null}
+                    onConfirm={handlePageInputConfirm}
+                    isLoading={isUpdatingStatus}
+                    initialStatus="in_progress"
+                  />
                 </div>
               </div>
 

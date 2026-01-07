@@ -69,6 +69,25 @@ import { EntityMoreTab } from '@/components/entity/EntityMoreTab'
 import { EntityMetadata } from '@/types/entity'
 import { getTabsForEntity } from '@/lib/tabContentRegistry'
 
+interface CurrentlyReadingBook {
+  id: string
+  title: string
+  coverImageUrl: string | null
+  author: {
+    id: string
+    name: string
+  } | null
+  currentPage: number | null
+  totalPages: number | null
+  percentage: number | null
+  user: {
+    id: string
+    name: string
+    avatarUrl: string | null
+  } | null
+  updatedAt: string
+}
+
 interface ClientAuthorPageProps {
   author: Author
   authorImageUrl: string
@@ -96,6 +115,7 @@ interface ClientAuthorPageProps {
     photo_count: number
     created_at: string
   }[]
+  currentlyReadingBooks?: CurrentlyReadingBook[]
 }
 
 interface BookCardProps {
@@ -152,6 +172,7 @@ export function ClientAuthorPage({
   photos = [],
   photosCount = 0,
   albums = [],
+  currentlyReadingBooks = [],
 }: ClientAuthorPageProps) {
   const { user } = useAuth()
   const searchParams = useSearchParams()
@@ -725,60 +746,58 @@ export function ClientAuthorPage({
                   </Link>
                 </div>
                 <CardContent className="p-4 pt-0 space-y-4">
-                  <div className="flex gap-3">
-                    <div className="relative h-20 w-14 flex-shrink-0 overflow-hidden rounded-md">
-                      <Image
-                        src="/placeholder.svg?height=240&width=160"
-                        alt="The Name of the Wind"
-                        fill
-                        sizes="56px"
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <h4 className="font-medium line-clamp-1">The Name of the Wind</h4>
-                      <p className="text-sm text-muted-foreground">by Patrick Rothfuss</p>
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-xs">
-                          <span>Progress</span>
-                          <span>65%</span>
+                  {currentlyReadingBooks.length > 0 ? (
+                    currentlyReadingBooks.slice(0, 3).map((book) => (
+                      <Link key={book.id} href={`/books/${book.id}`} className="block">
+                        <div className="flex gap-3">
+                          <div className="relative h-20 w-14 flex-shrink-0 overflow-hidden rounded-md">
+                            {book.coverImageUrl ? (
+                              <Image
+                                src={book.coverImageUrl}
+                                alt={book.title}
+                                fill
+                                sizes="56px"
+                                className="object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-muted flex items-center justify-center">
+                                <BookOpen className="h-6 w-6 text-muted-foreground" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 space-y-1">
+                            <h4 className="font-medium line-clamp-1">{book.title}</h4>
+                            {book.author && (
+                              <p className="text-sm text-muted-foreground">by {book.author.name}</p>
+                            )}
+                            {book.percentage !== null && (
+                              <div className="space-y-1">
+                                <div className="flex justify-between text-xs">
+                                  <span>Progress</span>
+                                  <span>{book.percentage}%</span>
+                                </div>
+                                <div className="relative w-full overflow-hidden rounded-full bg-secondary h-1.5">
+                                  <div
+                                    className="h-full bg-primary transition-all"
+                                    style={{ width: `${book.percentage}%` }}
+                                  />
+                                </div>
+                                {book.currentPage !== null && book.totalPages !== null && (
+                                  <p className="text-xs text-muted-foreground">
+                                    Page {book.currentPage} of {book.totalPages}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <div className="relative w-full overflow-hidden rounded-full bg-secondary h-1.5">
-                          <div
-                            className="h-full w-full flex-1 bg-primary transition-all"
-                            style={{ transform: 'translateX(-35%)' }}
-                          ></div>
-                        </div>
-                      </div>
+                      </Link>
+                    ))
+                  ) : (
+                    <div className="text-center py-4 text-sm text-muted-foreground">
+                      No books are currently being read by this author
                     </div>
-                  </div>
-                  <div className="flex gap-3">
-                    <div className="relative h-20 w-14 flex-shrink-0 overflow-hidden rounded-md">
-                      <Image
-                        src="/placeholder.svg?height=240&width=160"
-                        alt="Project Hail Mary"
-                        fill
-                        sizes="56px"
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <h4 className="font-medium line-clamp-1">Project Hail Mary</h4>
-                      <p className="text-sm text-muted-foreground">by Andy Weir</p>
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-xs">
-                          <span>Progress</span>
-                          <span>23%</span>
-                        </div>
-                        <div className="relative w-full overflow-hidden rounded-full bg-secondary h-1.5">
-                          <div
-                            className="h-full w-full flex-1 bg-primary transition-all"
-                            style={{ transform: 'translateX(-77%)' }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -1041,18 +1060,6 @@ export function ClientAuthorPage({
                 id={book.id}
                 title={book.title}
                 coverImageUrl={book.cover_image_url}
-                author={
-                  author
-                    ? {
-                        id: author.id,
-                        name: author.name,
-                        author_image: author.author_image
-                          ? { url: author.author_image.url }
-                          : undefined,
-                      }
-                    : undefined
-                }
-                authorBookCount={booksCount}
               />
             ))}
           </div>

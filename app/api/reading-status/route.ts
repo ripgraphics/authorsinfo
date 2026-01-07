@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not authenticated' }, { status: 401 })
     }
 
-    const { bookId, status } = await request.json()
+    const { bookId, status, currentPage } = await request.json()
 
     if (!bookId || !status) {
       return NextResponse.json({ error: 'Missing bookId or status' }, { status: 400 })
@@ -48,36 +48,38 @@ export async function POST(request: NextRequest) {
 
     let result
 
+    // Prepare base update/insert data - only core columns that definitely exist
+    const progressData: any = {
+      status: readingProgressStatus,
+      updated_at: new Date().toISOString(),
+    }
+
+    // Add start_date or finish_date based on status
+    if (readingProgressStatus === 'in_progress' && !existingProgress) {
+      progressData.start_date = new Date().toISOString()
+    } else if (readingProgressStatus === 'completed') {
+      progressData.finish_date = new Date().toISOString()
+    }
+
     if (existingProgress) {
       // Update existing record
       const { data, error } = await (supabase.from('reading_progress') as any)
-        .update({
-          status: readingProgressStatus,
-          updated_at: new Date().toISOString(),
-          // Set finish_date if completed
-          ...(readingProgressStatus === 'completed' && { finish_date: new Date().toISOString() }),
-          // Set start_date if in_progress and no start_date
-          ...(readingProgressStatus === 'in_progress' && { start_date: new Date().toISOString() }),
-        })
+        .update(progressData)
         .eq('id', existingProgress.id)
         .select()
 
       result = { data, error }
     } else {
-      // Insert new record
+      // Insert new record with core columns
       const { data, error } = await (supabase.from('reading_progress') as any)
         .insert({
           book_id: bookId,
           user_id: user.id,
-          status: readingProgressStatus,
-          start_date:
-            readingProgressStatus === 'in_progress' ? new Date().toISOString() : undefined,
-          finish_date: readingProgressStatus === 'completed' ? new Date().toISOString() : undefined,
+          ...progressData,
           privacy_level: defaultPrivacyLevel,
           allow_friends: defaultPrivacyLevel === 'friends',
           allow_followers: defaultPrivacyLevel === 'followers',
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
         })
         .select()
 
@@ -87,6 +89,19 @@ export async function POST(request: NextRequest) {
     if (result.error) {
       console.error('Error updating reading status:', result.error)
       return NextResponse.json({ error: result.error.message }, { status: 500 })
+    }
+
+    // Refetch from database to ensure we return the authoritative state
+    // Explicitly select only core columns that exist in the database to avoid schema cache issues
+    const { data: dbProgress, error: fetchError } = await (supabase.from('reading_progress') as any)
+      .select('id, book_id, user_id, status, start_date, finish_date, privacy_level, created_at, updated_at')
+      .eq('book_id', bookId)
+      .eq('user_id', user.id)
+      .single()
+
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      console.error('Error refetching reading progress:', fetchError)
+      // Still return success but log the error
     }
 
     // Create activity for timeline
@@ -152,10 +167,11 @@ export async function POST(request: NextRequest) {
       // Don't fail the whole operation if activity creation fails
     }
 
+    // Return the authoritative state from database
     return NextResponse.json({
       success: true,
-      status: readingProgressStatus,
-      progress: result.data?.[0],
+      status: dbProgress?.status || readingProgressStatus,
+      progress: dbProgress || result.data?.[0],
     })
   } catch (error) {
     console.error('Error in reading status API:', error)
@@ -193,18 +209,18 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: progressError.message }, { status: 500 })
     }
 
-    // Delete from reading_status
-    const { error: statusError } = await (supabase.from('reading_status') as any)
-      .delete()
+    // Verify deletion by attempting to fetch (should return null)
+    const { data: verifyData } = await (supabase.from('reading_progress') as any)
+      .select('id')
       .eq('book_id', bookId)
       .eq('user_id', user.id)
+      .single()
 
-    if (statusError) {
-      console.error('Error deleting reading status:', statusError)
-      return NextResponse.json({ error: statusError.message }, { status: 500 })
+    if (verifyData) {
+      console.warn('Warning: Reading progress still exists after deletion attempt')
     }
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, deleted: !verifyData })
   } catch (error) {
     console.error('Error in reading status DELETE:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -232,8 +248,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Get the current reading status for this book
+    // Explicitly select only core columns that exist in the database to avoid schema cache issues
     const { data, error } = await (supabase.from('reading_progress') as any)
-      .select('*')
+      .select('id, book_id, user_id, status, start_date, finish_date, privacy_level, created_at, updated_at')
       .eq('book_id', bookId)
       .eq('user_id', user.id)
       .single()

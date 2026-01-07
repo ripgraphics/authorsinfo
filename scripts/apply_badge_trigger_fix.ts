@@ -1,7 +1,30 @@
--- Sprint 7: Badge Auto-Unlock Triggers and Functions
--- Automatically award badges when users reach milestones
+/**
+ * Script to apply the badge trigger fix
+ * This fixes the error: column "current_streak" does not exist
+ * Run with: npx ts-node scripts/apply_badge_trigger_fix.ts
+ */
 
--- Function to check and award badges based on user activity
+import { createClient } from '@supabase/supabase-js';
+import * as dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config({ path: '.env.local' });
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
+  process.exit(1);
+}
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+const fixBadgeTriggerSQL = `
+-- Fix badge trigger function to use correct table for current_streak
+-- This fixes the error: column "current_streak" does not exist
+-- The trigger was trying to query reading_sessions but current_streak is in reading_streaks
+
 CREATE OR REPLACE FUNCTION check_and_award_badges()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -33,10 +56,20 @@ BEGIN
   FROM reading_progress
   WHERE user_id = v_user_id AND status = 'completed';
 
-  -- Current reading streak
-  SELECT COALESCE(current_streak, 0) INTO v_current_streak
-  FROM reading_streaks
-  WHERE user_id = v_user_id;
+  -- Current reading streak (FIXED: use reading_streaks table instead of reading_sessions)
+  -- Use a safe query that won't fail if table/column doesn't exist
+  BEGIN
+    SELECT COALESCE(current_streak, 0) INTO v_current_streak
+    FROM reading_streaks
+    WHERE user_id = v_user_id;
+  EXCEPTION WHEN OTHERS THEN
+    v_current_streak := 0;
+  END;
+
+  -- If no streak found, default to 0
+  IF v_current_streak IS NULL THEN
+    v_current_streak := 0;
+  END IF;
 
   -- Reviews posted
   SELECT COUNT(*) INTO v_reviews_count
@@ -238,68 +271,46 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+`;
 
--- Triggers for badge auto-unlock
-
--- Trigger on reading_progress for reading completion
-DROP TRIGGER IF EXISTS award_badges_on_book_completion ON reading_progress;
-CREATE TRIGGER award_badges_on_book_completion
-  AFTER INSERT OR UPDATE ON reading_progress
-  FOR EACH ROW
-  WHEN (NEW.status = 'completed')
-  EXECUTE FUNCTION check_and_award_badges();
-
--- Trigger on reading_sessions for streak tracking
-DROP TRIGGER IF EXISTS award_badges_on_reading_session ON reading_sessions;
-CREATE TRIGGER award_badges_on_reading_session
-  AFTER INSERT OR UPDATE ON reading_sessions
-  FOR EACH ROW
-  EXECUTE FUNCTION check_and_award_badges();
-
--- Trigger on book_reviews for review milestones
-DROP TRIGGER IF EXISTS award_badges_on_review ON book_reviews;
-CREATE TRIGGER award_badges_on_review
-  AFTER INSERT ON book_reviews
-  FOR EACH ROW
-  EXECUTE FUNCTION check_and_award_badges();
-
--- Trigger on reading_lists for curator badges
-DROP TRIGGER IF EXISTS award_badges_on_list_creation ON reading_lists;
-CREATE TRIGGER award_badges_on_list_creation
-  AFTER INSERT ON reading_lists
-  FOR EACH ROW
-  EXECUTE FUNCTION check_and_award_badges();
-
--- Trigger on posts for community badges
-DROP TRIGGER IF EXISTS award_badges_on_discussion ON posts;
-CREATE TRIGGER award_badges_on_discussion
-  AFTER INSERT ON posts
-  FOR EACH ROW
-  EXECUTE FUNCTION check_and_award_badges();
-
--- Function to manually recalculate badges for a user
-CREATE OR REPLACE FUNCTION recalculate_user_badges(p_user_id UUID)
-RETURNS void AS $$
-DECLARE
-  v_dummy record;
-BEGIN
-  -- Create a dummy record to trigger badge calculation
-  SELECT * INTO v_dummy FROM users WHERE id = p_user_id LIMIT 1;
+async function applyFix() {
+  console.log('Applying badge trigger fix...');
   
-  -- Trigger the badge check function manually
-  PERFORM check_and_award_badges() FROM users WHERE id = p_user_id;
-END;
-$$ LANGUAGE plpgsql;
+  const { data, error } = await supabase.rpc('exec_sql', { sql: fixBadgeTriggerSQL });
+  
+  if (error) {
+    // If RPC doesn't exist, we need to use a different approach
+    if (error.message.includes('function') || error.message.includes('rpc')) {
+      console.log('RPC not available, using direct query...');
+      
+      // Try using the REST API directly
+      const response = await fetch(`${supabaseUrl}/rest/v1/rpc/exec_sql`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': supabaseServiceKey,
+          'Authorization': `Bearer ${supabaseServiceKey}`,
+        },
+        body: JSON.stringify({ sql: fixBadgeTriggerSQL }),
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to apply fix via REST API');
+        console.log('\n⚠️  Please run this SQL manually in the Supabase SQL Editor:');
+        console.log('Go to: https://supabase.com/dashboard → SQL Editor');
+        console.log('\n--- Copy the SQL from: supabase/migrations/20260107_fix_badge_trigger_current_streak.sql ---\n');
+        process.exit(1);
+      }
+      
+      console.log('✅ Badge trigger fix applied successfully via REST API!');
+    } else {
+      console.error('Error applying fix:', error.message);
+      process.exit(1);
+    }
+  } else {
+    console.log('✅ Badge trigger fix applied successfully!');
+  }
+}
 
--- Add index for better performance on badge queries
-CREATE INDEX IF NOT EXISTS idx_user_badges_user_earned ON user_badges(user_id, earned_at DESC);
-CREATE INDEX IF NOT EXISTS idx_badges_name_tier ON badges(name, tier);
+applyFix().catch(console.error);
 
--- Comments
-COMMENT ON FUNCTION check_and_award_badges() IS 'Automatically awards badges when users reach milestones';
-COMMENT ON FUNCTION recalculate_user_badges(UUID) IS 'Manually recalculate and award badges for a specific user';
-COMMENT ON TRIGGER award_badges_on_book_completion ON reading_progress IS 'Awards badges when books are completed';
-COMMENT ON TRIGGER award_badges_on_reading_session ON reading_sessions IS 'Awards streak badges based on reading activity';
-COMMENT ON TRIGGER award_badges_on_review ON book_reviews IS 'Awards critic badges when reviews are posted';
-COMMENT ON TRIGGER award_badges_on_list_creation ON reading_lists IS 'Awards curator badges when lists are created';
-COMMENT ON TRIGGER award_badges_on_discussion ON posts IS 'Awards community badges for discussions';

@@ -51,8 +51,7 @@ export async function GET(
     const take = Math.min(parseInt(url.searchParams.get('take') || '20'), 100);
 
     // Get shelf details
-    const { data: shelf, error: shelfError } = await supabase
-      .from('custom_shelves')
+    const { data: shelf, error: shelfError } = await (supabase.from('custom_shelves') as any)
       .select('*')
       .eq('id', id)
       .single();
@@ -61,51 +60,206 @@ export async function GET(
       return NextResponse.json({ error: 'Shelf not found' }, { status: 404 });
     }
 
-    // Get books with pagination
-    const { data: books, error: booksError } = await supabase
-      .from('shelf_books')
-      .select(
-        `
-        id,
-        book_id,
-        display_order,
-        added_at,
-        books (
-          id,
-          title,
-          author,
-          cover_url,
-          published_date
+    let books: any[] = [];
+    let count = 0;
+
+    // For default shelves, fetch books from reading_progress
+    if ((shelf as any).is_default) {
+      // Map shelf name to reading_progress status
+      const statusMap: Record<string, string> = {
+        'Want to Read': 'not_started',
+        'Currently Reading': 'in_progress',
+        'Read': 'completed',
+      };
+
+      const status = statusMap[(shelf as any).name];
+      if (status) {
+        // Get total count
+        const { count: totalCount } = await (supabase.from('reading_progress') as any)
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('status', status);
+
+        count = totalCount || 0;
+
+        // Fetch reading progress entries with books
+        const { data: readingProgress, error: progressError } = await (
+          supabase.from('reading_progress') as any
         )
-      `
-      )
-      .eq('shelf_id', id)
-      .order('display_order')
-      .range(skip, skip + take - 1);
+          .select(
+            `
+            id,
+            book_id,
+            updated_at,
+            books (
+              id,
+              title,
+              cover_image_id,
+              cover_image:images!books_cover_image_id_fkey(url, alt_text)
+            )
+          `
+          )
+          .eq('user_id', user.id)
+          .eq('status', status)
+          .order('updated_at', { ascending: false })
+          .range(skip, skip + take - 1);
 
-    if (booksError) {
-      return NextResponse.json(
-        { error: 'Failed to fetch books' },
-        { status: 400 }
-      );
+        if (progressError) {
+          return NextResponse.json(
+            { error: 'Failed to fetch books from reading progress' },
+            { status: 400 }
+          );
+        }
+
+        // Transform to match expected format
+        books =
+          readingProgress?.map((rp: any) => ({
+            id: rp.books?.id,
+            title: rp.books?.title,
+            cover_url: rp.books?.cover_image?.url || null,
+            author: null, // Will need to fetch separately if needed
+            published_date: null,
+            shelfBookId: rp.id,
+            displayOrder: 0,
+            addedAt: rp.updated_at,
+          })) || [];
+
+        // Fetch authors for books
+        if (books.length > 0) {
+          const bookIds = books.map((b) => b.id).filter(Boolean);
+          const { data: bookAuthors } = await (supabase.from('book_authors') as any)
+            .select(
+              `
+              book_id,
+              authors (
+                id,
+                name
+              )
+            `
+            )
+            .in('book_id', bookIds);
+
+          if (bookAuthors) {
+            const authorMap = new Map();
+            bookAuthors.forEach((ba: any) => {
+              if (ba.authors && !authorMap.has(ba.book_id)) {
+                authorMap.set(ba.book_id, ba.authors.name);
+              }
+            });
+
+            books = books.map((book) => ({
+              ...book,
+              author: authorMap.get(book.id) || null,
+            }));
+          }
+        }
+      }
+    } else {
+      // For custom shelves, fetch from shelf_books
+      const { data: shelfBooks, error: booksError } = await (supabase.from('shelf_books') as any)
+        .select(
+          `
+          id,
+          book_id,
+          display_order,
+          added_at,
+          books (
+            id,
+            title,
+            cover_image_id,
+            cover_image:images!books_cover_image_id_fkey(url, alt_text)
+          )
+        `
+        )
+        .eq('shelf_id', id)
+        .order('display_order')
+        .range(skip, skip + take - 1);
+
+      if (booksError) {
+        return NextResponse.json(
+          { error: 'Failed to fetch books' },
+          { status: 400 }
+        );
+      }
+
+      // Get total count
+      const { count: totalCount } = await (supabase.from('shelf_books') as any)
+        .select('*', { count: 'exact', head: true })
+        .eq('shelf_id', id);
+
+      count = totalCount || 0;
+
+      // Transform to match expected format
+      books =
+        shelfBooks?.map((b: any) => ({
+          id: b.books?.id,
+          title: b.books?.title,
+          cover_url: b.books?.cover_image?.url || null,
+          author: null, // Will need to fetch separately if needed
+          published_date: null,
+          shelfBookId: b.id,
+          displayOrder: b.display_order,
+          addedAt: b.added_at,
+        })) || [];
+
+      // Fetch authors and reading progress for books
+      if (books.length > 0) {
+        const bookIds = books.map((b) => b.id).filter(Boolean);
+        
+        // Fetch authors
+        const { data: bookAuthors } = await (supabase.from('book_authors') as any)
+          .select(
+            `
+            book_id,
+            authors (
+              id,
+              name
+            )
+          `
+          )
+          .in('book_id', bookIds);
+
+        if (bookAuthors) {
+          const authorMap = new Map();
+          bookAuthors.forEach((ba: any) => {
+            if (ba.authors && !authorMap.has(ba.book_id)) {
+              authorMap.set(ba.book_id, ba.authors.name);
+            }
+          });
+
+          books = books.map((book) => ({
+            ...book,
+            author: authorMap.get(book.id) || null,
+          }));
+        }
+
+        // Fetch reading progress for books
+        const { data: readingProgress } = await (supabase.from('reading_progress') as any)
+          .select('book_id, status')
+          .eq('user_id', user.id)
+          .in('book_id', bookIds);
+
+        if (readingProgress) {
+          const progressMap = new Map();
+          readingProgress.forEach((rp: any) => {
+            progressMap.set(rp.book_id, {
+              status: rp.status,
+            });
+          });
+
+          books = books.map((book) => ({
+            ...book,
+            readingProgress: progressMap.get(book.id) || null,
+          }));
+        }
+      }
     }
-
-    // Get total count
-    const { count } = await supabase
-      .from('shelf_books')
-      .select('*', { count: 'exact', head: true })
-      .eq('shelf_id', id);
 
     return NextResponse.json({
       success: true,
       data: {
         ...(shelf as any),
-        books: books?.map((b: any) => ({
-          ...b.books,
-          shelfBookId: b.id,
-          displayOrder: b.display_order,
-          addedAt: b.added_at,
-        })) || [],
+        books: books || [],
         bookCount: count || 0,
         pagination: {
           skip,

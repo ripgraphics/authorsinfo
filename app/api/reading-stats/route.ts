@@ -52,9 +52,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: sessionsError.message }, { status: 400 });
     }
 
-    // Get completed books
+    // Get completed books - select only core columns that exist in the database
     const { data: readingProgress } = await (supabase.from('reading_progress') as any)
-      .select('*')
+      .select('id, book_id, user_id, status, start_date, finish_date, created_at, updated_at')
       .eq('user_id', user.id);
 
     // Calculate statistics

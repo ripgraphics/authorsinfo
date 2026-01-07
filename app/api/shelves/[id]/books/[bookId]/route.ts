@@ -59,7 +59,7 @@ export async function POST(
       return NextResponse.json({ error: 'Shelf not found' }, { status: 404 });
     }
 
-    const { bookId, displayOrder } = await request.json();
+    const { bookId, displayOrder, readingStatus, currentPage } = await request.json();
 
     if (!bookId) {
       return NextResponse.json(
@@ -68,10 +68,10 @@ export async function POST(
       );
     }
 
-    // Verify book exists
+    // Verify book exists and get page count
     const { data: book } = await supabase
       .from('books')
-      .select('id')
+      .select('id, pages')
       .eq('id', bookId)
       .single();
 
@@ -115,6 +115,78 @@ export async function POST(
         { error: 'Failed to add book to shelf' },
         { status: 400 }
       );
+    }
+
+    // If reading status is provided, create/update reading_progress entry
+    if (readingStatus) {
+      const statusMap: Record<string, string> = {
+        not_started: 'not_started',
+        in_progress: 'in_progress',
+        completed: 'completed',
+        on_hold: 'on_hold',
+        abandoned: 'abandoned',
+      }
+
+      const progressStatus = statusMap[readingStatus] || 'not_started'
+
+      // Check if reading_progress entry already exists
+      const { data: existingProgress } = await supabase
+        .from('reading_progress')
+        .select('id')
+        .eq('book_id', bookId)
+        .eq('user_id', user.id)
+        .single()
+
+      // Core progress data - only columns that definitely exist in the database
+      const progressData: any = {
+        user_id: user.id,
+        book_id: bookId,
+        status: progressStatus,
+        updated_at: new Date().toISOString(),
+      }
+
+      // Add start_date or finish_date based on status
+      if (progressStatus === 'in_progress' && !existingProgress) {
+        progressData.start_date = new Date().toISOString()
+      } else if (progressStatus === 'completed') {
+        progressData.finish_date = new Date().toISOString()
+      }
+
+      // Get user's default privacy settings
+      const { data: privacySettings } = await supabase
+        .from('user_privacy_settings')
+        .select('default_privacy_level')
+        .eq('user_id', user.id)
+        .single()
+
+      const defaultPrivacyLevel = privacySettings?.default_privacy_level || 'private'
+      progressData.privacy_level = defaultPrivacyLevel
+      progressData.allow_friends = defaultPrivacyLevel === 'friends'
+      progressData.allow_followers = defaultPrivacyLevel === 'followers'
+
+      if (existingProgress) {
+        // Update existing entry
+        const { error: updateError } = await supabase
+          .from('reading_progress')
+          .update(progressData)
+          .eq('id', existingProgress.id)
+
+        if (updateError) {
+          console.error('Error updating reading progress:', updateError)
+          // Don't fail the whole operation, just log the error
+        }
+      } else {
+        // Create new entry
+        progressData.created_at = new Date().toISOString()
+        const { error: insertError } = await supabase
+          .from('reading_progress')
+          .insert(progressData)
+
+        if (insertError) {
+          console.error('Error creating reading progress:', insertError)
+          // Don't fail the whole operation, just log the error
+        }
+      }
     }
 
     return NextResponse.json(

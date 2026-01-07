@@ -779,6 +779,9 @@ export type Database = {
           user_id: string
           status: string
           progress_percentage: number
+          current_page: number | null
+          total_pages: number | null
+          percentage: number | null
           start_date: string | null
           finish_date: string | null
           created_at: string | null
@@ -795,6 +798,9 @@ export type Database = {
           user_id: string
           status: string
           progress_percentage?: number
+          current_page?: number | null
+          total_pages?: number | null
+          percentage?: number | null
           start_date?: string | null
           finish_date?: string | null
           created_at?: string | null
@@ -811,6 +817,9 @@ export type Database = {
           user_id?: string
           status?: string
           progress_percentage?: number
+          current_page?: number | null
+          total_pages?: number | null
+          percentage?: number | null
           start_date?: string | null
           finish_date?: string | null
           created_at?: string | null

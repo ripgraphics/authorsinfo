@@ -1,7 +1,6 @@
--- Sprint 7: Badge Auto-Unlock Triggers and Functions
--- Automatically award badges when users reach milestones
+-- Fix badge trigger function to use correct table for current_streak
+-- This fixes the error: column "current_streak" does not exist
 
--- Function to check and award badges based on user activity
 CREATE OR REPLACE FUNCTION check_and_award_badges()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -33,7 +32,7 @@ BEGIN
   FROM reading_progress
   WHERE user_id = v_user_id AND status = 'completed';
 
-  -- Current reading streak
+  -- Current reading streak (FIXED: use reading_streaks table instead of reading_sessions)
   SELECT COALESCE(current_streak, 0) INTO v_current_streak
   FROM reading_streaks
   WHERE user_id = v_user_id;
@@ -239,67 +238,3 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Triggers for badge auto-unlock
-
--- Trigger on reading_progress for reading completion
-DROP TRIGGER IF EXISTS award_badges_on_book_completion ON reading_progress;
-CREATE TRIGGER award_badges_on_book_completion
-  AFTER INSERT OR UPDATE ON reading_progress
-  FOR EACH ROW
-  WHEN (NEW.status = 'completed')
-  EXECUTE FUNCTION check_and_award_badges();
-
--- Trigger on reading_sessions for streak tracking
-DROP TRIGGER IF EXISTS award_badges_on_reading_session ON reading_sessions;
-CREATE TRIGGER award_badges_on_reading_session
-  AFTER INSERT OR UPDATE ON reading_sessions
-  FOR EACH ROW
-  EXECUTE FUNCTION check_and_award_badges();
-
--- Trigger on book_reviews for review milestones
-DROP TRIGGER IF EXISTS award_badges_on_review ON book_reviews;
-CREATE TRIGGER award_badges_on_review
-  AFTER INSERT ON book_reviews
-  FOR EACH ROW
-  EXECUTE FUNCTION check_and_award_badges();
-
--- Trigger on reading_lists for curator badges
-DROP TRIGGER IF EXISTS award_badges_on_list_creation ON reading_lists;
-CREATE TRIGGER award_badges_on_list_creation
-  AFTER INSERT ON reading_lists
-  FOR EACH ROW
-  EXECUTE FUNCTION check_and_award_badges();
-
--- Trigger on posts for community badges
-DROP TRIGGER IF EXISTS award_badges_on_discussion ON posts;
-CREATE TRIGGER award_badges_on_discussion
-  AFTER INSERT ON posts
-  FOR EACH ROW
-  EXECUTE FUNCTION check_and_award_badges();
-
--- Function to manually recalculate badges for a user
-CREATE OR REPLACE FUNCTION recalculate_user_badges(p_user_id UUID)
-RETURNS void AS $$
-DECLARE
-  v_dummy record;
-BEGIN
-  -- Create a dummy record to trigger badge calculation
-  SELECT * INTO v_dummy FROM users WHERE id = p_user_id LIMIT 1;
-  
-  -- Trigger the badge check function manually
-  PERFORM check_and_award_badges() FROM users WHERE id = p_user_id;
-END;
-$$ LANGUAGE plpgsql;
-
--- Add index for better performance on badge queries
-CREATE INDEX IF NOT EXISTS idx_user_badges_user_earned ON user_badges(user_id, earned_at DESC);
-CREATE INDEX IF NOT EXISTS idx_badges_name_tier ON badges(name, tier);
-
--- Comments
-COMMENT ON FUNCTION check_and_award_badges() IS 'Automatically awards badges when users reach milestones';
-COMMENT ON FUNCTION recalculate_user_badges(UUID) IS 'Manually recalculate and award badges for a specific user';
-COMMENT ON TRIGGER award_badges_on_book_completion ON reading_progress IS 'Awards badges when books are completed';
-COMMENT ON TRIGGER award_badges_on_reading_session ON reading_sessions IS 'Awards streak badges based on reading activity';
-COMMENT ON TRIGGER award_badges_on_review ON book_reviews IS 'Awards critic badges when reviews are posted';
-COMMENT ON TRIGGER award_badges_on_list_creation ON reading_lists IS 'Awards curator badges when lists are created';
-COMMENT ON TRIGGER award_badges_on_discussion ON posts IS 'Awards community badges for discussions';

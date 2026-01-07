@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     // Get user stats for progress calculation
     const { data: readingProgress } = await supabase
       .from('reading_progress')
-      .select('id, status, current_page')
+      .select('id, status')
       .eq('user_id', user.id);
 
     const { data: challenges } = await supabase

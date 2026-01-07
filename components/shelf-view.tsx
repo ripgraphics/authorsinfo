@@ -96,31 +96,68 @@ export function ShelfView({ shelfId, editable = true }: ShelfViewProps) {
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {books.map((book: any) => (
-              <div key={book.id} className="group relative">
-                <BookCard
-                  id={book.id}
-                  title={book.title}
-                  coverImageUrl={book.cover_url}
-                  author={book.author}
-                />
-                {editable && (
-                  <Button
-                    variant="destructive"
-                    size="icon"
-                    className="absolute top-2 left-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity z-20"
-                    onClick={() => handleRemoveBook(book.id)}
-                    disabled={isRemoving === book.id}
-                  >
-                    {isRemoving === book.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-4 w-4" />
-                    )}
-                  </Button>
-                )}
-              </div>
-            ))}
+            {books.map((book: any) => {
+              const readingProgress = book.readingProgress
+              const isInProgress = readingProgress?.status === 'in_progress'
+              const statusLabels: Record<string, string> = {
+                not_started: 'Want to Read',
+                in_progress: 'Currently Reading',
+                completed: 'Read',
+                on_hold: 'On Hold',
+                abandoned: 'Abandoned',
+              }
+
+              return (
+                <div key={book.id} className="group relative">
+                  <BookCard
+                    id={book.id}
+                    title={book.title}
+                    coverImageUrl={book.cover_url}
+                  />
+                  {editable && (
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 left-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity z-20"
+                      onClick={() => handleRemoveBook(book.id)}
+                      disabled={isRemoving === book.id}
+                    >
+                      {isRemoving === book.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
+                    </Button>
+                  )}
+                  {/* Reading Progress Indicator */}
+                  {readingProgress && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white p-2 text-xs">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-medium">
+                          {statusLabels[readingProgress.status] || readingProgress.status}
+                        </span>
+                        {isInProgress && readingProgress.percentage !== null && (
+                          <span>{readingProgress.percentage}%</span>
+                        )}
+                      </div>
+                      {isInProgress && readingProgress.current_page !== null && readingProgress.total_pages !== null && (
+                        <div className="text-xs opacity-90">
+                          Page {readingProgress.current_page} of {readingProgress.total_pages}
+                        </div>
+                      )}
+                      {isInProgress && readingProgress.percentage !== null && (
+                        <div className="relative w-full overflow-hidden rounded-full bg-white/20 h-1 mt-1">
+                          <div
+                            className="h-full bg-primary transition-all"
+                            style={{ width: `${readingProgress.percentage}%` }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </>
       )}

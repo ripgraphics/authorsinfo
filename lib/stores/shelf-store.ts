@@ -24,7 +24,7 @@ interface ShelfStore {
   updateShelf: (id: UUID, input: UpdateShelfInput) => Promise<void>;
   deleteShelf: (id: UUID) => Promise<void>;
   selectShelf: (id: UUID | null) => void;
-  addBookToShelf: (shelfId: UUID, bookId: UUID, displayOrder?: number) => Promise<void>;
+  addBookToShelf: (shelfId: UUID, bookId: UUID, displayOrder?: number, readingStatus?: string, currentPage?: number) => Promise<void>;
   removeBookFromShelf: (shelfId: UUID, bookId: UUID) => Promise<void>;
   updateBookPosition: (shelfId: UUID, bookId: UUID, displayOrder: number) => Promise<void>;
   reorderShelves: (shelves: Array<{ id: UUID; displayOrder: number }>) => Promise<void>;
@@ -179,13 +179,13 @@ export const useShelfStore = create<ShelfStore>()(
         },
 
         // Add book to shelf
-        addBookToShelf: async (shelfId: UUID, bookId: UUID, displayOrder?: number) => {
+        addBookToShelf: async (shelfId: UUID, bookId: UUID, displayOrder?: number, readingStatus?: string, currentPage?: number) => {
           set({ error: null });
           try {
             const response = await fetch(`/api/shelves/${shelfId}/books`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ bookId, displayOrder }),
+              body: JSON.stringify({ bookId, displayOrder, readingStatus, currentPage }),
             });
 
             if (!response.ok) {

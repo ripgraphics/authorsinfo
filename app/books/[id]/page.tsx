@@ -114,7 +114,7 @@ async function getUserReadingProgress(userId: string | null, bookId: string) {
   try {
     const { data, error } = await supabaseAdmin
       .from('reading_progress')
-      .select('*')
+      .select('*, current_page, progress_percentage') // Explicitly include current_page and progress_percentage
       .eq('user_id', userId)
       .eq('book_id', bookId)
       .single()

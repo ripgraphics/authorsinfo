@@ -188,31 +188,25 @@ async function getCurrentlyReadingBooksForUser(
           })
         }
 
-        // Priority 1: Calculate from current_page and total_pages if available (most accurate)
-        // Use Supabase data directly - don't assume anything
-        // Check if we have current_page and either total_pages from reading_progress OR pages from books table
+        // Priority 1: Calculate from current_page (reading_progress) and pages (books table - single source of truth)
+        // Use Supabase as single source of truth - books.pages is the ONLY source for total pages
         const bookData = currentlyReadingBooksMap.get(rp.book_id)
         const totalPagesFromBook = bookData?.pages || null
-        const totalPagesToUse = rp.total_pages !== null && rp.total_pages !== undefined 
-          ? rp.total_pages 
-          : (totalPagesFromBook !== null && totalPagesFromBook !== undefined ? totalPagesFromBook : null)
 
         if (
           rp.current_page !== null &&
           rp.current_page !== undefined &&
           rp.current_page > 0 &&
-          totalPagesToUse !== null &&
-          totalPagesToUse !== undefined &&
-          totalPagesToUse > 0
+          totalPagesFromBook !== null &&
+          totalPagesFromBook !== undefined &&
+          totalPagesFromBook > 0
         ) {
-          percentage = Math.round((rp.current_page / totalPagesToUse) * 100)
+          percentage = Math.round((rp.current_page / totalPagesFromBook) * 100)
           if (process.env.NODE_ENV === 'development') {
             console.log('📊 Calculated from pages (Supabase data):', {
               book_id: rp.book_id,
               current_page: rp.current_page,
-              total_pages_from_rp: rp.total_pages,
               pages_from_book: totalPagesFromBook,
-              total_pages_used: totalPagesToUse,
               calculated: percentage,
             })
           }
@@ -294,12 +288,9 @@ async function getCurrentlyReadingBooksForUser(
         // Use Supabase data directly - get progress_percentage from map (which was calculated from Supabase data)
         const progress_percentage = progressMap.has(book.id) ? progressMap.get(book.id) : null
 
-        // Use Supabase data directly for current_page and total_pages - don't assume anything
-        // Use total_pages from reading_progress if available, otherwise use pages from books table
+        // Use Supabase as single source of truth - current_page from reading_progress, pages from books table
         const currentPage = rpEntry?.current_page !== null && rpEntry?.current_page !== undefined ? rpEntry.current_page : null
-        const totalPagesFromRp = rpEntry?.total_pages !== null && rpEntry?.total_pages !== undefined ? rpEntry.total_pages : null
-        const totalPagesFromBook = book.pages !== null && book.pages !== undefined ? book.pages : null
-        const totalPages = totalPagesFromRp !== null ? totalPagesFromRp : totalPagesFromBook
+        const totalPages = book.pages !== null && book.pages !== undefined ? book.pages : null
 
         if (process.env.NODE_ENV === 'development') {
           console.log('📊 Final book data from Supabase:', {

@@ -48,10 +48,25 @@ export async function POST(request: NextRequest) {
 
     let result
 
-    // Prepare base update/insert data - only core columns that definitely exist
+    // Prepare base update/insert data
     const progressData: any = {
       status: readingProgressStatus,
       updated_at: new Date().toISOString(),
+    }
+
+    // Save current_page if provided (single source of truth - only store user's current page)
+    if (currentPage !== undefined && currentPage !== null) {
+      progressData.current_page = currentPage
+      
+      // Calculate progress_percentage from books.pages (single source of truth for total pages)
+      const { data: book } = await (supabase.from('books') as any)
+        .select('pages')
+        .eq('id', bookId)
+        .single()
+      
+      if (book?.pages && book.pages > 0 && currentPage > 0) {
+        progressData.progress_percentage = Math.round((currentPage / book.pages) * 100)
+      }
     }
 
     // Add start_date or finish_date based on status

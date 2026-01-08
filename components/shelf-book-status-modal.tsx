@@ -25,6 +25,7 @@ interface ShelfBookStatusModalProps {
   onConfirm: (status: ReadingStatus, currentPage?: number) => Promise<void>
   isLoading?: boolean
   initialStatus?: ReadingStatus // If provided, skip status selection and go directly to page input
+  initialCurrentPage?: number | null // If provided, pre-fill the current page input with this value
 }
 
 const STATUS_OPTIONS: Array<{ value: ReadingStatus; label: string }> = [
@@ -44,6 +45,7 @@ export function ShelfBookStatusModal({
   onConfirm,
   isLoading = false,
   initialStatus,
+  initialCurrentPage,
 }: ShelfBookStatusModalProps) {
   const [selectedStatus, setSelectedStatus] = useState<ReadingStatus | null>(null)
   const [currentPage, setCurrentPage] = useState<string>('')
@@ -57,7 +59,8 @@ export function ShelfBookStatusModal({
       // skip status selection and go directly to page input step
       if (initialStatus === 'in_progress') {
         setSelectedStatus('in_progress')
-        setCurrentPage('')
+        // Use initialCurrentPage if provided, otherwise use empty string
+        setCurrentPage(initialCurrentPage !== null && initialCurrentPage !== undefined ? String(initialCurrentPage) : '')
         setError('')
         setStep('page')
       } else {
@@ -74,7 +77,7 @@ export function ShelfBookStatusModal({
       setError('')
       setStep('status')
     }
-  }, [open, initialStatus])
+  }, [open, initialStatus, initialCurrentPage])
 
   const handleStatusSelect = (status: ReadingStatus) => {
     setSelectedStatus(status)

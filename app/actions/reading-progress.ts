@@ -85,8 +85,7 @@ export async function updateReadingProgress(progress: Partial<ReadingProgress>) 
 
     let result
 
-    // Prepare progress data with only core columns that exist in the database
-    // Exclude current_page, total_pages, percentage which may not exist
+    // Prepare progress data - save current_page (single source of truth for user's current page)
     const progressData: any = {
       book_id: progress.book_id,
       user_id: progress.user_id,
@@ -95,6 +94,19 @@ export async function updateReadingProgress(progress: Partial<ReadingProgress>) 
       privacy_level: progress.privacy_level,
       allow_friends: progress.allow_friends,
       allow_followers: progress.allow_followers,
+      current_page: progress.current_page,
+    }
+
+    // Calculate progress_percentage from books.pages (single source of truth for total pages)
+    if (progress.current_page !== undefined && progress.current_page !== null && progress.current_page > 0 && progress.book_id) {
+      const { data: book } = await (supabase.from('books') as any)
+        .select('pages')
+        .eq('id', progress.book_id)
+        .single()
+      
+      if (book?.pages && book.pages > 0) {
+        progressData.progress_percentage = Math.round((progress.current_page / book.pages) * 100)
+      }
     }
 
     // Add start_date or finish_date based on status
@@ -113,6 +125,19 @@ export async function updateReadingProgress(progress: Partial<ReadingProgress>) 
       if (progress.allow_friends !== undefined) updateData.allow_friends = progress.allow_friends
       if (progress.allow_followers !== undefined) updateData.allow_followers = progress.allow_followers
       if (progress.finish_date !== undefined) updateData.finish_date = progress.finish_date
+      if (progress.current_page !== undefined) updateData.current_page = progress.current_page
+
+      // Calculate progress_percentage from books.pages (single source of truth for total pages)
+      if (progress.current_page !== undefined && progress.current_page !== null && progress.current_page > 0 && progress.book_id) {
+        const { data: book } = await (supabase.from('books') as any)
+          .select('pages')
+          .eq('id', progress.book_id)
+          .single()
+        
+        if (book?.pages && book.pages > 0) {
+          updateData.progress_percentage = Math.round((progress.current_page / book.pages) * 100)
+        }
+      }
 
       const { data, error } = await (supabase.from('reading_progress') as any)
         .update(updateData)
@@ -121,7 +146,7 @@ export async function updateReadingProgress(progress: Partial<ReadingProgress>) 
 
       result = { data, error }
     } else {
-      // Insert new record with core columns
+      // Insert new record - include current_page and calculated progress_percentage
       const { data, error } = await supabase
         .from('reading_progress')
         .insert({
@@ -136,6 +161,8 @@ export async function updateReadingProgress(progress: Partial<ReadingProgress>) 
           allow_friends: progress.allow_friends !== undefined ? progress.allow_friends : false,
           allow_followers:
             progress.allow_followers !== undefined ? progress.allow_followers : false,
+          current_page: progress.current_page,
+          progress_percentage: progressData.progress_percentage,
         } as any)
         .select()
 

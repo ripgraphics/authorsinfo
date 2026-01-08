@@ -745,6 +745,7 @@ export function ClientAuthorPage({
                 emptyMessage="No books are currently being read by this author"
                 maxBooks={3}
                 useCardWrapper={true}
+                showAuthor={false}
                 labels={{
                   progress: 'Progress',
                   pageOf: 'Page',

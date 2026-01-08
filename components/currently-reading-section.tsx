@@ -56,6 +56,8 @@ interface CurrentlyReadingSectionProps {
     pageOf?: string
     authorPrefix?: string
   }
+  // Show/hide author line
+  showAuthor?: boolean
   // Custom book item renderer (fully customizable)
   renderBookItem?: (book: CurrentlyReadingBook, progressPercentage: number | null) => ReactNode
   // Custom styling
@@ -80,6 +82,7 @@ export function CurrentlyReadingSection({
   bookItemClassName = '',
   coverImageClassName = '',
   progressBarClassName = '',
+  showAuthor = true,
 }: CurrentlyReadingSectionProps) {
   const displayBooks = books.slice(0, maxBooks)
   
@@ -139,7 +142,7 @@ export function CurrentlyReadingSection({
           </div>
           <div className="flex-1 space-y-1">
             <h4 className="font-medium line-clamp-1">{book.title}</h4>
-            {book.author && (
+            {showAuthor && book.author && (
               <p className="text-sm text-muted-foreground">
                 {defaultLabels.authorPrefix} {book.author.name}
               </p>

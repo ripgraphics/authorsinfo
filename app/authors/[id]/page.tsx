@@ -390,15 +390,20 @@ async function getCurrentlyReadingBooksByAuthor(authorId: string) {
         const key = `${rp.book_id}_${rp.user_id}`
         let percentage: number | null = null
 
-        // Priority 1: Calculate from current_page and total_pages if available (most accurate)
+        // Priority 1: Calculate from current_page (reading_progress) and pages (books table - single source of truth)
+        // Use Supabase as single source of truth - books.pages is the ONLY source for total pages
+        const bookData = booksMap.get(rp.book_id)
+        const totalPagesFromBook = bookData?.pages || null
+
         if (
           rp.current_page !== null &&
           rp.current_page !== undefined &&
-          rp.total_pages !== null &&
-          rp.total_pages !== undefined &&
-          rp.total_pages > 0
+          rp.current_page > 0 &&
+          totalPagesFromBook !== null &&
+          totalPagesFromBook !== undefined &&
+          totalPagesFromBook > 0
         ) {
-          percentage = Math.round((rp.current_page / rp.total_pages) * 100)
+          percentage = Math.round((rp.current_page / totalPagesFromBook) * 100)
         }
         // Priority 2: Use progress_percentage if it's a valid number (including 0)
         else if (typeof rp.progress_percentage === 'number') {
@@ -523,7 +528,7 @@ async function getCurrentlyReadingBooksByAuthor(authorId: string) {
           coverImageUrl: book.cover_image?.url || null,
           percentage: progress_percentage,
           currentPage: rp.current_page !== null && rp.current_page !== undefined ? rp.current_page : null,
-          totalPages: rp.total_pages !== null && rp.total_pages !== undefined ? rp.total_pages : (book.pages || null),
+          totalPages: book.pages || null, // Single source of truth - only use books.pages
           author: author
             ? {
                 id: author.id,

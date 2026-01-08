@@ -1550,6 +1550,7 @@ export function ClientBookPage({
                     onConfirm={handlePageInputConfirm}
                     isLoading={isUpdatingStatus}
                     initialStatus="in_progress"
+                    initialCurrentPage={readingProgress?.current_page ?? null}
                   />
                 </div>
               </div>

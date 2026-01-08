@@ -273,6 +273,7 @@ export function ClientProfilePage({
                   emptyMessage="No books currently being read"
                   maxBooks={3}
                   useCardWrapper={false}
+                  showAuthor={false}
                   labels={{
                     progress: 'Progress',
                     pageOf: 'Page',

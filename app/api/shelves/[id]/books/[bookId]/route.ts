@@ -137,12 +137,22 @@ export async function POST(
         .eq('user_id', user.id)
         .single()
 
-      // Core progress data - only columns that definitely exist in the database
+      // Core progress data - save current_page if provided (single source of truth for user's current page)
       const progressData: any = {
         user_id: user.id,
         book_id: bookId,
         status: progressStatus,
         updated_at: new Date().toISOString(),
+      }
+
+      // Save current_page if provided
+      if (currentPage !== undefined && currentPage !== null) {
+        progressData.current_page = currentPage
+        
+        // Calculate progress_percentage from books.pages (single source of truth for total pages)
+        if (book?.pages && book.pages > 0 && currentPage > 0) {
+          progressData.progress_percentage = Math.round((currentPage / book.pages) * 100)
+        }
       }
 
       // Add start_date or finish_date based on status

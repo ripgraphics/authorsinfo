@@ -1713,27 +1713,13 @@ export default function EntityFeedCard({
           {/* Post Header Info */}
           <div className="enterprise-feed-card-header-info flex-1">
             <div className="enterprise-feed-card-header-top flex items-center gap-2 mb-1">
-              <EntityHoverCard
+              <EntityName
                 type="user"
-                entity={{
-                  id: post.user_id,
-                  name: postOwnerName,
-                  avatar_url: postOwnerAvatar,
-                }}
-              >
-                <span
-                  className="hover:underline cursor-pointer text-muted-foreground"
-                  data-state="closed"
-                >
-                  <EntityName
-                    type="user"
-                    id={post.user_id}
-                    name={postOwnerName}
-                    avatar_url={postOwnerAvatar}
-                    className="enterprise-feed-card-user-name font-semibold text-sm"
-                  />
-                </span>
-              </EntityHoverCard>
+                id={post.user_id}
+                name={postOwnerName}
+                avatar_url={postOwnerAvatar}
+                className="enterprise-feed-card-user-name font-semibold text-sm"
+              />
 
               {/* Content Type Badge */}
               {currentContentConfig && (
@@ -2378,27 +2364,13 @@ export default function EntityFeedCard({
                     </EntityHoverCard>
                     <div className="enterprise-feed-card-header-info flex-1">
                       <div className="enterprise-feed-card-header-top flex items-center gap-2 mb-1">
-                        <EntityHoverCard
+                        <EntityName
                           type="user"
-                          entity={{
-                            id: post.user_id,
-                            name: postOwnerName,
-                            avatar_url: postOwnerAvatar,
-                          }}
-                        >
-                          <span
-                            className="hover:underline cursor-pointer text-muted-foreground"
-                            data-state="closed"
-                          >
-                            <EntityName
-                              type="user"
-                              id={post.user_id}
-                              name={postOwnerName}
-                              avatar_url={postOwnerAvatar}
-                              className="enterprise-feed-card-user-name font-semibold text-sm"
-                            />
-                          </span>
-                        </EntityHoverCard>
+                          id={post.user_id}
+                          name={postOwnerName}
+                          avatar_url={postOwnerAvatar}
+                          className="enterprise-feed-card-user-name font-semibold text-sm"
+                        />
                       </div>
                       <div className="enterprise-feed-card-header-bottom flex items-center gap-2 text-xs text-muted-foreground">
                         <span className="enterprise-feed-card-timestamp">

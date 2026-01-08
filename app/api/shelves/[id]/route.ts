@@ -90,6 +90,11 @@ export async function GET(
             `
             id,
             book_id,
+            status,
+            progress_percentage,
+            percentage,
+            current_page,
+            total_pages,
             updated_at,
             books (
               id,
@@ -122,6 +127,13 @@ export async function GET(
             shelfBookId: rp.id,
             displayOrder: 0,
             addedAt: rp.updated_at,
+            readingProgress: {
+              status: rp.status,
+              progress_percentage: rp.progress_percentage,
+              percentage: rp.percentage,
+              current_page: rp.current_page,
+              total_pages: rp.total_pages,
+            },
           })) || [];
 
         // Fetch authors for books
@@ -235,7 +247,7 @@ export async function GET(
 
         // Fetch reading progress for books
         const { data: readingProgress } = await (supabase.from('reading_progress') as any)
-          .select('book_id, status')
+          .select('book_id, status, progress_percentage, percentage, current_page, total_pages')
           .eq('user_id', user.id)
           .in('book_id', bookIds);
 
@@ -244,6 +256,10 @@ export async function GET(
           readingProgress.forEach((rp: any) => {
             progressMap.set(rp.book_id, {
               status: rp.status,
+              progress_percentage: rp.progress_percentage,
+              percentage: rp.percentage,
+              current_page: rp.current_page,
+              total_pages: rp.total_pages,
             });
           });
 

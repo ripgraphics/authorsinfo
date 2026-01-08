@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { BookOpen } from 'lucide-react'
 import { Card } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
 import { EntityHoverCard } from '@/components/entity-hover-cards'
 import { AddToShelfButton } from '@/components/add-to-shelf-button'
 
@@ -20,6 +21,13 @@ interface BookCardProps {
     }
   }
   authorBookCount?: number
+  readingProgress?: {
+    status: string
+    progress_percentage?: number | null
+    percentage?: number | null
+    current_page?: number | null
+    total_pages?: number | null
+  }
 }
 
 export function BookCard({
@@ -29,6 +37,7 @@ export function BookCard({
   className = '',
   author,
   authorBookCount = 0,
+  readingProgress,
 }: BookCardProps) {
   return (
     <div className="group relative h-full">
@@ -70,6 +79,39 @@ export function BookCard({
                 </EntityHoverCard>
               </div>
             )}
+            {readingProgress?.status === 'in_progress' && (() => {
+              const percentage = readingProgress.progress_percentage ?? readingProgress.percentage
+              const hasPercentage = percentage !== null && percentage !== undefined
+              const hasPageInfo =
+                readingProgress.current_page !== null &&
+                readingProgress.current_page !== undefined &&
+                readingProgress.total_pages !== null &&
+                readingProgress.total_pages !== undefined
+              
+              if (!hasPercentage && !hasPageInfo) return null
+              
+              return (
+                <div className="mt-2 space-y-1">
+                  {(hasPercentage || hasPageInfo) && (
+                    <div className="text-xs text-muted-foreground">
+                      {(() => {
+                        const parts: string[] = []
+                        if (hasPercentage) {
+                          parts.push(`${Math.round(percentage!)}%`)
+                        }
+                        if (hasPageInfo) {
+                          parts.push(`Page ${readingProgress.current_page} of ${readingProgress.total_pages}`)
+                        }
+                        return parts.join(' · ')
+                      })()}
+                    </div>
+                  )}
+                  {hasPercentage && (
+                    <Progress value={Math.round(percentage!)} className="h-1.5" />
+                  )}
+                </div>
+              )
+            })()}
           </div>
         </Card>
       </Link>

@@ -261,7 +261,7 @@ export function EntityHoverCard({
     <HoverCard>
       <HoverCardTrigger asChild>
         <span
-          className="hover:underline cursor-pointer text-muted-foreground"
+          className="hover:underline cursor-pointer text-muted-foreground inline-block"
           onClick={handleClick}
         >
           {children}

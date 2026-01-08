@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { ClientProfilePage } from './client'
 import { getFollowersCount, getFollowers } from '@/lib/follows-server'
 import { getFriends } from '@/lib/friends-server'
+import { createServerComponentClientAsync } from '@/lib/supabase/client-helper'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,8 +11,352 @@ interface ProfilePageProps {
   params: Promise<{ id: string }>
 }
 
+// Helper function to check if two users are friends
+async function checkIfFriends(userId1: string, userId2: string): Promise<boolean> {
+  const { data: friendship } = await supabaseAdmin
+    .from('user_friends')
+    .select('id')
+    .or(
+      `and(user_id.eq.${userId1},friend_id.eq.${userId2},status.eq.accepted),and(user_id.eq.${userId2},friend_id.eq.${userId1},status.eq.accepted)`
+    )
+    .maybeSingle()
+
+  return !!friendship
+}
+
+// Helper function to check if user1 is following user2
+async function checkIfFollowing(followerId: string, targetId: string): Promise<boolean> {
+  const userTargetType = await supabaseAdmin
+    .from('follow_target_types')
+    .select('id')
+    .eq('name', 'user')
+    .single()
+
+  if (!userTargetType.data) {
+    return false
+  }
+
+  const { data: follow } = await supabaseAdmin
+    .from('follows')
+    .select('id')
+    .eq('follower_id', followerId)
+    .eq('following_id', targetId)
+    .eq('target_type_id', userTargetType.data.id)
+    .maybeSingle()
+
+  return !!follow
+}
+
+// Get currently reading books for a user with privacy filtering
+async function getCurrentlyReadingBooksForUser(
+  profileOwnerId: string,
+  viewerId: string | null
+): Promise<any[]> {
+  try {
+    // If viewer is the owner, show all books
+    const isOwner = viewerId === profileOwnerId
+
+    // Get user privacy settings
+    const { data: privacySettings } = await supabaseAdmin
+      .from('user_privacy_settings')
+      .select('*')
+      .eq('user_id', profileOwnerId)
+      .maybeSingle()
+
+    // Determine if viewer can see reading progress at all
+    let canViewProgress = isOwner
+    if (!isOwner && viewerId) {
+      // Check user-level privacy settings
+      canViewProgress =
+        privacySettings?.allow_public_reading_profile === true ||
+        (privacySettings?.allow_friends_to_see_reading === true &&
+          (await checkIfFriends(viewerId, profileOwnerId))) ||
+        (privacySettings?.allow_followers_to_see_reading === true &&
+          (await checkIfFollowing(viewerId, profileOwnerId)))
+    }
+
+    if (!canViewProgress) {
+      return []
+    }
+
+    // Fetch reading progress entries with status = 'in_progress'
+    // Select both progress_percentage and percentage fields, plus privacy fields
+    const { data: currentlyReadingProgress, error: currentlyReadingError } = await supabaseAdmin
+      .from('reading_progress')
+      .select(
+        'id, book_id, progress_percentage, percentage, current_page, total_pages, updated_at, privacy_level, allow_friends, allow_followers'
+      )
+      .eq('user_id', profileOwnerId)
+      .eq('status', 'in_progress')
+      .order('updated_at', { ascending: false })
+      .limit(20) // Fetch more to allow for filtering
+
+    if (currentlyReadingError) {
+      console.error('Error fetching currently reading progress:', currentlyReadingError)
+      return []
+    }
+
+    if (!currentlyReadingProgress || currentlyReadingProgress.length === 0) {
+      return []
+    }
+
+    // Filter by reading_progress-level privacy if viewer is not the owner
+    let filteredProgress = currentlyReadingProgress
+    if (!isOwner && viewerId) {
+      // Check if viewer is friend or follower
+      const [isFriend, isFollower] = await Promise.all([
+        checkIfFriends(viewerId, profileOwnerId),
+        checkIfFollowing(viewerId, profileOwnerId),
+      ])
+
+      filteredProgress = currentlyReadingProgress.filter((rp: any) => {
+        // Show if:
+        // - privacy_level is 'public' OR
+        // - allow_friends is true AND viewer is friend OR
+        // - allow_followers is true AND viewer is follower
+        return (
+          rp.privacy_level === 'public' ||
+          (rp.allow_friends === true && isFriend) ||
+          (rp.allow_followers === true && isFollower)
+        )
+      })
+    }
+
+    if (filteredProgress.length === 0) {
+      return []
+    }
+
+    // Get all book IDs
+    const currentlyReadingBookIds = filteredProgress.map((rp: any) => rp.book_id).filter(Boolean)
+
+    if (currentlyReadingBookIds.length === 0) {
+      return []
+    }
+
+          // Fetch books with cover images, permalinks, and pages (to use as total_pages fallback)
+          // Use Supabase as single source of truth - fetch ALL relevant fields
+          const { data: currentlyReadingBooksFromDb, error: currentlyReadingBooksError } =
+            await supabaseAdmin
+              .from('books')
+              .select(
+                `
+                id,
+                title,
+                permalink,
+                pages,
+                cover_image_id,
+                cover_image:images!books_cover_image_id_fkey(url, alt_text)
+              `
+              )
+              .in('id', currentlyReadingBookIds)
+
+    if (currentlyReadingBooksError) {
+      console.error('Error fetching currently reading books:', currentlyReadingBooksError)
+      return []
+    }
+
+    if (!currentlyReadingBooksFromDb || currentlyReadingBooksFromDb.length === 0) {
+      return []
+    }
+
+    // Create a map of book_id to book data (including pages from Supabase)
+    const currentlyReadingBooksMap = new Map<string, any>()
+    currentlyReadingBooksFromDb.forEach((book: any) => {
+      currentlyReadingBooksMap.set(book.id, book)
+    })
+
+    // Create a map of book_id to progress percentage
+    // Use Supabase as single source of truth - use whatever data exists in Supabase
+    // Priority: current_page/total_pages calculation > progress_percentage > percentage
+    const progressMap = new Map<string, number | null>()
+    filteredProgress.forEach((rp: any) => {
+      if (rp.book_id) {
+        let percentage: number | null = null
+
+        // Debug: Log actual data from Supabase
+        if (process.env.NODE_ENV === 'development') {
+          console.log('📊 Supabase reading_progress data:', {
+            book_id: rp.book_id,
+            progress_percentage: rp.progress_percentage,
+            percentage: rp.percentage,
+            current_page: rp.current_page,
+            total_pages: rp.total_pages,
+            hasProgressPercentage: typeof rp.progress_percentage === 'number',
+            hasPercentage: typeof rp.percentage === 'number',
+            hasCurrentPage: rp.current_page !== null && rp.current_page !== undefined,
+            hasTotalPages: rp.total_pages !== null && rp.total_pages !== undefined,
+          })
+        }
+
+        // Priority 1: Calculate from current_page and total_pages if available (most accurate)
+        // Use Supabase data directly - don't assume anything
+        // Check if we have current_page and either total_pages from reading_progress OR pages from books table
+        const bookData = currentlyReadingBooksMap.get(rp.book_id)
+        const totalPagesFromBook = bookData?.pages || null
+        const totalPagesToUse = rp.total_pages !== null && rp.total_pages !== undefined 
+          ? rp.total_pages 
+          : (totalPagesFromBook !== null && totalPagesFromBook !== undefined ? totalPagesFromBook : null)
+
+        if (
+          rp.current_page !== null &&
+          rp.current_page !== undefined &&
+          rp.current_page > 0 &&
+          totalPagesToUse !== null &&
+          totalPagesToUse !== undefined &&
+          totalPagesToUse > 0
+        ) {
+          percentage = Math.round((rp.current_page / totalPagesToUse) * 100)
+          if (process.env.NODE_ENV === 'development') {
+            console.log('📊 Calculated from pages (Supabase data):', {
+              book_id: rp.book_id,
+              current_page: rp.current_page,
+              total_pages_from_rp: rp.total_pages,
+              pages_from_book: totalPagesFromBook,
+              total_pages_used: totalPagesToUse,
+              calculated: percentage,
+            })
+          }
+        }
+        // Priority 2: Use progress_percentage from Supabase if available (including 0)
+        else if (typeof rp.progress_percentage === 'number') {
+          percentage = rp.progress_percentage
+          if (process.env.NODE_ENV === 'development') {
+            console.log('📊 Using progress_percentage from Supabase:', {
+              book_id: rp.book_id,
+              progress_percentage: percentage,
+            })
+          }
+        }
+        // Priority 3: Use percentage field from Supabase if available
+        else if (typeof rp.percentage === 'number') {
+          percentage = rp.percentage
+          if (process.env.NODE_ENV === 'development') {
+            console.log('📊 Using percentage from Supabase:', {
+              book_id: rp.book_id,
+              percentage: percentage,
+            })
+          }
+        }
+        // No progress data available in Supabase
+        else {
+          if (process.env.NODE_ENV === 'development') {
+            console.log('⚠️ No progress data in Supabase:', {
+              book_id: rp.book_id,
+              progress_percentage: rp.progress_percentage,
+              percentage: rp.percentage,
+              current_page: rp.current_page,
+              total_pages: rp.total_pages,
+              pages_from_book: totalPagesFromBook,
+            })
+          }
+        }
+
+        progressMap.set(rp.book_id, percentage)
+      }
+    })
+
+    // Fetch authors for all currently reading books
+    const currentlyReadingAuthorMap = new Map<string, any>()
+    const { data: currentlyReadingBookAuthors, error: currentlyReadingAuthorsError } =
+      await supabaseAdmin
+        .from('book_authors')
+        .select(
+          `
+          book_id,
+          authors (
+            id,
+            name
+          )
+        `
+        )
+        .in('book_id', currentlyReadingBookIds)
+
+    if (!currentlyReadingAuthorsError && currentlyReadingBookAuthors) {
+      currentlyReadingBookAuthors.forEach((ba: any) => {
+        if (ba.authors && !currentlyReadingAuthorMap.has(ba.book_id)) {
+          currentlyReadingAuthorMap.set(ba.book_id, ba.authors)
+        }
+      })
+    }
+
+    // Transform the data to match the structure expected by the client component
+    const currentlyReadingBooks = filteredProgress
+      .map((rp: any) => {
+        const book = currentlyReadingBooksMap.get(rp.book_id)
+        if (!book || !book.id) {
+          return null
+        }
+
+        const author = currentlyReadingAuthorMap.get(book.id) || null
+        // Get the reading progress entry to access ALL data from Supabase
+        const rpEntry = filteredProgress.find((rp: any) => rp.book_id === book.id)
+        
+        // Use Supabase data directly - get progress_percentage from map (which was calculated from Supabase data)
+        const progress_percentage = progressMap.has(book.id) ? progressMap.get(book.id) : null
+
+        // Use Supabase data directly for current_page and total_pages - don't assume anything
+        // Use total_pages from reading_progress if available, otherwise use pages from books table
+        const currentPage = rpEntry?.current_page !== null && rpEntry?.current_page !== undefined ? rpEntry.current_page : null
+        const totalPagesFromRp = rpEntry?.total_pages !== null && rpEntry?.total_pages !== undefined ? rpEntry.total_pages : null
+        const totalPagesFromBook = book.pages !== null && book.pages !== undefined ? book.pages : null
+        const totalPages = totalPagesFromRp !== null ? totalPagesFromRp : totalPagesFromBook
+
+        if (process.env.NODE_ENV === 'development') {
+          console.log('📊 Final book data from Supabase:', {
+            book_id: book.id,
+            title: book.title,
+            progress_percentage: progress_percentage,
+            current_page: currentPage,
+            total_pages: totalPages,
+            rpEntry_exists: !!rpEntry,
+          })
+        }
+
+        return {
+          id: book.id,
+          title: book.title,
+          permalink: book.permalink || null,
+          coverImageUrl: book.cover_image?.url || null,
+          progress_percentage: progress_percentage,
+          currentPage: currentPage,
+          totalPages: totalPages,
+          author: author
+            ? {
+                id: author.id,
+                name: author.name,
+              }
+            : null,
+        }
+      })
+      .filter(Boolean) // Remove null entries
+      .slice(0, 5) // Limit to 5 books
+
+    return currentlyReadingBooks
+  } catch (error: any) {
+    console.error('Error in getCurrentlyReadingBooksForUser:', {
+      message: error?.message || 'Unknown error',
+      stack: error?.stack,
+      error: error,
+    })
+    return []
+  }
+}
+
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const { id } = await params
+
+  // Get current user (viewer) for privacy checks
+  let viewerId: string | null = null
+  try {
+    const supabase = await createServerComponentClientAsync()
+    const {
+      data: { user: currentUser },
+    } = await supabase.auth.getUser()
+    viewerId = currentUser?.id || null
+  } catch (error) {
+    // If auth fails, viewerId remains null (public user)
+    console.log('No authenticated user, viewing as public')
+  }
 
   try {
     // First, try to find user by permalink
@@ -337,131 +682,8 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       books = []
     }
 
-    // Fetch currently reading books directly from Supabase
-    let currentlyReadingBooks: any[] = []
-    try {
-      // Fetch reading progress entries with status = 'in_progress'
-      const { data: currentlyReadingProgress, error: currentlyReadingError } = await supabaseAdmin
-        .from('reading_progress')
-        .select('id, book_id, progress_percentage, updated_at')
-        .eq('user_id', user.id)
-        .eq('status', 'in_progress')
-        .order('updated_at', { ascending: false })
-        .limit(5)
-
-      if (currentlyReadingError) {
-        console.error('Error fetching currently reading progress:', currentlyReadingError)
-        currentlyReadingBooks = []
-      } else if (currentlyReadingProgress && currentlyReadingProgress.length > 0) {
-        // Get all book IDs
-        const currentlyReadingBookIds = currentlyReadingProgress
-          .map((rp: any) => rp.book_id)
-          .filter(Boolean)
-
-        if (currentlyReadingBookIds.length === 0) {
-          console.log('📚 No book IDs found in currently reading progress')
-          currentlyReadingBooks = []
-        } else {
-          // Fetch books with cover images
-          const { data: currentlyReadingBooksFromDb, error: currentlyReadingBooksError } =
-            await supabaseAdmin
-              .from('books')
-              .select(
-                `
-                id,
-                title,
-                cover_image_id,
-                cover_image:images!books_cover_image_id_fkey(url, alt_text)
-              `
-              )
-              .in('id', currentlyReadingBookIds)
-
-          if (currentlyReadingBooksError) {
-            console.error('Error fetching currently reading books:', currentlyReadingBooksError)
-            currentlyReadingBooks = []
-          } else if (
-            !currentlyReadingBooksFromDb ||
-            currentlyReadingBooksFromDb.length === 0
-          ) {
-            console.log('📚 No books found for currently reading IDs:', currentlyReadingBookIds)
-            currentlyReadingBooks = []
-          } else {
-            // Create a map of book_id to book data
-            const currentlyReadingBooksMap = new Map<string, any>()
-            currentlyReadingBooksFromDb.forEach((book: any) => {
-              currentlyReadingBooksMap.set(book.id, book)
-            })
-
-            // Create a map of book_id to progress_percentage
-            const progressMap = new Map<string, number | null>()
-            currentlyReadingProgress.forEach((rp: any) => {
-              if (rp.book_id) {
-                progressMap.set(rp.book_id, rp.progress_percentage)
-              }
-            })
-
-            // Fetch authors for all currently reading books
-            const currentlyReadingAuthorMap = new Map<string, any>()
-            const { data: currentlyReadingBookAuthors, error: currentlyReadingAuthorsError } =
-              await supabaseAdmin
-                .from('book_authors')
-                .select(
-                  `
-                  book_id,
-                  authors (
-                    id,
-                    name
-                  )
-                `
-                )
-                .in('book_id', currentlyReadingBookIds)
-
-            if (!currentlyReadingAuthorsError && currentlyReadingBookAuthors) {
-              currentlyReadingBookAuthors.forEach((ba: any) => {
-                if (ba.authors && !currentlyReadingAuthorMap.has(ba.book_id)) {
-                  currentlyReadingAuthorMap.set(ba.book_id, ba.authors)
-                }
-              })
-            }
-
-            // Transform the data to match the structure expected by the client component
-            currentlyReadingBooks = currentlyReadingProgress
-              .map((rp: any) => {
-                const book = currentlyReadingBooksMap.get(rp.book_id)
-                if (!book || !book.id) {
-                  return null
-                }
-
-                const author = currentlyReadingAuthorMap.get(book.id) || null
-                const progress_percentage = progressMap.get(book.id) || null
-
-                return {
-                  id: book.id,
-                  title: book.title,
-                  coverImageUrl: book.cover_image?.url || null,
-                  progress_percentage: progress_percentage,
-                  author: author
-                    ? {
-                        id: author.id,
-                        name: author.name,
-                      }
-                    : null,
-                }
-              })
-              .filter(Boolean) // Remove null entries
-
-            console.log('📚 Currently Reading Books:', {
-              progressCount: currentlyReadingProgress.length,
-              booksCount: currentlyReadingBooks.length,
-              bookIds: currentlyReadingBookIds.length,
-            })
-          }
-        }
-      }
-    } catch (currentlyReadingError) {
-      console.error('Error fetching currently reading books:', currentlyReadingError)
-      currentlyReadingBooks = []
-    }
+    // Fetch currently reading books with privacy filtering
+    const currentlyReadingBooks = await getCurrentlyReadingBooksForUser(user.id, viewerId)
 
     // Temporary debug logging
     console.log('🔍 Profile Page Debug:', {

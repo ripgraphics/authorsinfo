@@ -927,29 +927,31 @@ export function EntityHeader({
         })
 
         return (
-          <EntityHoverCard
-            type="user"
-            entity={{
-              id: entityId || '',
-              name: name,
-              avatar_url: profileImageUrl,
-              created_at: creatorJoinedAt,
-              location: location, // Pass the location prop
-              website: website, // Pass the website prop
-              // Add any other user data that might be available
-              friend_count: parseInt(
-                stats?.find((s) => s.text.includes('friends'))?.text.match(/\d+/)?.[0] || '0'
-              ),
-              books_read_count: parseInt(
-                stats?.find((s) => s.text.includes('books'))?.text.match(/\d+/)?.[0] || '0'
-              ),
-            }}
-            userStats={userStats}
-          >
-            <h1 className="entity-header__title text-base sm:text-[1.1rem] font-bold truncate w-full min-w-0 block cursor-pointer hover:text-primary transition-colors">
-              {name}
-            </h1>
-          </EntityHoverCard>
+          <h1 className="entity-header__title text-base sm:text-[1.1rem] font-bold truncate w-full min-w-0 block">
+            <EntityHoverCard
+              type="user"
+              entity={{
+                id: entityId || '',
+                name: name,
+                avatar_url: profileImageUrl,
+                created_at: creatorJoinedAt,
+                location: location, // Pass the location prop
+                website: website, // Pass the website prop
+                // Add any other user data that might be available
+                friend_count: parseInt(
+                  stats?.find((s) => s.text.includes('friends'))?.text.match(/\d+/)?.[0] || '0'
+                ),
+                books_read_count: parseInt(
+                  stats?.find((s) => s.text.includes('books'))?.text.match(/\d+/)?.[0] || '0'
+                ),
+              }}
+              userStats={userStats}
+            >
+              <span className="cursor-pointer hover:text-primary transition-colors inline-block">
+                {name}
+              </span>
+            </EntityHoverCard>
+          </h1>
         )
       case 'author':
         return author ? (

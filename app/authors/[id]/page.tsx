@@ -10,6 +10,7 @@ import { getAuthorEvents } from '@/lib/events'
 import EventCard from '@/components/event-card'
 import type { Event } from '@/types/database'
 import { createClient } from '@/lib/supabase-server'
+import { createServerClient } from '@/lib/supabase-server'
 
 interface AuthorPageProps {
   params: Promise<{
@@ -276,53 +277,70 @@ async function getAuthorAlbums(authorId: string) {
 
 async function getCurrentlyReadingBooksByAuthor(authorId: string) {
   try {
-    // First, get all books by this author
-    const { data: authorBooks } = await supabaseAdmin
-      .from('books')
-      .select('id')
-      .eq('author_id', authorId)
+    // First, get all books by this author from both author_id and book_authors junction table
+    const [booksByAuthorIdResult, bookAuthorsResult] = await Promise.all([
+      // Books with direct author_id
+      supabaseAdmin
+        .from('books')
+        .select('id')
+        .eq('author_id', authorId),
+      // Books associated via book_authors junction table
+      supabaseAdmin
+        .from('book_authors')
+        .select('book_id')
+        .eq('author_id', authorId),
+    ])
 
-    if (!authorBooks || authorBooks.length === 0) {
+    // Combine and deduplicate book IDs
+    const allBookIds = new Set<string>()
+    
+    // Add books from direct author_id
+    if (booksByAuthorIdResult.data) {
+      booksByAuthorIdResult.data.forEach((book: any) => allBookIds.add(book.id))
+    }
+    
+    // Add books from junction table
+    if (bookAuthorsResult.data && bookAuthorsResult.data.length > 0) {
+      const junctionBookIds = bookAuthorsResult.data
+        .map((ba: any) => ba.book_id)
+        .filter(Boolean)
+      
+      if (junctionBookIds.length > 0) {
+        const { data: junctionBooks } = await supabaseAdmin
+          .from('books')
+          .select('id')
+          .in('id', junctionBookIds)
+        
+        if (junctionBooks) {
+          junctionBooks.forEach((book: any) => allBookIds.add(book.id))
+        }
+      }
+    }
+
+    const bookIds = Array.from(allBookIds)
+
+    if (bookIds.length === 0) {
       return []
     }
 
-    const bookIds = authorBooks.map((book) => book.id)
-
     // Get reading progress entries for books by this author that are currently being read
-    // Filter by public reading activity (privacy_level = 'public' OR allow_followers = true)
+    // Following the same pattern as profile page - query directly from Supabase without privacy filtering
+    // Fetch all progress fields to use Supabase as single source of truth
     const { data: readingProgress, error } = await supabaseAdmin
       .from('reading_progress')
-      .select(
-        `
-        id,
-        book_id,
-        user_id,
-        current_page,
-        total_pages,
-        percentage,
-        updated_at,
-        books (
-          id,
-          title,
-          cover_image_id,
-          pages,
-          cover_image:images!books_cover_image_id_fkey(url, alt_text)
-        ),
-        profiles!reading_progress_user_id_fkey (
-          id,
-          full_name,
-          avatar_url
-        )
-      `
-      )
+      .select('id, book_id, user_id, progress_percentage, percentage, current_page, total_pages, updated_at, privacy_level, allow_friends, allow_followers')
       .in('book_id', bookIds)
       .eq('status', 'in_progress')
-      .or('privacy_level.eq.public,allow_followers.eq.true')
       .order('updated_at', { ascending: false })
-      .limit(10)
+      .limit(20)
 
     if (error) {
-      console.error('Error fetching currently reading books:', error)
+      console.error('Error fetching currently reading books:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+      })
       return []
     }
 
@@ -330,8 +348,131 @@ async function getCurrentlyReadingBooksByAuthor(authorId: string) {
       return []
     }
 
-    // Get authors for books
+    // Get all book IDs from reading progress
     const progressBookIds = readingProgress.map((rp: any) => rp.book_id).filter(Boolean)
+
+        // Fetch books with cover images and permalinks (same pattern as profile page)
+        const { data: booksFromDb, error: booksError } = await supabaseAdmin
+          .from('books')
+          .select(
+            `
+            id,
+            title,
+            permalink,
+            cover_image_id,
+            pages,
+            cover_image:images!books_cover_image_id_fkey(url, alt_text)
+          `
+          )
+          .in('id', progressBookIds)
+
+    if (booksError) {
+      console.error('Error fetching books:', booksError)
+      return []
+    }
+
+    if (!booksFromDb || booksFromDb.length === 0) {
+      return []
+    }
+
+    // Create a map of book_id to book data
+    const booksMap = new Map<string, any>()
+    booksFromDb.forEach((book: any) => {
+      booksMap.set(book.id, book)
+    })
+
+    // Create a map of book_id+user_id to progress percentage
+    // Use Supabase as single source of truth - calculate from current_page/total_pages if available (most accurate)
+    // Priority: current_page/total_pages > progress_percentage > percentage
+    const progressMap = new Map<string, number | null>()
+    readingProgress.forEach((rp: any) => {
+      if (rp.id && rp.book_id && rp.user_id) {
+        // Use a composite key of book_id + user_id to track progress per user
+        const key = `${rp.book_id}_${rp.user_id}`
+        let percentage: number | null = null
+
+        // Priority 1: Calculate from current_page and total_pages if available (most accurate)
+        if (
+          rp.current_page !== null &&
+          rp.current_page !== undefined &&
+          rp.total_pages !== null &&
+          rp.total_pages !== undefined &&
+          rp.total_pages > 0
+        ) {
+          percentage = Math.round((rp.current_page / rp.total_pages) * 100)
+        }
+        // Priority 2: Use progress_percentage if it's a valid number (including 0)
+        else if (typeof rp.progress_percentage === 'number') {
+          percentage = rp.progress_percentage
+        }
+        // Priority 3: Use percentage field if progress_percentage is not available
+        else if (typeof rp.percentage === 'number') {
+          percentage = rp.percentage
+        }
+
+        progressMap.set(key, percentage)
+      }
+    })
+
+    // Get unique user IDs from reading progress
+    const userIds = Array.from(
+      new Set(readingProgress.map((rp: any) => rp.user_id).filter(Boolean))
+    )
+
+    // Fetch user names from users table
+    const usersMap = new Map<string, any>()
+    if (userIds.length > 0) {
+      const { data: users, error: usersError } = await supabaseAdmin
+        .from('users')
+        .select('id, name')
+        .in('id', userIds)
+
+      if (!usersError && users) {
+        users.forEach((user: any) => {
+          usersMap.set(user.id, user)
+        })
+      }
+    }
+
+    // Fetch profiles for avatar_image_id
+    const profilesMap = new Map<string, any>()
+    if (userIds.length > 0) {
+      const { data: profiles, error: profilesError } = await supabaseAdmin
+        .from('profiles')
+        .select('user_id, avatar_image_id')
+        .in('user_id', userIds)
+
+      if (!profilesError && profiles) {
+        profiles.forEach((profile: any) => {
+          profilesMap.set(profile.user_id, profile)
+        })
+      }
+    }
+
+    // Fetch avatar URLs from images table
+    const avatarImageIds = Array.from(
+      new Set(
+        Array.from(profilesMap.values())
+          .map((p: any) => p.avatar_image_id)
+          .filter(Boolean)
+      )
+    )
+
+    const avatarMap = new Map<string, string>()
+    if (avatarImageIds.length > 0) {
+      const { data: images, error: imagesError } = await supabaseAdmin
+        .from('images')
+        .select('id, url')
+        .in('id', avatarImageIds)
+
+      if (!imagesError && images) {
+        images.forEach((image: any) => {
+          avatarMap.set(image.id, image.url)
+        })
+      }
+    }
+
+    // Fetch authors for all books (same pattern as profile page)
     const { data: bookAuthors } = await supabaseAdmin
       .from('book_authors')
       .select(
@@ -354,40 +495,64 @@ async function getCurrentlyReadingBooksByAuthor(authorId: string) {
       })
     }
 
-    // Transform data
-    return readingProgress
-      .map((rp: any) => {
-        const book = rp.books
-        if (!book || !book.id) return null
+    // Transform the data to match the structure expected by the client component (same pattern as profile page)
+    // Deduplicate by book_id - if multiple users are reading the same book, show the most recent one
+    const bookProgressMap = new Map<string, any>()
+    
+    readingProgress.forEach((rp: any) => {
+      const book = booksMap.get(rp.book_id)
+      if (!book || !book.id) {
+        return
+      }
 
+      // If we already have this book, keep the one with the most recent updated_at
+      const existing = bookProgressMap.get(book.id)
+      if (!existing || new Date(rp.updated_at) > new Date(existing.updatedAt)) {
         const author = authorMap.get(book.id) || null
+        const progressKey = `${rp.book_id}_${rp.user_id}`
+        const progress_percentage = progressMap.get(progressKey) || null
+        const user = usersMap.get(rp.user_id)
+        const profile = user ? profilesMap.get(user.id) : null
+        const avatarUrl = profile?.avatar_image_id
+          ? avatarMap.get(profile.avatar_image_id) || null
+          : null
 
-        return {
+        bookProgressMap.set(book.id, {
           id: book.id,
           title: book.title,
+          permalink: book.permalink || null,
           coverImageUrl: book.cover_image?.url || null,
+          percentage: progress_percentage,
+          currentPage: rp.current_page !== null && rp.current_page !== undefined ? rp.current_page : null,
+          totalPages: rp.total_pages !== null && rp.total_pages !== undefined ? rp.total_pages : (book.pages || null),
           author: author
             ? {
                 id: author.id,
                 name: author.name,
               }
             : null,
-          currentPage: rp.current_page,
-          totalPages: book.pages || rp.total_pages,
-          percentage: rp.percentage,
-          user: rp.profiles
+          user: user
             ? {
-                id: rp.profiles.id,
-                name: rp.profiles.full_name,
-                avatarUrl: rp.profiles.avatar_url,
+                id: user.id,
+                name: user.name || 'Unknown User',
+                avatarUrl: avatarUrl,
               }
             : null,
           updatedAt: rp.updated_at,
-        }
-      })
-      .filter(Boolean)
-  } catch (error) {
-    console.error('Error fetching currently reading books by author:', error)
+        })
+      }
+    })
+
+    // Convert map to array and sort by updatedAt (most recent first)
+    return Array.from(bookProgressMap.values()).sort((a, b) => 
+      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    )
+  } catch (error: any) {
+    console.error('Error fetching currently reading books by author:', {
+      message: error?.message || 'Unknown error',
+      stack: error?.stack,
+      error: error,
+    })
     return []
   }
 }

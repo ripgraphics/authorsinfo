@@ -7,6 +7,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { CurrentlyReadingSection } from '@/components/currently-reading-section'
 import {
   BookOpen,
   Users,
@@ -736,70 +737,20 @@ export function ClientAuthorPage({
               />
 
               {/* Currently Reading Section */}
-              <Card>
-                <div className="space-y-1.5 p-4 flex flex-row items-center justify-between">
-                  <div className="text-2xl font-semibold leading-none tracking-tight">
-                    Currently Reading
-                  </div>
-                  <Link href="/my-books" className="text-sm text-primary hover:underline">
-                    See All
-                  </Link>
-                </div>
-                <CardContent className="p-4 pt-0 space-y-4">
-                  {currentlyReadingBooks.length > 0 ? (
-                    currentlyReadingBooks.slice(0, 3).map((book) => (
-                      <Link key={book.id} href={`/books/${book.id}`} className="block">
-                        <div className="flex gap-3">
-                          <div className="relative h-20 w-14 flex-shrink-0 overflow-hidden rounded-md">
-                            {book.coverImageUrl ? (
-                              <Image
-                                src={book.coverImageUrl}
-                                alt={book.title}
-                                fill
-                                sizes="56px"
-                                className="object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-muted flex items-center justify-center">
-                                <BookOpen className="h-6 w-6 text-muted-foreground" />
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex-1 space-y-1">
-                            <h4 className="font-medium line-clamp-1">{book.title}</h4>
-                            {book.author && (
-                              <p className="text-sm text-muted-foreground">by {book.author.name}</p>
-                            )}
-                            {book.percentage !== null && (
-                              <div className="space-y-1">
-                                <div className="flex justify-between text-xs">
-                                  <span>Progress</span>
-                                  <span>{book.percentage}%</span>
-                                </div>
-                                <div className="relative w-full overflow-hidden rounded-full bg-secondary h-1.5">
-                                  <div
-                                    className="h-full bg-primary transition-all"
-                                    style={{ width: `${book.percentage}%` }}
-                                  />
-                                </div>
-                                {book.currentPage !== null && book.totalPages !== null && (
-                                  <p className="text-xs text-muted-foreground">
-                                    Page {book.currentPage} of {book.totalPages}
-                                  </p>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </Link>
-                    ))
-                  ) : (
-                    <div className="text-center py-4 text-sm text-muted-foreground">
-                      No books are currently being read by this author
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              <CurrentlyReadingSection
+                books={currentlyReadingBooks}
+                title="Currently Reading"
+                viewMoreLink="/my-books"
+                viewMoreText="See All"
+                emptyMessage="No books are currently being read by this author"
+                maxBooks={3}
+                useCardWrapper={true}
+                labels={{
+                  progress: 'Progress',
+                  pageOf: 'Page',
+                  authorPrefix: 'by',
+                }}
+              />
 
               {/* Photos Section */}
               <Card>

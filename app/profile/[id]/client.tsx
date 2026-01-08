@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { EntityHeader } from '@/components/entity-header'
 import { ContentSection } from '@/components/ui/content-section'
+import { CurrentlyReadingSection } from '@/components/currently-reading-section'
 import {
   BookOpen,
   Users,
@@ -264,54 +265,20 @@ export function ClientProfilePage({
                 </ContentSection>
 
                 {/* Currently Reading Section */}
-                <ContentSection
+                <CurrentlyReadingSection
+                  books={currentlyReadingBooks}
                   title="Currently Reading"
                   viewMoreLink="/my-books"
                   viewMoreText="See All"
-                >
-                  {currentlyReadingBooks.length > 0 ? (
-                    <div className="space-y-4">
-                      {currentlyReadingBooks.slice(0, 3).map((book: any) => (
-                        <Link key={book.id} href={`/books/${book.id}`} className="block">
-                          <div className="flex gap-3">
-                            <div className="relative h-20 w-14 flex-shrink-0">
-                              <Image
-                                src={book.coverImageUrl || '/placeholder.svg?height=80&width=56'}
-                                alt={book.title}
-                                fill
-                                className="object-cover rounded-md"
-                              />
-                            </div>
-                            <div className="flex-1 space-y-1">
-                              <h4 className="font-medium line-clamp-1">{book.title}</h4>
-                              {book.author && (
-                                <p className="text-sm text-muted-foreground">by {book.author.name}</p>
-                              )}
-                              {book.progress_percentage != null && (
-                                <div className="space-y-1">
-                                  <div className="flex justify-between text-xs">
-                                    <span>Progress</span>
-                                    <span>{book.progress_percentage}%</span>
-                                  </div>
-                                  <div className="relative w-full overflow-hidden rounded-full bg-secondary h-1.5">
-                                    <div
-                                      className="h-full w-full flex-1 bg-primary transition-all"
-                                      style={{ transform: `translateX(-${100 - book.progress_percentage}%)` }}
-                                    ></div>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground text-center py-4">
-                      No books currently being read
-                    </p>
-                  )}
-                </ContentSection>
+                  emptyMessage="No books currently being read"
+                  maxBooks={3}
+                  useCardWrapper={false}
+                  labels={{
+                    progress: 'Progress',
+                    pageOf: 'Page',
+                    authorPrefix: 'by',
+                  }}
+                />
 
                 {/* Photos Section */}
                 <ContentSection

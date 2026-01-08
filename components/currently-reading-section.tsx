@@ -28,6 +28,9 @@ export interface CurrentlyReadingBook {
   } | null
   // Optional permalink for custom URL generation
   permalink?: string | null
+  // Reading statistics for author pages
+  totalUsersReading?: number
+  mutualFriendsReading?: number
 }
 
 interface CurrentlyReadingSectionProps {
@@ -141,7 +144,24 @@ export function CurrentlyReadingSection({
             )}
           </div>
           <div className="flex-1 space-y-1">
+            {/* Title Row */}
             <h4 className="font-medium line-clamp-1">{book.title}</h4>
+            
+            {/* Reading Count Row */}
+            {(book.totalUsersReading !== undefined && book.totalUsersReading > 0) || 
+             (book.mutualFriendsReading !== undefined && book.mutualFriendsReading > 0) ? (
+              <div className="flex items-center justify-between text-xs">
+                {/* Total users reading on the left */}
+                {book.totalUsersReading !== undefined && book.totalUsersReading > 0 && (
+                  <span className="text-muted-foreground">{book.totalUsersReading} reading</span>
+                )}
+                {/* Mutual friends reading on the right */}
+                {book.mutualFriendsReading !== undefined && book.mutualFriendsReading > 0 && (
+                  <span className="text-primary">{book.mutualFriendsReading} mutual friends</span>
+                )}
+              </div>
+            ) : null}
+            
             {showAuthor && book.author && (
               <p className="text-sm text-muted-foreground">
                 {defaultLabels.authorPrefix} {book.author.name}

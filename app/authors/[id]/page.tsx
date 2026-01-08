@@ -274,7 +274,7 @@ async function getAuthorAlbums(authorId: string) {
   }
 }
 
-async function getCurrentlyReadingBooksByAuthor(authorId: string) {
+async function getCurrentlyReadingBooksByAuthor(authorId: string, currentUserId: string | null = null) {
   try {
     // First, get all books by this author from both author_id and book_authors junction table
     const [booksByAuthorIdResult, bookAuthorsResult] = await Promise.all([
@@ -331,7 +331,7 @@ async function getCurrentlyReadingBooksByAuthor(authorId: string) {
       .in('book_id', bookIds)
       .eq('status', 'in_progress')
       .order('updated_at', { ascending: false })
-      .limit(20)
+      // Don't limit here - we need all entries to count total users per book
 
     if (error) {
       console.error('Error fetching currently reading books:', {
@@ -499,6 +499,40 @@ async function getCurrentlyReadingBooksByAuthor(authorId: string) {
       })
     }
 
+    // Get current user's friends if user is logged in
+    let friendUserIds: Set<string> = new Set()
+    if (currentUserId) {
+      const { data: friendsData } = await supabaseAdmin
+        .from('user_friends')
+        .select('user_id, friend_id')
+        .or(`user_id.eq.${currentUserId},friend_id.eq.${currentUserId}`)
+        .eq('status', 'accepted')
+
+      if (friendsData) {
+        friendsData.forEach((friend: any) => {
+          const friendId = friend.user_id === currentUserId ? friend.friend_id : friend.user_id
+          friendUserIds.add(friendId)
+        })
+      }
+    }
+
+    // Count total users and mutual friends per book
+    const bookUserCounts = new Map<string, { totalUsers: number; mutualFriends: number }>()
+    
+    readingProgress.forEach((rp: any) => {
+      if (!rp.book_id) return
+      
+      const existing = bookUserCounts.get(rp.book_id) || { totalUsers: 0, mutualFriends: 0 }
+      existing.totalUsers++
+      
+      // Check if this user is a mutual friend
+      if (currentUserId && rp.user_id !== currentUserId && friendUserIds.has(rp.user_id)) {
+        existing.mutualFriends++
+      }
+      
+      bookUserCounts.set(rp.book_id, existing)
+    })
+
     // Transform the data to match the structure expected by the client component (same pattern as profile page)
     // Deduplicate by book_id - if multiple users are reading the same book, show the most recent one
     const bookProgressMap = new Map<string, any>()
@@ -521,6 +555,8 @@ async function getCurrentlyReadingBooksByAuthor(authorId: string) {
           ? avatarMap.get(profile.avatar_image_id) || null
           : null
 
+        const counts = bookUserCounts.get(book.id) || { totalUsers: 0, mutualFriends: 0 }
+        
         bookProgressMap.set(book.id, {
           id: book.id,
           title: book.title,
@@ -543,6 +579,8 @@ async function getCurrentlyReadingBooksByAuthor(authorId: string) {
               }
             : null,
           updatedAt: rp.updated_at,
+          totalUsersReading: counts.totalUsers,
+          mutualFriendsReading: counts.mutualFriends,
         })
       }
     })
@@ -612,12 +650,19 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
     notFound()
   }
 
+  // Get current user ID if logged in
+  const supabase = await createServerComponentClientAsync()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  const currentUserId = user?.id || null
+
   const [books, followers, activities, albums, currentlyReadingBooks] = await Promise.all([
     getAuthorBooks(authorId),
     getAuthorFollowers(authorId),
     getAuthorActivities(authorId),
     getAuthorAlbums(authorId),
-    getCurrentlyReadingBooksByAuthor(authorId),
+    getCurrentlyReadingBooksByAuthor(authorId, currentUserId),
   ])
 
   return (

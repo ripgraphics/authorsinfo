@@ -177,7 +177,11 @@ export function CurrentlyReadingSection({
     <>
       {displayBooks.length > 0 ? (
         <div className="space-y-4">
-          {displayBooks.map(renderBookItem)}
+          {displayBooks.map((book, index) => (
+            <div key={book.id || index}>
+              {renderBookItem(book)}
+            </div>
+          ))}
         </div>
       ) : (
         <p className="text-sm text-muted-foreground text-center py-4">

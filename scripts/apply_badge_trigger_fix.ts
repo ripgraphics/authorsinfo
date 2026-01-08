@@ -288,7 +288,7 @@ async function applyFix() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': supabaseServiceKey,
+          'apikey': supabaseServiceKey || '',
           'Authorization': `Bearer ${supabaseServiceKey}`,
         },
         body: JSON.stringify({ sql: fixBadgeTriggerSQL }),

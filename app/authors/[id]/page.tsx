@@ -10,7 +10,6 @@ import { getAuthorEvents } from '@/lib/events'
 import EventCard from '@/components/event-card'
 import type { Event } from '@/types/database'
 import { createClient } from '@/lib/supabase-server'
-import { createServerClient } from '@/lib/supabase-server'
 
 interface AuthorPageProps {
   params: Promise<{

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   AlertDialog,
@@ -65,6 +65,17 @@ export function ShelfBulkActions({
   const canSelectAll = shelves.length > 0
   const allSelected = selectedShelves.size === shelves.filter((s) => !s.isDefault).length
   const someSelected = selectedShelves.size > 0 && !allSelected
+
+  const checkboxRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (checkboxRef.current) {
+      const input = checkboxRef.current.querySelector('input[type="checkbox"]') as HTMLInputElement
+      if (input) {
+        input.indeterminate = someSelected
+      }
+    }
+  }, [someSelected])
 
   const handleSelectAll = () => {
     if (allSelected) {
@@ -148,11 +159,7 @@ export function ShelfBulkActions({
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Checkbox
             checked={allSelected}
-            ref={(ref) => {
-              if (ref) {
-                ref.indeterminate = someSelected
-              }
-            }}
+            ref={checkboxRef}
             onCheckedChange={handleSelectAll}
             disabled={!canSelectAll}
           />
@@ -168,11 +175,7 @@ export function ShelfBulkActions({
         <div className="flex items-center gap-3">
           <Checkbox
             checked={allSelected}
-            ref={(ref) => {
-              if (ref) {
-                ref.indeterminate = someSelected
-              }
-            }}
+            ref={checkboxRef}
             onCheckedChange={handleSelectAll}
           />
           <span className="text-sm font-medium">

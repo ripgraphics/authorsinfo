@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import { bulkImportBooks, bulkImportBookObjects } from '@/app/actions/bulk-import-books'
 
-// Extend timeout to 5 minutes (300 seconds) for long-running bulk imports
-export const maxDuration = 300
+// Extend timeout to 60 seconds (max for hobby plan)
+export const maxDuration = 60
 
 export async function POST(request: Request) {
   try {

@@ -31,12 +31,46 @@ export function EditSectionModal({
 }: EditSectionModalProps) {
   const [formData, setFormData] = useState(initialData)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
 
-  // Update form data when initialData changes
+  // Fetch fresh author data from Supabase when modal opens (single source of truth)
   useEffect(() => {
-    setFormData(initialData)
-  }, [initialData])
+    if (open && section === 'overview') {
+      const fetchAuthorData = async () => {
+        setIsLoading(true)
+        try {
+          const response = await fetch(`/api/authors/${authorId}`)
+          if (!response.ok) {
+            throw new Error('Failed to fetch author data')
+          }
+          const authorData = await response.json()
+          
+          // Update form data with fresh data from Supabase
+          setFormData({
+            bio: authorData.bio || '',
+            birth_date: authorData.birth_date || '',
+            nationality: authorData.nationality || '',
+            website: authorData.website || '',
+            twitter_handle: authorData.twitter_handle || '',
+            facebook_handle: authorData.facebook_handle || '',
+            instagram_handle: authorData.instagram_handle || '',
+            goodreads_url: authorData.goodreads_url || '',
+          })
+        } catch (error) {
+          console.error('Error fetching author data:', error)
+          // Fallback to initialData if fetch fails
+          setFormData(initialData)
+        } finally {
+          setIsLoading(false)
+        }
+      }
+      fetchAuthorData()
+    } else {
+      // For other sections, use initialData
+      setFormData(initialData)
+    }
+  }, [open, section, authorId, initialData])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -95,7 +129,12 @@ export function EditSectionModal({
             {section === 'location' && 'Edit Location'}
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="edit-section-modal__form space-y-4 py-4">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="edit-section-modal__form space-y-4 py-4">
           {section === 'overview' && (
             <>
               <div className="edit-section-modal__field grid w-full gap-1.5">
@@ -315,6 +354,7 @@ export function EditSectionModal({
             </Button>
           </DialogFooter>
         </form>
+        )}
       </DialogContent>
     </Dialog>
   )

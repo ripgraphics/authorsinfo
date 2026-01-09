@@ -85,7 +85,7 @@ export function OverviewSection({
         </div>
       </div>
       <CardContent className="overview-section__content p-4 space-y-4">
-        {author.bio ? (
+        {author.bio && author.bio.trim() ? (
           <div className="overview-section__bio space-y-2">
             <ExpandableSection title={null}>{author.bio}</ExpandableSection>
           </div>
@@ -617,7 +617,7 @@ export function BooksSection({
             <p className="books-section__count mb-4">
               This author has written {booksCount || books.length} {(booksCount || books.length) === 1 ? 'book' : 'books'}.
             </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {books.slice(0, 8).map((book) => (
                 <BookCard
                   key={book.id}

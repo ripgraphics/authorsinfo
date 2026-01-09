@@ -268,8 +268,8 @@ export function ClientAuthorPage({
       bioLength: initialAuthor?.bio?.length || 0,
     })
 
-    // If we don't have author data or bio data, fetch it
-    if (!initialAuthor?.bio && initialAuthor?.id) {
+    // Always refresh author data on mount to ensure we have latest from Supabase (single source of truth)
+    if (initialAuthor?.id) {
       refreshAuthorData()
     }
   }, [])

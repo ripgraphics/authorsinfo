@@ -64,15 +64,20 @@ async function getCurrentlyReadingBooksForUser(
       .maybeSingle()
 
     // Determine if viewer can see reading progress at all
+    // Public (viewerId === null) should still be able to view if allow_public_reading_profile is enabled.
     let canViewProgress = isOwner
-    if (!isOwner && viewerId) {
-      // Check user-level privacy settings
-      canViewProgress =
-        privacySettings?.allow_public_reading_profile === true ||
-        (privacySettings?.allow_friends_to_see_reading === true &&
-          (await checkIfFriends(viewerId, profileOwnerId))) ||
-        (privacySettings?.allow_followers_to_see_reading === true &&
-          (await checkIfFollowing(viewerId, profileOwnerId)))
+    if (!isOwner) {
+      if (!viewerId) {
+        canViewProgress = privacySettings?.allow_public_reading_profile === true
+      } else {
+        // Check user-level privacy settings
+        canViewProgress =
+          privacySettings?.allow_public_reading_profile === true ||
+          (privacySettings?.allow_friends_to_see_reading === true &&
+            (await checkIfFriends(viewerId, profileOwnerId))) ||
+          (privacySettings?.allow_followers_to_see_reading === true &&
+            (await checkIfFollowing(viewerId, profileOwnerId)))
+      }
     }
 
     if (!canViewProgress) {
@@ -101,19 +106,17 @@ async function getCurrentlyReadingBooksForUser(
     }
 
     // Filter by reading_progress-level privacy if viewer is not the owner
+    // This must run for anonymous viewers too; otherwise public viewers could see private entries.
     let filteredProgress = currentlyReadingProgress
-    if (!isOwner && viewerId) {
-      // Check if viewer is friend or follower
-      const [isFriend, isFollower] = await Promise.all([
-        checkIfFriends(viewerId, profileOwnerId),
-        checkIfFollowing(viewerId, profileOwnerId),
-      ])
+    if (!isOwner) {
+      const [isFriend, isFollower] = viewerId
+        ? await Promise.all([
+            checkIfFriends(viewerId, profileOwnerId),
+            checkIfFollowing(viewerId, profileOwnerId),
+          ])
+        : [false, false]
 
       filteredProgress = currentlyReadingProgress.filter((rp: any) => {
-        // Show if:
-        // - privacy_level is 'public' OR
-        // - allow_friends is true AND viewer is friend OR
-        // - allow_followers is true AND viewer is follower
         return (
           rp.privacy_level === 'public' ||
           (rp.allow_friends === true && isFriend) ||

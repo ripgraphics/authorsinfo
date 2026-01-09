@@ -232,6 +232,14 @@ export default function EditBookPage() {
         return isNaN(parsed) ? undefined : parsed
       }
 
+      // Helper function to validate UUID format
+      const isValidUuid = (value: string | null | undefined): boolean => {
+        if (!value || value === '') return false
+        // UUID v4 format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+        return uuidRegex.test(value)
+      }
+
       // Handle cover image upload if changed
       let newCoverImageUrl = book.cover_image_url
       let newCoverImageId = book.cover_image_id
@@ -332,10 +340,15 @@ export default function EditBookPage() {
       }
 
       // Get binding_type_id and format_type_id from selected values
+      // These are UUIDs (strings), not integers
       const bindingTypeId =
-        selectedBindings.length > 0 ? Number.parseInt(selectedBindings[0], 10) : null
+        selectedBindings.length > 0 ? selectedBindings[0] : undefined
       const formatTypeId =
-        selectedFormats.length > 0 ? Number.parseInt(selectedFormats[0], 10) : null
+        selectedFormats.length > 0 ? selectedFormats[0] : undefined
+
+      // Validate UUID fields - set to undefined if invalid
+      const validatedBindingTypeId = bindingTypeId && isValidUuid(bindingTypeId) ? bindingTypeId : undefined
+      const validatedFormatTypeId = formatTypeId && isValidUuid(formatTypeId) ? formatTypeId : undefined
 
       // Prepare the update data
       // Note: cover_image_url is NOT a column in books table - only cover_image_id exists
@@ -347,8 +360,8 @@ export default function EditBookPage() {
         author_id: selectedAuthorIds.length > 0 ? selectedAuthorIds[0] : undefined,
         publisher_id: selectedPublisherIds.length > 0 ? selectedPublisherIds[0] : undefined,
         publication_date: formData.get('publication_date') as string,
-        binding_type_id: bindingTypeId || undefined,
-        format_type_id: formatTypeId || undefined,
+        binding_type_id: validatedBindingTypeId,
+        format_type_id: validatedFormatTypeId,
         language: formData.get('language') as string,
         edition: formData.get('edition') as string,
         synopsis: formData.get('synopsis') as string,
@@ -449,25 +462,13 @@ export default function EditBookPage() {
           newData.cover_image_id = handleUuidField(newData.cover_image_id)
         }
 
-        // Handle binding_type_id and format_type_id - these are integers, not UUIDs
+        // Handle binding_type_id and format_type_id - these are UUIDs, not integers
         if (newData.binding_type_id !== undefined) {
-          // Convert to number or null
-          if (newData.binding_type_id === '' || newData.binding_type_id === null) {
-            newData.binding_type_id = null
-          } else {
-            const num = Number(newData.binding_type_id)
-            newData.binding_type_id = isNaN(num) ? null : num
-          }
+          newData.binding_type_id = handleUuidField(newData.binding_type_id)
         }
 
         if (newData.format_type_id !== undefined) {
-          // Convert to number or null
-          if (newData.format_type_id === '' || newData.format_type_id === null) {
-            newData.format_type_id = null
-          } else {
-            const num = Number(newData.format_type_id)
-            newData.format_type_id = isNaN(num) ? null : num
-          }
+          newData.format_type_id = handleUuidField(newData.format_type_id)
         }
 
         // Ensure array fields are arrays

@@ -94,6 +94,27 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Book ID is required' }, { status: 400 })
     }
 
+    // Helper function to validate UUID format
+    const isValidUuid = (value: string | null | undefined): boolean => {
+      if (!value || value === '') return false
+      // UUID v4 format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+      return uuidRegex.test(value)
+    }
+
+    // Validate UUID fields before database update
+    const uuidFields = ['binding_type_id', 'format_type_id', 'status_id', 'author_id', 'publisher_id', 'cover_image_id']
+    for (const field of uuidFields) {
+      if (updateData[field] !== undefined && updateData[field] !== null) {
+        if (!isValidUuid(updateData[field])) {
+          return NextResponse.json(
+            { error: `Invalid UUID format for field '${field}': ${updateData[field]}` },
+            { status: 400 }
+          )
+        }
+      }
+    }
+
     console.log(`Updating book: ${bookId}`)
     console.log('Update data:', updateData)
 

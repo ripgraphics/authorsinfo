@@ -9,6 +9,7 @@
  */
 
 import { createRouteHandlerClientAsync } from '@/lib/supabase/client-helper';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -25,6 +26,40 @@ async function verifyShelfOwnership(supabase: any, shelfId: string, userId: stri
   return !!shelf;
 }
 
+// Helper to check if two users are friends
+async function checkIfFriends(userId1: string, userId2: string): Promise<boolean> {
+  const { data: friendship } = await supabaseAdmin
+    .from('user_friends')
+    .select('id')
+    .or(
+      `and(user_id.eq.${userId1},friend_id.eq.${userId2},status.eq.accepted),and(user_id.eq.${userId2},friend_id.eq.${userId1},status.eq.accepted)`
+    )
+    .maybeSingle();
+
+  return !!friendship;
+}
+
+// Helper to check if user1 is following user2
+async function checkIfFollowing(followerId: string, targetId: string): Promise<boolean> {
+  const { data: userTargetType } = await supabaseAdmin
+    .from('follow_target_types')
+    .select('id')
+    .eq('name', 'user')
+    .single();
+
+  if (!userTargetType) return false;
+
+  const { data: follow } = await supabaseAdmin
+    .from('follows')
+    .select('id')
+    .eq('follower_id', followerId)
+    .eq('following_id', targetId)
+    .eq('target_type_id', userTargetType.id)
+    .maybeSingle();
+
+  return !!follow;
+}
+
 // GET /api/shelves/:id - Get shelf details with books (paginated)
 export async function GET(
   request: NextRequest,
@@ -33,25 +68,13 @@ export async function GET(
   try {
     const { id } = await params;
     const supabase = await createRouteHandlerClientAsync();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    // Get current user (may be null for public access)
+    const { data: { user } } = await supabase.auth.getUser();
+    const viewerId = user?.id || null;
 
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Verify ownership
-    const isOwner = await verifyShelfOwnership(supabase, id, user.id);
-    if (!isOwner) {
-      return NextResponse.json({ error: 'Shelf not found' }, { status: 404 });
-    }
-
-    // Get pagination params
-    const url = new URL(request.url);
-    const skip = parseInt(url.searchParams.get('skip') || '0');
-    const take = Math.min(parseInt(url.searchParams.get('take') || '20'), 100);
-
-    // Get shelf details
-    const { data: shelf, error: shelfError } = await (supabase.from('custom_shelves') as any)
+    // Fetch shelf using admin client to bypass RLS for initial check
+    const { data: shelf, error: shelfError } = await (supabaseAdmin.from('custom_shelves') as any)
       .select('*')
       .eq('id', id)
       .single();
@@ -60,11 +83,24 @@ export async function GET(
       return NextResponse.json({ error: 'Shelf not found' }, { status: 404 });
     }
 
+    const shelfOwnerId = shelf.user_id;
+    const isOwner = viewerId === shelfOwnerId;
+
+    // Access control: allow if owner OR shelf is public
+    if (!isOwner && !shelf.is_public) {
+      return NextResponse.json({ error: 'Shelf not found' }, { status: 404 });
+    }
+
+    // Get pagination params
+    const url = new URL(request.url);
+    const skip = parseInt(url.searchParams.get('skip') || '0');
+    const take = Math.min(parseInt(url.searchParams.get('take') || '20'), 100);
+
     let books: any[] = [];
     let count = 0;
 
     // For default shelves, fetch books from reading_progress
-    if ((shelf as any).is_default) {
+    if (shelf.is_default) {
       // Map shelf name to reading_progress status
       const statusMap: Record<string, string> = {
         'Want to Read': 'not_started',
@@ -72,20 +108,10 @@ export async function GET(
         'Read': 'completed',
       };
 
-      const status = statusMap[(shelf as any).name];
+      const status = statusMap[shelf.name];
       if (status) {
-        // Get total count
-        const { count: totalCount } = await (supabase.from('reading_progress') as any)
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .eq('status', status);
-
-        count = totalCount || 0;
-
-        // Fetch reading progress entries with books
-        const { data: readingProgress, error: progressError } = await (
-          supabase.from('reading_progress') as any
-        )
+        // Build base query for reading_progress using shelf owner's ID
+        let progressQuery = (supabaseAdmin.from('reading_progress') as any)
           .select(
             `
             id,
@@ -96,6 +122,9 @@ export async function GET(
             current_page,
             total_pages,
             updated_at,
+            privacy_level,
+            allow_friends,
+            allow_followers,
             books (
               id,
               title,
@@ -104,10 +133,12 @@ export async function GET(
             )
           `
           )
-          .eq('user_id', user.id)
+          .eq('user_id', shelfOwnerId)
           .eq('status', status)
-          .order('updated_at', { ascending: false })
-          .range(skip, skip + take - 1);
+          .order('updated_at', { ascending: false });
+
+        // Fetch all matching entries (we'll filter by privacy in code)
+        const { data: readingProgress, error: progressError } = await progressQuery;
 
         if (progressError) {
           return NextResponse.json(
@@ -116,30 +147,59 @@ export async function GET(
           );
         }
 
+        // Filter by privacy level if viewer is not the owner
+        let filteredProgress = readingProgress || [];
+        if (!isOwner) {
+          // Determine viewer's relationship to owner
+          const [isFriend, isFollower] = viewerId
+            ? await Promise.all([
+                checkIfFriends(viewerId, shelfOwnerId),
+                checkIfFollowing(viewerId, shelfOwnerId),
+              ])
+            : [false, false];
+
+          filteredProgress = filteredProgress.filter((rp: any) => {
+            // Public entries are visible to everyone
+            if (rp.privacy_level === 'public') return true;
+            // Friends-only entries
+            if (rp.privacy_level === 'friends' && isFriend) return true;
+            if (rp.allow_friends === true && isFriend) return true;
+            // Followers-only entries
+            if (rp.privacy_level === 'followers' && isFollower) return true;
+            if (rp.allow_followers === true && isFollower) return true;
+            // Private entries are only visible to owner (handled above)
+            return false;
+          });
+        }
+
+        count = filteredProgress.length;
+
+        // Apply pagination after filtering
+        const paginatedProgress = filteredProgress.slice(skip, skip + take);
+
         // Transform to match expected format
-        books =
-          readingProgress?.map((rp: any) => ({
-            id: rp.books?.id,
-            title: rp.books?.title,
-            cover_url: rp.books?.cover_image?.url || null,
-            author: null, // Will need to fetch separately if needed
-            published_date: null,
-            shelfBookId: rp.id,
-            displayOrder: 0,
-            addedAt: rp.updated_at,
-            readingProgress: {
-              status: rp.status,
-              progress_percentage: rp.progress_percentage,
-              percentage: rp.percentage,
-              current_page: rp.current_page,
-              total_pages: rp.total_pages,
-            },
-          })) || [];
+        books = paginatedProgress.map((rp: any) => ({
+          id: rp.books?.id,
+          title: rp.books?.title,
+          cover_url: rp.books?.cover_image?.url || null,
+          author: null,
+          published_date: null,
+          shelfBookId: rp.id,
+          displayOrder: 0,
+          addedAt: rp.updated_at,
+          readingProgress: {
+            status: rp.status,
+            progress_percentage: rp.progress_percentage,
+            percentage: rp.percentage,
+            current_page: rp.current_page,
+            total_pages: rp.total_pages,
+          },
+        }));
 
         // Fetch authors for books
         if (books.length > 0) {
           const bookIds = books.map((b) => b.id).filter(Boolean);
-          const { data: bookAuthors } = await (supabase.from('book_authors') as any)
+          const { data: bookAuthors } = await (supabaseAdmin.from('book_authors') as any)
             .select(
               `
               book_id,
@@ -168,7 +228,7 @@ export async function GET(
       }
     } else {
       // For custom shelves, fetch from shelf_books
-      const { data: shelfBooks, error: booksError } = await (supabase.from('shelf_books') as any)
+      const { data: shelfBooks, error: booksError } = await (supabaseAdmin.from('shelf_books') as any)
         .select(
           `
           id,
@@ -195,7 +255,7 @@ export async function GET(
       }
 
       // Get total count
-      const { count: totalCount } = await (supabase.from('shelf_books') as any)
+      const { count: totalCount } = await (supabaseAdmin.from('shelf_books') as any)
         .select('*', { count: 'exact', head: true })
         .eq('shelf_id', id);
 
@@ -207,7 +267,7 @@ export async function GET(
           id: b.books?.id,
           title: b.books?.title,
           cover_url: b.books?.cover_image?.url || null,
-          author: null, // Will need to fetch separately if needed
+          author: null,
           published_date: null,
           shelfBookId: b.id,
           displayOrder: b.display_order,
@@ -219,7 +279,7 @@ export async function GET(
         const bookIds = books.map((b) => b.id).filter(Boolean);
         
         // Fetch authors
-        const { data: bookAuthors } = await (supabase.from('book_authors') as any)
+        const { data: bookAuthors } = await (supabaseAdmin.from('book_authors') as any)
           .select(
             `
             book_id,
@@ -245,10 +305,10 @@ export async function GET(
           }));
         }
 
-        // Fetch reading progress for books
-        const { data: readingProgress } = await (supabase.from('reading_progress') as any)
+        // Fetch reading progress for books (use shelf owner's progress)
+        const { data: readingProgress } = await (supabaseAdmin.from('reading_progress') as any)
           .select('book_id, status, progress_percentage, percentage, current_page, total_pages')
-          .eq('user_id', user.id)
+          .eq('user_id', shelfOwnerId)
           .in('book_id', bookIds);
 
         if (readingProgress) {
@@ -274,7 +334,7 @@ export async function GET(
     return NextResponse.json({
       success: true,
       data: {
-        ...(shelf as any),
+        ...shelf,
         books: books || [],
         bookCount: count || 0,
         pagination: {

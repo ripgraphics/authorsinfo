@@ -41,13 +41,13 @@ async function checkIfFriends(userId1: string, userId2: string): Promise<boolean
 
 // Helper to check if user1 is following user2
 async function checkIfFollowing(followerId: string, targetId: string): Promise<boolean> {
-  const { data: userTargetType } = await supabaseAdmin
-    .from('follow_target_types')
+  const { data: userTargetType } = await (supabaseAdmin
+    .from('follow_target_types') as any)
     .select('id')
     .eq('name', 'user')
     .single();
 
-  if (!userTargetType) return false;
+  if (!userTargetType?.id) return false;
 
   const { data: follow } = await supabaseAdmin
     .from('follows')

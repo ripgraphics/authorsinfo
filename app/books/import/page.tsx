@@ -26,7 +26,7 @@ import {
   BookPlus,
   BookOpen,
 } from 'lucide-react'
-import { bulkImportBooks, checkForDuplicates } from '@/app/actions/bulk-import-books'
+import { checkForDuplicates } from '@/app/actions/bulk-import-books'
 import { searchBooks, getLatestBooks } from '@/lib/isbndb'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -293,11 +293,28 @@ export default function ImportBooksPage() {
         return
       }
 
-      const result = await bulkImportBooks(isbnsToImport)
+      // Use API route instead of server action to avoid timeout issues
+      const response = await fetch('/api/books/import-selected', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          isbns: isbnsToImport,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to import books' }))
+        throw new Error(errorData.error || `Import failed with status ${response.status}`)
+      }
+
+      const result = await response.json()
       setImportResult(result)
     } catch (error) {
       console.error('Import error:', error)
-      setImportResult({ error: String(error) })
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      setImportResult({ error: errorMessage })
     } finally {
       setLoading(false)
     }

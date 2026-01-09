@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { bulkImportBooks, bulkImportBookObjects } from '@/app/actions/bulk-import-books'
 
+// Extend timeout to 5 minutes (300 seconds) for long-running bulk imports
+export const maxDuration = 300
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()
@@ -24,7 +27,27 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     console.error('Import selected books error:', error)
-    return NextResponse.json({ error: String(error) }, { status: 500 })
+    
+    // Provide more specific error messages
+    let errorMessage = 'An unexpected error occurred during import'
+    let statusCode = 500
+    
+    if (error instanceof Error) {
+      errorMessage = error.message
+      
+      // Check for timeout-related errors
+      if (error.message.includes('timeout') || error.message.includes('aborted') || error.name === 'AbortError') {
+        errorMessage = 'Import operation timed out. Please try importing fewer books at once or try again later.'
+        statusCode = 504
+      } else if (error.message.includes('fetch')) {
+        errorMessage = 'Network error during import. Please check your connection and try again.'
+        statusCode = 503
+      }
+    } else if (typeof error === 'string') {
+      errorMessage = error
+    }
+    
+    return NextResponse.json({ error: errorMessage }, { status: statusCode })
   }
 }
 

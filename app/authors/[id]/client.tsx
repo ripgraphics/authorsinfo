@@ -69,6 +69,13 @@ import { EntityAboutTab } from '@/components/entity/EntityAboutTab'
 import { EntityMoreTab } from '@/components/entity/EntityMoreTab'
 import { EntityMetadata } from '@/types/entity'
 import { getTabsForEntity } from '@/lib/tabContentRegistry'
+import {
+  AboutNavigation,
+  OverviewSection,
+  ContactSection,
+  LocationSection,
+  BooksSection,
+} from './components/AboutSections'
 
 interface CurrentlyReadingBook {
   id: string
@@ -806,200 +813,24 @@ export function ClientAuthorPage({
       )}
 
       {activeTab === 'about' && (
-        <div className="publisher-page__content">
-          <div className="publisher-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2">
-              <EntityAboutTab
-                entity={{
-                  entityType: 'author',
-                  entityId: params.id,
-                  title: author?.name || 'Author',
-                  bio: author?.bio || undefined,
-                  about: author?.bio || undefined,
-                  website: author?.website || undefined,
-                  contact: undefined,
-                  socialLinks: {
-                    ...(author?.twitter_handle && { twitter: `https://twitter.com/${author.twitter_handle}` }),
-                    ...(author?.facebook_handle && { facebook: `https://facebook.com/${author.facebook_handle}` }),
-                    ...(author?.instagram_handle && { instagram: `https://instagram.com/${author.instagram_handle}` }),
-                    ...(author?.goodreads_url && { goodreads: author.goodreads_url }),
-                  },
-                  createdAt: author?.created_at || new Date().toISOString(),
-                  updatedAt: author?.updated_at || new Date().toISOString(),
-                }}
-                canEdit={canEdit}
-                onEditClick={() => setBioDialogOpen(true)}
-              />
-            </div>
+        <div className="author-page__tab-content grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-1">
+            <AboutNavigation authorId={author?.id} />
           </div>
-
-          {/* Bio Edit Dialog */}
-          <Dialog
-            open={bioDialogOpen}
-            onOpenChange={(open) => {
-              if (open) {
-                // When opening, ensure we have the latest bio
-                setEditedBio(author?.bio || '')
-                console.log('Dialog opening, setting bio to:', author?.bio)
-              }
-              setBioDialogOpen(open)
-            }}
-          >
-            <DialogContent className="w-[95vw] max-w-[800px] h-auto max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Edit Author Biography</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="bio">Biography</Label>
-                  <Textarea
-                    id="bio"
-                    value={editedBio}
-                    onChange={(e) => setEditedBio(e.target.value)}
-                    rows={12}
-                    className="w-full min-h-[200px]"
-                    placeholder="Enter author biography here..."
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col sm:flex-row justify-end gap-2 mt-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setBioDialogOpen(false)}
-                  className="w-full sm:w-auto order-2 sm:order-1"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={saveBio}
-                  disabled={saving}
-                  className="w-full sm:w-auto order-1 sm:order-2 mb-2 sm:mb-0"
-                >
-                  {saving ? 'Saving...' : 'Save Changes'}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          {/* Contact Edit Dialog */}
-          <Dialog open={contactDialogOpen} onOpenChange={setContactDialogOpen}>
-            <DialogContent className="w-[95vw] max-w-[600px] h-auto max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Edit Contact Information</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    value={editedContact.email || ''}
-                    onChange={(e) =>
-                      setEditedContact((prev) => ({ ...prev, email: e.target.value }))
-                    }
-                    placeholder="Enter email address"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="phone">Phone</Label>
-                  <Input
-                    id="phone"
-                    value={editedContact.phone || ''}
-                    onChange={(e) =>
-                      setEditedContact((prev) => ({ ...prev, phone: e.target.value }))
-                    }
-                    placeholder="Enter phone number"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="website">Website</Label>
-                  <Input
-                    id="website"
-                    value={editedContact.website || ''}
-                    onChange={(e) =>
-                      setEditedContact((prev) => ({ ...prev, website: e.target.value }))
-                    }
-                    placeholder="Enter website URL"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="address_line1">Address Line 1</Label>
-                  <Input
-                    id="address_line1"
-                    value={editedContact.address_line1 || ''}
-                    onChange={(e) =>
-                      setEditedContact((prev) => ({ ...prev, address_line1: e.target.value }))
-                    }
-                    placeholder="Enter address line 1"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="address_line2">Address Line 2</Label>
-                  <Input
-                    id="address_line2"
-                    value={editedContact.address_line2 || ''}
-                    onChange={(e) =>
-                      setEditedContact((prev) => ({ ...prev, address_line2: e.target.value }))
-                    }
-                    placeholder="Enter address line 2"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="city">City</Label>
-                    <Input
-                      id="city"
-                      value={editedContact.city || ''}
-                      onChange={(e) =>
-                        setEditedContact((prev) => ({ ...prev, city: e.target.value }))
-                      }
-                      placeholder="Enter city"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="state">State</Label>
-                    <Input
-                      id="state"
-                      value={editedContact.state || ''}
-                      onChange={(e) =>
-                        setEditedContact((prev) => ({ ...prev, state: e.target.value }))
-                      }
-                      placeholder="Enter state"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="postal_code">Postal Code</Label>
-                    <Input
-                      id="postal_code"
-                      value={editedContact.postal_code || ''}
-                      onChange={(e) =>
-                        setEditedContact((prev) => ({ ...prev, postal_code: e.target.value }))
-                      }
-                      placeholder="Enter postal code"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="country">Country</Label>
-                    <Input
-                      id="country"
-                      value={editedContact.country || ''}
-                      onChange={(e) =>
-                        setEditedContact((prev) => ({ ...prev, country: e.target.value }))
-                      }
-                      placeholder="Enter country"
-                    />
-                  </div>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setContactDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleUpdateContact}>Save Changes</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <div className="lg:col-span-2">
+            <OverviewSection author={author} onRefresh={refreshAuthorData} canEdit={canEdit} />
+            <ContactSection author={author} onRefresh={refreshAuthorData} canEdit={canEdit} />
+            <LocationSection author={author} onRefresh={refreshAuthorData} canEdit={canEdit} />
+            <BooksSection
+              books={books}
+              booksCount={booksCount}
+              onViewAllBooks={() => {
+                const params = new URLSearchParams(searchParams.toString())
+                params.set('tab', 'books')
+                router.push(`?${params.toString()}`)
+              }}
+            />
+          </div>
         </div>
       )}
 

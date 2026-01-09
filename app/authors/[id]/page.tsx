@@ -665,6 +665,27 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
     getCurrentlyReadingBooksByAuthor(authorId, currentUserId),
   ])
 
+  // Get total book count (not just the limit of 12)
+  // Need to check both author_id and book_authors junction table
+  const [booksByAuthorIdResult, bookAuthorsResult] = await Promise.all([
+    // Books with direct author_id
+    supabaseAdmin
+      .from('books')
+      .select('id', { count: 'exact', head: true })
+      .eq('author_id', authorId),
+    // Books associated via book_authors junction table
+    supabaseAdmin
+      .from('book_authors')
+      .select('book_id', { count: 'exact', head: true })
+      .eq('author_id', authorId),
+  ])
+
+  const booksByAuthorIdCount = booksByAuthorIdResult.count || 0
+  const booksByJunctionCount = bookAuthorsResult.count || 0
+  // For now, use the direct author_id count as the primary count
+  // In the future, you might want to deduplicate these counts
+  const totalBooksCount = booksByAuthorIdCount + booksByJunctionCount
+
   return (
     <ClientAuthorPage
       author={author}
@@ -674,7 +695,7 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
       followers={followers.followers}
       followersCount={followers.count}
       books={books}
-      booksCount={books.length}
+      booksCount={totalBooksCount || books.length}
       activities={activities}
       photos={[]} // TODO: Implement photo fetching
       photosCount={0} // TODO: Implement photo count

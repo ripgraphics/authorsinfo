@@ -609,15 +609,15 @@ export function BooksSection({
   return (
     <Card className="books-section mb-6" id="books">
       <div className="books-section__header flex flex-col space-y-1.5 p-4 border-b">
-        <h3 className="books-section__title text-xl font-semibold">Books</h3>
+        <h3 className="books-section__title text-xl font-semibold">Published Books</h3>
       </div>
       <CardContent className="books-section__content p-4">
         {books && books.length > 0 ? (
           <div className="books-section__with-content">
             <p className="books-section__count mb-4">
-              This author has written {booksCount} {booksCount === 1 ? 'book' : 'books'}.
+              This author has written {booksCount || books.length} {(booksCount || books.length) === 1 ? 'book' : 'books'}.
             </p>
-            <div className="books-section__grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
               {books.slice(0, 8).map((book) => (
                 <BookCard
                   key={book.id}
@@ -627,7 +627,7 @@ export function BooksSection({
                 />
               ))}
             </div>
-            {(booksCount || 0) > 8 && (
+            {(booksCount || books.length) > 8 && (
               <div className="books-section__view-all mt-4 text-center">
                 <Button
                   variant="outline"
@@ -723,7 +723,7 @@ export function AboutNavigation({ authorId }: { authorId?: string | number }) {
           href="#books"
           className="about-navigation__nav-link flex items-center px-3 py-2 rounded-md hover:bg-muted"
         >
-          Books
+          Published Books
         </a>
       </nav>
     </div>

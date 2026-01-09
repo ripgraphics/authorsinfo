@@ -59,44 +59,96 @@ async function getAuthor(id: string) {
 }
 
 async function getAuthorBooks(authorId: string) {
-  // This query should match the query structure used in the books page
-  const { data: books, error } = await supabaseAdmin
-    .from('books')
-    .select(
-      `
-      id,
-      title,
-      cover_image:cover_image_id(id, url, alt_text)
-    `
-    )
-    .eq('author_id', authorId)
-    .order('title')
-    .limit(12)
+  try {
+    // First, get all books by this author from both author_id and book_authors junction table
+    const [booksByAuthorIdResult, bookAuthorsResult] = await Promise.all([
+      // Books with direct author_id
+      supabaseAdmin
+        .from('books')
+        .select('id')
+        .eq('author_id', authorId),
+      // Books associated via book_authors junction table
+      supabaseAdmin
+        .from('book_authors')
+        .select('book_id')
+        .eq('author_id', authorId),
+    ])
 
-  if (error) {
-    console.error('Error fetching author books:', error)
+    // Combine and deduplicate book IDs
+    const allBookIds = new Set<string>()
+    
+    // Add books from direct author_id
+    if (booksByAuthorIdResult.data) {
+      booksByAuthorIdResult.data.forEach((book: any) => {
+        if (book.id) {
+          allBookIds.add(book.id)
+        }
+      })
+    }
+    
+    // Add books from junction table - directly add book_id values
+    if (bookAuthorsResult.data && bookAuthorsResult.data.length > 0) {
+      bookAuthorsResult.data.forEach((ba: any) => {
+        if (ba.book_id) {
+          allBookIds.add(ba.book_id)
+        }
+      })
+    }
+
+    const bookIds = Array.from(allBookIds)
+
+    if (bookIds.length === 0) {
+      console.log(`No books found for author ${authorId}`)
+      return []
+    }
+
+    // Fetch books with cover images
+    const { data: books, error } = await supabaseAdmin
+      .from('books')
+      .select(
+        `
+        id,
+        title,
+        cover_image:cover_image_id(id, url, alt_text)
+      `
+      )
+      .in('id', bookIds)
+      .order('title')
+      .limit(12)
+
+    if (error) {
+      console.error('Error fetching author books:', error)
+      return []
+    }
+
+    if (!books || books.length === 0) {
+      console.log(`No books returned for author ${authorId} with book IDs:`, bookIds)
+      return []
+    }
+
+    // Process books to include cover image URL - ONLY from Cloudinary (no fallback to original_image_url)
+    const bookRows = (books ?? []) as any[]
+    return bookRows.map((book) => {
+      // Determine the cover image URL - ONLY from Cloudinary
+      // If Cloudinary image is missing, show nothing (so we know it's broken)
+      let coverImageUrl = null
+      if (book.cover_image?.url) {
+        coverImageUrl = book.cover_image.url
+      } else if (book.cover_image_url) {
+        coverImageUrl = book.cover_image_url
+      }
+      // NO fallback to original_image_url - images table is source of truth
+
+      return {
+        id: book.id,
+        title: book.title,
+        cover_image_url: coverImageUrl,
+      }
+    })
+  } catch (error) {
+    console.error('Error in getAuthorBooks:', error)
     return []
   }
-
-  // Process books to include cover image URL - ONLY from Cloudinary (no fallback to original_image_url)
-  const bookRows = (books ?? []) as any[]
-  return bookRows.map((book) => {
-    // Determine the cover image URL - ONLY from Cloudinary
-    // If Cloudinary image is missing, show nothing (so we know it's broken)
-    let coverImageUrl = null
-    if (book.cover_image?.url) {
-      coverImageUrl = book.cover_image.url
-    } else if (book.cover_image_url) {
-      coverImageUrl = book.cover_image_url
-    }
-    // NO fallback to original_image_url - images table is source of truth
-
-    return {
-      id: book.id,
-      title: book.title,
-      cover_image_url: coverImageUrl,
-    }
-  })
 }
 
 async function getAuthorFollowers(authorId: string) {
@@ -665,26 +717,35 @@ export default async function AuthorPage({ params }: AuthorPageProps) {
     getCurrentlyReadingBooksByAuthor(authorId, currentUserId),
   ])
 
-  // Get total book count (not just the limit of 12)
-  // Need to check both author_id and book_authors junction table
+  // Get total book count (check both author_id and book_authors junction table)
+  // First, get all book IDs from both sources and deduplicate
   const [booksByAuthorIdResult, bookAuthorsResult] = await Promise.all([
     // Books with direct author_id
     supabaseAdmin
       .from('books')
-      .select('id', { count: 'exact', head: true })
+      .select('id')
       .eq('author_id', authorId),
     // Books associated via book_authors junction table
     supabaseAdmin
       .from('book_authors')
-      .select('book_id', { count: 'exact', head: true })
+      .select('book_id')
       .eq('author_id', authorId),
   ])
 
-  const booksByAuthorIdCount = booksByAuthorIdResult.count || 0
-  const booksByJunctionCount = bookAuthorsResult.count || 0
-  // For now, use the direct author_id count as the primary count
-  // In the future, you might want to deduplicate these counts
-  const totalBooksCount = booksByAuthorIdCount + booksByJunctionCount
+  // Deduplicate book IDs
+  const allBookIds = new Set<string>()
+  
+  if (booksByAuthorIdResult.data) {
+    booksByAuthorIdResult.data.forEach((book: any) => allBookIds.add(book.id))
+  }
+  
+  if (bookAuthorsResult.data) {
+    bookAuthorsResult.data.forEach((ba: any) => {
+      if (ba.book_id) allBookIds.add(ba.book_id)
+    })
+  }
+
+  const totalBooksCount = allBookIds.size
 
   return (
     <ClientAuthorPage

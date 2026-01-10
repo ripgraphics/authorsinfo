@@ -3,21 +3,11 @@ import { Button } from '@/components/ui/button'
 import { Building, Globe, MapPin, Edit2, Settings } from 'lucide-react'
 import { BookCard } from '@/components/book-card'
 import { useState, useRef, useEffect } from 'react'
-import { EditSectionModal } from './EditSectionModal'
+import { EditSectionModal } from '@/components/entity/EditSectionModal'
 import Link from 'next/link'
 import { ExpandableSection } from '@/components/ui/expandable-section'
-import { ContactInfo, ContactInfoInput } from '@/types/contact'
-import { getContactInfo, upsertContactInfo } from '@/utils/contactInfo'
-import { useToast } from '@/components/ui/use-toast'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
+import { ContactInfo } from '@/types/contact'
+import { getContactInfo } from '@/utils/contactInfo'
 
 interface PublisherData {
   id?: string | number
@@ -126,7 +116,8 @@ export function OverviewSection({
         open={isEditModalOpen}
         onOpenChange={setIsEditModalOpen}
         section="overview"
-        publisherId={publisher.id || ''}
+        entityType="publisher"
+        entityId={publisher.id || ''}
         initialData={{
           about: publisher.about,
           founded_year: publisher.founded_year,
@@ -149,70 +140,29 @@ export function ContactSection({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null)
-  const [editedContact, setEditedContact] = useState<ContactInfoInput>({
-    entity_type: 'publisher',
-    entity_id: publisher.id?.toString() || '',
-  })
-  const { toast } = useToast()
+
+  const handleRefresh = () => {
+    setRefreshKey((prev) => prev + 1)
+    // Refetch contact info
+    const fetchContactInfo = async () => {
+      const info = await getContactInfo('publisher', publisher.id?.toString() || '')
+      if (info) {
+        setContactInfo(info)
+      }
+    }
+    fetchContactInfo()
+    if (onRefresh) onRefresh()
+  }
 
   useEffect(() => {
     const fetchContactInfo = async () => {
       const info = await getContactInfo('publisher', publisher.id?.toString() || '')
       if (info) {
         setContactInfo(info)
-        setEditedContact({
-          entity_type: 'publisher',
-          entity_id: publisher.id?.toString() || '',
-          email: info.email,
-          phone: info.phone,
-          website: info.website,
-          address_line1: info.address_line1,
-          address_line2: info.address_line2,
-          city: info.city,
-          state: info.state,
-          postal_code: info.postal_code,
-          country: info.country,
-        })
       }
     }
     fetchContactInfo()
-  }, [publisher.id])
-
-  const handleUpdateContact = async () => {
-    try {
-      const updatedContact = await upsertContactInfo({
-        entity_type: 'publisher',
-        entity_id: publisher.id?.toString() || '',
-        email: editedContact.email || undefined,
-        phone: editedContact.phone || undefined,
-        website: editedContact.website || undefined,
-        address_line1: editedContact.address_line1 || undefined,
-        address_line2: editedContact.address_line2 || undefined,
-        city: editedContact.city || undefined,
-        state: editedContact.state || undefined,
-        postal_code: editedContact.postal_code || undefined,
-        country: editedContact.country || undefined,
-      })
-
-      if (updatedContact) {
-        setContactInfo(updatedContact)
-        setIsEditModalOpen(false)
-        setRefreshKey((prev) => prev + 1)
-        if (onRefresh) onRefresh()
-        toast({
-          title: 'Success',
-          description: 'Contact information updated successfully',
-        })
-      }
-    } catch (error) {
-      console.error('Error updating contact info:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to update contact information',
-        variant: 'destructive',
-      })
-    }
-  }
+  }, [publisher.id, refreshKey])
 
   return (
     <Card className="contact-section mb-6" id="contact-info" key={`contact-${refreshKey}`}>
@@ -307,114 +257,18 @@ export function ContactSection({
         </div>
       </CardContent>
 
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="w-[95vw] max-w-[600px] h-auto max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Contact Information</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                value={editedContact.email || ''}
-                onChange={(e) => setEditedContact((prev) => ({ ...prev, email: e.target.value }))}
-                placeholder="Enter email address"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input
-                id="phone"
-                value={editedContact.phone || ''}
-                onChange={(e) => setEditedContact((prev) => ({ ...prev, phone: e.target.value }))}
-                placeholder="Enter phone number"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="website">Website</Label>
-              <Input
-                id="website"
-                value={editedContact.website || ''}
-                onChange={(e) => setEditedContact((prev) => ({ ...prev, website: e.target.value }))}
-                placeholder="Enter website URL"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="address_line1">Address Line 1</Label>
-              <Input
-                id="address_line1"
-                value={editedContact.address_line1 || ''}
-                onChange={(e) =>
-                  setEditedContact((prev) => ({ ...prev, address_line1: e.target.value }))
-                }
-                placeholder="Enter address line 1"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="address_line2">Address Line 2</Label>
-              <Input
-                id="address_line2"
-                value={editedContact.address_line2 || ''}
-                onChange={(e) =>
-                  setEditedContact((prev) => ({ ...prev, address_line2: e.target.value }))
-                }
-                placeholder="Enter address line 2"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="city">City</Label>
-                <Input
-                  id="city"
-                  value={editedContact.city || ''}
-                  onChange={(e) => setEditedContact((prev) => ({ ...prev, city: e.target.value }))}
-                  placeholder="Enter city"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="state">State</Label>
-                <Input
-                  id="state"
-                  value={editedContact.state || ''}
-                  onChange={(e) => setEditedContact((prev) => ({ ...prev, state: e.target.value }))}
-                  placeholder="Enter state"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="postal_code">Postal Code</Label>
-                <Input
-                  id="postal_code"
-                  value={editedContact.postal_code || ''}
-                  onChange={(e) =>
-                    setEditedContact((prev) => ({ ...prev, postal_code: e.target.value }))
-                  }
-                  placeholder="Enter postal code"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="country">Country</Label>
-                <Input
-                  id="country"
-                  value={editedContact.country || ''}
-                  onChange={(e) =>
-                    setEditedContact((prev) => ({ ...prev, country: e.target.value }))
-                  }
-                  placeholder="Enter country"
-                />
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleUpdateContact}>Save Changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <EditSectionModal
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        section="contact"
+        entityType="publisher"
+        entityId={publisher.id || ''}
+        initialData={{
+          email: contactInfo?.email || '',
+          phone: contactInfo?.phone || '',
+        }}
+        onSuccess={handleRefresh}
+      />
     </Card>
   )
 }
@@ -530,7 +384,8 @@ export function LocationSection({
         open={isEditModalOpen}
         onOpenChange={setIsEditModalOpen}
         section="location"
-        publisherId={publisher.id || ''}
+        entityType="publisher"
+        entityId={publisher.id || ''}
         initialData={{
           address_line1: publisher.address_line1,
           address_line2: publisher.address_line2,

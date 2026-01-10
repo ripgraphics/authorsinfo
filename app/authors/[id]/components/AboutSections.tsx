@@ -3,21 +3,11 @@ import { Button } from '@/components/ui/button'
 import { Calendar, Globe, MapPin, Edit2, Settings, User, Twitter, Facebook, Instagram, BookOpen } from 'lucide-react'
 import { BookCard } from '@/components/book-card'
 import { useState, useRef, useEffect } from 'react'
-import { EditSectionModal } from './EditSectionModal'
+import { EditSectionModal } from '@/components/entity/EditSectionModal'
 import Link from 'next/link'
 import { ExpandableSection } from '@/components/ui/expandable-section'
-import { ContactInfo, ContactInfoInput } from '@/types/contact'
-import { getContactInfo, upsertContactInfo } from '@/utils/contactInfo'
-import { useToast } from '@/components/ui/use-toast'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
+import { ContactInfo } from '@/types/contact'
+import { getContactInfo } from '@/utils/contactInfo'
 
 interface AuthorData {
   id?: string | number
@@ -189,7 +179,8 @@ export function OverviewSection({
           open={isEditModalOpen}
           onOpenChange={setIsEditModalOpen}
           section="overview"
-          authorId={author.id || ''}
+          entityType="author"
+          entityId={author.id || ''}
           initialData={{
             bio: author.bio || '',
             birth_date: author.birth_date || '',
@@ -220,70 +211,29 @@ export function ContactSection({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null)
-  const [editedContact, setEditedContact] = useState<ContactInfoInput>({
-    entity_type: 'author',
-    entity_id: author.id?.toString() || '',
-  })
-  const { toast } = useToast()
+
+  const handleRefresh = () => {
+    setRefreshKey((prev) => prev + 1)
+    // Refetch contact info
+    const fetchContactInfo = async () => {
+      const info = await getContactInfo('author', author.id?.toString() || '')
+      if (info) {
+        setContactInfo(info)
+      }
+    }
+    fetchContactInfo()
+    if (onRefresh) onRefresh()
+  }
 
   useEffect(() => {
     const fetchContactInfo = async () => {
       const info = await getContactInfo('author', author.id?.toString() || '')
       if (info) {
         setContactInfo(info)
-        setEditedContact({
-          entity_type: 'author',
-          entity_id: author.id?.toString() || '',
-          email: info.email,
-          phone: info.phone,
-          website: info.website,
-          address_line1: info.address_line1,
-          address_line2: info.address_line2,
-          city: info.city,
-          state: info.state,
-          postal_code: info.postal_code,
-          country: info.country,
-        })
       }
     }
     fetchContactInfo()
   }, [author.id, refreshKey])
-
-  const handleUpdateContact = async () => {
-    try {
-      const updatedContact = await upsertContactInfo({
-        entity_type: 'author',
-        entity_id: author.id?.toString() || '',
-        email: editedContact.email || undefined,
-        phone: editedContact.phone || undefined,
-        website: editedContact.website || undefined,
-        address_line1: editedContact.address_line1 || undefined,
-        address_line2: editedContact.address_line2 || undefined,
-        city: editedContact.city || undefined,
-        state: editedContact.state || undefined,
-        postal_code: editedContact.postal_code || undefined,
-        country: editedContact.country || undefined,
-      })
-
-      if (updatedContact) {
-        setContactInfo(updatedContact)
-        setIsEditModalOpen(false)
-        setRefreshKey((prev) => prev + 1)
-        if (onRefresh) onRefresh()
-        toast({
-          title: 'Success',
-          description: 'Contact information updated successfully',
-        })
-      }
-    } catch (error) {
-      console.error('Error updating contact info:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to update contact information',
-        variant: 'destructive',
-      })
-    }
-  }
 
   return (
     <Card className="contact-section mb-6" id="contact-info" key={`contact-${refreshKey}`}>
@@ -381,48 +331,18 @@ export function ContactSection({
       </CardContent>
 
       {canEdit && (
-        <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-          <DialogContent className="w-[95vw] max-w-[600px] h-auto max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Edit Contact Information</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  value={editedContact.email || ''}
-                  onChange={(e) => setEditedContact((prev) => ({ ...prev, email: e.target.value }))}
-                  placeholder="Enter email address"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
-                  value={editedContact.phone || ''}
-                  onChange={(e) => setEditedContact((prev) => ({ ...prev, phone: e.target.value }))}
-                  placeholder="Enter phone number"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="website">Website</Label>
-                <Input
-                  id="website"
-                  value={editedContact.website || ''}
-                  onChange={(e) => setEditedContact((prev) => ({ ...prev, website: e.target.value }))}
-                  placeholder="Enter website URL"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleUpdateContact}>Save Changes</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <EditSectionModal
+          open={isEditModalOpen}
+          onOpenChange={setIsEditModalOpen}
+          section="contact"
+          entityType="author"
+          entityId={author.id || ''}
+          initialData={{
+            email: contactInfo?.email || '',
+            phone: contactInfo?.phone || '',
+          }}
+          onSuccess={handleRefresh}
+        />
       )}
     </Card>
   )
@@ -580,7 +500,8 @@ export function LocationSection({
           open={isEditModalOpen}
           onOpenChange={setIsEditModalOpen}
           section="location"
-          authorId={author.id || ''}
+          entityType="author"
+          entityId={author.id || ''}
           initialData={{
             address_line1: contactInfo?.address_line1 || '',
             address_line2: contactInfo?.address_line2 || '',

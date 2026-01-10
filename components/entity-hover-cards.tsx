@@ -148,20 +148,24 @@ export function EntityHoverCard({
         } as const
       case 'author':
         const authorEntity = entity as AuthorEntity
+        // Extract image URL - handle null, undefined, and empty strings
+        const authorImageUrl = authorEntity.author_image?.url?.trim()
         return {
           icon: <BookOpen className="mr-1 h-3 w-3" />,
           countText: `${authorEntity.bookCount} books`,
           href: `/authors/${entity.id}`,
-          imageUrl: authorEntity.author_image?.url,
+          imageUrl: authorImageUrl && authorImageUrl !== '' ? authorImageUrl : undefined,
           subtitle: authorEntity.bio,
         }
       case 'publisher':
         const publisherEntity = entity as PublisherEntity
+        // Extract image URL - try publisher_image first, then logo_url, handling null, undefined, and empty strings
+        const publisherImageUrl = publisherEntity.publisher_image?.url?.trim() || publisherEntity.logo_url?.trim()
         return {
           icon: <BookOpen className="mr-1 h-3 w-3" />,
           countText: `${publisherEntity.bookCount} books`,
           href: `/publishers/${entity.id}`,
-          imageUrl: publisherEntity.publisher_image?.url || publisherEntity.logo_url,
+          imageUrl: publisherImageUrl && publisherImageUrl !== '' ? publisherImageUrl : undefined,
           subtitle: publisherEntity.location,
         }
       case 'group': {
@@ -219,7 +223,8 @@ export function EntityHoverCard({
   }
 
   const info = getEntityInfo()
-  const imageUrl = info.imageUrl || '/placeholder.svg'
+  // Ensure imageUrl is a valid non-empty string, otherwise use placeholder
+  const imageUrl = (info.imageUrl && info.imageUrl.trim() !== '') ? info.imageUrl : '/placeholder.svg'
 
   // Use userStats prop if available, otherwise use entity data
   const displayStats = userStats || {

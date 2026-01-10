@@ -401,10 +401,13 @@ export async function getAuthorsByBookId(bookId: string): Promise<Author[]> {
         // Extract author IDs from the join table
         const authorIds = bookAuthors.map((item: { author_id: string }) => item.author_id)
 
-        // Get the authors without foreign key relationships
+        // Get the authors with author_image relation
         const { data: authors, error: authorsError } = await supabaseAdmin
           .from('authors')
-          .select('*')
+          .select(`
+            *,
+            author_image:author_image_id(id, url, alt_text)
+          `)
           .in('id', authorIds)
 
         if (authorsError) {
@@ -424,11 +427,14 @@ export async function getAuthorsByBookId(bookId: string): Promise<Author[]> {
       return []
     }
 
-    // Get the author without foreign key relationships
+    // Get the author with author_image relation
     try {
       const { data: author, error: authorError } = await supabaseAdmin
         .from('authors')
-        .select('*')
+        .select(`
+          *,
+          author_image:author_image_id(id, url, alt_text)
+        `)
         .eq('id', book.author_id)
         .single()
 

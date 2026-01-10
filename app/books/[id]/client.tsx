@@ -1591,9 +1591,7 @@ export function ClientBookPage({
                                 entity={{
                                   id: author.id,
                                   name: author.name,
-                                  author_image: author.author_image
-                                    ? { url: author.author_image.url }
-                                    : undefined,
+                                  author_image: author.author_image,
                                   bookCount: authorBookCounts[author.id] || 0,
                                 }}
                               >

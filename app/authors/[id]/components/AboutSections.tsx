@@ -361,35 +361,29 @@ export function LocationSection({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null)
-  const [editedContact, setEditedContact] = useState<ContactInfoInput>({
-    entity_type: 'author',
-    entity_id: author.id?.toString() || '',
-  })
+
+  const handleRefresh = () => {
+    setRefreshKey((prev) => prev + 1)
+    // Refetch contact info
+    const fetchContactInfo = async () => {
+      const info = await getContactInfo('author', author.id?.toString() || '')
+      if (info) {
+        setContactInfo(info)
+      }
+    }
+    fetchContactInfo()
+    if (onRefresh) onRefresh()
+  }
 
   useEffect(() => {
     const fetchContactInfo = async () => {
       const info = await getContactInfo('author', author.id?.toString() || '')
       if (info) {
         setContactInfo(info)
-        setEditedContact({
-          entity_type: 'author',
-          entity_id: author.id?.toString() || '',
-          address_line1: info.address_line1,
-          address_line2: info.address_line2,
-          city: info.city,
-          state: info.state,
-          postal_code: info.postal_code,
-          country: info.country,
-        })
       }
     }
     fetchContactInfo()
   }, [author.id, refreshKey])
-
-  const handleRefresh = () => {
-    setRefreshKey((prev) => prev + 1)
-    if (onRefresh) onRefresh()
-  }
 
   const formatLocation = () => {
     const parts = []
@@ -407,29 +401,6 @@ export function LocationSection({
     }
 
     return parts
-  }
-
-  const handleUpdateLocation = async () => {
-    try {
-      const updatedContact = await upsertContactInfo({
-        entity_type: 'author',
-        entity_id: author.id?.toString() || '',
-        address_line1: editedContact.address_line1 || undefined,
-        address_line2: editedContact.address_line2 || undefined,
-        city: editedContact.city || undefined,
-        state: editedContact.state || undefined,
-        postal_code: editedContact.postal_code || undefined,
-        country: editedContact.country || undefined,
-      })
-
-      if (updatedContact) {
-        setContactInfo(updatedContact)
-        setIsEditModalOpen(false)
-        handleRefresh()
-      }
-    } catch (error) {
-      console.error('Error updating location:', error)
-    }
   }
 
   return (

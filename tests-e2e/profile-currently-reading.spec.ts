@@ -62,6 +62,7 @@ test.describe('Profile Currently Reading visibility', () => {
     const viewer = users.find((u) => u?.id && u.id !== paul.id && u.email && u.email !== 'No email')
     if (!viewer) {
       test.skip(true, 'No suitable non-owner user found in /api/auth-users')
+      return
     }
 
     const expectedOtherUserCount = await computeExpectedVisibleCurrentlyReadingCount({

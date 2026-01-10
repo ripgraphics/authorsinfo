@@ -121,7 +121,7 @@ export function EditSectionModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="edit-section-modal w-[95vw] max-w-[500px] h-auto max-h-[90vh] overflow-y-auto">
+      <DialogContent className="edit-section-modal sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="edit-section-modal__title">
             {section === 'overview' && 'Edit Overview'}

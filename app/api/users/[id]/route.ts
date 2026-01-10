@@ -109,7 +109,19 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
         if (data.occupation !== undefined) profileUpdateData.occupation = data.occupation || null
 
         // Perform updates
-        let updatedUser = user
+        let updatedUser: any = null
+        // Fetch current user first
+        const { data: currentUser } = await supabaseAdmin
+          .from('users')
+          .select('*')
+          .eq('id', id)
+          .single()
+        
+        if (!currentUser) {
+          return NextResponse.json({ error: 'User not found' }, { status: 404 })
+        }
+        
+        updatedUser = currentUser
         if (Object.keys(userUpdateData).length > 0) {
           userUpdateData.updated_at = new Date().toISOString()
           const { data: updated, error: userUpdateError } = await supabaseAdmin

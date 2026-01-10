@@ -321,6 +321,18 @@ export default async function BookPageServer({ params }: { params: Promise<{ id:
       followersCount = 0
     }
 
+    // Fetch mutual friends count for this book
+    let bookMutualFriendsCount = 0
+    if (userId) {
+      try {
+        const { getMutualFriendsCount } = await import('@/lib/follows-server')
+        bookMutualFriendsCount = await getMutualFriendsCount(id, 'book', userId)
+      } catch (error) {
+        console.error('Error fetching mutual friends count for book:', error)
+        bookMutualFriendsCount = 0
+      }
+    }
+
     return (
       <>
         {/* Full width banner outside container constraints */}
@@ -345,6 +357,7 @@ export default async function BookPageServer({ params }: { params: Promise<{ id:
           readingProgress={readingProgress}
           followers={followers}
           followersCount={followersCount}
+          bookMutualFriendsCount={bookMutualFriendsCount}
           params={{ id }}
         />
       </>

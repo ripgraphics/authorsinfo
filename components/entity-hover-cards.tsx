@@ -506,31 +506,6 @@ export function UserHoverCard({
   )
 }
 
-interface AuthorHoverCardProps {
-  author: AuthorEntity
-  children: React.ReactNode
-}
-
-export function AuthorHoverCard({ author, children }: AuthorHoverCardProps) {
-  return (
-    <EntityHoverCard type="author" entity={author} showActions={false}>
-      {children}
-    </EntityHoverCard>
-  )
-}
-
-interface PublisherHoverCardProps {
-  publisher: PublisherEntity
-  children: React.ReactNode
-}
-
-export function PublisherHoverCard({ publisher, children }: PublisherHoverCardProps) {
-  return (
-    <EntityHoverCard type="publisher" entity={publisher} showActions={false}>
-      {children}
-    </EntityHoverCard>
-  )
-}
 
 interface GroupHoverCardProps {
   group: GroupEntity

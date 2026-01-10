@@ -23,8 +23,6 @@ import Link from 'next/link'
 import { Avatar } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 import {
-  AuthorHoverCard,
-  PublisherHoverCard,
   GroupHoverCard,
   EventCreatorHoverCard,
 } from '@/components/entity-hover-cards'
@@ -43,6 +41,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { FollowButton } from '@/components/follow-button'
 import { EntityImageUpload } from '@/components/entity/EntityImageUpload'
 import { AddFriendButton } from '@/components/add-friend-button'
+import { MutualFriendsDisplay } from '@/components/mutual-friends-display'
 import { ImageCropper } from '@/components/ui/image-cropper'
 import { CameraIconButton } from '@/components/ui/camera-icon-button'
 import { HoverOverlay } from '@/components/ui/hover-overlay'
@@ -76,6 +75,7 @@ export interface EntityHeaderProps {
   stats?: Stat[]
   location?: string
   website?: string
+  mutualFriendsCount?: number
   tabs: TabConfig[]
   activeTab: string
   onTabChange: (tabId: string) => void
@@ -200,6 +200,7 @@ export function EntityHeader({
   stats = [],
   location,
   website,
+  mutualFriendsCount,
   tabs,
   activeTab,
   onTabChange,
@@ -1303,10 +1304,12 @@ export function EntityHeader({
                   </div>
                 ))}
 
-                {location && (
-                  <div className="entity-header__location-item flex items-center text-muted-foreground">
-                    <MapPin className="h-4 w-4 mr-1" />
-                    <span>{location}</span>
+                {mutualFriendsCount !== undefined && mutualFriendsCount > 0 && (
+                  <div className="entity-header__mutual-friends-item flex items-center text-muted-foreground">
+                    <MutualFriendsDisplay
+                      count={mutualFriendsCount}
+                      variant="compact"
+                    />
                   </div>
                 )}
 

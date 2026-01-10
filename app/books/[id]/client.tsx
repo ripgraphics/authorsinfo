@@ -10,8 +10,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { AuthorAvatar } from '@/components/author-avatar'
-import { AuthorHoverCard } from '@/components/author-hover-card'
-import { PublisherHoverCard } from '@/components/entity-hover-cards'
 import { EntityHeader, TabConfig } from '@/components/entity-header'
 import {
   Dialog,
@@ -107,6 +105,7 @@ interface ClientBookPageProps {
   readingProgress: any | null
   followers?: Follower[]
   followersCount: number
+  bookMutualFriendsCount?: number
   params: { id: string }
 }
 
@@ -127,6 +126,7 @@ export function ClientBookPage({
   readingProgress,
   followers = [],
   followersCount = 0,
+  bookMutualFriendsCount = 0,
   params,
 }: ClientBookPageProps) {
   const { user } = useAuth()
@@ -1066,9 +1066,13 @@ export function ClientBookPage({
                   ? { url: authors[0].author_image.url }
                   : undefined,
                 bookCount: authorBookCounts[authors[0].id] || 0,
+                followersCount: authorFollowersCounts[authors[0].id],
+                mutualFriendsCount: authorMutualFriendsCounts[authors[0].id],
               }}
             >
-              <span className="text-muted-foreground">{authors[0].name}</span>
+              <span className="text-muted-foreground hover:text-primary transition-colors">
+                {authors[0].name}
+              </span>
             </EntityHoverCard>
           ) : undefined
         }
@@ -1084,7 +1088,7 @@ export function ClientBookPage({
             text: `${followersCount} followers`,
           },
         ]}
-        location={bookData.language || undefined}
+        mutualFriendsCount={bookMutualFriendsCount}
         website={bookData.website || undefined}
         tabs={tabs}
         activeTab={activeTab}

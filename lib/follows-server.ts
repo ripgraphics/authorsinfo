@@ -110,6 +110,64 @@ export async function getFollowersCount(
   return count || 0
 }
 
+// Get mutual friends count (friends of currentUser who are also following the entity)
+export async function getMutualFriendsCount(
+  followingId: string | number,
+  targetType: FollowTargetType,
+  currentUserId: string | null
+): Promise<number> {
+  if (!currentUserId) {
+    return 0
+  }
+
+  try {
+    const targetTypeData = await getFollowTargetType(targetType)
+    if (!targetTypeData) {
+      return 0
+    }
+
+    // Get all friends of the current user
+    const { data: friendsData } = await supabaseAdmin
+      .from('user_friends')
+      .select('user_id, friend_id')
+      .or(`user_id.eq.${currentUserId},friend_id.eq.${currentUserId}`)
+      .eq('status', 'accepted')
+
+    if (!friendsData || friendsData.length === 0) {
+      return 0
+    }
+
+    // Extract friend IDs
+    const friendIds = new Set<string>()
+    friendsData.forEach((friendship: Friendship) => {
+      const friendId = friendship.user_id === currentUserId ? friendship.friend_id : friendship.user_id
+      friendIds.add(friendId)
+    })
+
+    if (friendIds.size === 0) {
+      return 0
+    }
+
+    // Get followers of the entity who are also friends of the current user
+    const { count, error } = await supabaseAdmin
+      .from('follows')
+      .select('*', { count: 'exact', head: true })
+      .eq('following_id', followingId)
+      .eq('target_type_id', targetTypeData.id)
+      .in('follower_id', Array.from(friendIds))
+
+    if (error) {
+      console.error('Error getting mutual friends count:', error)
+      return 0
+    }
+
+    return count || 0
+  } catch (error) {
+    console.error('Error in getMutualFriendsCount:', error)
+    return 0
+  }
+}
+
 // Get followers for an entity with pagination
 export async function getFollowers(
   followingId: string | number,

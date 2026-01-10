@@ -22,6 +22,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { FollowButton } from '@/components/follow-button'
 import { AddFriendButton } from '@/components/add-friend-button'
+import { FollowersDisplay } from '@/components/followers-display'
+import { MutualFriendsDisplay } from '@/components/mutual-friends-display'
 
 // Enterprise-grade type definitions
 type EntityType = 'user' | 'author' | 'publisher' | 'group' | 'event' | 'book'
@@ -49,6 +51,8 @@ interface AuthorEntity extends BaseEntity {
     url: string
   }
   bookCount: number
+  followersCount?: number
+  mutualFriendsCount?: number
   bio?: string
 }
 
@@ -58,6 +62,9 @@ interface PublisherEntity extends BaseEntity {
   }
   logo_url?: string
   bookCount: number
+  authorCount?: number
+  followersCount?: number
+  mutualFriendsCount?: number
   location?: string
 }
 
@@ -168,12 +175,17 @@ export function EntityHoverCard({
         const authorEntity = entity as AuthorEntity
         // Extract image URL - handle null, undefined, and empty strings
         const authorImageUrl = authorEntity.author_image?.url?.trim()
+        
+        // Build subtitle - keep it simple, we'll show followers/mutual friends separately
         return {
           icon: <BookOpen className="mr-1 h-3 w-3" />,
           countText: `${authorEntity.bookCount} books`,
           href: `/authors/${entity.id}`,
           imageUrl: authorImageUrl && authorImageUrl !== '' ? authorImageUrl : undefined,
-          subtitle: authorEntity.bio,
+          subtitle: undefined,
+          // Pass followers and mutual friends counts for separate component display
+          followersCount: authorEntity.followersCount,
+          mutualFriendsCount: authorEntity.mutualFriendsCount,
         }
       case 'publisher':
         const publisherEntity = entity as PublisherEntity
@@ -183,12 +195,22 @@ export function EntityHoverCard({
           : (publisherEntity.logo_url && publisherEntity.logo_url.trim() !== '')
             ? publisherEntity.logo_url.trim()
             : undefined
+        
+        // Build subtitle - show author count, followers and mutual friends will be shown separately
+        const bookCountText = `${publisherEntity.bookCount} ${publisherEntity.bookCount === 1 ? 'book' : 'books'}`
+        const authorCountText = publisherEntity.authorCount !== undefined && publisherEntity.authorCount > 0
+          ? `${publisherEntity.authorCount} ${publisherEntity.authorCount === 1 ? 'author' : 'authors'}`
+          : null
+        
         return {
           icon: <BookOpen className="mr-1 h-3 w-3" />,
-          countText: `${publisherEntity.bookCount} books`,
+          countText: bookCountText,
           href: `/publishers/${entity.id}`,
           imageUrl: publisherImageUrl,
-          subtitle: publisherEntity.location,
+          subtitle: authorCountText || undefined,
+          // Pass followers and mutual friends counts for separate component display
+          followersCount: publisherEntity.followersCount,
+          mutualFriendsCount: publisherEntity.mutualFriendsCount,
         }
       case 'group': {
         const groupEntity = entity as GroupEntity
@@ -324,6 +346,25 @@ export function EntityHoverCard({
                 {entity.name}
               </h3>
               {info.subtitle && <p className="text-sm text-gray-500 mb-2">{info.subtitle}</p>}
+              {/* Display followers and mutual friends for author and publisher using reusable components */}
+              {(type === 'author' || type === 'publisher') && (
+                (() => {
+                  const hasFollowers = info.followersCount !== undefined && info.followersCount > 0
+                  const hasMutualFriends = info.mutualFriendsCount !== undefined && info.mutualFriendsCount > 0
+                  
+                  if (!hasFollowers && !hasMutualFriends) {
+                    return null
+                  }
+                  
+                  return (
+                    <p className="text-sm text-gray-500 mb-2">
+                      {hasFollowers && <FollowersDisplay count={info.followersCount} variant="compact" className="inline" />}
+                      {hasFollowers && hasMutualFriends && <span className="mx-1">•</span>}
+                      {hasMutualFriends && <MutualFriendsDisplay count={info.mutualFriendsCount} variant="compact" className="inline" />}
+                    </p>
+                  )
+                })()
+              )}
               <div className="flex items-center text-sm text-gray-500">
                 {info.icon}
                 <span>{info.countText}</span>

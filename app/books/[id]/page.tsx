@@ -13,7 +13,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 import type { Book, Author, Review, BindingType, FormatType } from '@/types/book'
 import { PageBanner } from '@/components/page-banner'
 import { ClientBookPage } from './client'
-import { getFollowers, getFollowersCount } from '@/lib/follows-server'
+import { getFollowers, getFollowersCount, getMutualFriendsCount } from '@/lib/follows-server'
 import { createServerComponentClientAsync } from '@/lib/supabase/client-helper'
 
 export const dynamic = 'force-dynamic'
@@ -139,6 +139,18 @@ export default async function BookPageServer({ params }: { params: Promise<{ id:
   const resolvedParams = await params
   const id = resolvedParams.id
   const supabase = await createServerComponentClientAsync()
+  
+  // Get current user for mutual friends calculation
+  let currentUserId: string | null = null
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    currentUserId = user?.id || null
+  } catch (error) {
+    // User not logged in, continue without mutual friends
+    currentUserId = null
+  }
 
   // Special case: if id is "add", redirect to the add page
   if (id === 'add') {
@@ -199,18 +211,63 @@ export default async function BookPageServer({ params }: { params: Promise<{ id:
       // Continue with null publisher
     }
 
-    // Fetch publisher's total books for hover card
+    // Fetch publisher's total books, author count, followers count, and mutual friends count for hover card
     let publisherBooksCount = 0
+    let publisherAuthorCount = 0
+    let publisherFollowersCount = 0
+    let publisherMutualFriendsCount = 0
     if (publisher) {
+      const { getPublisherAuthorCount } = await import('@/app/actions/data')
       const publisherBooks = await getBooksByPublisherId(publisher.id)
       publisherBooksCount = publisherBooks.length
+      publisherAuthorCount = await getPublisherAuthorCount(publisher.id)
+      
+      // Get followers count
+      try {
+        publisherFollowersCount = await getFollowersCount(publisher.id, 'publisher')
+      } catch (error) {
+        console.error(`Error fetching followers count for publisher ${publisher.id}:`, error)
+        publisherFollowersCount = 0
+      }
+      
+      // Get mutual friends count
+      if (currentUserId) {
+        try {
+          publisherMutualFriendsCount = await getMutualFriendsCount(publisher.id, 'publisher', currentUserId)
+        } catch (error) {
+          console.error(`Error fetching mutual friends count for publisher ${publisher.id}:`, error)
+          publisherMutualFriendsCount = 0
+        }
+      }
     }
 
-    // Fetch book counts for each author for hover cards
+    // Fetch book counts, followers count, and mutual friends count for each author for hover cards
     const authorBookCounts: Record<string, number> = {}
+    const authorFollowersCounts: Record<string, number> = {}
+    const authorMutualFriendsCounts: Record<string, number> = {}
     for (const author of authors) {
       const booksByAuthor = await getBooksByAuthorId(author.id)
       authorBookCounts[author.id] = booksByAuthor.length
+      
+      // Get followers count
+      try {
+        authorFollowersCounts[author.id] = await getFollowersCount(author.id, 'author')
+      } catch (error) {
+        console.error(`Error fetching followers count for author ${author.id}:`, error)
+        authorFollowersCounts[author.id] = 0
+      }
+      
+      // Get mutual friends count
+      if (currentUserId) {
+        try {
+          authorMutualFriendsCounts[author.id] = await getMutualFriendsCount(author.id, 'author', currentUserId)
+        } catch (error) {
+          console.error(`Error fetching mutual friends count for author ${author.id}:`, error)
+          authorMutualFriendsCounts[author.id] = 0
+        }
+      } else {
+        authorMutualFriendsCounts[author.id] = 0
+      }
     }
 
     // Map DB reviews to domain Review
@@ -276,7 +333,12 @@ export default async function BookPageServer({ params }: { params: Promise<{ id:
           authors={authors}
           publisher={publisher}
           publisherBooksCount={publisherBooksCount}
+          publisherAuthorCount={publisherAuthorCount}
+          publisherFollowersCount={publisherFollowersCount}
+          publisherMutualFriendsCount={publisherMutualFriendsCount}
           authorBookCounts={authorBookCounts}
+          authorFollowersCounts={authorFollowersCounts}
+          authorMutualFriendsCounts={authorMutualFriendsCounts}
           reviews={reviews}
           bindingType={bindingType}
           formatType={formatType}

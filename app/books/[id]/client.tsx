@@ -96,7 +96,12 @@ interface ClientBookPageProps {
   publisher: any | null
   reviews: Review[]
   publisherBooksCount: number
+  publisherAuthorCount?: number
+  publisherFollowersCount?: number
+  publisherMutualFriendsCount?: number
   authorBookCounts: Record<string, number>
+  authorFollowersCounts?: Record<string, number>
+  authorMutualFriendsCounts?: Record<string, number>
   bindingType: BindingType | null
   formatType: FormatType | null
   readingProgress: any | null
@@ -111,7 +116,12 @@ export function ClientBookPage({
   publisher,
   reviews,
   publisherBooksCount,
+  publisherAuthorCount = 0,
+  publisherFollowersCount = 0,
+  publisherMutualFriendsCount = 0,
   authorBookCounts,
+  authorFollowersCounts = {},
+  authorMutualFriendsCounts = {},
   bindingType,
   formatType,
   readingProgress,
@@ -1593,6 +1603,8 @@ export function ClientBookPage({
                                   name: author.name,
                                   author_image: author.author_image || undefined,
                                   bookCount: authorBookCounts[author.id] || 0,
+                                  followersCount: authorFollowersCounts[author.id],
+                                  mutualFriendsCount: authorMutualFriendsCounts[author.id],
                                 }}
                               >
                                 <span className="text-muted-foreground hover:text-primary transition-colors">
@@ -1619,6 +1631,9 @@ export function ClientBookPage({
                               publisher_image: publisher.publisher_image,
                               logo_url: publisher.publisher_image?.url,
                               bookCount: publisherBooksCount,
+                              authorCount: publisherAuthorCount,
+                              followersCount: publisherFollowersCount,
+                              mutualFriendsCount: publisherMutualFriendsCount,
                             }}
                           >
                             <span className="text-muted-foreground hover:text-primary transition-colors">

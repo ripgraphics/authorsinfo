@@ -289,6 +289,57 @@ export async function getBooksByAuthorId(authorId: string, limit = 10): Promise<
   }
 }
 
+// Get count of unique authors for a publisher
+export async function getPublisherAuthorCount(publisherId: string): Promise<number> {
+  try {
+    // Get all book IDs for this publisher
+    const { data: publisherBooks, error: booksError } = await supabaseAdmin
+      .from('books')
+      .select('id, author_id')
+      .eq('publisher_id', publisherId)
+
+    if (booksError) {
+      console.error('Error fetching publisher books for author count:', booksError)
+      return 0
+    }
+
+    if (!publisherBooks || publisherBooks.length === 0) {
+      return 0
+    }
+
+    const bookIds = publisherBooks.map((book: any) => book.id)
+    const authorIds = new Set<string>()
+
+    // Add authors from direct author_id field
+    publisherBooks.forEach((book: any) => {
+      if (book.author_id) {
+        authorIds.add(String(book.author_id))
+      }
+    })
+
+    // Get authors from book_authors join table
+    if (bookIds.length > 0) {
+      const { data: bookAuthors, error: bookAuthorsError } = await supabaseAdmin
+        .from('book_authors')
+        .select('author_id')
+        .in('book_id', bookIds)
+
+      if (!bookAuthorsError && bookAuthors) {
+        bookAuthors.forEach((ba: any) => {
+          if (ba.author_id) {
+            authorIds.add(String(ba.author_id))
+          }
+        })
+      }
+    }
+
+    return authorIds.size
+  } catch (error) {
+    console.error('Error getting publisher author count:', error)
+    return 0
+  }
+}
+
 export async function getBooksByPublisherId(publisherId: string, limit = 10): Promise<Book[]> {
   try {
     const { data, error } = await supabaseAdmin

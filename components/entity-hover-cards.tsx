@@ -10,11 +10,18 @@ import {
   Globe,
   Calendar,
   BookOpen,
-  UserPlus,
-  MessageCircle,
+  MessageSquare,
   MoreHorizontal,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { FollowButton } from '@/components/follow-button'
+import { AddFriendButton } from '@/components/add-friend-button'
 
 // Enterprise-grade type definitions
 type EntityType = 'user' | 'author' | 'publisher' | 'group' | 'event' | 'book'
@@ -110,6 +117,9 @@ export function EntityHoverCard({
   userStats,
 }: EntityHoverCardProps) {
   const router = useRouter()
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [isHoverCardOpen, setIsHoverCardOpen] = useState(false)
+
   const handleClose = () => {}
 
   const handleClick = () => {
@@ -117,6 +127,14 @@ export function EntityHoverCard({
     if (info.href) {
       router.push(info.href)
     }
+  }
+
+  const handleHoverCardOpenChange = (open: boolean) => {
+    // Keep hover card open if dropdown is open
+    if (isDropdownOpen && !open) {
+      return
+    }
+    setIsHoverCardOpen(open)
   }
 
   const getEntityInfo = () => {
@@ -160,12 +178,16 @@ export function EntityHoverCard({
       case 'publisher':
         const publisherEntity = entity as PublisherEntity
         // Extract image URL - try publisher_image first, then logo_url, handling null, undefined, and empty strings
-        const publisherImageUrl = publisherEntity.publisher_image?.url?.trim() || publisherEntity.logo_url?.trim()
+        const publisherImageUrl = (publisherEntity.publisher_image?.url && publisherEntity.publisher_image.url.trim() !== '') 
+          ? publisherEntity.publisher_image.url.trim()
+          : (publisherEntity.logo_url && publisherEntity.logo_url.trim() !== '')
+            ? publisherEntity.logo_url.trim()
+            : undefined
         return {
           icon: <BookOpen className="mr-1 h-3 w-3" />,
           countText: `${publisherEntity.bookCount} books`,
           href: `/publishers/${entity.id}`,
-          imageUrl: publisherImageUrl && publisherImageUrl !== '' ? publisherImageUrl : undefined,
+          imageUrl: publisherImageUrl,
           subtitle: publisherEntity.location,
         }
       case 'group': {
@@ -203,23 +225,18 @@ export function EntityHoverCard({
     }
   }
 
-  const handleAddFriend = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    // TODO: Implement add friend functionality using the new API
-    console.log('Add friend:', entity.id)
-    // This could be enhanced to use the new /api/friends endpoint
-  }
-
   const handleMessage = (e: React.MouseEvent) => {
     e.stopPropagation()
-    // TODO: Implement message functionality
-    console.log('Message:', entity.id)
-  }
-
-  const handleMoreOptions = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    // TODO: Implement more options menu
-    console.log('More options:', entity.id)
+    // For authors and publishers, navigate to their page for messaging
+    if (type === 'author' || type === 'publisher') {
+      const info = getEntityInfo()
+      if (info.href) {
+        router.push(info.href)
+      }
+    } else {
+      // TODO: Implement message functionality for users
+      console.log('Message:', entity.id)
+    }
   }
 
   const info = getEntityInfo()
@@ -263,7 +280,7 @@ export function EntityHoverCard({
   const joinDate = formatJoinDate(displayStats.joinedDate)
 
   return (
-    <HoverCard>
+    <HoverCard open={isHoverCardOpen || isDropdownOpen} onOpenChange={handleHoverCardOpenChange}>
       <HoverCardTrigger asChild>
         <span
           className="hover:underline cursor-pointer text-muted-foreground inline-block"
@@ -272,7 +289,16 @@ export function EntityHoverCard({
           {children}
         </span>
       </HoverCardTrigger>
-      <HoverCardContent className="p-0 bg-white border border-gray-200 shadow-xl">
+      <HoverCardContent 
+        className="p-0 bg-white border border-gray-200 shadow-xl"
+        onPointerDownOutside={(e) => {
+          // Don't close if clicking on dropdown menu
+          const target = e.target as HTMLElement
+          if (target.closest('[data-radix-dropdown-menu-content]')) {
+            e.preventDefault()
+          }
+        }}
+      >
         <div className="relative p-4">
           <CloseButton onClick={handleClose} variant="primary" className="absolute top-2 right-2" />
 
@@ -342,21 +368,67 @@ export function EntityHoverCard({
             </div>
           </div>
         </div>
-        {/* Action Buttons - Only show for users */}
-        {showActions && type === 'user' && (
-          <div className="px-4 pb-4">
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" className="flex-1" onClick={handleAddFriend}>
-                <UserPlus className="h-4 w-4 mr-2" />
-                Add Friend
-              </Button>
-              <Button variant="outline" size="sm" className="flex-1" onClick={handleMessage}>
-                <MessageCircle className="h-4 w-4 mr-2" />
+        {/* Action Buttons - Show for users, authors, and publishers */}
+        {showActions && (type === 'user' || type === 'author' || type === 'publisher') && (
+          <div className="px-4 pb-4 border-t border-gray-100">
+            <div className="flex gap-2 mt-3">
+              {type === 'user' ? (
+                <AddFriendButton
+                  targetUserId={entity.id}
+                  targetUserName={entity.name}
+                  className="flex-1"
+                  variant="outline"
+                  size="sm"
+                />
+              ) : (
+                <FollowButton
+                  entityId={entity.id}
+                  targetType={type === 'author' ? 'author' : 'publisher'}
+                  entityName={entity.name}
+                  variant="outline"
+                  className="flex-1"
+                />
+              )}
+              <Button className="flex-1 flex items-center" onClick={handleMessage} size="sm">
+                <MessageSquare className="h-4 w-4 mr-2" />
                 Message
               </Button>
-              <Button variant="outline" size="sm" className="px-3" onClick={handleMoreOptions}>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
+              <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="px-3"
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent 
+                  align="end"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onEscapeKeyDown={(e) => {
+                    // Close dropdown but keep hover card open
+                    setIsDropdownOpen(false)
+                    e.preventDefault()
+                  }}
+                >
+                  <DropdownMenuItem 
+                    className="flex items-center cursor-pointer"
+                    onPointerDown={(e) => e.stopPropagation()}
+                  >
+                    Share
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    className="flex items-center cursor-pointer"
+                    onPointerDown={(e) => e.stopPropagation()}
+                  >
+                    Report
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         )}

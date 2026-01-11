@@ -1095,8 +1095,8 @@ export function EntityHeader({
             onFollowChange={onFollow}
           />
         )}
-        {/* Message button - shown by default when isMessageable is true */}
-        {isMessageable && (
+        {/* Message button - shown by default when isMessageable is true, but not for own profile */}
+        {isMessageable && !(entityType === 'user' && user?.id === entityId) && (
           <Button className="entity-header__message-button flex items-center" onClick={onMessage}>
             <MessageSquare className="h-4 w-4 mr-2" />
             Message

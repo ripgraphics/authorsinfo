@@ -2,13 +2,19 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
-import { MessageCircle, UserMinus, UserPlus, Clock, Loader2 } from 'lucide-react'
+import { MessageCircle, UserMinus, UserPlus, Clock, Loader2, MoreHorizontal } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
 import FollowButton from '@/components/FollowButton'
 import { cn } from '@/lib/utils'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 interface UserActionButtonsProps {
   userId: string
@@ -59,7 +65,7 @@ export function UserActionButtons({
   }, [pathname, searchParams])
 
   const containerClass = cn(
-    'flex gap-2',
+    'flex gap-2 items-center',
     orientation === 'vertical' ? 'flex-col' : 'flex-row',
     className
   )
@@ -222,10 +228,10 @@ export function UserActionButtons({
   return (
     <div className={containerClass}>
       {showMessage && (
-        <Button variant={variant} size={size} asChild>
+        <Button variant="default" size={size} asChild>
           <Link href={`/messages/${userPermalink || userId}`}>
             <MessageCircle className="h-4 w-4 mr-2" />
-            Comment
+            Message
           </Link>
         </Button>
       )}
@@ -316,6 +322,23 @@ export function UserActionButtons({
           showText={false}
         />
       )}
+
+      {/* More options dropdown */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant={variant} size={size} className="ml-auto">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem className="cursor-pointer">
+            Report User
+          </DropdownMenuItem>
+          <DropdownMenuItem className="cursor-pointer text-destructive">
+            Block User
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   )
 }

@@ -295,7 +295,7 @@ export function FriendList({
                 )}
               </div>
             </Link>
-            <div className="px-3 pb-3 pt-0 border-t">
+            <div className="px-3 pb-3 pt-3 border-t">
               <UserActionButtons
                 userId={friend.friend.id}
                 userName={friend.friend.name}

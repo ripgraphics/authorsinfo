@@ -1246,16 +1246,16 @@ export function EntityHeader({
 
       {/* Header Content */}
       <div className="entity-header__content px-4 pb-4">
-        <div className="entity-header__profile-section flex flex-col md:flex-row md:items-start relative z-10">
+        <div className="entity-header__profile-section flex flex-col items-center md:flex-row md:items-start relative z-10">
           {/* Profile Image - Only this should go outside the container */}
-          <div className="shrink-0 self-start" style={{ transform: 'translateY(-40px)' }}>
+          <div className="shrink-0 self-start mx-auto md:mx-0" style={{ transform: 'translateY(-40px)' }}>
             {renderAvatar()}
           </div>
 
           {/* Entity Info - This should stay within the container */}
-          <div className="entity-header__info mt-6 md:ml-6 flex-1 min-w-0">
-            <div className="entity-header__info-layout flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-              <div className="entity-header__info-content flex-1 min-w-0 overflow-hidden">
+          <div className="entity-header__info mt-6 md:ml-6 flex-1 min-w-0 w-full md:w-auto">
+            <div className="entity-header__info-layout flex flex-col items-center md:flex-row md:items-start md:justify-between gap-4">
+              <div className="entity-header__info-content flex-1 min-w-0 overflow-hidden text-center md:text-left">
                 {renderEntityName()}
                 {entityType === 'group' && creatorName && (
                   <div className="entity-header__creator-info text-muted-foreground truncate text-sm">
@@ -1280,7 +1280,7 @@ export function EntityHeader({
             </div>
 
             {/* Stats and Info */}
-            <div className="entity-header__stats-container flex flex-wrap justify-between items-baseline gap-x-6 gap-y-2 mt-4">
+            <div className="entity-header__stats-container flex flex-wrap justify-center md:justify-between items-baseline gap-x-6 gap-y-2 mt-4">
               <div className="entity-header__stats-group flex flex-wrap gap-x-6 gap-y-2">
                 {stats.map((stat, index) => (
                   <div
@@ -1328,7 +1328,7 @@ export function EntityHeader({
                 )}
               </div>
 
-              <div className="entity-header__actions flex flex-wrap gap-2 mt-2 md:mt-0 shrink-0 md:flex-nowrap">
+              <div className="entity-header__actions flex flex-wrap justify-center md:justify-start gap-2 mt-2 md:mt-0 shrink-0 md:flex-nowrap">
                 {renderActions()}
               </div>
             </div>

@@ -912,7 +912,7 @@ export function EntityHeader({
 
   const renderEntityName = () => {
     const nameElement = (
-      <h1 className="entity-header__title text-base sm:text-[1.1rem] font-bold truncate w-full min-w-0 block">
+      <h1 className="entity-header__title text-base sm:text-[1.1rem] font-bold truncate max-w-full min-w-0 block">
         {name}
       </h1>
     )
@@ -928,7 +928,7 @@ export function EntityHeader({
         })
 
         return (
-          <h1 className="entity-header__title text-base sm:text-[1.1rem] font-bold truncate w-full min-w-0 block">
+          <h1 className="entity-header__title text-base sm:text-[1.1rem] font-bold truncate max-w-full min-w-0 block">
             <EntityHoverCard
               type="user"
               entity={{
@@ -1253,9 +1253,9 @@ export function EntityHeader({
           </div>
 
           {/* Entity Info - This should stay within the container */}
-          <div className="entity-header__info mt-6 md:ml-6 flex-1 min-w-0 w-full md:w-auto">
+          <div className="entity-header__info mt-6 md:ml-6 flex-1 min-w-0 max-w-full md:w-auto">
             <div className="entity-header__info-layout flex flex-col items-center md:flex-row md:items-start md:justify-between gap-4">
-              <div className="entity-header__info-content flex-1 min-w-0 overflow-hidden text-center md:text-left">
+              <div className="entity-header__info-content flex-1 min-w-0 max-w-full overflow-hidden text-center md:text-left">
                 {renderEntityName()}
                 {entityType === 'group' && creatorName && (
                   <div className="entity-header__creator-info text-muted-foreground truncate text-sm">

@@ -45,6 +45,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { bulkDeleteBooks, exportBooksToCSV } from '@/app/actions/admin-books'
 import { toast } from '@/hooks/use-toast'
+import { getBookCoverAltText } from '@/utils/bookUtils'
 
 interface Book {
   id: string
@@ -365,7 +366,8 @@ export function BookDataTable({
                 {book.cover_image?.url ? (
                   <Image
                     src={book.cover_image.url}
-                    alt={book.cover_image.alt_text || book.title}
+                    alt={book.cover_image.alt_text || getBookCoverAltText(book.title, 'front')}
+                    title={book.cover_image.alt_text || getBookCoverAltText(book.title, 'front')}
                     fill
                     className="object-cover rounded-lg"
                     sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16vw"

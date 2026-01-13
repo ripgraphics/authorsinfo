@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { BookOpen } from 'lucide-react'
+import { getBookCoverAltText } from '@/utils/bookUtils'
 
 interface BookCoverProps {
   id: string
@@ -43,7 +44,8 @@ export function BookCover({
       {coverImageUrl ? (
         <Image
           src={coverImageUrl}
-          alt={title}
+          alt={getBookCoverAltText(title, 'front')}
+          title={getBookCoverAltText(title, 'front')}
           fill
           className="object-cover"
           sizes={`${config.width}px`}

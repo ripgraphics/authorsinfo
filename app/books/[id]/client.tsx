@@ -63,12 +63,15 @@ import { formatDate } from '@/utils/dateUtils'
 import { canUserEditEntity } from '@/lib/auth-utils'
 import { BookEventsSection } from '@/components/book/BookEventsSection'
 import { BookCard } from '@/components/book-card'
+import { BookCoverCarouselEnhanced } from '@/components/book-cover-carousel-enhanced'
+import { getBookCoverAltText } from '@/utils/bookUtils'
 import { supabase } from '@/lib/supabase/client'
 import { EntityTabs, EntityTab } from '@/components/ui/entity-tabs'
 import { EntityPhotoAlbums } from '@/components/user-photo-albums'
 import { useSearchParams, useRouter } from 'next/navigation'
 import EnterpriseTimelineActivities from '@/components/enterprise/enterprise-timeline-activities-optimized'
 import { EntityImageUpload } from '@/components/entity/EntityImageUpload'
+import { BookImageManager } from './components/BookImageManager'
 import { CameraIconButton } from '@/components/ui/camera-icon-button'
 import { HoverOverlay } from '@/components/ui/hover-overlay'
 import { ImageCropper } from '@/components/ui/image-cropper'
@@ -1284,118 +1287,40 @@ export function ClientBookPage({
             <div className="book-detail-layout grid grid-cols-1 lg:grid-cols-3 gap-4">
               {/* Left Column - Book Cover (1/3 width) */}
               <div className="book-page__details-sidebar lg:col-span-1 lg:sticky lg:top-4 lg:self-start">
-                {/* Book Cover (full width) */}
-                <Card
-                  className="book-page__cover-card overflow-hidden relative"
-                  onMouseEnter={() => setIsHoveringCover(true)}
-                  onMouseLeave={() => setIsHoveringCover(false)}
-                >
-                  {bookData.cover_image?.url ? (
-                    <div
-                      className="book-page__cover-image w-full h-full relative"
-                      onMouseEnter={() => setIsHoveringCover(true)}
-                      onMouseLeave={() => {
-                        if (!isCoverDropdownOpen) {
-                          setIsHoveringCover(false)
-                        }
-                      }}
-                    >
-                      <Image
-                        key={bookData.cover_image_id || 'no-cover'}
-                        src={bookData.cover_image.url}
-                        alt={bookData.cover_image?.alt_text ?? bookData.title}
-                        width={400}
-                        height={600}
-                        className="w-full aspect-[2/3] object-cover"
-                      />
-                      {/* Camera Icon Overlay - Only show on hover and if editable */}
-                      {canEdit && (isHoveringCover || isCoverDropdownOpen) && (
-                        <HoverOverlay
-                          isVisible={isHoveringCover || isCoverDropdownOpen}
-                          onMouseEnter={() => setIsHoveringCover(true)}
-                          onMouseLeave={() => {
-                            if (!isCoverDropdownOpen) {
-                              setIsHoveringCover(false)
-                            }
-                          }}
-                        >
-                          <CameraIconButton
-                            onChangeCover={() => {
-                              setIsCoverImageModalOpen(true)
-                              setIsCoverDropdownOpen(false)
-                            }}
-                            onCrop={() => {
-                              setIsCoverCropModalOpen(true)
-                              setIsCoverDropdownOpen(false)
-                            }}
-                            changeCoverLabel="Change Cover Image"
-                            cropLabel="Crop Book Cover"
-                            showCrop={!!bookData.cover_image?.url}
-                            onOpenChange={(open) => {
-                              setIsCoverDropdownOpen(open)
-                              if (!open) {
-                                setIsHoveringCover(false)
-                              }
-                            }}
-                          />
-                        </HoverOverlay>
-                      )}
-                    </div>
-                  ) : (
-                    <div
-                      className="book-page__cover-placeholder w-full aspect-[2/3] bg-muted flex items-center justify-center relative"
-                      onMouseEnter={() => setIsHoveringCover(true)}
-                      onMouseLeave={() => {
-                        if (!isCoverDropdownOpen) {
-                          setIsHoveringCover(false)
-                        }
-                      }}
-                    >
-                      <BookOpen className="h-16 w-16 text-muted-foreground" />
-                      {/* Camera Icon Overlay - Only show on hover and if editable */}
-                      {canEdit && (isHoveringCover || isCoverDropdownOpen) && (
-                        <HoverOverlay
-                          isVisible={isHoveringCover || isCoverDropdownOpen}
-                          onMouseEnter={() => setIsHoveringCover(true)}
-                          onMouseLeave={() => {
-                            if (!isCoverDropdownOpen) {
-                              setIsHoveringCover(false)
-                            }
-                          }}
-                        >
-                          <CameraIconButton
-                            onChangeCover={() => {
-                              setIsCoverImageModalOpen(true)
-                              setIsCoverDropdownOpen(false)
-                            }}
-                            changeCoverLabel="Change Cover Image"
-                            showCrop={false}
-                            onOpenChange={(open) => {
-                              setIsCoverDropdownOpen(open)
-                              if (!open) {
-                                setIsHoveringCover(false)
-                              }
-                            }}
-                          />
-                        </HoverOverlay>
-                      )}
-                    </div>
-                  )}
-                </Card>
+                {/* Book Cover Carousel with Thumbnails */}
+                <BookCoverCarouselEnhanced
+                  bookId={bookData.id}
+                  bookTitle={bookData.title}
+                  currentImageId={bookData.cover_image_id || undefined}
+                  canEdit={canEdit}
+                  onImageChange={(imageId, imageUrl) => {
+                    // Update local state to reflect selected image
+                    // This is a preview - actual change would require API call
+                    console.log('Image changed:', imageId, imageUrl)
+                  }}
+                  onUploadClick={() => {
+                    setIsCoverImageModalOpen(true)
+                  }}
+                />
 
-                {/* Cover Image Upload Modal */}
+                {/* Book Image Upload Modal */}
                 {canEdit && (
-                  <EntityImageUpload
-                    entityId={book.id}
-                    entityType="book"
-                    currentImageUrl={
-                      bookData.cover_image?.url || bookData.cover_image_url || undefined
-                    }
-                    onImageChange={handleCoverImageChange}
-                    type="bookCover"
-                    isOpen={isCoverImageModalOpen}
-                    onOpenChange={setIsCoverImageModalOpen}
-                  />
+                  <Dialog open={isCoverImageModalOpen} onOpenChange={setIsCoverImageModalOpen}>
+                    <DialogContent className="max-w-2xl">
+                      <DialogHeader>
+                        <DialogTitle>Manage Book Images</DialogTitle>
+                      </DialogHeader>
+                      <BookImageManager
+                        bookId={bookData.id}
+                        bookTitle={bookData.title}
+                        canEdit={canEdit}
+                        onImageAdded={() => {
+                          setIsCoverImageModalOpen(false)
+                          window.dispatchEvent(new CustomEvent('entityImageChanged'))
+                        }}
+                      />
+                    </DialogContent>
+                  </Dialog>
                 )}
 
                 {/* Crop Cover Image Modal */}

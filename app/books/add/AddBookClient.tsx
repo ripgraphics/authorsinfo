@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { BookOpen, CheckCircle } from 'lucide-react'
 import { cleanSynopsis } from '@/utils/textUtils'
 import { addBookFromISBNDB } from '@/app/actions/add-book'
+import { getBookCoverAltText } from '@/utils/bookUtils'
 
 interface BookData {
   title: string
@@ -205,7 +206,13 @@ export function AddBookClient({
                 })()
               ) : coverImageUrl ? (
                 <div className="w-full aspect-[2/3] relative">
-                  <Image src={coverImageUrl} alt={bookTitle} fill className="object-cover" />
+                  <Image 
+                    src={coverImageUrl} 
+                    alt={getBookCoverAltText(bookTitle, 'front')} 
+                    title={getBookCoverAltText(bookTitle, 'front')} 
+                    fill 
+                    className="object-cover" 
+                  />
                 </div>
               ) : (
                 <div className="w-full aspect-[2/3] bg-muted flex items-center justify-center">
@@ -424,7 +431,8 @@ export function AddBookClient({
                           {book.cover_image?.url ? (
                             <Image
                               src={book.cover_image.url}
-                              alt={book.cover_image.alt_text || book.title}
+                              alt={book.cover_image.alt_text || getBookCoverAltText(book.title, 'front')}
+                              title={book.cover_image.alt_text || getBookCoverAltText(book.title, 'front')}
                               fill
                               className="object-cover"
                             />
@@ -462,7 +470,8 @@ export function AddBookClient({
                           {book.cover_image?.url ? (
                             <Image
                               src={book.cover_image.url}
-                              alt={book.cover_image.alt_text || book.title}
+                              alt={book.cover_image.alt_text || getBookCoverAltText(book.title, 'front')}
+                              title={book.cover_image.alt_text || getBookCoverAltText(book.title, 'front')}
                               fill
                               className="object-cover"
                             />

@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { BookOpen } from 'lucide-react'
+import { getBookCoverAltText } from '@/utils/bookUtils'
 import { Card } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { EntityHoverCard } from '@/components/entity-hover-cards'
@@ -48,7 +49,8 @@ export function BookCard({
             {coverImageUrl ? (
               <Image
                 src={coverImageUrl || '/placeholder.svg'}
-                alt={title}
+                alt={getBookCoverAltText(title, 'front')}
+                title={getBookCoverAltText(title, 'front')}
                 fill
                 className="object-cover"
                 sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"

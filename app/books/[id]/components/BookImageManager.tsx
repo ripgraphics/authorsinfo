@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Upload, Image as ImageIcon, BookOpen } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { supabase } from '@/lib/supabase/client'
+import { EntityImageUpload } from '@/components/entity/EntityImageUpload'
 
 interface BookImageManagerProps {
   bookId: string
@@ -25,6 +26,8 @@ export function BookImageManager({
 }: BookImageManagerProps) {
   const [uploading, setUploading] = useState(false)
   const [activeTab, setActiveTab] = useState<ImageType>('book_cover_front')
+  const [isFrontCoverUploadOpen, setIsFrontCoverUploadOpen] = useState(false)
+  const [isBackCoverUploadOpen, setIsBackCoverUploadOpen] = useState(false)
   const { toast } = useToast()
 
   if (!canEdit) {
@@ -146,6 +149,139 @@ export function BookImageManager({
     e.target.value = ''
   }
 
+  // Handle front cover upload completion from EntityImageUpload
+  const handleFrontCoverUploadComplete = async (newImageUrl: string, newImageId?: string) => {
+    if (!newImageId) {
+      toast({
+        title: 'Error',
+        description: 'Image uploaded but no image ID returned',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    try {
+      // Update books.cover_image_id
+      const { error: updateError } = await (supabase.from('books') as any)
+        .update({ cover_image_id: newImageId })
+        .eq('id', bookId)
+
+      if (updateError) {
+        console.error('Error updating book cover_image_id:', updateError)
+        throw new Error(`Failed to update book cover: ${updateError.message}`)
+      }
+
+      // Add to book album with image_type: 'book_cover_front'
+      const addResponse = await fetch(`/api/books/${bookId}/images`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          imageId: newImageId,
+          imageType: 'book_cover_front',
+          altText: `${bookTitle} : book cover`,
+        }),
+      })
+
+      if (!addResponse.ok) {
+        const error = await addResponse.json()
+        console.warn('Failed to add front cover to album (non-critical):', error)
+        // Don't throw - the image is uploaded and cover_image_id is updated
+      }
+
+      toast({
+        title: 'Success',
+        description: 'Front cover uploaded and cropped successfully',
+      })
+
+      // Trigger refresh
+      window.dispatchEvent(new CustomEvent('entityImageChanged'))
+      if (onImageAdded) {
+        onImageAdded()
+      }
+
+      // Close the upload modal
+      setIsFrontCoverUploadOpen(false)
+    } catch (error: any) {
+      console.error('Error handling front cover upload:', error)
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to complete front cover upload',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  // Handle back cover upload completion from EntityImageUpload
+  const handleBackCoverUploadComplete = async (newImageUrl: string, newImageId?: string) => {
+    if (!newImageId) {
+      toast({
+        title: 'Error',
+        description: 'Image uploaded but no image ID returned',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    try {
+      // Add to book album with image_type: 'book_cover_back'
+      const addResponse = await fetch(`/api/books/${bookId}/images`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          imageId: newImageId,
+          imageType: 'book_cover_back',
+          altText: `${bookTitle} : book back cover`,
+        }),
+      })
+
+      if (!addResponse.ok) {
+        const error = await addResponse.json()
+        // If image already exists in album, that's okay - just update the type
+        if (error.error?.includes('already exists') || error.error?.includes('duplicate')) {
+          // Try to update existing record
+          const { data: existing } = await (supabase.from('album_images') as any)
+            .select('id')
+            .eq('image_id', newImageId)
+            .eq('entity_id', bookId)
+            .maybeSingle()
+          
+          if (existing) {
+            await (supabase.from('album_images') as any)
+              .update({ image_type: 'book_cover_back' })
+              .eq('id', (existing as any).id)
+          }
+        } else {
+          throw new Error(error.error || 'Failed to add back cover to book')
+        }
+      }
+
+      toast({
+        title: 'Success',
+        description: 'Back cover uploaded and cropped successfully',
+      })
+
+      // Trigger refresh
+      window.dispatchEvent(new CustomEvent('entityImageChanged'))
+      if (onImageAdded) {
+        onImageAdded()
+      }
+
+      // Close the upload modal
+      setIsBackCoverUploadOpen(false)
+    } catch (error: any) {
+      console.error('Error handling back cover upload:', error)
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to complete back cover upload',
+        variant: 'destructive',
+      })
+    }
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -165,23 +301,22 @@ export function BookImageManager({
               <p className="text-sm text-muted-foreground mb-4">
                 Upload the front cover image for this book
               </p>
-              <label htmlFor="front-cover-upload">
-                <Button asChild disabled={uploading}>
-                  <span>
-                    <Upload className="h-4 w-4 mr-2" />
-                    {uploading ? 'Uploading...' : 'Upload Front Cover'}
-                  </span>
-                </Button>
-                <input
-                  id="front-cover-upload"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => handleFileSelect(e, 'book_cover_front')}
-                  disabled={uploading}
-                />
-              </label>
+              <Button
+                onClick={() => setIsFrontCoverUploadOpen(true)}
+                disabled={uploading}
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                {uploading ? 'Uploading...' : 'Upload Front Cover'}
+              </Button>
             </div>
+            <EntityImageUpload
+              entityId={bookId}
+              entityType="book"
+              onImageChange={handleFrontCoverUploadComplete}
+              type="bookCover"
+              isOpen={isFrontCoverUploadOpen}
+              onOpenChange={setIsFrontCoverUploadOpen}
+            />
           </TabsContent>
 
           <TabsContent value="book_cover_back" className="space-y-4">
@@ -190,23 +325,23 @@ export function BookImageManager({
               <p className="text-sm text-muted-foreground mb-4">
                 Upload the back cover image for this book
               </p>
-              <label htmlFor="back-cover-upload">
-                <Button asChild disabled={uploading} variant="outline">
-                  <span>
-                    <Upload className="h-4 w-4 mr-2" />
-                    {uploading ? 'Uploading...' : 'Upload Back Cover'}
-                  </span>
-                </Button>
-                <input
-                  id="back-cover-upload"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => handleFileSelect(e, 'book_cover_back')}
-                  disabled={uploading}
-                />
-              </label>
+              <Button
+                onClick={() => setIsBackCoverUploadOpen(true)}
+                disabled={uploading}
+                variant="outline"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                {uploading ? 'Uploading...' : 'Upload Back Cover'}
+              </Button>
             </div>
+            <EntityImageUpload
+              entityId={bookId}
+              entityType="book"
+              onImageChange={handleBackCoverUploadComplete}
+              type="bookCoverBack"
+              isOpen={isBackCoverUploadOpen}
+              onOpenChange={setIsBackCoverUploadOpen}
+            />
           </TabsContent>
 
           <TabsContent value="book_gallery" className="space-y-4">

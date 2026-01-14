@@ -242,10 +242,10 @@ export function BookCoverCarouselEnhanced({
         {frontCover && (
           <button
             onClick={() => handleThumbnailClick(images.indexOf(frontCover))}
-            className={`flex-shrink-0 relative w-[60px] h-[90px] rounded-md overflow-hidden border-2 transition-all ${
+            className={`flex-shrink-0 relative w-[60px] h-[90px] rounded-md overflow-hidden transition-all ${
               selectedImageIndex === images.indexOf(frontCover)
-                ? 'border-primary ring-2 ring-primary ring-offset-2'
-                : 'border-transparent hover:border-muted-foreground/50'
+                ? 'shadow-lg'
+                : 'shadow-sm hover:shadow-md'
             }`}
           >
             <Image
@@ -301,10 +301,10 @@ export function BookCoverCarouselEnhanced({
             <button
               key={galleryImage.id}
               onClick={() => handleThumbnailClick(index)}
-              className={`flex-shrink-0 relative w-[60px] h-[90px] rounded-md overflow-hidden border-2 transition-all ${
+              className={`flex-shrink-0 relative w-[60px] h-[90px] rounded-md overflow-hidden transition-all ${
                 selectedImageIndex === index
-                  ? 'border-primary ring-2 ring-primary ring-offset-2'
-                  : 'border-transparent hover:border-muted-foreground/50'
+                  ? 'shadow-lg'
+                  : 'shadow-sm hover:shadow-md'
               }`}
             >
               <Image

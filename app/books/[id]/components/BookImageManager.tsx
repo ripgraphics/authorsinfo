@@ -34,95 +34,102 @@ export function BookImageManager({
     return null
   }
 
-  const handleFileUpload = async (file: File, imageType: ImageType) => {
+  const uploadSingleFile = async (file: File, imageType: ImageType, showToast = true) => {
     if (!file.type.startsWith('image/')) {
-      toast({
-        title: 'Invalid file type',
-        description: 'Please upload an image file',
-        variant: 'destructive',
-      })
-      return
+      if (showToast) {
+        toast({
+          title: 'Invalid file type',
+          description: 'Please upload an image file',
+          variant: 'destructive',
+        })
+      }
+      throw new Error('Invalid file type')
     }
 
-    try {
-      setUploading(true)
+    // Determine image type for entity-image API
+    const entityImageType = imageType === 'book_cover_front' 
+      ? 'bookCover' 
+      : imageType === 'book_cover_back'
+      ? 'bookCoverBack'
+      : 'bookGallery'
 
-      // Determine image type for entity-image API
-      const entityImageType = imageType === 'book_cover_front' 
-        ? 'bookCover' 
-        : imageType === 'book_cover_back'
-        ? 'bookCoverBack'
-        : 'bookGallery'
+    // Prepare FormData for entity-image API
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('entityType', 'book')
+    formData.append('entityId', bookId)
+    formData.append('imageType', entityImageType)
+    formData.append('originalType', imageType === 'book_cover_front' || imageType === 'book_cover_back' ? 'bookCover' : 'bookGallery')
 
-      // Prepare FormData for entity-image API
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('entityType', 'book')
-      formData.append('entityId', bookId)
-      formData.append('imageType', entityImageType)
-      formData.append('originalType', imageType === 'book_cover_front' || imageType === 'book_cover_back' ? 'bookCover' : 'bookGallery')
+    // Upload using entity-image API
+    const uploadResponse = await fetch('/api/upload/entity-image', {
+      method: 'POST',
+      body: formData,
+    })
 
-      // Upload using entity-image API
-      const uploadResponse = await fetch('/api/upload/entity-image', {
-        method: 'POST',
-        body: formData,
-      })
+    if (!uploadResponse.ok) {
+      const error = await uploadResponse.json()
+      throw new Error(error.error || 'Failed to upload image')
+    }
 
-      if (!uploadResponse.ok) {
-        const error = await uploadResponse.json()
-        throw new Error(error.error || 'Failed to upload image')
-      }
+    const uploadResult = await uploadResponse.json()
 
-      const uploadResult = await uploadResponse.json()
+    if (!uploadResult.success || !uploadResult.image_id) {
+      throw new Error('Upload succeeded but no image ID returned')
+    }
 
-      if (!uploadResult.success || !uploadResult.image_id) {
-        throw new Error('Upload succeeded but no image ID returned')
-      }
+    // Always add to book album using book images API
+    // This ensures proper categorization with image_type
+    const addResponse = await fetch(`/api/books/${bookId}/images`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        imageId: uploadResult.image_id,
+        imageType: imageType,
+        altText: imageType === 'book_cover_back' 
+          ? `${bookTitle} : book back cover`
+          : imageType === 'book_cover_front'
+          ? `${bookTitle} : book cover`
+          : `${bookTitle} : gallery image`,
+      }),
+    })
 
-      // Always add to book album using book images API
-      // This ensures proper categorization with image_type
-      const addResponse = await fetch(`/api/books/${bookId}/images`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          imageId: uploadResult.image_id,
-          imageType: imageType,
-          altText: imageType === 'book_cover_back' 
-            ? `${bookTitle} : book back cover`
-            : imageType === 'book_cover_front'
-            ? `${bookTitle} : book cover`
-            : `${bookTitle} : gallery image`,
-        }),
-      })
-
-      if (!addResponse.ok) {
-        const error = await addResponse.json()
-        // If image already exists in album, that's okay - just update the type
-        if (error.error?.includes('already exists') || error.error?.includes('duplicate')) {
-          // Try to update existing record
-          const { data: existing } = await (supabase.from('album_images') as any)
-            .select('id')
-            .eq('image_id', uploadResult.image_id)
-            .eq('entity_id', bookId)
-            .maybeSingle()
-          
-          if (existing) {
-            await (supabase.from('album_images') as any)
-              .update({ image_type: imageType })
-              .eq('id', (existing as any).id)
-          }
-        } else {
-          throw new Error(error.error || 'Failed to add image to book')
+    if (!addResponse.ok) {
+      const error = await addResponse.json()
+      // If image already exists in album, that's okay - just update the type
+      if (error.error?.includes('already exists') || error.error?.includes('duplicate')) {
+        // Try to update existing record
+        const { data: existing } = await (supabase.from('album_images') as any)
+          .select('id')
+          .eq('image_id', uploadResult.image_id)
+          .eq('entity_id', bookId)
+          .maybeSingle()
+        
+        if (existing) {
+          await (supabase.from('album_images') as any)
+            .update({ image_type: imageType })
+            .eq('id', (existing as any).id)
         }
+      } else {
+        throw new Error(error.error || 'Failed to add image to book')
       }
+    }
 
+    if (showToast) {
       toast({
         title: 'Success',
         description: 'Image uploaded successfully',
       })
+    }
+  }
 
+  const handleFileUpload = async (file: File, imageType: ImageType) => {
+    try {
+      setUploading(true)
+      await uploadSingleFile(file, imageType, true)
+      
       // Trigger refresh
       window.dispatchEvent(new CustomEvent('entityImageChanged'))
       if (onImageAdded) {
@@ -140,13 +147,61 @@ export function BookImageManager({
     }
   }
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, imageType: ImageType) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      handleFileUpload(file, imageType)
-    }
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>, imageType: ImageType) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
     // Reset input
     e.target.value = ''
+
+    // For gallery, handle multiple files
+    if (imageType === 'book_gallery' && files.length > 1) {
+      setUploading(true)
+      let successCount = 0
+      let errorCount = 0
+
+      // Upload files sequentially to avoid overwhelming the server
+      for (let i = 0; i < files.length; i++) {
+        try {
+          await uploadSingleFile(files[i], imageType, false)
+          successCount++
+        } catch (error) {
+          errorCount++
+          console.error(`Error uploading file ${i + 1}:`, error)
+        }
+      }
+
+      setUploading(false)
+
+      // Show summary toast
+      if (successCount > 0 && errorCount === 0) {
+        toast({
+          title: 'Success',
+          description: `Successfully uploaded ${successCount} image${successCount > 1 ? 's' : ''}`,
+        })
+      } else if (successCount > 0 && errorCount > 0) {
+        toast({
+          title: 'Partial success',
+          description: `Uploaded ${successCount} image${successCount > 1 ? 's' : ''}, ${errorCount} failed`,
+          variant: 'destructive',
+        })
+      } else {
+        toast({
+          title: 'Upload failed',
+          description: `Failed to upload ${errorCount} image${errorCount > 1 ? 's' : ''}`,
+          variant: 'destructive',
+        })
+      }
+
+      // Trigger refresh
+      window.dispatchEvent(new CustomEvent('entityImageChanged'))
+      if (onImageAdded) {
+        onImageAdded()
+      }
+    } else {
+      // Single file upload (covers or single gallery image)
+      handleFileUpload(files[0], imageType)
+    }
   }
 
   // Handle front cover upload completion from EntityImageUpload

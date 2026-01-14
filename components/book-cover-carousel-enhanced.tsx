@@ -302,32 +302,24 @@ export function BookCoverCarouselEnhanced({
         onTouchEnd={onTouchEnd}
       >
         {currentImage && (
-          <div className={`book-page__cover-image w-full relative ${
-            currentImage.image_type === 'book_gallery' 
-              ? 'flex items-center justify-center min-h-[400px]' 
-              : 'aspect-[2/3]'
-          }`}>
-            {currentImage.image_type === 'book_gallery' ? (
-              <Image
-                src={currentImage.large_url || currentImage.image_url}
-                alt={currentImage.alt_text || getBookGalleryAltText(bookTitle, currentImage.caption || undefined)}
-                title={currentImage.alt_text || getBookGalleryAltText(bookTitle, currentImage.caption || undefined)}
-                width={800}
-                height={600}
-                className="max-w-full max-h-[600px] w-auto h-auto object-contain"
-                priority={false}
-              />
-            ) : (
-              <Image
-                src={currentImage.large_url || currentImage.image_url}
-                alt={currentImage.alt_text || getBookCoverAltText(bookTitle, currentImage.image_type === 'book_cover_back' ? 'back' : 'front')}
-                title={currentImage.alt_text || getBookCoverAltText(bookTitle, currentImage.image_type === 'book_cover_back' ? 'back' : 'front')}
-                width={400}
-                height={600}
-                className="w-full aspect-[2/3] object-cover"
-                priority={currentImage.image_type === 'book_cover_front'}
-              />
-            )}
+          <div className="book-page__cover-image w-full h-full relative aspect-[2/3] flex items-center justify-center bg-muted/10">
+            <Image
+              src={currentImage.large_url || currentImage.image_url}
+              alt={currentImage.alt_text || (currentImage.image_type === 'book_gallery' 
+                ? getBookGalleryAltText(bookTitle, currentImage.caption || undefined)
+                : getBookCoverAltText(bookTitle, currentImage.image_type === 'book_cover_back' ? 'back' : 'front'))}
+              title={currentImage.alt_text || (currentImage.image_type === 'book_gallery' 
+                ? getBookGalleryAltText(bookTitle, currentImage.caption || undefined)
+                : getBookCoverAltText(bookTitle, currentImage.image_type === 'book_cover_back' ? 'back' : 'front'))}
+              width={400}
+              height={600}
+              className={`w-full h-full ${
+                currentImage.image_type === 'book_gallery' 
+                  ? 'object-contain' 
+                  : 'object-cover'
+              }`}
+              priority={currentImage.image_type === 'book_cover_front'}
+            />
             {images.length > 1 && (
               <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
                 {selectedImageIndex + 1} / {images.length}

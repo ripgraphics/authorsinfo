@@ -84,6 +84,7 @@ BEGIN
     INNER JOIN images i ON ai.image_id = i.id
     WHERE pa.entity_id = p_book_id
         AND pa.entity_type = 'book'
+        AND pa.name LIKE 'Book Images - %'  -- Only include the dedicated Book Images album, exclude "Header Cover Images" and "Avatar Images"
         AND (p_image_type IS NULL OR ai.image_type = p_image_type)
         AND i.deleted_at IS NULL
     ORDER BY 
@@ -121,11 +122,12 @@ BEGIN
         RAISE EXCEPTION 'cover_type must be book_cover_front or book_cover_back';
     END IF;
     
-    -- Get or create book album
+    -- Get or create the dedicated "Book Images" album (not Header Cover Images or Avatar Images)
     SELECT id INTO v_album_id
     FROM photo_albums
     WHERE entity_id = p_book_id
         AND entity_type = 'book'
+        AND name LIKE 'Book Images - %'
     LIMIT 1;
     
     -- If album doesn't exist, create it
@@ -254,11 +256,12 @@ DECLARE
     v_next_order INTEGER;
     v_record_id UUID;
 BEGIN
-    -- Get or create book album
+    -- Get or create the dedicated "Book Images" album (not Header Cover Images or Avatar Images)
     SELECT id INTO v_album_id
     FROM photo_albums
     WHERE entity_id = p_book_id
         AND entity_type = 'book'
+        AND name LIKE 'Book Images - %'
     LIMIT 1;
     
     -- If album doesn't exist, create it
@@ -354,11 +357,13 @@ DECLARE
     v_album_id UUID;
     v_owner_id UUID;
 BEGIN
-    -- Only create if album doesn't exist
+    -- Only create the dedicated "Book Images" album if it doesn't exist
+    -- Don't create if Header Cover Images or Avatar Images albums exist
     SELECT id INTO v_album_id
     FROM photo_albums
     WHERE entity_id = NEW.id
         AND entity_type = 'book'
+        AND name LIKE 'Book Images - %'
     LIMIT 1;
     
     IF v_album_id IS NULL THEN
@@ -437,11 +442,12 @@ BEGIN
         FROM books
         WHERE cover_image_id IS NOT NULL
     LOOP
-        -- Get or create album
+        -- Get or create the dedicated "Book Images" album (not Header Cover Images or Avatar Images)
         SELECT id INTO v_album_id
         FROM photo_albums
         WHERE entity_id = v_book.id
             AND entity_type = 'book'
+            AND name LIKE 'Book Images - %'
         LIMIT 1;
         
         IF v_album_id IS NULL THEN

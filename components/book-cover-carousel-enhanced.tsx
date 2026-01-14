@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { X, ChevronLeft, ChevronRight, Plus, Camera } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -54,7 +54,7 @@ export function BookCoverCarouselEnhanced({
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [touchStart, setTouchStart] = useState<number | null>(null)
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
-  const [thumbnailPage, setThumbnailPage] = useState(0)
+  const thumbnailContainerRef = useRef<HTMLDivElement>(null)
 
   // Fetch book images using the database function
   useEffect(() => {
@@ -157,17 +157,6 @@ export function BookCoverCarouselEnhanced({
     setSelectedImageIndex(index)
     const image = images[index]
     
-    // Update thumbnail page if clicking on a gallery image not on current page
-    if (image && image.image_type === 'book_gallery') {
-      const galleryIndex = galleryImages.indexOf(image)
-      if (galleryIndex >= 0) {
-        const newPage = Math.floor(galleryIndex / thumbnailsPerPage)
-        if (newPage !== thumbnailPage) {
-          setThumbnailPage(newPage)
-        }
-      }
-    }
-    
     if (image && onImageChange) {
       onImageChange(image.image_id, image.image_url)
     }
@@ -210,49 +199,62 @@ export function BookCoverCarouselEnhanced({
       // Swipe left - go to next image
       const newIndex = selectedImageIndex < images.length - 1 ? selectedImageIndex + 1 : 0
       setSelectedImageIndex(newIndex)
-      
-      // Update thumbnail page if needed
-      const newImage = images[newIndex]
-      if (newImage && newImage.image_type === 'book_gallery') {
-        const galleryIndex = galleryImages.indexOf(newImage)
-        if (galleryIndex >= 0) {
-          const newPage = Math.floor(galleryIndex / thumbnailsPerPage)
-          if (newPage !== thumbnailPage) {
-            setThumbnailPage(newPage)
-          }
-        }
-      }
     }
     if (isRightSwipe && images.length > 1) {
       // Swipe right - go to previous image
       const newIndex = selectedImageIndex > 0 ? selectedImageIndex - 1 : images.length - 1
       setSelectedImageIndex(newIndex)
-      
-      // Update thumbnail page if needed
-      const newImage = images[newIndex]
-      if (newImage && newImage.image_type === 'book_gallery') {
-        const galleryIndex = galleryImages.indexOf(newImage)
-        if (galleryIndex >= 0) {
-          const newPage = Math.floor(galleryIndex / thumbnailsPerPage)
-          if (newPage !== thumbnailPage) {
-            setThumbnailPage(newPage)
-          }
-        }
-      }
     }
   }
 
-  // Calculate thumbnail pagination
-  // Always show front cover, back cover, then paginate gallery images
-  const fixedThumbnailsCount = (frontCover ? 1 : 0) + (backCover ? 1 : 0)
-  const thumbnailsPerPage = 5
-  // Only paginate gallery images (add button is always visible if canEdit)
-  const totalThumbnailPages = Math.ceil(galleryImages.length / thumbnailsPerPage) || 1
-  
-  // Calculate which gallery images to show on current page
-  const galleryStartIndex = thumbnailPage * thumbnailsPerPage
-  const galleryEndIndex = galleryStartIndex + thumbnailsPerPage
-  const visibleGalleryImages = galleryImages.slice(galleryStartIndex, galleryEndIndex)
+  // Calculate if thumbnails need pagination dots
+  // Each thumbnail is 60px wide + 8px gap = 68px per thumbnail
+  // We'll show dots if there are more thumbnails than can fit in a typical viewport
+  const totalThumbnails = (frontCover ? 1 : 0) + (backCover ? 1 : 0) + galleryImages.length + (canEdit ? 1 : 0)
+  const [needsPaginationDots, setNeedsPaginationDots] = useState(false)
+  const [thumbnailSections, setThumbnailSections] = useState(1)
+
+  // Check if thumbnails overflow and calculate sections
+  useEffect(() => {
+    if (thumbnailContainerRef.current && totalThumbnails > 0) {
+      const container = thumbnailContainerRef.current
+      const containerWidth = container.clientWidth
+      const thumbnailWidth = 68 // 60px thumbnail + 8px gap
+      const thumbnailsPerVisibleRow = Math.floor(containerWidth / thumbnailWidth)
+      
+      const needsDots = totalThumbnails > thumbnailsPerVisibleRow
+      setNeedsPaginationDots(needsDots)
+      setThumbnailSections(needsDots ? Math.ceil(totalThumbnails / thumbnailsPerVisibleRow) : 1)
+    }
+  }, [totalThumbnails, images.length])
+
+  // Scroll thumbnail container to show selected thumbnail
+  useEffect(() => {
+    if (thumbnailContainerRef.current && images.length > 0) {
+      const container = thumbnailContainerRef.current
+      const selectedThumbnail = container.querySelector(`[data-thumbnail-index="${selectedImageIndex}"]`) as HTMLElement
+      
+      if (selectedThumbnail) {
+        const containerRect = container.getBoundingClientRect()
+        const thumbnailRect = selectedThumbnail.getBoundingClientRect()
+        
+        // Check if thumbnail is outside visible area
+        if (thumbnailRect.left < containerRect.left) {
+          // Scroll left to show thumbnail
+          container.scrollTo({
+            left: container.scrollLeft + (thumbnailRect.left - containerRect.left) - 16, // 16px padding
+            behavior: 'smooth'
+          })
+        } else if (thumbnailRect.right > containerRect.right) {
+          // Scroll right to show thumbnail
+          container.scrollTo({
+            left: container.scrollLeft + (thumbnailRect.right - containerRect.right) + 16, // 16px padding
+            behavior: 'smooth'
+          })
+        }
+      }
+    }
+  }, [selectedImageIndex, images.length])
 
   if (loading) {
     return (
@@ -331,10 +333,14 @@ export function BookCoverCarouselEnhanced({
 
       {/* Thumbnail Row */}
       <div className="space-y-2">
-        <div className="flex gap-2 overflow-hidden">
+        <div 
+          ref={thumbnailContainerRef}
+          className="flex gap-2 overflow-x-auto scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        >
           {/* Front Cover Thumbnail (always first) */}
           {frontCover && (
             <button
+              data-thumbnail-index={images.indexOf(frontCover)}
               onClick={() => handleThumbnailClick(images.indexOf(frontCover))}
               className={`flex-shrink-0 relative w-[60px] h-[90px] rounded-md overflow-hidden transition-all ${
                 selectedImageIndex === images.indexOf(frontCover)
@@ -363,6 +369,7 @@ export function BookCoverCarouselEnhanced({
           {/* Back Cover Thumbnail (if exists) */}
           {backCover && (
             <button
+              data-thumbnail-index={images.indexOf(backCover)}
               onClick={() => handleThumbnailClick(images.indexOf(backCover))}
               className={`flex-shrink-0 relative w-[60px] h-[90px] rounded-md overflow-hidden transition-all ${
                 selectedImageIndex === images.indexOf(backCover)
@@ -388,12 +395,13 @@ export function BookCoverCarouselEnhanced({
             </button>
           )}
 
-          {/* Gallery Image Thumbnails (visible page) */}
-          {visibleGalleryImages.map((galleryImage) => {
+          {/* Gallery Image Thumbnails */}
+          {galleryImages.map((galleryImage) => {
             const index = images.indexOf(galleryImage)
             return (
               <button
                 key={galleryImage.id}
+                data-thumbnail-index={index}
                 onClick={() => handleThumbnailClick(index)}
                 className={`flex-shrink-0 relative w-[60px] h-[90px] rounded-md overflow-hidden transition-all ${
                   selectedImageIndex === index
@@ -431,21 +439,28 @@ export function BookCoverCarouselEnhanced({
           )}
         </div>
 
-        {/* Pagination Dots */}
-        {galleryImages.length > thumbnailsPerPage && (
-          <div className="flex justify-center gap-1.5">
-            {Array.from({ length: totalThumbnailPages }).map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setThumbnailPage(index)}
-                className={`h-2 rounded-full transition-all ${
-                  thumbnailPage === index
-                    ? 'bg-primary w-6'
-                    : 'bg-muted-foreground/30 hover:bg-muted-foreground/50 w-2'
-                }`}
-                aria-label={`Go to thumbnail page ${index + 1}`}
-              />
-            ))}
+        {/* Pagination Dots - Only show when thumbnails overflow */}
+        {needsPaginationDots && thumbnailSections > 1 && (
+          <div className="flex justify-center gap-1.5 pt-1">
+            {Array.from({ length: thumbnailSections }).map((_, index) => {
+              const scrollPosition = index * (thumbnailContainerRef.current?.clientWidth || 340) // Scroll by container width
+              return (
+                <button
+                  key={index}
+                  onClick={() => {
+                    if (thumbnailContainerRef.current) {
+                      const containerWidth = thumbnailContainerRef.current.clientWidth
+                      thumbnailContainerRef.current.scrollTo({
+                        left: index * containerWidth,
+                        behavior: 'smooth'
+                      })
+                    }
+                  }}
+                  className="h-2 w-2 rounded-full transition-all bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                  aria-label={`Scroll to thumbnail section ${index + 1}`}
+                />
+              )
+            })}
           </div>
         )}
       </div>
